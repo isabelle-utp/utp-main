@@ -35,8 +35,8 @@ consts
   uimpl  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<Rightarrow>" 25)
   uiff   :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<Leftrightarrow>" 25)
   unot   :: "'a \<Rightarrow> 'a" ("\<not> _" [40] 40)
-  uex    :: "('a, '\<alpha>) uvar \<Rightarrow> 'p \<Rightarrow> 'p"
-  uall   :: "('a, '\<alpha>) uvar \<Rightarrow> 'p \<Rightarrow> 'p"
+  uex    :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
+  uall   :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
   ushEx  :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   ushAll :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   
@@ -264,13 +264,13 @@ lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarro
 lift_definition iff_upred ::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P Q A. P A \<longleftrightarrow> Q A" .
 
-lift_definition ex :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
+lift_definition ex :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> x P b. (\<exists> v. P(put\<^bsub>x\<^esub> b v))" .
 
 lift_definition shEx ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<exists> x. (P x) A" .
 
-lift_definition all :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
+lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> x P b. (\<forall> v. P(put\<^bsub>x\<^esub> b v))" .
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
@@ -935,14 +935,14 @@ lemma eq_cong_left:
   by (pred_simp, (meson mwb_lens_def vwb_lens_mwb weak_lens_def)+)
 
 lemma conj_eq_in_var_subst:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "vwb_lens x"
   shows "(P \<and> $x =\<^sub>u v) = (P\<lbrakk>v/$x\<rbrakk> \<and> $x =\<^sub>u v)"
   using assms
   by (pred_simp, (metis vwb_lens_wb wb_lens.get_put)+)
 
 lemma conj_eq_out_var_subst:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "vwb_lens x"
   shows "(P \<and> $x\<acute> =\<^sub>u v) = (P\<lbrakk>v/$x\<acute>\<rbrakk> \<and> $x\<acute> =\<^sub>u v)"
   using assms
@@ -1066,7 +1066,7 @@ lemma taut_iff_eq:
   by (pred_auto)
 
 lemma subst_eq_replace:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by (pred_auto)
 
@@ -1274,7 +1274,7 @@ lemma C4b: "x \<bowtie> y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \
   using ex_commute by blast
 
 lemma C5:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(&x =\<^sub>u &x) = true"
   by (pred_auto)
 

@@ -4,7 +4,7 @@ theory utp_unrest
   imports utp_expr
 begin
 
-text {* Unrestriction is an encoding of semantic freshness, that allows us to reason about the
+text {* Unrestriction is an encoding of semantic  freshness, that allows us to reason about the
         presence of variables in predicates without being concerned with abstract syntax trees.
         An expression $p$ is unrestricted by variable $x$, written $x \mathop{\sharp} p$, if
         altering the value of $x$ has no effect on the valuation of $p$. This is a sufficient
@@ -23,7 +23,7 @@ translations
 named_theorems unrest
 method unrest_tac = (simp add: unrest)?
 
-lift_definition unrest_upred :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
+lift_definition unrest_upred :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
                adhoc_overloading
   unrest unrest_upred
@@ -52,13 +52,13 @@ lemma unrest_ouvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Lo
   by (metis out_var_indep out_var_uvar unrest_var)
 
 lemma unrest_iuvar_ouvar [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "vwb_lens y"
   shows "$x \<sharp> $y\<acute>"
   by (metis prod.collapse unrest_upred.rep_eq var.rep_eq var_lookup_out var_update_in)
 
 lemma unrest_ouvar_iuvar [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "vwb_lens y"
   shows "$x\<acute> \<sharp> $y"
   by (metis prod.collapse unrest_upred.rep_eq var.rep_eq var_lookup_in var_update_out)

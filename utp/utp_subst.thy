@@ -19,8 +19,8 @@ named_theorems usubst
 text {* A substitution is simply a transformation on the alphabet; it shows how variables
         should be mapped to different values. *}
 
-type_synonym ('\<alpha>,'\<beta>) psubst = "'\<alpha> alphabet \<Rightarrow> '\<beta> alphabet"
-type_synonym '\<alpha> usubst = "'\<alpha> alphabet \<Rightarrow> '\<alpha> alphabet"
+type_synonym ('\<alpha>,'\<beta>) psubst = "'\<alpha> \<Rightarrow> '\<beta>"
+type_synonym '\<alpha> usubst = "'\<alpha> \<Rightarrow> '\<alpha>"
 
 lift_definition subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" is
 "\<lambda> \<sigma> e b. e (\<sigma> b)" .
@@ -32,7 +32,7 @@ text {* Update the value of a variable to an expression in a substitution *}
 
 consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst"
 
-definition subst_upd_uvar :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
+definition subst_upd_uvar :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
 "subst_upd_uvar \<sigma> x v = (\<lambda> b. put\<^bsub>x\<^esub> (\<sigma> b) (\<lbrakk>v\<rbrakk>\<^sub>eb))"
 
 adhoc_overloading
@@ -40,12 +40,12 @@ adhoc_overloading
 
 text {* Lookup the expression associated with a variable in a substitution *}
 
-lift_definition usubst_lookup :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<langle>_\<rangle>\<^sub>s")
+lift_definition usubst_lookup :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<langle>_\<rangle>\<^sub>s")
 is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 
 text {* Relational lifting of a substitution to the first element of the state space *}
 
-definition unrest_usubst :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
+definition unrest_usubst :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
 where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
 
 adhoc_overloading
@@ -69,7 +69,7 @@ translations
 
 text {* Deletion of a substitution maplet *}
 
-definition subst_del :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> usubst" (infix "-\<^sub>s" 85) where
+definition subst_del :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst" (infix "-\<^sub>s" 85) where
 "subst_del \<sigma> x = \<sigma>(x \<mapsto>\<^sub>s &x)"
 
 subsection {* Substitution laws *}
@@ -105,7 +105,7 @@ lemma usubst_upd_comm2:
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
 lemma swap_usubst_inj:
-  fixes x y :: "('a, '\<alpha>) uvar"
+  fixes x y :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "inj [x \<mapsto>\<^sub>s &y, y \<mapsto>\<^sub>s &x]"
   using assms
@@ -122,7 +122,7 @@ lemma usubst_upd_var_id [usubst]:
 done
 
 lemma usubst_upd_comm_dash [usubst]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
   using out_in_indep usubst_upd_comm by blast
 
@@ -176,7 +176,7 @@ lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<
 text {* We set up a purely syntactic order on variable lenses which is useful for the substitution
         normal form. *}
 
-definition var_name_ord :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) uvar \<Rightarrow> bool" where
+definition var_name_ord :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> bool" where
 [no_atp]: "var_name_ord x y = True"
 
 syntax
@@ -242,7 +242,7 @@ lemma subst_subst [usubst]: "\<sigma> \<dagger> \<rho> \<dagger> e = (\<rho> \<c
   by (transfer, simp)
 
 lemma subst_upd_comp [usubst]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<rho>(x \<mapsto>\<^sub>s v) \<circ> \<sigma> = (\<rho> \<circ> \<sigma>)(x \<mapsto>\<^sub>s \<sigma> \<dagger> v)"
   by (rule ext, simp add:uexpr_defs subst_upd_uvar_def, transfer, simp)
 
@@ -267,7 +267,7 @@ translations
   "P\<lbrakk>v/x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
 
 lemma subst_singleton:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "x \<sharp> \<sigma>"
   shows "\<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = (\<sigma> \<dagger> P)\<lbrakk>v/x\<rbrakk>"
   using assms

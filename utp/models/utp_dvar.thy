@@ -254,7 +254,7 @@ class vst =
   fixes vstore_lens :: "vstore \<Longrightarrow> 'a" ("\<V>")
   assumes vstore_vwb_lens [simp]: "vwb_lens vstore_lens"
 
-definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) uvar" ("_\<up>" [999] 999) where
+definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a \<Longrightarrow> '\<alpha>::vst)" ("_\<up>" [999] 999) where
 "dvar_lift x = dvar_lens x ;\<^sub>L vstore_lens"
 
 definition [simp]: "in_dvar x = in_var (x\<up>)"
@@ -359,6 +359,6 @@ text {* Set up deep variable blocks *}
 
 translations
   "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
-  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a, _) uvar. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
+  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a \<Longrightarrow> _). P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
   "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
 end

@@ -139,7 +139,7 @@ proof -
   from assms(2) have "1\<^sub>L \<subseteq>\<^sub>L a +\<^sub>L b"
     by (simp add: bij_lens_equiv_id lens_equiv_def)
   with assms(1,3,4) show ?thesis
-    apply (auto simp add: alpha_of_def id_lens_def lens_plus_def sublens_def lens_comp_def prod.case_eq_if)
+    apply (auto simp add: id_lens_def lens_plus_def sublens_def lens_comp_def prod.case_eq_if)
     apply (pred_simp)
     apply (metis lens_indep_comm mwb_lens_weak weak_lens.put_get)
   done

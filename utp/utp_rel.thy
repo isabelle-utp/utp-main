@@ -13,10 +13,10 @@ consts
   useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
   uskip  :: "'a" ("II")
 
-definition in\<alpha> :: "('\<alpha>, '\<alpha> \<times> '\<beta>) uvar" where
+definition in\<alpha> :: "('\<alpha> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
 "in\<alpha> = \<lparr> lens_get = fst, lens_put = \<lambda> (A, A') v. (v, A') \<rparr>"
 
-definition out\<alpha> :: "('\<beta>, '\<alpha> \<times> '\<beta>) uvar" where
+definition out\<alpha> :: "('\<beta> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
 "out\<alpha> = \<lparr> lens_get = snd, lens_put = \<lambda> (A, A') v. (A, v) \<rparr>"
 
 declare in\<alpha>_def [urel_defs]
@@ -83,11 +83,11 @@ lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel" ("\
 definition skip_r :: "'\<alpha> hrel" where
 "skip_r = assigns_r id"
 
-abbreviation assign_r :: "('t, '\<alpha>) uvar \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
+abbreviation assign_r :: "('t \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
 where "assign_r x v \<equiv> assigns_r [x \<mapsto>\<^sub>s v]"
 
 abbreviation assign_2_r ::
-  "('t1, '\<alpha>) uvar \<Rightarrow> ('t2, '\<alpha>) uvar \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
+  "('t1 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t2 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
 where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
 
 nonterminal
@@ -149,7 +149,7 @@ declare skip_r_def [urel_defs]
 
 text {* We implement a poor man's version of alphabet restriction that hides a variable within a relation *}
 
-definition rel_var_res :: "'\<alpha> hrel \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel" (infix "\<restriction>\<^sub>\<alpha>" 80) where
+definition rel_var_res :: "'\<alpha> hrel \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<restriction>\<^sub>\<alpha>" 80) where
 "P \<restriction>\<^sub>\<alpha> x = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
 
 declare rel_var_res_def [urel_defs]
@@ -167,13 +167,13 @@ lemma unrest_ouvar [unrest]: "in\<alpha> \<sharp> $x\<acute>"
   by (simp add: in\<alpha>_def, transfer, auto)
 
 lemma unrest_semir_undash [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "$x \<sharp> P"
   shows "$x \<sharp> P ;; Q"
   using assms by (rel_auto)
 
 lemma unrest_semir_dash [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "$x\<acute> \<sharp> Q"
   shows "$x\<acute> \<sharp> P ;; Q"
   using assms by (rel_auto)
@@ -283,12 +283,12 @@ lemma usubst_upd_out_comp [usubst]:
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
 lemma subst_lift_upd [usubst]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
 
 lemma subst_drop_upd [usubst]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
   by (pred_simp, simp add: in\<alpha>_def prod.case_eq_if)
 
@@ -300,7 +300,7 @@ lemma unrest_usubst_lift_in [unrest]:
   by (pred_simp, auto simp add: unrest_usubst_def in\<alpha>_def)
 
 lemma unrest_usubst_lift_out [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>s"
   by (pred_simp, auto simp add: unrest_usubst_def in\<alpha>_def)
 
@@ -427,7 +427,7 @@ lemma pre_skip_post: "(\<lceil>b\<rceil>\<^sub>< \<and> II) = (II \<and> \<lceil
   by (rel_auto)
 
 lemma skip_var:
-  fixes x :: "(bool, '\<alpha>) uvar"
+  fixes x :: "(bool \<Longrightarrow> '\<alpha>)"
   shows "($x \<and> II) = (II \<and> $x\<acute>)"
   by (rel_auto)
 
@@ -465,7 +465,7 @@ lemma assigns_r_conv:
   by (rel_auto, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
 
 lemma assign_pred_transfer:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "$x \<sharp> b" "out\<alpha> \<sharp> b"
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_blast)
@@ -486,18 +486,18 @@ lemma assign_commute:
   by (rel_simp, simp_all add: lens_indep_comm)
 
 lemma assign_cond:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "out\<alpha> \<sharp> b"
   shows "(x := e ;; (P \<triangleleft> b \<triangleright> Q)) = ((x := e ;; P) \<triangleleft> (b\<lbrakk>\<lceil>e\<rceil>\<^sub></$x\<rbrakk>) \<triangleright> (x := e ;; Q))"
   by (rel_auto)
 
 lemma assign_rcond:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(x := e ;; (P \<triangleleft> b \<triangleright>\<^sub>r Q)) = ((x := e ;; P) \<triangleleft> (b\<lbrakk>e/x\<rbrakk>) \<triangleright>\<^sub>r (x := e ;; Q))"
   by (rel_auto)
 
 lemma assign_r_alt_def:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "x := v = II\<lbrakk>\<lceil>v\<rceil>\<^sub></$x\<rbrakk>"
   by (rel_auto)
 
@@ -673,12 +673,12 @@ lemma lit_convr [simp]: "\<guillemotleft>v\<guillemotright>\<^sup>- = \<guillemo
   by pred_auto
 
 lemma uivar_convr [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "($x)\<^sup>- = $x\<acute>"
   by pred_auto
 
 lemma uovar_convr [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "($x\<acute>)\<^sup>- = $x"
   by pred_auto
 
@@ -720,7 +720,7 @@ theorem seqr_post_out: "in\<alpha> \<sharp> r \<Longrightarrow> (P ;; (Q \<and> 
   by (rel_blast)
 
 lemma seqr_post_var_out:
-  fixes x :: "(bool, '\<alpha>) uvar"
+  fixes x :: "(bool \<Longrightarrow> '\<alpha>)"
   shows "(P ;; (Q \<and> $x\<acute>)) = ((P ;; Q) \<and> $x\<acute>)"
   by (rel_auto)
 
@@ -731,7 +731,7 @@ lemma seqr_pre_out: "out\<alpha> \<sharp> p \<Longrightarrow> ((p \<and> Q) ;; R
   by (rel_blast)
 
 lemma seqr_pre_var_out:
-  fixes x :: "(bool, '\<alpha>) uvar"
+  fixes x :: "(bool \<Longrightarrow> '\<alpha>)"
   shows "(($x \<and> P) ;; Q) = ($x \<and> (P ;; Q))"
   by (rel_auto)
 
@@ -852,7 +852,7 @@ text {* Relational unrestriction states that a variable is unchanged by a relati
   initial value, but I'm not sure how to state that yet. For now we represent this by
   the parametric healthiness condition RID. *}
 
-definition RID :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"
+definition RID :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"
 where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x)"
 
 declare RID_def [urel_defs]
@@ -938,7 +938,7 @@ proof -
   finally show ?thesis .
 qed
 
-definition unrest_relation :: "('a, '\<alpha>) uvar \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
+definition unrest_relation :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
 where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
 
 declare unrest_relation_def [urel_defs]

@@ -18,9 +18,7 @@ lemma assigns_trel: "(\<sigma>, \<langle>\<rho>\<rangle>\<^sub>a) \<rightarrow>\
   by (simp add: assigns_comp)
 
 lemma assign_trel:
-  fixes x :: "('a, '\<alpha>) uvar"
-  assumes "uvar x"
-  shows "(\<sigma>, x := v) \<rightarrow>\<^sub>u (\<sigma>(x \<mapsto>\<^sub>s \<sigma> \<dagger> v), II)"
+  "(\<sigma>, x := v) \<rightarrow>\<^sub>u (\<sigma>(x \<mapsto>\<^sub>s \<sigma> \<dagger> v), II)"
   by (simp add: assigns_comp subst_upd_comp)
 
 lemma seq_trel:

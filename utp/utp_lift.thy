@@ -48,12 +48,12 @@ lemma lift_cond_post_var [simp]:
 subsection {* Unrestriction laws *}
 
 lemma unrest_dash_var_pre [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
   by (pred_auto)
 
 lemma unrest_dash_var_cond_pre [unrest]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>\<leftarrow>"
   by (pred_auto)
 end
