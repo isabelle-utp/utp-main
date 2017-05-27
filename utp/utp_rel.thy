@@ -157,7 +157,7 @@ text {* Similarly, we define the alphabetised assignment operator. *}
 definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> skip_ra a)"
 
-text {* Assumptions ($c^\top$) and assertions ($c_\bottom$) are encoded as conditionals. An assumption
+text {* Assumptions ($c^{\top}$) and assertions ($c_{\bot}$) are encoded as conditionals. An assumption
   behaves like skip if the condition is true, and otherwise behaves like @{term false} (miracle).
   An assertion is the same, but yields @{term true}, which is an abort. *}
 
