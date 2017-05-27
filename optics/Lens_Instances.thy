@@ -164,9 +164,9 @@ lemma list_lens_indep:
 lemma hd_tl_lens_indep [simp]:
   "hd_lens \<bowtie> tl_lens"
   apply (rule lens_indepI)
-  apply (simp_all add: list_lens_def tl_lens_def)
-  apply (metis hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def nth'_list_augment)
-  apply (metis (full_types) hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def)
+    apply (simp_all add: list_lens_def tl_lens_def)
+    apply (metis hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def nth'_list_augment)
+   apply (metis (full_types) hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def)
   apply (metis Nitpick.size_list_simp(2) One_nat_def add_Suc_right append.simps(1) append_Nil2 diff_Suc_Suc diff_zero hd_Cons_tl list.inject list.size(4) list_augment_0 list_augment_def list_augment_same_twice list_pad_out_def nth_list_augment replicate.simps(1) replicate.simps(2) tl_Nil)
 done
 

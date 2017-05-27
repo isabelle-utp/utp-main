@@ -111,7 +111,7 @@ lemma plus_mwb_lens:
   shows "mwb_lens (x +\<^sub>L y)"
   using assms
   apply (unfold_locales)
-  apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
+   apply (simp_all add: lens_plus_def prod.case_eq_if lens_indep_sym)
   apply (simp add: lens_indep_comm)
 done
 
@@ -128,7 +128,7 @@ lemma plus_vwb_lens:
   shows "vwb_lens (x +\<^sub>L y)"
   using assms
   apply (unfold_locales, simp_all add: lens_plus_def)
-  apply (simp add: lens_indep_sym prod.case_eq_if)
+   apply (simp add: lens_indep_sym prod.case_eq_if)
   apply (simp add: lens_indep_comm prod.case_eq_if)
 done
 
@@ -205,22 +205,22 @@ text \<open>Lens independence is a congruence with respect to composition, as th
 lemma lens_indep_left_comp [simp]:
   "\<lbrakk> mwb_lens z; x \<bowtie> y \<rbrakk> \<Longrightarrow> (x ;\<^sub>L z) \<bowtie> (y ;\<^sub>L z)"
   apply (rule lens_indepI)
-  apply (auto simp add: lens_comp_def)
-  apply (simp add: lens_indep_comm)
+    apply (auto simp add: lens_comp_def)
+   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
 
 lemma lens_indep_right_comp:
   "y \<bowtie> z \<Longrightarrow> (x ;\<^sub>L y) \<bowtie> (x ;\<^sub>L z)"
   apply (auto intro!: lens_indepI simp add: lens_comp_def)
-  using lens_indep_comm lens_indep_sym apply fastforce
+    using lens_indep_comm lens_indep_sym apply fastforce
   apply (simp add: lens_indep_sym)
 done
 
 lemma lens_indep_left_ext [intro]:
   "y \<bowtie> z \<Longrightarrow> (x ;\<^sub>L y) \<bowtie> z"
   apply (auto intro!: lens_indepI simp add: lens_comp_def)
-  apply (simp add: lens_indep_comm)
+   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
 
@@ -231,13 +231,13 @@ lemma lens_indep_right_ext [intro]:
 lemma lens_comp_indep_cong_left:
   "\<lbrakk> mwb_lens Z; X ;\<^sub>L Z \<bowtie> Y ;\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<bowtie> Y"
   apply (rule lens_indepI)
-  apply (rename_tac u v \<sigma>)
-  apply (drule_tac u=u and v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_comm)
-  apply (simp add: lens_comp_def)
-  apply (meson mwb_lens_weak weak_lens.view_determination)
-  apply (rename_tac v \<sigma>)
-  apply (drule_tac v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_get)
-  apply (simp add: lens_comp_def)
+    apply (rename_tac u v \<sigma>)
+    apply (drule_tac u=u and v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_comm)
+    apply (simp add: lens_comp_def)
+    apply (meson mwb_lens_weak weak_lens.view_determination)
+   apply (rename_tac v \<sigma>)
+   apply (drule_tac v=v and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_get)
+   apply (simp add: lens_comp_def)
   apply (drule lens_indep_sym)
   apply (rename_tac u \<sigma>)
   apply (drule_tac v=u and \<sigma>="create\<^bsub>Z\<^esub> \<sigma>" in lens_indep_get)
@@ -267,8 +267,8 @@ text \<open>Lens independence is preserved by summation.\<close>
     
 lemma plus_pres_lens_indep [simp]: "\<lbrakk> X \<bowtie> Z; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> (X +\<^sub>L Y) \<bowtie> Z"
   apply (rule lens_indepI)
-  apply (simp_all add: lens_plus_def prod.case_eq_if)
-  apply (simp add: lens_indep_comm)
+    apply (simp_all add: lens_plus_def prod.case_eq_if)
+   apply (simp add: lens_indep_comm)
   apply (simp add: lens_indep_sym)
 done
 
@@ -281,8 +281,8 @@ text \<open>Lens independence is preserved by product.\<close>
 lemma lens_indep_prod:
   "\<lbrakk> X\<^sub>1 \<bowtie> X\<^sub>2; Y\<^sub>1 \<bowtie> Y\<^sub>2 \<rbrakk> \<Longrightarrow> X\<^sub>1 \<times>\<^sub>L Y\<^sub>1 \<bowtie> X\<^sub>2 \<times>\<^sub>L Y\<^sub>2"
   apply (rule lens_indepI)
-  apply (auto simp add: lens_prod_def prod.case_eq_if lens_indep_comm map_prod_def)
-  apply (simp_all add: lens_indep_sym)
+    apply (auto simp add: lens_prod_def prod.case_eq_if lens_indep_comm map_prod_def)
+   apply (simp_all add: lens_indep_sym)
 done
 
 subsection \<open>Algebraic laws\<close>
@@ -304,7 +304,7 @@ lemma snd_lens_plus:
   "\<lbrakk> wb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> snd\<^sub>L ;\<^sub>L (x +\<^sub>L y) = y"
   apply (simp add: snd_lens_def lens_plus_def lens_comp_def comp_def)
   apply (subst lens_indep_comm)
-  apply (simp_all)
+   apply (simp_all)
 done
 
 text \<open>The swap lens switches over a summation.\<close>

@@ -127,7 +127,7 @@ lemma plus_pred_sublens: "\<lbrakk> mwb_lens Z; X \<subseteq>\<^sub>L Z; Y \<sub
   apply (rename_tac Z\<^sub>1 Z\<^sub>2)
   apply (rule_tac x="Z\<^sub>1 +\<^sub>L Z\<^sub>2" in exI)
   apply (auto intro!: plus_wb_lens)
-  apply (simp add: lens_comp_indep_cong_left plus_vwb_lens)
+   apply (simp add: lens_comp_indep_cong_left plus_vwb_lens)
   apply (simp add: plus_lens_distr)
 done
 
@@ -140,14 +140,14 @@ lemma lens_plus_sub_assoc_1:
   apply (simp add: sublens_def)
   apply (rule_tac x="(fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L snd\<^sub>L" in exI)
   apply (auto)
-  apply (rule plus_vwb_lens)
-  apply (simp add: comp_vwb_lens fst_vwb_lens)
-  apply (rule plus_vwb_lens)
-  apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
-  apply (simp add: snd_vwb_lens)
-  apply (simp add: lens_indep_left_ext)
-  apply (rule lens_indep_sym)
-  apply (rule plus_pres_lens_indep)
+   apply (rule plus_vwb_lens)
+     apply (simp add: comp_vwb_lens fst_vwb_lens)
+    apply (rule plus_vwb_lens)
+      apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+     apply (simp add: snd_vwb_lens)
+    apply (simp add: lens_indep_left_ext)
+   apply (rule lens_indep_sym)
+   apply (rule plus_pres_lens_indep)
   using fst_snd_lens_indep fst_vwb_lens lens_indep_left_comp lens_indep_sym vwb_lens_mwb apply blast
   using fst_snd_lens_indep lens_indep_left_ext lens_indep_sym apply blast
   apply (auto simp add: lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if split_beta')[1]
@@ -158,17 +158,17 @@ lemma lens_plus_sub_assoc_2:
   apply (simp add: sublens_def)
   apply (rule_tac x="(fst\<^sub>L +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L)" in exI)
   apply (auto)
-  apply (rule plus_vwb_lens)
-  apply (rule plus_vwb_lens)
-  apply (simp add: fst_vwb_lens)
-  apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
-  apply (rule lens_indep_sym)
-  apply (rule lens_indep_left_ext)
+   apply (rule plus_vwb_lens)
+     apply (rule plus_vwb_lens)
+       apply (simp add: fst_vwb_lens)
+      apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
+     apply (rule lens_indep_sym)
+     apply (rule lens_indep_left_ext)
   using fst_snd_lens_indep lens_indep_sym apply blast
-  apply (auto intro: comp_vwb_lens simp add: snd_vwb_lens)
-  apply (rule plus_pres_lens_indep)
-  apply (simp add: lens_indep_left_ext lens_indep_sym)
-  apply (simp add: snd_vwb_lens)
+    apply (auto intro: comp_vwb_lens simp add: snd_vwb_lens)
+   apply (rule plus_pres_lens_indep)
+    apply (simp add: lens_indep_left_ext lens_indep_sym)
+   apply (simp add: snd_vwb_lens)
   apply (auto simp add: lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if split_beta')[1]
 done
 
@@ -182,7 +182,7 @@ lemma lens_plus_sub_comm: "X \<bowtie> Y \<Longrightarrow> X +\<^sub>L Y \<subse
   apply (simp add: sublens_def)
   apply (rule_tac x="snd\<^sub>L +\<^sub>L fst\<^sub>L" in exI)
   apply (auto)
-  apply (simp add: fst_vwb_lens lens_indep_sym plus_vwb_lens snd_vwb_lens)
+   apply (simp add: fst_vwb_lens lens_indep_sym plus_vwb_lens snd_vwb_lens)
   apply (simp add: lens_indep_sym lens_plus_swap)
 done
 
@@ -211,7 +211,7 @@ lemma lens_plus_mono_left:
   apply (rename_tac Z')
   apply (rule_tac x="Z' \<times>\<^sub>L 1\<^sub>L" in exI)
   apply (subst prod_lens_comp_plus)
-  apply (simp_all)
+   apply (simp_all)
   using id_vwb_lens prod_vwb_lens apply blast
 done
     
@@ -234,8 +234,8 @@ lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L X \<subseteq>\<^sub>L X"
   apply (auto simp add: sublens_def)
   apply (rule_tac x="0\<^sub>L +\<^sub>L 1\<^sub>L" in exI)
   apply (auto)
-  apply (rule plus_vwb_lens)
-  apply (simp_all)
+   apply (rule plus_vwb_lens)
+     apply (simp_all)
   apply (auto simp add: lens_plus_def zero_lens_def lens_comp_def id_lens_def prod.case_eq_if comp_def)
   apply (rule ext)
   apply (rule ext)
@@ -297,8 +297,8 @@ proof (rule lens_equivI)
     apply (simp add: sublens_def)
     apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
     apply (auto)
-    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
-    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
+     apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
+       apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
     apply (auto simp add: lens_prod_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
     apply (rule ext, rule ext, auto simp add: prod.case_eq_if)
   done
@@ -306,9 +306,9 @@ proof (rule lens_equivI)
     apply (simp add: sublens_def)
     apply (rule_tac x="((fst\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (fst\<^sub>L ;\<^sub>L snd\<^sub>L)) +\<^sub>L ((snd\<^sub>L ;\<^sub>L fst\<^sub>L) +\<^sub>L (snd\<^sub>L ;\<^sub>L snd\<^sub>L))" in exI)
     apply (auto)
-    apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
-    apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
-    apply (auto simp add: lens_prod_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
+     apply (auto intro!: plus_vwb_lens comp_vwb_lens fst_vwb_lens snd_vwb_lens lens_indep_right_comp)
+       apply (auto intro!: lens_indepI simp add: lens_comp_def lens_plus_def fst_lens_def snd_lens_def)
+     apply (auto simp add: lens_prod_def lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if comp_def)[1]
     apply (rule ext, rule ext, auto simp add: lens_prod_def prod.case_eq_if)
   done
 qed
@@ -332,13 +332,13 @@ text \<open>The following important results shows that bijective lenses are prec
 lemma bij_lens_equiv_id:
   "bij_lens X \<longleftrightarrow> X \<approx>\<^sub>L 1\<^sub>L"
   apply (auto)
-  apply (rule lens_equivI)
-  apply (simp_all add: sublens_def)
-  apply (rule_tac x="lens_inv X" in exI)
-  apply (simp add: bij_lens_inv_left lens_inv_bij)
+   apply (rule lens_equivI)
+    apply (simp_all add: sublens_def)
+   apply (rule_tac x="lens_inv X" in exI)
+   apply (simp add: bij_lens_inv_left lens_inv_bij)
   apply (auto simp add: lens_equiv_def sublens_def id_lens_def lens_comp_def comp_def)
   apply (unfold_locales)
-  apply (simp)
+   apply (simp)
   apply (simp)
   apply (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 done
@@ -357,7 +357,7 @@ lemma lens_id_unique:
   apply (cases Y)
   apply (cases X)
   apply (auto simp add: lens_comp_def comp_def id_lens_def fun_eq_iff)
-  apply (metis select_convs(1) weak_lens.create_get)
+   apply (metis select_convs(1) weak_lens.create_get)
   apply (metis select_convs(1) select_convs(2) weak_lens.put_get)
 done
 
@@ -370,7 +370,7 @@ lemma bij_lens_via_comp_id_left:
   apply (cases X)
   apply (auto simp add: lens_comp_def comp_def id_lens_def fun_eq_iff)
   apply (unfold_locales)
-  apply (simp_all)
+   apply (simp_all)
   using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
   apply (metis select_convs(1) select_convs(2) wb_lens_weak weak_lens.put_get)
 done
@@ -381,7 +381,7 @@ lemma bij_lens_via_comp_id_right:
   apply (cases X)
   apply (auto simp add: lens_comp_def comp_def id_lens_def fun_eq_iff)
   apply (unfold_locales)
-  apply (simp_all)
+   apply (simp_all)
   using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
   apply (metis select_convs(1) select_convs(2) wb_lens_weak weak_lens.put_get)
 done
@@ -410,13 +410,13 @@ lemma lens_equiv_iff_bij:
   assumes "weak_lens Y"
   shows "X \<approx>\<^sub>L Y \<longleftrightarrow> (\<exists> Z. bij_lens Z \<and> X = Z ;\<^sub>L Y)"
   apply (rule iffI)
-  apply (auto simp add: lens_equiv_def sublens_def lens_id_unique)[1]
-  apply (rename_tac Z\<^sub>1 Z\<^sub>2)
-  apply (rule_tac x="Z\<^sub>1" in exI)
-  apply (simp)
-  apply (subgoal_tac "Z\<^sub>2 ;\<^sub>L Z\<^sub>1 = 1\<^sub>L")
-  apply (meson bij_lens_via_comp_id_right vwb_lens_wb)
-  apply (metis assms lens_comp_assoc lens_id_unique)
+   apply (auto simp add: lens_equiv_def sublens_def lens_id_unique)[1]
+   apply (rename_tac Z\<^sub>1 Z\<^sub>2)
+   apply (rule_tac x="Z\<^sub>1" in exI)
+   apply (simp)
+   apply (subgoal_tac "Z\<^sub>2 ;\<^sub>L Z\<^sub>1 = 1\<^sub>L")
+    apply (meson bij_lens_via_comp_id_right vwb_lens_wb)
+   apply (metis assms lens_comp_assoc lens_id_unique)
   using lens_equiv_via_bij apply blast
 done
 
