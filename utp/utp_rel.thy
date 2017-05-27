@@ -1,4 +1,4 @@
-section {* Alphabetised relations *}
+section {* Alphabetised Relations *}
 
 theory utp_rel
 imports
@@ -8,20 +8,21 @@ imports
   utp_tactics
 begin
 
-default_sort type
-
-consts
-  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
-  uskip  :: "'a" ("II")
-
+text {* An alphabetised relation is simply a predicate whose state-space is a product type. In this
+  theory we construct the core operators of the relational calculus, and prove a libary of 
+  associated theorems. *}
+  
+subsection {* Relational Alphabets *}
+  
+text {* We set up convenient syntax to refer to the input and output parts of the alphabet, as is
+  common in UTP. Since we are in a product space, these are simply the lenses @{term "fst\<^sub>L"} and
+  @{term "snd\<^sub>L"}. *}
+  
 definition in\<alpha> :: "('\<alpha> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
-"in\<alpha> = \<lparr> lens_get = fst, lens_put = \<lambda> (A, A') v. (v, A') \<rparr>"
+[lens_defs]: "in\<alpha> = fst\<^sub>L"
 
 definition out\<alpha> :: "('\<beta> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
-"out\<alpha> = \<lparr> lens_get = snd, lens_put = \<lambda> (A, A') v. (A, v) \<rparr>"
-
-declare in\<alpha>_def [urel_defs]
-declare out\<alpha>_def [urel_defs]
+[lens_defs]: "out\<alpha> = snd\<^sub>L"
 
 lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = ivar x"
   by (simp add: fst_lens_def in\<alpha>_def in_var_def)
@@ -31,35 +32,99 @@ lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
 
 lemma out_alpha_in_indep [simp]:
   "out\<alpha> \<bowtie> in_var x" "in_var x \<bowtie> out\<alpha>"
-  by (simp_all add: in_var_def out\<alpha>_def lens_indep_def fst_lens_def lens_comp_def)
+  by (simp_all add: in_var_def out\<alpha>_def lens_indep_def fst_lens_def snd_lens_def lens_comp_def)
 
 lemma in_alpha_out_indep [simp]:
   "in\<alpha> \<bowtie> out_var x" "out_var x \<bowtie> in\<alpha>"
   by (simp_all add: in_var_def in\<alpha>_def lens_indep_def fst_lens_def lens_comp_def)
 
-text {* The alphabet of a relation consists of the input and output portions *}
+abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times> '\<beta>) usubst" ("\<lceil>_\<rceil>\<^sub>s") where
+"\<lceil>\<sigma>\<rceil>\<^sub>s \<equiv> \<sigma> \<oplus>\<^sub>s in\<alpha>"
+
+abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
+"\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
+    
+text {* The alphabet of a relation then consists wholly of the input and output portions. *}
 
 lemma alpha_in_out:
   "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
-  by (metis fst_lens_def fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def snd_lens_def)
+  by (simp add: fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def)
 
+subsection {* Relational Types and Operators *}
+
+text {* We create type synonyms for conditions (which are simply predicates) -- i.e. relations
+  without dashed variables --, alphabetised relations where the input and output alphabet can
+  be different, and finally homogeneous relations. *}
+  
 type_synonym '\<alpha> cond      = "'\<alpha> upred"
 type_synonym ('\<alpha>, '\<beta>) rel = "('\<alpha> \<times> '\<beta>) upred"
 type_synonym '\<alpha> hrel      = "('\<alpha> \<times> '\<alpha>) upred"
-
+  
 translations
   (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
-abbreviation rcond::"('\<alpha>,  '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>,  '\<beta>) rel \<Rightarrow> ('\<alpha>,  '\<beta>) rel"
-                                                          ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
-where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
+text {* We set up some overloaded constants for sequential composition and the identity in case
+  we want to overload their definitions later. *}
+  
+consts
+  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
+  uskip  :: "'a" ("II")
+  
+text {* We define a specialised version of the conditional where the condition can refer only to
+  undashed variables, as is usually the case in programs, but not universally in UTP models. 
+  We implement this by lifting the condition predicate into the relational state-space with
+  construction @{term "\<lceil>b\<rceil>\<^sub><"}. *}
+  
+abbreviation 
+  rcond :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel"
+  ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
+  where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
 
-lift_definition seqr::"(('\<alpha> \<times> '\<beta>) upred) \<Rightarrow> (('\<beta> \<times> '\<gamma>) upred) \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
-is "\<lambda> P Q r. r \<in> ({p. P p} O {q. Q q})" .
+text {* Sequential composition is heterogeneous, and simply requires that the output alphabet
+  of the first matches then input alphabet of the second. We define it by lifting HOL's 
+  built-in relational composition operator (@{term "op O"}). Since this returns a set, the
+  definition states that the state binding $b$ is an element of this set. *}
+  
+lift_definition seqr::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<beta>, '\<gamma>) rel \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
+is "\<lambda> P Q b. b \<in> ({p. P p} O {q. Q q})" .
 
-lift_definition conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
-is "\<lambda> e (b1, b2). e (b2, b1)" .
+text {* We also set up a homogeneous sequential composition operator. *}
 
+abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 71) where
+"seqh P Q \<equiv> (P ;; Q)"
+
+text {* We define the relational converse operator as an alphabet extrusion on the bijective
+  lens @{term swap\<^sub>L} that swaps the elements of the product state-space. *}
+    
+abbreviation conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta> \<times> '\<alpha>) uexpr" ("_\<^sup>-" [999] 999)
+where "conv_r e \<equiv> e \<oplus>\<^sub>p swap\<^sub>L"
+
+text {* Assignment is defined using substitutions, where latter defines what each variable should
+  map to. The definition of the operator identifies the after state binding, $b'$, with the 
+  substitution function applied to the before state binding $b$. *}
+  
+lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^sub>a")
+  is "\<lambda> \<sigma> (b, b'). b' = \<sigma>(b)" .
+
+text {* Relational identity, or skip, is then simply an assignment with the identity substitution:
+  it simply identifies all variables. *}
+    
+definition skip_r :: "'\<alpha> hrel" where
+[urel_defs]: "skip_r = assigns_r id"
+
+text {* A singleton assignment simply applies a singleton substitution function, and similarly
+  for a double assignment. *}
+
+abbreviation assign_r :: "('t \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
+where "assign_r x v \<equiv> \<langle>[x \<mapsto>\<^sub>s v]\<rangle>\<^sub>a"
+
+abbreviation assign_2_r ::
+  "('t1 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t2 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
+where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
+
+text {* We define the alphabetised skip operator that identifies all input and output variables
+  in the given alphabet lens. All other variables are unrestricted. We also set up syntax for it. *}
+  
 definition skip_ra :: "('\<beta>, '\<alpha>) lens \<Rightarrow>'\<alpha> hrel" where
 [urel_defs]: "skip_ra v = ($v\<acute> =\<^sub>u $v)"
 
@@ -68,29 +133,10 @@ syntax
 
 translations
   "_skip_ra v" == "CONST skip_ra v"
-
-abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times> '\<beta>) usubst" ("\<lceil>_\<rceil>\<^sub>s") where
-"\<lceil>\<sigma>\<rceil>\<^sub>s \<equiv> \<sigma> \<oplus>\<^sub>s in\<alpha>"
-
-abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
-"\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
-
+  
 definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^bsub>_\<^esub>") where
 "\<langle>\<sigma>\<rangle>\<^bsub>a\<^esub> = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II\<^bsub>a\<^esub>)"
-
-lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^sub>a")
-  is "\<lambda> \<sigma> (A, A'). A' = \<sigma>(A)" .
-
-definition skip_r :: "'\<alpha> hrel" where
-"skip_r = assigns_r id"
-
-abbreviation assign_r :: "('t \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
-where "assign_r x v \<equiv> assigns_r [x \<mapsto>\<^sub>s v]"
-
-abbreviation assign_2_r ::
-  "('t1 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t2 \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t1, '\<alpha>) uexpr \<Rightarrow> ('t2, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel"
-where "assign_2_r x y u v \<equiv> assigns_r [x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]"
-
+  
 nonterminal
   svid_list and uexpr_list
 
@@ -115,12 +161,7 @@ translations
 adhoc_overloading
   useq seqr and
   uskip skip_r
-
-text {* Homogeneous sequential composition *}
-
-abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 71) where
-"seqh P Q \<equiv> (P ;; Q)"
-
+  
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
@@ -143,10 +184,7 @@ text {* A test is like a precondition, except that it identifies to the postcond
         forms the basis for Kleene Algebra with Tests (KAT). *}
 
 definition lift_test :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel" ("\<lceil>_\<rceil>\<^sub>t")
-where "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and> II)"
-
-declare cond_def [urel_defs]
-declare skip_r_def [urel_defs]
+where [urel_defs]: "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and> II)"
 
 text {* We implement a poor man's version of alphabet restriction that hides a variable within a relation *}
 
@@ -162,10 +200,10 @@ update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
 subsection {* Unrestriction Laws *}
 
 lemma unrest_iuvar [unrest]: "out\<alpha> \<sharp> $x"
-  by (simp add: out\<alpha>_def, transfer, auto)
+  by (metis fst_snd_lens_indep lift_pre_var out\<alpha>_def unrest_aext_indep)
 
 lemma unrest_ouvar [unrest]: "in\<alpha> \<sharp> $x\<acute>"
-  by (simp add: in\<alpha>_def, transfer, auto)
+  by (metis in\<alpha>_def lift_post_var snd_fst_lens_indep unrest_aext_indep)
 
 lemma unrest_semir_undash [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
@@ -213,11 +251,11 @@ lemma unrest_post_out_var [unrest]:
 
 lemma unrest_convr_out\<alpha> [unrest]:
   "in\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> p\<^sup>-"
-  by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
+  by (transfer, auto simp add: lens_defs)
 
 lemma unrest_convr_in\<alpha> [unrest]:
   "out\<alpha> \<sharp> p \<Longrightarrow> in\<alpha> \<sharp> p\<^sup>-"
-  by (transfer, auto simp add: in\<alpha>_def out\<alpha>_def)
+  by (transfer, auto simp add: lens_defs)
 
 lemma unrest_in_rel_var_res [unrest]:
   "vwb_lens x \<Longrightarrow> $x \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
@@ -291,24 +329,21 @@ lemma subst_lift_upd [usubst]:
 lemma subst_drop_upd [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
-  by (pred_simp, simp add: in\<alpha>_def prod.case_eq_if)
+  by pred_simp
 
 lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
-  by (metis apply_subst_ext fst_lens_def fst_vwb_lens in\<alpha>_def)
+  by (metis apply_subst_ext fst_vwb_lens in\<alpha>_def)
 
 lemma unrest_usubst_lift_in [unrest]:
   "x \<sharp> P \<Longrightarrow> $x \<sharp> \<lceil>P\<rceil>\<^sub>s"
-  by (pred_simp, auto simp add: unrest_usubst_def in\<alpha>_def)
+  by pred_simp
 
 lemma unrest_usubst_lift_out [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>s"
-  by (pred_simp, auto simp add: unrest_usubst_def in\<alpha>_def)
+  by pred_simp
 
 subsection {* Relation laws *}
-
-text {* Homogeneous relations form a quantale. This allows us to import a large number of laws
-        from Struth and Armstrong's Kleene Algebra theory~\cite{Armstrong2015}. *}
 
 abbreviation truer :: "'\<alpha> hrel" ("true\<^sub>h") where
 "truer \<equiv> true"
@@ -317,26 +352,25 @@ abbreviation falser :: "'\<alpha> hrel" ("false\<^sub>h") where
 "falser \<equiv> false"
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
-  by (pred_simp, auto simp add: out\<alpha>_def lens_create_def fst_lens_def prod.case_eq_if)
+  by (pred_simp)
 
 text {* We define two variants of while loops based on strongest and weakest fixed points. Only
   the latter properly accounts for infinite behaviours. *}
 
 definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sup>\<top> _ do _ od") where
-"while\<^sup>\<top> b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+[urel_defs]: "while\<^sup>\<top> b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
 abbreviation while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ do _ od") where
 "while b do P od \<equiv> while\<^sup>\<top> b do P od"
 
 definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
-"while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+[urel_defs]: "while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
-declare while_def [urel_defs]
 
 text {* While loops with invariant decoration *}
 
 definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
-"while b invr p do S od = while b do S od"
+[urel_defs]: "while b invr p do S od = while b do S od"
 
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
@@ -653,13 +687,7 @@ lemma postcond_left_unit: "in\<alpha> \<sharp> p \<Longrightarrow> (true ;; p) =
 theorem precond_left_zero:
   assumes "out\<alpha> \<sharp> p" "p \<noteq> false"
   shows "(true ;; p) = true"
-  using assms
-  apply (simp add: out\<alpha>_def upred_defs)
-  apply (transfer, auto simp add: relcomp_unfold, rule ext, auto)
-  apply (rename_tac p b)
-  apply (subgoal_tac "\<exists> b1 b2. p (b1, b2)")
-  apply (auto)
-done
+  using assms by (rel_auto)
 
 theorem feasibile_iff_true_right_zero:
   "P ;; true = true \<longleftrightarrow> `\<exists> out\<alpha> \<bullet> P`"

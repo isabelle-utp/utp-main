@@ -236,6 +236,7 @@ translations
   "_spvar \<Sigma>"  \<leftharpoondown>  "CONST svar CONST id_lens"
   "_sinvar \<Sigma>"  \<leftharpoondown> "CONST ivar 1\<^sub>L"
   "_soutvar \<Sigma>" \<leftharpoondown> "CONST ovar 1\<^sub>L"
+  "_spvar (_svid_dot x y)" \<leftharpoondown> "CONST svar (CONST lens_comp y x)"
   "_sinvar (_svid_dot x y)" \<leftharpoondown> "CONST ivar (CONST lens_comp y x)"
   "_soutvar (_svid_dot x y)" \<leftharpoondown> "CONST ovar (CONST lens_comp y x)"
   "_spvar x" \<rightleftharpoons> "CONST svar x"

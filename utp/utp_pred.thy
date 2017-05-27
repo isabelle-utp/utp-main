@@ -343,6 +343,9 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 declare true_alt_def[THEN sym,lit_simps]
 declare false_alt_def[THEN sym,lit_simps]
 
+text {* We set up syntax for the conditional. This is effectively an infix version of
+  if-then-else where the condition is in the middle. *}
+  
 abbreviation cond ::
   "('a,'\<alpha>) uexpr \<Rightarrow> '\<alpha> upred \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
   ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
