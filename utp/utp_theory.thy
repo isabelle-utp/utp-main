@@ -1,7 +1,7 @@
 section {* UTP Theories *}
 
 theory utp_theory
-imports utp_rel
+imports utp_rel_laws
 begin
 
 text {* Closure laws for theories *}

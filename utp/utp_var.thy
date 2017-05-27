@@ -155,16 +155,19 @@ subsection \<open> Syntax translations \<close>
 text \<open> In order to support nice syntax for variables, we here set up some translations. The first
   step is to introduce a collection of non-terminals. \<close>
   
-nonterminal svid and svar and svars and salpha
+nonterminal svid and svids and svar and svars and salpha
 
 text \<open> These non-terminals correspond to the following syntactic entities. Non-terminal 
-  @{typ "svid"} is an atomic variable identifier. @{typ "svar"} is a decorated variable, such as 
-  an input or output variable, and @{typ "svars"} is a list of decorated variables.
-  @{typ "salpha"} is an alphabet or set of variables. Such sets can be constructed only
-  through lens composition due to typing restrictions. Next we introduce some syntax constructors. \<close>
+  @{typ "svid"} is an atomic variable identifier, and @{typ "svids"} is a list of identifier. 
+  @{typ "svar"} is a decorated variable, such as an input or output variable, and @{typ "svars"} is 
+  a list of decorated variables. @{typ "salpha"} is an alphabet or set of variables. Such sets can 
+  be constructed only through lens composition due to typing restrictions. Next we introduce some 
+  syntax constructors. \<close>
    
 syntax -- \<open> Identifiers \<close>
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
+  "_svid_unit"   :: "svid \<Rightarrow> svids" ("_")
+  "_svid_list"   :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
   "_svid_alpha"  :: "svid" ("\<Sigma>")
   "_svid_empty"  :: "svid" ("\<emptyset>")
   "_svid_dot"    :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 999)

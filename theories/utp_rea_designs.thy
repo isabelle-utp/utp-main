@@ -929,7 +929,7 @@ proof -
   have 1:"(\<not> (R1 (\<not> R3c_pre P) ;; R1 true)) = (R3c_pre (\<not> (R1 (\<not> P) ;; R1 true)))"
     by (rel_auto)
   have 2:"(\<not> (R1 (R3c_post Q) ;; R1 (\<not> R3c_pre R))) = R3c_pre(\<not> ((R1 Q \<and> \<not> $wait\<acute>) ;; R1 (\<not> R)))"
-    by (rel_auto)
+    by (rel_auto, blast+)
   have 3:"(R1 (R3c_post Q) ;; R1 (R3c_post S)) = R3c_post (R1 Q ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 S))"
     by (rel_auto)
   show ?thesis
@@ -946,7 +946,7 @@ lemma R3h_R1_design_composition:
        \<turnstile> (R1(Q) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1(S)))))"
 proof -
   have 1:"(\<not> (R1 (\<not> R3c_pre P) ;; R1 true)) = (R3c_pre (\<not> (R1 (\<not> P) ;; R1 true)))"
-   by (rel_auto, blast+)
+   by (rel_auto)
   have 2:"(\<not> (R1 (R3h_post Q) ;; R1 (\<not> R3c_pre R))) = R3c_pre(\<not> ((R1 Q \<and> \<not> $wait\<acute>) ;; R1 (\<not> R)))"
     by (rel_auto, blast+)
   have 3:"(R1 (R3h_post Q) ;; R1 (R3h_post S)) = R3h_post (R1 Q ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 S))"
@@ -1417,7 +1417,7 @@ proof -
     proof -
       have "(R1 (R2s Q\<^sub>1) ;; ($wait \<and> ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s S\<^sub>1) \<diamondop> R1 (R2s S\<^sub>2))))
            = (R1 (R2s Q\<^sub>1) ;; ($wait \<and> (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)))"
-        by (rel_auto, blast)
+        by (rel_auto, blast+)
       also have "... = ((R1 (R2s Q\<^sub>1) ;; (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D)) \<and> $wait\<acute>)"
         by (rel_auto)
       also from assms(2) have "... = (\<exists> $st\<acute> \<bullet> ((R1 (R2s Q\<^sub>1)) \<and> $wait\<acute>))"
@@ -1597,7 +1597,7 @@ lemma rea_post_RHS_design: "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<di
 
 lemma wait'_cond_peri_post_cmt [rdes]:
   "cmt\<^sub>R P = peri\<^sub>R P \<diamondop> post\<^sub>R P"
-  by (rel_auto, (metis (full_types))+)
+  by (rel_auto)
 
 lemma peri_cmt_def: "peri\<^sub>R(P) = (cmt\<^sub>R(P))\<lbrakk>true/$wait\<acute>\<rbrakk>"
   by (rel_auto)
@@ -2835,7 +2835,6 @@ proof -
     apply (rule NSRD_intro)
     apply (simp_all add: closure rdes unrest P)
     apply (rel_auto)
-    using dual_order.trans apply blast
   done
 qed
 
@@ -3412,7 +3411,7 @@ proof -
   also have "... = ((P \<parallel>\<^sub>s Q)\<lbrakk>true,false/$ok,$wait\<rbrakk> ;; N\<^sub>R M ;; R1(\<not> $ok))"
     by (simp add: merge_rd_def usubst, rel_auto)
   also have "... = ((P\<lbrakk>true,false/$ok,$wait\<rbrakk> \<parallel>\<^sub>s Q\<lbrakk>true,false/$ok,$wait\<rbrakk>) ;; N\<^sub>1(M) ;; R1(\<not> $ok))"
-    by (rel_auto, metis+)
+    by (rel_auto robust, (metis)+)
   also have "... = ((
       (((P\<lbrakk>true,false/$ok,$wait\<rbrakk>)\<^sup>t \<parallel>\<^sub>s (Q\<lbrakk>true,false/$ok,$wait\<rbrakk>)\<^sup>t) ;; ((N\<^sub>1 M)\<lbrakk>true,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
       (((P\<lbrakk>true,false/$ok,$wait\<rbrakk>)\<^sup>f \<parallel>\<^sub>s (Q\<lbrakk>true,false/$ok,$wait\<rbrakk>)\<^sup>t) ;; ((N\<^sub>1 M)\<lbrakk>false,true/$0-ok,$1-ok\<rbrakk> ;; R1(\<not> $ok))) \<or>
@@ -3705,8 +3704,8 @@ lemma SymMerge_nmerge_rd0 [closure]:
 
 lemma swap_merge_rd:
   "swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(swap\<^sub>m ;; M)"
-  by (rel_simp, safe, metis+)
-
+  by (rel_simp, safe, (metis)+)
+    
 lemma SymMerge_merge_rd [closure]:
   "M is SymMerge \<Longrightarrow> M\<^sub>R(M) is SymMerge"
   by (simp add: Healthy_def swap_merge_rd)

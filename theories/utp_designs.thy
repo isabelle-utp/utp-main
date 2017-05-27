@@ -111,7 +111,7 @@ definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" ("\<
 where "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
 
 syntax
-  "_assignmentd" :: "svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 72)
+  "_assignmentd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 72)
 
 translations
   "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
@@ -200,7 +200,7 @@ qed
 subsection {* Design laws *}
 
 lemma unrest_out_des_lift [unrest]: "out\<alpha> \<sharp> p \<Longrightarrow> out\<alpha> \<sharp> \<lceil>p\<rceil>\<^sub>D"
-  by (pred_simp, auto simp add: out\<alpha>_def des_vars_child_lens_def)
+  by (pred_simp)
 
 lemma lift_dist_seq [simp]:
   "\<lceil>P ;; Q\<rceil>\<^sub>D = (\<lceil>P\<rceil>\<^sub>D ;; \<lceil>Q\<rceil>\<^sub>D)"

@@ -21,6 +21,7 @@ imports
   utp_recursion
   utp_deduct
   utp_rel
+  utp_rel_laws
   utp_tactics
   utp_hoare
   utp_wp

@@ -6,10 +6,13 @@ imports
   utp_subst
   utp_tactics
 begin
-
+  
+text {* In this theory we begin to create an Isabelle version of the alphabetised predicate calculus
+  that is described in Chapter 1 of the UTP book~\cite{Hoare&98}. *}
+  
 subsection {* Predicate type and syntax *}
   
-text {* An alphabetised predicate is a simply a boolean valued expression *}
+text {* An alphabetised predicate is a simply a boolean valued expression. *}
 
 type_synonym '\<alpha> upred = "(bool, '\<alpha>) uexpr"
 

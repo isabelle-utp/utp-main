@@ -92,6 +92,10 @@ lemma impl_refine_intro:
   "\<lbrakk> Q\<^sub>1 \<sqsubseteq> P\<^sub>1; P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<Rightarrow> P\<^sub>2) \<sqsubseteq> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)"
   by (pred_auto)
 
+lemma spec_refine:
+  "Q \<sqsubseteq> (P \<and> R) \<Longrightarrow> (P \<Rightarrow> Q) \<sqsubseteq> R"
+  by (rel_auto)
+    
 lemma impl_disjI: "\<lbrakk> `P \<Rightarrow> R`; `Q \<Rightarrow> R` \<rbrakk> \<Longrightarrow> `(P \<or> Q) \<Rightarrow> R`"
   by (rel_auto)
 
@@ -579,7 +583,7 @@ subsection {* Conditional laws *}
 lemma cond_def:
   "(P \<triangleleft> b \<triangleright> Q) = ((b \<and> P) \<or> ((\<not> b) \<and> Q))"
   by (pred_auto)
-
+    
 lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by (pred_auto)
 
 lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by (pred_auto)
@@ -592,6 +596,9 @@ lemma cond_unit_T [simp]:"(P \<triangleleft> true \<triangleright> Q) = P" by (p
 
 lemma cond_unit_F [simp]:"(P \<triangleleft> false \<triangleright> Q) = Q" by (pred_auto)
 
+lemma cond_conj_not: "((P \<triangleleft> b \<triangleright> Q) \<and> (\<not> b)) = (Q \<and> (\<not> b))"
+  by (rel_auto)
+    
 lemma cond_and_T_integrate:
   "((P \<and> b) \<or> (Q \<triangleleft> b \<triangleright> R)) = ((P \<or> Q) \<triangleleft> b \<triangleright> R)"
   by (pred_auto)

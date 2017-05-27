@@ -1,4 +1,4 @@
-section {* Concurrent programming *}
+section {* Concurrent Programming *}
 
 theory utp_concurrency
   imports
@@ -7,19 +7,70 @@ theory utp_concurrency
     utp_theory
 begin
 
-subsection {* Variable renamings *}
+text {* In this theory we describe the UTP scheme for concurrency, \emph{parallel-by-merge},
+  which provides a general parallel operator parametrised by a ``merge predicate'' that explains
+  how to merge the after states of the composed predicates. It can thus be applied to many languages
+  and concurrency schemes, with this theory providing a number of generic laws. The operator is
+  explained in more detail in Chapter 7 of the UTP book~\cite{Hoare&98}. *}
+  
+subsection {* Variable Renamings *}
 
 text {* In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
-        of parallel processes, P || Q, as a relation that merges the output of P and Q. In order to achieve
-        this we need to separate the variable values output from P and Q, and in addition the variable values
-        before execution. The following three constructs do these separations. *}
+  of parallel processes, $P \parallel Q$, as a relation that merges the output of $P$ and $Q$. In order 
+  to achieve this we need to separate the variable values output from $P$ and $Q$, and in addition the 
+  variable values before execution. The following three constructs do these separations. The initial
+  state-space before execution is @{typ "'\<alpha>"}, the final state-space after the first parallel process
+  is @{typ "'\<beta>\<^sub>0"}, and the final state-space for the second is @{typ "'\<beta>\<^sub>1"}. These three functions
+  lift variables on these three state-spaces, respectively.
+*}
 
-definition [upred_defs]: "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
+definition pre_uvar :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a \<Longrightarrow> '\<alpha> \<times> '\<beta>\<^sub>0 \<times> '\<beta>\<^sub>1)" where
+[upred_defs]: "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
+  
+definition left_uvar :: "('a \<Longrightarrow> '\<beta>\<^sub>0) \<Rightarrow> ('a \<Longrightarrow> '\<alpha> \<times> '\<beta>\<^sub>0 \<times> '\<beta>\<^sub>1)" where
+[upred_defs]: "left_uvar x = x ;\<^sub>L fst\<^sub>L ;\<^sub>L snd\<^sub>L"
 
-definition [upred_defs]: "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L"
+definition right_uvar :: "('a \<Longrightarrow> '\<beta>\<^sub>1) \<Rightarrow> ('a \<Longrightarrow> '\<alpha> \<times> '\<beta>\<^sub>0 \<times> '\<beta>\<^sub>1)" where
+[upred_defs]: "right_uvar x = x ;\<^sub>L snd\<^sub>L ;\<^sub>L snd\<^sub>L"
 
-definition [upred_defs]: "pre_uvar x = x ;\<^sub>L fst\<^sub>L"
+text {* We set up syntax for the three variable classes using a subscript $<$, $0$-$x$, and $1$-$x$,
+  respectively. *} 
 
+syntax
+  "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
+  "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
+  "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
+
+translations
+  "_svarpre x"   == "CONST pre_uvar x"
+  "_svarleft x"  == "CONST left_uvar x"
+  "_svarright x" == "CONST right_uvar x"
+  "_svarpre \<Sigma>"   <= "CONST pre_uvar 1\<^sub>L"
+  "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
+  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"
+
+text {* We proved behavedness closure properties about the lenses. *}
+  
+  lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
+  by (simp add: left_uvar_def )
+
+lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
+  by (simp add: right_uvar_def)
+
+lemma pre_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (pre_uvar x)"
+  by (simp add: pre_uvar_def)
+
+lemma left_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (left_uvar x)"
+  by (simp add: left_uvar_def )
+
+lemma right_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (right_uvar x)"
+  by (simp add: right_uvar_def)
+
+lemma pre_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
+  by (simp add: pre_uvar_def)
+  
+text {* We prove various independence laws about the variable classes. *}
+  
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
   by (simp add: left_uvar_def right_uvar_def lens_comp_assoc[THEN sym])
@@ -56,40 +107,9 @@ lemma pre_uvar_indep_pre_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> pre_uvar x \<bowtie> pre_uvar y"
   by (simp add: pre_uvar_def)
 
-lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
-  by (simp add: left_uvar_def )
+subsection {* Merge Predicates *}
 
-lemma right_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (right_uvar x)"
-  by (simp add: right_uvar_def)
-
-lemma pre_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (pre_uvar x)"
-  by (simp add: pre_uvar_def)
-
-lemma left_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (left_uvar x)"
-  by (simp add: left_uvar_def )
-
-lemma right_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (right_uvar x)"
-  by (simp add: right_uvar_def)
-
-lemma pre_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
-  by (simp add: pre_uvar_def)
-
-syntax
-  "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
-  "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
-  "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
-
-translations
-  "_svarpre x"   == "CONST pre_uvar x"
-  "_svarleft x"  == "CONST left_uvar x"
-  "_svarright x" == "CONST right_uvar x"
-  "_svarpre \<Sigma>"   <= "CONST pre_uvar 1\<^sub>L"
-  "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
-  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"
-
-subsection {* Merge predicates *}
-
-text {* A merge is then a relation whose input has three parts: the prior variables, the output
+text {* A merge predicate is a relation whose input has three parts: the prior variables, the output
   variables of the left predicate, and the output of the right predicate. *}
 
 type_synonym '\<alpha> merge = "('\<alpha> \<times> ('\<alpha> \<times> '\<alpha>), '\<alpha>) rel"
@@ -107,36 +127,46 @@ text {* swap is a predicate that the swaps the left and right indices; it is use
 definition swap\<^sub>m :: "('\<alpha> \<times> '\<beta> \<times> '\<beta>, '\<alpha> \<times> '\<beta> \<times> '\<beta>) rel" where
 [upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma> := &1-\<Sigma>,&0-\<Sigma>)"
 
-text {* The following healthiness condition on merges is used to represent commutativity *}
+text {* A symmetric merge is one for which swapping the order of the merged concurrent predicates
+  has no effect. We represent this by the following healthiness condition that states that
+  @{term "swap\<^sub>m"} is a left-unit. *}
 
 abbreviation SymMerge :: "'\<alpha> merge \<Rightarrow> '\<alpha> merge" where
 "SymMerge(M) \<equiv> (swap\<^sub>m ;; M)"
 
-subsection {* Separating simulations *}
+subsection {* Separating Simulations *}
 
-text {* U0 and U1 are relations that index all input variables x to 0-x and 1-x, respectively. *}
+text {* U0 and U1 are relations modify the variables of the input state-space such that they become 
+  indexed with $0$ and $1$, respectively. *}
 
-definition [upred_defs]: "U0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+definition U0 :: "('\<beta>\<^sub>0, '\<alpha> \<times> '\<beta>\<^sub>0 \<times> '\<beta>\<^sub>1) rel" where
+[upred_defs]: "U0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
 
-definition [upred_defs]: "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+definition U1 :: "('\<beta>\<^sub>1, '\<alpha> \<times> '\<beta>\<^sub>0 \<times> '\<beta>\<^sub>1) rel" where
+[upred_defs]: "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
 
-text {* As shown below, separating simulations can also be expressed using the following two alphabet extrusions *}
+lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
+  by (rel_auto)
+
+lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
+  by (rel_auto)
+
+text {* As shown below, separating simulations can also be expressed using the following two 
+  alphabet extrusions *}
 
 definition U0\<alpha> where [upred_defs]: "U0\<alpha> = (1\<^sub>L \<times>\<^sub>L out_var fst\<^sub>L)"
 
 definition U1\<alpha> where [upred_defs]: "U1\<alpha> = (1\<^sub>L \<times>\<^sub>L out_var snd\<^sub>L)"
 
+text {* We then create the following intuitive syntax for separating simulations. *}
+  
 abbreviation U0_alpha_lift ("\<lceil>_\<rceil>\<^sub>0") where "\<lceil>P\<rceil>\<^sub>0 \<equiv> P \<oplus>\<^sub>p U0\<alpha>"
 
 abbreviation U1_alpha_lift ("\<lceil>_\<rceil>\<^sub>1") where "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p U1\<alpha>"
-
-lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
-  by (rel_auto)+
-
-lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
-  by (rel_auto)
-
-text {* We can equivalently express separating simulations using alphabet extrusion *}
+  
+text {* @{term "\<lceil>P\<rceil>\<^sub>0"} is predicate $P$ where all variables are indexed by $0$, and 
+  @{term "\<lceil>P\<rceil>\<^sub>1"} is where all variables are indexed by $1$. We can thus equivalently express separating 
+  simulations using alphabet extrusion. *}
 
 lemma U0_as_alpha: "(P ;; U0) = \<lceil>P\<rceil>\<^sub>0"
   by (rel_auto)
@@ -198,7 +228,7 @@ lemma U1\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U1\<alpha> = in_var 
 lemma U1\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U1\<alpha> = out_var (right_uvar x)"
   by (simp add: U1\<alpha>_def alpha_out_var id_wb_lens right_uvar_def out_var_prod_lens)
 
-subsection {* Parallel operators *}
+subsection {* Parallel Operators *}
 
 text {* We implement the following useful abbreviation for separating of two parallel processes and
   copying of the before variables, all to act as input to the merge predicate. *}
