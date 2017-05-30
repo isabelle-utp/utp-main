@@ -2602,9 +2602,26 @@ lemma CSPMerge'_RDM [closure]: "N\<^sub>C ns1 cs ns2 is RDM"
 definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>C") where
 [upred_defs]: "M\<^sub>C ns1 cs ns2 = M\<^sub>R(N\<^sub>C ns1 cs ns2) ;; Skip"
 
+lemma CSPMerge'_calc:
+  assumes "$ok\<acute> \<sharp> P" "$wait\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$wait\<acute> \<sharp> Q" "P is R2" "Q is R2"
+  shows "P \<parallel>\<^bsub>N\<^sub>B\<^esub> Q = ((\<exists> $st\<acute> \<bullet> P) \<and> (\<exists> $st\<acute> \<bullet> Q) \<and> $st\<acute> =\<^sub>u $st)"
+  using assms
+proof -
+  have P:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(P)) = P" (is "?P' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  have Q:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(Q)) = Q" (is "?Q' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  have "?P' \<parallel>\<^bsub>N\<^sub>B\<^esub> ?Q' = ((\<exists> $st\<acute> \<bullet> ?P') \<and> (\<exists> $st\<acute> \<bullet> ?Q') \<and> $st\<acute> =\<^sub>u $st)"
+    by (simp add: par_by_merge_alt_def, rel_auto, blast+)
+  thus ?thesis
+    by (simp add: P Q)
+qed 
+
+text {* Important theorem that shows the form of a parallel process *}
+  
 lemma CSPMerge'_form:
   fixes P Q :: "('\<sigma>,'\<phi>) action"
-  assumes "P is R2" "Q is R2" "$wait\<acute> \<sharp> P" "$wait\<acute> \<sharp> Q" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q"
+  assumes "vwb_lens ns1" "vwb_lens ns2" "$wait\<acute> \<sharp> P" "$wait\<acute> \<sharp> Q" "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "P is R2" "Q is R2" 
   shows
   "P \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q = 
         (\<^bold>\<exists> (ref\<^sub>0, ref\<^sub>1, st\<^sub>0, st\<^sub>1, tt\<^sub>0, tt\<^sub>1) \<bullet> 
@@ -2615,9 +2632,36 @@ lemma CSPMerge'_form:
            \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
            \<and> $st\<acute> =\<^sub>u ($st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
 proof -
-  have "P \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; N\<^sub>C ns1 cs ns2"
-  oops
-
+  have P:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(P)) = P" (is "?P' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  have Q:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(Q)) = Q" (is "?Q' = _")
+    by (simp add: ex_unrest ex_plus Healthy_if assms)
+  from assms(1,2)
+  have "?P' \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> ?Q' = 
+        (\<^bold>\<exists> (ref\<^sub>0, ref\<^sub>1, st\<^sub>0, st\<^sub>1, tt\<^sub>0, tt\<^sub>1) \<bullet> 
+             ?P'\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>,\<guillemotleft>st\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tt\<^sub>0\<guillemotright>/$ref\<acute>,$st\<acute>,$tr,$tr\<acute>\<rbrakk> \<and> ?Q'\<lbrakk>\<guillemotleft>ref\<^sub>1\<guillemotright>,\<guillemotleft>st\<^sub>1\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$ref\<acute>,$st\<acute>,$tr,$tr\<acute>\<rbrakk>
+           \<and> $ref\<acute> \<subseteq>\<^sub>u ((\<guillemotleft>ref\<^sub>0\<guillemotright> \<union>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u ((\<guillemotleft>ref\<^sub>0\<guillemotright> \<inter>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) - \<guillemotleft>cs\<guillemotright>)
+           \<and> $tr \<le>\<^sub>u $tr\<acute>
+           \<and> tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright>
+           \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
+           \<and> $st\<acute> =\<^sub>u ($st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+    apply (simp add: par_by_merge_alt_def, rel_auto, blast)
+    apply (rename_tac ok wait tr st ref tr' ref' ref\<^sub>0 ref\<^sub>1 st\<^sub>0 st\<^sub>1 tr\<^sub>0 ok\<^sub>0 tr\<^sub>1 wait\<^sub>0 ok\<^sub>1 wait\<^sub>1)
+    apply (rule_tac x="ok" in exI)
+    apply (rule_tac x="wait" in exI)
+    apply (rule_tac x="tr" in exI)      
+    apply (rule_tac x="st" in exI)
+    apply (rule_tac x="ref" in exI)
+    apply (rule_tac x="tr @ tr\<^sub>0" in exI)      
+    apply (rule_tac x="st\<^sub>0" in exI)
+    apply (rule_tac x="ref\<^sub>0" in exI)      
+    apply (auto)
+    apply (metis Prefix_Order.prefixI append_minus)
+  done
+  thus ?thesis
+    by (simp add: P Q)
+qed
+    
 subsection {* Parallel Operator *}
 
 abbreviation ParCSP ::
@@ -2634,6 +2678,9 @@ abbreviation InterleaveCSP ::
 
 definition CSP5 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
 [upred_defs]: "CSP5(P) = (P ||| Skip)"
+
+definition C2 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[upred_defs]: "C2(P) = (P [|1\<^sub>L\<parallel>{}\<parallel>0\<^sub>L|] Skip)"
 
 subsubsection {* CSP Parallel Laws *}
 
@@ -2652,7 +2699,7 @@ lemma SymMerge_CSP_NS [closure]: "N\<^sub>C 0\<^sub>L cs 0\<^sub>L is SymMerge"
 lemma ParCSP_expand:
   "P [|ns1\<parallel>cs\<parallel>ns2|] Q = (P \<parallel>\<^sub>R\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q) ;; Skip"
   by (simp add: CSPMerge_def par_by_merge_seq_add)
-
+    
 lemma parallel_is_CSP [closure]:
   assumes "P is CSP" "Q is CSP"
   shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) is CSP"
@@ -2679,7 +2726,7 @@ qed
 lemma interleave_commute:
   "P ||| Q = Q ||| P"
   using parallel_commutative zero_lens_indep by blast
-
+    
 lemma preR_CSP5:
   fixes P :: "('\<sigma>, '\<phi>) action"
   assumes "P is NCSP"
