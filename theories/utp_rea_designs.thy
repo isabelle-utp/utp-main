@@ -3702,10 +3702,14 @@ lemma SymMerge_nmerge_rd0 [closure]:
   "M is SymMerge \<Longrightarrow> N\<^sub>0(M) is SymMerge"
   by (rel_auto, meson+)
 
+lemma swap_merge_rd':
+  "swap\<^sub>m ;; N\<^sub>R(M) = N\<^sub>R(swap\<^sub>m ;; M)"
+  by (rel_blast)
+     
 lemma swap_merge_rd:
   "swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(swap\<^sub>m ;; M)"
-  by (rel_simp, safe, (metis)+)
-    
+  by (simp add: merge_rd_def seqr_assoc swap_merge_rd')
+
 lemma SymMerge_merge_rd [closure]:
   "M is SymMerge \<Longrightarrow> M\<^sub>R(M) is SymMerge"
   by (simp add: Healthy_def swap_merge_rd)

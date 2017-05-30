@@ -133,12 +133,12 @@ translations
   "_disc_alpha" == "CONST disc_alpha"
 
 lemma var_in_var_prod [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "utp_expr.var ((in_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $X:(x)"
   by (pred_auto)
 
 lemma var_out_var_prod [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "utp_expr.var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
 
@@ -272,7 +272,7 @@ lemma at_bop [simp]:
   by (simp add: at_def usubst alpha)
 
 lemma at_var [simp]:
-  fixes x :: "('a, 'c::topological_space) uvar"
+  fixes x :: "('a \<Longrightarrow> 'c::topological_space)"
   shows "utp_expr.var x @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
   by (pred_auto)
 

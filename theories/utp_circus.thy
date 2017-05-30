@@ -252,13 +252,13 @@ apply (unfold new_do\<^sub>I_def new_do\<^sub>I'_def)
 apply (rel_simp)
 apply (safe; clarsimp?)
 apply (blast)
+apply (simp_all add: zero_list_def)    
 apply (blast)
 apply (metis)
-apply (simp add: zero_list_def)
-apply (blast)
-apply (blast)
 apply (metis)
-apply (simp add: zero_list_def)
+apply (blast)
+apply (blast)
+apply (metis)+
 done
 
 (* Need to figure out how to state the law below... ?! *)
