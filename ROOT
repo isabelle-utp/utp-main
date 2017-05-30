@@ -57,6 +57,9 @@ session "Optics" in "optics"
     "root.tex"
     "document.sty"
     "figures/Lens.pdf"
+    "figures/Independence.pdf"
+    "figures/Sum.pdf"
+    "figures/Composition.pdf"
 
 (* Continuum Universe *)
 

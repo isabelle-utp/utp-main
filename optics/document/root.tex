@@ -60,11 +60,15 @@
 \newcommand{\lfst}{\textit{\textsf{\textbf{fst}}}}
 \newcommand{\lsnd}{\textit{\textsf{\textbf{snd}}}}
 
+\setcounter{topnumber}{1}
+\setcounter{bottomnumber}{1}
+\setcounter{totalnumber}{1}
+
 \begin{document}
 
 \title{Optics in Isabelle}
 
-\author{Simon Foster \and Frank Zeyda}
+\author{Simon Foster and Frank Zeyda \\[.5ex] University of York, UK \\[2ex] \texttt{\small $\{$simon.foster,frank.zeyda$\}$@york.ac.uk}}
 
 \maketitle
 
@@ -75,7 +79,8 @@
   well-behaved and very well-behaved lenses, each lens class being characterised by a set of lens laws. We also mechanise 
   a lens algebra in Isabelle that enables their composition and comparison, so as to allow construction of complex lenses.
   This is accompanied by a large library of algebraic laws. Moreover we also show how the lens classes can be applied by 
-  instantiating them with a number of Isabelle data types. This theory development is based on our recent paper~\cite{Foster16a}
+  instantiating them with a number of Isabelle data types. This theory development is based on our recent paper~\cite{Foster16a}, which
+  shows how lenses can be used to unify heterogeneous representations of state-spaces in formalised programs.
 \end{abstract}
 
 \tableofcontents
@@ -85,6 +90,14 @@
 
 % generated text of all theories
 \input{session}
+
+\vspace{4ex}
+
+% Acknowledgments 
+\noindent\textbf{Acknowledgements}. This work is partly supported by EU H2020 project \emph{INTO-CPS}, grant agreement
+644047. \url{http://into-cps.au.dk/}. We would also like to thank Prof. Burkhart Wolff and Dr. Achim Brucker
+for their generous and helpful comments on our work, and particurlarly their invaluable advice on Isabelle
+mechanisation and ML coding.
 
 % optional bibliography
 \bibliographystyle{abbrv}

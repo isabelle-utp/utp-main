@@ -5,10 +5,10 @@ imports
   Two Interp
 begin
 
-subsection \<open>Lens signature\<close>
+subsection \<open>Lens Signature\<close>
   
 text \<open>This theory introduces the signature of lenses and indentifies the core algebraic hierarchy of lens 
-  classes, including laws for well-behaved, very well-behaved, and bijective lenses~\cite{Foster07,Fischer2015}.\<close>
+  classes, including laws for well-behaved, very well-behaved, and bijective lenses~\cite{Foster07,Fischer2015,Gibbons17}.\<close>
   
 record ('a, 'b) lens =
   lens_get :: "'b \<Rightarrow> 'a" ("get\<index>")
@@ -20,7 +20,7 @@ type_notation
 text \<open>
   \begin{figure}
   \begin{center}
-    \includegraphics[width=3.5cm]{figures/Lens}
+    \includegraphics[width=6cm]{figures/Lens}
   \end{center}
   \vspace{-5ex}
   \caption{Visualisation of a simple lens}
@@ -43,7 +43,7 @@ definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarr
 text \<open> Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
   as the view, and leaving the remaining context arbitrary. \<close>
 
-subsection \<open>Weak lenses\<close>
+subsection \<open>Weak Lenses\<close>
 
 text \<open> Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
   simply require that the PutGet law~\cite{Foster09,Fischer2015} is satisfied, meaning that
@@ -79,7 +79,7 @@ end
 declare weak_lens.put_get [simp]
 declare weak_lens.create_get [simp]
 
-subsection \<open>Well-behaved lenses\<close>
+subsection \<open>Well-behaved Lenses\<close>
 
 text \<open> Well-behaved lenses add to weak lenses that requirement that the GetPut law~\cite{Foster09,Fischer2015}
   is satisfied, meaning that $\lput$ is the inverse of $\lget$. \<close>
@@ -104,7 +104,7 @@ declare wb_lens.get_put [simp]
 lemma wb_lens_weak [simp]: "wb_lens x \<Longrightarrow> weak_lens x"
   by (simp_all add: wb_lens_def)
 
-subsection \<open> Mainly well-behaved lenses \<close>
+subsection \<open> Mainly Well-behaved Lenses \<close>
 
 text \<open> Mainly well-behaved lenses extend weak lenses with the PutPut law that shows how one put
   override a previous one. \<close>
@@ -124,7 +124,7 @@ lemma mwb_lens_weak [simp]:
   "mwb_lens x \<Longrightarrow> weak_lens x"
   by (simp add: mwb_lens_def)
 
-subsection \<open>Very well-behaved lenses\<close>
+subsection \<open>Very Well-behaved Lnses\<close>
 
 text \<open>Very well-behaved lenses combine all three laws, as in the literature~\cite{Foster09,Fischer2015}.\<close>
 
@@ -146,7 +146,7 @@ lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
 lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
   by (simp_all add: vwb_lens_def)
 
-subsection \<open> Ineffectual lenses \<close>
+subsection \<open> Ineffectual Lenses \<close>
 
 text \<open>Ineffectual lenses can have no effect on the view type -- application of the $\lput$ function
   always yields the same source. They are thus, trivially, very well-behaved lenses.\<close>
@@ -172,7 +172,7 @@ end
 
 abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
-subsection \<open> Bijective lenses \<close>
+subsection \<open> Bijective Lenses \<close>
 
 text \<open>Bijective lenses characterise the situation where the source and view type are equivalent:
   in other words the view type full characterises the whole source type. It is often useful
@@ -217,12 +217,22 @@ lemma bij_lens_weak [simp]:
 lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
   by (unfold_locales, simp_all add: bij_lens.put_is_create)
 
-subsection \<open>Lens independence\<close>
+subsection \<open>Lens Independence\<close>
 
-text \<open> Lens independence shows when two lenses $X$ and $Y$ characterise disjoint regions of the
-  source type. We specify this by requiring that the $\lput$ functions of the two lenses commute,
-  and that the $\lget$ function of each lens is unaffected by application of $\lput$ from the
-  corresponding lens. \<close>
+text \<open> 
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=6cm]{figures/Independence}
+  \end{center}
+  \vspace{-5ex}
+  \caption{Lens Independence}
+  \label{fig:Indep}
+  \end{figure}
+
+  Lens independence shows when two lenses $X$ and $Y$ characterise disjoint regions of the
+  source type, as illustrated in Figure~\ref{fig:Indep}. We specify this by requiring that the $\lput$ 
+  functions of the two lenses commute, and that the $\lget$ function of each lens is unaffected by 
+  application of $\lput$ from the corresponding lens. \<close>
 
 locale lens_indep =
   fixes X :: "'a \<Longrightarrow> 'c" and Y :: "'b \<Longrightarrow> 'c"

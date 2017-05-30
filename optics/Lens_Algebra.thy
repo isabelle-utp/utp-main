@@ -1,20 +1,39 @@
-section \<open>Lens algebraic operators\<close>
+section \<open>Lens Algebraic Operators\<close>
 
 theory Lens_Algebra
 imports Lens_Laws
 begin
 
-subsection \<open>Lens composition, plus, unit, and identity\<close>
+subsection \<open>Lens Composition, Plus, Unit, and Identity\<close>
 
-text \<open>We introduce the algebraic lens operators; for more information please see our paper~\cite{Foster16a}.
-      Lens composition constructs a lens by composing the source of one lens with the view of another.\<close>
+text \<open>
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=7cm]{figures/Composition}
+  \end{center}
+  \vspace{-5ex}
+  \caption{Lens Composition}
+  \label{fig:Comp}
+  \end{figure}
+  We introduce the algebraic lens operators; for more information please see our paper~\cite{Foster16a}.
+  Lens composition, illustrated in Figure~\ref{fig:Comp}, constructs a lens by composing the source 
+  of one lens with the view of another.\<close>
 
 definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
 [lens_defs]: "lens_comp Y X = \<lparr> lens_get = lens_get Y \<circ> lens_get X
                               , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
 
-text \<open>Lens plus parallel composes two independent lenses, resulting in a lens whose view is the
-  product of the two underlying lens views.\<close>
+text \<open>
+  \begin{figure}
+  \begin{center}
+    \includegraphics[width=7cm]{figures/Sum}
+  \end{center}
+  \vspace{-5ex}
+  \caption{Lens Sum}
+  \label{fig:Sum}
+  \end{figure}
+  Lens plus, as illustrated in Figure~\ref{fig:Sum} parallel composes two independent lenses, 
+  resulting in a lens whose view is the product of the two underlying lens views.\<close>
 
 definition lens_plus :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> 'a \<times> 'b \<Longrightarrow> 'c" (infixr "+\<^sub>L" 75) where
 [lens_defs]: "X +\<^sub>L Y = \<lparr> lens_get = (\<lambda> \<sigma>. (lens_get X \<sigma>, lens_get Y \<sigma>))
@@ -76,7 +95,7 @@ text \<open>Lens inverse take a bijective lens and swaps the source and view typ
 definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" ("inv\<^sub>L") where
 [lens_defs]: "lens_inv x = \<lparr> lens_get = create\<^bsub>x\<^esub>, lens_put = \<lambda> \<sigma>. get\<^bsub>x\<^esub> \<rparr>"
 
-subsection \<open>Closure properties\<close>
+subsection \<open>Closure Poperties\<close>
 
 text \<open>We show that the core lenses combinators defined above are closed under the key lens classes.\<close>
   
@@ -166,7 +185,7 @@ lemma lens_inv_bij: "bij_lens X \<Longrightarrow> bij_lens (inv\<^sub>L X)"
 lemma swap_bij_lens: "bij_lens swap\<^sub>L"
   by (unfold_locales, simp_all add: lens_plus_def prod.case_eq_if fst_lens_def snd_lens_def)
 
-subsection \<open>Composition laws\<close>
+subsection \<open>Composition Laws\<close>
 
 text \<open>Lens composition is monoidal, with unit @{term "1\<^sub>L"}, as the following theorems demonstrate. 
   It also has @{term "0\<^sub>L"} as a right annihilator. \<close>
@@ -183,7 +202,7 @@ lemma lens_comp_right_id [simp]: "X ;\<^sub>L 1\<^sub>L = X"
 lemma lens_comp_anhil [simp]: "wb_lens X \<Longrightarrow> 0\<^sub>L ;\<^sub>L X = 0\<^sub>L"
   by (simp add: zero_lens_def lens_comp_def comp_def)
 
-subsection \<open>Independence laws\<close>
+subsection \<open>Independence Laws\<close>
 
 text \<open>The zero lens @{term "0\<^sub>L"} is independent of any lens. This is because nothing can be observed
   or changed using @{term "0\<^sub>L"}. \<close>
@@ -285,7 +304,7 @@ lemma lens_indep_prod:
    apply (simp_all add: lens_indep_sym)
 done
 
-subsection \<open>Algebraic laws\<close>
+subsection \<open>Algebraic Laws\<close>
 
 text \<open>Lens plus distributes to the right through composition.\<close>
   
