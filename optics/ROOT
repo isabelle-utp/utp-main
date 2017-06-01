@@ -7,7 +7,7 @@
 
 (* Optics Library *)
 
-session "Optics-Library" = "HOL-Eisbach" +
+session "Optics" = "HOL-Eisbach" +
   options [document = pdf, document_output = "output", timeout = 300]
   theories
     Interp
@@ -17,6 +17,7 @@ session "Optics-Library" = "HOL-Eisbach" +
     Lens_Order
     Lens_Instances
     Lenses
+    Prisms
   document_files
     "root.bib"
     "root.tex"

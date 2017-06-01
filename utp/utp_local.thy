@@ -9,7 +9,7 @@ text {* Local variables are represented as lenses whose view type is a list of v
   us to denote variable scopes using assignments that push and pop this stack to add or delete
   a particular local variable. *}
 
-type_synonym ('a, '\<alpha>) lvar = "('a list, '\<alpha>) uvar"
+type_synonym ('a, '\<alpha>) lvar = "('a list \<Longrightarrow> '\<alpha>)"
 
 text {* Different UTP theories have different assignment operators; consequently in order to
   generically characterise variable blocks we need to abstractly characterise assignments.
@@ -28,7 +28,7 @@ text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to th
 
 syntax
   "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>v\<index>")
-  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid_list \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
+  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
 
 translations
   "_svid_pvar T" => "CONST pvar T"
@@ -38,12 +38,12 @@ text {* Next, we define constants to represent the top most variable on the loca
   and the remainder after this. We define these in terms of the list lens, and so for each
   another lens is produced. *}
 
-definition top_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a, '\<alpha>) uvar" where
+definition top_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a \<Longrightarrow> '\<alpha>)" where
 [upred_defs]: "top_var x = (list_lens 0 ;\<^sub>L x)"
 
 text {* The remainder of the local variable stack (the tail) *}
 
-definition rest_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a list, '\<alpha>) uvar" where
+definition rest_var :: "('a::two, '\<alpha>) lvar \<Rightarrow> ('a list \<Longrightarrow> '\<alpha>)" where
 [upred_defs]: "rest_var x = (tl_lens ;\<^sub>L x)"
 
 text {* We can show that the top variable is a mainly well-behaved lense, and that the top most

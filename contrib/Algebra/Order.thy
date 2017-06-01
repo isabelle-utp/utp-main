@@ -2,8 +2,8 @@
     Author:     Clemens Ballarin, started 7 November 2003
     Copyright:  Clemens Ballarin
 
-Most congruence rules by Stephan Hohe. With additional contributions from Alasdair Armstrong
-and Simon Foster.
+Most congruence rules by Stephan Hohe.
+With additional contributions from Alasdair Armstrong and Simon Foster.
 *)
 
 theory Order
@@ -12,17 +12,18 @@ imports
   Congruence
 begin
 
-section \<open> Orders \<close>
+section \<open>Orders\<close>
 
-subsection \<open> Partial Orders \<close>
+subsection \<open>Partial Orders\<close>
 
 record 'a gorder = "'a eq_object" +
   le :: "['a, 'a] => bool" (infixl "\<sqsubseteq>\<index>" 50)
 
 abbreviation inv_gorder :: "_ \<Rightarrow> 'a gorder" where
-  "inv_gorder L \<equiv> \<lparr> carrier = carrier L
-                  , eq = op .=\<^bsub>L\<^esub>
-                  , le = (\<lambda> x y. y \<sqsubseteq>\<^bsub>L \<^esub>x) \<rparr>"
+  "inv_gorder L \<equiv>
+   \<lparr> carrier = carrier L,
+     eq = op .=\<^bsub>L\<^esub>,
+     le = (\<lambda> x y. y \<sqsubseteq>\<^bsub>L \<^esub>x) \<rparr>"
 
 lemma inv_gorder_inv:
   "inv_gorder (inv_gorder L) = L"
@@ -43,7 +44,8 @@ definition
   lless :: "[_, 'a, 'a] => bool" (infixl "\<sqsubset>\<index>" 50)
   where "x \<sqsubset>\<^bsub>L\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>L\<^esub> y & x .\<noteq>\<^bsub>L\<^esub> y"
 
-subsubsection \<open> The order relation \<close>
+
+subsubsection \<open>The order relation\<close>
 
 context weak_partial_order
 begin
@@ -129,8 +131,9 @@ proof -
     apply (meson L.le_cong assms(2) subsetCE)
   done
 qed
-    
-subsubsection \<open> Upper and lower bounds of a set \<close>
+
+
+subsubsection \<open>Upper and lower bounds of a set\<close>
 
 definition
   Upper :: "[_, 'a set] => 'a set"
@@ -302,7 +305,7 @@ next
   finally show "x \<sqsubseteq> a" by (simp add: carr subsetD[OF A'carr a'A'])
 qed
 
-text \<open> Jacobson: Theorem 8.1 \<close>
+text \<open>Jacobson: Theorem 8.1\<close>
 
 lemma Lower_empty [simp]:
   "Lower L {} = carrier L"
@@ -312,7 +315,8 @@ lemma Upper_empty [simp]:
   "Upper L {} = carrier L"
   by (unfold Upper_def) simp
 
-subsubsection \<open> Least and greatest, as predicate \<close>
+
+subsubsection \<open>Least and greatest, as predicate\<close>
 
 definition
   least :: "[_, 'a, 'a set] => bool"
@@ -322,8 +326,8 @@ definition
   greatest :: "[_, 'a, 'a set] => bool"
   where "greatest L g A \<longleftrightarrow> A \<subseteq> carrier L & g \<in> A & (ALL x : A. x \<sqsubseteq>\<^bsub>L\<^esub> g)"
 
-text (in weak_partial_order) {* Could weaken these to @{term "l \<in> carrier L \<and> l
-  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}. *}
+text (in weak_partial_order) \<open>Could weaken these to @{term "l \<in> carrier L \<and> l
+  .\<in> A"} and @{term "g \<in> carrier L \<and> g .\<in> A"}.\<close>
 
 lemma least_closed [intro, simp]:
   "least L l A ==> l \<in> carrier L"
@@ -349,8 +353,8 @@ lemma (in weak_partial_order) least_cong:
 abbreviation is_lub :: "[_, 'a, 'a set] => bool"
 where "is_lub L x A \<equiv> least L x (Upper L A)"
 
-text (in weak_partial_order) {* @{const least} is not congruent in the second parameter for 
-  @{term "A {.=} A'"} *}
+text (in weak_partial_order) \<open>@{const least} is not congruent in the second parameter for
+  @{term "A {.=} A'"}\<close>
 
 lemma (in weak_partial_order) least_Upper_cong_l:
   assumes "x .= x'"
@@ -409,8 +413,8 @@ lemma (in weak_partial_order) greatest_cong:
 abbreviation is_glb :: "[_, 'a, 'a set] => bool"
 where "is_glb L x A \<equiv> greatest L x (Lower L A)"
 
-text (in weak_partial_order) {* @{const greatest} is not congruent in the second parameter for 
-  @{term "A {.=} A'"} *}
+text (in weak_partial_order) \<open>@{const greatest} is not congruent in the second parameter for
+  @{term "A {.=} A'"} \<close>
 
 lemma (in weak_partial_order) greatest_Lower_cong_l:
   assumes "x .= x'"
@@ -488,11 +492,12 @@ next
     by (metis weak_partial_order.dual_weak_order)
 qed
 
-subsubsection \<open> Intervals \<close>
+
+subsubsection \<open>Intervals\<close>
 
 definition
-  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" ("(1\<lbrace>_.._\<rbrace>\<index>)") where
-  "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
+  at_least_at_most :: "('a, 'c) gorder_scheme \<Rightarrow> 'a => 'a => 'a set" ("(1\<lbrace>_.._\<rbrace>\<index>)")
+  where "\<lbrace>l..u\<rbrace>\<^bsub>A\<^esub> = {x \<in> carrier A. l \<sqsubseteq>\<^bsub>A\<^esub> x \<and> x \<sqsubseteq>\<^bsub>A\<^esub> u}"
 
 context weak_partial_order
 begin
@@ -513,13 +518,15 @@ begin
     by (simp add: at_least_at_most_def)
 
 end
-  
-subsubsection {* Isotone functions *}
 
-definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
-  "isotone A B f \<equiv> weak_partial_order A 
-                 \<and> weak_partial_order B 
-                 \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. x \<sqsubseteq>\<^bsub>A\<^esub> y \<longrightarrow> f x \<sqsubseteq>\<^bsub>B\<^esub> f y)"
+
+subsubsection \<open>Isotone functions\<close>
+
+definition isotone :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where
+  "isotone A B f \<equiv>
+   weak_partial_order A \<and> weak_partial_order B \<and>
+   (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. x \<sqsubseteq>\<^bsub>A\<^esub> y \<longrightarrow> f x \<sqsubseteq>\<^bsub>B\<^esub> f y)"
 
 lemma isotoneI [intro?]:
   fixes f :: "'a \<Rightarrow> 'b"
@@ -530,35 +537,44 @@ lemma isotoneI [intro?]:
   shows "isotone L1 L2 f"
   using assms by (auto simp add:isotone_def)
 
-abbreviation Monotone :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Mono\<index>") where
-"Monotone L f \<equiv> isotone L L f"
+abbreviation Monotone :: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Mono\<index>")
+  where "Monotone L f \<equiv> isotone L L f"
 
-lemma use_iso1: "\<lbrakk>isotone A A f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>A\<^esub> f y"
+lemma use_iso1:
+  "\<lbrakk>isotone A A f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow>
+   f x \<sqsubseteq>\<^bsub>A\<^esub> f y"
   by (simp add: isotone_def)
 
-lemma use_iso2: "\<lbrakk>isotone A B f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow> f x \<sqsubseteq>\<^bsub>B\<^esub> f y"
+lemma use_iso2:
+  "\<lbrakk>isotone A B f; x \<in> carrier A; y \<in> carrier A; x \<sqsubseteq>\<^bsub>A\<^esub> y\<rbrakk> \<Longrightarrow>
+   f x \<sqsubseteq>\<^bsub>B\<^esub> f y"
   by (simp add: isotone_def)
 
-lemma iso_compose: "\<lbrakk>f \<in> carrier A \<rightarrow> carrier B; isotone A B f; g \<in> carrier B \<rightarrow> carrier C; isotone B C g\<rbrakk> \<Longrightarrow> isotone A C (g \<circ> f)"
+lemma iso_compose:
+  "\<lbrakk>f \<in> carrier A \<rightarrow> carrier B; isotone A B f; g \<in> carrier B \<rightarrow> carrier C; isotone B C g\<rbrakk> \<Longrightarrow>
+   isotone A C (g \<circ> f)"
   by (simp add: isotone_def, safe, metis Pi_iff)
 
 lemma (in weak_partial_order) inv_isotone [simp]: 
   "isotone (inv_gorder A) (inv_gorder B) f = isotone A B f"
   by (auto simp add:isotone_def dual_weak_order dual_weak_order_iff)
 
-subsubsection \<open> Idempotent functions \<close>
+
+subsubsection \<open>Idempotent functions\<close>
 
 definition idempotent :: 
   "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" ("Idem\<index>") where
-"idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
+  "idempotent L f \<equiv> \<forall>x\<in>carrier L. f (f x) .=\<^bsub>L\<^esub> f x"
 
 lemma (in weak_partial_order) idempotent:
   "\<lbrakk> Idem f; x \<in> carrier L \<rbrakk> \<Longrightarrow> f (f x) .= f x"
   by (auto simp add: idempotent_def)
 
-subsubsection \<open> Order embeddings \<close>
 
-definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
+subsubsection \<open>Order embeddings\<close>
+
+definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool"
+  where
   "order_emb A B f \<equiv> weak_partial_order A 
                    \<and> weak_partial_order B 
                    \<and> (\<forall>x\<in>carrier A. \<forall>y\<in>carrier A. f x \<sqsubseteq>\<^bsub>B\<^esub> f y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>A\<^esub> y )"
@@ -566,12 +582,13 @@ definition order_emb :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_sc
 lemma order_emb_isotone: "order_emb A B f \<Longrightarrow> isotone A B f"
   by (auto simp add: isotone_def order_emb_def)
 
-subsubsection \<open> Commuting functions \<close>
+
+subsubsection \<open>Commuting functions\<close>
     
 definition commuting :: "('a, 'c) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> bool" where
 "commuting A f g = (\<forall>x\<in>carrier A. (f \<circ> g) x .=\<^bsub>A\<^esub> (g \<circ> f) x)"
 
-subsection \<open> Partial orders where @{text eq} is the Equality \<close>
+subsection \<open>Partial orders where \<open>eq\<close> is the Equality\<close>
 
 locale partial_order = weak_partial_order +
   assumes eq_is_equal: "op .= = op ="
@@ -586,12 +603,6 @@ lemma le_antisym [intro]:
 lemma lless_eq:
   "x \<sqsubset> y \<longleftrightarrow> x \<sqsubseteq> y & x \<noteq> y"
   unfolding lless_def by (simp add: eq_is_equal)
-
-lemma lless_asym:
-  assumes "a \<in> carrier L" "b \<in> carrier L"
-    and "a \<sqsubset> b" "b \<sqsubset> a"
-  shows "P"
-  using assms unfolding lless_eq by auto
 
 lemma set_eq_is_eq: "A {.=} B \<longleftrightarrow> A = B"
   by (auto simp add: set_eq_def elem_def eq_is_equal)
@@ -628,7 +639,7 @@ next
     by (metis partial_order.dual_order)
 qed
 
-subsubsection \<open> Least and greatest, as predicate \<close>
+text \<open>Least and greatest, as predicate\<close>
 
 lemma (in partial_order) least_unique:
   "[| least L x A; least L y A |] ==> x = y"
@@ -638,15 +649,16 @@ lemma (in partial_order) greatest_unique:
   "[| greatest L x A; greatest L y A |] ==> x = y"
   using weak_greatest_unique unfolding eq_is_equal .
 
-subsection \<open> Bounded Orders \<close>
+
+subsection \<open>Bounded Orders\<close>
 
 definition
-  atop :: "_ => 'a" ("\<top>\<index>")
-  where "\<top>\<^bsub>L\<^esub> = (SOME x. greatest L x (carrier L))"
+  top :: "_ => 'a" ("\<top>\<index>") where
+  "\<top>\<^bsub>L\<^esub> = (SOME x. greatest L x (carrier L))"
 
 definition
-  abottom :: "_ => 'a" ("\<bottom>\<index>")
-  where "\<bottom>\<^bsub>L\<^esub> = (SOME x. least L x (carrier L))"
+  bottom :: "_ => 'a" ("\<bottom>\<index>") where
+  "\<bottom>\<^bsub>L\<^esub> = (SOME x. least L x (carrier L))"
 
 locale weak_partial_order_bottom = weak_partial_order L for L (structure) +
   assumes bottom_exists: "\<exists> x. least L x (carrier L)"
@@ -658,7 +670,7 @@ proof -
     by (metis bottom_exists)
 
   thus ?thesis
-    by (auto intro:someI2 simp add:abottom_def)
+    by (auto intro:someI2 simp add: bottom_def)
 qed
 
 lemma bottom_closed [simp, intro]:
@@ -681,7 +693,7 @@ proof -
     by (metis top_exists)
 
   thus ?thesis
-    by (auto intro:someI2 simp add:atop_def)
+    by (auto intro:someI2 simp add: top_def)
 qed
 
 lemma top_closed [simp, intro]:
@@ -694,27 +706,29 @@ lemma top_higher [simp, intro]:
 
 end
 
-subsection \<open> Total Orders \<close>
+
+subsection \<open>Total Orders\<close>
 
 locale weak_total_order = weak_partial_order +
   assumes total: "\<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
-text {* Introduction rule: the usual definition of total order *}
+text \<open>Introduction rule: the usual definition of total order\<close>
 
 lemma (in weak_partial_order) weak_total_orderI:
   assumes total: "!!x y. \<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
   shows "weak_total_order L"
   by unfold_locales (rule total)
 
-subsection \<open> Total orders where @{text eq} is the Equality \<close>
+
+subsection \<open>Total orders where \<open>eq\<close> is the Equality\<close>
 
 locale total_order = partial_order +
   assumes total_order_total: "\<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"
 
-sublocale total_order < weak: weak_total_order
+sublocale total_order < weak?: weak_total_order
   by unfold_locales (rule total_order_total)
 
-text \<open> Introduction rule: the usual definition of total order \<close>
+text \<open>Introduction rule: the usual definition of total order\<close>
 
 lemma (in partial_order) total_orderI:
   assumes total: "!!x y. \<lbrakk> x \<in> carrier L; y \<in> carrier L \<rbrakk> \<Longrightarrow> x \<sqsubseteq> y \<or> y \<sqsubseteq> x"

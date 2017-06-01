@@ -148,7 +148,7 @@ subsection {* Input Prefix (OLD) *}
 (*
 definition do\<^sub>I :: "
   ('a, '\<epsilon>) chan \<Rightarrow>
-  ('a, ('\<sigma>, '\<epsilon>) st_csp) uvar \<Rightarrow>
+  ('a \<Longrightarrow> ('\<sigma>, '\<epsilon>) st_csp) \<Rightarrow>
   ('a \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
   ('\<sigma>, '\<epsilon>) action" where
 "do\<^sub>I c x P =
@@ -161,7 +161,7 @@ definition InputCircus ::
   "('a::{continuum, two}, '\<epsilon>) chan \<Rightarrow>
     ('a, ('\<sigma>, '\<epsilon>) st_csp) lvar \<Rightarrow>
     ('a \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
-    (('a, ('\<sigma>, '\<epsilon>) st_csp) uvar \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
+    (('a \<Longrightarrow> ('\<sigma>, '\<epsilon>) st_csp) \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
     ('\<sigma>, '\<epsilon>) action" where
 "InputCircus c x P A =
   (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II)) ;; A(x))"
@@ -252,13 +252,13 @@ apply (unfold new_do\<^sub>I_def new_do\<^sub>I'_def)
 apply (rel_simp)
 apply (safe; clarsimp?)
 apply (blast)
+apply (simp_all add: zero_list_def)    
 apply (blast)
 apply (metis)
-apply (simp add: zero_list_def)
-apply (blast)
-apply (blast)
 apply (metis)
-apply (simp add: zero_list_def)
+apply (blast)
+apply (blast)
+apply (metis)+
 done
 
 (* Need to figure out how to state the law below... ?! *)

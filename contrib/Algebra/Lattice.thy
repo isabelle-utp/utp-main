@@ -2,33 +2,33 @@
     Author:     Clemens Ballarin, started 7 November 2003
     Copyright:  Clemens Ballarin
 
-Most congruence rules by Stephan Hohe. With additional contributions from Alasdair Armstrong
-and Simon Foster.
+Most congruence rules by Stephan Hohe.
+With additional contributions from Alasdair Armstrong and Simon Foster.
 *)
 
 theory Lattice
 imports Order
 begin
 
-section \<open> Lattices \<close>
+section \<open>Lattices\<close>
   
-subsection \<open> Supremum and infimum \<close>
+subsection \<open>Supremum and infimum\<close>
 
 definition
-  asup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
+  sup :: "[_, 'a set] => 'a" ("\<Squnion>\<index>_" [90] 90)
   where "\<Squnion>\<^bsub>L\<^esub>A = (SOME x. least L x (Upper L A))"
 
 definition
-  ainf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
+  inf :: "[_, 'a set] => 'a" ("\<Sqinter>\<index>_" [90] 90)
   where "\<Sqinter>\<^bsub>L\<^esub>A = (SOME x. greatest L x (Lower L A))"
 
-definition asupr :: 
-  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a " where
-"asupr L A f = \<Squnion>\<^bsub>L \<^esub>(f ` A)"
+definition supr :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a "
+  where "supr L A f = \<Squnion>\<^bsub>L\<^esub>(f ` A)"
 
-definition ainfi :: 
-  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a " where
-"ainfi L A f = \<Sqinter>\<^bsub>L \<^esub>(f ` A)"
+definition infi :: 
+  "('a, 'b) gorder_scheme \<Rightarrow> 'c set \<Rightarrow> ('c \<Rightarrow> 'a) \<Rightarrow> 'a "
+  where "infi L A f = \<Sqinter>\<^bsub>L\<^esub>(f ` A)"
 
 syntax
   "_inf1"     :: "('a, 'b) gorder_scheme \<Rightarrow> pttrns \<Rightarrow> 'a \<Rightarrow> 'a" ("(3IINF\<index> _./ _)" [0, 10] 10)
@@ -37,10 +37,10 @@ syntax
   "_sup"      :: "('a, 'b) gorder_scheme \<Rightarrow> pttrn \<Rightarrow> 'c set \<Rightarrow> 'a \<Rightarrow> 'a"  ("(3SSUP\<index> _:_./ _)" [0, 0, 10] 10)
 
 translations
-  "IINF\<^bsub>L\<^esub> x. B"     == "CONST ainfi L CONST UNIV (%x. B)"
-  "IINF\<^bsub>L\<^esub> x:A. B"   == "CONST ainfi L A (%x. B)"
-  "SSUP\<^bsub>L\<^esub> x. B"     == "CONST asupr L CONST UNIV (%x. B)"
-  "SSUP\<^bsub>L\<^esub> x:A. B"   == "CONST asupr L A (%x. B)"
+  "IINF\<^bsub>L\<^esub> x. B"     == "CONST infi L CONST UNIV (%x. B)"
+  "IINF\<^bsub>L\<^esub> x:A. B"   == "CONST infi L A (%x. B)"
+  "SSUP\<^bsub>L\<^esub> x. B"     == "CONST supr L CONST UNIV (%x. B)"
+  "SSUP\<^bsub>L\<^esub> x:A. B"   == "CONST supr L A (%x. B)"
 
 definition
   join :: "[_, 'a, 'a] => 'a" (infixl "\<squnion>\<index>" 65)
@@ -58,15 +58,16 @@ definition
   GFP:: "('a, 'b) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> 'a" ("\<nu>\<index>") where
   "GFP L f = \<Squnion>\<^bsub>L\<^esub> {u \<in> carrier L. u \<sqsubseteq>\<^bsub>L\<^esub> f u}"    --\<open>greatest fixed point\<close>
 
-subsection \<open> Dual operators \<close>
+
+subsection \<open>Dual operators\<close>
 
 lemma sup_dual [simp]: 
   "\<Squnion>\<^bsub>inv_gorder L\<^esub>A = \<Sqinter>\<^bsub>L\<^esub>A"
-  by (simp add:asup_def ainf_def)
+  by (simp add: sup_def inf_def)
 
 lemma inf_dual [simp]: 
   "\<Sqinter>\<^bsub>inv_gorder L\<^esub>A = \<Squnion>\<^bsub>L\<^esub>A"
-  by (simp add:asup_def ainf_def)
+  by (simp add: sup_def inf_def)
 
 lemma join_dual [simp]:
   "p \<squnion>\<^bsub>inv_gorder L\<^esub> q = p \<sqinter>\<^bsub>L\<^esub> q"
@@ -78,11 +79,11 @@ lemma meet_dual [simp]:
 
 lemma top_dual [simp]:
   "\<top>\<^bsub>inv_gorder L\<^esub> = \<bottom>\<^bsub>L\<^esub>"
-  by (simp add:atop_def abottom_def)
+  by (simp add: top_def bottom_def)
 
 lemma bottom_dual [simp]:
   "\<bottom>\<^bsub>inv_gorder L\<^esub> = \<top>\<^bsub>L\<^esub>"
-  by (simp add:atop_def abottom_def)
+  by (simp add: top_def bottom_def)
 
 lemma LFP_dual [simp]:
   "LFP (inv_gorder L) f = GFP L f"
@@ -92,7 +93,8 @@ lemma GFP_dual [simp]:
   "GFP (inv_gorder L) f = LFP L f"
   by (simp add:LFP_def GFP_def)
 
-subsection \<open> Lattices \<close>
+
+subsection \<open>Lattices\<close>
 
 locale weak_upper_semilattice = weak_partial_order +
   assumes sup_of_two_exists:
@@ -116,12 +118,13 @@ proof -
   done
 qed
 
-subsubsection \<open> Supremum \<close>
+
+subsubsection \<open>Supremum\<close>
 
 lemma (in weak_upper_semilattice) joinI:
   "[| !!l. least L l (Upper L {x, y}) ==> P l; x \<in> carrier L; y \<in> carrier L |]
   ==> P (x \<squnion> y)"
-proof (unfold join_def asup_def)
+proof (unfold join_def sup_def)
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
     and P: "!!l. least L l (Upper L {x, y}) ==> P l"
   with sup_of_two_exists obtain s where "least L s (Upper L {x, y})" by fast
@@ -181,21 +184,21 @@ lemma (in weak_partial_order) sup_of_singletonI:      (* only reflexivity needed
 
 lemma (in weak_partial_order) weak_sup_of_singleton [simp]:
   "x \<in> carrier L ==> \<Squnion>{x} .= x"
-  unfolding asup_def
+  unfolding sup_def
   by (rule someI2) (auto intro: weak_least_unique sup_of_singletonI)
 
 lemma (in weak_partial_order) sup_of_singleton_closed [simp]:
   "x \<in> carrier L \<Longrightarrow> \<Squnion>{x} \<in> carrier L"
-  unfolding asup_def
+  unfolding sup_def
   by (rule someI2) (auto intro: sup_of_singletonI)
 
-text \<open> Condition on @{text A}: supremum exists. \<close>
+text \<open>Condition on \<open>A\<close>: supremum exists.\<close>
 
 lemma (in weak_upper_semilattice) sup_insertI:
   "[| !!s. least L s (Upper L (insert x A)) ==> P s;
   least L a (Upper L A); x \<in> carrier L; A \<subseteq> carrier L |]
   ==> P (\<Squnion>(insert x A))"
-proof (unfold asup_def)
+proof (unfold sup_def)
   assume L: "x \<in> carrier L"  "A \<subseteq> carrier L"
     and P: "!!l. least L l (Upper L (insert x A)) ==> P l"
     and least_a: "least L a (Upper L A)"
@@ -296,10 +299,10 @@ lemma (in weak_upper_semilattice) join_left:
 lemma (in weak_upper_semilattice) join_right:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> y \<sqsubseteq> x \<squnion> y"
   by (rule joinI [folded join_def]) (blast dest: least_mem)
-    
+
 lemma (in weak_upper_semilattice) sup_of_two_least:
   "[| x \<in> carrier L; y \<in> carrier L |] ==> least L (\<Squnion>{x, y}) (Upper L {x, y})"
-proof (unfold asup_def)
+proof (unfold sup_def)
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
   with sup_of_two_exists obtain s where "least L s (Upper L {x, y})" by fast
   with L show "least L (SOME z. least L z (Upper L {x, y})) (Upper L {x, y})"
@@ -325,7 +328,7 @@ lemma (in weak_upper_semilattice) weak_join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) .= \<Squnion>{x, y, z}"
 proof (rule finite_sup_insertI)
-  -- \<open> The textbook argument in Jacobson I, p 457 \<close>
+  \<comment> \<open>The textbook argument in Jacobson I, p 457\<close>
   fix s
   assume sup: "least L s (Upper L {x, y, z})"
   show "x \<squnion> (y \<squnion> z) .= s"
@@ -339,7 +342,7 @@ proof (rule finite_sup_insertI)
   qed (simp_all add: L least_closed [OF sup])
 qed (simp_all add: L)
 
-text \<open> Commutativity holds for @{text "="}. \<close>
+text \<open>Commutativity holds for \<open>=\<close>.\<close>
 
 lemma join_comm:
   fixes L (structure)
@@ -360,13 +363,13 @@ proof -
 qed
 
 
-subsubsection \<open> Infimum \<close>
+subsubsection \<open>Infimum\<close>
 
 lemma (in weak_lower_semilattice) meetI:
   "[| !!i. greatest L i (Lower L {x, y}) ==> P i;
   x \<in> carrier L; y \<in> carrier L |]
   ==> P (x \<sqinter> y)"
-proof (unfold meet_def ainf_def)
+proof (unfold meet_def inf_def)
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
     and P: "!!g. greatest L g (Lower L {x, y}) ==> P g"
   with inf_of_two_exists obtain i where "greatest L i (Lower L {x, y})" by fast
@@ -426,21 +429,21 @@ lemma (in weak_partial_order) inf_of_singletonI:      (* only reflexivity needed
 
 lemma (in weak_partial_order) weak_inf_of_singleton [simp]:
   "x \<in> carrier L ==> \<Sqinter>{x} .= x"
-  unfolding ainf_def
+  unfolding inf_def
   by (rule someI2) (auto intro: weak_greatest_unique inf_of_singletonI)
 
 lemma (in weak_partial_order) inf_of_singleton_closed:
   "x \<in> carrier L ==> \<Sqinter>{x} \<in> carrier L"
-  unfolding ainf_def
+  unfolding inf_def
   by (rule someI2) (auto intro: inf_of_singletonI)
 
-text \<open> Condition on @{text A}: infimum exists. \<close>
+text \<open>Condition on \<open>A\<close>: infimum exists.\<close>
 
 lemma (in weak_lower_semilattice) inf_insertI:
   "[| !!i. greatest L i (Lower L (insert x A)) ==> P i;
   greatest L a (Lower L A); x \<in> carrier L; A \<subseteq> carrier L |]
   ==> P (\<Sqinter>(insert x A))"
-proof (unfold ainf_def)
+proof (unfold inf_def)
   assume L: "x \<in> carrier L"  "A \<subseteq> carrier L"
     and P: "!!g. greatest L g (Lower L (insert x A)) ==> P g"
     and greatest_a: "greatest L a (Lower L A)"
@@ -543,8 +546,8 @@ lemma (in weak_lower_semilattice) meet_right:
 
 lemma (in weak_lower_semilattice) inf_of_two_greatest:
   "[| x \<in> carrier L; y \<in> carrier L |] ==>
-  greatest L (\<Sqinter> {x, y}) (Lower L {x, y})"
-proof (unfold ainf_def)
+  greatest L (\<Sqinter>{x, y}) (Lower L {x, y})"
+proof (unfold inf_def)
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
   with inf_of_two_exists obtain s where "greatest L s (Lower L {x, y})" by fast
   with L
@@ -571,7 +574,7 @@ lemma (in weak_lower_semilattice) weak_meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<sqinter> (y \<sqinter> z) .= \<Sqinter>{x, y, z}"
 proof (rule finite_inf_insertI)
-  txt \<open> The textbook argument in Jacobson I, p 457 \<close>
+  txt \<open>The textbook argument in Jacobson I, p 457\<close>
   fix i
   assume inf: "greatest L i (Lower L {x, y, z})"
   show "x \<sqinter> (y \<sqinter> z) .= i"
@@ -602,9 +605,9 @@ proof -
   finally show ?thesis by (simp add: L)
 qed
 
-text \<open> Total orders are lattices. \<close>
+text \<open>Total orders are lattices.\<close>
 
-sublocale weak_total_order < weak: weak_lattice
+sublocale weak_total_order \<subseteq> weak?: weak_lattice
 proof
   fix x y
   assume L: "x \<in> carrier L"  "y \<in> carrier L"
@@ -647,7 +650,8 @@ next
   qed
 qed
 
-subsection \<open> Weak Bounded Lattices \<close>
+
+subsection \<open>Weak Bounded Lattices\<close>
 
 locale weak_bounded_lattice = 
   weak_lattice + 
@@ -678,20 +682,21 @@ end
 
 sublocale weak_bounded_lattice \<subseteq> weak_partial_order ..
 
-subsection \<open> Lattices where @{text eq} is the Equality \<close>
+
+subsection \<open>Lattices where \<open>eq\<close> is the Equality\<close>
 
 locale upper_semilattice = partial_order +
   assumes sup_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. least L s (Upper L {x, y})"
 
-sublocale upper_semilattice < weak: weak_upper_semilattice
+sublocale upper_semilattice \<subseteq> weak?: weak_upper_semilattice
   by unfold_locales (rule sup_of_two_exists)
 
 locale lower_semilattice = partial_order +
   assumes inf_of_two_exists:
     "[| x \<in> carrier L; y \<in> carrier L |] ==> EX s. greatest L s (Lower L {x, y})"
 
-sublocale lower_semilattice < weak: weak_lower_semilattice
+sublocale lower_semilattice \<subseteq> weak?: weak_lower_semilattice
   by unfold_locales (rule inf_of_two_exists)
 
 locale lattice = upper_semilattice + lower_semilattice
@@ -723,10 +728,10 @@ lemma (in lattice) le_iff_meet:
 
 text \<open> Total orders are lattices. \<close>
 
-sublocale total_order < weak: lattice
+sublocale total_order \<subseteq> weak?: lattice
   by standard (auto intro: weak.weak.sup_of_two_exists weak.weak.inf_of_two_exists)
     
-text \<open> Functions that preserve joins and meets \<close>
+text \<open>Functions that preserve joins and meets\<close>
   
 definition join_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
 "join_pres X Y f \<equiv> lattice X \<and> lattice Y \<and> (\<forall> x \<in> carrier X. \<forall> y \<in> carrier X. f (x \<squnion>\<^bsub>X\<^esub> y) = f x \<squnion>\<^bsub>Y\<^esub> f y)"
@@ -755,8 +760,9 @@ lemma meet_pres_isotone:
   using lattice_def partial_order_def upper_semilattice_def apply blast
   apply fastforce
 done
-    
-subsection \<open> Bounded Lattices \<close>
+
+
+subsection \<open>Bounded Lattices\<close>
 
 locale bounded_lattice = 
   lattice + 

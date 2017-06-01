@@ -328,7 +328,7 @@ lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
   by (pred_auto)
 
 lemma R2c_Continuous: "Continuous R2c"
-  by (auto simp add: Continuous_def, rel_auto)
+  by (rel_simp)
 
 lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<guillemotright>"
   by (rel_auto)
@@ -825,6 +825,10 @@ text {* A merge predicate can access the history through $tr$, as usual, but als
   $1.tr$. Thus we have to remove the latter two histories as well to satisfy R2 for the overall
   construction. *}
 
+term "M\<lbrakk>0,x,k/y,z,a\<rbrakk>"
+  
+term "M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>"
+  
 definition R2m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 

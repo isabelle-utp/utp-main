@@ -1,7 +1,7 @@
 section {* UTP Theories *}
 
 theory utp_theory
-imports utp_rel
+imports utp_rel_laws
 begin
 
 text {* Closure laws for theories *}
@@ -175,34 +175,34 @@ lemma Conjunctive_conj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<and> Q) = (HC(P) \<and> Q)"
   using assms unfolding Conjunctive_def
-  by (metis utp_pred.inf.assoc utp_pred.inf.commute)
+  by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf.commute)
 
 lemma Conjunctive_distr_conj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<and> Q) = (HC(P) \<and> HC(Q))"
   using assms unfolding Conjunctive_def
-  by (metis Conjunctive_conj assms utp_pred.inf.assoc utp_pred.inf_right_idem)
+  by (metis Conjunctive_conj assms utp_pred_laws.inf.assoc utp_pred_laws.inf_right_idem)
 
 lemma Conjunctive_distr_disj:
   assumes "Conjunctive(HC)"
   shows "HC(P \<or> Q) = (HC(P) \<or> HC(Q))"
   using assms unfolding Conjunctive_def
-  using utp_pred.inf_sup_distrib2 by fastforce
+  using utp_pred_laws.inf_sup_distrib2 by fastforce
 
 lemma Conjunctive_distr_cond:
   assumes "Conjunctive(HC)"
   shows "HC(P \<triangleleft> b \<triangleright> Q) = (HC(P) \<triangleleft> b \<triangleright> HC(Q))"
   using assms unfolding Conjunctive_def
-  by (metis cond_conj_distr utp_pred.inf_commute)
+  by (metis cond_conj_distr utp_pred_laws.inf_commute)
 
 lemma FunctionalConjunctive_Monotonic:
   "FunctionalConjunctive(H) \<Longrightarrow> Monotonic(H)"
-  unfolding FunctionalConjunctive_def by (metis mono_def utp_pred.inf_mono)
+  unfolding FunctionalConjunctive_def by (metis mono_def utp_pred_laws.inf_mono)
 
 lemma WeakConjunctive_Refinement:
   assumes "WeakConjunctive(HC)"
   shows "P \<sqsubseteq> HC(P)"
-  using assms unfolding WeakConjunctive_def by (metis utp_pred.inf.cobounded1)
+  using assms unfolding WeakConjunctive_def by (metis utp_pred_laws.inf.cobounded1)
 
 lemma WeakCojunctive_Healthy_Refinement:
   assumes "WeakConjunctive(HC)" and "P is HC"
@@ -240,12 +240,12 @@ text {* Closure laws derived from continuity *}
 
 lemma Sup_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
-  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] USUP_as_Sup[THEN sym])
+  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] UINF_as_Sup[THEN sym])
      (metis (no_types, lifting) Healthy_def' SUP_cong image_image)
 
 lemma UINF_mem_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> P(i)) is H"
-  by (simp add: Sup_Continuous_closed USUP_as_Sup_collect)
+  by (simp add: Sup_Continuous_closed UINF_as_Sup_collect)
 
 lemma UINF_mem_Continuous_closed_pair [closure]:
   assumes "Continuous H" "\<And> i j. (i, j) \<in> A \<Longrightarrow> P i j is H" "A \<noteq> {}"
@@ -451,10 +451,10 @@ text {* The healthiness conditions of a UTP theory lattice form a complete latti
   retrieve lattice operators as below. *}
 
 abbreviation utp_top ("\<^bold>\<top>\<index>")
-where "utp_top \<T> \<equiv> atop (uthy_order \<T>)"
+where "utp_top \<T> \<equiv> top (uthy_order \<T>)"
 
 abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
-where "utp_bottom \<T> \<equiv> abottom (uthy_order \<T>)"
+where "utp_bottom \<T> \<equiv> bottom (uthy_order \<T>)"
 
 abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
 "utp_join \<T> \<equiv> join (uthy_order \<T>)"
@@ -463,10 +463,10 @@ abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
 "utp_meet \<T> \<equiv> meet (uthy_order \<T>)"
 
 abbreviation utp_sup ("\<^bold>\<Squnion>\<index>_" [90] 90) where
-"utp_sup \<T> \<equiv> asup (uthy_order \<T>)"
+"utp_sup \<T> \<equiv> Lattice.sup (uthy_order \<T>)"
 
 abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
-"utp_inf \<T> \<equiv> ainf (uthy_order \<T>)"
+"utp_inf \<T> \<equiv> Lattice.inf (uthy_order \<T>)"
 
 abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
 "utp_gfp \<T> \<equiv> GFP (uthy_order \<T>)"
@@ -486,7 +486,7 @@ translations
   "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
 
 lemma upred_lattice_inf:
-  "ainf \<P> A = \<Sqinter> A"
+  "Lattice.inf \<P> A = \<Sqinter> A"
   by (metis Sup_least Sup_upper UNIV_I antisym_conv subsetI upred_lattice.weak.inf_greatest upred_lattice.weak.inf_lower upred_lattice_carrier upred_lattice_le)
 
 text {* We can then derive a number of properties about these operators, as below. *}
@@ -893,7 +893,7 @@ proof (unfold_locales, simp_all)
   fix P Q
   assume "P is (ex x \<circ> H)" "Q is H"
   thus "(H P \<sqsubseteq> Q) = (P \<sqsubseteq> (\<exists> x \<bullet> Q))"
-    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred.ex_mono vwb_lens_wb)
+    by (metis (no_types, lifting) Healthy_Idempotent Healthy_if assms comp_apply dual_order.trans ex_weakens utp_pred_laws.ex_mono vwb_lens_wb)
 next
   fix P
   assume "P is (ex x \<circ> H)"
