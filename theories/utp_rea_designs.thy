@@ -2343,7 +2343,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> R1 (R2s R))"
   proof -
     from assms(3,4) have "(R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))) = R1 (R2s R)"
-      by (rel_auto, metis (no_types, lifting) minus_zero_eq, meson order_refl pre_trace_class.diff_cancel)
+      by (rel_auto, metis (no_types, lifting) minus_zero_eq, meson order_refl trace_class.diff_cancel)
     thus ?thesis
       by simp
   qed

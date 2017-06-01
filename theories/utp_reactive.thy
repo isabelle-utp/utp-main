@@ -506,7 +506,7 @@ lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\
 
 lemma R2_form:
   "R2(P) = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
-  by (rel_auto, metis pre_trace_class.add_diff_cancel_left pre_trace_class.le_iff_add)
+  by (rel_auto, metis trace_class.add_diff_cancel_left trace_class.le_iff_add)
 
 lemma R2_seqr_form:
   shows "(R2(P) ;; R2(Q)) =

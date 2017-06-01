@@ -1,4 +1,4 @@
-section \<open>Lens instances\<close>
+section \<open>Lens Instances\<close>
 
 theory Lens_Instances
   imports Lens_Order
@@ -8,7 +8,7 @@ begin
 text \<open>In this section we define a number of concrete instantiations of the lens locales, including
   functions lenses, list lenses, and record lenses.\<close>
 
-subsection \<open>Function lens\<close>
+subsection \<open>Function Lens\<close>
 
 text \<open>A function lens views the valuation associated with a particular domain element @{typ "'a"}.
       We require that range type of a lens function has cardinality of at least 2; this ensures
@@ -31,7 +31,7 @@ proof -
     by (auto simp add: fun_lens_def lens_indep_def)
 qed
 
-subsection \<open>Function range lens\<close>
+subsection \<open>Function Range Lens\<close>
   
 text \<open>The function range lens allows us to focus on a particular region of a function's range.\<close>
 
@@ -48,7 +48,7 @@ lemma fun_ran_wb_lens: "\<lbrakk> wb_lens X; wb_lens Y \<rbrakk> \<Longrightarro
 lemma fun_ran_vwb_lens: "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> vwb_lens (fun_ran_lens X Y)"
   by (unfold_locales, auto simp add: fun_ran_lens_def)
 
-subsection \<open>Map lens\<close>
+subsection \<open>Map Lens\<close>
 
 text \<open>The map lens allows us to focus on a particular region of a partial function's range. It
   is only a mainly well-behaved lens because it does not satisfy the PutGet law when the view
@@ -60,7 +60,7 @@ definition map_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a \<rightharpoo
 lemma map_mwb_lens: "mwb_lens (map_lens x)"
   by (unfold_locales, simp_all add: map_lens_def)
 
-subsection \<open>List lens\<close>
+subsection \<open>List Lens\<close>
 
 text \<open>The list lens allows us to view a particular element of a list. In order to show it is mainly
   well-behaved we need to define to additional list functions. The following function adds 
@@ -170,7 +170,7 @@ lemma hd_tl_lens_indep [simp]:
   apply (metis Nitpick.size_list_simp(2) One_nat_def add_Suc_right append.simps(1) append_Nil2 diff_Suc_Suc diff_zero hd_Cons_tl list.inject list.size(4) list_augment_0 list_augment_def list_augment_same_twice list_pad_out_def nth_list_augment replicate.simps(1) replicate.simps(2) tl_Nil)
 done
 
-subsection \<open>Record field lenses\<close>
+subsection \<open>Record Field Lenses\<close>
 
 text \<open>We also add support for record lenses. Every record created can yield a lens for each field.
   These cannot be created generically and thus must be defined case by case as new records are

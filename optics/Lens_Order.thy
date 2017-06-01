@@ -1,9 +1,11 @@
-section \<open>Order and equivalence on lenses\<close>
+section \<open>Order and Equivalence on Lenses\<close>
 
 theory Lens_Order
 imports Lens_Algebra
 begin
 
+subsection \<open>Sub-lens Relation\<close>
+  
 text \<open>A lens $X$ is a sub-lens of $Y$ if there is a well-behaved lens $Z$ such that $X = Z \lcomp Y$,
   or in other words if $X$ can be expressed purely in terms of $Y$.\<close>
 
@@ -77,6 +79,8 @@ lemma lens_quotient_mwb:
   "\<lbrakk> mwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> mwb_lens (X /\<^sub>L Y)"
   by (unfold_locales, auto simp add: lens_quotient_def lens_create_def sublens_def lens_comp_def comp_def)
     
+subsection \<open>Lens Equivalence\<close>
+    
 text \<open>Using our preorder, we can also derive an equivalence on lenses as follows. It should be
   noted that this equality, like sublens, is heterogeneously typed -- it can compare lenses whose
   view types are different, so long as the source types are the same. We show that it is reflexive, 
@@ -101,7 +105,7 @@ lemma lens_equiv_trans [trans]:
   "\<lbrakk> X \<approx>\<^sub>L Y; Y \<approx>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<approx>\<^sub>L Z"
   by (auto intro: sublens_trans simp add: lens_equiv_def)
 
-subsection \<open>Further algebraic laws\<close>
+subsection \<open>Further Algebraic Laws\<close>
 
 text \<open>This law explains the behaviour of lens quotient.\<close>
 
@@ -148,8 +152,8 @@ lemma lens_plus_sub_assoc_1:
     apply (simp add: lens_indep_left_ext)
    apply (rule lens_indep_sym)
    apply (rule plus_pres_lens_indep)
-  using fst_snd_lens_indep fst_vwb_lens lens_indep_left_comp lens_indep_sym vwb_lens_mwb apply blast
-  using fst_snd_lens_indep lens_indep_left_ext lens_indep_sym apply blast
+    using fst_snd_lens_indep fst_vwb_lens lens_indep_left_comp lens_indep_sym vwb_lens_mwb apply blast
+   using fst_snd_lens_indep lens_indep_left_ext lens_indep_sym apply blast
   apply (auto simp add: lens_plus_def lens_comp_def fst_lens_def snd_lens_def prod.case_eq_if split_beta')[1]
 done
 
@@ -164,7 +168,7 @@ lemma lens_plus_sub_assoc_2:
       apply (simp add: comp_vwb_lens fst_vwb_lens snd_vwb_lens)
      apply (rule lens_indep_sym)
      apply (rule lens_indep_left_ext)
-  using fst_snd_lens_indep lens_indep_sym apply blast
+     using fst_snd_lens_indep lens_indep_sym apply blast
     apply (auto intro: comp_vwb_lens simp add: snd_vwb_lens)
    apply (rule plus_pres_lens_indep)
     apply (simp add: lens_indep_left_ext lens_indep_sym)
@@ -201,7 +205,7 @@ lemma lens_plus_right_sublens:
   apply (rename_tac Z')
   apply (rule_tac x="Z' ;\<^sub>L snd\<^sub>L" in exI)
   apply (auto)
-  using comp_vwb_lens snd_vwb_lens apply blast
+   using comp_vwb_lens snd_vwb_lens apply blast
   apply (simp add: lens_comp_assoc snd_lens_plus)
 done
     
@@ -278,7 +282,7 @@ lemma prod_lens_sublens_cong:
   apply (rename_tac Z\<^sub>1 Z\<^sub>2)
   apply (rule_tac x="Z\<^sub>1 \<times>\<^sub>L Z\<^sub>2" in exI)
   apply (auto)
-  using prod_vwb_lens apply blast
+   using prod_vwb_lens apply blast
   apply (auto simp add: lens_prod_def lens_comp_def prod.case_eq_if)
   apply (rule ext, rule ext)
   apply (auto simp add: lens_prod_def lens_comp_def prod.case_eq_if)
@@ -313,7 +317,7 @@ proof (rule lens_equivI)
   done
 qed
 
-subsection \<open>Bijective lense equivalences\<close>
+subsection \<open>Bijective Lens Equivalences\<close>
   
 text \<open>A bijective lens, like a bijective function, is its own inverse. Thus, if we compose its inverse
   with itself we get @{term "1\<^sub>L"}.\<close>
@@ -371,7 +375,7 @@ lemma bij_lens_via_comp_id_left:
   apply (auto simp add: lens_comp_def comp_def id_lens_def fun_eq_iff)
   apply (unfold_locales)
    apply (simp_all)
-  using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
+   using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
   apply (metis select_convs(1) select_convs(2) wb_lens_weak weak_lens.put_get)
 done
 
@@ -382,7 +386,7 @@ lemma bij_lens_via_comp_id_right:
   apply (auto simp add: lens_comp_def comp_def id_lens_def fun_eq_iff)
   apply (unfold_locales)
    apply (simp_all)
-  using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
+   using vwb_lens_wb wb_lens_weak weak_lens.put_get apply fastforce
   apply (metis select_convs(1) select_convs(2) wb_lens_weak weak_lens.put_get)
 done
 
@@ -395,10 +399,10 @@ lemma lens_equiv_via_bij:
   shows "X \<approx>\<^sub>L Y"
   using assms
   apply (auto simp add: lens_equiv_def sublens_def)
-  using bij_lens_vwb apply blast
+   using bij_lens_vwb apply blast
   apply (rule_tac x="lens_inv Z" in exI)
   apply (auto simp add: lens_comp_assoc bij_lens_inv_left)
-  using bij_lens_vwb lens_inv_bij apply blast
+   using bij_lens_vwb lens_inv_bij apply blast
   apply (simp add: bij_lens_inv_left lens_comp_assoc[THEN sym])
 done
 
@@ -420,7 +424,7 @@ lemma lens_equiv_iff_bij:
   using lens_equiv_via_bij apply blast
 done
 
-subsection \<open>Lens override laws\<close>
+subsection \<open>Lens Override Laws\<close>
   
 text \<open>The following laws are analogus to the equivalent laws for functions.\<close>
   
