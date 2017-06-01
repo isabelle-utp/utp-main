@@ -671,7 +671,7 @@ lemma mu_CSP_equiv:
   assumes "Monotonic F" "F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
   shows "(\<mu>\<^sub>R F) = (\<mu>\<^sub>C F)"
   by (simp add: srd_mu_equiv assms comp_def)
-
+    
 definition Guard ::
   "'\<sigma> cond \<Rightarrow>
    ('\<sigma>, '\<phi>) action \<Rightarrow>

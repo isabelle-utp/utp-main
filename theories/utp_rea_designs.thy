@@ -2958,6 +2958,9 @@ proof -
     by (metis (mono_tags, lifting))
 qed
 
+lemma Monotonic_SRD_comp [closure]: "Monotonic (op ;; P \<circ> SRD)"
+  by (simp add: mono_def R1_R2c_is_R2 R2_mono R3h_mono RD1_mono RD2_mono RHS_def SRD_def seqr_mono)
+  
 lemma R1_power [closure]: "P is R1 \<Longrightarrow> P\<^bold>^n is R1"
   by (induct n, simp_all add: closure)
 

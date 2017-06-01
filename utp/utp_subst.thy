@@ -136,6 +136,9 @@ text {* Evaluation of a substitution expression involves application of the subs
 lemma usubst_lookup_id [usubst]: "\<langle>id\<rangle>\<^sub>s x = var x"
   by (transfer, simp)
 
+lemma subst_upd_id_lam [usubst]: "subst_upd (\<lambda> x. x) x v = subst_upd id x v"
+  by (simp add: id_def)
+    
 text {* A substitution update naturally yields the given expression. *}
     
 lemma usubst_lookup_upd [usubst]:

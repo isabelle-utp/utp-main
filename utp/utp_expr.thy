@@ -460,7 +460,10 @@ syntax -- \<open> Lists / Sequences \<close>
   "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
   "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
   "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
-
+  "_uupto"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_.._\<rangle>")
+  "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
+  "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
+  
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
@@ -477,7 +480,10 @@ translations
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
   "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
   "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
-  
+  "\<langle>n..k\<rangle>" == "CONST bop CONST upto n k"
+  "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
+  "map\<^sub>u f xs" == "CONST bop CONST map f xs"
+
 syntax -- \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
@@ -496,12 +502,10 @@ translations
   "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
-  "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
-  "A \<subset>\<^sub>u B"   <= "CONST bop (op \<subset>) A B"
+  "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>f) f g"
-  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<le>) A B"
-  "A \<subseteq>\<^sub>u B"   <= "CONST bop (op \<subseteq>) A B"
+  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
   
