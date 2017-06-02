@@ -29,12 +29,6 @@ lemma csp_ex_4:
                 usubst unrest, rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
 
 
-lemma prefix_concat_dest [simp]: "x @ y \<le> z \<Longrightarrow> y \<le> z - x"
-  by (metis Prefix_Order.same_prefix_prefix diff_add_cancel_left' list_append_prefixD plus_list_def)
-
-lemma prefix_concat_minus_iff [simp]: "length y > 0 \<Longrightarrow> x @ y \<le> z \<longleftrightarrow> y \<le> z - x"
-  by (metis Prefix_Order.prefix_length_le Prefix_Order.same_prefix_prefix diff_add_cancel_left' leD list.size(3) minus_cancel not_le_minus ordered_cancel_monoid_diff_class.diff_cancel plus_list_def prefix_concat_dest)
-
 lemma csp_ex_5:
   "(a \<^bold>\<rightarrow> Chaos \<box> b \<^bold>\<rightarrow> Skip) = \<^bold>R\<^sub>s ((\<not> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<le>\<^sub>u tt) \<turnstile>
                                    (tt =\<^sub>u \<langle>\<rangle> \<and> \<guillemotleft>a\<guillemotright> \<notin>\<^sub>u $ref\<acute> \<and> \<guillemotleft>b\<guillemotright> \<notin>\<^sub>u $ref\<acute>)
