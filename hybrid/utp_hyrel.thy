@@ -392,7 +392,7 @@ proof (rel_auto)
   with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P\<rbrakk>\<^sub>e (\<langle>tr' - tr\<rangle>\<^sub>t x)"
     apply (rule_tac x="t" in exI, auto)
     using tt_sub_end apply fastforce
-    apply (metis dual_order.trans pre_trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
+    apply (metis dual_order.trans trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
     done
 qed
         
