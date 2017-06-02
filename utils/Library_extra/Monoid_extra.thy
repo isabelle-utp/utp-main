@@ -14,14 +14,17 @@ lemma add_mono:
   using local.add_left_mono local.add_right_mono local.order.trans by blast
 
 end
+  
+class monoid_add_left = zero + semigroup_add +
+  assumes add_0_left[simp]: "0 + a = a"
 
-class left_cancel_monoid = monoid_add +
+class left_cancel_monoid = monoid_add_left +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
 
-class right_cancel_monoid = monoid_add +
+class right_cancel_monoid = monoid_add_left +
   assumes add_right_imp_eq: "b + a = c + a \<Longrightarrow> b = c"
 
-class monoid_sum_0 = monoid_add +
+class monoid_sum_0 = monoid_add_left +
   assumes zero_sum_left: "a + b = 0 \<Longrightarrow> a = 0"
 begin
 
@@ -29,11 +32,12 @@ lemma zero_sum_right: "a + b = 0 \<Longrightarrow> b = 0"
   by (metis local.add_0_left local.zero_sum_left)
 
 lemma zero_sum: "a + b = 0 \<longleftrightarrow> a = 0 \<and> b = 0"
-  by (metis local.add_0_right zero_sum_right)
-
+  
+  by (metis local.add_0_left local.zero_sum_left)
+  
 end
 
-context monoid_add
+context monoid_add_left
 begin
 
 definition monoid_le (infix "\<le>\<^sub>m" 50)
@@ -53,7 +57,8 @@ lemma monoid_le_least_zero: "0 \<le>\<^sub>m a"
   by (simp add: monoid_le_def)
 
 lemma monoid_le_refl: "a \<le>\<^sub>m a"
-  by (simp add: monoid_le_def, metis add.right_neutral)
+  apply (simp add: monoid_le_def)
+    by (metis local.sum_eq_sum_conv)
 
 lemma monoid_le_trans: "\<lbrakk> a \<le>\<^sub>m b; b \<le>\<^sub>m c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>m c"
   by (metis add.assoc monoid_le_def)
@@ -71,14 +76,21 @@ proof -
   have "b' = (b' + a' + b')"
     by (metis a' add_assoc b' local.add_left_imp_eq)
 
-  hence "a' + b' = 0"
-    by (metis add_assoc local.add_0_right local.add_left_imp_eq)
-
+  hence "0 + 0 + b' = (b' + a' + b')"
+    by auto    
+      
+  hence "0 + 0 = b' + a'"
+    by (metis a' add_assoc b' local.add_left_imp_eq local.zero_sum_left)
+      
+  hence "b' + a' = 0"
+    by simp
+      
   hence "a' = 0" "b' = 0"
     by (simp add: zero_sum)+
 
   with a' b' show ?thesis
-    by simp
+    using \<open>b' + a' = 0\<close> add_assoc by auto
+
 qed
 
 lemma monoid_le_add: "a \<le>\<^sub>m a + b"
@@ -121,8 +133,8 @@ begin
     by (metis local.add_0_left local.add_diff_cancel_left)
 
   lemma diff_cancel [simp]: "a - a = 0"
-    by (metis local.add_0_right local.add_diff_cancel_left)
-
+    by (metis local.add.semigroup_axioms local.add_diff_cancel_left local.add_left_imp_eq local.le_iff_add local.zero_sum_left not_le_minus semigroup.assoc)
+    
   lemma add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
     by (simp add: local.le_is_monoid_le local.monoid_le_add_left_mono)
 
@@ -139,7 +151,8 @@ begin
   qed
 
   lemma minus_zero_eq: "\<lbrakk> b \<le> a; a - b = 0 \<rbrakk> \<Longrightarrow> a = b"
-    using local.le_iff_add local.monoid_le_def by auto
+    using local.le_iff_add local.monoid_le_def 
+    by (metis local.add_diff_cancel_left local.diff_cancel local.monoid_le_refl)
 
   lemma diff_add_cancel_left': "a \<le> b \<Longrightarrow> a + (b - a) = b"
     using local.le_iff_add local.monoid_le_def by auto
@@ -185,7 +198,7 @@ instance trace \<subseteq> order
   apply (simp add: monoid_le_antisym)
 done
 
-instantiation list :: (type) monoid_add
+instantiation list :: (type) monoid_add_left
 begin
 
   definition zero_list :: "'a list" where "zero_list = []"
@@ -214,7 +227,10 @@ instance list :: (type) trace
   apply (simp add: append_eq_append_conv2)
   using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
   apply (simp add: less_list_def)
-done
+  done
+    
+instance nat :: monoid_add_left
+  by (intro_classes, simp)
 
 lemma monoid_le_nat:
   "(x :: nat) \<le>\<^sub>m y \<longleftrightarrow> x \<le> y"

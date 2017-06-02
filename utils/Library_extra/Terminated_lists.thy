@@ -230,7 +230,7 @@ subsubsection {* Additive monoid *}
 text {* Given a monoid_add class we also have a monoid_add. On top of
         plus we define the zero as the parametrised type zero. *}
   
-instantiation stlist :: (monoid_add) monoid_add
+instantiation stlist :: (monoid_add_left) monoid_add_left
 begin
   
   definition zero_stlist :: "'a stlist" where "zero_stlist = [;0]" 
@@ -246,12 +246,13 @@ lemma stlist_concat_zero_left[simp]:
   shows "[;0] + y = y"
   unfolding plus_stlist_def
   by (induct y, auto)
-    
+
+(*    
 lemma stlist_concat_zero_right[simp]: 
   fixes y::"'a stlist"
   shows "y + [;0] = y"
   unfolding plus_stlist_def
-  by (induct y, auto)
+  by (induct y, auto)*)
     
 lemma plus_seq_assoc: 
   fixes xs ys zs::"'a stlist"
@@ -272,7 +273,7 @@ end
 text {* Given an additive monoid type, we can define a front function
         that yields front(s) + last(s) for a given stlist s *}
     
-primrec front :: "'a::monoid_add stlist \<Rightarrow> 'a stlist" where
+primrec front :: "'a::monoid_add_left stlist \<Rightarrow> 'a stlist" where
 "front [;x] = 0" |
 "front (x#\<^sub>txs) = (x#\<^sub>tfront xs)"
 
@@ -304,7 +305,7 @@ subsubsection {* Orders *}
   
 text {* We now instantiate the ord class for the stlist type. *}
   
-instantiation stlist :: (monoid_add) ord
+instantiation stlist :: (monoid_add_left) ord
 begin
   definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == monoid_le"
   definition less_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_stlist x y == x \<le> y \<and> \<not> (y \<le> x)"
@@ -318,7 +319,7 @@ begin
 end
   
 lemma monoid_le_stlist2:
-  "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
+  "(xs :: 'a::monoid_add_left stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   by (simp add: less_eq_stlist_def)
 
 lemma stlist_right_cancel_monoid2:
@@ -410,7 +411,7 @@ end
   
 subsubsection {* Difference *}
   
-instantiation stlist :: (monoid_add) minus
+instantiation stlist :: (monoid_add_left) minus
 begin
   definition minus_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where "minus_stlist == monoid_subtract"
   
@@ -532,7 +533,9 @@ end
 lemma monoid_plus_prefix_iff_zero:
   fixes a b :: "'a::trace"
   shows "a + x \<le> a \<longleftrightarrow> x = 0"
-  by (metis add.right_neutral antisym le_add left_cancel_monoid_class.add_left_imp_eq)
+  by (metis add_monoid_diff_cancel_left antisym_conv sum_eq_sum_conv trace_class.le_iff_add zero_sum_left)
+(*  by (metis add.right_neutral antisym le_add left_cancel_monoid_class.add_left_imp_eq)
+  *)
     
 lemma stlist_le_nil_imp_le_elements:
   fixes a b :: "'a::trace"
@@ -567,12 +570,12 @@ lemma stlist_nil_le_cons_imp_le:
   by (metis stlist.inject(2) stlist_nil_concat_cons)
     
 lemma monoid_le_stlist:
-  fixes a :: "'a::monoid_add stlist"
+  fixes a :: "'a::monoid_add_left stlist"
   shows "a \<le> b \<longleftrightarrow> a \<le>\<^sub>m b"
   by (simp add:le_is_monoid_le less_eq_stlist_def)
 
 lemma monoid_subtract_stlist: 
-  fixes a :: "'a::monoid_add stlist"
+  fixes a :: "'a::monoid_add_left stlist"
   shows "(a - b) = (a -\<^sub>m b)"
   by (simp add:minus_def minus_stlist_def) 
     
@@ -627,8 +630,10 @@ lemma stlist_minus_eq_minus_nils:
 lemma
   fixes a :: "'a::{trace,right_cancel_monoid}"
   shows "a = e + a \<longleftrightarrow> e = 0"
-  by (metis add.assoc add.right_neutral left_cancel_monoid_class.add_left_imp_eq right_cancel_monoid_class.add_right_imp_eq)
-    
+  
+  by (metis right_cancel_monoid_class.add_right_imp_eq stlist_concat_zero_left stlist_plus_nils)
+(*  by (metis add.assoc add.right_neutral left_cancel_monoid_class.add_left_imp_eq right_cancel_monoid_class.add_right_imp_eq)
+    *)
 lemma stlist_cons_minus_nil_eq:
   fixes xs :: "'a::trace stlist"
   assumes "[;a] \<le> (x#\<^sub>txs)"
@@ -670,26 +675,44 @@ lemma stlist_cons_right_prefix:
   fixes a :: "'a::pre_trace"
   shows "[;a] \<le> [a;c]"
 proof -
+  obtain aas :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where
+    "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
+    by moura
+  then have f1: "\<forall>as asa. (\<not> as \<le> asa \<or> asa = as + aas asa as) \<and> (as \<le> asa \<or> (\<forall>asb. asa \<noteq> as + asb))"
+    by (meson trace_class.le_iff_add)
+  have f2: "[;a] + [;0] \<le> [;a]"
+    by (simp add: monoid_plus_prefix_iff_zero zero_stlist_def)
+  have "aas ([;a] + [;0] + aas [;a] ([;a] + [;0])) ([;a] + [;0] + aas [;a] ([;a] + [;0])) = 0"
+    using f1 by (metis (no_types) monoid_plus_prefix_iff_zero order_refl)
+  then have "a + 0 = a"
+    using f2 f1 by (metis Terminated_lists.last.simps(1) concat_stlist.simps(1) order_refl plus_stlist_def zero_stlist_def)
+  then show ?thesis
+    using f1 by (metis (no_types) stlist_cons_plus_nils_eq_cons)
+qed (*
+proof -
   have "[;a] \<le> [a;c] = ([;a] \<le> [;a] + [0;c])"
     unfolding less_eq_stlist_def monoid_le_def plus_stlist_def by simp
   also have "... = True"
     by simp
       
   finally show ?thesis by simp
-qed
+qed*)
   
 (* this yields the difA of CTA nicely *)    
     
 lemma stlist_cons_minus_zero_left:
-  fixes a :: "'a::pre_trace"
-  shows "[a;c] - [;a] = [0;c]"      
-proof -
-  have "[a;c] - [;a] = [;a] + [0;c] - [;a]"
-    unfolding plus_stlist_def minus_stlist_def monoid_subtract_def by simp
+  fixes a :: "'a::trace"
+  shows "[a;c] - [;a] = [0;c]"
+  
+  by (simp add: stlist_cons_minus_nil_eq stlist_cons_right_prefix)
+(*proof -
+  have "[a;c] - [;a] = [a - a;c]"
+    sledgehammer
+    unfolding plus_stlist_def minus_stlist_def monoid_subtract_def sledgehammer by simp
   also have "[;a] + [0;c] - [;a] = [0;c]"
     by simp
       
   finally show ?thesis by simp
-qed
+qed*)
 
 end

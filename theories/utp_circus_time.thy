@@ -6,124 +6,171 @@ theory utp_circus_time
     "../utils/Library_extra/Terminated_lists"
     "~~/src/HOL/Library/Prefix_Order"
 begin
-
-no_adhoc_overloading uconj conj
-no_adhoc_overloading udisj disj
-no_adhoc_overloading unot Not
   
-text {* TODO: Move these into the theory of Terminated_lists. *}
+(* Mini theory of option sets *)
+  
+(*
+typedef '\<alpha> opset = "{x::'\<alpha> option set. True}" by auto
+ *)
+  
+datatype '\<alpha> opset = None ("\<bullet>") | Some "'\<alpha> set"
+  
+fun opset_add :: "'\<alpha> opset \<Rightarrow> '\<alpha> opset \<Rightarrow> '\<alpha> opset" where
+"opset_add s z = z"
+
+lemma opset_add_left_zero:
+  "opset_add \<bullet> s = s"
+  apply (induct s rule:opset.induct)
+  by simp_all
     
-lemma stlist_last_concat:
-  fixes s z :: "'a::plus stlist"
-  shows "last (s + (x#\<^sub>tz)) = last z"
-  unfolding plus_stlist_def
-  apply (induct s)
-  by auto
+lemma opset_add_right_zero:
+  "opset_add s \<bullet> = s"
+  by (simp only:opset_add.simps(1))
     
-lemma stlist_last_concat2:
-  fixes s :: "'a::plus stlist"
-  shows "last (x#\<^sub>t(s + [;z])) = last s + z"
-  unfolding plus_stlist_def
-  apply (induct s)
-  by auto
-    
-lemma stlist_last_concat3:
-  fixes s :: "'a::plus stlist"
-  shows "last ((x#\<^sub>ts) + [;z]) = last s + z"
-  unfolding plus_stlist_def
-  apply (induct s)
-  by auto
+lemma opset_assoc:
+  "opset_add a (opset_add b c) = opset_add (opset_add a b) c"
+  apply (induct a)
+  apply (induct b, auto)
+  apply (induct c, auto)
+  apply (simp add: opset_add_left_zero)
+  by (metis opset_add.elims opset_add.simps(1))
+
+instantiation opset :: (type) zero
+begin
+   definition zero_opset :: "'a opset" where "zero_opset == \<bullet>"
+   instance by (intro_classes)
+end
+  
+instantiation opset :: (type) plus
+begin
+  definition plus_opset :: "'a opset \<Rightarrow> 'a opset \<Rightarrow> 'a opset" where "plus_opset == opset_add"
+  instance by (intro_classes)
+end  
+  
+instantiation opset :: (type) monoid_add
+begin
+instance 
+  apply (intro_classes)
+  apply (simp add:plus_opset_def opset_assoc)
+  apply (simp add:plus_opset_def zero_opset_def opset_add_left_zero)
+  by (simp add:plus_opset_def zero_opset_def)
+end
+
+instantiation opset :: (type) minus
+begin
+  definition minus_opset :: "'a opset \<Rightarrow> 'a opset \<Rightarrow> 'a opset" where "minus_opset == monoid_subtract"
+  instance by intro_classes
+end 
    
-lemma monoid_le_stlist2:
-  "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
-  by (simp add: less_eq_stlist_def)
-    
-lemma stlist_eq_nil:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "a = b \<longleftrightarrow> [;a] = [;b]"
-  by simp
-    
-lemma stlist_le_nil:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "\<not> a < a"
-  by simp   
+no_adhoc_overloading uconj conj
+no_adhoc_overloading udisj disj  
+no_adhoc_overloading unot Not   
   
-lemma monoid_plus_prefix_iff_zero:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "a + x \<le> a \<longleftrightarrow> x = 0"
-  by (metis add.right_neutral antisym le_add left_cancel_monoid_class.add_left_imp_eq)
-    
-lemma stlist_le_nil_imp_le_elements:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "[;a] \<le> [;b] \<Longrightarrow> a \<le> b"
-  apply (simp add: less_eq_stlist_def monoid_le_def)
-  apply auto
-  apply (case_tac c)
-  apply auto
-  apply (simp add: plus_stlist_def)
-  by (simp add: stlist_nil_concat_cons)
-    
-lemma stlist_le_nil_iff_le_elements:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "[;a] \<le> [;b] \<longleftrightarrow> a \<le> b"
-  by (metis concat_stlist.simps(1) ordered_cancel_monoid_diff_class.le_iff_add plus_stlist_def stlist_le_nil_imp_le_elements)
-    
-lemma stlist_plus_nils:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "a + b = c \<longleftrightarrow> [;a] + [;b] = [;c]"
-  by (simp add: plus_stlist_def)      
-    
-lemma stlist_nil_minus:
-  fixes a b :: "'a::ordered_cancel_monoid_diff"
-  shows "[;a] - [;b] = [;a-b]"
-  apply (case_tac "b \<le> a")
-  apply auto
-  apply (metis add_monoid_diff_cancel_left concat_stlist.simps(1) diff_add_cancel_left' minus_stlist_def plus_stlist_def)
-  apply (simp add:stlist_le_nil_iff_le_elements)
-  by (simp add:zero_stlist_def)
-    
-lemma stlist_minus_cons:
-  fixes xs ys :: "'a::ordered_cancel_monoid_diff"
-  assumes "x \<le> y" "xs \<le> ys"
-  shows "(y + ys) - (x + xs) = (y-x) + (ys-xs)"
-  using assms
-  apply (simp add:le_is_monoid_le)
-  apply (simp add:minus_def monoid_subtract_def)
-  apply auto
+instantiation opset :: (type) ord
+begin
+definition less_eq_opset :: "'a opset \<Rightarrow> 'a opset \<Rightarrow> bool" where "less_eq_opset == monoid_le"
+definition less_opset :: "'a opset \<Rightarrow> 'a opset \<Rightarrow> bool" where "less_opset a b == a \<le> b \<and> \<not> (b \<le> a)"
   
+instance by intro_classes
+end
+  
+adhoc_overloading uconj conj
+adhoc_overloading udisj disj  
+adhoc_overloading unot Not
+  
+lemma 
+  fixes a :: "'a opset"
+  shows "a + b = a + c \<Longrightarrow> b = c"
   oops
     
-lemma listconsconcat:
-  fixes xs ys :: "'a::ordered_cancel_monoid_diff list"
-  assumes "x \<le> y" "xs \<le> ys"
-  shows "(y#ys) - (x#xs) = [y]-[x]+(ys-xs)"
+lemma 
+  fixes a :: "'a opset"
+  shows "b + a = c + a \<Longrightarrow> b = c"
+  
+instantiation opset :: (type) left_cancel_monoid
+begin
+  
+    
+  
+lemma 
+  fixes a :: "'a::pre_trace"
+  assumes "a \<le> b"
+  shows "b - a = 0 \<longleftrightarrow> a = b"
   using assms
-  apply (simp add:le_is_monoid_le minus_def monoid_subtract_def)
   apply auto
+  using minus_zero_eq by auto
+  
+declare [[show_sorts]]  
+  
+lemma
+   assumes "x \<bowtie> y" "y \<sharp> P"
+  shows "y \<sharp> (\<exists> x \<bullet> P)"
   oops
-        
-lemma stlist_nil_le_cons_imp_le:
-  fixes xs :: "'a::ordered_cancel_monoid_diff stlist"
-  shows "[;a] \<le> (x#\<^sub>txs) \<Longrightarrow> a \<le> x"
-  apply (simp add:le_is_monoid_le monoid_le_def)
+    
+lemma
+  assumes "x \<sharp> P"
+  shows "(\<exists>x \<bullet> P) = P"
+  using assms
+    
+lemma
+  assumes "P\<lbrakk>e/x\<rbrakk> = P"
+  shows "x \<sharp> P"
+  using assms
+  apply pred_simp
   apply auto
-  apply (case_tac c)
-  apply (simp add: plus_stlist_def)
-  by (metis stlist.inject(2) stlist_nil_concat_cons)
+  nitpick
+    
+lemma
+  assumes "x \<sharp> P"
+  shows "(\<exists>x \<bullet> P) = P \<longleftrightarrow> (P\<lbrakk>e/x\<rbrakk> = P)"
+  using assms
+  by pred_simp
+    
+lemma
+  fixes x :: "('a, '\<alpha>) uvar"
+  assumes "e \<noteq> &x"
+  shows "(\<exists>x \<bullet> P) = P \<longleftrightarrow> (P\<lbrakk>e/x\<rbrakk> = P)"
+  using assms
+  apply pred_simp
+  nitpick
+  sledgehammer
+  
 
-lemma stlist_cons_minus_nil_eq:
-  fixes xs :: "'a::ordered_cancel_monoid_diff stlist"
-  assumes "[;a] \<le> (x#\<^sub>txs)"
-  shows "(x#\<^sub>txs) - [;a] = (x-a)#\<^sub>txs" 
-  using assms
-  apply (simp add:minus_stlist_def minus_def le_is_monoid_le)
-  by (smt Terminated_lists.last.simps(1) add.assoc add.right_neutral assms concat_stlist.simps(2) diff_add_cancel_left' front.simps(1) left_cancel_monoid_class.add_left_imp_eq minus_def stlist_front_concat_last stlist_nil_concat_cons stlist_nil_le_cons_imp_le stlist_plus_follow_concat zero_stlist_def)
-    
+(* Need to revise this given the new trace algebra *)  
+  
 subsection {* Types *}
 
 text {* A trace of events is a list. *}  
+
+typedef '\<alpha> trace = "{x::'\<alpha>::trace. True}" by auto
+    
+(* Then show it is an instance of the type class by lifting *)
+
+(* Then typedef refusal and define plus *)    
+    
+(* Then define the slots as (trace,refusal) *)
+
+(* Question: - is there any use for a trace parametrised by something
+             other than events? 
+
+             - in a reactive theory is there any healthiness condition
+             relating trace and refusals? *)    
+    
+(*  
+typedef '\<alpha> trace = "{x::'\<alpha>::trace. True}" by auto
+   
+setup_lifting type_definition_trace  
+    
+instantiation trace :: (type) trace
+begin
+end
+
+*)
+    
+lemma
+  fixes a :: "'\<alpha> trace"
+  shows "a + b = c"
   
-type_synonym '\<alpha> trace = "'\<alpha> list"
   
 text {* We define a separate type for refusals, a set of events, so that
         we can instantiate it with specific type classes, separate from
@@ -165,7 +212,36 @@ begin
 
    instance by (intro_classes,(transfer,auto)+)
 end
+  
+instantiation refusal :: (type) monoid_sum_0
+begin
+  
+   instance by (intro_classes,(transfer,auto)+)
+end
 
+no_adhoc_overloading uconj conj
+no_adhoc_overloading udisj disj  
+no_adhoc_overloading unot Not 
+  (*
+instantiation refusal :: (type) ord
+begin
+   definition less_eq_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> bool" where "less_eq_refusal == monoid_le"
+   definition less_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> bool" where "less_refusal x y == x \<le> y \<and> \<not> (y \<le> x)"
+  
+lemma refusal_zero_least:
+  fixes a :: "'a refusal"
+  shows "0 \<le> a"
+  apply (simp add:zero_refusal_def)  
+  apply (transfer, auto)
+  by (metis add.left_neutral monoid_le_def utp_circus_time.less_eq_refusal_def zero_refusal_def)
+    
+   instance by intro_classes
+end*)
+
+adhoc_overloading uconj conj
+adhoc_overloading udisj disj  
+adhoc_overloading unot Not 
+  
 instantiation refusal :: (type) minus
 begin
   definition minus_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal" where "minus_refusal == monoid_subtract"
@@ -189,9 +265,9 @@ text {* The point with these instantiations is that we can then define
         
         We observe that in general this does not yield an ordered
         cancelative monoid, as there is no injective function from 
-        two sets to sets. *}
+        a pair of sets to sets. *}
   
-type_synonym '\<alpha> ttrace = "('\<alpha> trace \<times> '\<alpha> refusal) stlist"  
+type_synonym '\<alpha> ttrace = "('\<alpha> \<times> '\<alpha> refusal) stlist"
   
 text {* To achieve a trace algebra, we define the type of circus
         time traces (cttrace) as a ttrace, where the refusal of the 
@@ -393,12 +469,14 @@ lemma ttrace_plus_closure:
   apply (simp add: stlist_last_concat3)
   by (simp add: stlist_last_concat)+
 
+    (*
 lemma trace_refusal_right_cancel:
-  fixes b1 :: "'\<alpha> trace" and b2 :: "'\<alpha> refusal"
+  fixes b1 :: "'\<alpha> trace" and b2 :: "'\<alpha> refusal" and a :: "('\<alpha> trace \<times> '\<alpha> refusal)"
   assumes "b2 = 0" and "c2 = 0"
-  shows "(b1, b2) + a = (c1, c2) + a \<Longrightarrow> b1 = c1 \<and> b2 = c2"
+  shows "((b1, b2) + a) = ((c1, c2) + a) \<Longrightarrow> ((b1 = c1) \<and> (b2 = c2))"
   using assms
   by (metis fst_add fst_conv right_cancel_monoid_class.add_right_imp_eq)
+    *)
     
 lemma ttrace_right_cancel_monoid3:
   fixes c :: "'\<alpha> ttrace"
@@ -466,11 +544,15 @@ text {* Finally to show that we have a trace algebra we define less_eq, less
         and minus directly in terms of the monoid definitions. The proof is
         now trivial. *}  
   
-instantiation cttrace :: (type) ordered_cancel_monoid_diff
+no_adhoc_overloading uconj conj
+no_adhoc_overloading udisj disj  
+no_adhoc_overloading unot Not
+  
+instantiation cttrace :: (type) pre_trace
 begin
   
   definition less_eq_cttrace :: "'a cttrace \<Rightarrow> 'a cttrace \<Rightarrow> bool" where "less_eq_cttrace == monoid_le"
-  definition less_cttrace :: "'a cttrace \<Rightarrow> 'a cttrace \<Rightarrow> bool" where "less_cttrace x y == x \<le> y \<and> \<not> (y \<le> x)"
+  definition less_cttrace :: "'a cttrace \<Rightarrow> 'a cttrace \<Rightarrow> bool" where "less_cttrace x y == (x \<le> y \<and> \<not> (y \<le> x))"
   definition minus_cttrace :: "'a cttrace \<Rightarrow> 'a cttrace \<Rightarrow> 'a cttrace" where "minus_cttrace == monoid_subtract"
   
 instance
@@ -478,40 +560,274 @@ instance
   apply (simp add: less_eq_cttrace_def)
   apply (simp add: less_cttrace_def)
   by (simp add: minus_cttrace_def)
-
-(* REVISED UP TO HERE *)
+end
   
-text {* What is the meaning of "empty" refusals in the CML trace?
-  That is, a trace like [Event a, Event b] should have an unrestricted
-  trace, rather than being empty? *}
-  
-fun ccut :: "'\<theta> tevent list \<Rightarrow> (('\<theta> trace \<times> '\<theta> refusal) \<times> '\<theta> tevent list)" where
-"ccut [] = (([],{}),[])" |
-"ccut (Tock T # t) = (([],T), t)" |
-"ccut (Event e # t) = ((e # fst (fst (ccut t)), snd (fst (ccut t))),snd (ccut t))"
-  
-function c2ct :: "'\<theta> tevent list \<Rightarrow> '\<theta> timedtrace" where 
-"c2ct T = (fst (ccut T)) # (c2ct (snd (ccut T)))"
-by auto
-
-value "ccut []"
-value "ccut [Event a, Event b]"
-value "ccut [Event a, Event b, Tock {d}, Event e, Event f, Tock {g}]"
-(*
-
-fun cml2ct :: "'\<theta> tevent list \<Rightarrow> '\<theta> timedtrace" where
-"cml2ct [] = [([],{})]" |
-"cml2ct (Tock T # t) = (([],T), t)"
-
-"c2ct (Tock T # t) = [fst (ccut (Tock T # t))] # c2ct t" |
-"c2ct (Event e # t) = [fst (ccut (Event e # t))] # "
-*)
-text {* Could we really reuse the generalised reactive designs
-        with the trace model of Circus Time? I don't think so
-        for several reasons:
+lemma stlist_le_sum_cases_nil:
+  fixes a :: "'a::trace"
+  shows "[;a] \<le> [;x + c] \<Longrightarrow> [;a] \<le> [;x] \<or> [;x] \<le> [;a]"
+  by (simp add: le_sum_cases stlist_le_nil_iff_le_elements)
     
-        1. Traces are non-empty.
-        2. Zero element cannot just be empty trace.
-        3. R2 as defined would not apply?  *}
+lemma cttrace_nil_le_cons_imp_le:
+  fixes a c :: "'a::pre_trace"
+  shows "[;(a, 0)] \<le> [;(c, 0)] \<Longrightarrow> a \<le> c"
+  apply (simp add: less_eq_stlist_def monoid_le_def)
+  apply auto
+  apply (case_tac ca)
+  apply auto
+  apply (simp add: plus_stlist_def)
+  by (simp add:stlist_nil_concat_cons)
+    
+lemma cttrace_eq_nils_plus_ex:
+  shows "([;(a, 0)] = [;(b, 0)] + c) \<Longrightarrow> \<exists>z y. c = [;(z,y)]"
+  apply (induct c)
+  apply auto
+  by (simp add:plus_stlist_def)
+    
+(* I was here *)
+    
+lemma refusal_sum_exists:
+  "(\<exists>ca. [;(c, 0::'a::monoid_add)] = [;(a, 0)] + ca) 
+    \<longleftrightarrow>
+   (\<exists>x. [;(c, 0::'a::monoid_add)] = [;(a, 0)] + [;(x,0)])"
+  apply auto
+  apply (case_tac ca)
+  apply auto
+  apply (simp add:plus_stlist_def plus_refusal_def, auto)
+  by (simp add:plus_stlist_def plus_refusal_def)
+    
+lemma cttrace_prefix_iff:
+  fixes a c :: "'a::pre_trace"
+  shows "[;(a, 0)] \<le> [;(c, 0)] \<longleftrightarrow> a \<le> c"
+  apply auto
+  using cttrace_nil_le_cons_imp_le apply blast
+  apply (simp add:less_eq_stlist_def le_is_monoid_le monoid_le_def)
+  apply (simp add:refusal_sum_exists)
+  by (simp add:plus_stlist_def)
+    
+lemma stlist_nil_prefix_nil_cons:
+  shows "[;a] \<le> (a #\<^sub>t xs)"
+  by (metis add.right_neutral less_eq_stlist_def monoid_le_def stlist_nil_concat_cons)
+    
+lemma stlist_less_eq_imp_less_eq_cons:
+  fixes a :: "'a::pre_trace"
+  shows "a \<le> x \<Longrightarrow> [;a] \<le> (x #\<^sub>t xs)"
+  by (meson dual_order.trans stlist_le_nil_iff_le_elements stlist_nil_prefix_nil_cons)
+
+lemma stlist_nil_less_eq_imp_less_eq_cons:
+  shows "[;a] \<le> [;x] \<Longrightarrow> [;a] \<le> (x #\<^sub>t xs)"
+proof -
+  assume "[;a] \<le> [;x]"
+  then have "\<exists>ps. x #\<^sub>t xs = [;a] + ps"
+    by (metis (no_types) add.assoc less_eq_stlist_def monoid_le_def stlist_nil_prefix_nil_cons)
+  then show ?thesis
+    by (simp add: less_eq_stlist_def monoid_le_def)
+qed
+  
+lemma stlist_nil_less_eq_imp_less_eq_nil:
+  shows "[;a] \<le> (x #\<^sub>t xs) \<Longrightarrow> [;a] \<le> [;x]"
+  apply (simp add:less_eq_stlist_def le_is_monoid_le monoid_le_def)
+  apply auto
+  apply (case_tac c)
+  apply (simp add: plus_stlist_def)
+  by (metis concat_stlist.simps(1) plus_stlist_def stlist.inject(2) stlist_nil_concat_cons)
+
+lemma stlist_nil_less_eq_iff:
+  shows "[;a] \<le> (x #\<^sub>t xs) \<longleftrightarrow> [;a] \<le> [;x]"
+  apply (auto)
+  apply (simp add:stlist_nil_less_eq_imp_less_eq_nil)
+  by (simp add:stlist_nil_less_eq_imp_less_eq_cons)
+
+lemma ctrace_split_zero_plus:
+  fixes a :: "'a::monoid_add" and c :: "'b::monoid_add"
+  shows "[;(a, 0)] + [;(0,c)] = [;(a, c)]"
+  by (simp add:plus_stlist_def)
+
+lemma ctrace_refusal_zero_le:
+  fixes a :: "'a::monoid_add" and b :: "'b::monoid_add"
+  shows "[;(a, 0)] \<le> [;(a, c)]"
+  apply (simp add:less_eq_stlist_def monoid_le_def)
+  by (metis ctrace_split_zero_plus)
+    
+lemma ctrace_refusal_zero_le2:
+  fixes a :: "'a::monoid_add" and c :: "'b::monoid_sum_0"
+  shows "[;(a, c)] \<le> [;(b, 0)] \<Longrightarrow> c = 0"
+  apply (simp add:less_eq_stlist_def monoid_le_def)
+  apply auto
+  apply (case_tac ca)
+  apply auto
+  apply (simp add:plus_stlist_def)
+  apply (simp add:zero_sum)
+  by (simp add:plus_stlist_def)
+    
+lemma stlist_pair_ptrace_le_imp_le:
+  fixes a :: "'a::pre_trace" and c :: "'b::monoid_add"
+  shows "[;(a, 0)] \<le> [;(b, c)] \<Longrightarrow> [;a] \<le> [;b]"
+  apply (simp add:less_eq_stlist_def monoid_le_def)
+  apply auto
+  apply (case_tac ca)
+  apply auto
+  apply (metis concat_stlist.simps(1) fst_add fst_conv plus_stlist_def stlist.inject(1))
+  by (simp add: stlist_nil_concat_cons)
+    
+lemma stlist_nil_trans:
+  "[;a] \<le> [;b] \<Longrightarrow> [;b] \<le> [;c] \<Longrightarrow> [;a] \<le> [;c]"
+  by (metis (no_types, lifting) add.assoc less_eq_stlist_def monoid_le_def)
+
+lemma stlist_pair_ptrace_le_imp_le_arbitrary:
+  fixes a b :: "'a::pre_trace" and c :: "'b::monoid_add"
+  shows "[;a] \<le> [;b] \<Longrightarrow> [;(a, 0)] \<le> [;(b, c)]"
+  by (meson ctrace_refusal_zero_le cttrace_prefix_iff stlist_le_nil_imp_le_elements stlist_nil_trans)
+    
+lemma stlist_pair_ptrace_le_iff_le_arbitrary:
+  fixes a :: "'a::pre_trace" and c :: "'b::monoid_add"
+  shows "[;(a, 0)] \<le> [;(b, c)] \<longleftrightarrow> [;a] \<le> [;b]"
+  by (metis stlist_pair_ptrace_le_imp_le stlist_pair_ptrace_le_imp_le_arbitrary)
+ 
+lemma ctrace_refusal_zero_le2_rev:
+  fixes a :: "'a::monoid_add" and c :: "'b::monoid_sum_0"
+  shows "c \<noteq> 0 \<Longrightarrow> \<not> [;(a, c)] \<le> [;(b, 0)]"
+  by (metis ctrace_refusal_zero_le2)
+
+declare [[show_sorts]]    
+lemma list_refusal_imp_le_sum_cases:
+  fixes a b c :: "('a list \<times> 'a refusal)"
+  assumes "snd(c) = 0" and "snd(a) = 0"
+  and "[;a] \<le> [;b + c]"
+  shows "[;a] \<le> [;b] \<or> [;b] \<le> [;a]"
+proof -
+  fix xa and xc
+  assume xa:"a = (xa,0)" and xc:"c = (xc,0)"
+  from assms have step0:"[;(xa,0)] \<le> [;b + (xc,0)]"
+    using xa and xc by (simp)
+      
+  fix xb and rb
+  assume xb:"b = (xb,rb)"
+  from assms and step0 have "[;(xa,0)] \<le> [;(xb,rb) + (xc,0)]"
+    using xb by simp
+   (* by (simp add: stlist_pair_ptrace_le_iff_le_arbitrary)*)
+      
+  also have "[;(xa,0)] \<le> [;(xb,rb) + (xc,0)] = ([;(xa,0)] \<le> [;(xb+xc,rb)])"
+    by simp
+  also have "... = ([;xa] \<le> [;xb+xc])"
+    by (simp add:stlist_pair_ptrace_le_iff_le_arbitrary)
+  also have f:"... = (xa \<le> xb + xc)"
+    by (simp add:stlist_le_nil_iff_le_elements)
+      
+  from f have "(xa \<le> xb + xc) \<Longrightarrow> xa \<le> xb \<or> xb \<le> xa"
+    by (simp add:le_sum_cases)
+  also have "xa \<le> xb \<or> xb \<le> xa \<Longrightarrow> [;(xa,0)] \<le> [;(xb,rb)] \<or> [;(xb,rb)] \<le> [;(xa,0)]"
+    sledgehammer
+      
+  (* This is not looking true. Need to show that the order \<le> can be built from LHS \<rightarrow> RHS *)     
+      
+  (*
+  using assms
+  apply (case_tac c)
+  apply auto
+  apply (case_tac a)
+  apply auto
+  apply (case_tac b)
+  apply auto
+  apply (simp add:stlist_pair_ptrace_le_iff_le_arbitrary)
+  apply (case_tac "ba=0")
+  using stlist_le_sum_cases_nil stlist_pair_ptrace_le_imp_le_arbitrary apply blast
+  apply (simp add:ctrace_refusal_zero_le2_rev)
+  apply (simp add:stlist_le_nil_iff_le_elements)
+  apply (thin_tac "c = (aa, 0::'a refusal)")
+  apply (thin_tac "a = (aaa, 0::'a refusal)")
+  apply (thin_tac "b = (ab, ba)")
+  apply (thin_tac "b \<noteq> (0::'a refusal)")
+  using le_sum_cases sledgehammer*)
+  oops
+    
+instantiation cttrace :: (type) trace
+begin
+  
+lemma
+  fixes a :: "('a list \<times> 'a refusal)"
+  shows "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
+  apply (simp add:plus_refusal_def)
+  oops
+
+    
+lemma ttrace_zero_le_sum_cases:
+  fixes a\<^sub>t :: "'a list"
+  shows "(a\<^sub>t,0::'a refusal) \<le> (b\<^sub>t,0::'a refusal) + (c\<^sub>t,0::'a refusal) \<Longrightarrow> (a\<^sub>t,0::'a refusal) \<le> (b\<^sub>t,0::'a refusal) \<or> (b\<^sub>t,0::'a refusal) \<le> (a\<^sub>t,0::'a refusal)"
+  apply simp_all
+  apply (simp add:refusal_zero_least)
+  by (simp add: le_sum_cases)
+    
+
+  
+lemma
+  fixes b :: "'a ttrace"
+  assumes "snd(last b) = 0"
+  shows "[;(a, 0::'a refusal)] \<le> b + [;(c, 0::'a refusal)] \<Longrightarrow> [;(a, 0)] \<le> b \<or> b \<le> [;(a, 0)]"
+  using assms
+  apply (induct b rule:stlist.induct)
+  apply (simp add:plus_stlist_def)
+  apply (case_tac x)
+  apply (simp_all add:cttrace_prefix_iff)
+  using le_sum_cases apply blast
+  
+  apply (simp_all add:plus_stlist_def)
+ 
+  apply (simp_all add:cttrace_prefix_iff, auto)
+   
+lemma
+  fixes b c :: "'a ttrace"
+  assumes "snd(last b) = 0"
+  and "snd(last c) = 0"
+  shows "[;(a, 0::'a refusal)] \<le> b + c \<Longrightarrow> [;(a, 0::'a refusal)] \<le> b \<or> b \<le> [;(a, 0)]"
+  using assms
+  apply (induct c arbitrary: b rule:stlist.induct, auto)
+  
+  apply (simp add:le_sum_cases)
+  oops
+     
+lemma
+  fixes c :: "'a ttrace"
+  assumes "snd(last c) = 0"
+  and "snd(a) = 0" and "snd(b) = 0"
+  shows "[;a] \<le> [;b] + c \<Longrightarrow> [;a] \<le> [;b] \<or> [;b] \<le> [;a]"
+  using assms
+  apply (induct c)
+  apply (simp add:plus_stlist_def)
+  apply (metis add.right_neutral cttrace_prefix_iff le_add le_common_total plus_prod_def prod.collapse)
+  apply (simp add:plus_stlist_def)
+  apply (simp add:stlist_nil_less_eq_iff)
+  apply (simp add:list_refusal_imp_le_sum_cases)
+  oops
+    
+(* Proving the property below is proving more challenging than anticipated *)
+lemma 
+  fixes a :: "'a ttrace"
+  assumes "snd(last a) = 0"
+  and "snd(last b) = 0"
+  and "snd(last c) = 0"
+  shows "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"  
+  using assms
+(*  apply (induct a b arbitrary:c rule:stlist_induct_cons)
+ *)
+  apply (induct a arbitrary:b c rule:stlist.induct)
+  sledgehammer
+    
+  
+   apply (simp add:)
+   apply auto
+   apply (case_tac ba)
+   apply auto
+   apply (metis ttrace_zero_le_sum_cases)
+  
+  apply (induct a b rule:stlist_induct_cons)
+      apply (case_tac c)
+  oops
+    
+instance apply intro_classes
+      
+end    
+        
+adhoc_overloading uconj conj
+adhoc_overloading unot Not
 
 end
