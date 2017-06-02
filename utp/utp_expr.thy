@@ -355,6 +355,9 @@ text \<open> The follows a large number of translations that lift HOL functions 
   
 abbreviation "ulens_override x f g \<equiv> lens_override f g x"
 
+translations
+  "0" <= "CONST uempty" -- {* We have to do this so we don't see uempty. Is there a better way of printing? *}
+    
 text \<open> We add new non-terminals for UTP tuples and maplets. \<close>
   
 nonterminal utuple_args and umaplet and umaplets
