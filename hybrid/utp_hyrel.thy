@@ -308,12 +308,38 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
 lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
 
-abbreviation init_cont ("ll") where
-"ll \<equiv> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u"
+definition init_cont ("ll") where
+[urel_defs]: "ll = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u)"
     
-abbreviation final_cont ("rl") where
-"rl \<equiv> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)"
+definition final_cont ("rl") where
+[urel_defs]: "rl = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))"
 
+lemma init_cont_unrests [unrest]:
+  "$ok \<sharp> ll" "$ok\<acute> \<sharp> ll" "$wait \<sharp> ll" "$wait\<acute> \<sharp> ll" "$st\<acute> \<sharp> ll"
+  by (simp_all add:init_cont_def unrest)
+
+lemma final_cont_unrests [unrest]:
+  "$ok \<sharp> rl" "$ok\<acute> \<sharp> rl" "$wait \<sharp> rl" "$wait\<acute> \<sharp> rl" "$st \<sharp> rl"
+  by (simp_all add:final_cont_def unrest)
+    
+lemma R1_init_cont: "R1(ll) = ll"
+  by (rel_auto)
+
+lemma R1_final_cont: "R1(rl) = rl"
+  by rel_auto
+    
+lemma R2c_init_cont: "R2c(ll) = ll"
+  apply (rel_auto)
+  using order.strict_iff_order apply fastforce
+  apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
+done
+
+lemma R2c_final_cont: "R2c(rl) = rl"
+  apply (rel_auto)
+  using order.strict_iff_order apply fastforce
+  apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
+done
+  
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
 [urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
