@@ -107,13 +107,13 @@ text {* Both lenses are very well-behaved, effectively meaning they are valid va
   observational variables. *}
 
 lemma disc_indep_ok [simp]: "\<^bold>d \<bowtie> ok" "ok \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
+  by (simp_all add: disc_alpha_def lens_indep_sym)
 
 lemma disc_indep_wait [simp]: "\<^bold>d \<bowtie> wait" "wait \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
+  by (simp_all add: disc_alpha_def lens_indep_sym)
 
 lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_left_ext lens_indep_sym)
+  by (simp_all add: disc_alpha_def lens_indep_sym)
 
 lemma cont_indep_ok [simp]: "\<^bold>c \<bowtie> ok" "ok \<bowtie> \<^bold>c"
   by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
@@ -288,6 +288,9 @@ subsection {* The Interval Operator *}
 definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
+definition hInt_at :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+
 text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
   is satisfied at every instant between the beginning and end of the evolution, that is on the
   right-open interval $[0, \textbf{l})$. This is specified using the instant operator,
@@ -305,8 +308,14 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
 lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
 
+abbreviation init_cont ("ll") where
+"ll \<equiv> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u"
+    
+abbreviation final_cont ("rl") where
+"rl \<equiv> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)"
+
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
@@ -326,6 +335,7 @@ text {* We also set up the adapted version of the interval operator, @{term "hDi
 syntax
   "_time_var" :: "logic"
   "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>h")
+  "_hInt_at"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>h'(_')")
   "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<^bold>\<lceil>_\<^bold>\<rceil>\<^sub>h")
 
 parse_translation {*
@@ -338,10 +348,12 @@ end
 *}
 
 translations
-  "\<lceil>P\<rceil>\<^sub>h" => "CONST hInt (\<lambda> _time_var. P)"
-  "\<lceil>P\<rceil>\<^sub>h" <= "CONST hInt (\<lambda> x. P)"
-  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h" => "CONST hDisInt (\<lambda> _time_var. P)"
-  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h" <= "CONST hDisInt (\<lambda> x. P)"
+  "\<lceil>P\<rceil>\<^sub>h"    => "CONST hInt (\<lambda> _time_var. P)"
+  "\<lceil>P\<rceil>\<^sub>h"    <= "CONST hInt (\<lambda> x. P)"
+  "\<lceil>P\<rceil>\<^sub>h(n)" => "CONST hInt_at (\<lambda> _time_var. P) n"
+  "\<lceil>P\<rceil>\<^sub>h(n)" <= "CONST hInt_at (\<lambda> x. P) n"
+  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    => "CONST hDisInt (\<lambda> _time_var. P)"
+  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    <= "CONST hDisInt (\<lambda> x. P)"
   
 text {* A regular interval can be written using the notation @{term "\<lceil>P(\<tau>)\<rceil>\<^sub>h"}, where $\tau$ is
   a free variable denoting the present time. Having the present time as a free variable means
@@ -351,6 +363,10 @@ text {* A regular interval can be written using the notation @{term "\<lceil>P(\
 lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
+lemma st'_unrest_hInt [unrest]: 
+  "$st\<acute> \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+  by (rel_auto)
+    
 lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (rel_auto)
 
@@ -382,7 +398,10 @@ lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq
 
 lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (rel_auto)
-  
+    
+text {* The following theorem demonstrates that we can use an interval specification in a reactive
+  design precondition. *}
+    
 lemma neg_hInt_R1_true: "R1(\<not> \<lceil>P\<rceil>\<^sub>h) ;; R1(true) = R1(\<not> \<lceil>P\<rceil>\<^sub>h)"
 proof (rel_auto)
   fix tr tr' tr'' :: "'a ttrace" and t :: real
@@ -452,33 +471,6 @@ lemma seq_var_ident_liftr:
   shows "((P \<and> $x\<acute> =\<^sub>u $x) ;; (Q \<and> $x\<acute> =\<^sub>u $x)) = ((P ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
-
-(*
-lemma hInt_seq_r: "(\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H ;; \<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H) = \<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H"
-proof -
-  have "((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) ;;
-         (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)) =
-        (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) ;;
-         ((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
-    by (rel_auto)
-
-  also
-  have "... =
-        (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) ;;
-          (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
-    by (subst seq_var_ident_liftr, simp_all add: unrest)
-  also
-  have "... =
-        (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<guillemotleft>t\<^sub>0\<guillemotright>)\<^sup>-)(\<guillemotleft>t\<^sub>0\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)) ;;
-          (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright>\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<guillemotleft>t\<^sub>1\<guillemotright>)\<^sup>-)(\<guillemotleft>t\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and>  \<and>  $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
-    by (subst seq_var_ident_liftr, simp_all add: unrest)
-
-  also
-  have "... =
-        (((\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u \<^bold>t\<lparr>end\<^sub>u(\<^bold>t)\<rparr>\<^sub>u) ;;
-          (\<lceil>P\<rceil>\<^sub>H \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> end\<^sub>u(\<^bold>t)\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
-    apply (rel_auto)
-*)
 
 subsection {* Pre-emption *}
 
