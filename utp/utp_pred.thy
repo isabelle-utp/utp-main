@@ -113,10 +113,10 @@ notation Inf ("\<Squnion>_" [900] 900)
 purge_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
   
-purge_notation bot ("\<bottom>")
-notation bot ("\<top>")
-purge_notation top ("\<top>")
-notation top ("\<bottom>")
+purge_notation Orderings.bot ("\<bottom>")
+notation Orderings.bot ("\<top>")
+purge_notation Orderings.top ("\<top>")
+notation Orderings.top ("\<bottom>")
 
 purge_syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)

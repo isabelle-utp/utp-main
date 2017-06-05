@@ -140,7 +140,7 @@ ML {*
 *}
 
 update_uexpr_rep_eq_thms -- {* Read @{thm [source] uexpr_rep_eq_thms} here. *}
-
+  
 text {*
   Lastly, we require several named-theorem attributes to record the manual
   transfer laws and extra simplifications, so that the user can dynamically
@@ -159,7 +159,7 @@ declare unrest_uexpr.rep_eq [uexpr_transfer_extra]
   utp_expr.less_eq_uexpr.rep_eq [uexpr_transfer_extra]
   Abs_uexpr_inverse [simplified, uexpr_transfer_extra]
   Rep_uexpr_inverse [uexpr_transfer_extra]
-
+  
 paragraph {* Tactic Definition *}
 
 text {*
@@ -169,7 +169,7 @@ text {*
 
 method fast_uexpr_transfer =
   (simp add: uexpr_transfer_laws uexpr_rep_eq_thms uexpr_transfer_extra)
-
+  
 subsection {* Interpretation *}
 
 text {*

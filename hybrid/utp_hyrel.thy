@@ -8,7 +8,7 @@ imports
   "../dynamics/Derivative_extra"
   "../dynamics/Timed_Traces"
 begin recall_syntax
-
+  
 hide_type rel
 
 no_notation inner (infix "\<bullet>" 70)
