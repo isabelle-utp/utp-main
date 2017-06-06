@@ -48,7 +48,7 @@ translations
 definition hrdODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
+[urel_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true \<turnstile> (ll \<and> (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> &x =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<rceil>\<^sub>h)) \<diamondop> false)"
 
 syntax
   "_hrdODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H")
@@ -202,7 +202,7 @@ proof -
     using Limit_continuous assms(1) assms(2) by blast  
   finally show ?thesis .
 qed
-      
+
 lemma hrdUntil_solve:
   assumes 
     "k > 0" "continuous_on {0..k} f"

@@ -277,7 +277,7 @@ qed
 text {* We next show an example of solving an ODE. *}
 
 term "\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>h"
-
+  
 lemma gravity_ode_example:
   assumes "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>"
   shows "(\<langle>x := \<guillemotleft>(v\<^sub>0, h\<^sub>0)\<guillemotright> \<bullet> \<guillemotleft>(\<lambda> t (v, h). (- g, v))\<guillemotright>\<rangle>\<^sub>h) =
@@ -286,8 +286,15 @@ proof (rule ivp_to_solution', simp_all add: assms)
   have 1:"\<forall>l>0. unique_on_strip 0 {0..l} (\<lambda> t (v, h). (- g, v)) 1"
     by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
   have 2:"\<forall>l>0. ((\<lambda>\<tau>. (v\<^sub>0 - g * \<tau>, v\<^sub>0 * \<tau> - g * (\<tau> * \<tau>) / 2 + h\<^sub>0))
-                 solves_ode (\<lambda> t (v, h). (- g, v))) {0..l} UNIV"
-    apply (auto, rule solves_odeI, auto simp add: has_vderiv_on_def)
+                 solves_ode (\<lambda> t (v, h). (- g, v))) {0..l} UNIV"                                    
+    apply (clarify)
+    apply (rule solves_odeI)      
+    apply (simp)
+    apply (auto simp add: has_vderiv_on_def)
+    apply (rule has_vector_derivative_Pair)
+    apply (rule has_vector_derivative_eq_rhs)
+    apply (rule derivative_intros)+
+    apply (auto intro!: derivative_intros)
     apply (rule has_vector_derivative_eq_rhs)
     apply (rule derivative_intros)+
     apply (auto intro!: derivative_intros)

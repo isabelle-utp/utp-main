@@ -27,6 +27,7 @@ text {* We first set up some types to represent hybrid relations. *}
 
 type_synonym ('d,'c) hybs = "('d \<times> 'c, 'c ttrace, unit) rsp"
 type_synonym ('d,'c) hyrel  = "('d,'c) hybs hrel"
+type_synonym ('a,'d,'c) hycond = "('a,('d,'c) hybs) uexpr"
 type_synonym ('a,'d,'c) hyexpr = "('a,('d,'c) hybs \<times> ('d,'c) hybs) uexpr"
 
 text {* Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discrete part is stored
@@ -498,6 +499,24 @@ lemma seq_var_ident_liftr:
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
+subsection {* Evolve by continuous function *}
+  
+definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'd, 'c) hycond) \<Rightarrow> ('d,'c) hyrel" where
+"hEvolve x f = (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<lceil>f(t)\<rceil>\<^sub><)"
+
+definition hEvolveAt :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> ('a, 'd, 'c) hycond) \<Rightarrow> ('d,'c) hyrel" where
+"hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright>)"
+
+syntax
+  "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
+  "_hEvolveAt" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h'(_') _" [90,0,91] 90)  
+  
+translations
+  "_hEvolve a f" => "CONST hEvolve a (\<lambda> _time_var. f)"
+  "_hEvolve a f" <= "CONST hEvolve a (\<lambda> \<tau>. f)"
+  "_hEvolveAt a t f" => "CONST hEvolveAt a t (\<lambda> _time_var. f)"
+  "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> \<tau>. f)"
+  
 subsection {* Pre-emption *}
 
 definition hPreempt ::

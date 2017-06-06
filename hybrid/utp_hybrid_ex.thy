@@ -53,6 +53,8 @@ definition
               [&pos \<le>\<^sub>u 0]\<^sub>h
              (\<^bold>c:vel := (- 0.8 * &\<^bold>c:vel) ;; X)))"
 
+term "{&pos,&vel} \<leftarrow>\<^sub>h (&\<^bold>c:vel - 9.81*\<guillemotleft>\<tau>\<guillemotright>, &\<^bold>c:pos + &\<^bold>c:vel*t - 9.81*\<guillemotleft>\<tau>\<guillemotright>\<^sup>2/2)\<^sub>u"
+  
 definition
   "thermostat =
     (\<mu> X \<bullet> \<^bold>c:temp, \<^bold>d:isOn := 20, false ;;
