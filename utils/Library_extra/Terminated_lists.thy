@@ -148,6 +148,17 @@ begin
   instance by (intro_classes)
 end
   
+lemma plus_seq_assoc: 
+  fixes xs ys zs::"'a::{plus,semigroup_add} stlist"
+  shows "(xs + ys) + zs = xs + (ys + zs)"
+  unfolding plus_stlist_def
+  apply (induct xs)
+  apply (induct ys)
+  apply (induct zs)
+  apply auto
+  apply (simp add: add.assoc)
+  by (simp add:add.semigroup_axioms semigroup.assoc)  
+  
 lemma stlist_nil_concat_cons:
   shows "[;a] + (xs#\<^sub>tys) = (a + xs)#\<^sub>tys" 
   by (simp add:plus_stlist_def)
@@ -254,16 +265,7 @@ lemma stlist_concat_zero_right[simp]:
   unfolding plus_stlist_def
   by (induct y, auto)*)
     
-lemma plus_seq_assoc: 
-  fixes xs ys zs::"'a stlist"
-  shows "(xs + ys) + zs = xs + (ys + zs)"
-  unfolding plus_stlist_def
-  apply (induct xs)
-  apply (induct ys)
-  apply (induct zs)
-  apply auto
-  apply (simp add: add.assoc)
-  by (simp add:add.semigroup_axioms semigroup.assoc)
+
     
 instance
   apply (intro_classes)

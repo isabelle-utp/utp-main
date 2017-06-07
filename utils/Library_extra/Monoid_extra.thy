@@ -60,7 +60,9 @@ end
   
 class dzero = 
   fixes dzero :: "'a \<Rightarrow> 'a"
-  assumes dzero_idem: "dzero (dzero a) = dzero a"    
+    
+class dzero_idem = dzero +
+  assumes dzero_idem[simp]: "dzero (dzero a) = dzero a"    
 
 (* the class of the original trace algebra: *)    
     
@@ -77,7 +79,7 @@ class dzero_same = dzero +
     
 (* mirror properties of the trace algebra *)
     
-class dzero_add_zero = dzero + semigroup_add +
+class dzero_add_zero = dzero_idem + semigroup_add +
   assumes add_dzero_left[simp]: "(dzero a) + a = a"
   assumes add_dzero_right[simp]: "a + (dzero a) = a"
 begin
@@ -246,9 +248,9 @@ begin
  lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
     by (simp add: local.le_is_dzero_le local.dzero_le_def)
 
-  lemma least_zero [simp]: "dzero a \<le> a"
-    by (simp add: local.le_is_dzero_le local.monoid_le_least_zero)
-
+  lemma least_zero [simp]: "dzero a \<le> b"
+    by (metis local.add.semigroup_axioms local.add_dzero_right local.add_left_imp_eq local.le_iff_add semigroup.assoc)
+  
   lemma le_add [simp]: "a \<le> a + b"
     by (simp add: le_is_dzero_le local.monoid_le_add)
 
@@ -258,12 +260,12 @@ begin
   lemma add_diff_cancel_left [simp]: "(a + b) - a = b"
     by (simp add: minus_def)
 
-  lemma diff_zero [simp]: "a - dzero a = a"
-    by (metis local.add_dzero_left local.add_diff_cancel_left)
- 
+  lemma diff_zero [simp]: "a - dzero b = a"
+    by (metis add_assoc local.add_diff_cancel_left local.add_dzero_right local.dzero_idem)
+       
   lemma diff_cancel [simp]: "a - a = dzero a"
     by (metis local.add_dzero_right local.add_diff_cancel_left)
-  
+      
   lemma add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
     by (simp add: local.le_is_dzero_le local.monoid_le_add_left_mono)
 
@@ -280,6 +282,7 @@ begin
       by (metis add_assoc local.add_dzero_right local.add_monoid_diff_cancel_left)
   qed
     
+  (* TODO: rename these lemmas *)
   lemma tt: "\<lbrakk> b \<le> a; dzero b < a - b \<rbrakk> \<Longrightarrow> b < a"
     by (smt local.add.semigroup_axioms local.add_monoid_diff_cancel_left local.le_iff_add local.less_iff local.minus_def semigroup.assoc)
 
@@ -327,8 +330,9 @@ begin
     by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_dzero_le minus_def monoid_le_add_left_mono dzero_le_def monoid_le_trans)
     
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
-    by (metis diff_add_cancel_left' local.add_diff_cancel_left')  
-  
+    by (metis diff_add_cancel_left' local.add_diff_cancel_left') 
+      
+  (* under what circumstances is - associative? *)
 end
 
   
