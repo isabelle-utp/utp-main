@@ -309,40 +309,48 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
 lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
 
-definition init_cont ("ll") where
-[urel_defs]: "ll = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u)"
-    
-definition final_cont ("rl") where
-[urel_defs]: "rl = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u))"
+definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u:(x))"
 
+definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u):(x))"
+
+syntax
+  "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
+  "_final_cont" :: "salpha \<Rightarrow> logic" ("rl'(_')")
+
+translations
+  "_init_cont x" == "CONST init_cont x"
+  "_final_cont x" == "CONST final_cont x"  
+  
 lemma init_cont_unrests [unrest]:
-  "$ok \<sharp> ll" "$ok\<acute> \<sharp> ll" "$wait \<sharp> ll" "$wait\<acute> \<sharp> ll" "$st\<acute> \<sharp> ll"
-  by (simp_all add:init_cont_def unrest)
+  "$ok \<sharp> ll(x)" "$ok\<acute> \<sharp> ll(x)" "$wait \<sharp> ll(x)" "$wait\<acute> \<sharp> ll(x)" "$st\<acute> \<sharp> ll(x)"
+  by (rel_auto)+
 
 lemma final_cont_unrests [unrest]:
-  "$ok \<sharp> rl" "$ok\<acute> \<sharp> rl" "$wait \<sharp> rl" "$wait\<acute> \<sharp> rl" "$st \<sharp> rl"
-  by (simp_all add:final_cont_def unrest)
+  "$ok \<sharp> rl(x)" "$ok\<acute> \<sharp> rl(x)" "$wait \<sharp> rl(x)" "$wait\<acute> \<sharp> rl(x)" "$st \<sharp> rl(x)"
+  by (rel_auto)+
     
-lemma R1_init_cont: "R1(ll) = ll"
+lemma R1_init_cont: "R1(ll(x)) = ll(x)"
   by (rel_auto)
 
-lemma R1_final_cont: "R1(rl) = rl"
+lemma R1_final_cont: "R1(rl(x)) = rl(x)"
   by rel_auto
     
-lemma R2c_init_cont: "R2c(ll) = ll"
+lemma R2c_init_cont: "R2c(ll(x)) = ll(x)"
   apply (rel_auto)
   using order.strict_iff_order apply fastforce
   apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
 done
 
-lemma R2c_final_cont: "R2c(rl) = rl"
+lemma R2c_final_cont: "R2c(rl(x)) = rl(x)"
   apply (rel_auto)
   using order.strict_iff_order apply fastforce
   apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
 done
   
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
@@ -501,11 +509,11 @@ lemma seq_var_ident_liftr:
 
 subsection {* Evolve by continuous function *}
   
-definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'd, 'c) hycond) \<Rightarrow> ('d,'c) hyrel" where
-"hEvolve x f = (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<lceil>f(t)\<rceil>\<^sub><)"
+definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "hEvolve x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<lceil>f(t)\<rceil>\<^sub>C\<^sub><))"
 
-definition hEvolveAt :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> ('a, 'd, 'c) hycond) \<Rightarrow> ('d,'c) hyrel" where
-"hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright>)"
+definition hEvolveAt :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright>)"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
@@ -516,7 +524,16 @@ translations
   "_hEvolve a f" <= "CONST hEvolve a (\<lambda> \<tau>. f)"
   "_hEvolveAt a t f" => "CONST hEvolveAt a t (\<lambda> _time_var. f)"
   "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> \<tau>. f)"
+
+lemma hEvolve_unrests [unrest]:
+  "$ok \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)"
+  by (simp_all add: hEvolve_def unrest)
   
+lemma hEvolve_spec_refine:
+  assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>f(\<tau>)/&x\<rbrakk>`"
+  shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
+  oops
+    
 subsection {* Pre-emption *}
 
 definition hPreempt ::

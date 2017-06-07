@@ -510,22 +510,24 @@ translations
 
 text {* Set up transfer tactic for powers *}
 
-lemma upower_rep_eq [uexpr_transfer_laws]:
-  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
-proof (induct i arbitrary: P b)
+lemma upower_rep_eq:
+  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>e = (\<lambda> b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+proof (induct i arbitrary: P)
   case 0
   then show ?case
-    by (simp, rel_auto, simp add: Id_fstsnd_eq)
+    by (auto, rel_auto)
 next
   case (Suc i)
   show ?case
     by (simp add: Suc seqr.rep_eq relpow_commute)
 qed
 
-lemma upower_rep_eq_alt [uexpr_transfer_laws]:
-  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e b = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+lemma upower_rep_eq_alt:
+  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
   by (metis skip_r_def upower_rep_eq)
 
+update_uexpr_rep_eq_thms
+  
 lemma Sup_power_expand:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
   shows "P(0) \<sqinter> (\<Sqinter>i. P(i+1)) = (\<Sqinter>i. P(i))"
@@ -594,10 +596,12 @@ subsubsection {* Kleene Star *}
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
 "P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"
 
-lemma ustar_rep_eq [uexpr_transfer_laws]:
-  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
+lemma ustar_rep_eq:
+  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
   by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
 
+update_uexpr_rep_eq_thms
+  
 subsubsection {* Omega *}
 
 definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where

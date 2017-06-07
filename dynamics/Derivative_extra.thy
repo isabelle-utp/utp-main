@@ -50,8 +50,4 @@ lemma has_vector_derivative_divide[simp, derivative_intros]:
   apply (auto simp add: divide_inverse real_vector.scale_right_diff_distrib)
 done
 
-text {* vderiv\_tac is a simple tactic for certifying solutions to systems of differential equations *}
-
-method vderiv_tac = (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
-
 end
