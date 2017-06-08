@@ -175,7 +175,13 @@ begin
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left')
 
-      
+  lemma minus_gr_zero_iff [simp]:
+    "0 < x - y \<longleftrightarrow> y < x"
+    by (metis diff_cancel le_is_monoid_le least_zero less_iff minus_zero_eq monoid_le_antisym not_le_minus)
+
+  lemma le_zero_iff [simp]: "x \<le> 0 \<longleftrightarrow> x = 0"
+    using local.le_iff_add local.zero_sum by auto
+            
 end
 
 instance trace \<subseteq> order

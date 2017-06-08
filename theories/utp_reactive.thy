@@ -334,7 +334,7 @@ lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<gui
   by (rel_auto)
 
 lemma tr_strict_prefix_R2c_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R2c"
-  apply (rel_auto) using less_le minus_zero_eq by fastforce+
+  by (rel_auto)
 
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
@@ -450,10 +450,7 @@ lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^
   by (rel_auto)
 
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
-  apply (rel_auto)
-  using le_imp_less_or_eq apply fastforce
-  using dual_order.strict_iff_order minus_zero_eq apply fastforce
-done
+  by (rel_auto)
 
 lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
   by (rel_auto)

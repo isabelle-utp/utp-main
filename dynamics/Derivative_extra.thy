@@ -49,5 +49,55 @@ lemma has_vector_derivative_divide[simp, derivative_intros]:
   apply (rule has_derivative_divide)
   apply (auto simp add: divide_inverse real_vector.scale_right_diff_distrib)
 done
+    
+text {* The next four rules allow us to prove derivatives when the function is equivalent to
+  another a function when approach from the left or right. *}
+ 
+lemma has_derivative_left_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_derivative f') (at x within s)" "x \<in> s" "x < y" "\<forall>x'<y. f x' = g x'"
+  shows "(g has_derivative f') (at x within s)"
+  apply (rule has_derivative_transform_within[of f f' x s "y-x" g])
+  apply (simp_all add: assms dist_real_def)
+done
+  
+lemma has_derivative_right_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_derivative f') (at x within s)" "x \<in> s" "x > y" "\<forall>x'>y. f x' = g x'"
+  shows "(g has_derivative f') (at x within s)"
+  apply (rule has_derivative_transform_within[of f f' x s "x-y" g])
+  apply (simp_all add: assms dist_real_def)
+done
+  
+lemma has_vector_derivative_left_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_vector_derivative f') (at x within s)" "x \<in> s" "x < y" "\<forall>x'<y. f x' = g x'"
+  shows "(g has_vector_derivative f') (at x within s)"
+  using assms
+  apply (simp add: has_vector_derivative_def)
+  apply (rule_tac y="y" and f="f" in has_derivative_left_point)
+  apply (auto simp add: assms)
+done
+
+lemma has_vector_derivative_right_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_vector_derivative f') (at x within s)" "x \<in> s" "x > y" "\<forall>x'>y. f x' = g x'"
+  shows "(g has_vector_derivative f') (at x within s)"
+  using assms
+  apply (simp add: has_vector_derivative_def)
+  apply (rule_tac y="y" and f="f" in has_derivative_right_point)
+  apply (auto simp add: assms)
+done
+  
+lemma max_simps [simp]: 
+  "(y::real) < max x y \<longleftrightarrow> y < x" 
+  "x < max x y \<longleftrightarrow> x < y"
+  "max x y = y \<longleftrightarrow> x \<le> y"
+  by auto
+    
+lemma min_simps [simp]:
+  "min (x::real) y < x \<longleftrightarrow> y < x"
+  "min x y < y \<longleftrightarrow> x < y"
+  by auto
 
 end

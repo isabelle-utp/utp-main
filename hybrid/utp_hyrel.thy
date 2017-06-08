@@ -200,9 +200,9 @@ lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
 subsection {* Instant Predicates *}
 
 definition at ::
-  "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
+  "('a, 'c::topological_space \<times> 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
   (infix "@\<^sub>u" 60) where
-[upred_defs]: "P @\<^sub>u t = [$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C\<^sub><"
+[upred_defs]: "P @\<^sub>u t = [$\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C"
 
 text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
   the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
@@ -225,7 +225,7 @@ text {* @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R
   the predicate @{term "\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u"}, since this only refers to @{term "\<^bold>l"}, which
   denotes the length of the present computation, and does not depend on the history. *}
 
-lemma at_unrest_cont [unrest]: "$\<^bold>c \<sharp> (P @\<^sub>u t)" "$\<^bold>c\<acute> \<sharp> (P @\<^sub>u t)"
+lemma at_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest)
 
 lemma at_unrest_dis [unrest]: "$\<^bold>d \<sharp> (P @\<^sub>u t)" "$\<^bold>d\<acute> \<sharp> (P @\<^sub>u t)"
@@ -274,7 +274,7 @@ lemma at_bop [simp]:
 
 lemma at_var [simp]:
   fixes x :: "('a \<Longrightarrow> 'c::topological_space)"
-  shows "utp_expr.var x @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
+  shows "$x\<acute> @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
   by (pred_auto)
 
 text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat continuous variable
@@ -286,10 +286,10 @@ lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>
 
 subsection {* The Interval Operator *}
 
-definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) hyrel" where
+definition hInt :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
-definition hInt_at :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
+definition hInt_at :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
 text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
@@ -338,18 +338,12 @@ lemma R1_final_cont: "R1(rl(x)) = rl(x)"
   by rel_auto
     
 lemma R2c_init_cont: "R2c(ll(x)) = ll(x)"
-  apply (rel_auto)
-  using order.strict_iff_order apply fastforce
-  apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
-done
+  by (rel_auto)
 
 lemma R2c_final_cont: "R2c(rl(x)) = rl(x)"
-  apply (rel_auto)
-  using order.strict_iff_order apply fastforce
-  apply (metis dual_order.strict_iff_order minus_zero_eq neq_zero_impl_greater)
-done
+  by (rel_auto)
   
-definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
+definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
 [urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
@@ -395,7 +389,7 @@ text {* A regular interval can be written using the notation @{term "\<lceil>P(\
   we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>h"} for
   example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>h"}. *}
 
-lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma hInt_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
 lemma st'_unrest_hInt [unrest]: 
@@ -439,15 +433,15 @@ text {* The following theorem demonstrates that we can use an interval specifica
     
 lemma neg_hInt_R1_true: "R1(\<not> \<lceil>P\<rceil>\<^sub>h) ;; R1(true) = R1(\<not> \<lceil>P\<rceil>\<^sub>h)"
 proof (rel_auto)
-  fix tr tr' tr'' :: "'a ttrace" and t :: real
-  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P\<rbrakk>\<^sub>e (\<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
+  fix tr tr' tr'' :: "'a ttrace" and b :: "'a" and t :: real
+  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P\<rbrakk>\<^sub>e (b, \<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
   hence "tr'' - tr \<le> tr' - tr"
     by (simp add: minus_cancel_le)
-  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P\<rbrakk>\<^sub>e (\<langle>tr' - tr\<rangle>\<^sub>t x)"
+  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t x)"
     apply (rule_tac x="t" in exI, auto)
     using tt_sub_end apply fastforce
     apply (metis dual_order.trans trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
-    done
+  done
 qed
         
 text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
@@ -459,6 +453,7 @@ text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us
   predicates. Additionally we prove the following law about sequential composition of
   time-independent intervals. *}
 
+(*
 lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = \<lceil>P\<rceil>\<^sub>h"
 proof -
   have "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = (R2(\<lceil>P\<rceil>\<^sub>h) ;; R2(\<lceil>P\<rceil>\<^sub>h))"
@@ -497,6 +492,7 @@ proof -
     by (simp add: R2_hInt)
   finally show ?thesis .
 qed
+*)
 
 text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
   can always be split into two intervals where the property holds of both. *}
@@ -508,9 +504,9 @@ lemma seq_var_ident_liftr:
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
 subsection {* Evolve by continuous function *}
-  
+ 
 definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hEvolve x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~(\<guillemotleft>t\<guillemotright>) =\<^sub>u \<lceil>f(t)\<rceil>\<^sub>C\<^sub><))"
+[urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(\<tau>)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
 definition hEvolveAt :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright>)"
@@ -529,17 +525,22 @@ lemma hEvolve_unrests [unrest]:
   "$ok \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)"
   by (simp_all add: hEvolve_def unrest)
   
-lemma hEvolve_spec_refine:
-  assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>f(\<tau>)/&x\<rbrakk>`"
-  shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
-  oops
     
+lemma hEvolve_spec_refine:
+  assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>\<lceil>f(\<tau>)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
+  shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
+  using assms
+  apply (simp add: hEvolve_def)
+  apply (rel_simp)
+  apply (metis vwb_lens.put_eq)
+done    
+
 subsection {* Pre-emption *}
 
 definition hPreempt ::
-  "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow>
+  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
-where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<rceil>\<^sub>C\<^sub>< \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((\<lceil>\<not> b\<rceil>\<^sub>h \<and> P) ;; (\<lceil>b\<rceil>\<^sub>C\<^sub>< \<and> Q))))"
+where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> ll(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
@@ -547,5 +548,13 @@ text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is ac
   to write hybrid systems where an evolution occurs until some condition is satisfied, e.g. a
   particular temperature or other quantity is reached, and then some discrete activity is executed.
   We prove a few simple properties about this operator. *}
+
+lemma hPreempt_false:
+  "P is R1 \<Longrightarrow> P [false]\<^sub>h Q = P"
+  by (simp add: hPreempt_def usubst alpha hInt_true, rel_auto)
+
+lemma hPreempt_true:
+  "P [true]\<^sub>h Q = Q"
+  by (simp add: hPreempt_def usubst alpha hInt_false, rel_auto)
 
 end

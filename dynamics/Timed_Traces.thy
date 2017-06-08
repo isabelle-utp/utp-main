@@ -939,9 +939,32 @@ lemma tt_end_ge_0 [simp]: "end\<^sub>t(f) \<ge> 0" by (transfer, simp)
 
 lemma tt_end_empty [simp]: "end\<^sub>t([]\<^sub>t) = 0" by (transfer, simp)
 
-lemma tt_end_0_iff: "end\<^sub>t(f) = 0 \<longleftrightarrow> f = []\<^sub>t"
+lemma tt_end_0_iff [simp]: "end\<^sub>t(f) = 0 \<longleftrightarrow> f = []\<^sub>t"
   by (transfer, simp add: cgf_end_0_iff)
 
+lemma tt_end_gr_zero_iff [simp]:
+  "0 < end\<^sub>t (x - y) \<longleftrightarrow> y < x"
+proof
+  assume "0 < end\<^sub>t (x - y)"
+  hence "x - y \<noteq> 0"
+    by auto
+  thus "y < x"
+    using less_le not_le_minus by fastforce
+next
+  assume "y < x"
+  hence "x - y \<noteq> 0"
+    by (metis dual_order.strict_iff_order minus_zero_eq)
+  thus "0 < end\<^sub>t (x - y)"
+    by (simp add: order.not_eq_order_implies_strict)
+qed
+
+lemma tt_end_ge_0_iff [simp]:
+  "end\<^sub>t(x - y) \<le> 0 \<longleftrightarrow> end\<^sub>t(x - y) = 0"
+  using dual_order.antisym by fastforce
+    
+lemma tt_end_zero_dest [dest]: "\<lbrakk> end\<^sub>t(x - y) = 0; y < x \<rbrakk> \<Longrightarrow> False"
+  by (simp add: dual_order.strict_implies_not_eq)
+    
 lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
   by (transfer, simp add: cgf_end_cat)
 

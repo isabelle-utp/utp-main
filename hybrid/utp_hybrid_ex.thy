@@ -4,9 +4,13 @@ theory utp_hybrid_ex
   imports utp_differential
 begin
 
+subsection {* Bouncing Ball *}
+  
+text {* We first setup the state-space and prove this is a topological (T2) space *}
+  
 alphabet bball =
-  pos :: real
-  vel :: real
+  height :: real
+  velocity :: real
 
 setup_lifting type_definition_bball_ext
 
@@ -22,6 +26,50 @@ begin
     apply (transfer, meson hausdorff)
   done
 end
+
+text {* Next we define some constants; the ODE (ordinary differential equation) and its solution *}
+  
+abbreviation grav :: real where
+"grav \<equiv> -9.81"
+
+text {* The ODE specifies two continuous variables, for velocity and height respectively. It
+  does not depend on time which makes it an autonomous ODE. *}
+
+abbreviation grav_ode :: "(real \<times> real) ODE" where
+"grav_ode \<equiv> (\<lambda> t (v, h). (- grav, v))"
+
+text {* We also present the following solution to the ODE, which is a function from initial values
+  of the continuous variables to a continuous function that shows how the variables change with time. *}
+
+abbreviation grav_sol :: "real \<times> real \<Rightarrow> real \<Rightarrow> real \<times> real" where
+"grav_sol \<equiv> \<lambda> (v\<^sub>0, h\<^sub>0) \<tau>. (v\<^sub>0 - grav * \<tau>, v\<^sub>0 * \<tau> - grav * (\<tau> * \<tau>) / 2 + h\<^sub>0)"
+  
+lemma grav_ode_sol:
+  "(\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>\<lparr>&velocity,&height\<rparr>\<^sub>u\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u"
+proof -
+  have 1:"\<forall>l>0. unique_on_strip 0 {0..l} grav_ode 1"
+    by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
+  have 2:"\<forall> v\<^sub>0 h\<^sub>0. \<forall>l>0. ((grav_sol (v\<^sub>0, h\<^sub>0)) solves_ode grav_ode) {0..l} UNIV"
+    by (clarify, ode_cert)
+  from 1 2 have sol:"\<forall> v\<^sub>0 h\<^sub>0. \<forall>l>0. ((grav_sol (v\<^sub>0, h\<^sub>0)) usolves_ode grav_ode from 0) {0..l} UNIV"
+    by (auto, rule_tac uos_impl_uniq_sol[where L=1], simp_all)
+  show ?thesis
+    apply (subst ode_solution[where \<F>="grav_sol"])
+    apply (simp_all add: lens_indep_sym plus_vwb_lens)
+    using sol apply (simp)
+    apply (rel_auto)
+  done
+qed
+
+  
+definition
+  "bouncing_ball =
+     (\<mu> X \<bullet> \<^bold>c:velocity, \<^bold>c:height := 0, 2.0 ;;
+            (\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h
+              [$height\<acute> \<le>\<^sub>u 0]\<^sub>h
+             (\<^bold>c:velocity := (- 0.8 * &\<^bold>c:velocity) ;; X)))"
+
+subsection {* Thermostat *}
 
 alphabet thermostat_c =
   temp :: real
@@ -43,22 +91,11 @@ begin
     apply (transfer, meson hausdorff)
   done
 end
-
-abbreviation "grav \<equiv> -9.81"
-
-definition
-  "bouncing_ball =
-     (\<mu> X \<bullet> \<^bold>c:vel, \<^bold>c:pos := 0, 2.0 ;;
-            (\<langle>pos;vel \<bullet> \<guillemotleft>(\<lambda> t (v, p). (grav, v))\<guillemotright>\<rangle>\<^sub>h
-              [&pos \<le>\<^sub>u 0]\<^sub>h
-             (\<^bold>c:vel := (- 0.8 * &\<^bold>c:vel) ;; X)))"
-
-term "{&pos,&vel} \<leftarrow>\<^sub>h (&\<^bold>c:vel - 9.81*\<guillemotleft>\<tau>\<guillemotright>, &\<^bold>c:pos + &\<^bold>c:vel*t - 9.81*\<guillemotleft>\<tau>\<guillemotright>\<^sup>2/2)\<^sub>u"
   
 definition
   "thermostat =
     (\<mu> X \<bullet> \<^bold>c:temp, \<^bold>d:isOn := 20, false ;;
            (\<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. 5 - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>r \<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h)
-            [&temp <\<^sub>u 19 \<or> &temp >\<^sub>u 21]\<^sub>h
+            [$temp\<acute> <\<^sub>u 19 \<or> $temp\<acute> >\<^sub>u 21]\<^sub>h
            (\<^bold>d:isOn := true \<triangleleft> &\<^bold>c:temp <\<^sub>u 19 \<triangleright>\<^sub>r \<^bold>d:isOn := false))"
 end
