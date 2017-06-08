@@ -163,7 +163,7 @@ theorem SKIP_is_Skip: "SKIP = Skip"
   by (rel_auto)
 
 theorem STOP_is_Stop: "STOP = Stop"
-  by (rel_auto, simp_all add: zero_list_def minus_zero_eq)
+  by (rel_auto, simp_all add: dzero_list_def minus_zero_eq zero_list_def)
 
 theorem Skip_UTP_form: "Skip = \<^bold>R\<^sub>s(\<exists> $ref \<bullet> CSP1(II))"
   by (rel_auto)
@@ -549,14 +549,16 @@ lemma preR_Stop [rdes]: "pre\<^sub>R(Stop) = true"
   by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_false R1_false)
 
 lemma periR_Stop [rdes]: "peri\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr)"
-  apply (rel_auto) using minus_zero_eq by blast
+  apply (rel_auto) using dzero_list_def zero_list_def dzero_trace_class.minus_zero_eq apply blast
+  by (simp add: dzero_list_def zero_list_def)
 
 lemma postR_Stop [rdes]: "post\<^sub>R(Stop) = false"
   by (rel_auto)
 
 lemma cmtR_Stop [rdes]: "cmt\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
-  apply (rel_auto) using minus_zero_eq by blast
-
+  apply (rel_auto) using dzero_list_def zero_list_def dzero_trace_class.minus_zero_eq apply blast
+  by (simp add: dzero_list_def zero_list_def)
+    
 lemma preR_Skip [rdes]: "pre\<^sub>R(Skip) = true"
   by (rel_auto)
 
@@ -564,7 +566,8 @@ lemma periR_Skip [rdes]: "peri\<^sub>R(Skip) = false"
   by (rel_auto)
 
 lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-  apply (rel_auto) using minus_zero_eq by blast
+  apply (rel_auto) using dzero_list_def zero_list_def dzero_trace_class.minus_zero_eq apply blast
+  by (simp add: dzero_list_def zero_list_def)
 
 lemma NCSP_Idempotent [closure]: "Idempotent NCSP"
   by (clarsimp simp add: NCSP_def Idempotent_def)
@@ -896,12 +899,13 @@ lemma periR_AssignsCSP [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C)
   by (rel_auto)
 
 lemma postR_AssignsCSP [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)"
-  apply (rel_auto) using minus_zero_eq by auto
+  apply (rel_auto) using dzero_list_def zero_list_def dzero_trace_class.minus_zero_eq apply blast
+  by (simp add: dzero_list_def zero_list_def)
 
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   apply (rel_auto)
-  apply (metis append_Nil diff_add_cancel_left' plus_list_def zero_list_def)
-  apply (simp add: zero_list_def)
+  apply (metis append_Nil diff_add_cancel_left' plus_list_def dzero_list_def)
+  apply (simp add: dzero_list_def)
 done
 
 lemma AssignCSP_list_update_CSP [closure]:
@@ -918,7 +922,7 @@ lemma periR_AssignCSP_list_update [rdes]:
 
 lemma post_AssignCSP_list_update [rdes]:
   "post\<^sub>R(AssignCSP_list_update x k v) = (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>x[k] := v\<rceil>\<^sub>S) \<triangleleft> \<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub>< \<triangleright> R1(true))"
-  by (rel_auto, simp_all add: minus_zero_eq zero_list_def) 
+  by (rel_auto, simp_all add: dzero_trace_class.minus_zero_eq dzero_list_def zero_list_def) 
 
 lemma AssignCSP_list_update_NCSP [closure]:
   "(AssignCSP_list_update x k v) is NCSP"
@@ -935,7 +939,7 @@ lemma R1_DoAct: "R1(do\<^sub>u(a)) = do\<^sub>u(a)"
   by (rel_auto)
 
 lemma R2c_DoAct: "R2c(do\<^sub>u(a)) = do\<^sub>u(a)"
-  by (rel_auto, simp_all add: zero_list_def minus_zero_eq, (metis less_eq_list_def prefix_concat_minus)+)
+  by (rel_auto, simp_all add: dzero_list_def zero_list_def dzero_trace_class.minus_zero_eq, (metis less_eq_list_def prefix_concat_minus)+)
 
 lemma DoCSP_alt_def: "do\<^sub>C(a) = R3h(CSP1($ok\<acute> \<and> do\<^sub>u(a)))"
   apply (simp add: DoCSP_def RHS_def design_def impl_alt_def  R1_R3h_commute R2c_R3h_commute R2c_disj
@@ -958,12 +962,14 @@ lemma preR_DoCSP [rdes]: "pre\<^sub>R(do\<^sub>C(a)) = true"
   by (simp add: DoCSP_def rea_pre_RHS_design unrest usubst R2c_false R1_false)
 
 lemma periR_DoCSP [rdes]: "peri\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
-  apply (rel_auto) using minus_zero_eq by blast
+  apply (rel_auto) 
+  using dzero_list_def minus_zero_eq dzero_trace_class.minus_zero_eq apply fastforce
+  by (simp add: dzero_list_def zero_list_def)
 
 lemma postR_DoCSP [rdes]: "post\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)"
   apply (rel_auto)
-  using Prefix_Order.prefixE zero_list_def apply fastforce
-  apply (simp add: zero_list_def)
+  using Prefix_Order.prefixE zero_list_def dzero_list_def apply fastforce
+  apply (simp add: dzero_list_def zero_list_def)
 done
 
 lemma CSP3_DoCSP [closure]: "do\<^sub>C(a) is CSP3"
@@ -1630,8 +1636,8 @@ done
 lemma PrefixCSP_RHS_tri_lemma1:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>II\<rceil>\<^sub>R)"
   apply (rel_auto)
-  apply (metis append.left_neutral less_eq_list_def prefix_concat_minus zero_list_def)
-  apply (simp add: zero_list_def)
+  apply (metis append.left_neutral less_eq_list_def prefix_concat_minus zero_list_def dzero_list_def)
+  apply (simp add: dzero_list_def zero_list_def)
   done
 
 lemma PrefixCSP_RHS_tri_lemma2:
@@ -2017,8 +2023,7 @@ proof (rule Productive_intro)
   from assms(1) show "($tr\<acute> >\<^sub>u $tr) \<sqsubseteq> (pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)) \<and> post\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)))"
     apply (simp add: rea_pre_RHS_design rea_post_RHS_design usubst assms)
     using assms(1) apply (rel_auto)
-    using dual_order.strict_iff_order apply fastforce
-  done
+    using dzero_trace_class.tt by fastforce
 
   show "$wait\<acute> \<sharp> pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))"
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
@@ -2645,7 +2650,8 @@ proof -
            \<and> tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright>
            \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
            \<and> $st\<acute> =\<^sub>u ($st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
-    apply (simp add: par_by_merge_alt_def, rel_auto, blast)
+    apply (simp add:  par_by_merge_alt_def, rel_auto)
+    apply (simp add:  dzero_list_def, blast)
     apply (rename_tac ok wait tr st ref tr' ref' ref\<^sub>0 ref\<^sub>1 st\<^sub>0 st\<^sub>1 tr\<^sub>0 ok\<^sub>0 tr\<^sub>1 wait\<^sub>0 ok\<^sub>1 wait\<^sub>1)
     apply (rule_tac x="ok" in exI)
     apply (rule_tac x="wait" in exI)
@@ -2655,7 +2661,7 @@ proof -
     apply (rule_tac x="tr @ tr\<^sub>0" in exI)      
     apply (rule_tac x="st\<^sub>0" in exI)
     apply (rule_tac x="ref\<^sub>0" in exI)      
-    apply (auto)
+    apply (auto simp add:dzero_list_def)
     apply (metis Prefix_Order.prefixI append_minus)
   done
   thus ?thesis
