@@ -1,7 +1,7 @@
 section {* Hybrid systems examples *}
 
 theory utp_hybrid_ex
-  imports utp_differential
+  imports utp_hybrid
 begin
 
 subsection {* Bouncing Ball *}

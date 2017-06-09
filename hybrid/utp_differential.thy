@@ -71,14 +71,10 @@ text {* We also set up notation that explicitly sets up the initial value for th
   @{term "\<F>'"} takes its value from @{term "x\<^sub>0"}. We next prove some important theorems about
   solutions to ODEs. *}
 
-lemma at_left_from_zero:
-  "n > 0 \<Longrightarrow> at_left n = at n within {0::real ..< n}"
-  by (rule at_within_nhd[of _ "{0<..<n+1}"], auto)
-
 lemma at_has_deriv [simp]:
   "(f has-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
-
+  
 lemma ode_to_ivp:
   "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
   by (rel_auto)

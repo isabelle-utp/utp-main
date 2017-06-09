@@ -505,10 +505,10 @@ lemma seq_var_ident_liftr:
 
 subsection {* Evolve by continuous function *}
  
-definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(\<tau>)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
-definition hEvolveAt :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
 
 syntax
@@ -561,36 +561,165 @@ lemma hPreempt_true:
   by (simp add: hPreempt_def usubst alpha hInt_false, rel_auto)
 
 term "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h b"
-    
-lemma hUntil_solve:
-  assumes 
-    "vwb_lens x" "k > 0" "continuous_on {0..k} f"
-    "\<forall> t \<in> {0..<k}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "b\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
-  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h b = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(\<tau>)\<guillemotright>"
-  using assms
-  apply (fast_uexpr_transfer)
-  apply (rel_simp)
-  apply (safe)
+  
+lemma at_left_from_zero:
+  "n > 0 \<Longrightarrow> at_left n = at n within {0::real ..< n}"
+  by (rule at_within_nhd[of _ "{0<..<n+1}"], auto)
+  
+lemma Limit_continuous: 
+  assumes "x > 0" "continuous_on {0..x::real} f"
+  shows "Lim (at x within {0..<x}) f = f(x)"
 proof -
-  from assms have 1:"((0 <\<^sub>u \<^bold>l \<and> \<lceil>$\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h) = (0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> \<guillemotleft>k\<guillemotright> \<ge>\<^sub>u end\<^sub>u(\<^bold>t))"
-    by (fast_uexpr_transfer)
-       (rel_auto, meson approximation_preproc_push_neg(2) less_eq_real_def)
-  from assms have 2: "((end\<^sub>u(\<^bold>t) >\<^sub>u 0 \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>> \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) =
-                       (\<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> end\<^sub>u(\<^bold>t) =\<^sub>u \<guillemotleft>k\<guillemotright> \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<triangleleft> \<guillemotleft>k\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-    apply (fast_uexpr_transfer)
-    apply (rel_auto)
-    apply (rename_tac t t')
-    apply (rule_tac x="end\<^sub>t(t' - t)" and y="k" in linorder_cases)
-    apply (simp only: at_left_from_zero Limit_solve[of _ f])
-    apply (subst (asm) Limit_solve [of _ f])
+  have "(f \<longlongrightarrow> f x) (at x within {0..<x})"
+    by (meson assms(1) assms(2) atLeastLessThan_subseteq_atLeastAtMost_iff continuous_on_imp_continuous_within continuous_within dual_order.refl intervalE less_imp_le)
+  with assms(1) show ?thesis
+    apply (rule_tac tendsto_Lim)     
     apply (auto)
-    apply (rule continuous_on_subset[of "{0..k}"], auto)
-    apply (simp add: Limit_solve at_left_from_zero)
+    using at_left_from_zero apply force
   done
+qed
+  
+lemma Limit_solve:
+  assumes "x > 0" "continuous_on {0..x::real} g" "\<forall> x\<in>{0..<x}. f x = g x"
+  shows "Lim (at x within {0..<x}) f = g(x)"
+proof -
+  from assms have "Lim (at x within {0..<x}) f = Lim (at x within {0..<x}) g"
+    apply (simp add: Topological_Spaces.Lim_def)
+    apply (rule cong[of The], auto simp add:)
+    apply (clarsimp simp add: fun_eq_iff)
+    apply (rule Lim_cong_within)
+    apply (auto)
+  done
+  also have "... = g(x)"
+    using Limit_continuous assms(1) assms(2) by blast  
+  finally show ?thesis .
+qed
+  
+lemma Lim_continuous_lens:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "T > 0" "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>" 
+          "continuous_on {0..end\<^sub>t(T)} f" 
+          "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t(T) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>T\<rangle>\<^sub>t t) = f t"
+  shows "get\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t T)) \<langle>T\<rangle>\<^sub>t) = f (end\<^sub>t T)"
+proof -
+  let ?l = "end\<^sub>t T"
 
-  from 1 2 show ?thesis
-    by (rule_tac SRD_eq_intro, simp_all add: closure rdes alpha wp)
+  have lnz: "end\<^sub>t(T) > 0"
+    by (metis assms(1) trace_class.diff_zero tt_end_gr_zero_iff)
+    
+  obtain L where L:"(\<langle>T\<rangle>\<^sub>t \<longlongrightarrow> L) (at_left ?l)"
+    by (metis assms(1) trace_class.diff_zero tt_end_gr_zero_iff ttrace_convergent_end)
+
+  from L have gL: "((get\<^bsub>x\<^esub> \<circ> \<langle>T\<rangle>\<^sub>t) \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at_left ?l)"
+    by (simp add: comp_def, rule_tac continuous_on_tendsto_compose[of UNIV "get\<^bsub>x\<^esub>"], simp_all add: assms)
+      
+  moreover have "((get\<^bsub>x\<^esub> \<circ> \<langle>T\<rangle>\<^sub>t) \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at_left ?l)
+                 \<longleftrightarrow>
+                 (f \<longlongrightarrow> get\<^bsub>x\<^esub> L) (at_left ?l)"
+    using assms by (simp add: at_left_from_zero lnz, rule_tac Lim_cong_within, auto)
+      
+  moreover have "(f \<longlongrightarrow> f ?l) (at_left ?l)"
+    using assms(4)
+    by (auto simp add: continuous_on at_left_from_zero lnz, meson atLeastAtMost_iff atLeastLessThan_subseteq_atLeastAtMost_iff order_refl tendsto_within_subset tt_end_ge_0)
+      
+  ultimately have gL: "get\<^bsub>x\<^esub> L = f (end\<^sub>t (T))"
+    by (metis tendsto_Lim trivial_limit_at_left_real)
+      
+  thus ?thesis
+    using L tendsto_Lim trivial_limit_at_left_real by blast
 qed
 
+(* FIXME: Try and convert this to a pure Isar proof, or couple of lemmas *)
+  
+lemma hUntil_solve:
+  assumes 
+    "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "c\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
+  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(\<tau>)\<guillemotright>"
+  using assms(5,6) 
+  apply (fast_uexpr_transfer)
+  apply (rel_simp)
+  apply (safe, simp_all)
+  defer
+  apply (metis assms(1) atLeastLessThan_iff vwb_lens.put_eq)
+proof -
+  fix tr tr' b
+  assume a:
+    "\<forall>t\<in>{0..<k}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f k))"
+    "\<forall>xa. 0 \<le> xa \<and> xa < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(xa + end\<^sub>t tr)) = f xa"
+    "tr < tr'"
+    "\<forall>x. 0 \<le> x \<and> x < end\<^sub>t (tr'-tr) \<longrightarrow> \<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr'\<rangle>\<^sub>t(x + end\<^sub>t tr))"
+    "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left (end\<^sub>t (tr'-tr))) \<langle>tr'-tr\<rangle>\<^sub>t)"
+    
+  let ?l = "end\<^sub>t (tr' - tr)"
+    
+  have etr_nz: "?l > 0"
+    by (simp add: a(4))
+    
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+    by (simp add: a less_imp_le)
+
+  have k:"end\<^sub>t (tr'-tr) \<le> k"
+  proof (rule ccontr)
+    assume less: "\<not> end\<^sub>t (tr' - tr) \<le> k"
+    with assms(2) a(4,5) have 1:"\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
+      by (auto)
+    from assms(2) tr_f less have "get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t k) = f k"
+      by auto
+    with a(2) have 2:"\<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
+      apply (drule_tac x="b" in spec)
+      apply (drule_tac x="\<langle>tr' - tr\<rangle>\<^sub>t k" in spec)
+      using assms(1) vwb_lens.put_eq apply fastforce
+    done
+    from 1 2 show False
+      by blast
+  qed      
+      
+  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
+    using assms(1-4) a(4) tr_f k 
+    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
+
+  show "end\<^sub>t (tr'-tr) = k"
+  proof (cases k "end\<^sub>t (tr'-tr)" rule:linorder_cases)
+    case less show ?thesis
+      using k less by auto
+  next
+    case equal
+    then show ?thesis by simp
+  next
+    case greater
+    with a(1) have "\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f ?l))"
+      by simp
+    then show ?thesis
+      using a(6) assms(1) gL vwb_lens.put_eq by force 
+  qed
+next
+  fix tr tr' b
+  assume a:
+    "\<forall>t\<in>{0..<end\<^sub>t (tr' - tr)}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f (end\<^sub>t (tr'-tr))))"
+    "\<forall>xa. 0 \<le> xa \<and> xa < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(xa + end\<^sub>t tr)) = f xa"
+    "tr < tr'"
+    "k = end\<^sub>t (tr'-tr)"
+    
+  let ?l = "end\<^sub>t (tr' - tr)"
+    
+  have etr_nz: "?l > 0"
+    by (simp add: a(4))
+    
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+    by (simp add: a less_imp_le)
+      
+  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f ?l"
+    using assms(1-4) a tr_f 
+    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
+    
+  have c: "\<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr'-tr))))"
+    by (simp add: a(2))
+    
+  show "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t)"
+    using assms(1) c gL vwb_lens.put_eq by fastforce    
+qed
     
 end

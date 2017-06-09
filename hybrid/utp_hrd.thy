@@ -22,13 +22,13 @@ translations
   "_svardisc x" == "CONST svar_disc x"
   "_svarcont x" == "CONST svar_cont x"
 
-definition hrdEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(\<tau>) \<diamondop> false)"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
 
-definition hrdEvolveTil :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
                                     \<diamondop> ((x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
                                         \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 

@@ -3,6 +3,5 @@ theory utp_hybrid
   imports
     utp_hyrel
     utp_differential
-    utp_hybrid_ex
     utp_hrd
 begin end
