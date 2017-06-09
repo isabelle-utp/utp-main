@@ -508,8 +508,8 @@ subsection {* Evolve by continuous function *}
 definition hEvolve :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(\<tau>)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
-definition hEvolveAt :: "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> real \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright>)"
+definition hEvolveAt :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+[urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
@@ -524,8 +524,7 @@ translations
 lemma hEvolve_unrests [unrest]:
   "$ok \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)"
   by (simp_all add: hEvolve_def unrest)
-  
-    
+
 lemma hEvolve_spec_refine:
   assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>\<lceil>f(\<tau>)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
   shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
@@ -537,10 +536,14 @@ done
 
 subsection {* Pre-emption *}
 
+definition hUntil ::
+  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [64,65] 64) where
+[urel_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C)"
+
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
-where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> ll(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
+where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
@@ -557,4 +560,37 @@ lemma hPreempt_true:
   "P [true]\<^sub>h Q = Q"
   by (simp add: hPreempt_def usubst alpha hInt_false, rel_auto)
 
+term "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h b"
+    
+lemma hUntil_solve:
+  assumes 
+    "vwb_lens x" "k > 0" "continuous_on {0..k} f"
+    "\<forall> t \<in> {0..<k}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "b\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
+  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h b = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(\<tau>)\<guillemotright>"
+  using assms
+  apply (fast_uexpr_transfer)
+  apply (rel_simp)
+  apply (safe)
+proof -
+  from assms have 1:"((0 <\<^sub>u \<^bold>l \<and> \<lceil>$\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h) = (0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> \<guillemotleft>k\<guillemotright> \<ge>\<^sub>u end\<^sub>u(\<^bold>t))"
+    by (fast_uexpr_transfer)
+       (rel_auto, meson approximation_preproc_push_neg(2) less_eq_real_def)
+  from assms have 2: "((end\<^sub>u(\<^bold>t) >\<^sub>u 0 \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>> \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) =
+                       (\<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> end\<^sub>u(\<^bold>t) =\<^sub>u \<guillemotleft>k\<guillemotright> \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<triangleleft> \<guillemotleft>k\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+    apply (fast_uexpr_transfer)
+    apply (rel_auto)
+    apply (rename_tac t t')
+    apply (rule_tac x="end\<^sub>t(t' - t)" and y="k" in linorder_cases)
+    apply (simp only: at_left_from_zero Limit_solve[of _ f])
+    apply (subst (asm) Limit_solve [of _ f])
+    apply (auto)
+    apply (rule continuous_on_subset[of "{0..k}"], auto)
+    apply (simp add: Limit_solve at_left_from_zero)
+  done
+
+  from 1 2 show ?thesis
+    by (rule_tac SRD_eq_intro, simp_all add: closure rdes alpha wp)
+qed
+
+    
 end
