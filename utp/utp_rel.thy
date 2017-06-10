@@ -38,6 +38,14 @@ lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
   by (pred_simp)
+
+lemma usubst_lookup_ivar_unrest [usubst]:
+  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ivar x) = $x"
+  by (rel_simp, metis fstI)
+
+lemma usubst_lookup_ovar_unrest [usubst]:
+  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ovar x) = $x\<acute>"
+  by (rel_simp, metis sndI)
     
 lemma out_alpha_in_indep [simp]:
   "out\<alpha> \<bowtie> in_var x" "in_var x \<bowtie> out\<alpha>"

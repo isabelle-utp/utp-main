@@ -656,6 +656,10 @@ lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
+lemma ufun_apply_lit [simp]: 
+  "\<guillemotleft>f\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u = \<guillemotleft>f(x)\<guillemotright>"
+  by (transfer, simp)
+    
 subsection \<open> Literalise tactics \<close>
 
 text \<open> The following tactic converts literal HOL expressions to UTP expressions and vice-versa
