@@ -157,19 +157,34 @@ abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c:
 abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C") where
 "\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
 
+abbreviation cont_drop :: "('a, 'd, 'c::topological_space) hyexpr \<Rightarrow> ('a, 'c \<times> 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C") where
+"\<lfloor>P\<rfloor>\<^sub>C \<equiv> P \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+
 abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
 "\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
 
 abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub>>") where
 "\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> P \<oplus>\<^sub>p (ovar \<^bold>c)"
 
+abbreviation cont_pre_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub><") where
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> P \<restriction>\<^sub>p (ivar \<^bold>c)"
+
+abbreviation cont_post_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub>>") where
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> P \<restriction>\<^sub>p (ovar \<^bold>c)"
+
 translations
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
   "\<lceil>P\<rceil>\<^sub>C\<^sub>>" <= "CONST aext P (CONST ovar CONST cont_alpha)"
+  "\<lfloor>P\<rfloor>\<^sub>C\<^sub><" <= "CONST arestr P (CONST ivar CONST cont_alpha)"
+  "\<lfloor>P\<rfloor>\<^sub>C\<^sub>>" <= "CONST arestr P (CONST ovar CONST cont_alpha)"
 
 lemma unrest_lift_cont_subst [unrest]:
   "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
   by (rel_auto)
+ 
+lemma lift_cont_subst [usubst]:
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P\<rceil>\<^sub>C = \<sigma> \<dagger> (\<lceil>P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>C)"
+  by (rel_simp)    
 
 text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
   the discrete state @{typ "'d"}, that is @{typ "'d \<times> 'd"} and lifts it into the hybrid state
@@ -272,6 +287,10 @@ lemma at_bop [simp]:
   "(bop f x y) @\<^sub>u t = bop f (x @\<^sub>u t) (y @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
 
+lemma at_subst_init_cont [usubst]:
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P @\<^sub>u t) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk> @\<^sub>u t)"
+  by (rel_simp)
+    
 lemma at_var [simp]:
   fixes x :: "('a \<Longrightarrow> 'c::topological_space)"
   shows "$x\<acute> @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
@@ -308,7 +327,7 @@ lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp>
 
 lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
-
+    
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u:(x))"
 
@@ -330,6 +349,10 @@ lemma init_cont_unrests [unrest]:
 lemma final_cont_unrests [unrest]:
   "$ok \<sharp> rl(x)" "$ok\<acute> \<sharp> rl(x)" "$wait \<sharp> rl(x)" "$wait\<acute> \<sharp> rl(x)" "$st \<sharp> rl(x)"
   by (rel_auto)+
+
+lemma usubst_final_cont [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
+  by (simp add: final_cont_def usubst unrest)
     
 lemma R1_init_cont: "R1(ll(x)) = ll(x)"
   by (rel_auto)
@@ -413,6 +436,10 @@ text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous bef
 
   We also prove some laws about intervals. *}
 
+lemma hInt_subst_init_cont [usubst]:
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(\<tau>)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(\<tau>)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
+  by (simp add: hInt_def usubst)
+  
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
   by (rel_auto, meson eq_iff leI minus_zero_eq tt_end_0_iff tt_end_ge_0)
 
@@ -525,6 +552,10 @@ lemma hEvolve_unrests [unrest]:
   "$ok \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)"
   by (simp_all add: hEvolve_def unrest)
 
+lemma hEvolve_usubst [usubst]:
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(\<tau>) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f \<tau>)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  by (simp add: hEvolve_def usubst unrest)
+    
 lemma hEvolve_spec_refine:
   assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>\<lceil>f(\<tau>)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
   shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
@@ -559,8 +590,6 @@ lemma hPreempt_false:
 lemma hPreempt_true:
   "P [true]\<^sub>h Q = Q"
   by (simp add: hPreempt_def usubst alpha hInt_false, rel_auto)
-
-term "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h b"
   
 lemma at_left_from_zero:
   "n > 0 \<Longrightarrow> at_left n = at n within {0::real ..< n}"
@@ -629,6 +658,10 @@ proof -
     using L tendsto_Lim trivial_limit_at_left_real by blast
 qed
 
+lemma hUntil_subst_init_cont [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  by (simp add: hUntil_def usubst unrest)
+  
 (* FIXME: Try and convert this to a pure Isar proof, or couple of lemmas *)
   
 lemma hUntil_solve:

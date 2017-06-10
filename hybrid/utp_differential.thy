@@ -3,7 +3,7 @@ section {* Differential Equations and their Solutions *}
 theory utp_differential
   imports utp_hyrel
 begin
-
+  
 type_synonym 'c ODE = "real \<Rightarrow> 'c \<Rightarrow> 'c"
 
 text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specified as a function
