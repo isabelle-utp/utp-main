@@ -414,23 +414,23 @@ translations
   
 text {* A regular interval can be written using the notation @{term "\<lceil>P(time)\<rceil>\<^sub>h"}, where $time$ is
   a free variable denoting the present time. Having the present time as a free variable means
-  we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>h"} for
+  we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>time\<guillemotright>\<rceil>\<^sub>h"} for
   example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(time)\<^bold>\<rceil>\<^sub>h"}. *}
 
 lemma hInt_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> \<lceil>P(time)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
 lemma st'_unrest_hInt [unrest]: 
-  "$st\<acute> \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+  "$st\<acute> \<sharp> \<lceil>P(time)\<rceil>\<^sub>h"
   by (rel_auto)
     
-lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma R1_hInt: "R1(\<lceil>P(time)\<rceil>\<^sub>h) = \<lceil>P(time)\<rceil>\<^sub>h"
   by (rel_auto)
 
-lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma R2s_hInt: "R2c(\<lceil>P(time)\<rceil>\<^sub>h) = \<lceil>P(time)\<rceil>\<^sub>h"
   by (rel_auto)
 
-lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma R2_hInt: "R2(\<lceil>P(time)\<rceil>\<^sub>h) = \<lceil>P(time)\<rceil>\<^sub>h"
   by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
 
 text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
@@ -442,7 +442,7 @@ text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous bef
   We also prove some laws about intervals. *}
 
 lemma hInt_subst_init_cont [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(\<tau>)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(\<tau>)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(time)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(time)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
   by (simp add: hInt_def usubst)
   
 lemma hInt_false: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
@@ -451,13 +451,13 @@ lemma hInt_false: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
 lemma hInt_true: "\<lceil>true\<rceil>\<^sub>h = R1(true)"
   by (rel_auto)
 
-lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>h = (\<lceil>P(\<tau>)\<rceil>\<^sub>h \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>h)"
+lemma hInt_conj: "\<lceil>P(time) \<and> Q(time)\<rceil>\<^sub>h = (\<lceil>P(time)\<rceil>\<^sub>h \<and> \<lceil>Q(time)\<rceil>\<^sub>h)"
   by (rel_auto)
 
-lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> (\<lceil>P(\<tau>)\<rceil>\<^sub>h \<or> \<lceil>Q(\<tau>)\<rceil>\<^sub>h)"
+lemma hInt_disj: "\<lceil>P(time) \<or> Q(time)\<rceil>\<^sub>h \<sqsubseteq> (\<lceil>P(time)\<rceil>\<^sub>h \<or> \<lceil>Q(time)\<rceil>\<^sub>h)"
   by (rel_auto)
 
-lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma hInt_refine: "`\<^bold>\<forall> time \<bullet> P(time) \<Rightarrow> Q(time)` \<Longrightarrow> \<lceil>Q(time)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(time)\<rceil>\<^sub>h"
   by (rel_auto)
     
 text {* The following theorem demonstrates that we can use an interval specification in a reactive
@@ -538,7 +538,7 @@ lemma seq_var_ident_liftr:
 subsection {* Evolve by continuous function *}
  
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(\<tau>)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
+[urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(time)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
 definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
@@ -549,21 +549,21 @@ syntax
   
 translations
   "_hEvolve a f" => "CONST hEvolve a (\<lambda> _time_var. f)"
-  "_hEvolve a f" <= "CONST hEvolve a (\<lambda> \<tau>. f)"
+  "_hEvolve a f" <= "CONST hEvolve a (\<lambda> time. f)"
   "_hEvolveAt a t f" => "CONST hEvolveAt a t (\<lambda> _time_var. f)"
-  "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> \<tau>. f)"
+  "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> time. f)"
 
 lemma hEvolve_unrests [unrest]:
-  "$ok \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(\<tau>)"
+  "$ok \<sharp> x \<leftarrow>\<^sub>h f(time)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(time)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)"
   by (simp_all add: hEvolve_def unrest)
 
 lemma hEvolve_usubst [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(\<tau>) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f \<tau>)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(time) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f time)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
   by (simp add: hEvolve_def usubst unrest)
     
 lemma hEvolve_spec_refine:
-  assumes "vwb_lens x" "\<forall> \<tau>\<ge>0. `P(\<tau>)\<lbrakk>\<lceil>f(\<tau>)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
-  shows "\<lceil>P(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(\<tau>)"
+  assumes "vwb_lens x" "\<forall> time\<ge>0. `P(time)\<lbrakk>\<lceil>f(time)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
+  shows "\<lceil>P(time)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(time)"
   using assms
   apply (simp add: hEvolve_def)
   apply (rel_simp)
@@ -673,7 +673,7 @@ lemma hUntil_solve:
   assumes 
     "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
     "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "c\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
-  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(\<tau>)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(\<tau>)\<guillemotright>"
+  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(time)\<guillemotright>"
   using assms(5,6) 
   apply (fast_uexpr_transfer)
   apply (rel_simp)
