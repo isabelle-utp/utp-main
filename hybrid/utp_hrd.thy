@@ -23,14 +23,14 @@ translations
   "_svarcont x" == "CONST svar_cont x"
 
 definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(\<tau>) \<diamondop> false)"
+[urel_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
 
 definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
-                                    \<diamondop> ((x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
+[urel_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
+                                    \<diamondop> ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
                                         \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
                                        ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)))"
 
@@ -40,9 +40,9 @@ syntax
   
 translations
   "_hrdEvolve a f" => "CONST hrdEvolve a (\<lambda> _time_var. f)"
-  "_hrdEvolve a f" <= "CONST hrdEvolve a (\<lambda> \<tau>. f)"
+  "_hrdEvolve a f" <= "CONST hrdEvolve a (\<lambda> time. f)"
   "_hrdEvolveTil a t f" => "CONST hrdEvolveTil a t (\<lambda> _time_var. f)"
-  "_hrdEvolveTil a t f" <= "CONST hrdEvolveTil a t (\<lambda> \<tau>. f)"
+  "_hrdEvolveTil a t f" <= "CONST hrdEvolveTil a t (\<lambda> time. f)"
 
 definition hrdODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
@@ -73,39 +73,39 @@ definition hrdPreempt ::
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64) where
 [urel_defs]: "P [b]\<^sub>H Q = (Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P [b]\<^sub>H\<^sup>+ Q))"
 
-lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(\<tau>)) = true"
+lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = true"
   by (rel_auto)
     
-lemma periR_hrdEvolve [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H f(\<tau>)) = (x \<leftarrow>\<^sub>h f(\<tau>))"
+lemma periR_hrdEvolve [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = (x \<leftarrow>\<^sub>h f(time))"
   by (rel_auto)
 
-lemma postR_hrdEvolve [rdes]: "post\<^sub>R(x \<leftarrow>\<^sub>H f(\<tau>)) = false"
+lemma postR_hrdEvolve [rdes]: "post\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = false"
   by (rel_auto)
     
-lemma hrdEvolve_SRD [closure]: "x \<leftarrow>\<^sub>H f(\<tau>) is SRD"
+lemma hrdEvolve_SRD [closure]: "x \<leftarrow>\<^sub>H f(time) is SRD"
   by (simp add: hrdEvolve_def init_cont_def closure unrest)
     
-lemma hrdEvolve_NSRD [closure]: "x \<leftarrow>\<^sub>H f(\<tau>) is NSRD"
+lemma hrdEvolve_NSRD [closure]: "x \<leftarrow>\<^sub>H f(time) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def rdes closure unrest)
     
-lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(\<tau>)) = true"
+lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = true"
   by (rel_auto)
     
-lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(\<tau>)) = (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) "
+lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) "
   by (rel_auto)
 
 declare minus_zero_eq [dest]
     
-lemma postR_hrdEvolveTil [rdes]: "post\<^sub>R(x \<leftarrow>\<^sub>H(t) f(\<tau>)) =
-                             ((x \<leftarrow>\<^sub>h f(\<tau>) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
+lemma postR_hrdEvolveTil [rdes]: "post\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) =
+                             ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
                                         \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
                                        ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
   by (rel_auto)
     
-lemma hrdEvolveTil_SRD [closure]: "x \<leftarrow>\<^sub>H(t) f(\<tau>) is SRD"
+lemma hrdEvolveTil_SRD [closure]: "x \<leftarrow>\<^sub>H(t) f(time) is SRD"
   by (simp add: hrdEvolveTil_def init_cont_def final_cont_def closure unrest)
     
-lemma hrdEvolveTil_NSRD [closure]: "x \<leftarrow>\<^sub>H(t) f(\<tau>) is NSRD"
+lemma hrdEvolveTil_NSRD [closure]: "x \<leftarrow>\<^sub>H(t) f(time) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def final_cont_def rdes closure unrest)    
     
 lemma preR_hrdUntil [rdes]: 
@@ -151,7 +151,7 @@ lemma hrdPreempt_true:
   "P is SRD \<Longrightarrow> P [true]\<^sub>H Q = Q"
   by (simp add: hrdPreempt_def alpha usubst)
         
-lemma hrdIntF_zero: "x \<leftarrow>\<^sub>H(0) f(\<tau>) = II\<^sub>R"
+lemma hrdIntF_zero: "x \<leftarrow>\<^sub>H(0) f(time) = II\<^sub>R"
   by (simp add: hrdEvolveTil_def alpha, rel_auto)
 
 lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> (P wp\<^sub>R Q)"
@@ -197,13 +197,13 @@ lemma hrdUntil_solve:
   assumes 
     "k > 0" "continuous_on {0..k} f"
     "\<forall> t \<in> {0..<k}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/&\<Sigma>\<rbrakk> = false" "b\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/&\<Sigma>\<rbrakk> = true"
-  shows "x \<leftarrow>\<^sub>H f(\<tau>)\<guillemotright> until\<^sub>H b = x \<leftarrow>\<^sub>H(\<guillemotleft>k\<guillemotright>) f(\<tau>)"
+  shows "x \<leftarrow>\<^sub>H f(time)\<guillemotright> until\<^sub>H b = x \<leftarrow>\<^sub>H(\<guillemotleft>k\<guillemotright>) f(time)"
 proof -
-  from assms have 1:"((0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h) = (0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> \<guillemotleft>k\<guillemotright> \<ge>\<^sub>u end\<^sub>u(\<^bold>t))"
+  from assms have 1:"((0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h) = (0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h \<and> \<guillemotleft>k\<guillemotright> \<ge>\<^sub>u end\<^sub>u(\<^bold>t))"
     by (fast_uexpr_transfer)
        (rel_auto, meson approximation_preproc_push_neg(2) less_eq_real_def)
-  from assms have 2: "((end\<^sub>u(\<^bold>t) >\<^sub>u 0 \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>> \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) =
-                       (\<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f \<tau>\<guillemotright>\<rceil>\<^sub>h \<and> end\<^sub>u(\<^bold>t) =\<^sub>u \<guillemotleft>k\<guillemotright> \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<triangleleft> \<guillemotleft>k\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+  from assms have 2: "((end\<^sub>u(\<^bold>t) >\<^sub>u 0 \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>> \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) =
+                       (\<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h \<and> end\<^sub>u(\<^bold>t) =\<^sub>u \<guillemotleft>k\<guillemotright> \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<triangleleft> \<guillemotleft>k\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
     apply (fast_uexpr_transfer)
     apply (rel_auto)
     apply (rename_tac t t')

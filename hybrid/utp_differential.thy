@@ -18,10 +18,18 @@ text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specif
   for a paper on an Isabelle analysis library for ODEs that this work depends on.
   *}
 
-abbreviation hasDeriv :: 
+abbreviation hasDerivAtBefore ::
+  "(real \<Rightarrow> 'a :: real_normed_vector, '\<alpha>) uexpr \<Rightarrow>
+   ('a, '\<alpha>) uexpr \<Rightarrow>
+   (real, '\<alpha>) uexpr \<Rightarrow>
+   (real, '\<alpha>) uexpr \<Rightarrow>
+   '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 0, 91] 90) where  
+"hasDerivAtBefore \<equiv> qtop (\<lambda> f f' t l. (f has_vector_derivative f') (at t within {0..l}))"
+  
+abbreviation hasDerivAll :: 
   "(real \<Rightarrow> 'a::real_normed_vector, 'd, 'c::t2_space) hyexpr \<Rightarrow> 
   (real \<Rightarrow> 'a, 'd, 'c) hyexpr \<Rightarrow> ('d,'c) hyrel" ("_ has-vderiv _" [90, 91] 90) where
-"hasDeriv \<equiv> trop (\<lambda> l f f'. (f has_vderiv_on f') ({0..l})) \<^bold>l"
+"hasDerivAll \<equiv> trop (\<lambda> l f f'. (f has_vderiv_on f') ({0..l})) \<^bold>l"
   
 translations
   "x has-vderiv y" <= 
@@ -44,7 +52,7 @@ text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<rceil>\<^sub>h)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>time\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>time\<guillemotright>\<rparr>\<^sub>u \<rceil>\<^sub>h)"
 
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
@@ -81,7 +89,7 @@ text {* We also set up notation that explicitly sets up the initial value for th
   solutions to ODEs. *}
 
 lemma at_has_deriv [simp]:
-  "(f has-ode-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
+  "(f has-ode-deriv f' at time < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (time @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
   
 lemma ode_to_ivp:
@@ -92,7 +100,7 @@ lemma ode_solution_refine:
   "\<lbrakk> vwb_lens x;
      \<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV;
      \<forall> x. \<F>(x)(0) = x \<rbrakk>
-   \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u"
+   \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>time\<guillemotright>\<rparr>\<^sub>u"
   apply (rel_auto)    
   apply (rename_tac tr b tr')    
   apply (rule_tac x="\<F> (get\<^bsub>x\<^esub>b)" in exI)
@@ -109,7 +117,7 @@ done
 lemma ode_uniq_solution_refine:
   assumes
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<sqsubseteq> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
+  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>time\<guillemotright>\<rparr>\<^sub>u \<sqsubseteq> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
 proof (rel_simp)
   fix tr b tr' \<G> t
 
@@ -149,7 +157,7 @@ qed
 theorem ode_solution:
   assumes 
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u"
+  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>\<lparr>&x\<rparr>\<^sub>u\<lparr>\<guillemotleft>time\<guillemotright>\<rparr>\<^sub>u"
   using ode_solution_refine[of x \<F> \<F>'] ode_uniq_solution_refine[of x \<F> \<F>']
   by (auto intro: antisym simp add: assms)
 

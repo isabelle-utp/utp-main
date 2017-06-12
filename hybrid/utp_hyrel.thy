@@ -397,7 +397,7 @@ syntax
 
 parse_translation {*
 let
-  fun time_var_tr [] = Syntax.free "\<tau>"
+  fun time_var_tr [] = Syntax.free "time"
     | time_var_tr _  = raise Match;
 in
 [(@{syntax_const "_time_var"}, K time_var_tr)]
@@ -412,12 +412,12 @@ translations
   "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    => "CONST hDisInt (\<lambda> _time_var. P)"
   "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    <= "CONST hDisInt (\<lambda> x. P)"
   
-text {* A regular interval can be written using the notation @{term "\<lceil>P(\<tau>)\<rceil>\<^sub>h"}, where $\tau$ is
+text {* A regular interval can be written using the notation @{term "\<lceil>P(time)\<rceil>\<^sub>h"}, where $time$ is
   a free variable denoting the present time. Having the present time as a free variable means
   we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>h"} for
-  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>h"}. *}
+  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(time)\<^bold>\<rceil>\<^sub>h"}. *}
 
-lemma hInt_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+lemma hInt_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> \<lceil>P(time)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
 lemma st'_unrest_hInt [unrest]: 
