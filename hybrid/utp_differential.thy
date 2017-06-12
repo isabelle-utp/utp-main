@@ -18,24 +18,33 @@ text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specif
   for a paper on an Isabelle analysis library for ODEs that this work depends on.
   *}
 
-abbreviation hasDerivAt ::
+abbreviation hasDeriv :: 
+  "(real \<Rightarrow> 'a::real_normed_vector, 'd, 'c::t2_space) hyexpr \<Rightarrow> 
+  (real \<Rightarrow> 'a, 'd, 'c) hyexpr \<Rightarrow> ('d,'c) hyrel" ("_ has-vderiv _" [90, 91] 90) where
+"hasDeriv \<equiv> trop (\<lambda> l f f'. (f has_vderiv_on f') ({0..l})) \<^bold>l"
+  
+translations
+  "x has-vderiv y" <= 
+  "CONST trop (\<lambda>l f f'. CONST ODE_Auxiliarities.has_vderiv_on f1 f1' {0..l2}) \<^bold>l x y"
+
+abbreviation hasOdeDerivAt ::
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow>
    ('c ODE, '\<alpha>) uexpr \<Rightarrow>
    (real, '\<alpha>) uexpr \<Rightarrow>
-   (real, '\<alpha>) uexpr \<Rightarrow> '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 0, 91] 90)
-where "hasDerivAt \<F> \<F>' \<tau> l \<equiv>
+   (real, '\<alpha>) uexpr \<Rightarrow> '\<alpha> upred" ("_ has-ode-deriv _ at _ < _" [90, 0, 0, 91] 90)
+where "hasOdeDerivAt \<F> \<F>' \<tau> l \<equiv>
        qtop (\<lambda> \<F> \<F>' \<tau> l. (\<F> has_vector_derivative \<F>' \<tau> (\<F> \<tau>)) (at \<tau> within {0..l})) \<F> \<F>' \<tau> l"
-
-text {* We introduce the notation @{term "\<F> has-deriv \<F>' at t < \<tau>"} to mean that the derivative
+  
+text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
   of a function @{term "\<F>"} is given by the ODE @{term "\<F>'"} at a point $t$ in the time domain
   $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed
   intervals; the final value at $\tau$ will correspond to the after value of the continuous
   state and justify that our timed trace is piecewise convergent. *}
-
+  
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<rceil>\<^sub>h)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>\<tau>\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u \<rceil>\<^sub>h)"
 
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
@@ -72,7 +81,7 @@ text {* We also set up notation that explicitly sets up the initial value for th
   solutions to ODEs. *}
 
 lemma at_has_deriv [simp]:
-  "(f has-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
+  "(f has-ode-deriv f' at \<tau> < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (\<tau> @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
   
 lemma ode_to_ivp:

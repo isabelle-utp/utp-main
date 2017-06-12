@@ -60,7 +60,6 @@ proof -
     apply (rel_auto)
   done
 qed
-
   
 definition
   "bouncing_ball =

@@ -69,20 +69,33 @@ abbreviation time_length :: "(real, 'd, 'c::topological_space) hyexpr" ("\<^bold
 
 text {* @{term "\<^bold>l"} refers to the length of the time length of the current computation, and is
   obtained by taking length of the trace contribution. *}
-
+  
 abbreviation cvar ::
+  "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> 'a, 'd, 'c) hyexpr"
+  ("_~" [999] 999)
+where "x~ \<equiv> (\<lambda> t \<bullet> (\<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)))"
+  
+abbreviation cvar_app ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) hyexpr \<Rightarrow> ('a, 'd, 'c) hyexpr"
   ("_~'(_')" [999,0] 999)
 where "x~(t) \<equiv> \<^bold>t\<lparr>t\<rparr>\<^sub>u:(x)"
-
+  
 text {* The syntax @{term "x~(t)"} is a convenient way of refer to the value of a continuous
   variable $x$ at a particular instant $t$. *}
+
+text {* We also set up some useful syntax to refer to the end of a continuous trace. *}
+
+syntax
+  "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
 
 translations
   "\<^bold>t" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
   "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
-  "\<^bold>l" <= "CONST uop end\<^sub>t (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
-
+  "x~" <= "CONST ulambda (\<lambda> t. CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) (CONST ulit t2)))"
+  "\<^bold>l" <= "CONST uop (CONST tt_end) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
+  "\<^bold>l" <= "CONST uop CONST tt_end \<^bold>t"
+  "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
+  
 definition disc_alpha :: "'d \<Longrightarrow> ('d, 'c::topological_space) hybs" ("\<^bold>d") where
 [lens_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L st"
 
@@ -198,14 +211,6 @@ text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P
 lemma zero_least_uexpr [simp]:
   "0 \<le>\<^sub>u (x::('a::trace, '\<alpha>) uexpr) = true"
   by (rel_auto)
-
-text {* We also set up some useful syntax to refer to the end of a continuous trace. *}
-
-syntax
-  "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
-
-translations
-  "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
 
 text {* The next properties states that the end point of an empty timed trace is 0. *}
 
@@ -754,5 +759,5 @@ next
   show "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t)"
     using assms(1) c gL vwb_lens.put_eq by fastforce    
 qed
-    
+  
 end
