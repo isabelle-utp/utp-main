@@ -181,7 +181,7 @@ proof -
     using assms(3) uos.solution_usolves_ode usolves_ode_solves_odeI by blast
 qed
  
-text {* ode_cert is a simple tactic for certifying solutions to systems of differential equations *}
+text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems of differential equations *}
 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 

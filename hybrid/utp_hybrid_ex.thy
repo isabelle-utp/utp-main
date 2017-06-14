@@ -45,7 +45,7 @@ abbreviation grav_sol :: "real \<times> real \<Rightarrow> real \<Rightarrow> re
 "grav_sol \<equiv> \<lambda> (v\<^sub>0, h\<^sub>0) \<tau>. (v\<^sub>0 - grav * \<tau>, v\<^sub>0 * \<tau> - grav * (\<tau> * \<tau>) / 2 + h\<^sub>0)"
   
 lemma grav_ode_sol:
-  "(\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>\<lparr>&velocity,&height\<rparr>\<^sub>u\<lparr>\<guillemotleft>\<tau>\<guillemotright>\<rparr>\<^sub>u"
+  "(\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>\<lparr>&velocity,&height\<rparr>\<^sub>u\<lparr>\<guillemotleft>time\<guillemotright>\<rparr>\<^sub>u"
 proof -
   have 1:"\<forall>l>0. unique_on_strip 0 {0..l} grav_ode 1"
     by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
