@@ -130,9 +130,9 @@ begin
 instance ..
 end
   
-instantiation uexpr :: (dzero, type) dzero
+instantiation uexpr :: (fzero, type) fzero
 begin
-  definition dzero_uexpr_def: "dzero u = uop dzero u"
+  definition fzero_uexpr_def: "fzero u = uop fzero u"
 instance ..
 end
 
@@ -596,7 +596,7 @@ lemmas uexpr_defs =
   ulim_right_def
   ucont_on_def
   plus_list_def
-  dzero_uexpr_def
+  fzero_uexpr_def
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
   the above definitions are defined. Thus, using these theorems together, we can convert any UTP 

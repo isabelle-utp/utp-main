@@ -170,10 +170,10 @@ lemma RD1_R2c_commute: "RD1(R2c(P)) = R2c(RD1(P))"
 lemma RD1_via_R1: "R1(H1(P)) = RD1(R1(P))"
   by (rel_auto)
 
-definition skip_rea :: "('t::dzero_trace, '\<alpha>) hrel_rp" ("II\<^sub>r") where
+definition skip_rea :: "('t::fzero_trace, '\<alpha>) hrel_rp" ("II\<^sub>r") where
 skip_rea_def [urel_defs]: "II\<^sub>r = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
-definition skip_srea :: "('s, 't::dzero_trace, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
+definition skip_srea :: "('s, 't::fzero_trace, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
 skip_srea_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>r) \<triangleleft> $wait \<triangleright> II\<^sub>r)"
 
 definition R3c_def [upred_defs]: "R3c(P) = (II\<^sub>r \<triangleleft> $wait \<triangleright> P)"
@@ -239,13 +239,13 @@ lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
 
 lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
 
 lemma RD1_R3h_commute: "RD1(R3h(P)) = R3h(RD1(P))"
   by (rel_auto)
@@ -274,16 +274,16 @@ lemma skip_rea_form: "II\<^sub>r = (II \<triangleleft> $ok \<triangleright> R1(t
 lemma R2c_skip_rea: "R2c II\<^sub>r = II\<^sub>r"
   by (simp add: skip_rea_def R2c_and R2c_disj R2c_skip_r R2c_not R2c_ok R2c_tr'_ge_tr)
 
-definition RH :: "('t::dzero_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("\<^bold>R")
+definition RH :: "('t::fzero_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("\<^bold>R")
 where [upred_defs]: "RH(P) = R1(R2c(R3c(P)))"
 
-definition RHS :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>s")
+definition RHS :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>s")
 where [upred_defs]: "RHS(P) = R1(R2c(R3h(P)))"
 
-definition RD :: "('t::dzero_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+definition RD :: "('t::fzero_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
 where [upred_defs]: "RD(P) = RD1(RD2(RP(P)))"
 
-definition SRD :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+definition SRD :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "SRD(P) = RD1(RD2(RHS(P)))"
 
 lemma RH_comp: "RH = R1 \<circ> R2c \<circ> R3c"
@@ -396,7 +396,7 @@ lemma skip_srea_form: "II\<^sub>R = ((\<exists> $st \<bullet> II) \<triangleleft
   by (rel_auto)
 
 lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
 
 lemma skip_srea_R1 [closure]: "II\<^sub>R is R1"
   by (metis Healthy_def R1_R3h_commute R1_skip_rea R3h_def skip_srea_def)
@@ -513,23 +513,23 @@ text {* We create two theory objects: one for reactive designs and one for state
 typedecl RDES
 typedecl SRDES
 
-abbreviation "RDES \<equiv> UTHY(RDES, ('t::dzero_trace,'\<alpha>) rp)"
-abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp)"
+abbreviation "RDES \<equiv> UTHY(RDES, ('t::fzero_trace,'\<alpha>) rp)"
+abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp)"
 
 overloading
-  rdes_hcond   == "utp_hcond :: (RDES, ('t::dzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
+  rdes_hcond   == "utp_hcond :: (RDES, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
 begin
-  definition rdes_hcond :: "(RDES, ('t::dzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  definition rdes_hcond :: "(RDES, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
   [upred_defs]: "rdes_hcond T = RD"
-  definition srdes_hcond :: "(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
+  definition srdes_hcond :: "(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
   [upred_defs]: "srdes_hcond T = SRD"
 end
 
-interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::dzero_trace,'\<alpha>) rp)"
+interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::fzero_trace,'\<alpha>) rp)"
   by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
 
-interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::dzero_trace,'\<alpha>) rp)"
+interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::fzero_trace,'\<alpha>) rp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
   and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
   and "le (uthy_order RDES) = op \<sqsubseteq>"
@@ -570,10 +570,10 @@ interpretation rdes_rea_retract:
   by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
      (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
 
-interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp)"
+interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp)"
   by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
 
-interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp)"
+interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
   and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
   and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
@@ -776,7 +776,7 @@ lemma SRD_RHS_H1_H2: "SRD(P) = \<^bold>R\<^sub>s(\<^bold>H(P))"
 subsection {* Reactive design composition laws *}
 
 theorem R1_design_composition:
-  fixes P Q :: "('t::dzero_trace,'\<alpha>,'\<beta>) rel_rp"
+  fixes P Q :: "('t::fzero_trace,'\<alpha>,'\<beta>) rel_rp"
   and R S :: "('t,'\<beta>,'\<gamma>) rel_rp"
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
   shows
@@ -992,7 +992,7 @@ lemma R2_subst_wait'_false [usubst]:
 
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
 
 lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
   by (rel_auto)
@@ -1209,7 +1209,7 @@ lemma RHS_design_ok_wait: "\<^bold>R\<^sub>s(P\<lbrakk>true,false/$ok,$wait\<rbr
 subsection {* Reactive design triples *}
 
 definition wait'_cond ::
-  "('t::dzero_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<diamondop>" 65) where
+  "('t::fzero_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<diamondop>" 65) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
 
 lemma wait'_cond_unrest [unrest]:
@@ -1919,7 +1919,7 @@ lemma SRD_eq_intro:
   by (metis SRD_reactive_tri_design assms)
 
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
 
 subsection {* Reactive design signature *}
 
@@ -1927,13 +1927,13 @@ text {* This additional healthiness condition is analogous to H3 *}
 
 definition [upred_defs]: "RD3(P) = P ;; II\<^sub>R"
 
-definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::dzero_trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
+definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::fzero_trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
 [upred_defs]: "assigns_rea \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
 
-abbreviation Chaos :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp" where
+abbreviation Chaos :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
 
-abbreviation Miracle :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp" where
+abbreviation Miracle :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp" where
 "Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
 
 text {* We guard the reactive conditional condition so that it can't be simplified by alphabet
@@ -1947,7 +1947,7 @@ lemma unrest_lift_cond_srea [unrest]:
   by (simp add: lift_cond_srea_def)
 
 abbreviation cond_srea ::
-  "('s,'t::dzero_trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
+  "('s,'t::fzero_trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   's upred \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
@@ -2058,7 +2058,7 @@ lemma periR_assigns_rea [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
   by (simp add: assigns_rea_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
 
 lemma postR_assigns_rea [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
 
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
@@ -2352,7 +2352,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> R1 (R2s R))"
   proof -
     from assms(3,4) have "(R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))) = R1 (R2s R)"
-      by (rel_auto, metis (no_types, lifting) dzero_trace_class.minus_zero_eq, meson order_trans, meson order_refl dzero_trace_class.diff_cancel)
+      by (rel_auto, metis (no_types, lifting) fzero_trace_class.minus_zero_eq, meson order_trans, meson order_refl fzero_trace_class.diff_cancel)
     thus ?thesis
       by simp
   qed
@@ -2389,7 +2389,7 @@ lemma RHS_tri_design_RD3_intro_form:
   apply (simp add: R1_right_unit_lemma assms(1) assms(2) unrest_not)
 done
 
-definition NSRD :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+definition NSRD :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
 
 lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
@@ -2740,9 +2740,9 @@ qed
 text {* Stateful reactive designs are left unital *}
 
 overloading
-  srdes_unit == "utp_unit :: (SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+  srdes_unit == "utp_unit :: (SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 begin
-  definition srdes_unit :: "(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+  definition srdes_unit :: "(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
   "srdes_unit T = II\<^sub>R"
 end
 
@@ -2752,18 +2752,18 @@ interpretation srdes_left_unital: utp_theory_left_unital SRDES
 text {* Stateful reactive designs and assignment *}
 
 overloading
-  srdes_pvar == "pvar :: (SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
-  srdes_pvar_assigns == "pvar_assigns :: (SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+  srdes_pvar == "pvar :: (SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
+  srdes_pvar_assigns == "pvar_assigns :: (SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 begin
   definition srdes_pvar ::
-    "(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
+    "(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
   [upred_defs]: "srdes_pvar T = st"
   definition srdes_pvar_assigns ::
-    "(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+    "(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
   [upred_defs]: "srdes_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>R"
 end
 
-interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::dzero_trace,'\<alpha>) rsp)" "TYPE('s)"
+interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::fzero_trace,'\<alpha>) rsp)" "TYPE('s)"
 proof -
   interpret vw: vwb_lens "pvar SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
     by (simp add: srdes_pvar_def)
@@ -2780,10 +2780,10 @@ qed
 
 subsection {* Lifting designs on state to reactive designs *}
 
-definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::dzero_trace,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where
+definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::fzero_trace,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where
 [upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
 
-definition des_rea_drop :: "('s,'t::dzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> 's hrel_des" ("\<^bold>D\<^sub>R") where
+definition des_rea_drop :: "('s,'t::fzero_trace,'\<alpha>) hrel_rsp \<Rightarrow> 's hrel_des" ("\<^bold>D\<^sub>R") where
 [upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><
                      \<turnstile>\<^sub>n \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S"
 
@@ -2833,7 +2833,7 @@ lemma periR_des_rea_lift [rdes]:
 
 lemma postR_des_rea_lift [rdes]:
   "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
 
 lemma ndes_rea_lift_closure [closure]:
   assumes "P is \<^bold>N"
@@ -2908,7 +2908,7 @@ lemma R_D_seq:
 text {* This law is applicable only when there is no further alphabet extension *}
 
 lemma R_D_assigns:
-  "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::dzero_trace,unit) hrel_rsp)"
+  "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::fzero_trace,unit) hrel_rsp)"
   by (simp add: assigns_d_def des_rea_lift_def alpha assigns_rea_RHS_tri_des, rel_auto)
 
 subsection {* Recursion laws *}
@@ -3151,7 +3151,7 @@ text {* We give an experimental syntax for reactive design contracts $[P \vdash 
   can refer only to the trace contribution through a HOL variable $trace$ which is bound to
   @{term "tt"}. *}
 
-definition mk_RD :: "'s upred \<Rightarrow> ('t::dzero_trace \<Rightarrow> 's upred) \<Rightarrow> ('t \<Rightarrow> 's hrel) \<Rightarrow> ('s, 't, 'a) hrel_rsp" where
+definition mk_RD :: "'s upred \<Rightarrow> ('t::fzero_trace \<Rightarrow> 's upred) \<Rightarrow> ('t \<Rightarrow> 's hrel) \<Rightarrow> ('s, 't, 'a) hrel_rsp" where
 "mk_RD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q(x)\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>)"
 
 syntax
@@ -3215,7 +3215,7 @@ lemma st_U0_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>0 = (\<exis
 lemma st_U1_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>1 = (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>1)"
   by (rel_auto)
 
-definition skip_rm :: "('s,'t::dzero_trace,'\<alpha>) rsp merge" ("II\<^sub>R\<^sub>M") where
+definition skip_rm :: "('s,'t::fzero_trace,'\<alpha>) rsp merge" ("II\<^sub>R\<^sub>M") where
   [upred_defs]: "II\<^sub>R\<^sub>M = (\<exists> $st\<^sub>< \<bullet> skip\<^sub>m \<or> (\<not> $ok\<^sub>< \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
 
 definition [upred_defs]: "R3hm(M) = (II\<^sub>R\<^sub>M \<triangleleft> $wait\<^sub>< \<triangleright> M)"
@@ -3331,7 +3331,7 @@ lemma nmerge_rd_is_R1m [closure]:
   by (rel_blast)
 
 lemma R2m_nmerge_rd: "R2m(N\<^sub>R(R2m(M))) = N\<^sub>R(R2m(M))"
-  apply (rel_auto) using dzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
 
 lemma nmerge_rd_is_R2m [closure]:
   "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
@@ -3584,7 +3584,7 @@ lemma parallel_pericondition_lemma3:
   by (rel_auto)
 
 lemma parallel_pericondition [rdes]:
-  fixes M :: "('s,'t::dzero_trace,'\<alpha>) rsp merge"
+  fixes M :: "('s,'t::fzero_trace,'\<alpha>) rsp merge"
   assumes "P is SRD" "M is RDM"
   shows "peri\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> peri\<^sub>R(P) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> peri\<^sub>R(Q)
                                                   \<or> post\<^sub>R(P) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> peri\<^sub>R(Q)
@@ -3635,7 +3635,7 @@ proof -
 qed
 
 lemma parallel_postcondition [rdes]:
-  fixes M :: "('s,'t::dzero_trace,'\<alpha>) rsp merge"
+  fixes M :: "('s,'t::fzero_trace,'\<alpha>) rsp merge"
   assumes "P is SRD" "M is RDM"
   shows "post\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (pre\<^sub>R (P \<parallel>\<^bsub>M\<^sub>R M\<^esub> Q) \<Rightarrow> post\<^sub>R(P) \<parallel>\<^bsub>M\<^esub> post\<^sub>R(Q))"
 proof -
@@ -3651,7 +3651,7 @@ proof -
 qed
 
 lemma parallel_precondition_lemma:
-  fixes M :: "('s,'t::dzero_trace,'\<alpha>) rsp merge"
+  fixes M :: "('s,'t::fzero_trace,'\<alpha>) rsp merge"
   assumes "P is NSRD" "Q is NSRD" "M is RDM"
   shows "(\<not> pre\<^sub>R(P)) \<parallel>\<^bsub>N\<^sub>0(M) ;; R1(true)\<^esub> cmt\<^sub>R(Q) =
          ((\<not> pre\<^sub>R P) \<parallel>\<^bsub>M ;; R1(true)\<^esub> peri\<^sub>R Q \<or> (\<not> pre\<^sub>R P) \<parallel>\<^bsub>M ;; R1(true)\<^esub> post\<^sub>R Q)"
@@ -3726,7 +3726,7 @@ lemma SymMerge_merge_rd [closure]:
   by (simp add: Healthy_def swap_merge_rd)
 
 lemma parallel_precondition:
-  fixes M :: "('s,'t::dzero_trace,'\<alpha>) rsp merge"
+  fixes M :: "('s,'t::fzero_trace,'\<alpha>) rsp merge"
   assumes "P is NSRD" "Q is NSRD" "M is RDM" "M is SymMerge"
   shows "pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) =
           (\<not> ((\<not> pre\<^sub>R P) \<parallel>\<^bsub>M ;; R1(true)\<^esub> peri\<^sub>R Q) \<and>
@@ -3796,7 +3796,7 @@ qed
 
 subsection {* Example basic merge *}
   
-definition BasicMerge :: "(('s, 't::dzero_trace, unit) rsp) merge" ("N\<^sub>B") where
+definition BasicMerge :: "(('s, 't::fzero_trace, unit) rsp) merge" ("N\<^sub>B") where
 [upred_defs]: "BasicMerge = ($tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $0-tr - $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $1-tr - $tr\<^sub>< \<and> $st\<acute> =\<^sub>u $st\<^sub><)"
 
 abbreviation rbasic_par ("_ \<parallel>\<^sub>B _" [85,86] 85) where
@@ -3827,7 +3827,7 @@ qed
 subsection {* Simple parallel composition *}
 
 definition rea_design_par ::
-  "('s, 't::dzero_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<parallel>\<^sub>R" 85)
+  "('s, 't::fzero_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<parallel>\<^sub>R" 85)
 where [upred_defs]: "P \<parallel>\<^sub>R Q = \<^bold>R\<^sub>s((pre\<^sub>R(P)  \<and> pre\<^sub>R(Q)) \<turnstile> (cmt\<^sub>R(P) \<and> cmt\<^sub>R(Q)))"
 
 lemma RHS_design_par:
