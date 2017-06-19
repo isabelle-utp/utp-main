@@ -311,10 +311,10 @@ lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>
 subsection {* The Interval Operator *}
 
 definition hInt :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+[upred_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
 definition hInt_at :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+[upred_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
 text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
   is satisfied at every instant between the beginning and end of the evolution, that is on the
@@ -334,10 +334,10 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
   by (simp_all add: hInt_def unrest)
     
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u:(x))"
+[upred_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u:(x))"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u):(x))"
+[upred_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u):(x))"
 
 syntax
   "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
@@ -372,7 +372,7 @@ lemma R2c_final_cont: "R2c(rl(x)) = rl(x)"
   by (rel_auto)
   
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
@@ -538,10 +538,10 @@ lemma seq_var_ident_liftr:
 subsection {* Evolve by continuous function *}
  
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(time)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
+[upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(time)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
 definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
+[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
@@ -574,12 +574,12 @@ subsection {* Pre-emption *}
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [64,65] 64) where
-[urel_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C)"
+[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
-where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
+where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution

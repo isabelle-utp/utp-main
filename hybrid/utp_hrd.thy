@@ -23,13 +23,13 @@ translations
   "_svarcont x" == "CONST svar_cont x"
 
 definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
+[upred_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
 
 definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
+[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
                                     \<diamondop> ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
                                         \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
                                        ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)))"
@@ -47,7 +47,7 @@ translations
 definition hrdODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
+[upred_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
 
 syntax
   "_hrdODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H")
@@ -60,18 +60,18 @@ text {* Should the until construct include in the pericondition the state where 
   is present both as an intermediate and also a final state. *}
   
 definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" (infixl "until\<^sub>H" 85)
-  where [urel_defs]: 
+  where [upred_defs]: 
 "P until\<^sub>H b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
   
 definition hrdPreempt_nz ::
     "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H\<^sup>+ _" [64,0,65] 64) where
-[urel_defs]: "hrdPreempt_nz P b Q = (P until\<^sub>H b) ;; Q"
+[upred_defs]: "hrdPreempt_nz P b Q = (P until\<^sub>H b) ;; Q"
 
 definition hrdPreempt ::
     "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64) where
-[urel_defs]: "P [b]\<^sub>H Q = (Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P [b]\<^sub>H\<^sup>+ Q))"
+[upred_defs]: "P [b]\<^sub>H Q = (Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P [b]\<^sub>H\<^sup>+ Q))"
 
 lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = true"
   by (rel_auto)
