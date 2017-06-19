@@ -293,7 +293,7 @@ definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>(dzero $tr)/$tr\<rbrakk>\
 definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
 definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
 
-lemma dzero_unreset [unrest, usubst]:
+lemma dzero_unreset [unrest]:
   assumes "y \<sharp> x"
   shows "y \<sharp> (dzero x)"
   using assms
