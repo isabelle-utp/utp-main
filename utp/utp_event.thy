@@ -61,5 +61,5 @@ text {*
 
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
-[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>\<lparr>e\<rparr>\<^sub>u"
+[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>(e)\<^sub>a"
 end

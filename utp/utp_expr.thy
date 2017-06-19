@@ -389,7 +389,7 @@ translations
     
 syntax -- \<open> Polymorphic constructs \<close>
   "_umap_empty" :: "logic" ("[]\<^sub>u")
-  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_(_)\<^sub>a" [999,0] 999)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -413,7 +413,7 @@ syntax -- \<open> Polymorphic constructs \<close>
   
 translations
   -- \<open> Pretty printing for adhoc-overloaded constructs \<close>
-  "f\<lparr>x\<rparr>\<^sub>u"    <= "CONST uapply f x"
+  "f(x)\<^sub>a"    <= "CONST uapply f x"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"  
   "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
@@ -422,8 +422,8 @@ translations
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
   -- \<open> Overloaded construct translations \<close>
-  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
-  "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
+  "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
+  "f(x)\<^sub>a"    == "CONST bop CONST uapply f x"
   "#\<^sub>u(xs)"  == "CONST uop CONST ucard xs"
   "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
@@ -657,7 +657,7 @@ lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
 lemma ufun_apply_lit [simp]: 
-  "\<guillemotleft>f\<guillemotright>\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u = \<guillemotleft>f(x)\<guillemotright>"
+  "\<guillemotleft>f\<guillemotright>(\<guillemotleft>x\<guillemotright>)\<^sub>a = \<guillemotleft>f(x)\<guillemotright>"
   by (transfer, simp)
     
 subsection \<open> Literalise tactics \<close>

@@ -73,12 +73,12 @@ text {* @{term "\<^bold>l"} refers to the length of the time length of the curre
 abbreviation cvar ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> 'a, 'd, 'c) hyexpr"
   ("_~" [999] 999)
-where "x~ \<equiv> (\<lambda> t \<bullet> (\<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)))"
+where "x~ \<equiv> (\<lambda> t \<bullet> (\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)))"
   
 abbreviation cvar_app ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) hyexpr \<Rightarrow> ('a, 'd, 'c) hyexpr"
   ("_~'(_')" [999,0] 999)
-where "x~(t) \<equiv> \<^bold>t\<lparr>t\<rparr>\<^sub>u:(x)"
+where "x~(t) \<equiv> \<^bold>t(t)\<^sub>a:(x)"
   
 text {* The syntax @{term "x~(t)"} is a convenient way of refer to the value of a continuous
   variable $x$ at a particular instant $t$. *}
@@ -222,13 +222,13 @@ subsection {* Instant Predicates *}
 definition at ::
   "('a, 'c::topological_space \<times> 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
   (infix "@\<^sub>u" 60) where
-[upred_defs]: "P @\<^sub>u t = [$\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u] \<dagger> \<lceil>P\<rceil>\<^sub>C"
+[upred_defs]: "P @\<^sub>u t = [$\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a] \<dagger> \<lceil>P\<rceil>\<^sub>C"
 
 text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
   the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
   on the flat continuous state. The operator is implemented by first extending the alphabet
   of @{term "P"} to include all the hybrid variables, and then substituting the continuous
-  state for the continuous state at @{term "t"}, denoted by @{term "\<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u"}. *}
+  state for the continuous state at @{term "t"}, denoted by @{term "\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a"}. *}
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def)
@@ -298,14 +298,14 @@ lemma at_subst_init_cont [usubst]:
     
 lemma at_var [simp]:
   fixes x :: "('a \<Longrightarrow> 'c::topological_space)"
-  shows "$x\<acute> @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
+  shows "$x\<acute> @\<^sub>u t = \<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)"
   by (pred_auto)
 
 text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat continuous variable
   @{term "x"}. It results in an expression which refers to that particular variable within the
   timed trace at instant @{term "t"}. *}
 
-lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
+lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
   by (pred_auto)
 
 subsection {* The Interval Operator *}
@@ -334,10 +334,10 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
   by (simp_all add: hInt_def unrest)
     
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u:(x))"
+[upred_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t(0)\<^sub>a:(x))"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u):(x))"
+[upred_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>x\<guillemotright>)\<^sub>a):(x))"
 
 syntax
   "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
@@ -378,9 +378,9 @@ text {* We also set up the adapted version of the interval operator, @{term "hDi
   conjoins an interval specification with three predicates, which also happen to be coupling
   invariants, and yield what we might call a ``hybrid interval''. The first invariant
   states that the continuous state within the trace at instant 0 must
-  correspond to the before value of the continuous state, i.e. @{term "$\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u"}. The second
+  correspond to the before value of the continuous state, i.e. @{term "$\<^bold>c =\<^sub>u \<^bold>t(0)\<^sub>a"}. The second
   states that the after value of the continuous state must take on the limit of the continuous
-  state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u)"}.
+  state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>x\<guillemotright>)\<^sub>a)"}.
   This second constraint requires that the timed trace must converge to a point at @{term "\<^bold>l"},
   which is true because our timed trace is piecewise convergent. The last two constraints are what
   makes our model a hybrid computational model, since we link together discrete assignments to
