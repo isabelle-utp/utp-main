@@ -9,11 +9,21 @@ imports
   "../dynamics/Timed_Traces"
 begin recall_syntax
   
+subsection {* Preliminaries *}
+
+text {* Lens summation of two continuous lenses is continuous *}
+  
+lemma continuous_on_plus_lens [continuous_intros]:
+  "\<lbrakk> continuous_on A get\<^bsub>x\<^esub>; continuous_on A get\<^bsub>y\<^esub> \<rbrakk> \<Longrightarrow> continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
+  by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair)
+  
+declare plus_vwb_lens [simp]
+    
 hide_type rel
 
 no_notation inner (infix "\<bullet>" 70)
 
-text {* We also set up adhoc overloading to apply timed traces and contiguous functions *}
+text {* We set up adhoc overloading to apply timed traces and contiguous functions *}
 
 adhoc_overloading uapply cgf_apply and uapply tt_apply
 
@@ -573,7 +583,7 @@ done
 subsection {* Pre-emption *}
 
 definition hUntil ::
-  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [64,65] 64) where
+  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [74,75] 74) where
 [upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C)"
 
 definition hPreempt ::
