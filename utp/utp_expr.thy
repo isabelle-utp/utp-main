@@ -389,7 +389,7 @@ translations
     
 syntax -- \<open> Polymorphic constructs \<close>
   "_umap_empty" :: "logic" ("[]\<^sub>u")
-  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_(_)\<^sub>a" [999,0] 999)
+  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -422,6 +422,8 @@ translations
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
   -- \<open> Overloaded construct translations \<close>
+  "f(x,y,z,u)\<^sub>a" == "CONST bop CONST uapply f (x,y,z,u)\<^sub>u"
+  "f(x,y,z)\<^sub>a" == "CONST bop CONST uapply f (x,y,z)\<^sub>u"
   "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
   "f(x)\<^sub>a"    == "CONST bop CONST uapply f x"
   "#\<^sub>u(xs)"  == "CONST uop CONST ucard xs"
