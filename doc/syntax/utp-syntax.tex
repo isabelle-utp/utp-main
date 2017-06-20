@@ -1,0 +1,130 @@
+\documentclass[12pt]{article}
+
+\usepackage{a4wide}%
+\usepackage{amsmath}%
+\usepackage{amssymb}%
+\usepackage[greek,english]{babel}%
+\usepackage{bm}%
+\usepackage[zed]{csp}%
+\usepackage[a4paper,landscape]{geometry}%
+\usepackage{stmaryrd}%
+\usepackage[scaled]{helvet}% (added at suggestion of reviewer)
+
+\def\arraystretch{1.2}%
+
+\title{Isabelle/UTP Syntax Reference}
+\author{Simon Foster \and Frank Zeyda}
+
+\begin{document}
+\maketitle
+
+\section{Syntax Overview}
+
+The Isabelle jEdit interface support a form of autocompletion. When typing mathematical syntax it will often present a
+list of suggested symbols. When this appears and the right symbol is in scope press the TAB key to insert it. This
+process will be necessary during most editing in Isabelle. On the whole, Isabelle provides \LaTeX-like symbols for the
+majority of its operators.
+
+\newpage
+
+\section{Expression Operators}
+
+\subsection{Arithmetic Operators}
+
+The arithmetic operators employ the Isabelle/HOL type classe hierarchy for groups, rings, fields, and
+orders. Consequently, UTP enjoys direct syntax for many of these operators.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math Operator}      & \textbf{Description}        & \textbf{Isabelle/UTP}       & \textbf{Isabelle code(s)} \\ \hline
+  $0, 1, 17, 3.147$           & numerals                    & $0, 1, 17, 3.147$           & \verb|0, 1, 17, 3.147| \\
+  $x + y$                     & addition                    & $x + y$                     & \verb|x + y| \\
+  $x - y$                     & subtraction                 & $x - y$                     & \verb|x - y| \\
+  $x \cdot y$                 & multiplication              & $x * y$                     & \verb|x * y| \\  
+  $x / y$                     & division                    & $x / y$                     & \verb|x / y| \\
+  $x \mathop{\textbf{div}} y$ & integer division            & $x \mathop{\textbf{div}} y$ & \verb|x div y| \\
+  $x \mathop{\textbf{mod}} y$ & integer modulo              & $x \mathop{\textbf{mod}} y$ & \verb|x mod y| \\
+%  $|x|$                       & absolute value              & $|x|$                       & \texttt{¦x¦} \\
+  $\lceil x \rceil$           & numeric ceiling             & $\lceil x \rceil_u$         & \verb|\lceil x \rceil \sub u| \\
+  $\lfloor x \rfloor$         & numeric floor               & $\lfloor x \rfloor_u$       & \verb|\lfloor x \rfloor \sub u| \\
+  $x \le y$                   & less-than-or-equal          & $x \le_u y$                 & \verb|x \le \sub u y| \\
+  $x < y$                     & less-than                   & $x <_u y$                   & \verb|x < \sub u y| \\
+  $\textrm{min}(x, y)$        & minimum value               & $\textrm{min}_u(x, y)$      & \verb|min \sub u (x, y)| \\ 
+  $\textrm{max}(x, y)$        & maximum value               & $\textrm{max}_u(x, y)$      & \verb|max \sub u (x, y)| \\ 
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\subsection{Polymorphic Operators}
+
+The following operators are overloaded to various different expression types. Notably the functional operators, such as
+application, update, and domain, can be applied to a variety of HOL types including, functions, finite maps, and
+relations.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math Operator}    & \textbf{Description}        & \textbf{Isabelle/UTP}   & \textbf{Isabelle code(s)} \\ \hline
+  $P = Q$                   & equals                      & $P =_u Q$               & \verb|P =\sub u Q| \\ 
+  $P \neq Q$                & not equals                  & $P \neq_u Q$            & \verb|P \noteq\sub u Q| \\ 
+  $\lambda x @ P(x)$        & $\lambda$-abstraction       & $\lambda x @ P(x)$      & \verb|\lambda x \bullet P(x)| \\
+  $(x,y,\cdots,z)$          & tuple                       & $(x, y, \cdots, z)_u$   & \verb|(x, y, ..., z)\sub u| \\
+  $\pi_1(x)$                & tuple project first         & $\pi_1(x)$              & \verb|\pi \sub 1 (x)| \\
+  $\pi_2(x)$                & tuple project second        & $\pi_2(x)$              & \verb|\pi \sub 2 (x)| \\
+  $f(x)$                    & functional application      & $f(x)_a$                & \verb|f(x) \sub a| \\
+  $f \oplus \{k_1 \mapsto v_1, \cdots\}$ 
+                            & functional update           & $f(k_1 \mapsto v_1, \cdots)_u$ & \verb|f(k1 \mapsto v1, ...)\sub u| \\
+  $\{k_1 \mapsto v_1, \cdots\}$ & enumerated map           & $[k_1 \mapsto v_1, \cdots]_u$ & \verb|[k1 \mapsto v1, ...]\sub u| \\
+  $\emptyset$               & empty collection            & $[]_u$                  & \verb|[] \sub u| \\
+  $\#x$                     & size of collection          & $\#_u(x)$               & \verb|# \sub u (x)| \\ 
+  $\dom(x)$                 & domain                      & $\dom_u(x)$             & \verb|dom \sub u (x)| \\
+  $\ran(x)$                 & range                       & $\dom_u(x)$             & \verb|ran \sub u (x)| \\
+  $f \dres A$               & domain restriction          & $f \dres_u A$           & \verb|f \lhd \sub u A| \\
+  $A \rres f$               & range restriction           & $A \rres_u f$           & \verb|A \rhd \sub u f| \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Sequence Operators}
+
+\subsection{Set Operators}
+
+\newpage
+
+\section{Predicate Operators}
+
+\begin{center}
+\begin{tabular}{|c|c|c|} \hline
+  \textbf{Math Operator}      & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  \textbf{true}               & logical true / universal relation     & \verb|true| \\
+  \textbf{false}              & logical false / empty relation        & \verb|false| \\
+  $\neg P$                    & negation / complement                 & \verb|~| or \verb|\not| \\
+  $P \land Q$                 & conjunction                           & \verb|/\| or \verb|\and| \\
+  $P \lor Q$                  & disjunction                           & \verb|\/| or \verb|\or| \\
+  $P \implies Q$              & implication                           & \verb|=>| or \verb|\Rightarrow| \\
+  $P \refinedby Q$            & refinement                            & \verb|[=| or \verb|\sqsubseteq| \\
+  $x$                         & predicate variable                    & \verb|&x| \\
+  $x$                         & relational before variable            & \verb|$x| \\
+  $x'$                        & relational after variable             & \verb|$x\acute| \\
+  $\flqq v \frqq$             & HOL term / variable quotation         & \verb|<<x>>| \\
+  $\forall x @ P$             & universal quantifier (UTP variable)   & \verb|! x \bullet P| \\
+  $\exists x @ P$             & existential quantifier (UTP variable) & \verb|? x \bullet P| \\
+  $\bm{\forall} x @ P$        & universal quantifier (HOL variable)   & \verb|\bold ! x \bullet P| \\
+  $\bm{\exists} x @ P$        & existential quantifier (HOL variable) & \verb|\bold ? x \bullet P| \\
+  $P \sqcap Q$                & binary infimum / internal choice      & \verb|P \sqcap Q| \\
+  $P \sqcup Q$                & binary supremum                       & \verb|P \sqcup Q| \\
+  $\bigsqcap i \in I @ P(i)$  & indexed infimum / internal choice     & \verb|\Sqcap i \in I \bullet P(i)| \\
+  $\bigsqcup i \in I @ P(i)$  & indexed supremum                      & \verb|\Sqcup i \in I \bullet P(i)| \\
+  $\mu X @ P(X)$              & weakest fixed-point                   & \verb|\mu X \bullet P(X)| \\
+  $\nu X @ P(X)$              & strongest fixed-point                 & \verb|\nu X \bullet P(X)| \\
+  $P$                         & UTP predicate tautology               & \verb|`P`| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\section{Meta-logic Operators}
+
+
+
+\end{document}
