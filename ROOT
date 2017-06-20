@@ -180,6 +180,7 @@ session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
   theories
     utp_bouncing_ball
     utp_thermostat
+    utp_trains
   
 (* Modelica Mechanisation *)
     
