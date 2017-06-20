@@ -19,6 +19,14 @@ lemma filter_upto_contract:
   "\<lbrakk> (x::real) \<le> y; y < z \<rbrakk> \<Longrightarrow> (at z within {x..<z}) = (at z within {y..<z})"
   by (rule at_within_nhd[of _ "{y<..<z+1}"], auto)
 
+subsection {* Topological Spaces *}
+  
+instantiation unit :: t2_space
+begin
+  definition open_unit :: "unit set \<Rightarrow> bool" where "open_unit = (\<lambda> _. True)"
+  instance by (intro_classes, simp_all add: open_unit_def)
+end
+    
 subsection {* Extra derivative rules *}
 
 lemma has_vector_derivative_Pair [derivative_intros]:

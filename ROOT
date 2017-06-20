@@ -166,7 +166,6 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
-    utp_hybrid_ex
   document_files
     "root.bib"
     "root.tex"
@@ -174,6 +173,14 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
     "zed.sty"
     "csp.sty"
     
+(* Hybrid UTP examples *)
+    
+session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
+  options [document = false]
+  theories
+    utp_bouncing_ball
+    utp_thermostat
+  
 (* Modelica Mechanisation *)
     
 session "Modelica" in "modelica" = "UTP-HYBRID" +
