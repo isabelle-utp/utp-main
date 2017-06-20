@@ -1,4 +1,4 @@
-\documentclass[12pt]{article}
+\documentclass[11pt]{article}
 
 \usepackage{a4wide}%
 \usepackage{amsmath}%
@@ -6,7 +6,8 @@
 \usepackage[greek,english]{babel}%
 \usepackage{bm}%
 \usepackage[zed]{csp}%
-\usepackage[a4paper,landscape]{geometry}%
+\usepackage[a4paper, margin=2cm]{geometry}%
+\usepackage{hyperref}%
 \usepackage{stmaryrd}%
 \usepackage[scaled]{helvet}% (added at suggestion of reviewer)
 
@@ -20,6 +21,17 @@
 
 \section{Syntax Overview}
 
+This document describes the syntax used for writing expressions, predicated, and relations in Isabelle/UTP. On the whole
+the principle in creating the syntax is to be as faithful as possible to the UTP, whilst remaining conservative to
+Isabelle/HOL's existing syntax. Thus, where possible we reuse HOL syntax in UTP expressions and predicates, primarily
+using overloading, but sometimes this cannot be done without compromising HOL. Thus sometimes we need to add subscripts
+to our operators. Conservation is essential so that we can use HOL as a meta-language to manipulate UTP predicates.
+
+With respect to expressions, on the whole we adopt the syntax for operators described in the Z reference
+manual\footnote{\url{http://spivey.oriel.ox.ac.uk/mike/zrm/zrm.pdf}}, whilst making necessary adaptations to suit the
+type system of HOL. For example, a Z relation can become a function, relation, or finite map when mapped to HOL, and
+thus we present various overloaded versions of the Z relational operators, such as $\dom(f)$ and $A \rres f$.
+
 The Isabelle jEdit interface support a form of autocompletion. When typing mathematical syntax it will often present a
 list of suggested symbols. When this appears and the right symbol is in scope press the TAB key to insert it. This
 process will be necessary during most editing in Isabelle. On the whole, Isabelle provides \LaTeX-like symbols for the
@@ -32,7 +44,8 @@ majority of its operators.
 \subsection{Arithmetic Operators}
 
 The arithmetic operators employ the Isabelle/HOL type classe hierarchy for groups, rings, fields, and
-orders. Consequently, UTP enjoys direct syntax for many of these operators.
+orders. Consequently, UTP enjoys direct syntax for many of these operators. Sometimes the arithmetic operators can also
+be used for non-arithmetic types; for example $0$ can be used to represent an empty sequence.
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
@@ -82,14 +95,48 @@ relations.
   $\ran(x)$                 & range                       & $\dom_u(x)$             & \verb|ran \sub u (x)| \\
   $f \dres A$               & domain restriction          & $f \dres_u A$           & \verb|f \lhd \sub u A| \\
   $A \rres f$               & range restriction           & $A \rres_u f$           & \verb|A \rhd \sub u f| \\
-\hline
+  \hline
 \end{tabular}
 \end{center}
 
 \subsection{Sequence Operators}
 
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math Operator}         & \textbf{Description}        & \textbf{Isabelle/UTP}          & \textbf{Isabelle code(s)} \\ \hline
+  $\langle\rangle$               & empty sequence              & $\langle\rangle$               & \verb|\langle\rangle| \\
+  $\langle x, y, z \rangle$      & enumerated sequence         & $\langle x, y, z \rangle$ & \verb|\langle x, y, z \rangle| \\
+  $\langle m .. n \rangle$       & sequence interval $[m,n]$   & $\langle m .. n \rangle$       & \verb|\langle m .. n \rangle| \\
+  $xs \cat ys$                   & concatenation               & $xs \cat_u ys$                 & \verb|xs ^ \sub u y| \\
+  $\textrm{head}(xs)$            & head of sequence            & $\textrm{head}_u(xs)$          & \verb|head \sub u (xs)| \\
+  $\textrm{tail}(xs)$            & tail of sequence            & $\textrm{tail}_u(xs)$          & \verb|tail \sub u (xs)| \\
+  $\textrm{last}(xs)$            & last element                & $\textrm{last}_u(xs)$          & \verb|last \sub u (xs)| \\
+  $\textrm{front}(xs)$           & all but last element        & $\textrm{front}_u(xs)$         & \verb|front \sub u (xs)| \\
+  $\ran(xs)$                     & elements of a sequence      & $\textrm{elems}_u(xs)$         & \verb|elems \sub u (xs)| \\
+  $\textrm{map}~f~xs$            & map function over sequence  & $\textrm{map}_u~f~xs$          & \verb|map \sub u f xs| \\
+  \hline
+\end{tabular}
+\end{center}
+
 \subsection{Set Operators}
 
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math Operator}         & \textbf{Description}        & \textbf{Isabelle/UTP}          & \textbf{Isabelle code(s)} \\ \hline
+  $\emptyset$                    & empty set                   & $\{\}_u$                       & \verb|{} \sub u| \\
+  $\{ x, y, z \}$                & enumerated set              & $\{ x, y, z \}_u$              & \verb|{x, y, z} \sub u| \\  
+  $[m, n]$                       & closed set interval         & $\{ m \mathop{..} n \}_u$               & \verb|{ m .. n } \sub u| \\
+  $[m, n)$                       & open set interval           & $\{ m \mathop{..\!\!<} n \}_u$              & \verb|{ m ..< n } \sub u| \\
+  $x \in A$                      & set membership              & $x \in_u A$                    & \verb|x \in \sub u A| \\
+  $x \notin A$                   & set non-membership          & $x \notin_u A$                 & \verb|x \notin \sub u A| \\
+  $A \cup B$                     & set union                   & $A \cup_u B$                   & \verb|A \cup \sub u B| \\  
+  $A \cap B$                     & set intersection            & $A \cap_u B$                   & \verb|A \cap \sub u B| \\  
+  $A \setminus B$                & set difference              & $A - B$                        & \verb|A - B| \\
+  $A \subseteq B$                & subset                      & $A \subseteq_u B$              & \verb|A \subseteq \sub u B| \\
+  $A \subset B$                  & proper subset               & $A \subset_u B$                & \verb|A \subset \sub u B| \\
+  \hline
+\end{tabular}
+\end{center}
 \newpage
 
 \section{Predicate Operators}
@@ -124,6 +171,28 @@ relations.
 \end{center}
 
 \section{Meta-logic Operators}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Isabelle/UTP}         & \textbf{Math}       & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
+  $x \mathop{\sharp} P$         & $x \notin \textrm{fv}(P)$   & 
+  \begin{tabular}{c}                                                                 
+    $P$ does not depend \\[-5pt]
+    on variable $x$       
+  \end{tabular}
+       & \verb|x \sharp P| \\
+  $s \mathop{\dagger} P$        & --                          & apply substitution $s$ to $P$                    & \verb|s \dagger P| \\
+  $[x_1 \mapsto v_1, \cdots]_s$  & --                          & 
+  \begin{tabular}{c}                                                                 
+    construct substitution with \\[-5pt]
+    variable $x_i$ being mapped  \\[-5pt]
+    to expresssion $v_i$
+  \end{tabular}
+                                & \verb|[x1 \mapsto v1,...] \sub s| \\
+  $P \llbracket v/x \rrbracket$ & $P[v/x]$                     & apply singleton substitution              & \texttt{P[|v/x|]} \\
+  \hline
+\end{tabular}  
+\end{center}
 
 
 
