@@ -1,17 +1,26 @@
 \documentclass[11pt]{article}
 
+
 \usepackage{a4wide}%
 \usepackage{amsmath}%
 \usepackage{amssymb}%
 \usepackage[greek,english]{babel}%
 \usepackage{bm}%
 \usepackage[zed]{csp}%
-\usepackage[a4paper, margin=2cm]{geometry}%
+\usepackage[a4paper, margin=1.6cm]{geometry}%
 \usepackage{hyperref}%
+\usepackage{relsize}%
 \usepackage{stmaryrd}%
 \usepackage[scaled]{helvet}% (added at suggestion of reviewer)
 
-\def\arraystretch{1.2}%
+\newcommand{\II}{{\hbox{\texttt{\slshape I \kern -8.5pt I}}}}%
+\newcommand{\conditional}[3]{#1 \infixIf #2 \infixElse #3}%
+\newcommand{\infixElse}{\mathop{\hbox{\raisebox{0ex}{\larger$\rightslice$}}}}%
+\newcommand{\infixIf}{\mathop{\hbox{\raisebox{0ex}{\larger$\leftslice$}}}}%
+\newcommand{\relsemi}{\mathrel{\hbox{\rm;}}}%
+
+
+\def\arraystretch{1.4}%
 
 \title{Isabelle/UTP Syntax Reference}
 \author{Simon Foster \and Frank Zeyda}
@@ -21,7 +30,7 @@
 
 \section{Syntax Overview}
 
-This document describes the syntax used for writing expressions, predicated, and relations in Isabelle/UTP. On the whole
+This document describes the syntax used for writing expressions, predicates, and relations in Isabelle/UTP. On the whole
 the principle in creating the syntax is to be as faithful as possible to the UTP, whilst remaining conservative to
 Isabelle/HOL's existing syntax. Thus, where possible we reuse HOL syntax in UTP expressions and predicates, primarily
 using overloading, but sometimes this cannot be done without compromising HOL. Thus sometimes we need to add subscripts
@@ -40,6 +49,30 @@ majority of its operators.
 \newpage
 
 \section{Expression Operators}
+
+\subsection{Variables and Alphabets}
+
+Variables in Isabelle/UTP are modelled using lenses which are parametrised by the variable type $\tau$ and state-space $\sigma$.
+We use the Isabelle type-system to distinguish variables of a predicate, whose state-space is $\alpha$, from variable of a relation,
+whose state-space is a product $\alpha \times \alpha$. This is why there is two ways of writing $x$. We can also, to some extent,
+collection variables in a set, as illustrated.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Isabelle/UTP}    & \textbf{Math}      & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  $\&x$                    & $x$                & predicate variable                    & \verb|&x| \\
+  $\mathdollar x$          & $x$                & relational before variable            & \verb|$x| \\
+  $\mathdollar x \acute{}$ & $x'$               & relational after variable             & \verb|$x\acute| \\
+  $x\!:\!y$                & --                 & name qualification (lens composition) & \verb|x:y| \\
+  $\{\mathdollar x,\mathdollar y, \mathdollar z \acute{}\}$  
+                           & $\{x,y,z'\}$       & variable set (lens summation)         & \verb|{$x,$y,$z\acute}| \\
+  $\Sigma$                 & --                 & all variables (``one'' lens)          & \verb|\Sigma| \\
+  $\emptyset$              & $\emptyset$        & no variables (``zero'' lens)          & \verb|\emptyset| \\
+  in$\alpha$               & in$\alpha$         & relational input variables            & \verb|in\alpha| \\
+  out$\alpha$              & out$\alpha$        & relational output variables           & \verb|out\alpha| \\
+  \hline
+\end{tabular}
+\end{center}
 
 \subsection{Arithmetic Operators}
 
@@ -67,8 +100,6 @@ be used for non-arithmetic types; for example $0$ can be used to represent an em
   \hline
 \end{tabular}
 \end{center}
-
-\newpage
 
 \subsection{Polymorphic Operators}
 
@@ -139,6 +170,33 @@ relations.
 \end{center}
 \newpage
 
+\section{Meta-logic Operators}
+
+The meta-logic of Isabelle/UTP is simply HOL. Thus we can use HOL to query and manipulate UTP predicates as objects. In
+particular we can express that an expression does not depend on a particular variable (unrestriction), and apply variable
+substitutions. We also support various alphabet manipulations which effectively allow the addition and deletion of
+variables for which we again employ the HOL type system.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Isabelle/UTP}         & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
+  $x \mathop{\sharp} P$         &  $P$ does not depend on variable $x$             & \verb|x \sharp P| \\
+  $s \mathop{\dagger} P$        & apply substitution $s$ to $P$                    & \verb|s \dagger P| \\
+  $[x_1 \mapsto v_1, \cdots]_s$  & 
+  \begin{tabular}{c}                                                                 
+    construct substitution with  variable $x_i$  \\[-6pt]
+    being mapped to expresssion $v_i$
+  \end{tabular}
+                                & \verb|[x1 \mapsto v1,...] \sub s| \\
+  $P \llbracket v/x \rrbracket$ & apply singleton substitution                     & \texttt{P[|v/x|]} \\
+  $P \llbracket v_1,\cdots/x_1,\cdots \rrbracket$ & apply multiple substitutions   & \texttt{P[|v1,.../x1,...|]} \\
+  $P \oplus_p a$                & alphabet extrusion / extension (by lens $a$)     & \verb|P \oplus \sub p a| \\
+  $P \upharpoonleft_p a$        & alphabet restriction (by lens $a$)               & \verb|P \restrict \sub p a| \\
+  \hline
+\end{tabular}  
+\end{center}
+
+
 \section{Predicate Operators}
 
 \begin{center}
@@ -150,6 +208,7 @@ relations.
   $P \land Q$                 & conjunction                           & \verb|/\| or \verb|\and| \\
   $P \lor Q$                  & disjunction                           & \verb|\/| or \verb|\or| \\
   $P \implies Q$              & implication                           & \verb|=>| or \verb|\Rightarrow| \\
+  $\conditional{P}{b}{Q}$     & infix if-then-else conditional        & \verb|P \triangleleft b \triangleright Q| \\
   $P \refinedby Q$            & refinement                            & \verb|[=| or \verb|\sqsubseteq| \\
   $x$                         & predicate variable                    & \verb|&x| \\
   $x$                         & relational before variable            & \verb|$x| \\
@@ -170,30 +229,42 @@ relations.
 \end{tabular}
 \end{center}
 
-\section{Meta-logic Operators}
+\section{Relational Operators}
 
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
-  \textbf{Isabelle/UTP}         & \textbf{Math}       & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
-  $x \mathop{\sharp} P$         & $x \notin \textrm{fv}(P)$   & 
-  \begin{tabular}{c}                                                                 
-    $P$ does not depend \\[-5pt]
-    on variable $x$       
-  \end{tabular}
-       & \verb|x \sharp P| \\
-  $s \mathop{\dagger} P$        & --                          & apply substitution $s$ to $P$                    & \verb|s \dagger P| \\
-  $[x_1 \mapsto v_1, \cdots]_s$  & --                          & 
-  \begin{tabular}{c}                                                                 
-    construct substitution with \\[-5pt]
-    variable $x_i$ being mapped  \\[-5pt]
-    to expresssion $v_i$
-  \end{tabular}
-                                & \verb|[x1 \mapsto v1,...] \sub s| \\
-  $P \llbracket v/x \rrbracket$ & $P[v/x]$                     & apply singleton substitution              & \texttt{P[|v/x|]} \\
+  \textbf{Math}              & \textbf{Isabelle/UTP}         & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  $P \relsemi Q$             & $P \relsemi\relsemi Q$        & sequential composition                & \verb|P ;; Q| \\
+  $P \relsemi Q$             & $P \relsemi\relsemi_h Q$      & homogeneous sequential composition    & \verb|P ;; \sub s Q| \\
+  $\II$                      & II                            & relational identity / skip            & \verb|II| \\ 
+  $\textbf{true}$            & $\textbf{true}_h$             & homogeneous universal relation        & \verb|true \sub h| \\
+  $\textbf{false}$           & $\textbf{false}_h$            & homogeneous empty relation            & \verb|false \sub h| \\
+  $P^{-1}$                    & $P^-$                         & relational converse / inverse         & \verb|P \sup -| \\
+  $\conditional{P}{b}{Q}$    & $P \triangleleft b \triangleright Q$ & infix if-then-else             & 
+   \begin{tabular}{c}
+     \verb|P \triangleleft b| \\[-5pt]
+     \verb|\triangleright Q|
+   \end{tabular} \\
+  $\conditional{P}{b}{Q}$    & $P \triangleleft b \triangleright_r Q$ & 
+   \begin{tabular}{c}
+   if-then-else where $b$ is a condition: \\[-5pt]
+   a predicate with no after variables 
+   \end{tabular} &
+   \begin{tabular}{c}
+     \verb|P \triangleleft b| \\[-5pt]
+     \verb|\triangleright \sub r Q|
+   \end{tabular} \\
+  --                         & $\langle s \rangle_a$         & assignment of substitution $s$        & \verb|\langle s \rangle \sub a| \\
+  $x := v$                   & $x := v$                      & 
+   \begin{tabular}{c}
+   singleton assignment; $v$ is an \\[-5pt]
+   expression with no after variables 
+   \end{tabular}
+         & \verb|x := v| \\
+  $b^{\top}$                  & $b^{\top}$                     & relational assumption                 & \verb|b \sup \top| \\
+  $b_{\bot}$                  & $b_{\bot}$                     & relational assertion                  & \verb|b \sub \bottom| \\
+  $b \star P$                & $\textbf{while}~b~\textbf{do}~P~\textbf{od}$ & while loop (strongest fixed-point)            & \verb|while b do P od| \\
   \hline
-\end{tabular}  
+\end{tabular}
 \end{center}
-
-
-
 \end{document}

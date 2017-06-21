@@ -126,6 +126,8 @@ The reason we have to have three is to do with the type system of Isabelle -- si
 are types, a relation has a different type to a flat predicate and so variables in these constructions
 also have different types.
 
+For more details of the Isabelle/UTP grammar please see the [syntax reference document](doc/syntax/utp-syntax.pdf).
+
 ## Proof support
 
 We employ a number of proof tactics for UTP:
