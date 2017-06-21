@@ -243,6 +243,8 @@ analogues are statements of the form ``$x$ is not mentioned in $P$'', for exampl
   $P \llbracket v_1,\cdots/x_1,\cdots \rrbracket$ & apply multiple substitutions   & \texttt{P[|v1,.../x1,...|]} \\
   $P \oplus_p a$                & alphabet extrusion / extension (by lens $a$)     & \verb|P \oplus \sub p a| \\
   $P \upharpoonleft_p a$        & alphabet restriction (by lens $a$)               & \verb|P \restrict \sub p a| \\
+  $\lceil P \rceil_<$           & lift predicate $P$ to a precondition relation    & \verb|\lceil P \rceil \sub <| \\
+  $\lceil P \rceil_>$           & lift predicate $P$ to a postcondition relation   & \verb|\lceil P \rceil \sub >| \\
   \hline
 \end{tabular}  
 \end{center}
@@ -352,6 +354,9 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
   $P \interleave Q$          & $P ||| Q$                     & interleaving                           & \texttt{P ||| Q} \\
   $P \parallel[A] Q$         & $P ~[|\!A\!|]~ Q$             & parallel composition                   & \texttt{P [|A|] Q} \\
   $\rc{P}{Q}{R}$             & $[ P \vdash Q | R ]_C$        & reactive contract / specification      & \texttt{[ P |- Q | R ]}\verb|\sub C| \\
+  --                         & $\lceil P \rceil_S$           & lift relation on state to process      & \verb|\lceil P \rceil \sub s| \\
+  --                         & $\lceil P \rceil_{S<}$         & lift predicate on state to process     & \verb|\lceil P \rceil \sub s| \\
+  --                         & $(c\cdot v)_u$                & construct event over channel $c$       & \verb|(c \cdot v) \sub u| \\
   \hline
 \end{tabular}
 \end{center}
