@@ -176,7 +176,7 @@ lemma stlist_concat_not_eq2: "(b#\<^sub>t[d;e])+a \<noteq> [;c]+a"
   unfolding plus_stlist_def
   apply (induct a rule:stlist.induct)
   apply simp_all
-  by (metis add_le_same_cancel1 le_add lessI not_less stlist.size(4))
+  by (metis add_le_same_cancel1 lessI not_less stlist.size(4) trace_class.le_add)
     
 lemma stlist_concat_noteq: "x1a #\<^sub>t x2 \<noteq> x2"
   apply (induct x2)
@@ -241,14 +241,19 @@ subsubsection {* Additive monoid *}
 text {* Given a monoid_add class we also have a monoid_add. On top of
         plus we define the zero as the parametrised type zero. *}
   
-instantiation stlist :: (monoid_add_left) monoid_add_left
+instantiation stlist :: (zero) zero
 begin
-  
   definition zero_stlist :: "'a stlist" where "zero_stlist = [;0]" 
   
   lemma stlist_zero_is_zero:
   shows "[;0] = 0"
   by (simp add:zero_stlist_def)
+
+  instance by intro_classes
+end
+  
+instantiation stlist :: (monoid_add) monoid_add
+begin
   
 subsubsection {* Lemmas on monoid_add with stlist *}
     
@@ -258,14 +263,12 @@ lemma stlist_concat_zero_left[simp]:
   unfolding plus_stlist_def
   by (induct y, auto)
 
-(*    
+   
 lemma stlist_concat_zero_right[simp]: 
   fixes y::"'a stlist"
   shows "y + [;0] = y"
   unfolding plus_stlist_def
-  by (induct y, auto)*)
-    
-
+  by (induct y, auto)
     
 instance
   apply (intro_classes)
@@ -275,7 +278,7 @@ end
 text {* Given an additive monoid type, we can define a front function
         that yields front(s) + last(s) for a given stlist s *}
     
-primrec front :: "'a::monoid_add_left stlist \<Rightarrow> 'a stlist" where
+primrec front :: "'a::monoid_add stlist \<Rightarrow> 'a stlist" where
 "front [;x] = 0" |
 "front (x#\<^sub>txs) = (x#\<^sub>tfront xs)"
 
@@ -305,11 +308,12 @@ lemma stlist_plus_cons_eq_front_plus:
     
 subsubsection {* Orders *}
   
+(*
 text {* We now instantiate the ord class for the stlist type. *}
   
-instantiation stlist :: (monoid_add_left) ord
+instantiation stlist :: (monoid_add) ord
 begin
-  definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == monoid_le"
+  definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == fzero_le"
   definition less_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_stlist x y == x \<le> y \<and> \<not> (y \<le> x)"
 
   lemma stlist_plus_follow_concat:
@@ -321,18 +325,19 @@ begin
 end
   
 lemma monoid_le_stlist2:
-  "(xs :: 'a::monoid_add_left stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
+  "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   by (simp add: less_eq_stlist_def)
-
+*)
+  
 lemma stlist_right_cancel_monoid2:
   "(b#\<^sub>ta) = (c#\<^sub>ta) \<longleftrightarrow> b = c"  
   by auto
     
-subsubsection {* Left Cancelative Monoid *}
+subsubsection {* Left Cancelative Semigroup *}
   
 text {* We now instantiate the left_cancel_monoid class for the stlist type. *}
 
-instantiation stlist :: (left_cancel_monoid) left_cancel_monoid
+instantiation stlist :: (left_cancel_semigroup) left_cancel_semigroup
 begin
   
 lemma stlist_left_zero_cancel:
@@ -341,7 +346,7 @@ lemma stlist_left_zero_cancel:
   unfolding plus_stlist_def
   apply (induct a)
   apply auto
-  using left_cancel_monoid_class.add_left_imp_eq by blast
+  using left_cancel_semigroup_class.add_left_imp_eq by blast
    
 lemma stlist_left_cancel_monoid0:
   fixes b c :: "'a stlist"
@@ -349,7 +354,7 @@ lemma stlist_left_cancel_monoid0:
   unfolding plus_stlist_def
   apply (induct rule:stlist_induct_cons)
   apply auto
-  using left_cancel_monoid_class.add_left_imp_eq by blast+
+  using left_cancel_semigroup_class.add_left_imp_eq by blast+
     
 lemma stlist_left_cancel_monoid:
   fixes a b c :: "'a stlist"
@@ -374,22 +379,25 @@ lemma stlist_right_cancel_monoid0:
   shows "(b + [;a] = c + [;a]) \<Longrightarrow> b = c"
   unfolding plus_stlist_def
   apply (induct b c rule:stlist_induct_cons, auto)
-  using right_cancel_monoid_class.add_right_imp_eq by blast
+  using right_cancel_semigroup_class.add_right_imp_eq by blast
     
 lemma stlist_right_cancel_monoid1:
   fixes b c :: "'a stlist"
   shows "(b + [a;d] = c + [a;d]) \<Longrightarrow> b = c"
   unfolding plus_stlist_def
   apply (induct b c rule:stlist_induct_cons, auto)
-  using right_cancel_monoid_class.add_right_imp_eq apply blast
+  using right_cancel_semigroup_class.add_right_imp_eq apply blast
   apply (case_tac "xs", simp+)
   by (case_tac "ys", simp+)
+    
+lemma eqs: "x = y \<longleftrightarrow> (x #\<^sub>t xs) = (y #\<^sub>t xs)"
+  by auto
     
 lemma stlist_right_cancel_monoid:
   fixes b c :: "'a stlist"
   shows "b+a = c+a \<Longrightarrow> b = c"
   apply (induct a arbitrary: b c rule:stlist.induct)
-  using stlist_right_cancel_monoid0 apply blast 
+  using stlist_right_cancel_monoid0 apply blast
   by (metis (no_types, lifting) add.assoc concat_stlist.simps(3) plus_stlist_def stlist_concat_zero_left stlist_right_cancel_monoid1 zero_stlist_def)
 
 instance by (intro_classes, simp add:stlist_right_cancel_monoid)
@@ -410,15 +418,16 @@ instance
   apply (intro_classes)
   using  stlist_zero_monoid_sum  by blast+
 end
-  
+
+(* we can no longer instantiate this   
 subsubsection {* Difference *}
-  
-instantiation stlist :: (monoid_add_left) minus
+ 
+instantiation stlist :: (plus) minus
 begin
-  definition minus_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where "minus_stlist == monoid_subtract"
+  definition minus_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where "minus_stlist == fzero_subtract"
   
   instance by intro_classes
-end  
+end  *) 
   
 subsubsection {* Pre trace *}
 
@@ -435,7 +444,7 @@ proof -
     by (metis stlist_plus_nils)
       
   have b: "(a + b = c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-    by (simp add: sum_eq_sum_conv)
+    by (simp add: pre_trace_class.sum_eq_sum_conv)
   
   then have "(a + b = c + d) \<Longrightarrow> \<exists> e . [;a] = [;c] + e \<and> e + [;b] = [;d] \<or> [;a] + e = [;c] \<and> [;b] = e + [;d]"   
     by (metis stlist_plus_nils)
@@ -483,7 +492,7 @@ lemma stlist_eq_sum_conv_nils2:
       using "4.prems" a by blast
     
     from eq1 have "\<exists>e. a = c + e \<and> e + x = y \<or> a + e = c \<and> x = e + y"
-      by (simp add: sum_eq_sum_conv)
+      by (simp add: pre_trace_class.sum_eq_sum_conv)
         
     then have "\<exists>e. [;a] = [;c] + e \<and> e + [;x] = [;y] \<or> [;a] + e = [;c] \<and> [;x] = e + [;y]"
       by (metis stlist_plus_nils)
@@ -519,6 +528,7 @@ lemma stlist_sum_eq_sum_conv:
 instance by (intro_classes, simp add:stlist_sum_eq_sum_conv)
 end
 
+  (*
 subsubsection {* Trace *} 
   
 text {* Given a type of class pre_trace we get a trace. This means that
@@ -716,5 +726,6 @@ lemma stlist_cons_minus_zero_left:
       
   finally show ?thesis by simp
 qed*)
-
+*)
+  
 end

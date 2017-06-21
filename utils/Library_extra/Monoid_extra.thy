@@ -17,10 +17,14 @@ end
   
 class left_cancel_semigroup = plus +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
-
+    
+class left_cancel_monoid = monoid_add + left_cancel_semigroup
+    
 class right_cancel_semigroup = plus +
   assumes add_right_imp_eq: "b + a = c + a \<Longrightarrow> b = c"
 
+class right_cancel_monoid = monoid_add + right_cancel_semigroup
+    
 class monoid_sum_0 = monoid_add +
   assumes zero_sum_left: "a + b = 0 \<Longrightarrow> a = 0" 
 begin
