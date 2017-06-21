@@ -342,8 +342,8 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
      \verb|P \triangleleft b| \\[-5pt]
      \verb|\triangleright \sub R Q|
    \end{tabular} \\
-  $x := v$                   & $x :=_C v$                    & \Circus assignment                    & \verb|x := \sub C| \\
-  $\mu X @ P(X)$             & $\mu_C X @ P(X)$              & recursive fixed-point                  & \verb|\mu X \bullet P(X)| \\
+  $x := v$                   & $x :=_C v$                    & \Circus assignment                    & \verb|x := \sub C v| \\
+  $\mu X @ P(X)$             & $\mu_C X @ P(X)$              & recursive fixed-point                  & \verb|\mu \sub C X \bullet P(X)| \\
   $a \then P$                & $a \bm{\then} P$              & simple event prefix                    & \verb|a \bold\rightarrow P| \\
   $a?x \then P(x)$           & $a?x \bm{\then} P(x)$         & input event prefix                     & \verb|a?x \bold\rightarrow P(x)| \\
   $a!v \then P$              & $a!v \bm{\then} P$            & output event prefix                    & \verb|a!x \bold\rightarrow P| \\
