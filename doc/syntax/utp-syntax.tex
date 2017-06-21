@@ -84,6 +84,8 @@ $\alpha \times \alpha$ and thus the predicate variable syntax should be used.
 We can also use lenses to express alphabets~\cite{Foster17a} and, to some extent, collect variables in a set using lens
 operators~\cite{Foster16a}, as illustrated.
 
+\vspace{4ex}
+
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
   \textbf{Isabelle/UTP}    & \textbf{Math}      & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
@@ -97,9 +99,14 @@ operators~\cite{Foster16a}, as illustrated.
   $\emptyset$              & $\emptyset$        & no variables (``zero'' lens)          & \verb|\emptyset| \\
   in$\alpha$               & in$\alpha$         & relational input variables            & \verb|in\alpha| \\
   out$\alpha$              & out$\alpha$        & relational output variables           & \verb|out\alpha| \\
+  $x \mathop{\bowtie} y$   & $x \neq y$         & variables different (lens independence) & \verb|x \bowtie y| \\
+  $x \approx_L y$          & $x = y$            & variables equal (lens equivalence)     & \verb|x \approx \sub L y| \\
+  $x \subseteq_L a$        & $x \in a$          & alphabet membership (sublens)         & \verb|x \subseteq \sub L a| \\
   \hline
 \end{tabular}
 \end{center}
+
+\newpage
 
 \subsection{Arithmetic Operators}
 
@@ -204,6 +211,8 @@ Sets are modelled as HOL sets, and we lift several operators.
 \end{tabular}
 \end{center}
 
+\newpage
+
 \section{Meta-logical Operators}
 
 The meta-logic of Isabelle/UTP is simply HOL. Thus, we can use HOL to query and manipulate UTP predicates as objects
@@ -213,17 +222,23 @@ which effectively allow the addition and deletion of variables for which we agai
 system~\cite{Foster17a}. Our meta-logical operators are entirely idiosyncratic to Isabelle/UTP and the only mathematical
 analogues are statements of the form ``$x$ is not mentioned in $P$'', for example.
 
+\vspace{4ex}
+
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
   \textbf{Isabelle/UTP}         & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
   $x \mathop{\sharp} P$         &  $P$ does not depend on variable $x$             & \verb|x \sharp P| \\
+  $x \mathop{\bowtie} y$        & variables different (lens independence)          & \verb|x \bowtie y| \\
   $s \mathop{\dagger} P$        & apply substitution $s$ to $P$                    & \verb|s \dagger P| \\
   $[x_1 \mapsto v_1, \cdots]_s$  & 
   \begin{tabular}{c}                                                                 
-    construct substitution with  variable $x_i$  \\[-6pt]
-    being mapped to expresssion $v_i$
+    construct substitution function with variable  \\[-6pt]
+    $x_i$ being mapped to expression $v_i$
   \end{tabular}
                                 & \verb|[x1 \mapsto v1,...] \sub s| \\
+  $s -_s x$                     & remove variable $x$ from substitution $s$        & \verb|s - \sub s x| \\
+  $s \mathop{\dagger} P$        & apply substitution function $s$ to $P$           & \verb|s \dagger P| \\
+  $\langle s \rangle_s\, x$     & lookup expression associated with $x$ in $s$     & \verb|\langle s \rangle \sub s| \\
   $P \llbracket v/x \rrbracket$ & apply singleton substitution                     & \texttt{P[|v/x|]} \\
   $P \llbracket v_1,\cdots/x_1,\cdots \rrbracket$ & apply multiple substitutions   & \texttt{P[|v1,.../x1,...|]} \\
   $P \oplus_p a$                & alphabet extrusion / extension (by lens $a$)     & \verb|P \oplus \sub p a| \\
@@ -252,8 +267,6 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
   $\conditional{P}{b}{Q}$     & infix if-then-else conditional        & \verb|P \triangleleft b \triangleright Q| \\
   $P \refinedby Q$            & refinement                            & \verb|[=| or \verb|\sqsubseteq| \\
   $x$                         & predicate variable                    & \verb|&x| \\
-  $x$                         & relational before variable            & \verb|$x| \\
-  $x'$                        & relational after variable             & \verb|$x\acute| \\
   $\flqq v \frqq$             & HOL term / variable quotation         & \verb|<<x>>| \\
   $\forall x @ P$             & universal quantifier (UTP variable)   & \verb|! x \bullet P| \\
   $\exists x @ P$             & existential quantifier (UTP variable) & \verb|? x \bullet P| \\
@@ -275,6 +288,8 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
   \textbf{Math}              & \textbf{Isabelle/UTP}         & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  $x$                        & $\mathdollar x$               & relational before variable            & \verb|$x| \\
+  $x'$                       & $\mathdollar x \acute{}$      & relational after variable             & \verb|$x\acute| \\
   $P \relsemi Q$             & $P \relsemi\relsemi Q$        & sequential composition                & \verb|P ;; Q| \\
   $P \relsemi Q$             & $P \relsemi\relsemi_h Q$      & homogeneous sequential composition    & \verb|P ;; \sub s Q| \\
   $P^n$                      & $P ~~\bm{\hat{}}~~ n$         & replicated sequential composition     & \verb|P \bold ^ n | \\
