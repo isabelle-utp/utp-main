@@ -409,25 +409,7 @@ translations "if\<^sub>\<C> b then\<^sub>\<C> P else\<^sub>\<C> Q" \<rightleftha
 subsection {* Iterated Constructs *}
 
 text {* In this section, we define various iterated constructs. *}
-
-subsubsection {* Iterated Sequence *}
-
-text {*
-  An open question is whether to use a different Skip below. Here, I believe
-  it is not needed; the main issue is to exploit the property of @{term "II"}
-  being a right unit (@{thm seqr_right_unit}). Alternatively, we may use the
-  singleton list as the base case to circumvent the problem.
-*}
-
-primrec useq_iter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b hrel) \<Rightarrow> 'b hrel" where
-"useq_iter [] f = II" |
-"useq_iter (h # t) f = (f h) ;; (useq_iter t f)"
-
-syntax "_useq_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel"
-  ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
-
-translations ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST useq_iter) l (\<lambda>x. P)"
-
+  
 subsubsection {* Iterated Interleaving *}
 
 primrec interleave_iter ::

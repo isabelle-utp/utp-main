@@ -109,7 +109,7 @@ is "\<lambda> P Q b. b \<in> ({p. P p} O {q. Q q})" .
 
 adhoc_overloading
   useq seqr
-    
+   
 text {* We also set up a homogeneous sequential composition operator, and versions of @{term true}
   and @{term false} that are explicitly typed by a homogeneous alphabet. *}
 
@@ -121,7 +121,7 @@ abbreviation truer :: "'\<alpha> hrel" ("true\<^sub>h") where
 
 abbreviation falser :: "'\<alpha> hrel" ("false\<^sub>h") where
 "falser \<equiv> false"
-
+  
 text {* We define the relational converse operator as an alphabet extrusion on the bijective
   lens @{term swap\<^sub>L} that swaps the elements of the product state-space. *}
     
@@ -144,6 +144,12 @@ definition skip_r :: "'\<alpha> hrel" where
 adhoc_overloading
   uskip skip_r
 
+text {* We set up iterated sequential composition which iterates an indexed predicate over the
+  elements of a list. *}
+  
+definition seqr_iter :: "'a list \<Rightarrow> ('a \<Rightarrow> 'b hrel) \<Rightarrow> 'b hrel" where
+[urel_defs]: "seqr_iter xs P = foldr (\<lambda> i Q. P(i) ;; Q) xs II"
+  
 text {* A singleton assignment simply applies a singleton substitution function, and similarly
   for a double assignment. *}
 
@@ -219,6 +225,8 @@ definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha
 subsection {* Syntax Translations *}
     
 syntax
+  -- {* Iterated sequential composition *}
+  "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   -- {* Single and multiple assignement *}
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
   -- {* Indexed assignment *}
@@ -233,17 +241,18 @@ syntax
   "_antiframe" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [64,0] 80)
   
 translations
-  "_mk_usubst \<sigma> (_svid_unit x) v" == "\<sigma>(&x \<mapsto>\<^sub>s v)"
-  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" == "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
+  ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
+  "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
+  "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
   "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
   "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
   "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
   -- {* Indexed assignment uses the overloaded collection update function \emph{uupd}. *}
   "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
-  "_skip_ra v" == "CONST skip_ra v"
-  "_frame x P" == "CONST frame x P"
-  "_antiframe x P" == "CONST antiframe x P" 
+  "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
+  "_frame x P" \<rightleftharpoons> "CONST frame x P"
+  "_antiframe x P" \<rightleftharpoons> "CONST antiframe x P" 
   
 subsection {* Relation Properties *}
   

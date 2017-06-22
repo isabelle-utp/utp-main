@@ -232,6 +232,14 @@ lemma shEx_lift_seq_2 [uquant_lift]:
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_auto
   
+subsection {* Iterated Sequential Composition Laws *}
+  
+lemma iter_seqr_nil [simp]: "(;; i : [] \<bullet> P(i)) = II"
+  by (simp add: seqr_iter_def)
+    
+lemma iter_seqr_cons [simp]: "(;; i : (x # xs) \<bullet> P(i)) = P(x) ;; (;; i : xs \<bullet> P(i))"
+  by (simp add: seqr_iter_def)
+
 subsection {* Quantale Laws *}
 
 lemma seq_Sup_distl: "P ;; (\<Sqinter> A) = (\<Sqinter> Q\<in>A. P ;; Q)"
@@ -590,7 +598,10 @@ lemma SUP_atLeastAtMost_first:
   assumes "m \<le> n"
   shows "(\<Sqinter>i\<in>{m..n}. P(i)) = P(m) \<sqinter> (\<Sqinter>i\<in>{Suc m..n}. P(i))"
   by (metis SUP_insert assms atLeastAtMost_insertL)
-
+    
+lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
+  by (induct n, simp_all)
+    
 subsubsection {* Kleene Star *}
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where

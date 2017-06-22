@@ -295,8 +295,9 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
   $x'$                       & $\mathdollar x \acute{}$      & relational after variable             & \verb|$x\acute| \\
   $P \relsemi Q$             & $P \relsemi\relsemi Q$        & sequential composition                & \verb|P ;; Q| \\
   $P \relsemi Q$             & $P \relsemi\relsemi_h Q$      & homogeneous sequential composition    & \verb|P ;; \sub s Q| \\
-  $P^n$                      & $P ~~\bm{\hat{}}~~ n$         & replicated sequential composition     & \verb|P \bold ^ n | \\
-  $P^{\star}$                   & $P^{\star}$                      & Kleene star                           & \verb|P \sup \star n | \\
+  $P^n$                      & $P ~~\bm{\hat{}}~~ n$         & repeated sequential composition       & \verb|P \bold ^ n | \\
+  $\relsemi i:xs @ P(i)$     & $\relsemi\relsemi i : xs @ P(i)$ & replicated sequential composition  & \verb|;; i : xs \bullet P(i)| \\
+  $P^{\star}$                  & $P^{\star}$                      & Kleene star                           & \verb|P \sup \star n | \\
   $\II$                      & II                            & relational identity / skip            & \verb|II| \\ 
   $\textbf{true}$            & $\textbf{true}_h$             & homogeneous universal relation        & \verb|true \sub h| \\
   $\textbf{false}$           & $\textbf{false}_h$            & homogeneous empty relation            & \verb|false \sub h| \\
