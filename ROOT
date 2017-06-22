@@ -69,7 +69,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Continuum
     Dyadic
     Finite_Bijection
-    Infinity
+    (* Infinity *)
     Lightweight_Cardinals
     Real_Bit
     UNIV_TYPE
@@ -166,20 +166,12 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
-    utp_hybrid_ex
   document_files
     "root.bib"
     "root.tex"
     "document.sty"
     "zed.sty"
     "csp.sty"
-    
-(* Modelica Mechanisation *)
-    
-session "Modelica" in "modelica" = "UTP-HYBRID" +
-  options [document = false]
-  theories
-    Modelica
 
 (* VDM-SL Mechanisation *)
 
@@ -205,7 +197,7 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
 session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    fmi
+    fmi railways
   document_files
     (* "root.bib" *)
     "root.tex"
