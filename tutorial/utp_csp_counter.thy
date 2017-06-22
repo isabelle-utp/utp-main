@@ -83,7 +83,7 @@ lemma postR_Counter [rdes]:
 text {* From these calculations we can prove a simple property of the counter -- any output
   on count must hold a number greater than the starting value. *}
         
-lemma Counter_property: 
+lemma Counter_property_1: 
   "[true \<turnstile> \<^bold>\<forall> i \<bullet> (count\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<in>\<^sub>u elems\<^sub>u(\<guillemotleft>trace\<guillemotright>) \<Rightarrow> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr | false]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
   apply (rule CRD_mu_basic_refine)
   apply (simp_all add: closure rdes usubst alpha unrest)
@@ -92,6 +92,15 @@ lemma Counter_property:
    apply (rel_simp)
   apply (smt Suc_leD append.assoc append_Cons append_Nil append_minus ch_counter.inject less_eq_list_def order_refl prefix_concat_minus set_ConsD)
 done    
+  
+lemma Counter_property_2: 
+  "[true \<turnstile> \<Sqinter> i \<bullet> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr \<Rightarrow> \<guillemotleft>trace\<guillemotright> =\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>&ctr..<\<guillemotleft>i\<guillemotright>\<rangle> | false ]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
+  apply (rule CRD_mu_basic_refine)
+  apply (simp_all add: closure rdes usubst alpha unrest)
+  apply (rel_simp, simp add: zero_list_def)
+  apply auto[1]
+  apply (rel_auto)
+oops
   
 end
   
