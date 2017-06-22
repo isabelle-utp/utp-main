@@ -250,6 +250,15 @@ declare equal_literal.rep_eq [code del]
 
 text {* We next prove via code evaluation that the PDG is acyclic indeed. *}
 
+lemma acyclic_witnessI:
+"(\<exists>s. r \<subseteq> s \<and> s O r \<subseteq> s \<and> irrefl s) \<Longrightarrow> acyclic r"
+apply (clarsimp)
+apply (subgoal_tac "r\<^sup>+ \<subseteq> s")
+apply (meson acyclic_def irrefl_def subsetCE)
+apply (erule trancl_Int_subset)
+apply (auto)
+done
+
 lemma "acyclic pdg"
 apply (eval)
 done
