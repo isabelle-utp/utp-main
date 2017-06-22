@@ -325,6 +325,7 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
    expression with no after variables 
    \end{tabular}
          & \verb|x := v| \\
+  $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=\!(e_1, e_2)$        & multiple assignment                   & \verb|(x1,x2) := (e1,e2)| \\
   $b^{\top}$                  & $b^{\top}$                     & relational assumption                 & \verb|b \sup \top| \\
   $b_{\bot}$                  & $b_{\bot}$                     & relational assertion                  & \verb|b \sub \bottom| \\
   $b \star P$                & $\textbf{while}~b~\textbf{do}~P~\textbf{od}$ & while loop (strongest fixed-point)            & \verb|while b do P od| \\
@@ -347,6 +348,7 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
      \verb|\triangleright \sub R Q|
    \end{tabular} \\
   $x := v$                   & $x :=_C v$                    & \Circus assignment                    & \verb|x := \sub C v| \\
+  $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=_C\!(e_1, e_2)$      & \Circus multiple assignment            & \verb|(x1,x2) := \sub C (e1,e2)| \\
   $\mu X @ P(X)$             & $\mu_C X @ P(X)$              & recursive fixed-point                  & \verb|\mu \sub C X \bullet P(X)| \\
   $a \then P$                & $a \bm{\then} P$              & simple event prefix                    & \verb|a \bold\rightarrow P| \\
   $a?x \then P(x)$           & $a?x \bm{\then} P(x)$         & input event prefix                     & \verb|a?x \bold\rightarrow P(x)| \\
