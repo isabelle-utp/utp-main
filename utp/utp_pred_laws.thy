@@ -336,6 +336,12 @@ lemma UINF_all_nats [simp]:
   shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
   by (pred_auto)
 
+lemma UINF_refines':
+  assumes "\<And> i. P \<sqsubseteq> Q(i)" 
+  shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
+  using assms
+  apply (rel_auto) using Sup_le_iff by fastforce
+    
 subsection {* Equality laws *}
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"

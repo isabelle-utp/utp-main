@@ -30,7 +30,23 @@ lemma msubst_disj [usubst]: "(P(x) \<or> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> 
     
 lemma msubst_conj [usubst]: "(P(x) \<and> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> \<and> (Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>)"
   by (pred_auto)
-  
+
+lemma msubst_shAll [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y)\<lbrakk>y\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y)\<lbrakk>y\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_shAll_2 [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto, metis Pair_inject)
+    
+lemma msubst_implies [usubst]:
+  "(P x \<Rightarrow> Q x)\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P x)\<lbrakk>x\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_implies_2 [usubst]:
+  "(P x y \<Rightarrow> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto, metis Pair_inject, metis eq_snd_iff)
+    
 lemma msubst_seq [usubst]: "(P(x) ;; Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> ;; (Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk>)"
   by (rel_auto)  
     

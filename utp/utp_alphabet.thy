@@ -2,7 +2,7 @@ section {* Alphabet Manipulation *}
 
 theory utp_alphabet
   imports
-    utp_pred
+    utp_pred utp_event
 begin
 
 subsection {* Preliminaries *}
@@ -84,6 +84,12 @@ lemma aext_imp [alpha]: "(P \<Rightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^
   by (pred_auto)
 
 lemma aext_iff [alpha]: "(P \<Leftrightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Leftrightarrow> Q \<oplus>\<^sub>p x)"
+  by (pred_auto)
+    
+lemma aext_shAll [alpha]: "(\<^bold>\<forall> x \<bullet> P(x)) \<oplus>\<^sub>p a = (\<^bold>\<forall> x \<bullet> P(x) \<oplus>\<^sub>p a)"
+  by (pred_auto)
+    
+lemma aext_event [alpha]: "(c\<cdot>v)\<^sub>u \<oplus>\<^sub>p a = (c\<cdot>v \<oplus>\<^sub>p a)\<^sub>u"
   by (pred_auto)
     
 text {* Alphabet extension distributes through the function liftings. *}

@@ -1910,6 +1910,14 @@ proof -
   thus ?thesis
     by (simp add: SRD_reactive_tri_design assms(1))
 qed
+
+lemma CRD_contract_refine':
+  assumes
+    "Q is CSP" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`"
+    "\<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q)"
+    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q)"
+  shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
+  using assms by (rule_tac CRD_contract_refine, simp_all add: refBy_order)
   
 text {* A healthiness condition for weakly guarded CSP processes *}
 
@@ -2582,6 +2590,56 @@ lemma postR_mu_example1 [rdes]:
   "post\<^sub>R(\<mu> X \<bullet> a \<^bold>\<rightarrow> X) = false"
   by (simp add: mu_example1 rdes closure unrest wp)
 
+lemma SRD_refine_intro':
+  assumes
+    "P is SRD" "Q is SRD"
+    "`pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`" "peri\<^sub>R(P) \<sqsubseteq> (pre\<^sub>R(P) \<and> peri\<^sub>R(Q))" "post\<^sub>R(P) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(Q))"
+  shows "P \<sqsubseteq> Q"
+  using assms by (rule_tac SRD_refine_intro, simp_all add: refBy_order)
+    
+lemma mu_csp_basic_refine:
+  assumes 
+    "P is CSP" "Q is NCSP" "Q is Productive" "pre\<^sub>R(P) = true" "pre\<^sub>R(Q) = true"
+    "peri\<^sub>R P \<sqsubseteq> peri\<^sub>R Q"
+    "peri\<^sub>R P \<sqsubseteq> post\<^sub>R Q"
+    "peri\<^sub>R P \<sqsubseteq> peri\<^sub>R P ;; peri\<^sub>R P"
+  shows "P \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> Q ;; X)"
+proof (rule SRD_refine_intro', simp_all add: closure usubst alpha rdes unrest wp seq_UINF_distr assms)
+  show "peri\<^sub>R P \<sqsubseteq> (\<Sqinter> i \<bullet> post\<^sub>R Q \<^bold>^ i ;; peri\<^sub>R Q)"
+  proof (rule UINF_refines')
+    fix i
+    show "peri\<^sub>R P \<sqsubseteq> post\<^sub>R Q \<^bold>^ i ;; peri\<^sub>R Q"
+    proof (induct i)
+      case 0
+      then show ?case by (simp add: assms)
+    next
+      case (Suc i)
+      then show ?case
+        by (simp, metis (no_types, lifting) assms(7) assms(8) dual_order.trans seqr_mono upred_semiring.mult_assoc)
+    qed
+  qed
+qed
+  
+lemma CRD_mu_basic_refine:
+  fixes P :: "'e list \<Rightarrow> 'e set \<Rightarrow> 's upred"
+  assumes
+    "Q is NCSP" "Q is Productive" "pre\<^sub>R(Q) = true"
+    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> peri\<^sub>R Q"
+    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> post\<^sub>R Q"
+    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> (R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>) :: ('s, 'e) action) ;; 
+                                       R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>)"
+  shows "[true \<turnstile> P trace refs | R]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> Q ;; X)"
+  apply (rule mu_csp_basic_refine)
+  apply (simp_all add: assms closure alpha rdes R1_false)
+  using NCSP_implies_CSP R1_mono R1_peri_SRD assms(1) assms(4) apply fastforce
+  using NCSP_implies_CSP R1_mono R1_post_SRD assms(1) assms(5) apply fastforce
+  apply (rule order_trans)
+   defer
+   apply (rule R1_mono)
+   apply (rule_tac assms(6))
+  apply (rel_auto)
+done
+    
 subsection {* Merge predicate *}
 
 definition CSPMerge' :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>C") where
@@ -2749,7 +2807,7 @@ proof -
     by (simp add: R1_neg_preR closure alpha NSRD_neg_pre_unit assms)
   finally show ?thesis by (simp add: CSP5_def)
 qed
-
+  
 lemma CSP5_Skip [closure]: "Skip is CSP5"
   unfolding CSP5_def Healthy_def
   by (rule SRD_eq_intro)
@@ -2759,7 +2817,7 @@ lemma CSP5_Stop [closure]: "Stop is CSP5"
   unfolding CSP5_def Healthy_def
   by (rule SRD_eq_intro)
      (simp_all add: ParCSP_expand rdes closure wp, rel_auto, simp_all add: minus_zero_eq zero_list_def)
-
+     
 subsection {* Failures-Divergences Semantics *}
 
 definition divergences :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> '\<phi> list set" ("dv\<lbrakk>_\<rbrakk>_" [0,100] 100) where
@@ -2771,15 +2829,30 @@ definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Right
 definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "failures P s = {(t,r) | t r. `(pre\<^sub>R(P) \<and> peri\<^sub>R(P))\<lbrakk>\<guillemotleft>r\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$tr,$tr\<acute>\<rbrakk>`}"
 
-term "{$st,$tr,$tr\<acute>}\<^sub>\<alpha>"
-     
+(*
+lemma bij_lens_in_out:
+  "bij_lens (in\<alpha> +\<^sub>L out\<alpha>)"
+  by (simp add: bij_lens_equiv_id lens_equiv_sym alpha_in_out)
+  
+lemma bij_lens_comp: "\<lbrakk> bij_lens X; bij_lens Y \<rbrakk> \<Longrightarrow> bij_lens (X ;\<^sub>L Y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+  
+    
+lemma   
+  assumes "bij_lens X"
+  shows "bij_lens ((X ;\<^sub>L fst\<^sub>L) +\<^sub>L (X ;\<^sub>L snd\<^sub>L))"
+proof -
+  have "X \<approx>\<^sub>L 1\<^sub>L"
+    
+
 lemma 
   assumes "P is NCSP" "Q is NCSP" "\<And> s. divergences P s \<subseteq> divergences Q s"
   shows "pre\<^sub>R(Q) \<sqsubseteq> pre\<^sub>R(P)"
 proof (rule refine_by_obs[of "{$st,$tr,$tr\<acute>}\<^sub>\<alpha>" "{$ok,$ok\<acute>,$wait,$wait\<acute>,$st\<acute>,$ref,$ref\<acute>}\<^sub>\<alpha>"],
        simp_all add: unrest assms closure)
   oops
-     
+*)  
+   
 lemma traces_Skip:
   "tr\<lbrakk>Skip\<rbrakk>s = {([], s)}"
   by (simp add: traces_def rdes alpha closure, rel_simp)

@@ -4,27 +4,27 @@ theory utp_csp_counter
   imports "../theories/utp_csp"
 begin
   
-datatype ch_counter = count nat
+datatype ch_counter = count (get_val: nat)
 alphabet st_counter =
   ctr :: nat
 
 text {* This one of the simplest possible stateful CSP processes. It starts from a given number
   and keeps outputting the next number when asked. *}
   
-abbreviation "CtrBdy(n) \<equiv> (count.(&ctr) \<^bold>\<rightarrow> ctr :=\<^sub>C (&ctr + 1))"
+abbreviation "CtrBdy \<equiv> (count.(&ctr) \<^bold>\<rightarrow> ctr :=\<^sub>C (&ctr + 1))"
   
-definition "Counter(n) = (ctr :=\<^sub>C \<guillemotleft>n\<guillemotright> ;; (\<mu>\<^sub>C X \<bullet> CtrBdy(n) ;; X))"
+definition "Counter(n) = (ctr :=\<^sub>C \<guillemotleft>n\<guillemotright> ;; (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X))"
   
-text {* We calculate the pre, peri-, and postconditions of @{term "CtrBdy(n)"} below. Nothing 
+text {* We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. Nothing 
   surprising I think. *}
   
-lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy(n)) = true"
+lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy) = true"
   by (simp add: rdes closure usubst)
   
-lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy(n)) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
+lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (simp add: rdes closure usubst alpha unrest)
     
-lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy(n)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>ctr := (&ctr + 1)\<rceil>\<^sub>S)"
+lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>ctr := (&ctr + 1)\<rceil>\<^sub>S)"
   by (simp add: rdes closure usubst unrest)
     
 text {* The recursive case is a little more interesting. *}
@@ -92,6 +92,25 @@ lemma Counter_property:
   apply (rel_simp)
   apply (simp add: rdes)
 done
+
+lemma
+  "[true \<turnstile> \<guillemotleft>sorted (map get_val trace)\<guillemotright> | false ]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
+  apply (rule CRD_mu_basic_refine)
+  apply (simp_all add: closure rdes usubst alpha)
+  apply (rel_simp)
+  apply (simp add: zero_list_def)  
+   apply (rel_simp)
+    apply (rel_simp)
+oops
+      
+lemma Counter_property: 
+  "[true \<turnstile> \<^bold>\<forall> i \<bullet> (count\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<in>\<^sub>u elems\<^sub>u(\<guillemotleft>trace\<guillemotright>) \<Rightarrow> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr | false]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
+  apply (rule CRD_mu_basic_refine)
+  apply (simp_all add: closure rdes usubst alpha unrest)
+  apply (rel_simp)
+    apply (simp add: zero_list_def)  
+   apply (rel_simp)
+oops    
   
 end
   
