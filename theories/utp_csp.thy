@@ -1919,6 +1919,15 @@ lemma CRD_contract_refine':
   shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
   using assms by (rule_tac CRD_contract_refine, simp_all add: refBy_order)
   
+lemma CRD_refine_CRD: 
+  assumes 
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> (\<lceil>Q\<^sub>1\<rceil>\<^sub>S\<^sub>< :: ('e,'s) action)`"
+    "(\<lceil>P\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> :: ('e,'s) action)"
+    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> :: ('e,'s) action)"
+  shows "([P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3 trace]\<^sub>C :: ('e,'s) action) \<sqsubseteq> [Q\<^sub>1 \<turnstile> Q\<^sub>2 trace refs | Q\<^sub>3 trace]\<^sub>C"
+  using assms
+  by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, simp_all add: refBy_order)
+    
 text {* A healthiness condition for weakly guarded CSP processes *}
 
 definition [upred_defs]: "Productive(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"

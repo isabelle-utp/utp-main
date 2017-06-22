@@ -5,9 +5,13 @@ theory utp_csp_counter
 begin
   
 datatype ch_counter = count (get_val: nat)
+
 alphabet st_counter =
   ctr :: nat
 
+lemma get_val_count [simp]: "get_val \<circ> count = id"
+  by (auto)
+  
 text {* This one of the simplest possible stateful CSP processes. It starts from a given number
   and keeps outputting the next number when asked. *}
   
@@ -92,15 +96,28 @@ lemma Counter_property_1:
    apply (rel_simp)
   apply (smt Suc_leD append.assoc append_Cons append_Nil append_minus ch_counter.inject less_eq_list_def order_refl prefix_concat_minus set_ConsD)
 done    
-  
+
 lemma Counter_property_2: 
-  "[true \<turnstile> \<Sqinter> i \<bullet> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr \<Rightarrow> \<guillemotleft>trace\<guillemotright> =\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>&ctr..<\<guillemotleft>i\<guillemotright>\<rangle> | false ]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
+  "[true \<turnstile> \<Sqinter> i \<bullet> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr \<and> \<guillemotleft>trace\<guillemotright> =\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>&ctr..<\<guillemotleft>i\<guillemotright>\<rangle> | false ]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
   apply (rule CRD_mu_basic_refine)
   apply (simp_all add: closure rdes usubst alpha unrest)
   apply (rel_simp, simp add: zero_list_def)
   apply auto[1]
-  apply (rel_auto)
-oops
+  apply (rel_simp)
+  apply (metis Prefix_Order.prefixE Suc_leD Suc_le_lessD append_Cons append_Nil append_assoc append_minus list.simps(9) upt_rec)
+done
+    
+lemma Counter_property_3: 
+  "[true \<turnstile> sorted\<^sub>u(map\<^sub>u \<guillemotleft>get_val\<guillemotright> \<guillemotleft>trace\<guillemotright>) | false ]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X)"
+  (is "?lhs \<sqsubseteq> ?rhs")
+proof -
+  have "?lhs \<sqsubseteq> [true \<turnstile> \<Sqinter> i \<bullet> \<guillemotleft>i\<guillemotright> \<ge>\<^sub>u &ctr \<and> \<guillemotleft>trace\<guillemotright> =\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>&ctr..<\<guillemotleft>i\<guillemotright>\<rangle> | false ]\<^sub>C"
+    by (rule CRD_refine_CRD, simp_all add: alpha, rel_simp)
+  thus ?thesis
+    using Counter_property_2 dual_order.trans by blast
+qed
+    
+    
   
 end
   
