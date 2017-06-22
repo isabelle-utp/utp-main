@@ -1700,7 +1700,7 @@ qed
 lemma preR_InputCSP [rdes]:
   assumes "\<And> v. P(v) is NCSP"
   shows "pre\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) = (\<Squnion> v \<bullet> \<lceil>A(v)\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R (P v)\<lbrakk>$tr ^\<^sub>u \<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>/$tr\<rbrakk>)"
-  by (simp add: InputCSP_def rdes closure assms alpha usubst unrest, rel_auto)
+  by (simp add: InputCSP_def rdes closure assms alpha usubst unrest)
 
 lemma periR_InputCSP [rdes]:
   assumes "\<And> v. P(v) is NCSP"
@@ -2601,8 +2601,7 @@ lemma mu_csp_basic_refine:
   assumes 
     "P is CSP" "Q is NCSP" "Q is Productive" "pre\<^sub>R(P) = true" "pre\<^sub>R(Q) = true"
     "peri\<^sub>R P \<sqsubseteq> peri\<^sub>R Q"
-    "peri\<^sub>R P \<sqsubseteq> post\<^sub>R Q"
-    "peri\<^sub>R P \<sqsubseteq> peri\<^sub>R P ;; peri\<^sub>R P"
+    "peri\<^sub>R P \<sqsubseteq> post\<^sub>R Q ;; peri\<^sub>R P"
   shows "P \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> Q ;; X)"
 proof (rule SRD_refine_intro', simp_all add: closure usubst alpha rdes unrest wp seq_UINF_distr assms)
   show "peri\<^sub>R P \<sqsubseteq> (\<Sqinter> i \<bullet> post\<^sub>R Q \<^bold>^ i ;; peri\<^sub>R Q)"
@@ -2615,7 +2614,7 @@ proof (rule SRD_refine_intro', simp_all add: closure usubst alpha rdes unrest wp
     next
       case (Suc i)
       then show ?case
-        by (simp, metis (no_types, lifting) assms(7) assms(8) dual_order.trans seqr_mono upred_semiring.mult_assoc)
+        by (meson assms(6) assms(7) semilattice_sup_class.le_sup_iff upower_inductl)
     qed
   qed
 qed
@@ -2625,20 +2624,25 @@ lemma CRD_mu_basic_refine:
   assumes
     "Q is NCSP" "Q is Productive" "pre\<^sub>R(Q) = true"
     "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> peri\<^sub>R Q"
-    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> post\<^sub>R Q"
-    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> (R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>) :: ('s, 'e) action) ;; 
-                                       R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>)"
+    "\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk> \<sqsubseteq> (post\<^sub>R Q ;;\<^sub>h R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>))"
   shows "[true \<turnstile> P trace refs | R]\<^sub>C \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> Q ;; X)"
-  apply (rule mu_csp_basic_refine)
-  apply (simp_all add: assms closure alpha rdes R1_false)
-  using NCSP_implies_CSP R1_mono R1_peri_SRD assms(1) assms(4) apply fastforce
-  using NCSP_implies_CSP R1_mono R1_post_SRD assms(1) assms(5) apply fastforce
-  apply (rule order_trans)
-   defer
-   apply (rule R1_mono)
-   apply (rule_tac assms(6))
-  apply (rel_auto)
-done
+proof (rule mu_csp_basic_refine, simp_all add: assms closure alpha rdes R1_false)
+  show "R1 (\<lceil>P trace refs\<rceil>\<^sub>S\<^sub><\<lbrakk>(trace, refs)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>) \<sqsubseteq> peri\<^sub>R Q"
+    using NCSP_implies_CSP R1_mono R1_peri_SRD assms(1) assms(4) by fastforce
+  show "R1 (\<lceil>P trace refs\<rceil>\<^sub>S\<^sub><\<lbrakk>(trace, refs)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>) \<sqsubseteq> post\<^sub>R Q ;; R1 (\<lceil>P trace refs\<rceil>\<^sub>S\<^sub><\<lbrakk>(trace, refs)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>)"
+    (is "?lhs \<sqsubseteq> ?rhs")
+  proof -
+    have 1:"?lhs \<sqsubseteq> R1(post\<^sub>R Q ;;\<^sub>h R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>))"
+      by (rule R1_mono, rule assms(5))
+    have 2:"R1(post\<^sub>R Q ;;\<^sub>h R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>)) = 
+            R1(R1(post\<^sub>R Q) ;;\<^sub>h R1(\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>))"
+      by (simp add: R1_post_SRD assms closure)
+    have 3: "... = post\<^sub>R Q ;; R1 (\<lceil>P t r\<rceil>\<^sub>S\<^sub><\<lbrakk>(t, r)\<rightarrow>(tt, $ref\<acute>)\<^sub>u\<rbrakk>)"
+      by (simp add: R1_seqr, simp add: R1_post_SRD assms closure)
+    show ?thesis
+      using "1" "2" "3" by auto
+  qed
+qed
     
 subsection {* Merge predicate *}
 
