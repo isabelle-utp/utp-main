@@ -229,7 +229,6 @@ analogues are statements of the form ``$x$ is not mentioned in $P$'', for exampl
   \textbf{Isabelle/UTP}         & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
   $x \mathop{\sharp} P$         &  $P$ does not depend on variable $x$             & \verb|x \sharp P| \\
   $x \mathop{\bowtie} y$        & variables different (lens independence)          & \verb|x \bowtie y| \\
-  $s \mathop{\dagger} P$        & apply substitution $s$ to $P$                    & \verb|s \dagger P| \\
   $[x_1 \mapsto v_1, \cdots]_s$  & 
   \begin{tabular}{c}                                                                 
     construct substitution function with variable  \\[-6pt]
@@ -244,7 +243,9 @@ analogues are statements of the form ``$x$ is not mentioned in $P$'', for exampl
   $P \oplus_p a$                & alphabet extrusion / extension (by lens $a$)     & \verb|P \oplus \sub p a| \\
   $P \upharpoonleft_p a$        & alphabet restriction (by lens $a$)               & \verb|P \restrict \sub p a| \\
   $\lceil P \rceil_<$           & lift predicate $P$ to a precondition relation    & \verb|\lceil P \rceil \sub <| \\
+  $\lfloor P \rfloor_<$         & drop precondition relation $P$ to predicate      & \verb|\lfloor P \rfloor \sub <| \\
   $\lceil P \rceil_>$           & lift predicate $P$ to a postcondition relation   & \verb|\lceil P \rceil \sub >| \\
+  $\lfloor P \rfloor_>$         & drop postcondition relation $P$ to predicate     & \verb|\lfloor P \rfloor \sub >| \\
   \hline
 \end{tabular}  
 \end{center}
