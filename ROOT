@@ -69,7 +69,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Continuum
     Dyadic
     Finite_Bijection
-    Infinity
+    (* Infinity *)
     Lightweight_Cardinals
     Real_Bit
     UNIV_TYPE
@@ -217,7 +217,7 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
 session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    fmi
+    fmi railways
   document_files
     (* "root.bib" *)
     "root.tex"

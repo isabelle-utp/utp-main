@@ -386,6 +386,19 @@ definition typedep_FMI2COMP :: "FMI2COMP itself \<Rightarrow> utype set" where
 instance ..
 end
 
+-- {* The below facilitates evaluation of the transitive closure of the PDG. *}
+
+instantiation FMI2COMP :: equal
+begin
+definition equal_FMI2COMP ::"FMI2COMP \<Rightarrow> FMI2COMP \<Rightarrow> bool" where
+"equal_FMI2COMP x y = (x = y)"
+instance
+apply (intro_classes)
+apply (unfold equal_FMI2COMP_def)
+apply (rule refl)
+done
+end
+
 inject_type FMI2COMP
 
 text {* Instantiation the relevant classes for the deep value model. *}
@@ -692,6 +705,9 @@ consts outputs :: "port list"
 -- {* Before: @{text "consts pdg :: \"port relation\""}. *}
 consts pdg :: "port \<Rightarrow> (port list)"
 
+(* TODO: The below should go into a separate file! *)
+
+(*
 subsubsection {* Instantiation with the Example in D2.2d *}
 
 text {*
@@ -761,6 +777,7 @@ begin
     (pdsgfmu2, $y:{nat}\<^sub>u),
     (samplerfmu, $z:{nat}\<^sub>u)]"
 end
+*)
 
 subsection {* Simulation Parameters *}
 
