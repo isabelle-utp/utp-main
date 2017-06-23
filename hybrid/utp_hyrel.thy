@@ -3,6 +3,7 @@ section {* Hybrid Relational Calculus *}
 theory utp_hyrel
 imports
   "../utp/utp"
+  "../theories/utp_csp"
   "../theories/utp_rea_designs"
   "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
   "../dynamics/Derivative_extra"
@@ -10,7 +11,7 @@ imports
 begin recall_syntax
   
 subsection {* Preliminaries *}
-
+  
 text {* Lens summation of two continuous lenses is continuous *}
   
 lemma continuous_on_plus_lens [continuous_intros]:
@@ -39,7 +40,12 @@ type_synonym ('d,'c) hybs = "('d \<times> 'c, 'c ttrace, unit) rsp"
 type_synonym ('d,'c) hyrel  = "('d,'c) hybs hrel"
 type_synonym ('a,'d,'c) hycond = "('a,('d,'c) hybs) uexpr"
 type_synonym ('a,'d,'c) hyexpr = "('a,('d,'c) hybs \<times> ('d,'c) hybs) uexpr"
-
+  
+translations
+  (type) "('d,'c) hybs" <= (type) "('d \<times> 'c, 'c1 ttrace, unit) rsp"
+  (type) "('d,'c) hyrel" <= (type) "('d, 'c) hybs hrel"
+  (type) "('a,'d,'c) hyexpr" <= (type) "('a, ('d, 'c) hybs) hexpr"
+  
 text {* Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discrete part is stored
   in @{typ "'d"} and the continuous part in @{typ "'c"}. It is defined in terms of
   @{typ "('s, 't, '\<alpha>) rsp"}, the type of reactive stateful process which includes the observational
@@ -67,7 +73,7 @@ translations
 text {* The syntax annotation @{term "e:(x)"} allows us to apply a variable lens $x$ to an
   expression $e$. This can be used, for example, to lookup a field of the given record or
   variable of a given state space. *}
-
+  
 abbreviation trace :: "('c::topological_space ttrace, 'd, 'c) hyexpr" ("\<^bold>t") where
 "\<^bold>t \<equiv> $tr\<acute> - $tr"
 

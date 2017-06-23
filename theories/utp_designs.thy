@@ -54,7 +54,8 @@ translations
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_scheme"
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_ext"
   (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) rel"
-
+  (type) "'\<alpha> hrel_des" <= (type) "'\<alpha> des hrel"
+  
 notation des_vars_child_lens ("\<Sigma>\<^sub>D")
 
 lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
@@ -98,7 +99,7 @@ text {* An rdesign is a design that uses the Isabelle type system to prevent ref
 
 definition rdesign::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 60)
 where "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D"
-
+  
 text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
 
 definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 60)

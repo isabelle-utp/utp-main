@@ -75,9 +75,10 @@ text {* We create type synonyms for conditions (which are simply predicates) -- 
   without dashed variables --, alphabetised relations where the input and output alphabet can
   be different, and finally homogeneous relations. *}
   
-type_synonym '\<alpha> cond      = "'\<alpha> upred"
-type_synonym ('\<alpha>, '\<beta>) rel = "('\<alpha> \<times> '\<beta>) upred"
-type_synonym '\<alpha> hrel      = "('\<alpha> \<times> '\<alpha>) upred"
+type_synonym '\<alpha> cond        = "'\<alpha> upred"
+type_synonym ('\<alpha>, '\<beta>) rel   = "('\<alpha> \<times> '\<beta>) upred"
+type_synonym '\<alpha> hrel        = "('\<alpha> \<times> '\<alpha>) upred"
+type_synonym ('a, '\<alpha>) hexpr = "('a, '\<alpha> \<times> '\<alpha>) uexpr"
   
 translations
   (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
@@ -254,6 +255,27 @@ translations
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" \<rightleftharpoons> "CONST frame x P"
   "_antiframe x P" \<rightleftharpoons> "CONST antiframe x P" 
+  
+text {* The following code sets up pretty-printing for homogeneous relational expressions. We cannot 
+  do this via the ``translations'' command as we only want the rule to apply when the input and output
+  alphabet types are the same. The code has to deconstruct a @{typ "('a, '\<alpha>) uexpr"} type, determine 
+  that it is relational (product alphabet), and then checks if the types \emph{alpha} and \emph{beta} 
+  are the same. If they are, the type is printed as a \emph{hexpr}. Otherwise, we have no match. 
+  We then set up a regular translation for the \emph{hrel} type that uses this. *}
+  
+print_translation {*
+let
+fun tr' ctx [ a
+            , Const (@{type_syntax "prod"},_) $ alpha $ beta ] = 
+  if (alpha = beta) 
+    then Syntax.const @{type_syntax "hexpr"} $ a $ alpha
+    else raise Match;
+in [(@{type_syntax "uexpr"},tr')]
+end
+*}
+  
+translations
+  (type) "'\<alpha> hrel" <= (type) "(bool, '\<alpha>) hexpr"
   
 subsection {* Relation Properties *}
   
@@ -552,5 +574,5 @@ lemma rel_alpha_ext_alt_def:
   apply (metis lens_indep_get lens_indep_sym)
   apply (metis vwb_lens_def wb_lens.get_put wb_lens_def weak_lens.put_get)
 done
-    
+  
 end

@@ -44,8 +44,9 @@ type_synonym ('t,'\<alpha>) hrel_rp  = "('t,'\<alpha>) rp hrel"
 translations
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_ext des"
-  (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, (_,'\<beta>) rp) rel"
-
+  (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, ('\<gamma>,'\<beta>) rp) rel"
+  (type) "('t, '\<alpha>) hrel_rp"  <= (type) "('t, '\<alpha>) rp hrel"
+  
 notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")
 notation rp_vars_child_lens ("\<Sigma>\<^sub>R")
 
@@ -61,7 +62,7 @@ where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
 abbreviation wait_t::"('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
-
+  
 syntax
   "_wait_f"  :: "logic \<Rightarrow> logic" ("_\<^sub>f" [1000] 1000)
   "_wait_t"  :: "logic \<Rightarrow> logic" ("_\<^sub>t" [1000] 1000)
@@ -79,7 +80,7 @@ abbreviation drop_rea :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
 
 abbreviation trace ::
-  "('t::trace, ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp) uexpr" ("tt") where
+  "('t::trace, ('t, '\<alpha>) rp) hexpr" ("tt") where
 "tt \<equiv> $tr\<acute> - $tr"
 
 translations
