@@ -40,6 +40,8 @@
 
 \tableofcontents
 
+\newpage
+
 \section{Syntax Overview}
 
 This document describes the syntax used for expressions, predicates, and relations in Isabelle/UTP~\cite{Foster16a}. On
@@ -68,6 +70,23 @@ majority of its operators. For more information, please also see the Isabelle/HO
 documentation\footnote{\url{http://isabelle.in.tum.de/documentation.html}}.
 
 \newpage
+
+\section{UTP Types}
+
+\begin{center}
+\begin{tabular}{|c|c|} \hline
+  \textbf{Type}                   & \textbf{Description} \\ \hline
+  $'a \Longrightarrow {}'\alpha$    & UTP variable / lens of type $'a$ and alphabet type $'\alpha$ \\
+  $('a, {}'\alpha)~\textit{uexpr}$  & expression with return type $'a$ and alphabet type $'\alpha$ \\
+  $'\alpha~\textit{usubst}$       & substitution on alphabet $'\alpha$ \\
+  $'\alpha~\textit{upred}$        & alphabetised predicate with alphabet type $'\alpha$ \\
+  $('\alpha,{}'\beta)~\textit{rel}$ & alphabetised relation with input alphabet $'\alpha$ and output alphabet $'\beta$ \\
+  $'\alpha~\textit{hrel}$         & homogeneous alphabetised relation over $'\alpha$ \\
+  $('s, {}'e)~\textit{action}$      & \Circus action with state-space type $'s$ and event alphabet type $'e$ \\
+  $('d, {}'c)~\textit{hyrel}$       & hybrid relation with discrete state-space $'d$ and continuous state-space $'c$ \\
+  \hline
+\end{tabular}
+\end{center}
 
 \section{Expression Operators}
 
