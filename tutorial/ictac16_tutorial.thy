@@ -48,10 +48,10 @@ qed
 
 theorem rdesign_left_unit:
   fixes P Q :: "'\<alpha> hrel_des"
-  shows "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
+  shows "II\<^sub>D ;; (P \<turnstile>\<^sub>r Q) = (P \<turnstile>\<^sub>r Q)"
 proof -
   -- {* We first expand out the definition of the design identity *}
-  have "(II\<^sub>D ;; P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II ;; P \<turnstile>\<^sub>r Q)"
+  have "II\<^sub>D ;; (P \<turnstile>\<^sub>r Q) = (true \<turnstile>\<^sub>r II) ;; (P \<turnstile>\<^sub>r Q)"
     by (simp add: skip_d_def)
   -- {* Next, we apply the design composition law above in a subproof *}
   also have "... = (true \<and> \<not> (II ;; (\<not> P))) \<turnstile>\<^sub>r (II ;; Q)"
@@ -77,13 +77,13 @@ alphabet my_state =
   y :: int
   z :: int
 
-lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
+lemma "(x := 1 ;; x := (&x + 1)) = (x := 2)"
   oops
 
 lemma "($x\<acute> >\<^sub>u $x \<and> $y\<acute> <\<^sub>u $y) \<sqsubseteq> x, y := &x + 1, &y"
   oops
 
-lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
+lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = ((x,y) := (1,7))"
   oops
 
 (* Need following law:  *)
@@ -91,7 +91,7 @@ theorem ndesign_composition_wp: "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstil
   oops
 
 lemma violate_precond:
-  "(true \<turnstile>\<^sub>n x := 1 ;; (&x >\<^sub>u 1) \<turnstile>\<^sub>n y := 2) = \<bottom>\<^sub>D"
+  "(true \<turnstile>\<^sub>n x := 1) ;; ((&x >\<^sub>u 1) \<turnstile>\<^sub>n y := 2) = \<bottom>\<^sub>D"
   apply (subst ndesign_composition_wp)
   apply (simp)
   apply (wp_tac)

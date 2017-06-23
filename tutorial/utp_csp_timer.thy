@@ -1,4 +1,4 @@
-section {* FMI Timed (Simplified) *}
+section {* FMI Timer (Simplified) *}
 
 theory utp_csp_timer
   imports "../theories/utp_csp"

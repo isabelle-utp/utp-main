@@ -116,8 +116,6 @@ proof -
   thus ?thesis
     using Counter_property_2 dual_order.trans by blast
 qed
-    
-    
-  
+
 end
   

@@ -39,9 +39,9 @@ definition Pay :: "index \<Rightarrow> index \<Rightarrow> money \<Rightarrow> a
 "Pay i j n = 
   pay.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>).(\<guillemotleft>n\<guillemotright>) \<^bold>\<rightarrow> 
     ((reject.(\<guillemotleft>i\<guillemotright>) \<^bold>\<rightarrow> Skip) 
-      \<triangleleft> \<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u &accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<triangleright>\<^sub>R 
-    ({accts[\<guillemotleft>i\<guillemotright>]} :=\<^sub>C (&accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u - \<guillemotleft>n\<guillemotright>) ;;
-     {accts[\<guillemotleft>j\<guillemotright>]} :=\<^sub>C (&accts\<lparr>\<guillemotleft>j\<guillemotright>\<rparr>\<^sub>u + \<guillemotleft>n\<guillemotright>) ;;
+      \<triangleleft> \<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<triangleright>\<^sub>R 
+    ({accts[\<guillemotleft>i\<guillemotright>]} :=\<^sub>C (&accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>) ;;
+     {accts[\<guillemotleft>j\<guillemotright>]} :=\<^sub>C (&accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>) ;;
      accept.(\<guillemotleft>i\<guillemotright>) \<^bold>\<rightarrow> Skip))"
     
 definition PaySet :: "index \<Rightarrow> (index \<times> index \<times> money) set" where
@@ -50,7 +50,7 @@ definition PaySet :: "index \<Rightarrow> (index \<times> index \<times> money) 
 definition AllPay :: "index \<Rightarrow> action_mdx" where
 "AllPay cardNum = (\<Sqinter> (i, j, n) \<in> PaySet cardNum \<bullet> Pay i j n)"
 
-text {* The Cycle action just repeats the payments over and over for any extant and different card
+text {* The Cycle action just repea the payments over and over for any extant and different card
   indices. In order to be well-formed we require that $cardNum \ge 2$. *}
 
 definition Cycle :: "index \<Rightarrow> action_mdx" where
@@ -83,7 +83,7 @@ text {* The precondition of pay requires that, under the assumption that a payme
   
 lemma preR_Pay [rdes]:
   "pre\<^sub>R(Pay i j n) = 
-    ($tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<le>\<^sub>u $tr\<acute> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<Rightarrow> {\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:accts))"
+    ($tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<le>\<^sub>u $tr\<acute> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<Rightarrow> {\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:accts))"
   apply (simp add: Pay_def closure rdes unrest alpha usubst wp)
   apply (rel_auto) using dual_order.trans by blast
  
@@ -94,8 +94,8 @@ text {* The pericondition has three cases: (1) nothing has happened and we are n
 lemma periR_Pay [rdes]:
   "peri\<^sub>R(Pay i j n) = 
     (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr \<and> (pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)"
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a) \<and> (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)"
   by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_auto)
     
 text {* The postcondition has two options. Firstly, the amount was wrong, and so the trace was extended
@@ -104,9 +104,9 @@ text {* The postcondition has two options. Firstly, the amount was wrong, and so
     
 lemma postR_Pay [rdes]:
   "post\<^sub>R(Pay i j n) = 
-    (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u) \<and> $st\<acute> =\<^sub>u $st
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u 
-                       \<and> \<lceil>accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts\<lparr>\<guillemotleft>j\<guillemotright>\<rparr>\<^sub>u + \<guillemotleft>n\<guillemotright>)\<^sub>u\<rceil>\<^sub>S)"
+    (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a) \<and> $st\<acute> =\<^sub>u $st
+                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a 
+                       \<and> \<lceil>accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u\<rceil>\<^sub>S)"
   by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_simp, safe, simp_all, blast+)    
             
 lemma Pay_wf [closure]:
@@ -130,7 +130,7 @@ lemma AllPay_Productive [closure]:
     
 lemma preR_AllPay [rdes]:
   "cardNum \<ge> 2 \<Longrightarrow> pre\<^sub>R(AllPay cardNum) = 
-    (\<Squnion> (i, j, n) \<in> PaySet cardNum \<bullet> $tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> $st:accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<Rightarrow> {\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:accts))"
+    (\<Squnion> (i, j, n) \<in> PaySet cardNum \<bullet> $tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<Rightarrow> {\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:accts))"
   by (simp add: AllPay_def rdes closure)    
     
 subsection {* Verification *}
@@ -182,7 +182,7 @@ text {* The next property is that no card value can go below 0, assuming it was 
   
 theorem no_overdrafts:
   assumes "i < cardNum" "j < cardNum" "i \<noteq> j"
-  shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> $accts\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>\<lparr>\<guillemotleft>k\<guillemotright>\<rparr>\<^sub>u \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
+  shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> $accts(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
   apply (rule CRD_contract_refine)
   apply (simp add: Pay_def closure)
   apply (simp add: rdes)
@@ -201,7 +201,7 @@ text {* The next property shows liveness of transfers. If a payment is accepted,
 theorem transfer_live:
   assumes "i < cardNum" "j < cardNum" "i \<noteq> j" "n > 0"
   shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> 
-         \<turnstile> \<guillemotleft>trace\<guillemotright> \<noteq>\<^sub>u \<langle>\<rangle> \<and> last\<^sub>u(\<guillemotleft>trace\<guillemotright>) =\<^sub>u (pay\<cdot>(\<guillemotleft>(i,j,k)\<guillemotright>))\<^sub>u \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts\<lparr>\<guillemotleft>i\<guillemotright>\<rparr>\<^sub>u \<Rightarrow> (accept\<cdot>(\<guillemotleft>(i)\<guillemotright>))\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright>
+         \<turnstile> \<guillemotleft>trace\<guillemotright> \<noteq>\<^sub>u \<langle>\<rangle> \<and> last\<^sub>u(\<guillemotleft>trace\<guillemotright>) =\<^sub>u (pay\<cdot>(\<guillemotleft>(i,j,k)\<guillemotright>))\<^sub>u \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<Rightarrow> (accept\<cdot>(\<guillemotleft>(i)\<guillemotright>))\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright>
          | true]\<^sub>C \<sqsubseteq> Pay i j n"
   apply (rule_tac CRD_contract_refine)
   apply (simp add: Pay_def closure)

@@ -39,10 +39,10 @@ definition LibraryInvariant :: "library upred" where
 [upred_defs]: "LibraryInvariant = (&loans \<subseteq>\<^sub>u &books)"
 
 definition BorrowBook :: "book \<Rightarrow> library prog" where
-[upred_defs]: "BorrowBook(b) = (\<guillemotleft>b\<guillemotright> \<notin>\<^sub>u &loans \<and> \<guillemotleft>b\<guillemotright> \<in>\<^sub>u &books) \<turnstile>\<^sub>n loans := &loans \<union>\<^sub>u {\<guillemotleft>b\<guillemotright>}\<^sub>u"
+[upred_defs]: "BorrowBook(b) = (\<guillemotleft>b\<guillemotright> \<notin>\<^sub>u &loans \<and> \<guillemotleft>b\<guillemotright> \<in>\<^sub>u &books) \<turnstile>\<^sub>n loans := (&loans \<union>\<^sub>u {\<guillemotleft>b\<guillemotright>}\<^sub>u)"
 
 definition ReturnBook :: "book \<Rightarrow> library prog" where
-[upred_defs]: "ReturnBook(b) = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := &loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u))"
+[upred_defs]: "ReturnBook(b) = ((\<guillemotleft>b\<guillemotright> \<in>\<^sub>u &loans) \<turnstile>\<^sub>n (loans := (&loans - {\<guillemotleft>b\<guillemotright>}\<^sub>u)))"
 
 subsection {* Library proofs *}
 
