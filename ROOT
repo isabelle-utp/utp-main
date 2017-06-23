@@ -203,6 +203,10 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial
+    utp_boyle
+    utp
+    utp_csp_buffer
+    utp_csp_mini_mondex
   document_files
     "root.bib"
     "root.tex"
