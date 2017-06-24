@@ -4,100 +4,148 @@
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
-(* LAST REVIEWED: 21 Mar 2017 *)
+(* LAST REVIEWED: 23 June 2017 *)
 
 section {* Theory of {\Circus} *}
 
 theory utp_circus
-imports utp_theories_deep "../utp/models/utp_axm"
-begin recall_syntax
+imports utp_theories_deep utp_circus_prel
+begin (* recall_syntax *)
 
 text {* Types are not printed correctly, have a chat with Simon Foster. *}
 
 typ "('\<sigma>, '\<epsilon>) st_csp"
 
-text {* Renaming HOL's relation type available. *}
+(* type_synonym 'a relation = "'a Relation.rel" *)
 
-type_synonym 'a relation = "'a Relation.rel"
+(* translations (type) "'a relation" \<rightleftharpoons> (type)"'a Relation.rel" *)
 
-translations (type) "'a relation" \<rightleftharpoons> (type)"'a Relation.rel"
-
-hide_type Relation.rel -- {* TODO: Let the recall package hide types too! *}
-
-text {* The below interfere with the corresponding CSP definitions. *}
+text {* The below cause ambiguities wrt the corresponding CSP definitions. *}
 
 hide_const utp_cml.Skip
 hide_const utp_cml.Stop
 
-text {* Move this back to the theory @{theory utp_csp}. *}
-
-definition [lens_defs]: "\<Sigma>\<^sub>C\<^sub>x\<^sub>C = \<Sigma>\<^sub>C \<times>\<^sub>L \<Sigma>\<^sub>C"
-
-subsection {* Channel Event Syntax *}
-
-text {* The bellow is useful to construct synchronisation sets of events. *}
-
-definition events :: "('a, '\<phi>) chan \<Rightarrow> '\<phi> set" ("\<epsilon>'(_')") where
-"events c = c ` UNIV"
-
 subsection {* Process Semantics *}
 
 text {*
-  An open issue is whether we should contract the alphabet as well i.e.~to
-  the type @{type unit}. Since we use deep (or axiomatic) variables, we can
-  strictly get away without that. But it might be more accurate in terms of
-  the semantics of \emph{Circus} processes. I talked to Simon Foster about
-  this who then added definitions that are necessary to carry out alphabet
-  restrictions of program-state alphabets within various UTP theories.
+  We could get away without the hiding of the state alphabet if we assume that
+  all processes have the same state type. The two lemmas we prove following the
+  definition establish this and are useful in proofs It is still on open issue
+  to what extent the hiding of the state alphabet poses challenges to proofs.
 *}
 
--- {* \todo{Additionally perform an alphabet restriction below.} *}
-
 definition Process ::
-  "('\<epsilon>, '\<alpha>) action \<Rightarrow>
-   ('\<epsilon>, '\<alpha>) action" where
-"Process p = (\<exists> \<Sigma>\<^sub>C\<^sub>x\<^sub>C \<bullet> p) (*\<restriction>\<^sub>p \<Sigma>\<^sub>C\<^sub>x\<^sub>C*)"
+  "('\<sigma>, '\<epsilon>) action \<Rightarrow>
+   (unit, '\<epsilon>) action" where
+"Process P = hide_state (\<exists> {$st,$st\<acute>} \<bullet> P)"
+
+lemma Process_eq_simp:
+"(Process P = Process Q) \<longleftrightarrow>
+  ((\<exists> {$st,$st\<acute>} \<bullet> P) = (\<exists> {$st,$st\<acute>} \<bullet> Q))"
+apply (unfold Process_def)
+apply (unfold hide_state_def)
+apply (rel_simp)
+done
+
+lemma Process_ref_simp:
+"(Process P \<sqsubseteq> Process Q) \<longleftrightarrow>
+  ((\<exists> {$st,$st\<acute>} \<bullet> P) \<sqsubseteq> (\<exists> {$st,$st\<acute>} \<bullet> Q))"
+apply (unfold Process_def)
+apply (unfold hide_state_def)
+apply (rel_simp)
+done
+
+lemma Process_eqI:
+"((\<exists> {$st,$st\<acute>} \<bullet> P) = (\<exists> {$st,$st\<acute>} \<bullet> Q)) \<Longrightarrow> (Process P = Process Q)"
+apply (unfold Process_eq_simp)
+apply (assumption)
+done
+
+lemma Process_refI:
+"((\<exists> {$st,$st\<acute>} \<bullet> P) \<sqsubseteq> (\<exists> {$st,$st\<acute>} \<bullet> Q)) \<Longrightarrow> (Process P \<sqsubseteq> Process Q)"
+apply (unfold Process_ref_simp)
+apply (assumption)
+done
+
+text {* The function below makes the state type explicit via an argument. *}
+
+definition ProcessSt ::
+  "('\<sigma> itself) \<Rightarrow>
+   ('\<sigma>, '\<epsilon>) action \<Rightarrow>
+   (unit, '\<epsilon>) action" where
+"ProcessSt t P = Process P"
 
 definition Action ::
   "('\<epsilon>, '\<alpha>) action \<Rightarrow>
-  (('\<epsilon>, '\<alpha>) action \<Rightarrow> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
-  ('\<epsilon>, '\<alpha>) action" where
+   (('\<epsilon>, '\<alpha>) action \<Rightarrow> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
+   ('\<epsilon>, '\<alpha>) action" where
 "Action = Let"
 
-text {* Instead of using the SUPREMUM we should use a mu below. *}
-
 definition RecAction ::
-  "(('\<epsilon>, '\<alpha>) action \<Rightarrow>
-    ('\<epsilon>, '\<alpha>) action \<times> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
-  ('\<epsilon>, '\<alpha>) action" where
+  "(('\<sigma>, '\<epsilon>) action \<Rightarrow>
+    ('\<sigma>, '\<epsilon>) action \<times> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
+   ('\<sigma>, '\<epsilon>) action" where
 "RecAction act_body =
-  Action (SUPREMUM UNIV (\<lambda>X. fst (act_body X))) (\<lambda>X. snd (act_body X))"
+  Action (\<mu> X \<bullet> fst (act_body X)) (\<lambda>X. snd (act_body X))"
 
 lemmas circus_syntax =
-  Process_def Action_def RecAction_def
+  Process_def ProcessSt_def Action_def RecAction_def
 
 subsection {* Process Syntax *}
 
-nonterminal action and actions
+nonterminal state and action and actions and process
+
+text {*
+  We support both basic and composite process definitions. Moreover, processes
+  may be parametrised and can include an option state paragraph which must be
+  of the form @{text "state('\<sigma>)"}, where @{typ "'\<sigma>"} is a HOL type to be used
+  for the state space. If no state paragraph is given, it is inferred by type
+  checking. Parametrised actions are current not supported - this is work in
+  progress. For examples, see the bottom of the theory.
+*}
 
 syntax
+  "_State" :: "type \<Rightarrow> state"                  ("state'(_')")
   "_Action"  :: "[pttrn, logic] \<Rightarrow> action"     ("(2_ =/ _)" 10)
   ""         :: "action \<Rightarrow> actions"            ("_")
   "_Actions" :: "[action, actions] \<Rightarrow> actions" ("_and//_")
-  "_Process" :: "[actions,  logic] \<Rightarrow> logic"   ("((2begin//(_)//\<bullet> (_))//end)")
-  "_ParamProc" :: "idt \<Rightarrow> args \<Rightarrow> logic \<Rightarrow> bool" ("(process _ _ \<triangleq>//_)" [0, 0, 10] 10)
-  "_BasicProc" :: "idt \<Rightarrow>         logic \<Rightarrow> bool" ("(process _ \<triangleq>//_)" [0, 10] 10)
+  "_ProcBody" :: "[actions, logic] \<Rightarrow> process" ("((2begin//(_)//\<bullet> (_))//end)")
+  "_ProcBodySt" :: "[state, actions, logic] \<Rightarrow> process" ("((2begin//(_)//(_)//\<bullet> (_))//end)")
+  "_BasicProc" :: "idt \<Rightarrow> process \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
+  "_BasicDefn" :: "idt \<Rightarrow> logic   \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
+  "_ParamProc" :: "idt \<Rightarrow> args \<Rightarrow> process \<Rightarrow> bool" ("(process _ _ \<triangleq>//_)" [0, 0, 10] 10)
+  "_ParamDefn" :: "idt \<Rightarrow> args \<Rightarrow> logic   \<Rightarrow> bool" ("(process _ _ \<triangleq>//_)" [0, 0, 10] 10)
+  "_BasicProcSt" :: "idt \<Rightarrow> type \<Rightarrow> process \<Rightarrow> bool"
+  "_ParamProcSt" :: "idt \<Rightarrow> args \<Rightarrow> type \<Rightarrow> process \<Rightarrow> bool"
 
-syntax (output)
-  "_Actions_tr'"   :: "[action, actions] \<Rightarrow> actions"  ("_//_")
+syntax (output) -- {* Cosmetics *}
+  "_Actions_tr'" :: "[action, actions] \<Rightarrow> actions"  ("_//_")
+
+text {*
+  Interestingly, it matters whether we split the below into separate blocks
+  of @{command translations} statements. Isabelle seems to respect the order
+  of translations only when they are included in the same block. Here, the
+  order is very important.
+*}
 
 translations
-  "_Process (_Actions act acts) e" \<rightharpoonup> "_Process act (_Process acts e)"
-  "_Process (_Actions_tr' act acts) e" \<leftharpoondown> "_Process act (_Process acts e)"
-(* "_Process (_Action name act) more" \<rightleftharpoons> "(CONST Action) act (\<lambda>name. more)" *)
-  "_Process (_Action name act) more" \<rightleftharpoons> "(CONST RecAction) (\<lambda>name. (act, more))"
+  (state) "state('type)" \<rightleftharpoons> "TYPE('type)"
+-- \<open>Shift the type argument from ProcBodySt into (Basic/Param)ProcSt.\<close>
+  "_BasicProc name (_ProcBodySt type actions main)" \<rightleftharpoons>
+  "_BasicProcSt name type (_ProcBody actions main)"
+  "_ParamProc name args (_ProcBodySt type actions main)" \<rightleftharpoons>
+  "_ParamProcSt name args type (_ProcBody actions main)"
+  "_ProcBody (_Actions     act acts) e" \<rightharpoonup> "_ProcBody act (_ProcBody acts e)"
+  "_ProcBody (_Actions_tr' act acts) e" \<leftharpoondown> "_ProcBody act (_ProcBody acts e)"
+(*"_ProcBody (_Action name act) more" \<rightleftharpoons> "(CONST Action) act (\<lambda>name. more)"*)
+  "_ProcBody (_Action name act) more" \<rightleftharpoons> "(CONST RecAction) (\<lambda>name. (act, more))"
+  "_BasicProc name      body" \<rightleftharpoons> "name =         (CONST Process) body"
   "_ParamProc name args body" \<rightleftharpoons> "name = (\<lambda>args. (CONST Process) body)"
-  "_BasicProc name      body" \<rightleftharpoons> "name = (CONST Process) body"
+  "_BasicProcSt name      type body" \<rightleftharpoons> "name =         (CONST ProcessSt) type body"
+  "_ParamProcSt name args type body" \<rightleftharpoons> "name = (\<lambda>args. (CONST ProcessSt) type body)"
+-- \<open>Making the below pretty-print can produce convoluted syntax.\<close>
+  "_BasicDefn name      body" \<rightharpoonup> "name = body"
+  "_ParamDefn name args body" \<rightharpoonup> "name = (\<lambda>args. body)"
 
 print_translation {*
   [Syntax_Trans.preserve_binder_abs2_tr'
@@ -109,6 +157,10 @@ text {* Hide non-terminals as this interferes with parsing the action type. *}
 hide_type (open)
   utp_circus.action
   utp_circus.actions
+
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
 
 subsection {* Stub Constructs (TODO) *}
 
@@ -425,6 +477,10 @@ translations "||| x : l \<bullet> P" \<rightleftharpoons> "(CONST interleave_ite
 
 subsection {* Proof Experiments *}
 
+text {* Make the below a default simplification! [TODO] *}
+
+declare utp_recursion.mu_const [simp]
+
 theorem
 "process P \<triangleq> begin A = Act1 and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
  P = Process (Main (Act1, Act2 ;; Act1))"
@@ -434,8 +490,16 @@ apply (clarsimp)
 done
 
 theorem
-"process P(x::nat) \<triangleq> begin A = Act1 x and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
- P = (\<lambda>x. Process (Main (Act1 x, Act2 ;; Act1 x)))"
+"process P \<triangleq> begin state(vstore) A = Act1 and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
+ P = ProcessSt TYPE(vstore) (Main (Act1, Act2 ;; Act1))"
+apply (unfold circus_syntax)
+apply (unfold Let_def) -- {* \todo{How to apply the copy rule selectively?!} *}
+apply (clarsimp)
+done
+
+theorem
+"process P(x::nat) \<triangleq> begin state('\<sigma>) A = Act1 x and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
+ P = (\<lambda>x. ProcessSt TYPE('\<sigma>) (Main (Act1 x, Act2 ;; Act1 x)))"
 apply (unfold circus_syntax)
 apply (unfold Let_def) -- {* \todo{How to apply the copy rule selectively?!} *}
 apply (clarsimp)
