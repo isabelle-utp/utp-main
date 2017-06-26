@@ -668,6 +668,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma ustar_refines_nu: "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+  by (metis (no_types, lifting) lfp_greatest semilattice_sup_class.sup.commute seqr_right_unit ustar_inductl)
+
+lemma ustar_as_nu: "P\<^sup>\<star> = (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+proof (rule antisym)
+  show "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+    by (simp add: ustar_refines_nu)
+  show "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+    by (metis lfp_lowerbound upred_semiring.add_commute ustar_unfoldl)
+qed
+  
 subsection {* Omega Algebra Laws *}
 
 lemma uomega_induct:
