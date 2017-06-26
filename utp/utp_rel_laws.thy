@@ -647,29 +647,31 @@ theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
 
 theorem ustar_inductl:
-  assumes "Q \<sqsubseteq> (R \<sqinter> P ;; Q)"
+  assumes "Q \<sqsubseteq> R" "Q \<sqsubseteq> P ;; Q"
   shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
 proof -
   have "P\<^sup>\<star> ;; R = (\<Sqinter> i. P \<^bold>^ i ;; R)"
     by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distr)
   also have "Q \<sqsubseteq> ..."
-    by (metis (no_types, lifting) SUP_least assms semilattice_sup_class.sup_commute upower_inductl)
+    by (simp add: SUP_least assms upower_inductl)
   finally show ?thesis .
 qed
 
 theorem ustar_inductr:
-  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  assumes "Q \<sqsubseteq> R" "Q \<sqsubseteq> Q ;; P"
   shows "Q \<sqsubseteq> R ;; P\<^sup>\<star>"
 proof -
   have "R ;; P\<^sup>\<star> = (\<Sqinter> i. R ;; P \<^bold>^ i)"
     by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distl)
   also have "Q \<sqsubseteq> ..."
-    by (meson SUP_least assms upower_inductr)
+    by (simp add: SUP_least assms upower_inductr)
   finally show ?thesis .
 qed
 
 lemma ustar_refines_nu: "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
-  by (metis (no_types, lifting) lfp_greatest semilattice_sup_class.sup.commute seqr_right_unit ustar_inductl)
+  by (metis (no_types, lifting) lfp_greatest semilattice_sup_class.le_sup_iff 
+      semilattice_sup_class.sup_idem upred_semiring.mult_2_right 
+      upred_semiring.one_add_one ustar_inductl)
 
 lemma ustar_as_nu: "P\<^sup>\<star> = (\<nu> X \<bullet> P ;; X \<sqinter> II)"
 proof (rule antisym)

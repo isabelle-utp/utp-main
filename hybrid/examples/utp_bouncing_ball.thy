@@ -62,10 +62,16 @@ subsection {* System Definition *}
   
 definition bouncing_ball :: "(unit, bball) hyrel" where
   "bouncing_ball =
-     (\<^bold>c:velocity := 0 ;;
-      \<^bold>c:height := 2.0 ;;
-      (\<nu> X \<bullet> (\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h
-               [$height\<acute> \<le>\<^sub>u 0]\<^sub>h
-             \<^bold>c:velocity := (- 0.8 * &\<^bold>c:velocity)) ;; X))"
+     (\<^bold>c:velocity, \<^bold>c:height) := (0, 2.0) ;;
+      (\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h until\<^sub>h ($height\<acute> \<le>\<^sub>u 0) ;;
+       \<^bold>c:velocity := (- 0.8 * &\<^bold>c:velocity))\<^sup>\<star>"
+  
+subsection {* Example Properties *}
+  
+lemma "\<lceil>$height\<acute> \<ge>\<^sub>u 0\<rceil>\<^sub>h \<sqsubseteq> bouncing_ball"
+  apply (simp add: bouncing_ball_def)
+  apply (rule ustar_inductr)
+  apply (rel_simp)
+oops
   
 end
