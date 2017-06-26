@@ -308,12 +308,12 @@ lemma stlist_plus_cons_eq_front_plus:
     
 subsubsection {* Orders *}
   
-(*
+
 text {* We now instantiate the ord class for the stlist type. *}
   
 instantiation stlist :: (monoid_add) ord
 begin
-  definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == fzero_le"
+  definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == monoid_le"
   definition less_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_stlist x y == x \<le> y \<and> \<not> (y \<le> x)"
 
   lemma stlist_plus_follow_concat:
@@ -327,7 +327,7 @@ end
 lemma monoid_le_stlist2:
   "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   by (simp add: less_eq_stlist_def)
-*)
+
   
 lemma stlist_right_cancel_monoid2:
   "(b#\<^sub>ta) = (c#\<^sub>ta) \<longleftrightarrow> b = c"  
@@ -365,6 +365,11 @@ lemma stlist_left_cancel_monoid:
 
 instance apply (intro_classes)
   using stlist_left_cancel_monoid by blast+
+end
+  
+instantiation stlist :: (left_cancel_monoid) left_cancel_monoid
+begin
+  instance by (intro_classes)
 end
   
 subsubsection {* Right Cancelative Monoid *}
@@ -419,15 +424,14 @@ instance
   using  stlist_zero_monoid_sum  by blast+
 end
 
-(* we can no longer instantiate this   
 subsubsection {* Difference *}
  
-instantiation stlist :: (plus) minus
+instantiation stlist :: (monoid_add) minus
 begin
-  definition minus_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where "minus_stlist == fzero_subtract"
+  definition minus_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where "minus_stlist == monoid_subtract"
   
   instance by intro_classes
-end  *) 
+end
   
 subsubsection {* Pre trace *}
 
@@ -528,7 +532,6 @@ lemma stlist_sum_eq_sum_conv:
 instance by (intro_classes, simp add:stlist_sum_eq_sum_conv)
 end
 
-  (*
 subsubsection {* Trace *} 
   
 text {* Given a type of class pre_trace we get a trace. This means that
@@ -545,9 +548,7 @@ end
 lemma monoid_plus_prefix_iff_zero:
   fixes a b :: "'a::trace"
   shows "a + x \<le> a \<longleftrightarrow> x = 0"
-  by (metis add_monoid_diff_cancel_left antisym_conv sum_eq_sum_conv trace_class.le_iff_add zero_sum_left)
-(*  by (metis add.right_neutral antisym le_add left_cancel_monoid_class.add_left_imp_eq)
-  *)
+  by (metis add.right_neutral antisym left_cancel_semigroup_class.add_left_imp_eq trace_class.le_add)
     
 lemma stlist_le_nil_imp_le_elements:
   fixes a b :: "'a::trace"
@@ -582,12 +583,12 @@ lemma stlist_nil_le_cons_imp_le:
   by (metis stlist.inject(2) stlist_nil_concat_cons)
     
 lemma monoid_le_stlist:
-  fixes a :: "'a::monoid_add_left stlist"
+  fixes a :: "'a::monoid_add stlist"
   shows "a \<le> b \<longleftrightarrow> a \<le>\<^sub>m b"
   by (simp add:le_is_monoid_le less_eq_stlist_def)
 
 lemma monoid_subtract_stlist: 
-  fixes a :: "'a::monoid_add_left stlist"
+  fixes a :: "'a::monoid_add stlist"
   shows "(a - b) = (a -\<^sub>m b)"
   by (simp add:minus_def minus_stlist_def) 
     
@@ -595,43 +596,28 @@ lemma stlist_minus_nils_imp_minus:
   fixes a b :: "'a::trace"
   shows "[;a] - [;b] = [;c] \<Longrightarrow> a - b = c"
   unfolding minus_stlist_def minus_def
-proof - (* massaged from an smt Isar proof *)
-  assume a1: "[;a] -\<^sub>m [;b] = [;c]"
-  { assume "a -\<^sub>m b \<noteq> c"
-    { assume "[;c] \<noteq> [;a] - [;b]"
-      then have "[;c] \<noteq> [;b] + ([;a] - [;b]) - [;b]"
-        by simp
-      then have "([;b] + [;a] - [;b]) \<noteq> [;a]"
-        by (simp add: a1 minus_stlist_def)
-      then have "[;a] \<noteq> [;b] + [;a] - [;b]"
-        by (auto) }
-    then have "a -\<^sub>m b = c"
-      using a1 by (metis (no_types) Terminated_lists.last.simps(1) add_monoid_diff_cancel_left monoid_le_def monoid_subtract_def stlist_plus_nils zero_stlist_def) }
-  then show "a -\<^sub>m b = c"
-    by meson
-qed
+  by (metis (no_types, lifting) add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero trace_class.le_iff_add trace_class.minus_def trace_class.not_le_minus)
   
 lemma stlist_minus_imp_minus_nils:
   fixes a b :: "'a::trace"
   shows "a - b = c \<Longrightarrow> [;a] - [;b] = [;c]"
   unfolding minus_stlist_def minus_def
 proof - (* massaged from an smt Isar proof *)
-  assume a1: "a -\<^sub>m b = c"
-  obtain aa :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-      f2: "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aa x0 x1)"
-    by moura
+  assume a1: "a - b = c"
+  have f2: "[;a] - [;b] = 0 \<longrightarrow> [;a] -\<^sub>m [;b] = [;0]"
+    by (simp add: minus_stlist_def stlist_zero_is_zero)
   obtain aas :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where
-    f3: "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
+    "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
     by moura
-  have f4: "[;b] + [;aa a b] = [;b + aa a b]"
-    by (meson stlist_plus_nils)
-  obtain aaa :: "'a stlist \<Rightarrow> 'a" where
-    "\<forall>x0. (\<exists>v3. x0 = [;v3]) = (x0 = [;aaa x0])"
+  then have f3: "\<forall>as asa. (\<not> as \<le> asa \<or> asa = as + aas asa as) \<and> (as \<le> asa \<or> (\<forall>asb. asa \<noteq> as + asb))"
+    by (meson trace_class.le_iff_add)
+  obtain aa :: "'a stlist \<Rightarrow> 'a" where
+    "\<forall>x0. (\<exists>v3. x0 = [;v3]) = (x0 = [;aa x0])"
     by moura
-  then have "[;a] = [;b] + aas [;a] [;b] \<longrightarrow> [;a] -\<^sub>m [;b] = [;c]"
-    using f4 a1 by (metis add_monoid_diff_cancel_left stlist_eq_nil_pluses_imp0 stlist_plus_nils)
+  then have "\<forall>a ab as. [;a] \<noteq> [;ab] + as \<or> as = [;aa as]"
+    by (meson stlist_eq_nil_pluses_imp0)
   then show "[;a] -\<^sub>m [;b] = [;c]"
-    using f4 f3 f2 a1 by (metis (no_types) monoid_le_def monoid_subtract_def zero_stlist_def)
+    using f3 f2 a1 by (metis (no_types) minus_stlist_def pre_trace_class.add_monoid_diff_cancel_left stlist_minus_nils_imp_minus trace_class.not_le_minus)
 qed
 
 lemma stlist_minus_eq_minus_nils:
@@ -642,23 +628,20 @@ lemma stlist_minus_eq_minus_nils:
 lemma
   fixes a :: "'a::{trace,right_cancel_monoid}"
   shows "a = e + a \<longleftrightarrow> e = 0"
-  
-  by (metis right_cancel_monoid_class.add_right_imp_eq stlist_concat_zero_left stlist_plus_nils)
-(*  by (metis add.assoc add.right_neutral left_cancel_monoid_class.add_left_imp_eq right_cancel_monoid_class.add_right_imp_eq)
-    *)
+  by (metis add.assoc add.right_neutral left_cancel_semigroup_class.add_left_imp_eq right_cancel_semigroup_class.add_right_imp_eq)
+
 lemma stlist_cons_minus_nil_eq:
   fixes xs :: "'a::trace stlist"
   assumes "[;a] \<le> (x#\<^sub>txs)"
   shows "(x#\<^sub>txs) - [;a] = (x-a)#\<^sub>txs" 
   using assms
   apply (simp add:minus_stlist_def minus_def le_is_monoid_le less_eq_stlist_def)
-  using stlist_nil_le_cons_imp_le
-  by (metis add_monoid_diff_cancel_left le_is_monoid_le monoid_le_def stlist_nil_concat_cons)
-    
+  using stlist_nil_le_cons_imp_le pre_trace_class.add_monoid_diff_cancel_left
+  by (metis assms stlist_cons_plus_nils_eq_cons trace_class.diff_add_cancel_left')
 lemma
   fixes a :: "'a::trace"
   shows "[;a] - [;a] = [;a - a]"
-  apply (simp_all only:diff_cancel)
+  apply (simp_all only:trace_class.diff_cancel)
   by (simp add: zero_stlist_def)
     
 lemma
@@ -677,7 +660,7 @@ lemma stlist_nil_minus:
   apply (case_tac "a \<le> b")
   apply auto
   apply (simp add:minus_stlist_def)
-  apply (metis add_monoid_diff_cancel_left concat_stlist.simps(1) diff_add_cancel_left' plus_stlist_def)
+  apply (metis minus_stlist_def stlist_minus_eq_minus_nils)
   apply (simp add:stlist_le_nil_iff_le_elements)
   by (simp add:zero_stlist_def)
 
@@ -700,32 +683,11 @@ proof -
     using f2 f1 by (metis Terminated_lists.last.simps(1) concat_stlist.simps(1) order_refl plus_stlist_def zero_stlist_def)
   then show ?thesis
     using f1 by (metis (no_types) stlist_cons_plus_nils_eq_cons)
-qed (*
-proof -
-  have "[;a] \<le> [a;c] = ([;a] \<le> [;a] + [0;c])"
-    unfolding less_eq_stlist_def monoid_le_def plus_stlist_def by simp
-  also have "... = True"
-    by simp
-      
-  finally show ?thesis by simp
-qed*)
-  
-(* this yields the difA of CTA nicely *)    
+qed
     
 lemma stlist_cons_minus_zero_left:
   fixes a :: "'a::trace"
   shows "[a;c] - [;a] = [0;c]"
-  
   by (simp add: stlist_cons_minus_nil_eq stlist_cons_right_prefix)
-(*proof -
-  have "[a;c] - [;a] = [a - a;c]"
-    sledgehammer
-    unfolding plus_stlist_def minus_stlist_def monoid_subtract_def sledgehammer by simp
-  also have "[;a] + [0;c] - [;a] = [0;c]"
-    by simp
-      
-  finally show ?thesis by simp
-qed*)
-*)
   
 end

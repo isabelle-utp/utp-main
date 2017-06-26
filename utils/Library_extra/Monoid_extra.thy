@@ -293,7 +293,7 @@ definition fzero_le (infix "\<le>\<^sub>d" 50)
 where "a \<le>\<^sub>d b \<longleftrightarrow> (\<exists>c. b = a + c)"
  
 definition fzero_subtract (infixl "-\<^sub>d" 65)
-where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else fzero b)"  
+  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else fzero a)"  
   
 end
  
@@ -413,7 +413,7 @@ begin
   lemma le_add [simp]: "a \<le> a + b"
     by (simp add: le_is_fzero_le local.monoid_le_add)
 
-  lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero a"
+  lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero b"
     by (simp add: le_is_fzero_le local.minus_def local.fzero_subtract_def)
 
   lemma add_diff_cancel_left [simp]: "(a + b) - a = b"

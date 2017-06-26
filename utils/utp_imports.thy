@@ -25,6 +25,7 @@ imports
   "Library_extra/List_extra"
   "Library_extra/List_lexord_alt"
   "Library_extra/Monoid_extra"
+  "Library_extra/Terminated_lists"
   "Library_extra/Pfun"
   "Library_extra/Ffun"
   Profiling
