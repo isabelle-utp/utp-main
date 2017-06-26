@@ -9,7 +9,7 @@
 section {* FMI {\Circus} Model *}
 
 theory fmi
-imports
+imports "../utp/models/utp_axm"
   "../theories/utp_circus"
   "../utils/Positive_New"
 begin recall_syntax
@@ -80,6 +80,17 @@ apply (clarsimp)
 apply (rule two_diff)
 apply (rule two_diff)
 done
+
+instantiation prod :: (vst, vst) vst
+begin
+definition vstore_lens_prod :: "vstore \<Longrightarrow> 'a \<times> 'b" where
+"vstore_lens_prod = vstore_lens ;\<^sub>L fst\<^sub>L"
+instance
+apply (intro_classes)
+apply (unfold vstore_lens_prod_def)
+apply (simp)
+done
+end
 
 text {* TODO: Find a better place to carry out the instantiation below. *}
 
@@ -829,18 +840,20 @@ text {* \todo{Write the same process as below with axiomatic variables.} *}
 
 definition
 "process Timer(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
+  state(vstore)
   Step =
-    (tm:setT?\<^sub>u(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow> (<currentTime> := &t) ;; Step) \<box>
-    (tm:updateSS?\<^sub>u(ss : true) \<rightarrow> (<stepSize> := &ss) ;; Step) \<box>
-    (tm:step!\<^sub>u((&<currentTime>, &<stepsize>)\<^sub>u) \<rightarrow>
+    (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow>\<^sub>\<C> (<currentTime> := \<guillemotleft>t\<guillemotright>) ;; Step) \<box>
+    (tm:updateSS?(ss : true) \<rightarrow>\<^sub>\<C> (<stepSize> := \<guillemotleft>ss\<guillemotright>) ;; Step) \<box>
+    (tm:step![out]((&<currentTime>, &<stepsize>)\<^sub>u) \<rightarrow>\<^sub>\<C>
       (<currentTime::'\<tau>> :=
         min\<^sub>u(&<currentTime> + \<section>(&<stepSize::'\<tau> pos>), \<guillemotleft>tN\<guillemotright>)) ;; Step) \<box>
-    ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>u Stop)
+    ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>\<C> Stop)
   \<bullet> (<currentTime>, <stepSize> := \<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
 end"
 
 definition
 "process TimerNew(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
+  state(vstore)
   Step =
     (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow>\<^sub>\<C> (<currentTime> := \<guillemotleft>t\<guillemotright>) ;; Step) \<box>
     (tm:updateSS?(ss) \<rightarrow>\<^sub>\<C> (<stepSize> := \<guillemotleft>ss\<guillemotright>) ;; Step) \<box>
@@ -868,6 +881,7 @@ text {* Process State: @{term "rinps :: (port \<times> VAL) list"}. *}
 
 definition
 "process Interaction \<triangleq> begin
+  state(vstore)
   Instantiation = (;; i : FMUs \<bullet>
     fmi:fmi2Instantiate?\<^sub>u(i_sc : \<pi>\<^sub>1(\<guillemotleft>i_sc\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
 
@@ -937,7 +951,7 @@ definition
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
     else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
           \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
         (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
@@ -947,7 +961,7 @@ definition
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
     else
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
           \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
         (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
@@ -979,6 +993,7 @@ text {* A simplified definition of the same (?) process is given below. *}
 
 definition
 "process InteractionSimplified \<triangleq> begin
+  state(vstore)
   Instantiation = (;; i : FMUs \<bullet>
     fmi:fmi2Instantiate?\<^sub>u(i_sc : \<pi>\<^sub>1(\<guillemotleft>i_sc\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
 
@@ -1033,7 +1048,7 @@ definition
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
     else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
           \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
         (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
@@ -1043,7 +1058,7 @@ definition
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
           \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
     else
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
           \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
         (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
@@ -1068,6 +1083,7 @@ end"
 
 definition
 "process InteractionNew \<triangleq> begin
+  state(vstore)
   Instantiation = (;; i : FMUs \<bullet>
     fmi:fmi2Instantiate.[out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C> Skip) and
 
@@ -1106,12 +1122,12 @@ definition
       ctr:stepToComplete \<rightarrow>\<^sub>\<C>
         (fmi:fmi2DoStep.[out\<^sub>1](\<guillemotleft>FMUs!0\<guillemotright>).[out\<^sub>2]($<t>).[out\<^sub>3]($<hc>)?(st) \<rightarrow>\<^sub>\<C> Skip)
     else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(b)?(st) \<rightarrow>\<^sub>\<C> X) \<box>
         (fmi:fmi2GetMaxStepSize.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(t)?(st) \<rightarrow>\<^sub>\<C> X)) \<box>
         (fmi:fmi2DoStep.[out\<^sub>1](\<guillemotleft>FMUs!(nat i)\<guillemotright>).[out\<^sub>2]($<t>).[out\<^sub>3]($<hc>)?(st) \<rightarrow>\<^sub>\<C> Skip)
     else
-      (\<Sqinter>X.
+      (\<mu> X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(b)?(st) \<rightarrow>\<^sub>\<C> X) \<box>
         (fmi:fmi2GetMaxStepSize.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(t)?(st) \<rightarrow>\<^sub>\<C> X)) \<box>
         (ctr:stepAnalysed \<rightarrow>\<^sub>\<C> Skip))) and
@@ -1132,7 +1148,10 @@ definition
   \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
 end"
 
-print_theorems
+theorem "P InteractionNew"
+apply (unfold InteractionNew_def)
+apply (simp add: circus_syntax Let_def)
+oops
 
 subsubsection {* End Simulation *}
 
@@ -1145,6 +1164,7 @@ text {* \todo{Write the same process as below with axiomatic variables.} *}
 
 definition
 "process FMUStatesManager(i::FMI2COMP) \<triangleq> begin
+  state(vstore)
   AllowsGetsAndSets =
     (fmi:fmi2GetFMUState?\<^sub>u(i_s_st : \<pi>\<^sub>1(\<guillemotleft>i_s_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
       (<s> := \<pi>\<^sub>1(\<pi>\<^sub>2(&i_s_st)) ;; AllowsGetsAndSets)) \<box>
@@ -1154,6 +1174,17 @@ definition
     (fmi:fmi2GetFMUState?\<^sub>u(i_s_st : \<pi>\<^sub>1(\<guillemotleft>i_s_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
       (<s> := \<pi>\<^sub>1(\<pi>\<^sub>2(&i_s_st)) ;; AllowsGetsAndSets))
   \<bullet> fmi:fmi2Instantiate?\<^sub>u(i_b : \<pi>\<^sub>1(\<guillemotleft>i_b\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> AllowAGet
+end"
+
+definition
+"process FMUStatesManagerNew(i::FMI2COMP) \<triangleq> begin
+  state(vstore)
+  AllowsGetsAndSets =
+    (fmi:fmi2GetFMUState![out](\<guillemotleft>i\<guillemotright>)?(s)?(st) \<rightarrow>\<^sub>\<C> (<s> := \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets) \<box>
+    (fmi:fmi2SetFMUState![out\<^sub>1](\<guillemotleft>i\<guillemotright>)![out\<^sub>2](&<s>) \<rightarrow>\<^sub>\<C> AllowsGetsAndSets) and
+  AllowAGet =
+    (fmi:fmi2GetFMUState![out](\<guillemotleft>i\<guillemotright>)?(s)?(st) \<rightarrow>\<^sub>\<C> (<s> := \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets)
+  \<bullet> fmi:fmi2Instantiate![out](\<guillemotleft>i\<guillemotright>)?(b) \<rightarrow>\<^sub>\<C> AllowAGet
 end"
 
 definition
@@ -1171,6 +1202,7 @@ subsubsection {* Error Handling *}
 definition
 "process ErrorMonitor(mst::FMI2ST) \<triangleq>
 begin
+  state(vstore)
   StopError =
     ((&<st> =\<^sub>u \<guillemotleft>mst\<guillemotright>) &\<^sub>u ctr:error!\<^sub>u(\<guillemotleft>mst\<guillemotright>) \<rightarrow> (*Monitor*) Skip) \<box>
     ((&<st> \<noteq>\<^sub>u \<guillemotleft>mst\<guillemotright>) &\<^sub>u ctr:error!\<^sub>u(\<guillemotleft>mst\<guillemotright>) \<rightarrow> (*Monitor*) Skip) and
@@ -1200,7 +1232,7 @@ definition
     [| \<epsilon>(ctr:endsimulation) \<union> \<epsilon>(fmi:fmi2Instantiate) |]
   FMUStatesManagers)"
 
-subsubsection {* General Bejaviour of an FMU *}
+subsubsection {* General Behaviour of an FMU *}
 
 definition RUN :: "'\<epsilon> set \<Rightarrow> ('\<sigma>, '\<epsilon>) action" where
 "RUN evts = undefined"
