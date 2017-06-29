@@ -52,7 +52,7 @@ text {*
 *}
 
 definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
-"\<delta>\<^sub>u c = UNIV"
+[upred_defs]: "\<delta>\<^sub>u c = UNIV"
 
 text {*
   The next lifted function creates an expression that yields a channel event,

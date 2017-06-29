@@ -124,12 +124,13 @@ apply (clarsimp)
 apply (blast)
 done
 
+(* lemma "Timer2(ct, hc, tN) \<sqsubseteq> step!(\<guillemotleft>ct\<guillemotright>)!(\<guillemotleft>hc\<guillemotright>) \<^bold>\<rightarrow> Miracle" *)
+
 lemma "`peri\<^sub>R(Timer2(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
 apply (unfold Timer2_def)
 apply (unfold circus_syntax)
 apply (simp add: Let_def)
 apply (rdes_calc)
-apply (unfold hide_state_def)
 apply (rel_simp)
 apply (erule_tac Q = "step (ct, hc) \<in> ref\<^sub>v" in contrapos_pp; simp)
 apply (subgoal_tac "get\<^bsub><currentTime>\<^sub>d\<^esub> st\<^sub>v' = ct \<and> get\<^bsub><stepSize>\<^sub>d\<^esub> st\<^sub>v' = hc")
@@ -149,4 +150,24 @@ apply (erule empty_trace_neq_relpowI)
 apply (clarsimp)
 apply (simp add: Prefix_Order.strict_prefixI')
 done
+
+text \<open>Experiment with Simon Foster\<close>
+
+lemma csp_mu_unfold:
+"P is CSP \<Longrightarrow> (\<mu>\<^sub>C X \<bullet> P ;; X) = P ;; (\<mu>\<^sub>C X \<bullet> P ;; X)"
+apply (subst gfp_unfold)
+apply (simp add: closure)
+apply (simp add: comp_def Healthy_if closure)
+done
+
+lemma "`peri\<^sub>R(Timer2(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
+apply (unfold Timer2_def)
+apply (unfold circus_syntax)
+apply (simp add: Let_def)
+apply (subst csp_mu_unfold)
+apply (simp add: closure)
+apply (rdes_calc)
+apply (rel_simp)
+-- \<open>We still end up with something rather complicated here?!\<close>
+oops
 end

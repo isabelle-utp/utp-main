@@ -4,7 +4,7 @@
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
-(* LAST REVIEWED: 23 June 2017 *)
+(* LAST REVIEWED: 28 June 2017 *)
 
 section {* {\Circus} Preliminaries *}
 
@@ -158,7 +158,7 @@ subsection {* State Hiding *}
 text {* Move this to the theory @{theory utp_csp}. [TODO] *}
 
 definition hide_state :: "('\<sigma>, '\<epsilon>) action \<Rightarrow> (unit, '\<epsilon>) action" where
-"hide_state A = A \<restriction>\<^sub>p ((map_rsp_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_rsp_st\<^sub>L 0\<^sub>L))"
+[urel_defs]: "hide_state A = A \<restriction>\<^sub>p ((map_rsp_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_rsp_st\<^sub>L 0\<^sub>L))"
 
 definition st_rel ::
   "'\<sigma> \<times> '\<sigma> \<Longrightarrow> ('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<times> ('\<sigma>, '\<tau>::trace, '\<alpha>) rsp" where
@@ -171,6 +171,27 @@ lemma hide_state_ex_cancel [simp]:
 apply (unfold hide_state_def)
 apply (rel_simp)
 oops
+
+text \<open>Laws for the pre-, peri- and postconitions of @{const hide_state}\<close>
+
+lemma preR_hide_state [rdes]:
+"pre\<^sub>R(hide_state P) = hide_state(pre\<^sub>R(P))"
+apply (unfold hide_state_def)
+apply (unfold pre\<^sub>R_def)
+apply (rel_auto)
+done
+
+lemma periR_hide_state [rdes]:
+"peri\<^sub>R(hide_state P) = hide_state(peri\<^sub>R(P))"
+apply (unfold hide_state_def)
+apply (rel_auto)
+done
+
+lemma postR_hide_state [rdes]:
+"post\<^sub>R(hide_state P) = hide_state(post\<^sub>R(P))"
+apply (unfold hide_state_def)
+apply (rel_auto)
+done
 
 subsection {* Instantiations *}
 

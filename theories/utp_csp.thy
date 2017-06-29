@@ -733,7 +733,7 @@ definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> 
 
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>
-  _ \<Rightarrow>
+  ('a \<Longrightarrow> ('\<sigma>, '\<theta>) st_csp) \<Rightarrow>
   ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow>
   ('\<sigma>, '\<theta>) action" where
 "do\<^sub>I c x P = (
