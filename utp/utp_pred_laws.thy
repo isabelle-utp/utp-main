@@ -658,6 +658,14 @@ lemma cond_var_split:
 lemma cond_assign_subst:
   "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
   apply (rel_simp) using vwb_lens.put_eq by force
+    
+lemma conj_conds: 
+  "(P1 \<triangleleft> b \<triangleright> Q1 \<and> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<and> P2) \<triangleleft> b \<triangleright> (Q1 \<and> Q2)"
+  by pred_auto
+
+lemma disj_conds:
+  "(P1 \<triangleleft> b \<triangleright> Q1 \<or> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<or> P2) \<triangleleft> b \<triangleright> (Q1 \<or> Q2)"
+  by pred_auto
 
 subsection {* Refinement By Observation *}
     

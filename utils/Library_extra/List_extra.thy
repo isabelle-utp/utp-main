@@ -120,7 +120,7 @@ lemma prefix_drop:
    \<Longrightarrow> ys = xs @ zs"
   by (metis append_eq_conv_conj prefix_def)
 
-lemma list_append_prefixD: "x @ y \<le> z \<Longrightarrow> x \<le> z"
+lemma list_append_prefixD [dest]: "x @ y \<le> z \<Longrightarrow> x \<le> z"
   using append_prefixD less_eq_list_def by blast
 
 lemma listsum_update: 

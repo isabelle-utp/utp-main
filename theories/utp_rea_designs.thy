@@ -106,6 +106,9 @@ proof -
     by (simp add: bij_lens_equiv_id)
 qed
 
+lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^sub>L st = ($st:x)\<^sub>v"
+  by (metis (no_types, hide_lams) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
+  
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -2098,6 +2101,21 @@ lemma preR_UINF_member_2 [rdes]: "pre\<^sub>R(\<Sqinter> (i,j)\<in>A \<bullet> P
 lemma preR_UINF_member_3 [rdes]: "pre\<^sub>R(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Squnion> (i,j,k)\<in>A \<bullet> pre\<^sub>R(P i j k))"
   by (rel_auto)
 
+lemma periR_UINF_member [rdes]: "peri\<^sub>R(\<Sqinter> i\<in>A \<bullet> P(i)) = (\<Sqinter> i\<in>A \<bullet> peri\<^sub>R(P(i)))"
+  by (rel_auto)
+    
+lemma periR_UINF_member_2 [rdes]: "peri\<^sub>R(\<Sqinter> (i,j)\<in>A \<bullet> P i j) = (\<Sqinter> (i,j)\<in>A \<bullet> peri\<^sub>R(P i j))"
+  by (rel_auto)
+
+lemma periR_UINF_member_3 [rdes]: "peri\<^sub>R(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Sqinter> (i,j,k)\<in>A \<bullet> peri\<^sub>R(P i j k))"
+  by (rel_auto)
+
+lemma postR_UINF_member [rdes]: "post\<^sub>R(\<Sqinter> i\<in>A \<bullet> P(i)) = (\<Sqinter> i\<in>A \<bullet> post\<^sub>R(P(i)))"
+  by (rel_auto)
+
+lemma postR_UINF_member_2 [rdes]: "post\<^sub>R(\<Sqinter> (i,j)\<in>A \<bullet> P i j) = (\<Sqinter> (i,j)\<in>A \<bullet> post\<^sub>R(P i j))"
+  by (rel_auto)
+    
 lemma postR_UINF_member_3 [rdes]: "post\<^sub>R(\<Sqinter> (i,j,k)\<in>A \<bullet> P i j k) = (\<Sqinter> (i,j,k)\<in>A \<bullet> post\<^sub>R(P i j k))"
   by (rel_auto)    
     

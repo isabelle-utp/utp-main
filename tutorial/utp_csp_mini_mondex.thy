@@ -98,16 +98,21 @@ lemma periR_Pay [rdes]:
                      \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)"
   by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_auto)
     
-text {* The postcondition has two options. Firstly, the amount was wrong, and so the trace was extended
-  by both pay and reject, with the state remaining unchanged. Secondly, the payment was fine and so
-  the trace was extended by pay and accept, and the states of the two cards was updated appropriately. *}
+text {* The postcondition has two options. Firstly, the amount was wrong, and 
+  so the trace was extended by both pay and reject, with the state remaining 
+  unchanged. Secondly, the payment was fine and so the trace was extended by pay 
+  and accept, and the states of the two cards was updated appropriately. *}
     
 lemma postR_Pay [rdes]:
   "post\<^sub>R(Pay i j n) = 
-    (pre\<^sub>R(Pay i j n) \<Rightarrow> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a) \<and> $st\<acute> =\<^sub>u $st
-                     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a 
-                       \<and> \<lceil>accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u\<rceil>\<^sub>S)"
-  by (simp add: Pay_def closure rdes unrest alpha usubst wp, rel_simp, safe, simp_all, blast+)    
+    (pre\<^sub>R(Pay i j n) \<Rightarrow> 
+       $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> 
+         \<and> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a) \<and> $st\<acute> =\<^sub>u $st
+     \<or> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u,(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> 
+         \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a 
+         \<and> \<lceil>accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u\<rceil>\<^sub>S)"
+  by (simp add: Pay_def closure rdes unrest alpha usubst wp, 
+      rel_simp, safe, simp_all, blast+)    
             
 lemma Pay_wf [closure]:
   "Pay i j n is NCSP"

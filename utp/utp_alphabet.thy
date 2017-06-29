@@ -158,7 +158,7 @@ text {* If a given variable (or alphabet) $b$ is independent of the extension le
 lemma unrest_aext_indep [unrest]:
   "a \<bowtie> b \<Longrightarrow> b \<sharp> (p \<oplus>\<^sub>p a)"
   by pred_auto
-
+    
 subsection {* Alphabet Restriction *}
 
 text {* Restrict an alphabet by application of a lens that demonstrates how the smaller alphabet
