@@ -412,12 +412,12 @@ lemma usubst_upd_out_comp [usubst]:
   "\<sigma>(&out\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x\<acute> \<mapsto>\<^sub>s v)"
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
-lemma subst_lift_upd [usubst]:
+lemma subst_lift_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
 
-lemma subst_drop_upd [usubst]:
+lemma subst_drop_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
   by pred_simp

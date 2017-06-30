@@ -1,12 +1,16 @@
 subsection {* Relational Hoare calculus *}
 
 theory utp_hoare
-imports utp_rel
+imports utp_rel_laws
 begin
 
 named_theorems hoare
 
-definition hoare_r :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>_\<lbrace>_\<rbrace>\<^sub>u") where
+method hoare_auto = ((simp add: assigns_r_comp usubst unrest)?, -- {* Eliminate assignments where possible *}
+                     auto intro!: hoare simp add: usubst unrest -- {* Apply Hoare logic laws *}
+                    )
+  
+definition hoare_r :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>u") where
 "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
 
 declare hoare_r_def [upred_defs]

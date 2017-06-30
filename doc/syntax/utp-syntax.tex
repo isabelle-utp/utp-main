@@ -347,10 +347,13 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
   $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=\!(e_1, e_2)$        & multiple assignment                   & \verb|(x1,x2) := (e1,e2)| \\
   $b^{\top}$                  & $b^{\top}$                     & relational assumption                 & \verb|b \sup \top| \\
   $b_{\bot}$                  & $b_{\bot}$                     & relational assertion                  & \verb|b \sub \bottom| \\
+  $\{\,b\,\}\,P\,\{\,c\,\}$  & $\{\!| b |\!\} \,P\, \{\!| c |\!\}_u$ & Hoare logic triple                 & \texttt{\{|b|\} P \{|c|\}} \verb|\sub u| \\
   $b \star P$                & $\textbf{while}~b~\textbf{do}~P~\textbf{od}$ & while loop (strongest fixed-point)            & \verb|while b do P od| \\
   \hline
 \end{tabular}
 \end{center}
+
+\newpage
 
 \section{CSP and \Circus Operators}
 

@@ -332,7 +332,7 @@ lemma assign_pred_transfer:
   using assms by (rel_blast)
 
 lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
-  by (simp add: assigns_r_comp usubst)
+  by (simp add: assigns_r_comp usubst alpha)
 
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)

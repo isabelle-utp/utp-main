@@ -3018,7 +3018,7 @@ typedef ('e, 's) Action = "{P :: ('e, 's) action. P is NCSP}"
   by (rule_tac x="Skip" in exI, simp add: closure)
   
 setup_lifting type_definition_Action
-    
+  
 lift_definition skip :: "('e, 's) Action" is Skip
   by (simp add: closure)
     
