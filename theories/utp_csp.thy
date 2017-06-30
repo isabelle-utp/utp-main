@@ -601,12 +601,12 @@ interpretation csp_theory: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>)
   rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
   and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
   and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "le (uthy_order TCSP) = op \<sqsubseteq>"
   by (unfold_locales, simp_all add: tcsp_hcond_def NCSP_Continuous Healthy_Idempotent Healthy_if NCSP_Idempotent)
 
 declare csp_theory.top_healthy [simp del]
 declare csp_theory.bottom_healthy [simp del]
-
 
 lemma csp_bottom_Chaos: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = Chaos"
 proof -
@@ -619,6 +619,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma csp_top_Miracle: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = Miracle"
+proof -
+  have 1: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = CSP3 (CSP4 (CSP false))"
+    by (simp add: csp_theory.healthy_top, simp add: tcsp_hcond_def NCSP_def)
+  also have 2:"... = CSP3 (CSP4 Miracle)"
+    by (metis srdes_hcond_def srdes_theory_continuous.healthy_top)
+  also have 3:"... = Miracle"
+    by (metis CSP3_Miracle CSP4_Miracle Healthy_def')
+  finally show ?thesis .
+qed
+  
 subsection {* CSP Constructs *}
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -3000,46 +3011,68 @@ lemma "DF(UNIV) \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> (a \<^bold>\<rightarrow
   apply (rel_auto)
   apply (rel_blast)
 done
+    
+subsection {* CSP Action Type and Lifted Definitions *}
    
-typedef ('e, 's) circus = "{P :: ('e, 's) action. P is NCSP}"
+typedef ('e, 's) Action = "{P :: ('e, 's) action. P is NCSP}"
   by (rule_tac x="Skip" in exI, simp add: closure)
   
-setup_lifting type_definition_circus
+setup_lifting type_definition_Action
     
-lift_definition Skip\<^sub>C :: "('e, 's) circus" is Skip
+lift_definition skip :: "('e, 's) Action" is Skip
   by (simp add: closure)
     
-lift_definition Stop\<^sub>C :: "('e, 's) circus" is Stop
+lift_definition stop :: "('e, 's) Action" is Stop
   by (simp add: closure)
 
-lift_definition seqCircus :: "('e, 's) circus \<Rightarrow> ('e, 's) circus \<Rightarrow> ('e, 's) circus" (infixr ";\<^sub>C" 71)
+lift_definition seqCircus :: "('e, 's) Action \<Rightarrow> ('e, 's) Action \<Rightarrow> ('e, 's) Action" (infixr ";\<^sub>C" 71)
   is "op ;;"
   by (simp add: closure)
    
+lemma stop_left_zero: "stop ;\<^sub>C P = stop"
+  by (transfer, simp add: NCSP_implies_CSP Stop_left_zero)
     
-(*
-instantiation circus :: (type, type) complete_lattice
+instantiation Action :: (type, type) order
 begin
-  lift_definition less_eq_circus :: "('a, 'b) circus \<Rightarrow> ('a, 'b) circus \<Rightarrow> bool" is "op \<le>" .
-  lift_definition less_circus :: "('a, 'b) circus \<Rightarrow> ('a, 'b) circus \<Rightarrow> bool" is "op <" .
-  lift_definition sup_circus :: "('a, 'b) circus \<Rightarrow> ('a, 'b) circus \<Rightarrow> ('a, 'b) circus" is Lattices.sup
+  lift_definition less_eq_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "op \<le>" .
+  lift_definition less_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "op <" .
+instance by (intro_classes) (transfer, simp add: less_uexpr_def)+
+end
+  
+instance Action :: (type, type) refine ..
+
+instantiation Action :: (type, type) complete_lattice
+begin
+  lift_definition sup_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> ('a, 'b) Action" is Lattices.sup
     by (simp add: closure)
-  lift_definition inf_circus :: "('a, 'b) circus \<Rightarrow> ('a, 'b) circus \<Rightarrow> ('a, 'b) circus" 
+  lift_definition inf_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> ('a, 'b) Action" 
     is "\<lambda> P Q. P \<^bold>\<squnion>\<^bsub>TCSP\<^esub> Q" by simp
-  lift_definition top_circus :: "('a, 'b) circus" is Miracle
+  lift_definition bot_Action :: "('a, 'b) Action" is Miracle
     by (simp add: closure)
-  lift_definition bot_circus :: "('a, 'b) circus" is Chaos
+  lift_definition top_Action :: "('a, 'b) Action" is Chaos
     by (simp add: closure)
-  lift_definition Sup_circus :: "('a, 'b) circus set \<Rightarrow> ('a, 'b) circus" 
-    is "\<lambda> A. if (A = {}) then Miracle else Sup A"
-    by (simp add: closure, clarify, rule NCSP_Sup_closure, auto)
-  lift_definition Inf_circus :: "('a, 'b) circus set \<Rightarrow> ('a, 'b) circus"
+  lift_definition Sup_Action :: "('a, 'b) Action set \<Rightarrow> ('a, 'b) Action" 
+    is "\<lambda> A. \<^bold>\<Sqinter>\<^bsub>TCSP\<^esub> A"
+    by (rule csp_theory.weak.inf_closed, auto)
+  lift_definition Inf_Action :: "('a, 'b) Action set \<Rightarrow> ('a, 'b) Action"
     is "\<lambda> A. \<^bold>\<Squnion>\<^bsub>TCSP\<^esub> A" 
-    by (rule csp_theory.weak.sup_closed, auto simp add: tcsp_hcond_def)
+    by (rule csp_theory.weak.sup_closed, auto)
 instance 
   apply (intro_classes)
-  oops
+             apply (transfer, simp add: csp_theory.join_left)
+            apply (transfer, simp add: csp_theory.join_right)
+           apply (transfer, simp add: csp_theory.join_le)
+          apply (transfer, simp add: csp_theory.meet_left)
+         apply (transfer, simp add: csp_theory.meet_right)
+        apply (transfer, simp add: csp_theory.meet_le)
+       apply (transfer, metis csp_theory.sup_upper mem_Collect_eq subsetI tcsp_hcond_def utp_order_carrier)
+      apply (transfer, force intro: csp_theory.sup_least)
+     apply (transfer, simp add: Ball_Collect csp_theory.inf_lower)
+    apply (transfer, force intro: csp_theory.inf_greatest)
+   apply (transfer, metis (full_types) csp_bottom_Chaos csp_theory.eq_is_equal csp_theory.weak_sup_empty)
+  apply (transfer, metis (full_types) csp_top_Miracle csp_theory.eq_is_equal csp_theory.weak_inf_empty)
+done
+    
 end
-*)
- 
+  
 end
