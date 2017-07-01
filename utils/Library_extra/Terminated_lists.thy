@@ -278,17 +278,37 @@ end
 text {* Given an additive monoid type, we can define a front function
         that yields front(s) + last(s) for a given stlist s *}
     
-primrec front :: "'a::monoid_add stlist \<Rightarrow> 'a stlist" where
-"front [;x] = 0" |
+primrec front :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
+"front [;x] = [;fzero x]" |
 "front (x#\<^sub>txs) = (x#\<^sub>tfront xs)"
+
+primrec tail :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
+"tail [;x] = [;fzero x]" |
+"tail (x#\<^sub>txs) = (fzero x#\<^sub>txs)"
+
+primrec head :: "'a::fzero_add_zero stlist \<Rightarrow> 'a" where
+"head [;x] = x" |
+"head (x#\<^sub>txs) = x"
 
 value "front [a;b]"
 
 lemma stlist_front_concat_last: "s = front(s) + [;last(s)]"
   unfolding plus_stlist_def
   apply (induct s)
-  apply auto
-  by (simp add: zero_stlist_def)
+  by auto
+
+lemma 
+  assumes "x \<noteq> []"
+  shows "x = [hd x] + (tl x)"
+  using assms
+  by (simp add: plus_list_def)
+
+lemma stlist_head_concat_tail: 
+  "s = [;head(s)] + tail(s)"
+  apply (induct s)
+   apply auto
+   apply (simp add: plus_stlist_def)
+  by (simp add: stlist_nil_concat_cons)
     
 lemma stlist_cons_plus_nil_front_last:
   shows "(x #\<^sub>t xs) + [;b] = (x #\<^sub>t front(xs)) + [;last(xs) + b]"
