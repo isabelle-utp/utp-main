@@ -16,6 +16,10 @@ text {* Hide HOL's @{typ "'a rel"} type again (recall should do that)! *}
 
 hide_type Relation.rel
 
+text \<open>The CSP closure law for \<open>hide_state\<close> still needs to be proved!\<close>
+
+declare [[quick_and_dirty]]
+
 subsection {* Channel Events *}
 
 text {*
@@ -192,6 +196,13 @@ lemma postR_hide_state [rdes]:
 apply (unfold hide_state_def)
 apply (rel_auto)
 done
+
+text \<open>Closure Laws\<close>
+
+lemma hide_state_CSP_closure [closure]:
+"P is CSP \<Longrightarrow> hide_state (\<exists> {$st, $st\<acute>} \<bullet> P) is CSP"
+apply (unfold hide_state_def)
+sorry
 
 subsection {* Instantiations *}
 

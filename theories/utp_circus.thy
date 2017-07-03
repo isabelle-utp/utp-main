@@ -192,7 +192,13 @@ subsection {* Proof Experiments *}
 
 text {* Make the below a default simplification! [TODO] *}
 
-declare utp_recursion.mu_const [simp]
+declare mu_const [simp]
+
+lemma mu_CSP_const [simp]:
+"(\<mu>\<^sub>C X \<bullet> P) = P"
+apply (unfold comp_def)
+apply (simp only: mu_const)
+done
 
 theorem
 "process P \<triangleq> begin A = Act1 and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>

@@ -60,6 +60,8 @@ definition
   \<bullet> (<currentTime>, <stepSize> :=\<^sub>C \<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
 end"
 
+text \<open>Proof that the @{const Timer} process does not diverge.\<close>
+
 lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true"
 apply (unfold Timer_def)
 apply (unfold circus_syntax)
@@ -69,8 +71,49 @@ apply (unfold hide_state_def)
 apply (simp add: alpha)
 done
 
+text \<open>A simpler version of the Timer (non-recursive).\<close>
+
 definition
-"process Timer2(ct::TIME, hc::PERIOD, tN::TIME) \<triangleq> begin
+"process SimpleTimer(ct::TIME, hc::PERIOD, tN::TIME) \<triangleq> begin
+  state(vstore)
+  Step = (
+    (step!(&<currentTime>)!(&<stepSize>) \<^bold>\<rightarrow>
+      <currentTime> :=\<^sub>C min\<^sub>u(&<currentTime> + &<stepSize>, \<guillemotleft>tN\<guillemotright>)) \<box>
+    (&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u endc \<^bold>\<rightarrow> Stop)
+  \<bullet> (<currentTime>, <stepSize> :=\<^sub>C \<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
+end"
+
+lemma
+"SimpleTimer(ct, hc, tN) \<sqsubseteq> step!(\<guillemotleft>ct\<guillemotright>)!(\<guillemotleft>hc\<guillemotright>) \<^bold>\<rightarrow> Skip"
+apply (unfold SimpleTimer_def)
+apply (unfold circus_syntax)
+apply (simp add: Let_def)
+(* apply (rdes_refine) *)
+apply (rule SRD_refine_intro)
+apply (simp add: closure)
+apply (simp add: closure)
+apply (rdes_calc)
+apply (rdes_calc)
+apply (rel_simp)
+apply (erule_tac Q = "endc () \<in> ref\<^sub>v" in contrapos_pp)
+apply (simp)
+defer
+apply (rdes_calc)
+apply (rel_simp)
+oops
+
+lemma
+"ct < tN \<Longrightarrow> SimpleTimer(ct, hc, tN) \<sqsubseteq> step!(\<guillemotleft>ct\<guillemotright>)!(\<guillemotleft>hc\<guillemotright>) \<^bold>\<rightarrow> Skip"
+apply (unfold SimpleTimer_def)
+apply (unfold circus_syntax)
+apply (simp add: Let_def)
+apply (rdes_refine)
+done
+
+text \<open>A simpler version of the Timer (recursive).\<close>
+
+definition
+"process SimpleTimerRec(ct::TIME, hc::PERIOD, tN::TIME) \<triangleq> begin
   state(vstore)
   Step = (step!(&<currentTime>)!(&<stepSize>) \<^bold>\<rightarrow>
     <currentTime> :=\<^sub>C min\<^sub>u(&<currentTime> + &<stepSize>, \<guillemotleft>tN\<guillemotright>)) ;; Step
@@ -124,10 +167,8 @@ apply (clarsimp)
 apply (blast)
 done
 
-(* lemma "Timer2(ct, hc, tN) \<sqsubseteq> step!(\<guillemotleft>ct\<guillemotright>)!(\<guillemotleft>hc\<guillemotright>) \<^bold>\<rightarrow> Miracle" *)
-
-lemma "`peri\<^sub>R(Timer2(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
-apply (unfold Timer2_def)
+lemma "`peri\<^sub>R(SimpleTimerRec(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
+apply (unfold SimpleTimerRec_def)
 apply (unfold circus_syntax)
 apply (simp add: Let_def)
 apply (rdes_calc)
@@ -151,7 +192,7 @@ apply (clarsimp)
 apply (simp add: Prefix_Order.strict_prefixI')
 done
 
-text \<open>Experiment with Simon Foster\<close>
+text \<open>Experiment using unfolding (Simon's suggestion)\<close>
 
 lemma csp_mu_unfold:
 "P is CSP \<Longrightarrow> (\<mu>\<^sub>C X \<bullet> P ;; X) = P ;; (\<mu>\<^sub>C X \<bullet> P ;; X)"
@@ -160,8 +201,8 @@ apply (simp add: closure)
 apply (simp add: comp_def Healthy_if closure)
 done
 
-lemma "`peri\<^sub>R(Timer2(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
-apply (unfold Timer2_def)
+lemma "`peri\<^sub>R(SimpleTimerRec(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
+apply (unfold SimpleTimerRec_def)
 apply (unfold circus_syntax)
 apply (simp add: Let_def)
 apply (subst csp_mu_unfold)
