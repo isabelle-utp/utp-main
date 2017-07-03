@@ -172,7 +172,13 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
     "document.sty"
     "zed.sty"
     "csp.sty"
-    
+
+(* Hybrid UTP with deep model *)
+
+session "UTP-HYBRID-DEEP" in "theories" = "UTP-HYBRID" +
+  options [browser_info = true, document = false]
+  theories utp_theories_deep
+
 (* Hybrid UTP examples *)
     
 session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
