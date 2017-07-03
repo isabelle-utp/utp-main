@@ -11,6 +11,7 @@ section {* FMI {\Circus} Model *}
 theory fmi
 imports "../utp/models/utp_axm"
   "../theories/utp_circus"
+  "../theories/utp_circus_prefix"
   "../utils/Positive_New"
 begin recall_syntax
 
@@ -25,9 +26,24 @@ text {* The following adjustment is needed... *}
 syntax
   "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [81, 80] 80)
 
+text \<open>
+  This should not be needed anymore after the prefix operators in the theory
+  @{theory utp_circus_prefix} are fixed.
+\<close>
+
+purge_syntax
+  "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
+  "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" (".'(_')")
+
+text {* The below cause ambiguities wrt the corresponding CSP definitions. *}
+
+hide_const utp_cml.Skip
+hide_const utp_cml.Stop
+
+text \<open>Configuration Options\<close>
+
 declare [[typedef_overloaded]]
 declare [[quick_and_dirty]]
-
 declare [[syntax_ambiguity_warning=false]]
 
 default_sort type
@@ -844,7 +860,7 @@ definition
   Step =
     (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow>\<^sub>\<C> (<currentTime> := \<guillemotleft>t\<guillemotright>) ;; Step) \<box>
     (tm:updateSS?(ss : true) \<rightarrow>\<^sub>\<C> (<stepSize> := \<guillemotleft>ss\<guillemotright>) ;; Step) \<box>
-    (tm:step![out]((&<currentTime>, &<stepsize>)\<^sub>u) \<rightarrow>\<^sub>\<C>
+    (tm:step![out]((&<currentTime>, &<stepSize>)\<^sub>u) \<rightarrow>\<^sub>\<C>
       (<currentTime::'\<tau>> :=
         min\<^sub>u(&<currentTime> + \<section>(&<stepSize::'\<tau> pos>), \<guillemotleft>tN\<guillemotright>)) ;; Step) \<box>
     ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>\<C> Stop)
@@ -857,7 +873,7 @@ definition
   Step =
     (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow>\<^sub>\<C> (<currentTime> := \<guillemotleft>t\<guillemotright>) ;; Step) \<box>
     (tm:updateSS?(ss) \<rightarrow>\<^sub>\<C> (<stepSize> := \<guillemotleft>ss\<guillemotright>) ;; Step) \<box>
-    (tm:step![out\<^sub>1]($<currentTime>)![out\<^sub>2]($<stepsize>) \<rightarrow>\<^sub>\<C>
+    (tm:step![out\<^sub>1]($<currentTime>)![out\<^sub>2]($<stepSize>) \<rightarrow>\<^sub>\<C>
       (<currentTime::'\<tau>> :=
         min\<^sub>u(&<currentTime> + \<section>(&<stepSize::'\<tau> pos>), \<guillemotleft>tN\<guillemotright>)) ;; Step) \<box>
     ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>\<C> Stop)
