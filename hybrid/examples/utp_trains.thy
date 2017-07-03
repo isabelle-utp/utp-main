@@ -4,7 +4,7 @@ theory utp_trains
   imports 
     "../utp_hybrid"
     "~~/src/HOL/Decision_Procs/Approximation"
-begin
+begin recall_syntax
 
 subsection {* Constants *}
   
@@ -14,25 +14,21 @@ abbreviation "normal_deceleration :: real \<equiv> -1.4"
   
 abbreviation "track1_length \<equiv> 100"
   
-text {* State-space *}
+subsection {* State-space *}
   
 alphabet cst_train =
-  accel :: real
-  vel   :: real
-  pos   :: real
+  accel :: real -- {* Acceleration *}
+  vel   :: real -- {* Velocity *}
+  pos   :: real -- {* Position *}
     
 setup_lifting type_definition_cst_train_ext
+  
+text {* Proof that the state-space is a T2 topological space. *}
   
 instantiation cst_train_ext :: (t2_space) t2_space
 begin
   lift_definition open_cst_train_ext :: "'a cst_train_scheme set \<Rightarrow> bool" is "open" .
-  instance
-    apply (intro_classes)
-    apply (transfer, simp)
-    apply (transfer, auto)
-    apply (transfer, auto)
-    apply (transfer, meson hausdorff)
-  done
+  instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
 end
 
 lemma continuous_Rep_cst_train_ext [continuous_intros]:

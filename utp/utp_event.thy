@@ -62,4 +62,11 @@ text {*
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
 [upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>(e)\<^sub>a"
+
+lemma unrest_chan_apply [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> (c\<cdot>e)\<^sub>u"
+  by (rel_auto)
+
+lemma usubst_chan_apply [usubst]: "\<sigma> \<dagger> (c\<cdot>v)\<^sub>u = (c\<cdot>\<sigma> \<dagger> v)\<^sub>u"
+  by (rel_auto)
+
 end

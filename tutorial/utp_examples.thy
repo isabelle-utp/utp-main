@@ -100,6 +100,7 @@ lemma wp_ex_4:
 
 lemma hoare_ex_1:
   "\<lbrace>true\<rbrace>(z := &x) \<triangleleft> (&x \<ge>\<^sub>u &y) \<triangleright>\<^sub>r (z := &y)\<lbrace>&z =\<^sub>u max\<^sub>u(&x, &y)\<rbrace>\<^sub>u"
+  apply (hoare_auto)
   oops
 
 lemma hoare_ex_2:
@@ -112,8 +113,9 @@ lemma hoare_ex_2:
        (x := (&x - &y)) \<triangleleft> (&x >\<^sub>u &y) \<triangleright>\<^sub>r (y := (&y - &x))
     od
     \<lbrace>&x =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)\<rbrace>\<^sub>u"
-  oops
-
+  apply (hoare_auto)
+oops
+    
 lemma "x :=\<^sub>D 1 ;; x :=\<^sub>D (&x + 1) = x :=\<^sub>D 2"
   oops (* Rule required: assigns_d_comp *)
 

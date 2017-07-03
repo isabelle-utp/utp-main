@@ -99,7 +99,7 @@ abbreviation
   rcond :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel"
   ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
   where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
-
+    
 text {* Sequential composition is heterogeneous, and simply requires that the output alphabet
   of the first matches then input alphabet of the second. We define it by lifting HOL's 
   built-in relational composition operator (@{term "op O"}). Since this returns a set, the
@@ -226,6 +226,8 @@ definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha
 subsection {* Syntax Translations *}
     
 syntax
+  -- {* Alternative traditional conditional syntax *}
+  "_utp_if" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if\<^sub>u (_)/ then (_)/ else (_))" [0, 0, 71] 71)
   -- {* Iterated sequential composition *}
   "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   -- {* Single and multiple assignement *}
@@ -243,6 +245,7 @@ syntax
   "_antiframe" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [64,0] 80)
   
 translations
+  "_utp_if b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
@@ -409,12 +412,12 @@ lemma usubst_upd_out_comp [usubst]:
   "\<sigma>(&out\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x\<acute> \<mapsto>\<^sub>s v)"
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
-lemma subst_lift_upd [usubst]:
+lemma subst_lift_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
   by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
 
-lemma subst_drop_upd [usubst]:
+lemma subst_drop_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lfloor>\<sigma>($x \<mapsto>\<^sub>s v)\<rfloor>\<^sub>s = \<lfloor>\<sigma>\<rfloor>\<^sub>s(x \<mapsto>\<^sub>s \<lfloor>v\<rfloor>\<^sub><)"
   by pred_simp

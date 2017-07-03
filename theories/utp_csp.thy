@@ -501,12 +501,18 @@ lemma CSP3_Chaos [closure]: "Chaos is CSP3"
 lemma CSP4_Chaos [closure]: "Chaos is CSP4"
   by (rule CSP4_tri_intro, simp_all add: closure rdes unrest, rel_auto)
 
+lemma NCSP_Chaos [closure]: "Chaos is NCSP"
+  by (simp add: NCSP_intro closure) 
+    
 lemma CSP3_Miracle [closure]: "Miracle is CSP3"
   by (simp add: Miracle_def, rule CSP3_intro, simp_all add: RHS_design_is_SRD unrest)
 
 lemma CSP4_Miracle [closure]: "Miracle is CSP4"
   by (rule CSP4_tri_intro, simp_all add: closure rdes unrest)
 
+lemma NCSP_Miracle [closure]: "Miracle is NCSP"
+  by (simp add: NCSP_intro closure) 
+    
 lemma NCSP_seqr_closure [closure]:
   assumes "P is NCSP" "Q is NCSP"
   shows "P ;; Q is NCSP"
@@ -595,12 +601,12 @@ interpretation csp_theory: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>)
   rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
   and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
   and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "le (uthy_order TCSP) = op \<sqsubseteq>"
   by (unfold_locales, simp_all add: tcsp_hcond_def NCSP_Continuous Healthy_Idempotent Healthy_if NCSP_Idempotent)
 
 declare csp_theory.top_healthy [simp del]
 declare csp_theory.bottom_healthy [simp del]
-
 
 lemma csp_bottom_Chaos: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = Chaos"
 proof -
@@ -613,6 +619,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma csp_top_Miracle: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = Miracle"
+proof -
+  have 1: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = CSP3 (CSP4 (CSP false))"
+    by (simp add: csp_theory.healthy_top, simp add: tcsp_hcond_def NCSP_def)
+  also have 2:"... = CSP3 (CSP4 Miracle)"
+    by (metis srdes_hcond_def srdes_theory_continuous.healthy_top)
+  also have 3:"... = Miracle"
+    by (metis CSP3_Miracle CSP4_Miracle Healthy_def')
+  finally show ?thesis .
+qed
+  
 subsection {* CSP Constructs *}
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -674,6 +691,12 @@ lemma mu_CSP_equiv:
   assumes "Monotonic F" "F \<in> \<lbrakk>CSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>CSP\<rbrakk>\<^sub>H"
   shows "(\<mu>\<^sub>R F) = (\<mu>\<^sub>C F)"
   by (simp add: srd_mu_equiv assms comp_def)
+    
+lemma mu_CSP_unfold:
+  "P is CSP \<Longrightarrow> (\<mu>\<^sub>C X \<bullet> P ;; X) = P ;; (\<mu>\<^sub>C X \<bullet> P ;; X)"
+  apply (subst gfp_unfold)
+  apply (simp_all add: closure Healthy_if)
+done
     
 definition Guard ::
   "'\<sigma> cond \<Rightarrow>
@@ -804,11 +827,14 @@ translations
 text {* Basic print translations; more work needed *}
 
 translations
-  "_input_prefix x P" <= "_prefix_aux v (\<lambda>x. P)"
   "_simple_input_prefix x" <= "_input_prefix x true"
   "_output_prefix v" <= "_prefix_aux p (CONST outp_constraint v)"
+  "_output_prefix u (_output_prefix v)" 
+    <= "_prefix_aux p (\<lambda>(x1, y1). CONST outp_constraint u x2 \<and> CONST outp_constraint v y2)"
+  "_input_prefix x P" <= "_prefix_aux v (\<lambda>x. P)"
   "x!(v) \<^bold>\<rightarrow> P" <= "CONST OutputCSP x v P"
-
+  
+term "x!(1)!(y) \<^bold>\<rightarrow> P"  
 term "x?(v) \<^bold>\<rightarrow> P"
 term "x?(v:false) \<^bold>\<rightarrow> P"
 term "x!(\<langle>1\<rangle>) \<^bold>\<rightarrow> P"
@@ -865,7 +891,7 @@ lemma CSP4_Sup_closure [closure]:
   apply (simp)
   using image_iff apply force
 done
-
+  
 lemma NCSP_Sup_closure [closure]: "\<lbrakk> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> A) is NCSP"
   apply (rule NCSP_intro, simp_all add: closure)
   apply (metis (no_types, lifting) Ball_Collect CSP3_Sup_closure NCSP_implies_CSP3)
@@ -1371,7 +1397,7 @@ proof -
   finally show ?thesis
     by (simp add: UINF_healthy[OF assms(1), THEN sym] USUP_healthy[OF assms(1), THEN sym])
 qed
-
+  
 lemma periR_ExtChoice' [rdes]:
   assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP"
   shows "peri\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F(P))) \<Rightarrow> ((\<Squnion> P\<in>A \<bullet> peri\<^sub>R(F(P))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R(F(P)))))"
@@ -1778,16 +1804,26 @@ proof -
     by (simp add: wpR_def R1_neg_preR assms closure, rel_auto, blast)
 qed
 
-lemma tr_extend_peri_lemma:
-  assumes "P is NCSP"
-  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; peri\<^sub>R P = (peri\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
-proof -
-  have "$ref \<sharp> peri\<^sub>R P"
-    by (simp add: CSP3_unrest_ref(2) NCSP_implies_CSP NCSP_implies_CSP3 assms)
-  thus "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; peri\<^sub>R(P) = (peri\<^sub>R(P))\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
-    by (rel_blast)
-qed
+text {* Useful laws for reducing assignments and identities within peri and postconditions *}
+  
+lemma tr_extend_seqr [rdes]:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+  using assms by (rel_auto, meson)
 
+lemma tr_extend_seqr_lit [rdes]:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<guillemotleft>a\<guillemotright>\<rangle>/$tr\<rbrakk>"
+  using assms by (rel_auto, meson)
+
+lemma tr_assign_comp [rdes]:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
+  shows "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S) ;; P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
+  using assms by (rel_auto, meson)    
+    
 lemma extChoice_Dist:
   assumes "P is CSP" "S \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H" "S \<noteq> {}"
   shows "P \<box> (\<Sqinter> S) = (\<Sqinter> Q\<in>S. P \<box> Q)"
@@ -2427,7 +2463,7 @@ proof (clarsimp simp add: Guarded_def)
           apply (simp add: length_minus_list)
           apply (subgoal_tac "length(tr) + length(z # zs) \<le> length(tr')")
           apply auto[1]
-          using Prefix_Order.prefix_length_le apply force
+          apply (metis diff_add_cancel_left' length_append nat_le_iff_add plus_list_def)
           apply (rename_tac tr st ref ok wait tr' st' ref' tr\<^sub>0 st\<^sub>0 ref\<^sub>0 ok')
           apply (rule_tac x="tr\<^sub>0" in exI, rule_tac x="st\<^sub>0" in exI, rule_tac x="ref\<^sub>0" in exI)
           apply (simp)
@@ -2436,7 +2472,7 @@ proof (clarsimp simp add: Guarded_def)
           apply (simp add: length_minus_list)
           apply (subgoal_tac "length(tr) + length(z # zs) \<le> length(tr')")
           apply auto[1]
-          using Prefix_Order.prefix_length_le apply force
+          apply (metis Prefix_Order.prefix_length_le length_append)
         done
         have 2:"(\<not> pre\<^sub>R P) ;; (CSP X)\<lbrakk>false/$wait\<rbrakk> = (\<not> pre\<^sub>R P) ;; (CSP(X \<and> gvrt n))\<lbrakk>false/$wait\<rbrakk>"
           by (simp add: NSRD_neg_pre_left_zero closure assms SRD_healths)
@@ -2905,4 +2941,141 @@ lemma "dv\<lbrakk>Chaos\<rbrakk>s = UNIV"
 lemma "tr\<lbrakk>Chaos\<rbrakk>s = {}"
   by (simp add: traces_def rdes closure usubst)
 
+subsection {* Deadlock Freedom *}
+  
+definition DF :: "'e set \<Rightarrow> ('s, 'e) action" where
+"DF(A) = (\<mu>\<^sub>C X \<bullet> (\<Sqinter> a\<in>A \<bullet> a \<^bold>\<rightarrow> Skip) ;; X)"
+ 
+lemma DF_CSP [closure]: "A \<noteq> {} \<Longrightarrow> DF(A) is CSP"
+  by (simp add: DF_def closure unrest)
+  
+lemma preR_DF [rdes]:
+  "A \<noteq> {} \<Longrightarrow> pre\<^sub>R(DF(A)) = true"
+  by (simp add: DF_def rdes closure unrest wp usubst)
+      
+lemma periR_DF_lemma:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
+  shows "(\<Sqinter> a \<in> A \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<and> $st\<acute> =\<^sub>u $st) \<^bold>^ i ;; P = 
+         ($tr \<le>\<^sub>u $tr\<acute> \<and> elems\<^sub>u(tt) \<subseteq>\<^sub>u \<guillemotleft>A\<guillemotright> \<and> #\<^sub>u(tt) =\<^sub>u \<guillemotleft>i\<guillemotright> \<and> $st\<acute> =\<^sub>u $st) ;; P"
+proof (induct i)
+  case 0
+  with assms show ?case
+    apply (simp, rel_auto)
+    apply (metis (no_types, hide_lams) list.set(1) minus_cancel order_bot_class.bot.extremum order_refl)
+    apply (metis (no_types, lifting) less_eq_list_def strict_prefix_diff_minus)
+  done
+next
+  case (Suc i)
+  show ?case 
+    apply (simp add: seqr_assoc[THEN sym] seq_UINF_distr tr_extend_seqr unrest usubst Suc)
+    apply (rel_auto)
+    apply (rename_tac tr st ok wait tr' st' ref x ok' wait' tr'' ref')
+    apply (rule_tac x="ok'" in exI)
+    apply (rule_tac x="wait'" in exI)
+     apply (rule_tac x="tr''" in exI)
+    apply (auto)
+    apply (auto simp add: less_eq_list_def prefix_def)[1]
+      apply (metis append_Cons append_Nil append_minus list_concat_minus_list_concat subsetCE)
+    apply (auto simp add: less_eq_list_def prefix_def)[1]
+    apply (metis append_Cons append_Nil append_minus list_concat_minus_list_concat)      
+    apply (rename_tac tr st ok wait tr' st' ref ok' wait' tr'' ref')
+    apply (rule_tac x="hd(tr'' - tr)" in exI)
+    apply (auto)
+    apply (rule_tac x="ok'" in exI)
+     apply (rule_tac x="wait'" in exI)
+     apply (rule_tac x="tr''" in exI)      
+    apply (auto)
+    apply (metis Prefix_Order.Cons_prefix_Cons Prefix_Order.Nil_prefix Prefix_Order.same_prefix_prefix hd_Cons_tl length_greater_0_conv less_eq_list_def prefix_concat_minus zero_less_Suc)
+    apply (auto simp add: less_eq_list_def prefix_def)[1]
+    apply (metis Suc_length_conv append_Cons append_Nil append_minus hd_Cons_tl list.distinct(1) list_concat_minus_list_concat set_subset_Cons subsetCE)
+    apply (auto simp add: less_eq_list_def prefix_def)[1]
+    apply (metis Suc_length_conv append_Nil append_one_prefix cancel_comm_monoid_add_class.diff_zero diff_Suc_Suc length_drop list.sel(1) list.size(3) list_concat_minus_list_concat minus_list_def nth_Cons_0 prefix_code(1) zero_less_Suc)
+    apply (metis contra_subsetD hd_in_set length_greater_0_conv zero_less_Suc)
+  done
+qed
+
+lemma periR_DF [rdes]:
+  "A \<noteq> {} \<Longrightarrow> peri\<^sub>R(DF(A)) = ($tr \<le>\<^sub>u $tr\<acute> \<and> elems\<^sub>u(tt) \<subseteq>\<^sub>u \<guillemotleft>A\<guillemotright> \<and> (\<^bold>\<exists> a \<in> \<guillemotleft>A\<guillemotright> \<bullet> \<guillemotleft>a\<guillemotright> \<notin>\<^sub>u $ref\<acute>))"
+  apply (simp add: DF_def rdes closure unrest wp usubst alpha)  
+  apply (simp add: seq_UINF_distr periR_DF_lemma unrest)
+  apply (rel_auto)
+done
+    
+lemma postR_DF [rdes]:
+  "A \<noteq> {} \<Longrightarrow> post\<^sub>R(DF(A)) = false"
+  by (simp add: DF_def rdes closure unrest wp usubst alpha)
+    
+text {* Example deadlock freedom proof *}
+  
+lemma "DF(UNIV) \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> (a \<^bold>\<rightarrow> Skip) ;; X)"
+  apply (rule_tac mu_csp_basic_refine)
+  apply (simp_all add: closure rdes wp usubst alpha)
+  apply (rel_auto)
+  apply (rel_blast)
+done
+    
+subsection {* CSP Action Type and Lifted Definitions *}
+   
+typedef ('e, 's) Action = "{P :: ('e, 's) action. P is NCSP}"
+  by (rule_tac x="Skip" in exI, simp add: closure)
+  
+setup_lifting type_definition_Action
+  
+lift_definition skip :: "('e, 's) Action" is Skip
+  by (simp add: closure)
+    
+lift_definition stop :: "('e, 's) Action" is Stop
+  by (simp add: closure)
+
+lift_definition seqCircus :: "('e, 's) Action \<Rightarrow> ('e, 's) Action \<Rightarrow> ('e, 's) Action" (infixr ";\<^sub>C" 71)
+  is "op ;;"
+  by (simp add: closure)
+   
+lemma stop_left_zero: "stop ;\<^sub>C P = stop"
+  by (transfer, simp add: NCSP_implies_CSP Stop_left_zero)
+    
+instantiation Action :: (type, type) order
+begin
+  lift_definition less_eq_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "op \<le>" .
+  lift_definition less_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "op <" .
+instance by (intro_classes) (transfer, simp add: less_uexpr_def)+
+end
+  
+instance Action :: (type, type) refine ..
+
+instantiation Action :: (type, type) complete_lattice
+begin
+  lift_definition sup_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> ('a, 'b) Action" is Lattices.sup
+    by (simp add: closure)
+  lift_definition inf_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> ('a, 'b) Action" 
+    is "\<lambda> P Q. P \<^bold>\<squnion>\<^bsub>TCSP\<^esub> Q" by simp
+  lift_definition bot_Action :: "('a, 'b) Action" is Miracle
+    by (simp add: closure)
+  lift_definition top_Action :: "('a, 'b) Action" is Chaos
+    by (simp add: closure)
+  lift_definition Sup_Action :: "('a, 'b) Action set \<Rightarrow> ('a, 'b) Action" 
+    is "\<lambda> A. \<^bold>\<Sqinter>\<^bsub>TCSP\<^esub> A"
+    by (rule csp_theory.weak.inf_closed, auto)
+  lift_definition Inf_Action :: "('a, 'b) Action set \<Rightarrow> ('a, 'b) Action"
+    is "\<lambda> A. \<^bold>\<Squnion>\<^bsub>TCSP\<^esub> A" 
+    by (rule csp_theory.weak.sup_closed, auto)
+instance 
+  apply (intro_classes)
+             apply (transfer, simp add: csp_theory.join_left)
+            apply (transfer, simp add: csp_theory.join_right)
+           apply (transfer, simp add: csp_theory.join_le)
+          apply (transfer, simp add: csp_theory.meet_left)
+         apply (transfer, simp add: csp_theory.meet_right)
+        apply (transfer, simp add: csp_theory.meet_le)
+       apply (transfer, metis csp_theory.sup_upper mem_Collect_eq subsetI tcsp_hcond_def utp_order_carrier)
+      apply (transfer, force intro: csp_theory.sup_least)
+     apply (transfer, simp add: Ball_Collect csp_theory.inf_lower)
+    apply (transfer, force intro: csp_theory.inf_greatest)
+   apply (transfer, metis (full_types) csp_bottom_Chaos csp_theory.eq_is_equal csp_theory.weak_sup_empty)
+  apply (transfer, metis (full_types) csp_top_Miracle csp_theory.eq_is_equal csp_theory.weak_inf_empty)
+done
+    
+end
+  
 end
