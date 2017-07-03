@@ -827,11 +827,14 @@ translations
 text {* Basic print translations; more work needed *}
 
 translations
-  "_input_prefix x P" <= "_prefix_aux v (\<lambda>x. P)"
   "_simple_input_prefix x" <= "_input_prefix x true"
   "_output_prefix v" <= "_prefix_aux p (CONST outp_constraint v)"
+  "_output_prefix u (_output_prefix v)" 
+    <= "_prefix_aux p (\<lambda>(x1, y1). CONST outp_constraint u x2 \<and> CONST outp_constraint v y2)"
+  "_input_prefix x P" <= "_prefix_aux v (\<lambda>x. P)"
   "x!(v) \<^bold>\<rightarrow> P" <= "CONST OutputCSP x v P"
-
+  
+term "x!(1)!(y) \<^bold>\<rightarrow> P"  
 term "x?(v) \<^bold>\<rightarrow> P"
 term "x?(v:false) \<^bold>\<rightarrow> P"
 term "x!(\<langle>1\<rangle>) \<^bold>\<rightarrow> P"
@@ -1394,7 +1397,7 @@ proof -
   finally show ?thesis
     by (simp add: UINF_healthy[OF assms(1), THEN sym] USUP_healthy[OF assms(1), THEN sym])
 qed
-
+  
 lemma periR_ExtChoice' [rdes]:
   assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP"
   shows "peri\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F(P))) \<Rightarrow> ((\<Squnion> P\<in>A \<bullet> peri\<^sub>R(F(P))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R(F(P)))))"
