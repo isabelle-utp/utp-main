@@ -1,8 +1,8 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: utp_circus_prefix.thy                                                *)
-(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
-(* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 (* LAST REVIEWED: 28 June 2017 *)
 
