@@ -105,7 +105,6 @@ lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
 done
 
 end
-
   
 class trace = pre_trace + ord + minus +
   assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
@@ -256,6 +255,8 @@ instance nat :: trace
     
 subsection {* Trace algebra based on left-cancellative unitary semigroup whose
   unitary function is idempotent. *}
+  
+
 
 text {* We call the unitary function fzero (as in a functional zero
         when compared to the monoid-based trace algebra). *}
@@ -263,6 +264,8 @@ text {* We call the unitary function fzero (as in a functional zero
 class fzero = 
   fixes fzero :: "'a \<Rightarrow> 'a"
     
+class semigroup_add_fzero = semigroup_add + fzero
+
 class fzero_idem = fzero +
   assumes fzero_idem[simp]: "fzero (fzero a) = fzero a"    
     
@@ -281,28 +284,25 @@ class fzero_ident = fzero +
 text {* We then define mirror properties of a monoid, but instead we
         require the zero property on fzero, rather than 0. *}    
     
-class fzero_add_zero = fzero_idem + semigroup_add +
+class fzero_add_zero = fzero_idem + semigroup_add_fzero +
   assumes add_fzero_left[simp]: "(fzero a) + a = a"
   assumes add_fzero_right[simp]: "a + (fzero a) = a"
-begin
-  
-text {* We also define the less operator and minus in terms of
-        plus. *}  
-  
-definition fzero_le (infix "\<le>\<^sub>d" 50)
-where "a \<le>\<^sub>d b \<longleftrightarrow> (\<exists>c. b = a + c)"
- 
-definition fzero_subtract (infixl "-\<^sub>d" 65)
-  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else fzero a)"  
-  
-end
- 
+    
 text {* In this algebra we only require zero_sum_right, but not
         zero_sum_left. The immediate consequence is that we do
         not obtain an order as there is no anti-symmetry. *}
     
 class fzero_sum_zero = fzero_add_zero +
   assumes fzero_sum_right: "a + b = (fzero b) \<Longrightarrow> (b = fzero b)"
+    
+instance fzero_sum_zero \<subseteq> fzero_add_zero
+  by intro_classes  
+  
+instance fzero_add_zero \<subseteq> semigroup_add_fzero
+  by intro_classes
+    
+instance fzero_sum_zero \<subseteq> semigroup_add_fzero
+  by intro_classes    
     
 text {* However, when we restrict the class to fzero_is_0, then
         trivially we have that sum_left and sum properties are
@@ -325,41 +325,74 @@ instance fzero_is_0_sum_zero \<subseteq> monoid_sum_0
   apply (metis add_fzero_left fzero_is_0)
   apply (metis add_fzero_right fzero_is_0)
   by (metis fzero_is_0 fzero_sum)
+  
+text {* We also define the less operator and minus in terms of
+        plus. *}  
+  
+
     
+context semigroup_add
+begin
+  
+definition fzero_le (infix "\<le>\<^sub>d" 50)
+  where "a \<le>\<^sub>d b \<longleftrightarrow> (\<exists>c. b = a + c)"
+    
+lemma monoid_le_trans: 
+  "\<lbrakk> a \<le>\<^sub>d b; b \<le>\<^sub>d c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>d c"
+  using add_assoc local.fzero_le_def by auto
+    
+lemma monoid_le_add: "a \<le>\<^sub>d a + b"
+  by (auto simp add: fzero_le_def)
+
+lemma monoid_le_add_left_mono: 
+  "a \<le>\<^sub>d b \<Longrightarrow> c + a \<le>\<^sub>d c + b"
+  using add_assoc local.fzero_le_def by auto
+    
+end
+  
+context semigroup_add_fzero
+begin
+ 
+definition fzero_subtract (infixl "-\<^sub>d" 65)
+  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else fzero a)"  
+    
+end
+  
 text {* We then define an equivalent class as a pre_trace, where
         in addition to satisfying fzero_sum_zero, and being a left
         cancellative semigroup, we also require sum_eq_sum_conv. *}
+
+context fzero_add_zero
+begin
+  
+lemma monoid_le_least_zero: "fzero a \<le>\<^sub>d a"
+  by (metis local.add_fzero_left local.monoid_le_add)
+ 
+lemma monoid_le_refl: "a \<le>\<^sub>d a"
+  apply (simp add: local.fzero_le_def)
+  by (metis local.add_fzero_right)
     
+
+end
+  
 class fzero_pre_trace = left_cancel_semigroup + fzero_sum_zero +
   assumes
   sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
 begin
   
-lemma monoid_le_least_zero: "fzero a \<le>\<^sub>d a"
-    by (metis local.add_fzero_left local.fzero_le_def)
-
-lemma monoid_le_refl: "a \<le>\<^sub>d a"
-  apply (simp add: fzero_le_def)
-  by (metis local.sum_eq_sum_conv)
-
-lemma monoid_le_trans: "\<lbrakk> a \<le>\<^sub>d b; b \<le>\<^sub>d c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>d c"
-  by (metis add.assoc fzero_le_def) 
-    
-lemma monoid_le_add: "a \<le>\<^sub>d a + b"
-  by (auto simp add: fzero_le_def)
-
-lemma monoid_le_add_left_mono: "a \<le>\<^sub>d b \<Longrightarrow> c + a \<le>\<^sub>d c + b"
-  using add_assoc by (auto simp add: fzero_le_def)
-
-lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>d a = b"
+  (* still unsure whether this should be moved into another class *)
+lemma add_monoid_diff_cancel_left [simp]: 
+  "(a + b) -\<^sub>d a = b"
   apply (simp add: fzero_subtract_def monoid_le_add)
   apply (rule the_equality)
   apply (simp)
-  using local.add_left_imp_eq apply blast
-  done
-    
+  using left_cancel_semigroup_class.add_left_imp_eq 
+  by (metis local.add_left_imp_eq)
 end
-   
+  
+instance fzero_pre_trace \<subseteq> semigroup_add_fzero
+  by intro_classes  
+ 
 text {* As stated earlier, there is no antisymmetry unless fzero
         is a constant. *}  
   
@@ -397,28 +430,31 @@ qed
   
 text {* We then define the trace algebra using fzero. We reprove
         properties of the monoid-based trace algebra. *}  
-  
+
 class fzero_trace = fzero_pre_trace + ord + minus +
   assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>d b)"
   and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
   and minus_def: "a - b = a -\<^sub>d b"
 begin
   
- lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
-    by (simp add: local.le_is_fzero_le local.fzero_le_def)
+  lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
+    by (simp add: local.fzero_le_def local.le_is_fzero_le)
 
-  lemma least_zero [simp]: "fzero a \<le> b"
-    by (metis local.add.semigroup_axioms local.add_fzero_right local.add_left_imp_eq local.le_iff_add semigroup.assoc)
-  
-  lemma le_add [simp]: "a \<le> a + b"
-    by (simp add: le_is_fzero_le local.monoid_le_add)
-
+  lemma least_zero [simp]: 
+     "fzero a \<le> b"
+     by (metis local.add.semigroup_axioms local.add_fzero_right local.add_left_imp_eq local.le_iff_add semigroup.assoc)
+    
+  lemma le_add [simp]:
+    "a \<le> a + b"
+    using local.le_iff_add by blast
+   
   lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero b"
-    by (simp add: le_is_fzero_le local.minus_def local.fzero_subtract_def)
+    by (simp add: fzero_subtract_def local.le_is_fzero_le local.minus_def)
 
-  lemma add_diff_cancel_left [simp]: "(a + b) - a = b"
+  lemma add_diff_cancel_left [simp]: 
+    "(a + b) - a = b"
     by (simp add: minus_def)
-
+      
   lemma diff_zero [simp]: "a - fzero b = a"
     by (metis add_assoc local.add_diff_cancel_left local.add_fzero_right)
        
@@ -489,7 +525,7 @@ begin
     
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left') 
-      
+
   (* under what circumstances is - associative? *)
 end
   
@@ -499,8 +535,9 @@ text {* This algebra forms a preorder. It turns out this is
 instance fzero_trace \<subseteq> preorder
   apply (intro_classes)
   apply (simp add: fzero_trace_class.less_iff)
-  apply (simp add: fzero_pre_trace_class.monoid_le_refl le_is_fzero_le)
-  using fzero_pre_trace_class.monoid_le_trans le_is_fzero_le by blast
+  apply (simp add: fzero_add_zero_class.monoid_le_refl le_is_fzero_le)
+  using fzero_trace_class.le_is_fzero_le 
+  by (metis semigroup_add_class.monoid_le_trans)
 
 instantiation list :: (type) fzero_is_0
 begin
