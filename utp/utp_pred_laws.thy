@@ -584,6 +584,16 @@ lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bull
 lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+subsection {* Variable Restriction *}    
+
+lemma var_res_all: 
+  "P \<restriction>\<^sub>v &\<Sigma> = P"
+  by (rel_auto)
+  
+lemma var_res_twice: 
+  "mwb_lens x \<Longrightarrow> P \<restriction>\<^sub>v x \<restriction>\<^sub>v x = P \<restriction>\<^sub>v x"
+  by (pred_auto)
+  
 subsection {* Conditional laws *}
 
 lemma cond_def:

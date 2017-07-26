@@ -70,7 +70,8 @@ syntax
   "_ushGAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
   "_ushGtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ > _ \<bullet> _" [0, 0, 10] 10)
   "_ushLtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ < _ \<bullet> _" [0, 0, 10] 10)
-
+  "_uvar_res" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>v" 90)
+  
 translations
   "_uex x P"                   == "CONST uex x P"
   "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"
@@ -290,6 +291,15 @@ lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha>
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
+    
+text {* We define the following operator which is dual of existential quantification. It hides the
+  valuation of variables other than $x$ through existential quantification. *}
+    
+lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred" is
+"\<lambda> P x b. \<exists> b'. P (b' \<oplus>\<^sub>L b on x)" .
+    
+translations
+  "_uvar_res P a" => "CONST var_res P a"
 
 text {* We have to add a u subscript to the closure operator as I don't want to override the syntax
         for HOL lists (we'll be using them later). *}
@@ -417,7 +427,7 @@ lemma unrest_ex_diff [unrest]:
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
 done
-
+  
 lemma unrest_all_in [unrest]:
   "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
   by (pred_auto)
@@ -427,6 +437,20 @@ lemma unrest_all_diff [unrest]:
   shows "y \<sharp> (\<forall> x \<bullet> P)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
+
+lemma unrest_var_res_diff [unrest]:
+  assumes "x \<bowtie> y"
+  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
+  using assms by (pred_auto)
+
+lemma unrest_var_res_in [unrest]:
+  assumes "mwb_lens x" "y \<subseteq>\<^sub>L x" "y \<sharp> P"
+  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
+  using assms 
+  apply (pred_auto)
+  apply fastforce
+  apply (metis (no_types, lifting) mwb_lens_weak weak_lens.put_get)
+done
 
 lemma unrest_shEx [unrest]:
   assumes "\<And> y. x \<sharp> P(y)"
@@ -518,5 +542,5 @@ lemma subst_all_indep [usubst]:
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
-
+    
 end
