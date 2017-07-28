@@ -21,6 +21,9 @@ adhoc_overloading
 
 declare wp_upred_def [urel_defs]
 
+lemma wp_true [wp]: "p wp true = true"
+  by (rel_simp)  
+  
 theorem wp_assigns_r [wp]:
   "\<langle>\<sigma>\<rangle>\<^sub>a wp r = \<sigma> \<dagger> r"
   by rel_auto
@@ -29,7 +32,7 @@ theorem wp_skip_r [wp]:
   "II wp r = r"
   by rel_auto
 
-theorem wp_true [wp]:
+theorem wp_abort [wp]:
   "r \<noteq> true \<Longrightarrow> true wp r = false"
   by rel_auto
 

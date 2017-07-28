@@ -230,6 +230,10 @@ lemma ndesign_false_pre:
   "(false \<turnstile>\<^sub>n P) = true"
   by (rel_auto)
 
+lemma ndesign_miracle:
+  "(true \<turnstile>\<^sub>n false) = \<top>\<^sub>D"
+  by (rel_auto)
+    
 theorem design_refinement:
   assumes
     "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
@@ -481,6 +485,37 @@ theorem ndesign_composition_wp:
   "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
   by (rel_blast)
 
+lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wp Q(i))"
+  by (rel_auto)
+
+theorem ndesign_iteration_wp:
+  "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+proof (induct n)
+  case 0
+  then show ?case by (simp add: wp true_upred_def)
+next
+  case (Suc n) note hyp = this
+  have "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ Suc n = (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n"
+    by (simp)
+  also have "... = (p \<turnstile>\<^sub>n Q) ;; ((\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+    by (simp add: hyp)
+  also have "... = (p \<and> Q wp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: ndesign_composition_wp seqr_assoc)
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: wp)
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: USUP_as_Inf_image)
+  also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (metis (no_types, lifting) One_nat_def image_Suc_atLeastAtMost image_cong image_image)  
+  also have "... = (Q \<^bold>^ 0 wp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: wp)
+  also have "... = ((\<Squnion> i \<in> {0..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: Iic_Suc_eq_insert_0 atLeast0AtMost conj_upred_def image_Suc_atMost)      
+  also have "... = (\<Squnion> i \<in> {0..Suc n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc (Suc n)"
+    by (simp add: USUP_as_Inf_image upred_semiring.mult_assoc)
+  finally show ?case .
+qed
+    
 theorem rdesign_wp [wp]:
   "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
   by (rel_auto)
@@ -1279,7 +1314,29 @@ lemma seq_r_H1_H3_closed [closure]:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "(P ;; Q) is \<^bold>N"
   by (metis (no_types) H1_H2_eq_design H1_H3_eq_design_d_comp H1_H3_impl_H2 Healthy_def assms(1) assms(2) seq_r_H1_H2_closed seqr_assoc)
-
+  
+lemma ndes_seqr_miracle:
+  assumes "P is \<^bold>N"
+  shows "P ;; \<top>\<^sub>D = \<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<turnstile>\<^sub>n false"
+proof -
+  have "P ;; \<top>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (true \<turnstile>\<^sub>n false)"
+    by (simp add: assms ndesign_form ndesign_miracle)
+  also have "... = \<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<turnstile>\<^sub>n false"
+    by (simp add: ndesign_composition_wp wp alpha)
+  finally show ?thesis .
+qed
+    
+lemma ndes_seqr_abort: 
+  assumes "P is \<^bold>N"
+  shows "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+proof -
+  have "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (false \<turnstile>\<^sub>n false)"
+    by (simp add: assms ndesign_false_pre ndesign_form)
+  also have "... = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+    by (simp add: ndesign_composition_wp alpha)
+  finally show ?thesis .
+qed
+      
 lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<sigma> \<dagger> r"
   by (rel_auto)
 
@@ -1379,11 +1436,12 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
 
-interpretation normal_design_theory_mono: utp_theory_continuous NDES
+interpretation normal_design_theory_continuous: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le (uthy_order NDES) = op \<sqsubseteq>"
-  and "eq (uthy_order NDES) = op ="
+  and "A \<subseteq> carrier (uthy_order NDES) \<longleftrightarrow> A \<subseteq> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"  
+  and "eq (uthy_order NDES) = op ="  
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 thm design_theory_continuous.healthy_top
@@ -1394,6 +1452,12 @@ lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
   by (simp add: design_theory_continuous.healthy_bottom, simp add: des_hcond_def)
 
+lemma ndesign_lat_top: "\<^bold>\<top>\<^bsub>NDES\<^esub> = \<^bold>N(false)"
+  by (metis ndes_hcond_def normal_design_theory_continuous.healthy_top)
+
+lemma ndesign_lat_bottom: "\<^bold>\<bottom>\<^bsub>NDES\<^esub> = \<^bold>N(true)"
+  by (metis ndes_hcond_def normal_design_theory_continuous.healthy_bottom)
+    
 abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<mu>\<^sub>D") where
 "\<mu>\<^sub>D F \<equiv> \<^bold>\<mu>\<^bsub>DES\<^esub> F"
 
