@@ -424,10 +424,22 @@ lemma post_convr [simp]: "\<lceil>p\<rceil>\<^sub>>\<^sup>- = \<lceil>p\<rceil>\
 
 subsection {* Assertion and Assumption Laws *}
 
-lemma assume_twice: "(b\<^sup>\<top> ;; c\<^sup>\<top>) = (b \<and> c)\<^sup>\<top>"
+lemma assume_false: "[false]\<^sup>\<top> = false"
+  by (rel_auto)
+  
+lemma assume_true: "[true]\<^sup>\<top> = II"
+  by (rel_auto)
+    
+lemma assume_seq: "[b]\<^sup>\<top> ;; [c]\<^sup>\<top> = [b \<and> c]\<^sup>\<top>"
   by (rel_auto)
 
-lemma assert_twice: "(b\<^sub>\<bottom> ;; c\<^sub>\<bottom>) = (b \<and> c)\<^sub>\<bottom>"
+lemma assert_false: "{false}\<^sub>\<bottom> = true"
+  by (rel_auto)
+
+lemma assert_true: "{true}\<^sub>\<bottom> = II"
+  by (rel_auto)
+    
+lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
   by (rel_auto)
 
 lemma frame_disj: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
@@ -444,6 +456,12 @@ lemma antiframe_to_frame:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
 
+lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
+  by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
+    
+lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
+  by (rel_auto)
+    
 subsection {* While Loop Laws *}
 
 theorem while_unfold:

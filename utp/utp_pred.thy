@@ -299,7 +299,7 @@ lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> 
 "\<lambda> P x b. \<exists> b'. P (b' \<oplus>\<^sub>L b on x)" .
     
 translations
-  "_uvar_res P a" => "CONST var_res P a"
+  "_uvar_res P a" \<rightleftharpoons> "CONST var_res P a"
 
 text {* We have to add a u subscript to the closure operator as I don't want to override the syntax
         for HOL lists (we'll be using them later). *}

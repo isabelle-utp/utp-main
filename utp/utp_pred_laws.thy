@@ -427,7 +427,7 @@ lemma shAll_bool [simp]: "shAll P = (P True \<and> P False)"
 
 lemma shAll_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shAll P = shAll Q"
   by (pred_auto)
-
+    
 text {* Quantifier lifting *}
 
 named_theorems uquant_lift
@@ -585,7 +585,7 @@ lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bul
   by (pred_auto)
 
 subsection {* Variable Restriction *}    
-
+  
 lemma var_res_all: 
   "P \<restriction>\<^sub>v &\<Sigma> = P"
   by (rel_auto)
@@ -593,7 +593,7 @@ lemma var_res_all:
 lemma var_res_twice: 
   "mwb_lens x \<Longrightarrow> P \<restriction>\<^sub>v x \<restriction>\<^sub>v x = P \<restriction>\<^sub>v x"
   by (pred_auto)
-  
+    
 subsection {* Conditional laws *}
 
 lemma cond_def:

@@ -176,10 +176,10 @@ text {* Assumptions ($c^{\top}$) and assertions ($c_{\bot}$) are encoded as cond
   behaves like skip if the condition is true, and otherwise behaves like @{term false} (miracle).
   An assertion is the same, but yields @{term true}, which is an abort. *}
 
-definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<top>" [999] 999) where
+definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("[_]\<^sup>\<top>") where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
-definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("_\<^sub>\<bottom>" [999] 999) where
+definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("{_}\<^sub>\<bottom>") where
 [urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 
 text {* A test is like a precondition, except that it identifies to the postcondition, and is thus
@@ -223,6 +223,13 @@ definition frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hr
 definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "antiframe a P = (II\<restriction>\<^sub>\<alpha>a \<and> P)"
 
+text {* The nameset operator can be used to hide a portion of the after-state that lies outside
+  the lens $a$. It can be useful to partition a relation's variables in order to conjoin it
+  with another relation. *}
+
+definition nameset :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<Sigma>,$a\<acute>})" 
+
 subsection {* Syntax Translations *}
     
 syntax
@@ -240,9 +247,11 @@ syntax
   -- {* Alphabetised skip *}
   "_skip_ra"        :: "salpha \<Rightarrow> logic" ("II\<^bsub>_\<^esub>")
   -- {* Frame *}
-  "_frame"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:\<lbrakk>_\<rbrakk>" [64,0] 80)
+  "_frame"          :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:\<lbrakk>_\<rbrakk>" [64,0] 80)
   -- {* Antiframe *}
-  "_antiframe" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [64,0] 80)
+  "_antiframe"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [64,0] 80)
+  -- {* Nameset *}
+  "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
   
 translations
   "_utp_if b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
@@ -257,7 +266,8 @@ translations
   "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" \<rightleftharpoons> "CONST frame x P"
-  "_antiframe x P" \<rightleftharpoons> "CONST antiframe x P" 
+  "_antiframe x P" \<rightleftharpoons> "CONST antiframe x P"
+  "_nameset x P" \<rightleftharpoons> "CONST nameset x P"
   
 text {* The following code sets up pretty-printing for homogeneous relational expressions. We cannot 
   do this via the ``translations'' command as we only want the rule to apply when the input and output
