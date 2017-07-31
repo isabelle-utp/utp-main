@@ -1045,19 +1045,27 @@ lemma preR_Guard [rdes]: "P is CSP \<Longrightarrow> pre\<^sub>R(b &\<^sub>u P) 
   apply (rel_blast)
 done
 
-lemma periR_Guard [rdes]:
+lemma periR_Guard:
   "\<lbrakk> P is CSP; $wait\<acute> \<sharp> pre\<^sub>R(P) \<rbrakk> \<Longrightarrow> peri\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
   apply (simp add: Guard_tri_design rea_peri_RHS_design usubst unrest R2c_not R2c_impl R2c_preR R2c_periR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr)
   apply (rel_blast)
 done
+    
+lemma periR_Guard' [rdes]:
+  "P is NCSP \<Longrightarrow> peri\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
+  by (simp add: NCSP_implies_CSP NCSP_implies_NSRD NSRD_wait'_unrest_pre periR_Guard)
 
-lemma postR_Guard [rdes]:
+lemma postR_Guard:
   "\<lbrakk> P is CSP; $wait\<acute> \<sharp> pre\<^sub>R(P) \<rbrakk> \<Longrightarrow> post\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P))"
   apply (simp add: Guard_tri_design rea_post_RHS_design usubst unrest R2c_not R2c_and R2c_impl
                    R2c_preR R2c_postR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr)
   apply (rel_blast)
 done
 
+lemma postR_Guard' [rdes]:
+  "P is NCSP \<Longrightarrow> post\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R P) \<Rightarrow> (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P))"
+  by (simp add: NCSP_implies_CSP NCSP_implies_NSRD NSRD_wait'_unrest_pre postR_Guard)
+  
 lemma CSP3_Guard [closure]:
   assumes "P is CSP" "P is CSP3"
   shows "b &\<^sub>u P is CSP3"
@@ -1111,7 +1119,7 @@ proof -
   then show ?thesis
     by (metis (no_types) CSP3_Guard CSP3_commutes_CSP4 CSP4_Guard CSP4_Idempotent CSP_Guard Healthy_Idempotent Healthy_def NCSP_def assms comp_apply)
 qed
-
+  
 subsection {* Sequential Process Laws *}
 
 lemma Stop_left_zero:
@@ -1439,23 +1447,38 @@ lemma postR_ExtChoice' [rdes]:
   shows "post\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F(P))) \<Rightarrow> (\<Sqinter> P\<in>A \<bullet> post\<^sub>R(F(P))))"
   using assms by (subst postR_ExtChoice, auto simp add: closure unrest)
 
-lemma preR_extChoice [rdes]:
+lemma preR_extChoice:
   assumes "P is CSP" "Q is CSP" "$wait\<acute> \<sharp> pre\<^sub>R(P)" "$wait\<acute> \<sharp> pre\<^sub>R(Q)"
   shows "pre\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q))"
   by (simp add: extChoice_def preR_ExtChoice assms usup_and)
 
-lemma periR_extChoice [rdes]:
+lemma preR_extChoice' [rdes]:
+  assumes "P is NCSP" "Q is NCSP"  
+  shows "pre\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q))"  
+  by (simp add: preR_extChoice closure assms unrest)
+    
+lemma periR_extChoice:
   assumes "P is CSP" "Q is CSP" "$wait\<acute> \<sharp> pre\<^sub>R(P)" "$wait\<acute> \<sharp> pre\<^sub>R(Q)"
   shows "peri\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q) \<Rightarrow> (peri\<^sub>R(P) \<and> peri\<^sub>R(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>R(P) \<or> peri\<^sub>R(Q)))"
   using assms
   by (simp add: extChoice_def, subst periR_ExtChoice, auto simp add: usup_and uinf_or)
 
-lemma postR_extChoice [rdes]:
+lemma periR_extChoice' [rdes]:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "peri\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q) \<Rightarrow> (peri\<^sub>R(P) \<and> peri\<^sub>R(Q)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (peri\<^sub>R(P) \<or> peri\<^sub>R(Q)))"
+  by (simp add: periR_extChoice closure unrest assms)
+  
+lemma postR_extChoice:
   assumes "P is CSP" "Q is CSP" "$wait\<acute> \<sharp> pre\<^sub>R(P)" "$wait\<acute> \<sharp> pre\<^sub>R(Q)"
   shows "post\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q) \<Rightarrow> (post\<^sub>R(P) \<or> post\<^sub>R(Q)))"
   using assms
   by (simp add: extChoice_def, subst postR_ExtChoice, auto simp add: usup_and uinf_or)
 
+lemma postR_extChoice' [rdes]:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "post\<^sub>R(P \<box> Q) = (pre\<^sub>R(P) \<and> pre\<^sub>R(Q) \<Rightarrow> (post\<^sub>R(P) \<or> post\<^sub>R(Q)))"
+  by (simp add: postR_extChoice closure unrest assms)
+    
 lemma ExtChoice_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<box> P\<in>A \<bullet> F(P)) = (\<box> P\<in>A \<bullet> G(P))"
@@ -1646,6 +1669,16 @@ proof -
     by (simp add: Chaos_def)
   finally show ?thesis .
 qed
+
+lemma Guard_conditional:
+  assumes "P is NCSP"
+  shows "b &\<^sub>u P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"
+  using assms by (rdes_eq)
+
+lemma Conditional_as_Guard:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"
+  using assms by (rdes_eq)
 
 lemma InputCSP_CSP [closure]: "x?(v:A(v)) \<^bold>\<rightarrow> P(v) is CSP"
   by (simp add: CSP_ExtChoice InputCSP_def)
@@ -2775,15 +2808,15 @@ qed
 subsection {* Parallel Operator *}
 
 abbreviation ParCSP ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_\<parallel>_\<parallel>_|]" 105) where
+  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_\<parallel>_\<parallel>_|]" 75) where
 "P [|ns1\<parallel>cs\<parallel>ns2|] Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
 
 abbreviation ParCSP_NS ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_|]" 105) where
+  "('\<sigma>, '\<theta>) action \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "[|_|]" 75) where
 "P [|cs|] Q \<equiv> P [|0\<^sub>L\<parallel>cs\<parallel>0\<^sub>L|] Q"
 
 abbreviation InterleaveCSP ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "|||" 105) where
+  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "|||" 75) where
 "P ||| Q \<equiv> P [|0\<^sub>L\<parallel>{}\<parallel>0\<^sub>L|] Q"
 
 definition CSP5 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
@@ -2821,6 +2854,23 @@ proof -
   thus ?thesis
     by (simp add: CSPMerge_def par_by_merge_seq_add)
 qed
+  
+lemma preR_parallel:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "pre\<^sub>R(P [|ns1\<parallel>cs\<parallel>ns2|] Q) =  undefined"
+  apply (simp add: ParCSP_expand rdes  closure assms unrest wp)
+  oops
+    
+lemma parallel_is_CSP3 [closure]:
+  assumes "P is CSP" "P is CSP3" "Q is CSP" "Q is CSP3"
+  shows "(P [|ns1\<parallel>cs\<parallel>ns2|] Q) is CSP3"
+proof -
+  have "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) is CSP"
+    by (simp add: closure assms)
+  hence "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) ;; Skip is CSP"
+    by (simp add: closure)
+  thus ?thesis
+    oops
 
 theorem parallel_commutative:
   assumes "ns1 \<bowtie> ns2"
@@ -2836,7 +2886,19 @@ qed
 lemma interleave_commute:
   "P ||| Q = Q ||| P"
   using parallel_commutative zero_lens_indep by blast
-    
+
+(*
+lemma 
+  assumes "a \<in> cs" "P is NCSP" "Q is NCSP"
+  shows "(a \<^bold>\<rightarrow> P [|ns1\<parallel>cs\<parallel>ns2|] a \<^bold>\<rightarrow> Q) = a \<^bold>\<rightarrow> (P [|ns1\<parallel>cs\<parallel>ns2|] Q)" (is "?lhs = ?rhs")
+proof -
+  have "pre\<^sub>R(?lhs) = pre\<^sub>R(?rhs)"
+    apply (subst rdes)
+      apply (simp_all add: rdes closure assms unrest)
+    apply (rule unrest) back back
+    apply (simp_all add: closure assms unrest)
+*)
+
 lemma preR_CSP5:
   fixes P :: "('\<sigma>, '\<phi>) action"
   assumes "P is NCSP"
