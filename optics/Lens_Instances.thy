@@ -214,7 +214,54 @@ alphabet mylens_3 = mylens_2 +
   n :: real
   h :: nat
 *)
+  
+subsection \<open>Mapper Lenses\<close>
 
+definition lmap_lens :: 
+  "(('\<alpha> \<Rightarrow> '\<beta>) \<Rightarrow> ('\<gamma> \<Rightarrow> '\<delta>)) \<Rightarrow> 
+   (('\<beta> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<delta> \<Rightarrow> '\<gamma>) \<Rightarrow> 
+   ('\<gamma> \<Rightarrow> '\<alpha>) \<Rightarrow> 
+   ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> 
+   ('\<delta> \<Longrightarrow> '\<gamma>)" where
+  [lens_defs]:
+  "lmap_lens f g h l = \<lparr>
+  lens_get = f (get\<^bsub>l\<^esub>),
+  lens_put = g o (put\<^bsub>l\<^esub>) o h \<rparr>"
+  
+text \<open>
+  The parse translation below yields a heterogeneous mapping lens for any
+  record type. This achieved through the utility function above that
+  constructs a functorial lens. This takes as input a heterogeneous mapping
+  function that lifts a function on a record's extension type to an update
+  on the entire record, and also the record's ``more'' function. The first input
+  is given twice as it has different polymorphic types, being effectively
+  a type functor construction which are not explicitly supported by HOL. We note 
+  that the \<open>more_update\<close> function does something similar to the extension lifting, 
+  but is not precisely suitable here since it only considers homogeneous functions, 
+  namely of type \<open>'a \<Rightarrow> 'a\<close> rather than \<open>'a \<Rightarrow> 'b\<close>.
+\<close>
+  
+syntax 
+  "_lmap" :: "id \<Rightarrow> logic" ("lmap[_]")
+
+ML \<open>
+  fun lmap_tr [Free (name, _)] =
+    let
+      val extend = Free (name ^ ".extend", dummyT);
+      val truncate = Free (name ^ ".truncate", dummyT);
+      val more = Free (name ^ ".more", dummyT);
+      val map_ext = Abs ("f", dummyT,
+                    Abs ("r", dummyT,
+                      extend $ (truncate $ Bound 0) $ (Bound 1 $ (more $ (Bound 0)))))
+
+    in
+      Const (@{const_syntax "lmap_lens"}, dummyT) $ map_ext $ map_ext $ more
+    end
+  | lmap_tr _ = raise Match;
+\<close>
+
+parse_translation \<open>[(@{syntax_const "_lmap"}, K lmap_tr)]\<close>  
+  
 subsection \<open>Lens Interpretation\<close>
 
 named_theorems lens_interp_laws

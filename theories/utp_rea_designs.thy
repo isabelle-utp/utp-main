@@ -1952,6 +1952,45 @@ abbreviation cond_srea ::
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
 "cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
 
+text {* We introduce state abstraction by creating some lens functors that allow us to lift
+  a lens on the state-space to one on the whole stateful reactive alphabet. *}
+
+definition lmap\<^sub>R :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('t::trace, 'a) rp \<Longrightarrow> ('t, 'b) rp" where
+[lens_defs]: "lmap\<^sub>R = lmap\<^sub>D \<circ> lmap[rp_vars]"
+
+definition map_rsp_st ::
+  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
+   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<tau>, '\<alpha>) rsp_vars_scheme" where
+[lens_defs]: "map_rsp_st f = (\<lambda>r. \<lparr>st\<^sub>v = f (st\<^sub>v r), \<dots> = rsp_vars.more r\<rparr>)"
+
+definition map_st_lens ::
+  "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
+   (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_st\<^sub>L") where
+[lens_defs]:
+"map_st_lens l = lmap\<^sub>R \<lparr>
+  lens_get = map_rsp_st (get\<^bsub>l\<^esub>),
+  lens_put = map_rsp_st o (put\<^bsub>l\<^esub>) o rsp_vars.st\<^sub>v\<rparr>"
+
+lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
+  apply (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
+  apply (metis des_vars.surjective rp_vars.surjective rsp_vars.surjective)+
+done
+
+abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
+  
+abbreviation abs_st ("[_]\<^sub>S") where
+"abs_st P \<equiv> P \<restriction>\<^sub>p abs_st\<^sub>L"
+  
+definition state_srea ::
+  "'s itself \<Rightarrow> ('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> (unit,'t,'\<alpha>,'\<beta>) rel_rsp" where
+[upred_defs]: "state_srea t P = [\<exists> {$st,$st\<acute>} \<bullet> P]\<^sub>S"
+
+syntax
+  "_state_srea" :: "type \<Rightarrow> logic \<Rightarrow> logic" ("state _ \<bullet> _" [0,200] 200)
+
+translations
+  "state 'a \<bullet> P" == "CONST state_srea TYPE('a) P"
+
 lemma Chaos_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true)"
 proof -
   have "Chaos = SRD(true)"
@@ -2058,6 +2097,36 @@ lemma periR_assigns_rea [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
 
 lemma postR_assigns_rea [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
   apply (rel_auto) using minus_zero_eq by blast
+
+lemma R1_state_srea: "R1(state 'a \<bullet> P) = (state 'a \<bullet> R1(P))"
+  by (rel_auto, simp_all add: des_vars.defs rp_vars.defs)
+
+lemma R2c_state_srea: "R2c(state 'a \<bullet> P) = (state 'a \<bullet> R2c(P))"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+
+lemma R3h_state_srea: "R3h(state 'a \<bullet> P) = (state 'a \<bullet> R3h(P))"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+   
+lemma RD1_state_srea: "RD1(state 'a \<bullet> P) = (state 'a \<bullet> RD1(P))"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)    
+
+lemma RD2_state_srea: "RD2(state 'a \<bullet> P) = (state 'a \<bullet> RD2(P))"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)    
+
+lemma RD3_state_srea: "RD3(state 'a \<bullet> P) = (state 'a \<bullet> RD3(P))"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs, blast+)    
+ 
+lemma SRD_state_srea [closure]: "P is SRD \<Longrightarrow> state 'a \<bullet> P is SRD"
+  by (simp add: Healthy_def R1_state_srea R2c_state_srea R3h_state_srea RD1_state_srea RD2_state_srea RHS_def SRD_def)
+    
+lemma preR_state_srea [rdes]: "pre\<^sub>R(state 'a \<bullet> P) = [\<forall> {$st,$st\<acute>} \<bullet> pre\<^sub>R(P)]\<^sub>S"
+  by (simp add: state_srea_def, rel_auto, simp_all add: des_vars.defs rp_vars.defs)
+
+lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> peri\<^sub>R(P)"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+
+lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
+  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
 
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
@@ -2697,6 +2766,9 @@ lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
 
 lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
   by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
+
+lemma NSRD_state_srea [closure]: "P is NSRD \<Longrightarrow> state 'a \<bullet> P is NSRD"
+  by (metis Healthy_def NSRD_is_RD3 NSRD_is_SRD RD3_state_srea SRD_RD3_implies_NSRD SRD_state_srea)
 
 lemma assigns_rea_left_seq:
   assumes "P is NSRD"

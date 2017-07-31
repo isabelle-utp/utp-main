@@ -374,6 +374,5 @@ lemma lens_quotient_id_denom: "X /\<^sub>L 1\<^sub>L = X"
 
 lemma lens_quotient_unit: "weak_lens X \<Longrightarrow> (0\<^sub>L /\<^sub>L X) = 0\<^sub>L"
   by (simp add: lens_quotient_def zero_lens_def)
-
     
 end

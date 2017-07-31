@@ -960,6 +960,17 @@ proof (rule NCSP_intro)
     by (rule CSP4_tri_intro, simp_all add: closure rdes unrest, rel_auto)
 qed
   
+lemma ref_unrest_abs_st [unrest]:
+  "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> [P]\<^sub>S"
+  "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> [P]\<^sub>S"
+  by (rel_simp, auto simp add: des_vars.defs rp_vars.defs)+
+  
+lemma NCSP_state_srea [closure]: "P is NCSP \<Longrightarrow> state 'a \<bullet> P is NCSP"
+  apply (rule NCSP_NSRD_intro)
+  apply (simp_all add: closure rdes)
+  apply (simp_all add: state_srea_def unrest closure)
+done
+    
 lemma R1_DoAct: "R1(do\<^sub>u(a)) = do\<^sub>u(a)"
   by (rel_auto)
 

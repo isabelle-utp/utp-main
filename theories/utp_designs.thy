@@ -62,19 +62,18 @@ lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
   by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
 
 text {* Define the lens functor for designs *}
-
+  
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
-  where "lmap_des_vars f = \<lparr> lens_get = \<lambda> v. extend (truncate v) (get\<^bsub>f\<^esub> (more v))
-                           , lens_put = \<lambda> s v. extend (truncate v) (put\<^bsub>f\<^esub> (more s) (more v)) \<rparr>"
+where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
 
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
-  by (unfold_locales, simp_all add: lmap_des_vars_def extend_def truncate_def)
+  by (unfold_locales, auto simp add: lens_defs des_vars.defs)
 
 lemma lmap_id: "lmap\<^sub>D 1\<^sub>L = 1\<^sub>L"
-  by (simp add: lmap_des_vars_def id_lens_def extend_def truncate_def fun_eq_iff)
+  by (simp add: lens_defs des_vars.defs fun_eq_iff)
 
 lemma lmap_comp: "lmap\<^sub>D (f ;\<^sub>L g) = lmap\<^sub>D f ;\<^sub>L lmap\<^sub>D g"
-  by (simp add: lmap_des_vars_def id_lens_def lens_comp_def extend_def truncate_def fun_eq_iff)
+  by (simp add: lens_defs des_vars.defs fun_eq_iff)
 
 text {* The following notations define liftings from non-design predicates into design
   predicates using alphabet extensions. *}
