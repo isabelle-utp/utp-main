@@ -977,4 +977,92 @@ lemma SymMerge_R1_true [closure]:
   "M is SymMerge \<Longrightarrow> M ;; R1(true) is SymMerge"
   by (rel_auto)
 
+subsection {* Reactive Predicates *}
+   
+text {* Predicate calculus for R1-R2 predicates as an extension of the standard alphabetised
+  predicate calculus. *}
+  
+named_theorems rpred
+  
+abbreviation rea_true ("true\<^sub>r") where "true\<^sub>r \<equiv> R1(true)"     
+
+definition rea_not :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("\<not>\<^sub>r _" [40] 40) 
+where [upred_defs]: "(\<not>\<^sub>r P) = R1(\<not> P)"
+
+definition rea_impl :: 
+  "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
+where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
+
+lemma rea_true_R1 [closure]: "true\<^sub>r is R1"
+  by (rel_auto)
+  
+lemma rea_true_R2c [closure]: "true\<^sub>r is R2c"
+  by (rel_auto)
+    
+lemma rea_not_R1 [closure]: "\<not>\<^sub>r P is R1"
+  by (rel_auto)
+
+lemma rea_not_R2c [closure]: "P is R2c \<Longrightarrow> \<not>\<^sub>r P is R2c"
+  by (simp add: Healthy_def rea_not_def R1_R2c_commute[THEN sym] R2c_not)
+   
+lemma rea_impl_R1 [closure]: 
+  "Q is R1 \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R1"
+  by (rel_blast)
+
+lemma rea_impl_R2c [closure]: 
+  "\<lbrakk> P is R2c; Q is R2c \<rbrakk> \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R2c"
+  by (simp add: rea_impl_def Healthy_def rea_not_def R1_R2c_commute[THEN sym] R2c_not R2c_disj)
+    
+lemma rea_true_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
+  by (simp add: R1_def unrest lens_indep_sym)
+
+lemma rea_not_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> \<not>\<^sub>r P"
+  by (simp add: rea_not_def R1_def unrest lens_indep_sym)
+
+lemma rea_impl_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> (P \<Rightarrow>\<^sub>r Q)"
+  by (simp add: rea_impl_def unrest)
+    
+lemma rea_true_usubst [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> true\<^sub>r = true\<^sub>r"
+  by (simp add: R1_def usubst)
+  
+lemma rea_not_usubst [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (\<not>\<^sub>r P) = (\<not>\<^sub>r \<sigma> \<dagger> P)"
+  by (simp add: rea_not_def R1_def usubst)
+
+lemma rea_impl_usubst [usubst]:
+  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<Rightarrow>\<^sub>r Q) = (\<sigma> \<dagger> P \<Rightarrow>\<^sub>r \<sigma> \<dagger> Q)"
+  by (simp add: rea_impl_def usubst)
+    
+lemma rea_true_conj [rpred]: 
+  assumes "P is R1"
+  shows "(true\<^sub>r \<and> P) = P" "(P \<and> true\<^sub>r) = P"
+  using assms
+  by (simp_all add: Healthy_def R1_def utp_pred_laws.inf_commute) 
+
+lemma rea_true_disj [rpred]: 
+  assumes "P is R1"
+  shows "(true\<^sub>r \<or> P) = true\<^sub>r" "(P \<or> true\<^sub>r) = true\<^sub>r"
+  using assms by (metis Healthy_def R1_disj disj_comm true_disj_zero)+
+  
+lemma rea_not_not [rpred]: "P is R1 \<Longrightarrow> (\<not>\<^sub>r \<not>\<^sub>r P) = P"
+  by (simp add: rea_not_def R1_negate_R1 Healthy_if)
+    
+lemma rea_not_true [simp]: "(\<not>\<^sub>r true\<^sub>r) = false"
+  by (simp add: rea_not_def R1_negate_R1 R1_false)
+    
+lemma rea_not_false [simp]: "(\<not>\<^sub>r false) = true\<^sub>r"
+  by (simp add: rea_not_def)
+    
+lemma rea_true_impl [simp]:
+  "(true\<^sub>r \<Rightarrow>\<^sub>r P) = P"
+  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false)
+
+lemma rea_false_impl [rpred]:
+  "P is R1 \<Longrightarrow> (false \<Rightarrow>\<^sub>r P) = true\<^sub>r"
+  by (simp add: rea_impl_def rpred)
+
 end
