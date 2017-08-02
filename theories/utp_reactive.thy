@@ -240,7 +240,7 @@ lemma R1_seqr_closure [closure]:
   using assms unfolding R1_by_refinement
   by (metis seqr_mono tr_le_trans)
 
-lemma R1_true_comp: "(R1(true) ;; R1(true)) = R1(true)"
+lemma R1_true_comp [simp]: "(R1(true) ;; R1(true)) = R1(true)"
   by (rel_auto)
 
 lemma R1_ok'_true: "(R1(P))\<^sup>t = R1(P\<^sup>t)"
@@ -977,7 +977,7 @@ lemma SymMerge_R1_true [closure]:
   "M is SymMerge \<Longrightarrow> M ;; R1(true) is SymMerge"
   by (rel_auto)
 
-subsection {* Reactive Predicates *}
+subsection {* Reactive Relations *}
    
 text {* Predicate calculus for R1-R2 predicates as an extension of the standard alphabetised
   predicate calculus. *}
@@ -993,6 +993,24 @@ definition rea_impl ::
   "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
 where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
 
+lemma R1_rea_not: "R1(\<not>\<^sub>r P) = (\<not>\<^sub>r P)"
+  by rel_auto
+    
+lemma R1_rea_not': "R1(\<not>\<^sub>r P) = (\<not>\<^sub>r R1(P))"
+  by rel_auto  
+  
+lemma R2c_rea_not: "R2c(\<not>\<^sub>r P) = (\<not>\<^sub>r R2c(P))"
+  by rel_auto
+  
+lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r R1(Q))"
+  by (rel_auto)
+
+lemma R1_rea_impl': "R1(P \<Rightarrow>\<^sub>r Q) = (R1(P) \<Rightarrow>\<^sub>r R1(Q))"
+  by (rel_auto)
+    
+lemma R2c_rea_impl: "R2c(P \<Rightarrow>\<^sub>r Q) = (R2c(P) \<Rightarrow>\<^sub>r R2c(Q))"
+  by (rel_auto)
+  
 lemma rea_true_R1 [closure]: "true\<^sub>r is R1"
   by (rel_auto)
   
@@ -1051,7 +1069,7 @@ lemma rea_true_disj [rpred]:
 lemma rea_not_not [rpred]: "P is R1 \<Longrightarrow> (\<not>\<^sub>r \<not>\<^sub>r P) = P"
   by (simp add: rea_not_def R1_negate_R1 Healthy_if)
     
-lemma rea_not_true [simp]: "(\<not>\<^sub>r true\<^sub>r) = false"
+lemma rea_not_rea_true [simp]: "(\<not>\<^sub>r true\<^sub>r) = false"
   by (simp add: rea_not_def R1_negate_R1 R1_false)
     
 lemma rea_not_false [simp]: "(\<not>\<^sub>r false) = true\<^sub>r"
@@ -1064,5 +1082,49 @@ lemma rea_true_impl [simp]:
 lemma rea_false_impl [rpred]:
   "P is R1 \<Longrightarrow> (false \<Rightarrow>\<^sub>r P) = true\<^sub>r"
   by (simp add: rea_impl_def rpred)
+    
+lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
+  by (rel_simp)
+    
+lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
+  by (rel_auto)
+    
+text {* Healthiness Condition for Reactive Conditions *}
+    
+definition [upred_defs]: "RC1(P) = P ;; true\<^sub>r"
+  
+definition [upred_defs]: "RC = RC1 \<circ> R2c \<circ> R1"
+  
+lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
+  by (metis (no_types, hide_lams) R1_true_comp RC1_def seqr_assoc)
+  
+lemma RC1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RC1(P) \<sqsubseteq> RC1(Q)"
+  by (simp add: RC1_def seqr_mono)
+      
+lemma RC1_trace_ext_prefix:
+  "out\<alpha> \<sharp> e \<Longrightarrow> RC1($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = ($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, metis (no_types, lifting) dual_order.trans)
+    
+lemma RC1_disj: "RC1(P \<or> Q) = (RC1(P) \<or> RC1(Q))"
+  by (rel_blast)
+    
+lemma RC_implies_RC1: "P is RC \<Longrightarrow> P is RC1"
+  by (metis (no_types, hide_lams) Healthy_def RC1_idem RC_def comp_apply)
+    
+lemma rea_true_RC [closure]: "true\<^sub>r is RC"
+  by (metis (no_types, lifting) Healthy_def R1_idem R1_true_comp RC1_def RC_def comp_apply rea_true_R2c)
 
+lemma false_RC [closure]: "false is RC"
+  by (rel_auto)
+   
+lemma disj_RC_closed [closure]: "\<lbrakk> P is RC; Q is RC \<rbrakk> \<Longrightarrow> (P \<or> Q) is RC"
+  by (simp add: Healthy_def R1_disj R2c_disj RC1_disj RC_def)
+    
+lemma trace_ext_prefix_RC [closure]: 
+  "\<lbrakk> $tr \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"
+  apply (rel_auto)
+  apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix dual_order.trans less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
+  apply (metis append_minus list_append_prefixD order_refl trace_class.diff_zero)
+done
+    
 end
