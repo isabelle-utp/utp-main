@@ -226,10 +226,14 @@ lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"
   by (rel_blast)
 
+lemma R1_trace_extension [closure]:
+  "$tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u e is R1"
+  by (rel_auto)
+    
 lemma tr_le_trans:
   "(($tr \<le>\<^sub>u $tr\<acute>) ;; ($tr \<le>\<^sub>u $tr\<acute>)) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto)
-
+    
 lemma R1_seqr:
   "R1(R1(P) ;; R1(Q)) = (R1(P) ;; R1(Q))"
   by (rel_auto)
@@ -989,6 +993,9 @@ abbreviation rea_true ("true\<^sub>r") where "true\<^sub>r \<equiv> R1(true)"
 definition rea_not :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("\<not>\<^sub>r _" [40] 40) 
 where [upred_defs]: "(\<not>\<^sub>r P) = R1(\<not> P)"
 
+definition rea_diff :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixl "-\<^sub>r" 65)
+where [upred_defs]: "rea_diff P Q = (P \<and> \<not>\<^sub>r Q)"
+  
 definition rea_impl :: 
   "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
 where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
@@ -1087,6 +1094,22 @@ lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r 
   by (rel_simp)
     
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
+  by (rel_auto)
+    
+lemma rea_not_demorgan1 [simp]:
+  "(\<not>\<^sub>r (P \<and> Q)) = (\<not>\<^sub>r P \<or> \<not>\<^sub>r Q)"
+  by (rel_auto)
+
+lemma rea_not_demorgan2 [simp]:
+  "(\<not>\<^sub>r (P \<or> Q)) = (\<not>\<^sub>r P \<and> \<not>\<^sub>r Q)"
+  by (rel_auto)
+
+lemma rea_not_or [rpred]:
+  "P is R1 \<Longrightarrow> (P \<or> \<not>\<^sub>r P) = true\<^sub>r"
+  by (rel_blast)
+
+lemma rea_not_and [simp]:
+  "(P \<and> \<not>\<^sub>r P) = false"
   by (rel_auto)
     
 text {* Healthiness Condition for Reactive Conditions *}
