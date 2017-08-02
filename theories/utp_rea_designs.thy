@@ -3027,14 +3027,6 @@ next
   then show ?case
     using NSRD_seqr_closure by auto
 qed
-  
-lemma rea_not_INFIMUM [simp]:
-  "(\<not>\<^sub>r (\<Squnion>i\<in>A. Q(i))) = (\<Sqinter>i\<in>A. \<not>\<^sub>r Q(i))"
-  by (rel_auto)
-
-lemma rea_not_SUPREMUM [simp]:
-  "A \<noteq> {} \<Longrightarrow> (\<not>\<^sub>r (\<Sqinter>i\<in>A. Q(i))) = (\<Squnion>i\<in>A. \<not>\<^sub>r Q(i))"
-  by (rel_auto)
 
 lemma wpR_Inf_pre [wp]: "P wp\<^sub>R (\<Squnion>i\<in>{0..n::nat}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>R Q(i))"
   by (simp add: wpR_def seq_SUP_distl)
@@ -3939,11 +3931,11 @@ lemma RHS_tri_design_par:
 
 subsection {* Reactive design tactics *}
 
-method rdes_simp = (simp add: rdes_def rdes closure alpha usubst unrest wp prod.case_eq_if)
+method rdes_simp = (simp add: rdes_def rpred rdes closure alpha usubst unrest wp prod.case_eq_if)
 
 text {* Tactic to calculate pre/peri/postconditions from reactive designs *}
 
-method rdes_calc = (simp add: rdes closure alpha usubst unrest wp prod.case_eq_if)
+method rdes_calc = (simp add: rdes rpred closure alpha usubst unrest wp prod.case_eq_if)
 
 text {* The following tactic attempts to prove a reactive design refinement by calculation of
   the pre-, peri-, and postconditions and then showing three implications between them using

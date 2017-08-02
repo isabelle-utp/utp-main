@@ -1086,10 +1086,14 @@ lemma rea_true_impl [simp]:
   "(true\<^sub>r \<Rightarrow>\<^sub>r P) = P"
   by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false)
 
+lemma rea_true_impl' [simp]:
+  "(true \<Rightarrow>\<^sub>r P) = P"
+  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false)
+    
 lemma rea_false_impl [rpred]:
   "P is R1 \<Longrightarrow> (false \<Rightarrow>\<^sub>r P) = true\<^sub>r"
   by (simp add: rea_impl_def rpred)
-    
+   
 lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
   by (rel_simp)
     
@@ -1110,6 +1114,22 @@ lemma rea_not_or [rpred]:
 
 lemma rea_not_and [simp]:
   "(P \<and> \<not>\<^sub>r P) = false"
+  by (rel_auto)
+    
+lemma rea_not_INFIMUM [simp]:
+  "(\<not>\<^sub>r (\<Squnion>i\<in>A. Q(i))) = (\<Sqinter>i\<in>A. \<not>\<^sub>r Q(i))"
+  by (rel_auto)
+
+lemma rea_not_USUP [simp]:
+  "(\<not>\<^sub>r (\<Squnion>i\<in>A \<bullet> Q(i))) = (\<Sqinter>i\<in>A \<bullet> \<not>\<^sub>r Q(i))"
+  by (rel_auto)
+    
+lemma rea_not_SUPREMUM [simp]:
+  "A \<noteq> {} \<Longrightarrow> (\<not>\<^sub>r (\<Sqinter>i\<in>A. Q(i))) = (\<Squnion>i\<in>A. \<not>\<^sub>r Q(i))"
+  by (rel_auto)
+
+lemma rea_not_UINF [simp]:
+  "A \<noteq> {} \<Longrightarrow> (\<not>\<^sub>r (\<Sqinter>i\<in>A \<bullet> Q(i))) = (\<Squnion>i\<in>A \<bullet> \<not>\<^sub>r Q(i))"
   by (rel_auto)
     
 text {* Healthiness Condition for Reactive Conditions *}
