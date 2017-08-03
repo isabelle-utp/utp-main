@@ -79,13 +79,6 @@ abbreviation drop_rea :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> 
 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
 
-abbreviation trace ::
-  "('t::trace, ('t, '\<alpha>) rp) hexpr" ("tt") where
-"tt \<equiv> $tr\<acute> - $tr"
-
-translations
-  "tt" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
-
 subsection {* Reactive lemmas *}
 
 lemma unrest_ok_lift_rea [unrest]:
@@ -151,7 +144,7 @@ lemma R1_Continuous: "Continuous R1"
   by (auto simp add: Continuous_def, rel_auto)
 
 lemma R1_unrest [unrest]: "\<lbrakk> x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R1(P)"
-  by (metis R1_def in_var_uvar lens_indep_sym out_var_uvar tr_vwb_lens unrest_bop unrest_conj unrest_var)
+  by (simp add: R1_def unrest lens_indep_sym)
 
 lemma R1_false: "R1(false) = false"
   by pred_auto
@@ -1184,5 +1177,53 @@ lemma trace_ext_prefix_RC [closure]:
   apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix dual_order.trans less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
   apply (metis append_minus list_append_prefixD order_refl trace_class.diff_zero)
 done
+   
+subsection {* Trace Contribution Lens *}
+  
+definition itrace :: "'t::trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("\<^bold>i\<^bold>t") where
+  [lens_defs]:
+  "itrace = \<lparr> lens_get = get\<^bsub>($tr)\<^sub>v\<^esub>, 
+              lens_put = (\<lambda> s v. put\<^bsub>($tr\<acute>)\<^sub>v\<^esub> (put\<^bsub>($tr)\<^sub>v\<^esub> s v) v) \<rparr>"
+  
+definition tcontr :: "'t::trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("tt") where
+  [lens_defs]:
+  "tcontr = \<lparr> lens_get = (\<lambda> s. get\<^bsub>($tr\<acute>)\<^sub>v\<^esub> s - get\<^bsub>($tr)\<^sub>v\<^esub> s) , 
+              lens_put = (\<lambda> s v. put\<^bsub>($tr\<acute>)\<^sub>v\<^esub> s (get\<^bsub>($tr)\<^sub>v\<^esub> s + v)) \<rparr>"
+  
+lemma tcontr_mwb_lens [simp]: "mwb_lens tt"
+  by (unfold_locales, simp_all add: lens_defs des_vars.defs prod.case_eq_if)
+
+lemma itrace_mwb_lens [simp]: "mwb_lens \<^bold>i\<^bold>t"
+  by (unfold_locales, simp_all add: lens_defs des_vars.defs prod.case_eq_if)
     
+syntax
+  "_svid_tcontr"  :: "svid" ("tt")
+  "_svid_itrace"  :: "svid" ("\<^bold>i\<^bold>t")
+
+translations
+  "_svid_tcontr" == "CONST tcontr"
+  "_svid_itrace" == "CONST itrace"
+  
+lemma tcontr_alt_def: "&tt = ($tr\<acute> - $tr)"
+  by (rel_auto)
+
+lemma tcontr_alt_def': "utp_expr.var tt = ($tr\<acute> - $tr)"
+  by (rel_auto)
+    
+lemma rea_true_usubst_tt [usubst]: 
+  "R1(true)\<lbrakk>e/&tt\<rbrakk> = true"
+  by (rel_simp)
+
+lemma tt_ok_indeps [simp]: 
+  "tt \<bowtie> ($ok)\<^sub>v" "($ok)\<^sub>v \<bowtie> tt"
+  "tt \<bowtie> ($ok\<acute>)\<^sub>v" "($ok\<acute>)\<^sub>v \<bowtie> tt"
+  by (unfold_locales, simp_all add: lens_defs des_vars.defs prod.case_eq_if)
+     (metis (no_types, lifting) des_vars.surjective des_vars.update_convs(1) des_vars.update_convs(2))+    
+
+lemma tt_wait_indeps [simp]:
+  "tt \<bowtie> ($wait)\<^sub>v" "($wait)\<^sub>v \<bowtie> tt"
+  "tt \<bowtie> ($wait\<acute>)\<^sub>v" "($wait\<acute>)\<^sub>v \<bowtie> tt"
+  by (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs prod.case_eq_if)
+     (metis (no_types, lifting) rp_vars.surjective rp_vars.update_convs(1-2) des_vars.update_convs(2))+
+          
 end

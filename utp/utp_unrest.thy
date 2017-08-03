@@ -86,26 +86,26 @@ text {* The following laws demonstrate the primary motivation for lens independe
   Lens independence thus effectively allows us to semantically characterise when two variables,
   or sets of variables, are different. *}
 
-lemma unrest_var [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
+lemma unrest_var [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
   by (transfer, auto)
 
-lemma unrest_iuvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
-  by (metis in_var_indep in_var_uvar unrest_var)
+lemma unrest_iuvar [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
+  by (simp add: unrest_var)
 
-lemma unrest_ouvar [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
-  by (metis out_var_indep out_var_uvar unrest_var)
+lemma unrest_ouvar [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y\<acute> \<sharp> $x\<acute>"
+  by (simp add: unrest_var)
 
 text {* The following laws follow automatically from independence of input and output variables. *}
     
 lemma unrest_iuvar_ouvar [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  assumes "vwb_lens y"
+  assumes "mwb_lens y"
   shows "$x \<sharp> $y\<acute>"
   by (metis prod.collapse unrest_uexpr.rep_eq var.rep_eq var_lookup_out var_update_in)
 
 lemma unrest_ouvar_iuvar [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  assumes "vwb_lens y"
+  assumes "mwb_lens y"
   shows "$x\<acute> \<sharp> $y"
   by (metis prod.collapse unrest_uexpr.rep_eq var.rep_eq var_lookup_in var_update_out)
 

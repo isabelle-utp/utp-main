@@ -864,7 +864,7 @@ translations
 text {* Reactive design contracts for CSP/Circus with refusals *}
   
 definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rightarrow> 's upred) \<Rightarrow> ('e list \<Rightarrow> 's hrel) \<Rightarrow> ('s, 'e) action" where
-"mk_CRD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>)"
+"mk_CRD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
 
 syntax
   "_ref_var" :: "logic"
@@ -1734,7 +1734,40 @@ lemma tr_extend_seqr [rdes]:
   assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
   shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
   using assms by (simp add: PrefixCSP_RHS_tri_lemma3 assms unrest ex_unrest)
+
+(*
+lemma tr_extend_seqr [rdes]:
+  fixes P :: "('\<sigma>, '\<phi>) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P" "P is R2"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>,$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> ^\<^sub>u &tt/$tr,$tr\<acute>\<rbrakk>"
+proof -
+  have "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+    by (simp add: tr_extend_seqr assms)
+  also have "... = (R2 P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"   
+    by (simp add: Healthy_if assms)
+  also have "... = R1((R2 P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>,$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> ^\<^sub>u ($tr\<acute> - $tr)/$tr,$tr\<acute>\<rbrakk>)"
+    apply (simp add: R2_def R2s_def R1_def usubst)
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+    by (simp add: R2_form)
+  also have "... = R1((\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>,$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> ^\<^sub>u &tt/$tr,$tr\<acute>\<rbrakk>)"      
+    apply (simp add: usubst)
+
     
+lemma tr_extend_seqr' [rdes]:
+  fixes P :: "('\<sigma>, '\<phi>) action"
+  assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P" "P is R2"
+  shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = undefined"
+proof -
+  have "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P = P\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+    by (simp add: tr_extend_seqr assms)
+  also have "... = (R2 P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"   
+    by (simp add: Healthy_if assms)
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>"
+    by (simp add: R2_form)
+  also have "... = undefined"      
+    apply (simp add: usubst)
+*)
+
 (* Can the following double negation be simplified? *)
 
 lemma wpR_DoCSP [wp]:
@@ -1956,11 +1989,11 @@ lemma CSP_mk_CRD [closure]: "[P \<turnstile> Q trace refs | R(trace)]\<^sub>C is
 lemma preR_mk_CRD [rdes]: "pre\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = R1(\<lceil>P\<rceil>\<^sub>S\<^sub><)"
   by (simp add: mk_CRD_def rea_pre_RHS_design usubst unrest R2c_not R2c_lift_state_pre)
 
-lemma periR_mk_CRD [rdes]: "peri\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = (\<lceil>P\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r R1((\<lceil>Q trace refs\<rceil>\<^sub>S\<^sub><)\<lbrakk>(trace,refs)\<rightarrow>(tt,$ref\<acute>)\<^sub>u\<rbrakk>))"
+lemma periR_mk_CRD [rdes]: "peri\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = (\<lceil>P\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r R1((\<lceil>Q trace refs\<rceil>\<^sub>S\<^sub><)\<lbrakk>(trace,refs)\<rightarrow>(&tt,$ref\<acute>)\<^sub>u\<rbrakk>))"
   by (simp add: mk_CRD_def rea_peri_RHS_design usubst unrest R2c_not R2c_lift_state_pre
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
 
-lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = (\<lceil>P\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>tt\<rbrakk>))"
+lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = (\<lceil>P\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r R1((\<lceil>R(trace)\<rceil>\<^sub>S)\<lbrakk>trace\<rightarrow>&tt\<rbrakk>))"
   by (simp add: mk_CRD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
 
@@ -1969,12 +2002,12 @@ text {* Refinement introduction law for contracts *}
 lemma CRD_contract_refine:
   assumes
     "Q is CSP" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`"
-    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
-    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
+    "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q \<Rightarrow> \<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk>`"
   shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
 proof -
   have "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
-    by (simp add: mk_CRD_def, rule srdes_tri_refine_intro, simp_all add: assms)
+    using assms by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, simp_all)
   thus ?thesis
     by (simp add: SRD_reactive_tri_design assms(1))
 qed
@@ -1982,16 +2015,16 @@ qed
 lemma CRD_contract_refine':
   assumes
     "Q is CSP" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`"
-    "\<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q)"
-    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q)"
+    "\<lceil>P\<^sub>2 t r\<rceil>\<^sub>S\<^sub><\<lbrakk>t\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R Q)"
+    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R Q)"
   shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
   using assms by (rule_tac CRD_contract_refine, simp_all add: refBy_order)
   
 lemma CRD_refine_CRD: 
   assumes 
     "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> (\<lceil>Q\<^sub>1\<rceil>\<^sub>S\<^sub>< :: ('e,'s) action)`"
-    "(\<lceil>P\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> :: ('e,'s) action)"
-    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk> :: ('e,'s) action)"
+    "(\<lceil>P\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>2 x r\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> :: ('e,'s) action)"
+    "\<lceil>P\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq> (\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>Q\<^sub>3 x\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk> :: ('e,'s) action)"
   shows "([P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3 trace]\<^sub>C :: ('e,'s) action) \<sqsubseteq> [Q\<^sub>1 \<turnstile> Q\<^sub>2 trace refs | Q\<^sub>3 trace]\<^sub>C"
   using assms
   by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, simp_all add: refBy_order)
@@ -2381,7 +2414,7 @@ text {* Proofs that guarded recursion yields a unique fixed-point *}
 text {* Guardedness variant *}
 
 abbreviation gvrt :: "(('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) chain" where
-"gvrt(n) \<equiv> ($tr \<le>\<^sub>u $tr\<acute> \<and> #\<^sub>u(tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)"
+"gvrt(n) \<equiv> ($tr \<le>\<^sub>u $tr\<acute> \<and> #\<^sub>u(&tt) <\<^sub>u \<guillemotleft>n\<guillemotright>)"
 
 lemma gvrt_chain: "chain gvrt"
   apply (simp add: chain_def, safe)
@@ -2403,7 +2436,7 @@ theorem guarded_fp_uniq:
   shows "\<mu> F = \<nu> F"
 proof -
   have "constr F gvrt"
-    using assms by (auto simp add: constr_def gvrt_chain Guarded_def)
+    using assms apply (auto simp add: constr_def gvrt_chain Guarded_def tcontr_alt_def')
   hence "($tr \<le>\<^sub>u $tr\<acute> \<and> \<mu> F) = ($tr \<le>\<^sub>u $tr\<acute> \<and> \<nu> F)"
     apply (rule constr_fp_uniq)
     apply (simp add: assms)
