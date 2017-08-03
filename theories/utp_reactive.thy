@@ -1100,6 +1100,9 @@ lemma rea_false_impl [rpred]:
   "P is R1 \<Longrightarrow> (false \<Rightarrow>\<^sub>r P) = true\<^sub>r"
   by (simp add: rea_impl_def rpred)
    
+lemma rea_impl_true [simp]: "(P \<Rightarrow>\<^sub>r true\<^sub>r) = true\<^sub>r"
+  by (rel_auto)
+    
 lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
   by (rel_simp)
     

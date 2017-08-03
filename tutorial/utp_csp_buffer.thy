@@ -43,8 +43,8 @@ subsection {* Calculations *}
 
 text {* The precondition of the main body is true because no divergence is possible. We calculate
   this using the reactive design calculation tactic, \textbf{rdes-calc}. *}
-
-lemma preR_DoBuff: "pre\<^sub>R(DoBuff) = true"
+  
+lemma preR_DoBuff: "pre\<^sub>R(DoBuff) = true\<^sub>r"
   by (rdes_calc)
 
 text {* The pericondition ensures that no input on channel $inp$ is being refused, the trace

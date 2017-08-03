@@ -22,7 +22,7 @@ definition "Counter(n) = (ctr :=\<^sub>C \<guillemotleft>n\<guillemotright> ;; (
 text {* We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. Nothing 
   surprising I think. *}
   
-lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy) = true"
+lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy) = true\<^sub>r"
   by (simp add: rdes closure usubst)
   
 lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
@@ -33,7 +33,7 @@ lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr ^\
     
 text {* The recursive case is a little more interesting. *}
     
-lemma preR_Counter [rdes]: "pre\<^sub>R(Counter(n)) = true"
+lemma preR_Counter [rdes]: "pre\<^sub>R(Counter(n)) = true\<^sub>r"
   by (simp add: Counter_def rdes closure unrest wp usubst)
   
 text {* The pericondition consists of three sequential composed parts. We use the homogeneous
