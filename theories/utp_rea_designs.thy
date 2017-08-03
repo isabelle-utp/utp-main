@@ -1881,7 +1881,7 @@ proof -
         unrest usubst R1_post_SRD R2c_preR R1_rea_impl R2c_rea_impl R2c_postR)
   finally show ?thesis ..
 qed
-
+  
 lemma SRD_refine_intro:
   assumes
     "P is SRD" "Q is SRD"
@@ -3364,7 +3364,7 @@ lemma nmerge_rd_is_R1m [closure]:
 
 lemma R2m_nmerge_rd: "R2m(N\<^sub>R(R2m(M))) = N\<^sub>R(R2m(M))"
   apply (rel_auto) using minus_zero_eq by blast+
-
+    
 lemma nmerge_rd_is_R2m [closure]:
   "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
   by (metis Healthy_def' R2m_nmerge_rd)
@@ -3814,9 +3814,54 @@ qed
 
 text {* Weakest Parallel Precondition *}
 
-definition wrR ("_ wr\<^sub>R'(_') _" [60,0,61] 61)
+definition wrR :: 
+  "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> 
+   ('t :: trace, '\<alpha>) rp merge \<Rightarrow> 
+   ('t, '\<alpha>) hrel_rp \<Rightarrow> 
+   ('t, '\<alpha>) hrel_rp" ("_ wr\<^sub>R'(_') _" [60,0,61] 61)
 where [upred_defs]: "Q wr\<^sub>R(M) P = (\<not>\<^sub>r ((\<not>\<^sub>r P) \<parallel>\<^bsub>M ;; R1(true)\<^esub> Q))"
 
+lemma wrR_R1 [closure]: 
+  "M is R1m \<Longrightarrow> Q wr\<^sub>R(M) P is R1"
+  by (simp add: wrR_def closure)
+    
+lemma R2_rea_not: "R2(\<not>\<^sub>r P) = (\<not>\<^sub>r R2(P))"
+  by (rel_auto)
+        
+lemma wrR_R2_lemma:
+  assumes "P is R2" "Q is R2" "M is R2m"
+  shows "((\<not>\<^sub>r P) \<parallel>\<^bsub>M\<^esub> Q) ;; R1(true\<^sub>h) is R2"
+proof -
+  have "(\<not>\<^sub>r P) \<parallel>\<^bsub>M\<^esub> Q is R2"
+    by (simp add: closure assms)
+  thus ?thesis
+    by (simp add: closure)
+qed
+    
+lemma wrR_R2 [closure]: 
+  assumes "P is R2" "Q is R2" "M is R2m"
+  shows "Q wr\<^sub>R(M) P is R2"
+proof -
+  have "((\<not>\<^sub>r P) \<parallel>\<^bsub>M\<^esub> Q) ;; R1(true\<^sub>h) is R2"
+    by (simp add: wrR_R2_lemma assms)
+  thus ?thesis
+    by (simp add: wrR_def wrR_R2_lemma par_by_merge_seq_add closure) 
+qed
+  
+lemma RC_R2_def: "RC = RC1 \<circ> R2"
+  by (auto simp add: RC_def fun_eq_iff R1_R2c_commute[THEN sym] R1_R2c_is_R2)
+    
+lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
+  by (rel_blast)
+    
+lemma wrR_RC [closure]: 
+  assumes "P is SRD" "Q is SRD" "M is RDM"
+  shows "(\<not>\<^sub>r Q wr\<^sub>R(M) P) is RC"
+  apply (simp add: Healthy_def RC_R2_def) 
+  apply (simp add: Healthy_if assms SRD_healths closure)
+  apply (simp add: RC1_def wrR_def closure wrR_R2_lemma SRD_healths par_by_merge_seq_add seqr_assoc[THEN sym] assms rpred)
+done
+    
 lemma wppR_miracle [wp]: "false wr\<^sub>R(M) P = true\<^sub>r"
   by (simp add: wrR_def)
 
