@@ -993,8 +993,14 @@ where [upred_defs]: "rea_diff P Q = (P \<and> \<not>\<^sub>r Q)"
   
 definition rea_impl :: 
   "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
-where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
+where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> R1(Q))"
 
+definition rea_lift :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
+where [upred_defs]: "[P]\<^sub>r = R1(P)"
+ 
+lemma rea_lift_R1 [closure]: "[P]\<^sub>r is R1"
+  by (rel_simp)
+    
 lemma R1_rea_not: "R1(\<not>\<^sub>r P) = (\<not>\<^sub>r P)"
   by rel_auto
     
@@ -1004,7 +1010,7 @@ lemma R1_rea_not': "R1(\<not>\<^sub>r P) = (\<not>\<^sub>r R1(P))"
 lemma R2c_rea_not: "R2c(\<not>\<^sub>r P) = (\<not>\<^sub>r R2c(P))"
   by rel_auto
   
-lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r R1(Q))"
+lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r Q)"
   by (rel_auto)
 
 lemma R1_rea_impl': "R1(P \<Rightarrow>\<^sub>r Q) = (R1(P) \<Rightarrow>\<^sub>r R1(Q))"
@@ -1030,7 +1036,7 @@ lemma rea_not_R2_closed [closure]:
   by (simp add: Healthy_def' R1_rea_not' R2_R2c_def R2c_rea_not)
     
 lemma rea_impl_R1 [closure]: 
-  "Q is R1 \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R1"
+  "(P \<Rightarrow>\<^sub>r Q) is R1"
   by (rel_blast)
 
 lemma rea_impl_R2c [closure]: 
@@ -1059,7 +1065,7 @@ lemma rea_not_usubst [usubst]:
 
 lemma rea_impl_usubst [usubst]:
   "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<Rightarrow>\<^sub>r Q) = (\<sigma> \<dagger> P \<Rightarrow>\<^sub>r \<sigma> \<dagger> Q)"
-  by (simp add: rea_impl_def usubst)
+  by (simp add: rea_impl_def usubst R1_def)
     
 lemma rea_true_conj [rpred]: 
   assumes "P is R1"
@@ -1081,17 +1087,17 @@ lemma rea_not_rea_true [simp]: "(\<not>\<^sub>r true\<^sub>r) = false"
 lemma rea_not_false [simp]: "(\<not>\<^sub>r false) = true\<^sub>r"
   by (simp add: rea_not_def)
     
-lemma rea_true_impl [simp]:
-  "(true\<^sub>r \<Rightarrow>\<^sub>r P) = P"
-  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false)
+lemma rea_true_impl [rpred]:
+  "P is R1 \<Longrightarrow> (true\<^sub>r \<Rightarrow>\<^sub>r P) = P"
+  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false Healthy_if)
 
-lemma rea_true_impl' [simp]:
-  "(true \<Rightarrow>\<^sub>r P) = P"
-  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false)
+lemma rea_true_impl' [rpred]:
+  "P is R1 \<Longrightarrow>(true \<Rightarrow>\<^sub>r P) = P"
+  by (simp add: rea_not_def rea_impl_def R1_negate_R1 R1_false Healthy_if)
     
 lemma rea_false_impl [rpred]:
   "P is R1 \<Longrightarrow> (false \<Rightarrow>\<^sub>r P) = true\<^sub>r"
-  by (simp add: rea_impl_def rpred)
+  by (simp add: rea_impl_def rpred Healthy_if)
    
 lemma rea_impl_true [simp]: "(P \<Rightarrow>\<^sub>r true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
@@ -1139,6 +1145,22 @@ lemma USUP_mem_rea_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion> i \
 
 lemma USUP_ind_rea_true [simp]: "(\<Squnion> i \<bullet> true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
+
+named_theorems rea_droppers
+    
+lemma [rea_droppers]: 
+  "[true]\<^sub>r = true\<^sub>r"
+  "[true\<^sub>r]\<^sub>r = true\<^sub>r"
+  "[\<not> P]\<^sub>r = (\<not>\<^sub>r [P]\<^sub>r)"
+  "[\<not>\<^sub>r P]\<^sub>r = (\<not>\<^sub>r [P]\<^sub>r)"
+  "[P \<Rightarrow>\<^sub>r Q]\<^sub>r = ([P]\<^sub>r \<Rightarrow>\<^sub>r [Q]\<^sub>r)"
+  "[P \<Rightarrow> Q]\<^sub>r = ([P]\<^sub>r \<Rightarrow>\<^sub>r [Q]\<^sub>r)"
+  "[P \<and> Q]\<^sub>r = ([P]\<^sub>r \<and> [Q]\<^sub>r)"
+  "[P \<or> Q]\<^sub>r = ([P]\<^sub>r \<or> [Q]\<^sub>r)"
+  by (rel_auto)+
+  
+method rea_drop = (simp add: rea_droppers)
+method rea_lift = (simp add: rea_droppers[THEN sym])
     
 text {* Healthiness Condition for Reactive Conditions *}
     
@@ -1177,7 +1199,7 @@ lemma trace_ext_prefix_RC [closure]:
   apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix dual_order.trans less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
   apply (metis append_minus list_append_prefixD order_refl trace_class.diff_zero)
 done
-   
+  
 subsection {* Trace Contribution Lens *}
   
 definition itrace :: "'t::trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("\<^bold>i\<^bold>t") where
@@ -1225,5 +1247,5 @@ lemma tt_wait_indeps [simp]:
   "tt \<bowtie> ($wait\<acute>)\<^sub>v" "($wait\<acute>)\<^sub>v \<bowtie> tt"
   by (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs prod.case_eq_if)
      (metis (no_types, lifting) rp_vars.surjective rp_vars.update_convs(1-2) des_vars.update_convs(2))+
-          
+         
 end

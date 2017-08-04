@@ -1379,7 +1379,10 @@ lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet
 lemma R1_R2c_ex_st: "R1 (R2c (\<exists> $st\<acute> \<bullet> Q\<^sub>1)) = (\<exists> $st\<acute> \<bullet> R1 (R2c Q\<^sub>1))"
   by (rel_auto)
 
-definition wpR (infix "wp\<^sub>R" 60)
+definition wpR ::
+  "('t::trace, '\<alpha>) hrel_rp \<Rightarrow>  
+   ('t, '\<alpha>) hrel_rp \<Rightarrow> 
+   ('t, '\<alpha>) hrel_rp" (infix "wp\<^sub>R" 60)
 where [upred_defs]: "P wp\<^sub>R Q = (\<not>\<^sub>r P ;; (\<not>\<^sub>r Q))"
 
 lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
@@ -1965,12 +1968,12 @@ done
 
 abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
   
-abbreviation abs_st ("[_]\<^sub>S") where
+abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
 "abs_st P \<equiv> P \<restriction>\<^sub>p abs_st\<^sub>L"
   
 definition state_srea ::
   "'s itself \<Rightarrow> ('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> (unit,'t,'\<alpha>,'\<beta>) rel_rsp" where
-[upred_defs]: "state_srea t P = [\<exists> {$st,$st\<acute>} \<bullet> P]\<^sub>S"
+[upred_defs]: "state_srea t P = \<langle>\<exists> {$st,$st\<acute>} \<bullet> P\<rangle>\<^sub>S"
 
 syntax
   "_state_srea" :: "type \<Rightarrow> logic \<Rightarrow> logic" ("state _ \<bullet> _" [0,200] 200)
@@ -2106,7 +2109,7 @@ lemma RD3_state_srea: "RD3(state 'a \<bullet> P) = (state 'a \<bullet> RD3(P))"
 lemma SRD_state_srea [closure]: "P is SRD \<Longrightarrow> state 'a \<bullet> P is SRD"
   by (simp add: Healthy_def R1_state_srea R2c_state_srea R3h_state_srea RD1_state_srea RD2_state_srea RHS_def SRD_def)
     
-lemma preR_state_srea [rdes]: "pre\<^sub>R(state 'a \<bullet> P) = [\<forall> {$st,$st\<acute>} \<bullet> pre\<^sub>R(P)]\<^sub>S"
+lemma preR_state_srea [rdes]: "pre\<^sub>R(state 'a \<bullet> P) = \<langle>\<forall> {$st,$st\<acute>} \<bullet> pre\<^sub>R(P)\<rangle>\<^sub>S"
   by (simp add: state_srea_def, rel_auto, simp_all add: des_vars.defs rp_vars.defs)
 
 lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> peri\<^sub>R(P)"
@@ -2297,17 +2300,45 @@ proof -
   finally show ?thesis .
 qed
 
+definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
+[upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
+
+lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
+  by (rel_simp, simp add: lens_indep_def)
+
+lemma rea_st_cond_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S"
+  by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
+  
+lemma rea_st_cond_R1 [closure]: "[b]\<^sub>S is R1"
+  by (rel_auto)
+
+lemma rea_st_cond_tt_subst [usubst,simplified]: "[[P]\<^sub>S\<lbrakk>e/&tt\<rbrakk>]\<^sub>r = [P]\<^sub>S"
+  by (rel_auto)
+     
 lemma preR_cond_srea [rdes]:
-  "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(P) \<or> \<lceil>\<not> b\<rceil>\<^sub>S\<^sub>< \<and> pre\<^sub>R(Q))"
+  "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S \<and> pre\<^sub>R(P) \<or> [\<not>b]\<^sub>S \<and> pre\<^sub>R(Q))"
   by (rel_auto)
 
 lemma periR_cond_srea [rdes]:
-  "peri\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R(P) \<or> \<lceil>\<not> b\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R(Q))"
-  by (rel_auto)
+  assumes "P is SRD" "Q is SRD"
+  shows "peri\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S \<and> peri\<^sub>R(P) \<or> [\<not>b]\<^sub>S \<and> peri\<^sub>R(Q))"
+proof -
+  have "peri\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = peri\<^sub>R(R1(P) \<triangleleft> b \<triangleright>\<^sub>R R1(Q))"
+    by (simp add: Healthy_if SRD_healths assms)
+  thus ?thesis
+    by (rel_auto)
+qed
 
 lemma postR_cond_srea [rdes]:
-  "post\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P) \<or> \<lceil>\<not> b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(Q))"
-  by (rel_auto)
+  assumes "P is SRD" "Q is SRD"
+  shows "post\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S \<and> post\<^sub>R(P) \<or> [\<not>b]\<^sub>S \<and> post\<^sub>R(Q))"
+proof -
+  have "post\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = post\<^sub>R(R1(P) \<triangleleft> b \<triangleright>\<^sub>R R1(Q))"
+    by (simp add: Healthy_if SRD_healths assms)
+  thus ?thesis
+    by (rel_auto)
+qed
 
 text {* Properties about healthiness condition RD3 *}
 
@@ -2656,7 +2687,6 @@ lemma NSRD_Chaos [closure]: "Chaos is NSRD"
 lemma NSRD_Miracle [closure]: "Miracle is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
-
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
@@ -2766,7 +2796,7 @@ proof (rule NSRD_intro)
           rea_not_demorgan1 rea_not_demorgan2 wpR_RC_false)
   qed
   show "$st\<acute> \<sharp> peri\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q)"
-    by (simp add: rdes assms closure unrest)
+   by (simp add: rdes assms closure unrest)
 qed
 
 text {* Stateful reactive designs are left unital *}
@@ -3222,8 +3252,6 @@ lemma postR_mk_RD [rdes]: "post\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^
 
 text {* Refinement introduction law for contracts *}
 
-declare [[show_sorts]]
-  
 lemma RD_contract_refine:
   assumes
     "Q is SRD" "`\<lceil>P\<^sub>1\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R Q`"
@@ -3602,10 +3630,14 @@ lemma parallel_commitment_lemma_2:
          (((cmt\<^sub>s \<dagger> P) \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t\<^esub> (cmt\<^sub>s \<dagger> Q)) \<or> pre\<^sub>s \<dagger> (P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q))"
   by (simp add: parallel_commitment_lemma_1 assms parallel_assm_lemma)
     
+lemma parallel_commitment_lemma_3:
+  "M is R1m \<Longrightarrow> ($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t is R1m"
+  by (rel_simp, safe, metis+)  
+  
 lemma parallel_commitment:
   assumes "P is SRD" "Q is SRD" "M is RDM"
   shows "cmt\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) \<Rightarrow>\<^sub>r cmt\<^sub>R(P) \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t\<^esub> cmt\<^sub>R(Q))"
-  by (simp add: parallel_commitment_lemma_2 SRD_healths assms cmt\<^sub>R_def pre\<^sub>s_SRD closure rea_impl_def disj_comm)
+  by (simp add: parallel_commitment_lemma_2 parallel_commitment_lemma_3 Healthy_if SRD_healths assms cmt\<^sub>R_def pre\<^sub>s_SRD closure rea_impl_def disj_comm)  
 
 theorem parallel_reactive_design:
   assumes "P is SRD" "Q is SRD" "M is RDM"
