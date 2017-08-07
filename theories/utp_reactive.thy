@@ -1042,7 +1042,11 @@ lemma rea_impl_R1 [closure]:
 lemma rea_impl_R2c [closure]: 
   "\<lbrakk> P is R2c; Q is R2c \<rbrakk> \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R2c"
   by (simp add: rea_impl_def Healthy_def rea_not_def R1_R2c_commute[THEN sym] R2c_not R2c_disj)
-    
+
+lemma rea_impl_R2 [closure]: 
+  "\<lbrakk> P is R2; Q is R2 \<rbrakk> \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R2"
+  by (rel_blast)
+
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
   by (simp add: R1_def unrest lens_indep_sym)
@@ -1161,7 +1165,7 @@ lemma [rea_droppers]:
   
 method rea_drop = (simp add: rea_droppers)
 method rea_lift = (simp add: rea_droppers[THEN sym])
-    
+  
 text {* Healthiness Condition for Reactive Conditions *}
     
 definition [upred_defs]: "RC1(P) = P ;; true\<^sub>r"
