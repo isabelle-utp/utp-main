@@ -1240,16 +1240,38 @@ lemma rea_true_usubst_tt [usubst]:
   "R1(true)\<lbrakk>e/&tt\<rbrakk> = true"
   by (rel_simp)
 
-lemma tt_ok_indeps [simp]: 
-  "tt \<bowtie> ($ok)\<^sub>v" "($ok)\<^sub>v \<bowtie> tt"
-  "tt \<bowtie> ($ok\<acute>)\<^sub>v" "($ok\<acute>)\<^sub>v \<bowtie> tt"
-  by (unfold_locales, simp_all add: lens_defs des_vars.defs prod.case_eq_if)
-     (metis (no_types, lifting) des_vars.surjective des_vars.update_convs(1) des_vars.update_convs(2))+    
+lemma tt_indeps [simp]:
+  assumes "x \<bowtie> ($tr)\<^sub>v" "x \<bowtie> ($tr\<acute>)\<^sub>v"
+  shows "x \<bowtie> tt" "tt \<bowtie> x"
+  using assms
+  by (unfold lens_indep_def, safe, simp_all add: tcontr_def, (metis lens_indep_get var_update_out)+)
+   
+text {* Trace Contribution Substitution *}
+  
+definition rea_subst :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, ('t, '\<alpha>) rp) hexpr \<Rightarrow> ('t, '\<alpha>) hrel_rp" ("_\<lbrakk>_\<rbrakk>\<^sub>r" [999,0] 999) 
+where [upred_defs]: "P\<lbrakk>v\<rbrakk>\<^sub>r = R1(P\<lbrakk>v/&tt\<rbrakk>)"
+    
+lemma rea_subst_R1_closed [closure]: "P\<lbrakk>v\<rbrakk>\<^sub>r is R1"
+  by (rel_auto)
+    
+lemma unrest_rea_subst [unrest]: 
+  "\<lbrakk> mwb_lens x; x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<sharp> v; x \<sharp> P \<rbrakk> \<Longrightarrow>  x \<sharp> P\<lbrakk>v\<rbrakk>\<^sub>r"
+  by (simp add: rea_subst_def R1_def unrest lens_indep_sym)
 
-lemma tt_wait_indeps [simp]:
-  "tt \<bowtie> ($wait)\<^sub>v" "($wait)\<^sub>v \<bowtie> tt"
-  "tt \<bowtie> ($wait\<acute>)\<^sub>v" "($wait\<acute>)\<^sub>v \<bowtie> tt"
-  by (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs prod.case_eq_if)
-     (metis (no_types, lifting) rp_vars.surjective rp_vars.update_convs(1-2) des_vars.update_convs(2))+
-         
+lemma rea_substs [usubst]: 
+  "true\<^sub>r\<lbrakk>v\<rbrakk>\<^sub>r = true\<^sub>r" "true\<lbrakk>v\<rbrakk>\<^sub>r = true\<^sub>r" "false\<lbrakk>v\<rbrakk>\<^sub>r = false"
+  "(\<not>\<^sub>r P)\<lbrakk>v\<rbrakk>\<^sub>r = (\<not>\<^sub>r P\<lbrakk>v\<rbrakk>\<^sub>r)" "(P \<and> Q)\<lbrakk>v\<rbrakk>\<^sub>r = (P\<lbrakk>v\<rbrakk>\<^sub>r \<and> Q\<lbrakk>v\<rbrakk>\<^sub>r)" "(P \<or> Q)\<lbrakk>v\<rbrakk>\<^sub>r = (P\<lbrakk>v\<rbrakk>\<^sub>r \<or> Q\<lbrakk>v\<rbrakk>\<^sub>r)"
+  "(P \<Rightarrow>\<^sub>r Q)\<lbrakk>v\<rbrakk>\<^sub>r = (P\<lbrakk>v\<rbrakk>\<^sub>r \<Rightarrow>\<^sub>r Q\<lbrakk>v\<rbrakk>\<^sub>r)"
+  by rel_auto+
+
+lemma rea_substs_lattice [usubst]:
+  "(\<Sqinter> i \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r   = (\<Sqinter> i \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
+  "(\<Sqinter> i\<in>A \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r = (\<Sqinter> i\<in>A \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
+  "(\<Squnion> i \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r   = (\<Squnion> i \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
+   by (rel_auto)+
+    
+lemma rea_subst_USUP_set [usubst]:
+  "A \<noteq> {} \<Longrightarrow> (\<Squnion> i\<in>A \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r   = (\<Squnion> i\<in>A \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
+  by (rel_auto)+
+     
 end

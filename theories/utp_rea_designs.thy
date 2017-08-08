@@ -2303,6 +2303,9 @@ qed
 definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
 [upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
 
+lemma rea_st_cond_true [simp]: "[true]\<^sub>S = true\<^sub>r"
+  by (rel_auto)
+
 lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
   by (rel_simp, simp add: lens_indep_def)
 
