@@ -1884,7 +1884,7 @@ proof -
         unrest usubst R1_post_SRD R2c_preR R1_rea_impl R2c_rea_impl R2c_postR)
   finally show ?thesis ..
 qed
-  
+
 lemma SRD_refine_intro:
   assumes
     "P is SRD" "Q is SRD"
@@ -1892,18 +1892,33 @@ lemma SRD_refine_intro:
   shows "P \<sqsubseteq> Q"
   by (metis SRD_reactive_tri_design assms(1) assms(2) assms(3) assms(4) assms(5) srdes_tri_refine_intro)
 
-lemma SRD_refine_intro_alt:
+lemma SRD_refine_intro':
   assumes
-    "P is SRD" "Q is SRD" "`pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`" "`peri\<^sub>R(Q) \<Rightarrow> peri\<^sub>R(P)`" "`post\<^sub>R(Q) \<Rightarrow> post\<^sub>R(P)`"
+    "P is SRD" "Q is SRD"
+    "`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)`" "`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)`" "`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)`"
   shows "P \<sqsubseteq> Q"
-  by (metis SRD_refine_intro assms refBy_order utp_pred_laws.inf.coboundedI1 utp_pred_laws.inf.commute)
+proof -
+  have "\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) \<sqsubseteq> \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> peri\<^sub>R Q \<diamondop> post\<^sub>R Q)"
+  proof -
+    have 1:"`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)` \<Longrightarrow> `pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`"
+      by rel_blast
+    have 2:"`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)` \<Longrightarrow> `pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow> peri\<^sub>R(P)`"
+      by rel_blast
+    have 3:"`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)` \<Longrightarrow> `pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow> post\<^sub>R(P)`"
+      by rel_blast
+    show ?thesis
+      by (simp add: 1 2 3 assms srdes_tri_refine_intro)
+  qed
+  thus ?thesis
+    by (simp add: SRD_reactive_tri_design assms)
+qed
 
 lemma SRD_eq_intro:
   assumes
     "P is SRD" "Q is SRD" "pre\<^sub>R(P) = pre\<^sub>R(Q)" "peri\<^sub>R(P) = peri\<^sub>R(Q)" "post\<^sub>R(P) = post\<^sub>R(Q)"
   shows "P = Q"
   by (metis SRD_reactive_tri_design assms)
-
+    
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
 
@@ -2506,7 +2521,7 @@ lemma NSRD_RC_intro:
   shows "P is NSRD"
   by (metis Healthy_def NSRD_form R1_preR SRD_reactive_tri_design assms(1) assms(2) assms(3) 
       ex_unrest rea_not_false rea_not_not wpR_RC_false wpR_def)
-
+  
 lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
   by (metis (no_types, lifting) Healthy_def NSRD_def RHS_idem SRD_healths(4) SRD_reactive_design comp_apply)
@@ -2604,12 +2619,25 @@ qed
 lemma NSRD_iff:
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1(true) = (\<not>\<^sub>r pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
   by (meson NSRD_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri)
-
+    
 lemma NSRD_is_RD3 [closure]:
   assumes "P is NSRD"
   shows "P is RD3"
-  by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms)
-
+  by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms)    
+lemma NSRD_refine_intro:
+  assumes
+    "P is NSRD" "Q is NSRD"
+    "`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)`" "`peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)`" "`post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)`"
+  shows "P \<sqsubseteq> Q"
+proof -
+  have 1:"`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)` = `peri\<^sub>R(Q) \<Rightarrow>\<^sub>r (pre\<^sub>R(P) \<Rightarrow>\<^sub>r peri\<^sub>R(P))`"
+    by (rel_blast)
+  have 2:"`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)` = `post\<^sub>R(Q) \<Rightarrow>\<^sub>r (pre\<^sub>R(P) \<Rightarrow>\<^sub>r post\<^sub>R(P))`"      
+    by (rel_blast)
+  show ?thesis
+    by (rule SRD_refine_intro', simp_all add: closure assms 1 2 SRD_post_under_pre SRD_peri_under_pre unrest)
+qed
+    
 lemma NSRD_composition_wp [rdes_def]:
   assumes "P is NSRD" "Q is SRD"
   shows "P ;; Q =
@@ -2953,6 +2981,8 @@ lemma R_D_seq_ndesign:
   "\<^bold>R\<^sub>D(p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; \<^bold>R\<^sub>D(p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) = \<^bold>R\<^sub>D((p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2))"
   apply (rule antisym)
   apply (rule SRD_refine_intro)
+oops
+(*
   apply (simp_all add: closure rdes ndesign_composition_wp)
   using dual_order.trans apply (rel_blast)
   using dual_order.trans apply (rel_blast)
@@ -2964,10 +2994,12 @@ lemma R_D_seq_ndesign:
   apply (rel_auto)
 done
 
+
 lemma R_D_seq:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
+*)
 
 text {* This law is applicable only when there is no further alphabet extension *}
 
