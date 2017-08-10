@@ -1388,6 +1388,14 @@ where [upred_defs]: "P wp\<^sub>R Q = (\<not>\<^sub>r P ;; (\<not>\<^sub>r Q))"
 lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
   by (rel_auto)
     
+lemma wpR_div [wp]:
+  "(\<not>\<^sub>r P ;; true\<^sub>r) = true\<^sub>r \<Longrightarrow> true\<^sub>r wp\<^sub>R P = false"
+  by (simp add: wpR_def rpred, rel_blast)
+
+lemma wpR_cond [wp]:
+  "out\<alpha> \<sharp> b \<Longrightarrow> (P \<triangleleft> b \<triangleright> Q) wp\<^sub>R R = P wp\<^sub>R R \<triangleleft> b \<triangleright> Q wp\<^sub>R R"
+  by (simp add: wpR_def cond_seq_left_distr, rel_auto)
+    
 lemma wpR_RC_false [wp]: 
   "P is RC \<Longrightarrow> P wp\<^sub>R false = (\<not>\<^sub>r P)"
   by (simp add: wpR_def, metis Healthy_def RC1_def RC_implies_RC1)
@@ -1785,7 +1793,7 @@ lemma R2c_postR:
 
 lemma postR_R2c_closed [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R2c"
   by (simp add: Healthy_def R2c_post_SRD)
-
+    
 lemma RHS_pre_lemma: "(\<^bold>R\<^sub>s P)\<^sup>f\<^sub>f = R1(R2c(P\<^sup>f\<^sub>f))"
   by (rel_auto)
 
@@ -2566,12 +2574,6 @@ proof -
     by (simp add: rea_not_def)
 qed
 
-lemma NSRD_neg_pre_RC [closure]:
-  assumes "P is NSRD"
-  shows "(\<not>\<^sub>r pre\<^sub>R(P)) is RC"
-  by (simp add: RC_def Healthy_def R1_rea_not R2c_rea_not RC1_def R2c_preR)
-     (simp add: NSRD_is_SRD NSRD_neg_pre_unit R2c_preR assms)
-  
 lemma NSRD_neg_pre_left_zero:
   assumes "P is NSRD" "Q is R1" "Q is RD1"
   shows "(\<not>\<^sub>r pre\<^sub>R(P)) ;; Q = (\<not>\<^sub>r pre\<^sub>R(P))"
@@ -2616,6 +2618,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma preR_RR [closure]: "P is NSRD \<Longrightarrow> pre\<^sub>R(P) is RR"
+  by (rule RR_intro, simp_all add: closure unrest)
+
+lemma periR_RR [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is RR"
+  by (rule RR_intro, simp_all add: closure unrest)
+  
+lemma postR_RR [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is RR"
+  by (rule RR_intro, simp_all add: closure unrest)
+    
+lemma NSRD_neg_pre_RC [closure]:
+  assumes "P is NSRD"
+  shows "(\<not>\<^sub>r pre\<^sub>R(P)) is RC"
+  by (rule RC_intro, simp_all add: closure assms NSRD_neg_pre_unit)
+  
 lemma NSRD_iff:
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1(true) = (\<not>\<^sub>r pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
   by (meson NSRD_intro NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri)
@@ -2638,7 +2654,7 @@ proof -
     by (rule SRD_refine_intro', simp_all add: closure assms 1 2 SRD_post_under_pre SRD_peri_under_pre unrest)
 qed
     
-lemma NSRD_composition_wp [rdes_def]:
+lemma NSRD_composition_wp:
   assumes "P is NSRD" "Q is SRD"
   shows "P ;; Q =
          \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
@@ -2700,18 +2716,31 @@ lemma RHS_tri_normal_design_composition:
     "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
     "P is R2c" "Q\<^sub>1 is R1" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R1" "Q\<^sub>2 is R2c"
     "R is R2c" "S\<^sub>1 is R1" "S\<^sub>1 is R2c" "S\<^sub>2 is R1" "S\<^sub>2 is R2c"
-    "R1 (\<not> P) ;; R1(true) = (\<not> P)" "$st\<acute> \<sharp> Q\<^sub>1"
+    "R1 (\<not> P) ;; R1(true) = R1(\<not> P)" "$st\<acute> \<sharp> Q\<^sub>1"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
-         = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+         = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
 proof -
   have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
         \<^bold>R\<^sub>s ((R1 (\<not> P) wp\<^sub>R false \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp_all add: RHS_tri_design_composition_wp rea_not_def assms unrest)
-  also have "... = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+  also have "... = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp add: assms wpR_def ex_unrest, rel_auto)
   finally show ?thesis .
 qed
   
+lemma RHS_tri_normal_design_composition' [rdes_def]:
+  assumes "P is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
+          "(\<not>\<^sub>r P) is RC" "$st\<acute> \<sharp> Q\<^sub>1"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
+         = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+proof -
+  have "R1 (\<not> P) ;; R1 true = R1(\<not> P)"
+    using RC_implies_RC1[OF assms(7)]
+    by (simp add: Healthy_def RC1_def rea_not_def)
+  thus ?thesis
+    by (simp add: RHS_tri_normal_design_composition assms unrest RR_implies_R1 RR_implies_R2c)
+qed
+
 lemma NSRD_Chaos [closure]: "Chaos is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
@@ -2726,7 +2755,7 @@ lemma NSRD_right_Miracle_tri_lemma:
       preR_NSRD_seq rea_not_false rea_pre_RHS_design seqr_right_zero srdes_skip_tri_design 
       srdes_theory_continuous.top_closed upred_semiring.add.right_neutral wpR_def)
     
-lemma R1_design_R1_pre [simp]: 
+lemma R1_design_R1_pre: 
   "\<^bold>R\<^sub>s(R1(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
     
@@ -2740,7 +2769,7 @@ proof -
     by (rule NSRD_intro, (rel_auto)+)
   thus ?thesis
     by (simp add: NSRD_right_Miracle_tri_lemma rea_pre_RHS_design rea_peri_RHS_design usubst R2c_true R2c_false R1_false)
-       (simp add: Miracle_def)
+       (simp add: Miracle_def R1_design_R1_pre)
 qed
 
 lemma NSRD_right_Chaos_tri_lemma:
@@ -2795,14 +2824,14 @@ proof -
         ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
     by (rel_auto)
   have "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<^bold>R\<^sub>s (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
-    by (simp add: NSRD_composition_wp closure preR_assigns_rea periR_assigns_rea postR_assigns_rea wp a)
+    by (simp add: NSRD_composition_wp closure preR_assigns_rea periR_assigns_rea postR_assigns_rea R1_design_R1_pre wp a)
   also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
     by (simp add: assigns_rea_RHS_tri_des)
   finally show ?thesis .
 qed
 
 lemma assigns_Miracle: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Miracle = Miracle"
-  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Miracle_def)
+  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Miracle_def R1_design_R1_pre)
 
 lemma assigns_Chaos: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Chaos = Chaos"
   by (simp add: NSRD_composition_wp closure rdes wp, simp add: Chaos_def, rel_auto)
@@ -3918,19 +3947,24 @@ proof -
     by (simp add: wrR_def wrR_R2_lemma par_by_merge_seq_add closure) 
 qed
   
-lemma RC_R2_def: "RC = RC1 \<circ> R2"
+lemma RC_R2_def: "RC = RC1 \<circ> RR"
   by (auto simp add: RC_def fun_eq_iff R1_R2c_commute[THEN sym] R1_R2c_is_R2)
     
 lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
   by (rel_blast)
+
+lemma wrR_RR [closure]: 
+  assumes "P is RR" "Q is RR" "M is RDM"
+  shows "(\<not>\<^sub>r Q wr\<^sub>R(M) P) is RR"
+  apply (rule RR_intro)
+  apply (simp_all add: unrest assms closure wrR_def rpred)
+oops
     
 lemma wrR_RC [closure]: 
   assumes "P is SRD" "Q is SRD" "M is RDM"
   shows "(\<not>\<^sub>r Q wr\<^sub>R(M) P) is RC"
-  apply (simp add: Healthy_def RC_R2_def) 
-  apply (simp add: Healthy_if assms SRD_healths closure)
-  apply (simp add: RC1_def wrR_def closure wrR_R2_lemma SRD_healths par_by_merge_seq_add seqr_assoc[THEN sym] assms rpred)
-done
+  apply (simp add: Healthy_def RC_def) 
+  oops
     
 lemma wppR_miracle [wp]: "false wr\<^sub>R(M) P = true\<^sub>r"
   by (simp add: wrR_def)
@@ -3955,7 +3989,7 @@ proof -
   ultimately have "Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
     by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
   thus ?thesis
-    by (simp add: Miracle_def)
+    by (simp add: Miracle_def R1_design_R1_pre)
 qed
 
 lemma Miracle_parallel_right_zero:
@@ -3969,7 +4003,7 @@ proof -
   ultimately have "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
     by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
   thus ?thesis
-    by (simp add: Miracle_def)
+    by (simp add: Miracle_def R1_design_R1_pre)
 qed
 
 subsection {* Example basic merge *}

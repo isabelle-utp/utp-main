@@ -981,6 +981,45 @@ subsection {* Reactive Relations *}
 text {* Predicate calculus for R1-R2 predicates as an extension of the standard alphabetised
   predicate calculus. *}
   
+definition RR :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "RR(P) = (\<exists> {$ok,$ok\<acute>,$wait,$wait\<acute>} \<bullet> R2(P))"
+  
+lemma RR_idem: "RR(RR(P)) = RR(P)"
+  by (rel_auto)
+
+lemma RR_Idempotent [closure]: "Idempotent RR"
+  by (simp add: Idempotent_def RR_idem)
+
+lemma R1_RR: "R1(RR(P)) = RR(P)"
+  by (rel_auto)
+    
+lemma R2c_RR: "R2c(RR(P)) = RR(P)"
+  by (rel_auto)
+    
+lemma RR_implies_R1 [closure]: "P is RR \<Longrightarrow> P is R1"
+  by (metis Healthy_def R1_RR)
+  
+lemma RR_implies_R2c: "P is RR \<Longrightarrow> P is R2c"
+  by (metis Healthy_def R2c_RR)
+  
+lemma RR_implies_R2: "P is RR \<Longrightarrow> P is R2"
+  by (metis Healthy_def R1_RR R2_R2c_def R2c_RR)
+
+lemma RR_intro:
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "P is R1" "P is R2c"
+  shows "P is RR"
+  by (simp add: RR_def Healthy_def ex_plus R2_R2c_def, simp add: Healthy_if assms ex_unrest)
+    
+lemma RR_unrests [unrest]: 
+  assumes "P is RR"
+  shows "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"
+proof -
+  have "$ok \<sharp> RR(P)" "$ok\<acute> \<sharp> RR(P)" "$wait \<sharp> RR(P)" "$wait\<acute> \<sharp> RR(P)"
+    by (simp_all add: RR_def ex_plus unrest)
+  thus "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"
+    by (simp_all add: assms Healthy_if)
+qed
+
 named_theorems rpred
   
 abbreviation rea_true ("true\<^sub>r") where "true\<^sub>r \<equiv> R1(true)"     
@@ -997,7 +1036,7 @@ where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> R1(Q)
 
 definition rea_lift :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
 where [upred_defs]: "[P]\<^sub>r = R1(P)"
- 
+   
 lemma rea_lift_R1 [closure]: "[P]\<^sub>r is R1"
   by (rel_simp)
     
@@ -1009,7 +1048,10 @@ lemma R1_rea_not': "R1(\<not>\<^sub>r P) = (\<not>\<^sub>r R1(P))"
   
 lemma R2c_rea_not: "R2c(\<not>\<^sub>r P) = (\<not>\<^sub>r R2c(P))"
   by rel_auto
-  
+
+lemma RR_rea_not: "RR(\<not>\<^sub>r RR(P)) = (\<not>\<^sub>r RR(P))"
+  by (rel_auto)
+    
 lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r Q)"
   by (rel_auto)
 
@@ -1018,13 +1060,19 @@ lemma R1_rea_impl': "R1(P \<Rightarrow>\<^sub>r Q) = (R1(P) \<Rightarrow>\<^sub>
     
 lemma R2c_rea_impl: "R2c(P \<Rightarrow>\<^sub>r Q) = (R2c(P) \<Rightarrow>\<^sub>r R2c(Q))"
   by (rel_auto)
-  
+
+lemma RR_rea_impl: "RR(RR(P) \<Rightarrow>\<^sub>r RR(Q)) = (RR(P) \<Rightarrow>\<^sub>r RR(Q))"
+  by (rel_auto)
+ 
 lemma rea_true_R1 [closure]: "true\<^sub>r is R1"
   by (rel_auto)
   
 lemma rea_true_R2c [closure]: "true\<^sub>r is R2c"
   by (rel_auto)
     
+lemma rea_true_RR [closure]: "true\<^sub>r is RR"
+  by (rel_auto)
+     
 lemma rea_not_R1 [closure]: "\<not>\<^sub>r P is R1"
   by (rel_auto)
 
@@ -1034,7 +1082,11 @@ lemma rea_not_R2c [closure]: "P is R2c \<Longrightarrow> \<not>\<^sub>r P is R2c
 lemma rea_not_R2_closed [closure]:
   "P is R2 \<Longrightarrow> (\<not>\<^sub>r P) is R2"
   by (simp add: Healthy_def' R1_rea_not' R2_R2c_def R2c_rea_not)
-    
+
+lemma rea_no_RR [closure]:
+  "\<lbrakk> P is RR \<rbrakk> \<Longrightarrow> (\<not>\<^sub>r P) is RR"
+  by (metis Healthy_def' RR_rea_not)
+
 lemma rea_impl_R1 [closure]: 
   "(P \<Rightarrow>\<^sub>r Q) is R1"
   by (rel_blast)
@@ -1047,6 +1099,51 @@ lemma rea_impl_R2 [closure]:
   "\<lbrakk> P is R2; Q is R2 \<rbrakk> \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R2"
   by (rel_blast)
 
+lemma rea_impl_RR [closure]:
+  "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is RR"
+  by (metis Healthy_def' RR_rea_impl)
+  
+lemma conj_RR [closure]:
+  "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> (P \<and> Q) is RR"
+  by (meson RR_implies_R1 RR_implies_R2c RR_intro RR_unrests(1-4) conj_R1_closed_1 conj_R2c_closed unrest_conj)
+
+lemma disj_RR [closure]:
+  "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> (P \<or> Q) is RR"
+  by (metis Healthy_def' R1_RR R1_idem R1_rea_not' RR_rea_impl RR_rea_not disj_comm double_negation rea_impl_def rea_not_def)
+    
+lemma USUP_ind_RR_closed [closure]:
+  assumes "\<And> i. P i is RR"
+  shows "(\<Squnion> i \<bullet> P(i)) is RR"
+proof -
+  have 1:"(\<Squnion> i\<in>UNIV \<bullet> P(i)) is R1"
+    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
+  have 2:"(\<Squnion> i\<in>UNIV \<bullet> P(i)) is R2c"
+    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
+  show ?thesis
+    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
+qed
+    
+lemma UINF_ind_RR_closed [closure]:
+  assumes "\<And> i. P i is RR"
+  shows "(\<Sqinter> i \<bullet> P(i)) is RR"
+proof -
+  have 1:"(\<Sqinter> i\<in>UNIV \<bullet> P(i)) is R1"
+    by (unfold Healthy_def, subst R1_USUP, simp_all add: Healthy_if assms closure)
+  have 2:"(\<Sqinter> i\<in>UNIV \<bullet> P(i)) is R2c"
+    by (unfold Healthy_def, subst R2c_USUP, simp_all add: Healthy_if assms RR_implies_R2c closure)
+  show ?thesis
+    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
+qed
+
+lemma cond_tt_RR_closed [closure]: 
+  assumes "P is RR" "Q is RR"
+  shows "P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> Q is RR"
+  apply (rule RR_intro)
+  apply (simp_all add: unrest assms)
+  apply (simp_all add: Healthy_def) 
+  apply (simp_all add: R1_cond R2c_condr Healthy_if assms RR_implies_R2c closure R2c_tr'_minus_tr)
+done
+  
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
   by (simp add: R1_def unrest lens_indep_sym)
@@ -1170,7 +1267,10 @@ text {* Healthiness Condition for Reactive Conditions *}
     
 definition [upred_defs]: "RC1(P) = P ;; true\<^sub>r"
   
-definition [upred_defs]: "RC = RC1 \<circ> R2c \<circ> R1"
+definition [upred_defs]: "RC = RC1 \<circ> RR"
+  
+lemma RC_intro: "\<lbrakk> P is RR; (P ;; true\<^sub>r = P) \<rbrakk> \<Longrightarrow> P is RC"
+  by (simp add: Healthy_def RC1_def RC_def)
   
 lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
   by (metis (no_types, hide_lams) R1_true_comp RC1_def seqr_assoc)
@@ -1185,23 +1285,44 @@ lemma RC1_trace_ext_prefix:
 lemma RC1_disj: "RC1(P \<or> Q) = (RC1(P) \<or> RC1(Q))"
   by (rel_blast)
     
+lemma R2_RC: "R2 (RC P) = RC P"
+  by (simp add: RC_def RC1_def R2_R2c_def R1_R2c_seqr_distribute RR_implies_R2c closure)
+    
+lemma RC_implies_R2: "P is RC \<Longrightarrow> P is R2"
+  by (metis Healthy_def' R2_RC)
+    
+lemma RC_ex_ok_wait: "(\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>} \<bullet> RC P) = RC P"
+  by (rel_auto)
+    
+lemma RC_implies_RR [closure]: 
+  assumes "P is RC"
+  shows "P is RR"
+  by (metis Healthy_def RC_ex_ok_wait RC_implies_R2 RR_def assms)
+
 lemma RC_implies_RC1: "P is RC \<Longrightarrow> P is RC1"
   by (metis (no_types, hide_lams) Healthy_def RC1_idem RC_def comp_apply)
     
 lemma rea_true_RC [closure]: "true\<^sub>r is RC"
-  by (metis (no_types, lifting) Healthy_def R1_idem R1_true_comp RC1_def RC_def comp_apply rea_true_R2c)
+  by (metis (no_types, lifting) Healthy_def R1_true_comp RC1_def RC_def comp_apply rea_true_RR)
 
 lemma false_RC [closure]: "false is RC"
   by (rel_auto)
    
 lemma disj_RC_closed [closure]: "\<lbrakk> P is RC; Q is RC \<rbrakk> \<Longrightarrow> (P \<or> Q) is RC"
-  by (simp add: Healthy_def R1_disj R2c_disj RC1_disj RC_def)
+  by (metis Healthy_def RC1_disj RC_def RC_implies_RR comp_def disj_RR)
     
-lemma trace_ext_prefix_RC [closure]: 
-  "\<lbrakk> $tr \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"
+lemma trace_ext_prefix_RR [closure]: 
+  "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RR"
   apply (rel_auto)
-  apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix dual_order.trans less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
-  apply (metis append_minus list_append_prefixD order_refl trace_class.diff_zero)
+  apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
+  apply (metis append_minus list_append_prefixD minus_cancel_le order_refl trace_class.diff_zero)
+done
+
+lemma trace_ext_prefix_RC [closure]: 
+  "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"
+  apply (rule RC_intro, simp add: trace_ext_prefix_RR)
+  apply (rel_auto)
+  apply (metis (no_types, lifting) dual_order.trans)
 done
   
 subsection {* Trace Contribution Lens *}
