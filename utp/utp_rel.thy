@@ -414,6 +414,9 @@ lemma subst_skip_r [usubst]:
   "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> II = \<langle>\<lfloor>\<sigma>\<rfloor>\<^sub>s\<rangle>\<^sub>a"
   by (rel_simp, (metis (mono_tags, lifting) prod.sel(1) sndI surjective_pairing)+)
 
+lemma subst_pre_skip [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II = \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (rel_auto)
+    
 lemma usubst_upd_in_comp [usubst]:
   "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
   by (simp add: fst_lens_def in\<alpha>_def in_var_def)

@@ -78,6 +78,10 @@ lemma out_alpha_unrest_st_lift_pre [unrest]:
   "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
     
+lemma tr_unrest_st_lift [unrest]: 
+  "$tr \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>" "$tr\<acute> \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
+  by (rel_auto)+
+        
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
@@ -109,6 +113,9 @@ qed
 lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^sub>L st = ($st:x)\<^sub>v"
   by (metis (no_types, hide_lams) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
   
+lemma unrest_st_indep [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
+  by (metis lens_comp_left_id st_qual_alpha unrest_subst_alpha_ext)
+    
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -1231,7 +1238,7 @@ lemma wait'_cond_true: "(P \<diamondop> Q \<and> $wait\<acute>) = (P \<and> $wai
 lemma wait'_cond_false: "(P \<diamondop> Q \<and> (\<not>$wait\<acute>)) = (Q \<and> (\<not>$wait\<acute>))"
   by (rel_auto)
 
-lemma wait'_cond_idem [simp]: "P \<diamondop> P = P"
+lemma wait'_cond_idem: "P \<diamondop> P = P"
   by (rel_auto)
 
 lemma wait'_cond_conj_exchange:
@@ -1958,6 +1965,9 @@ lemma unrest_lift_cond_srea [unrest]:
   "x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow>"
   by (simp add: lift_cond_srea_def)
 
+lemma subst_lift_cond_srea [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<lceil>s\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>S\<^sub>\<leftarrow>"
+  by (rel_auto)
+    
 abbreviation cond_srea ::
   "('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   's upred \<Rightarrow>
@@ -2015,7 +2025,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Chaos_tri_def [rdes_def]: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true \<diamondop> true)"
+lemma Chaos_tri_def [rdes_def]: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true\<^sub>r \<diamondop> true\<^sub>r)"
   by (simp add: Chaos_def design_false_pre)
 
 lemma Miracle_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false)"
@@ -2029,14 +2039,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Miracle_tri_def [rdes_def]: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> false)"
-  by (simp add: Miracle_def wait'_cond_idem)
+lemma R1_design_R1_pre: 
+  "\<^bold>R\<^sub>s(R1(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
+  by (rel_auto)
+
+lemma Miracle_tri_def [rdes_def]: "Miracle = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> false)"
+  by (simp add: Miracle_def R1_design_R1_pre wait'_cond_idem)
 
 thm srdes_theory_continuous.weak.bottom_lower
 thm srdes_theory_continuous.weak.top_higher
 thm srdes_theory_continuous.meet_bottom
 thm srdes_theory_continuous.meet_top
-
+  
 lemma Miracle_left_zero:
   assumes "P is SRD"
   shows "Miracle ;; P = Miracle"
@@ -2323,11 +2337,10 @@ proof -
   finally show ?thesis .
 qed
 
+text {* State condition lifting *}
+  
 definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
 [upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
-
-lemma rea_st_cond_true [simp]: "[true]\<^sub>S = true\<^sub>r"
-  by (rel_auto)
 
 lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
   by (rel_simp, simp add: lens_indep_def)
@@ -2336,11 +2349,46 @@ lemma rea_st_cond_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S"
   by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
   
+lemma subst_st_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> [P]\<^sub>S = [\<sigma> \<dagger> P]\<^sub>S"
+  by (rel_auto)
+    
 lemma rea_st_cond_R1 [closure]: "[b]\<^sub>S is R1"
   by (rel_auto)
 
-lemma rea_st_cond_tt_subst [usubst,simplified]: "[[P]\<^sub>S\<lbrakk>e/&tt\<rbrakk>]\<^sub>r = [P]\<^sub>S"
+lemma rea_st_cond_R2c [closure]: "[b]\<^sub>S is R2c"
   by (rel_auto)
+
+lemma rea_st_cond_RR [closure]: "[b]\<^sub>S is RR"
+  by (rule RR_intro, simp_all add: unrest closure)
+
+lemma rea_st_cond_RC [closure]: "[b]\<^sub>S is RC"
+  by (rule RC_intro, simp add: closure, rel_auto)
+    
+lemma rea_st_cond_true [rpred]: "[true]\<^sub>S = true\<^sub>r"
+  by (rel_auto)
+
+lemma rea_st_cond_false [rpred]: "[false]\<^sub>S = false"
+  by (rel_auto)
+    
+lemma st_cond_not [rpred]: "(\<not>\<^sub>r [P]\<^sub>S) = [\<not> P]\<^sub>S"
+  by (rel_auto)
+
+lemma st_cond_conj [rpred]: "([P]\<^sub>S \<and> [Q]\<^sub>S) = [P \<and> Q]\<^sub>S"
+  by (rel_auto)
+        
+lemma cond_st_distr [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
+  by (rel_auto)
+        
+lemma cond_st_false [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S \<and> P)"
+  by (rel_blast)
+    
+lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<triangleleft> b \<triangleright>\<^sub>R P) = ([b]\<^sub>S \<or> P)"
+  by (rel_blast)
+    
+lemma wpR_st_cond_div [wp]:
+  "P \<noteq> true \<Longrightarrow> true\<^sub>r wp\<^sub>R [P]\<^sub>S = false"
+  by (rel_auto)
+    
      
 lemma preR_cond_srea [rdes]:
   "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S \<and> pre\<^sub>R(P) \<or> [\<not>b]\<^sub>S \<and> pre\<^sub>R(Q))"
@@ -2755,10 +2803,6 @@ lemma NSRD_right_Miracle_tri_lemma:
       preR_NSRD_seq rea_not_false rea_pre_RHS_design seqr_right_zero srdes_skip_tri_design 
       srdes_theory_continuous.top_closed upred_semiring.add.right_neutral wpR_def)
     
-lemma R1_design_R1_pre: 
-  "\<^bold>R\<^sub>s(R1(P) \<turnstile> Q) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
-  by (rel_auto)
-    
 lemma Miracle_right_zero_law:
   assumes "$ok\<acute> \<sharp> P"
   shows "\<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> P) ;; Miracle = Miracle"
@@ -2769,7 +2813,7 @@ proof -
     by (rule NSRD_intro, (rel_auto)+)
   thus ?thesis
     by (simp add: NSRD_right_Miracle_tri_lemma rea_pre_RHS_design rea_peri_RHS_design usubst R2c_true R2c_false R1_false)
-       (simp add: Miracle_def R1_design_R1_pre)
+       (simp add: Miracle_def R1_design_R1_pre wait'_cond_idem)
 qed
 
 lemma NSRD_right_Chaos_tri_lemma:
@@ -2831,7 +2875,7 @@ proof -
 qed
 
 lemma assigns_Miracle: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Miracle = Miracle"
-  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Miracle_def R1_design_R1_pre)
+  by (simp add: NSRD_composition_wp closure rdes wp, simp add: Miracle_def R1_design_R1_pre wait'_cond_idem)
 
 lemma assigns_Chaos: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Chaos = Chaos"
   by (simp add: NSRD_composition_wp closure rdes wp, simp add: Chaos_def, rel_auto)
@@ -3946,10 +3990,7 @@ proof -
   thus ?thesis
     by (simp add: wrR_def wrR_R2_lemma par_by_merge_seq_add closure) 
 qed
-  
-lemma RC_R2_def: "RC = RC1 \<circ> RR"
-  by (auto simp add: RC_def fun_eq_iff R1_R2c_commute[THEN sym] R1_R2c_is_R2)
-    
+     
 lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
   by (rel_blast)
 
@@ -3983,9 +4024,9 @@ lemma Miracle_parallel_left_zero:
   shows "Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P = Miracle"
 proof -
   have "pre\<^sub>R(Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P) = true\<^sub>r"
-    by (simp add: parallel_assm rdes closure assms)
+    by (simp add: parallel_assm wait'_cond_idem rdes closure assms)
   moreover hence "cmt\<^sub>R(Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P) = false"
-    by (simp add: rdes closure SRD_healths assms)
+    by (simp add: rdes closure wait'_cond_idem SRD_healths assms)
   ultimately have "Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
     by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
   thus ?thesis
@@ -3997,9 +4038,9 @@ lemma Miracle_parallel_right_zero:
   shows "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle = Miracle"
 proof -
   have "pre\<^sub>R(P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle) = true\<^sub>r"
-    by (simp add: parallel_assm rdes closure assms)
+    by (simp add: wait'_cond_idem parallel_assm rdes closure assms)
   moreover hence "cmt\<^sub>R(P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle) = false"
-    by (simp add: rdes closure SRD_healths assms)
+    by (simp add: wait'_cond_idem rdes closure SRD_healths assms)
   ultimately have "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
     by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
   thus ?thesis

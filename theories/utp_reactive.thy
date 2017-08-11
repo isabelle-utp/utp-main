@@ -1206,6 +1206,9 @@ lemma rea_impl_true [simp]: "(P \<Rightarrow>\<^sub>r true\<^sub>r) = true\<^sub
 lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
   by (rel_simp)
     
+lemma rea_imp_refl [simp]: "(P \<Rightarrow>\<^sub>r P) = true\<^sub>r"
+  by (rel_auto)
+    
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
     
@@ -1278,15 +1281,11 @@ lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
 lemma RC1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RC1(P) \<sqsubseteq> RC1(Q)"
   by (simp add: RC1_def seqr_mono)
       
-lemma RC1_trace_ext_prefix:
-  "out\<alpha> \<sharp> e \<Longrightarrow> RC1($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = ($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
-  by (rel_auto, metis (no_types, lifting) dual_order.trans)
-    
-lemma RC1_disj: "RC1(P \<or> Q) = (RC1(P) \<or> RC1(Q))"
-  by (rel_blast)
-    
 lemma R2_RC: "R2 (RC P) = RC P"
   by (simp add: RC_def RC1_def R2_R2c_def R1_R2c_seqr_distribute RR_implies_R2c closure)
+
+lemma RC_R2_def: "RC = RC1 \<circ> RR"
+  by (auto simp add: RC_def fun_eq_iff R1_R2c_commute[THEN sym] R1_R2c_is_R2)
     
 lemma RC_implies_R2: "P is RC \<Longrightarrow> P is R2"
   by (metis Healthy_def' R2_RC)
@@ -1302,6 +1301,28 @@ lemma RC_implies_RR [closure]:
 lemma RC_implies_RC1: "P is RC \<Longrightarrow> P is RC1"
   by (metis (no_types, hide_lams) Healthy_def RC1_idem RC_def comp_apply)
     
+lemma RC1_trace_ext_prefix:
+  "out\<alpha> \<sharp> e \<Longrightarrow> RC1($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = ($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, metis (no_types, lifting) dual_order.trans)
+    
+lemma RC1_disj: "RC1(P \<or> Q) = (RC1(P) \<or> RC1(Q))"
+  by (rel_blast)
+    
+lemma conj_RC1_closed [closure]:
+  assumes "P is RC1" "Q is RC1"
+  shows "(P \<and> Q) is RC1"
+proof -
+  have 1:"RC1(RC1(P) \<and> RC1(Q)) = (RC1(P) \<and> RC1(Q))"
+    apply (rel_auto) using dual_order.trans by blast+
+  show ?thesis
+    by (metis (no_types) Healthy_def 1 assms)
+qed
+
+lemma conj_RC_closed [closure]:
+  assumes "P is RC" "Q is RC"
+  shows "(P \<and> Q) is RC"
+  by (metis Healthy_def RC_R2_def RC_implies_RR assms comp_apply conj_RC1_closed conj_RR)
+
 lemma rea_true_RC [closure]: "true\<^sub>r is RC"
   by (metis (no_types, lifting) Healthy_def R1_true_comp RC1_def RC_def comp_apply rea_true_RR)
 

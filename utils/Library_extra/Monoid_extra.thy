@@ -182,6 +182,10 @@ begin
   lemma le_zero_iff [simp]: "x \<le> 0 \<longleftrightarrow> x = 0"
     using local.le_iff_add local.zero_sum by auto
             
+  lemma minus_assoc [simp]: "x - y - z = x - (y + z)"
+    by (metis local.add_diff_cancel_left' local.diff_add_cancel_left' local.le_add local.le_sum_iff 
+        local.not_le_minus local.zero_sum_right)
+      
 end
 
 instance trace \<subseteq> order

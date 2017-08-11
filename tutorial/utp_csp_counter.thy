@@ -19,26 +19,30 @@ abbreviation "CtrBdy \<equiv> (count.(&ctr) \<^bold>\<rightarrow> ctr :=\<^sub>C
   
 definition "Counter(n) = (ctr :=\<^sub>C \<guillemotleft>n\<guillemotright> ;; (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X))"
   
-text {* We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. Nothing 
-  surprising I think. *}
+text {* We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. The precondition
+  is simply true because there is no possibility of divergence. *}
   
 lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy) = true\<^sub>r"
   by (simp add: rdes closure usubst)
-  
-lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
-  by (simp add: rdes closure usubst alpha unrest)
     
-lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>ctr := (&ctr + 1)\<rceil>\<^sub>S)"
-  by (simp add: rdes closure usubst unrest)
+text {* The pericondition states that in all initial states (true), and after doing no events
+  (trace is empty), the count event is not being refused. *}
+    
+lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy) = \<E>(true,\<langle>\<rangle>, (count\<cdot>&ctr)\<^sub>u)"
+  by (simp add: rdes closure usubst alpha unrest)
+
+text {* The postcondition states that the counter is incremented by one, and the trace is increased
+  by the count event. *}
+    
+lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy) = \<Phi>(ctr := (&ctr + 1),\<langle>(count\<cdot>&ctr)\<^sub>u\<rangle>)"
+  by (simp add: rdes closure rpred usubst unrest alpha)
     
 text {* The recursive case is a little more interesting. *}
     
 lemma preR_Counter [rdes]: "pre\<^sub>R(Counter(n)) = true\<^sub>r"
   by (simp add: Counter_def rdes closure unrest wp usubst)
   
-text {* The pericondition consists of three sequential composed parts. We use the homogeneous
-  composition operation @{term "op ;;\<^sub>h"} to ensure that the Isabelle type system does not
-  try to insert additional type variables into the alphabets. The first part sets up the initial
+text {* The pericondition consists of three sequential composed parts. The first part sets up the initial
   value for @{term ctr}. The second and third parts are within an internal choice of a natural
   number $i$. The second states that the trace is extended by count and the state
   variable is updated $i \<ge> 0$ times. The power operator corresponds to iteration. The third part 
@@ -46,10 +50,8 @@ text {* The pericondition consists of three sequential composed parts. We use th
   
 lemma periR_Counter': 
   "peri\<^sub>R(Counter(n)) = 
-    ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>ctr := \<guillemotleft>n\<guillemotright>\<rceil>\<^sub>S) ;;\<^sub>h
-    (\<Sqinter> i \<bullet> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>ctr := (&ctr + 1)\<rceil>\<^sub>S) \<^bold>^ i ;;\<^sub>h
-            ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>))"
-  by (simp add: Counter_def rdes closure usubst unrest wp seq_UINF_distr)
+    \<Phi>(ctr := \<guillemotleft>n\<guillemotright>,\<langle>\<rangle>) ;; (\<Sqinter> i \<bullet> \<Phi>(ctr := (&ctr + 1),\<langle>(count\<cdot>&ctr)\<^sub>u\<rangle>) \<^bold>^ i ;; \<E>(true,\<langle>\<rangle>, (count\<cdot>&ctr)\<^sub>u))"
+  by (simp add: Counter_def rdes rpred alpha closure usubst unrest wp seq_UINF_distr)
 
 text {* This pericondition can be substantially simplified by an inductive proof. We show below
   that it is really the second part is really equivalent to stating that the trace is updated
@@ -57,8 +59,8 @@ text {* This pericondition can be substantially simplified by an inductive proof
   refused. *}
     
 lemma tr_count_prop:
-  "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>ctr := (&ctr + 1)\<rceil>\<^sub>S) \<^bold>^ k ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>(count\<cdot>&ctr)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) =
-       ($tr\<acute> =\<^sub>u $tr ^\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>$st:ctr..<$st:ctr+\<guillemotleft>k\<guillemotright>\<rangle> \<and> \<lceil>(count\<cdot>&ctr+\<guillemotleft>k\<guillemotright>)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
+  "(\<Phi>(ctr := (&ctr + 1), \<langle>(count\<cdot>&ctr)\<^sub>u\<rangle>)) \<^bold>^ k ;; \<E>(true,\<langle>\<rangle>,(count\<cdot>&ctr)\<^sub>u) =
+    \<E>(true,map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>&ctr..<&ctr+\<guillemotleft>k\<guillemotright>\<rangle>,(count\<cdot>&ctr+\<guillemotleft>k\<guillemotright>)\<^sub>u)"
   apply (induct k)
    apply (rel_auto)
   apply (simp)
@@ -73,10 +75,8 @@ text {* Thus we can simplify the pericondition as follows. Effectively we have e
   the iteration (the power operator is gone). *}
   
 lemma periR_Counter [rdes]: 
-  "peri\<^sub>R(Counter(n)) = (\<Sqinter> i \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>\<guillemotleft>n\<guillemotright>..<\<guillemotleft>n+i\<guillemotright>\<rangle> \<and> \<lceil>(count\<cdot>\<guillemotleft>n+i\<guillemotright>)\<^sub>u\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
-  apply (simp add: Counter_def rdes closure usubst unrest wp seq_UINF_distr tr_count_prop[simplified])
-  apply (rel_auto)
-done
+  "peri\<^sub>R(Counter(n)) = (\<Sqinter> i \<bullet> \<E>(true,map\<^sub>u \<guillemotleft>count\<guillemotright> \<langle>\<guillemotleft>n\<guillemotright>..<\<guillemotleft>n\<guillemotright> + \<guillemotleft>i\<guillemotright>\<rangle>, (count\<cdot>\<guillemotleft>n\<guillemotright> + \<guillemotleft>i\<guillemotright>)\<^sub>u))"
+  by (simp add: Counter_def rdes rpred alpha closure usubst unrest wp seq_UINF_distr tr_count_prop[simplified])
     
 text {* Like many reactive systems the postcondition is @{term false}, as it never terminates. *}
   
