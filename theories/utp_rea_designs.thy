@@ -124,7 +124,7 @@ text {* The fundamental healthiness conditions of reactive designs are $RD1$ and
 
 definition [upred_defs]: "RD1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 definition [upred_defs]: "RD2(P) = H2(P)"
-
+  
 text {* RD2 is just H2 since the type system will automatically have J identifying the reactive
         variables as required. *}
 
@@ -1394,6 +1394,9 @@ where [upred_defs]: "P wp\<^sub>R Q = (\<not>\<^sub>r P ;; (\<not>\<^sub>r Q))"
 
 lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
   by (rel_auto)
+    
+lemma wpR_conj [wp]: "P wp\<^sub>R (Q \<and> R) = (P wp\<^sub>R Q \<and> P wp\<^sub>R R)"
+  by (simp add: wpR_def seqr_or_distr)
     
 lemma wpR_div [wp]:
   "(\<not>\<^sub>r P ;; true\<^sub>r) = true\<^sub>r \<Longrightarrow> true\<^sub>r wp\<^sub>R P = false"

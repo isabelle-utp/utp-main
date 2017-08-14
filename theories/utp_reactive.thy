@@ -1032,7 +1032,7 @@ where [upred_defs]: "rea_diff P Q = (P \<and> \<not>\<^sub>r Q)"
   
 definition rea_impl :: 
   "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
-where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> R1(Q))"
+where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
 
 definition rea_lift :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
 where [upred_defs]: "[P]\<^sub>r = R1(P)"
@@ -1052,7 +1052,7 @@ lemma R2c_rea_not: "R2c(\<not>\<^sub>r P) = (\<not>\<^sub>r R2c(P))"
 lemma RR_rea_not: "RR(\<not>\<^sub>r RR(P)) = (\<not>\<^sub>r RR(P))"
   by (rel_auto)
     
-lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r Q)"
+lemma R1_rea_impl: "R1(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r R1(Q))"
   by (rel_auto)
 
 lemma R1_rea_impl': "R1(P \<Rightarrow>\<^sub>r Q) = (R1(P) \<Rightarrow>\<^sub>r R1(Q))"
@@ -1088,7 +1088,7 @@ lemma rea_no_RR [closure]:
   by (metis Healthy_def' RR_rea_not)
 
 lemma rea_impl_R1 [closure]: 
-  "(P \<Rightarrow>\<^sub>r Q) is R1"
+  "Q is R1 \<Longrightarrow> (P \<Rightarrow>\<^sub>r Q) is R1"
   by (rel_blast)
 
 lemma rea_impl_R2c [closure]: 
@@ -1206,8 +1206,8 @@ lemma rea_impl_true [simp]: "(P \<Rightarrow>\<^sub>r true\<^sub>r) = true\<^sub
 lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
   by (rel_simp)
     
-lemma rea_imp_refl [simp]: "(P \<Rightarrow>\<^sub>r P) = true\<^sub>r"
-  by (rel_auto)
+lemma rea_imp_refl [rpred]: "P is R1 \<Longrightarrow> (P \<Rightarrow>\<^sub>r P) = true\<^sub>r"
+  by (rel_blast)
     
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
