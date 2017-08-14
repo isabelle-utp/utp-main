@@ -110,10 +110,10 @@ lemma CRC_implies_RC [closure]:
   assumes "P is CRC"
   shows "P is RC"
 proof -
-  have "CRC(P) ;; R1 true = CRC(P)"
-    apply (rel_auto) using dual_order.trans by blast+
+  have "RC1(CRC(P)) = CRC(P)"
+    by (rel_auto, meson dual_order.trans)
   thus ?thesis
-    by (simp add: CRC_implies_RR Healthy_if RC_intro assms)
+    by (simp add: CRC_implies_RR Healthy_if RC1_def RC_intro assms)
 qed
   
 lemma CRR_unrest_ref [unrest]: "P is CRR \<Longrightarrow> $ref \<sharp> P"
@@ -122,15 +122,10 @@ lemma CRR_unrest_ref [unrest]: "P is CRR \<Longrightarrow> $ref \<sharp> P"
 lemma CRC_implies_CRR [closure]:
   assumes "P is CRC"
   shows "P is CRR"
-proof -
-  have "CRR(CRC(P)) = CRC(P)"
-    apply (rel_auto)
-    apply (metis (no_types, lifting) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc append_minus)
-    using minus_cancel_le apply blast
-  done
-  thus ?thesis
-    by (metis Healthy_def' assms)
-qed
+  apply (rule CRR_intro)
+  apply (simp_all add: unrest assms closure)
+  apply (metis CRC_def CRC_implies_RC Healthy_def assms in_var_uvar ref_vwb_lens unrest_as_exists)
+done
     
 lemma rea_true_CRR [closure]: "true\<^sub>r is CRR"
   by (rel_auto)
@@ -229,9 +224,10 @@ done
 lemma csp_init_CRR [closure]: "\<I>(s,t) is CRR"
   by (rule CRR_intro, simp_all add: unrest closure)
     
+(*
 lemma rea_init_RC1: 
-  "\<I>(P,t) is RC1"
-  by (rel_auto)
+  "\<not>\<^sub>r \<I>(P,t) is RC1"
+  apply (rel_auto)
     
 lemma rea_init_RC [closure]:
   "\<I>(P,t) is RC"
@@ -240,7 +236,8 @@ lemma rea_init_RC [closure]:
 lemma rea_init_CRC [closure]:
   "\<I>(P,t) is CRC"
   by (rule CRC_intro, simp_all add: unrest closure) 
-    
+*)    
+
 lemma init_acts_empty [rpred]: "\<I>(true,\<langle>\<rangle>) = true\<^sub>r"
   by (rel_auto)
     
@@ -748,12 +745,12 @@ proof -
 qed
 
 lemma CSP4_RC_intro:
-  assumes "P is CSP" "(\<not>\<^sub>r pre\<^sub>R(P)) is RC"
+  assumes "P is CSP" "pre\<^sub>R(P) is RC"
           "$st\<acute> \<sharp> (cmt\<^sub>R P)\<lbrakk>true/$wait\<acute>\<rbrakk>" "$ref\<acute> \<sharp> (cmt\<^sub>R P)\<lbrakk>false/$wait\<acute>\<rbrakk>"
   shows "P is CSP4"
 proof -
   have "(\<not>\<^sub>r pre\<^sub>R(P)) ;; R1(true) = (\<not>\<^sub>r pre\<^sub>R(P))"
-    by (metis Healthy_def RC1_def RC_implies_RC1 assms(2))
+    by (metis (no_types, lifting) R1_seqr_closure assms(2) rea_not_R1 rea_not_false rea_not_not wpR_RC_false wpR_def)
   thus ?thesis
     by (simp add: CSP4_intro assms)
 qed
@@ -1014,33 +1011,33 @@ lemma postR_rdes [rdes]:
   by (simp add: rea_post_RHS_design unrest usubst assms Healthy_if RR_implies_R2c closure)
 
 lemma unrest_st'_neg_RC [unrest]:
-  assumes "P is RR" "(\<not>\<^sub>r P) is RC"
+  assumes "P is RR" "P is RC"
   shows "$st\<acute> \<sharp> P"
 proof -
   have "P = (\<not>\<^sub>r \<not>\<^sub>r P)"
     by (simp add: closure rpred assms)
   also have "... = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
-    by (metis Healthy_if RC1_def RC_implies_RC1 assms(2))
+    by (metis Healthy_if RC1_def RC_implies_RC1 assms(2) calculation)
   also have "$st\<acute> \<sharp> ..."
     by (rel_auto)
   finally show ?thesis .
 qed
       
 lemma unrest_ref'_neg_RC [unrest]:
-  assumes "P is RR" "(\<not>\<^sub>r P) is RC"
+  assumes "P is RR" "P is RC"
   shows "$ref\<acute> \<sharp> P"
 proof -
   have "P = (\<not>\<^sub>r \<not>\<^sub>r P)"
     by (simp add: closure rpred assms)
   also have "... = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
-    by (metis Healthy_if RC1_def RC_implies_RC1 assms(2))
+    by (metis Healthy_if RC1_def RC_implies_RC1 assms(2) calculation)
   also have "$ref\<acute> \<sharp> ..."
     by (rel_auto)
   finally show ?thesis .
 qed
     
 lemma NCSP_rdes_intro:
-  assumes "P is CRR" "(\<not>\<^sub>r P) is CRC" "Q is CRR" "R is CRR"
+  assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is NCSP"
   apply (rule NCSP_intro)
@@ -1049,7 +1046,7 @@ lemma NCSP_rdes_intro:
   apply (simp_all add: rdes closure assms unrest)
   apply (rule CSP4_tri_intro)
   apply (simp_all add: rdes closure assms unrest)
-  apply (metis CRC_implies_RC Healthy_if RC1_def RC_implies_RC1 assms(2))
+  apply (metis (no_types, lifting) CRC_implies_RC R1_seqr_closure assms(1) rea_not_R1 rea_not_false rea_not_not wpR_RC_false wpR_def)
 done
  
 subsection {* CSP theories *}
@@ -2333,7 +2330,7 @@ text {* For prefix, we can chose whether to propagate the assumptions or not, he
   are two laws. *}
     
 lemma PrefixCSP_rdes_def_1 [rdes_def]:
-  assumes "P is CRR" "(\<not>\<^sub>r P) is CRC" "Q is CRR" "R is CRR"
+  assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
   shows "PrefixCSP a (\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<turnstile> (\<E>(true,\<langle>\<rangle>, a) \<or> Q\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<diamondop> R\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
   apply (subst PrefixCSP_RHS_tri)
@@ -2343,7 +2340,7 @@ lemma PrefixCSP_rdes_def_1 [rdes_def]:
 done
 
 lemma PrefixCSP_rdes_def_2:
-  assumes "P is CRR" "(\<not>\<^sub>r P) is CRC" "Q is CRR" "R is CRR"
+  assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
   shows "PrefixCSP a (\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<turnstile> (\<E>(true,\<langle>\<rangle>, a) \<or> (P\<and>Q)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<diamondop> (P\<and>R)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
   apply (subst PrefixCSP_RHS_tri)
@@ -2372,7 +2369,7 @@ lemma postR_InputCSP [rdes]:
   using assms by (simp add: InputCSP_def rdes closure assms usubst unrest)
 
 lemma InputCSP_rdes_def [rdes_def]:
-  assumes "\<And> v. P(v) is CRR" "\<And> v. (\<not>\<^sub>r P(v)) is CRC" "\<And> v. Q(v) is CRR" "\<And> v. R(v) is CRR"
+  assumes "\<And> v. P(v) is CRC" "\<And> v. Q(v) is CRR" "\<And> v. R(v) is CRR"
           "\<And> v. $st\<acute> \<sharp> Q(v)" "\<And> v. $ref\<acute> \<sharp> R(v)"
   shows "a?(v:A(v)) \<^bold>\<rightarrow> (\<^bold>R\<^sub>s(P(v) \<turnstile> Q(v) \<diamondop> R(v))) = 
          \<^bold>R\<^sub>s( (\<Squnion> v \<bullet> ([A(v)]\<^sub>S \<Rightarrow>\<^sub>r \<I>(true,\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r (P v)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))

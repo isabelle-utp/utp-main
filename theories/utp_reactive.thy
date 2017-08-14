@@ -1268,21 +1268,26 @@ method rea_lift = (simp add: rea_droppers[THEN sym])
   
 text {* Healthiness Condition for Reactive Conditions *}
     
-definition [upred_defs]: "RC1(P) = P ;; true\<^sub>r"
+definition [upred_defs]: "RC1(P) = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
   
 definition [upred_defs]: "RC = RC1 \<circ> RR"
   
-lemma RC_intro: "\<lbrakk> P is RR; (P ;; true\<^sub>r = P) \<rbrakk> \<Longrightarrow> P is RC"
+lemma RC_intro: "\<lbrakk> P is RR; ((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) = P) \<rbrakk> \<Longrightarrow> P is RC"
   by (simp add: Healthy_def RC1_def RC_def)
   
 lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
-  by (metis (no_types, hide_lams) R1_true_comp RC1_def seqr_assoc)
+  by (rel_auto, (blast intro: dual_order.trans)+)
   
 lemma RC1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RC1(P) \<sqsubseteq> RC1(Q)"
-  by (simp add: RC1_def seqr_mono)
+  by (rel_blast)
       
 lemma R2_RC: "R2 (RC P) = RC P"
-  by (simp add: RC_def RC1_def R2_R2c_def R1_R2c_seqr_distribute RR_implies_R2c closure)
+proof -
+  have "\<not>\<^sub>r RR P is RR"
+    by (metis (no_types) Healthy_Idempotent RR_Idempotent RR_rea_not)
+  then show ?thesis
+    by (metis (no_types) Healthy_def' R1_R2c_seqr_distribute R2_R2c_def RC1_def RC_def RR_implies_R1 RR_implies_R2c comp_apply rea_not_R2_closed rea_true_R1 rea_true_R2c)
+qed
 
 lemma RC_R2_def: "RC = RC1 \<circ> RR"
   by (auto simp add: RC_def fun_eq_iff R1_R2c_commute[THEN sym] R1_R2c_is_R2)
@@ -1299,20 +1304,24 @@ lemma RC_implies_RR [closure]:
   by (metis Healthy_def RC_ex_ok_wait RC_implies_R2 RR_def assms)
 
 lemma RC_implies_RC1: "P is RC \<Longrightarrow> P is RC1"
-  by (metis (no_types, hide_lams) Healthy_def RC1_idem RC_def comp_apply)
+  by (metis Healthy_def RC_R2_def RC_implies_RR comp_eq_dest_lhs)
     
 lemma RC1_trace_ext_prefix:
-  "out\<alpha> \<sharp> e \<Longrightarrow> RC1($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = ($tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
-  by (rel_auto, metis (no_types, lifting) dual_order.trans)
+  "out\<alpha> \<sharp> e \<Longrightarrow> RC1(\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = (\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
+  by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)
     
-lemma RC1_disj: "RC1(P \<or> Q) = (RC1(P) \<or> RC1(Q))"
+lemma RC1_conj: "RC1(P \<and> Q) = (RC1(P) \<and> RC1(Q))"
   by (rel_blast)
     
 lemma conj_RC1_closed [closure]:
+  "\<lbrakk> P is RC1; Q is RC1 \<rbrakk> \<Longrightarrow> P \<and> Q is RC1"
+  by (simp add: Healthy_def RC1_conj)
+    
+lemma disj_RC1_closed [closure]:
   assumes "P is RC1" "Q is RC1"
-  shows "(P \<and> Q) is RC1"
+  shows "(P \<or> Q) is RC1"
 proof -
-  have 1:"RC1(RC1(P) \<and> RC1(Q)) = (RC1(P) \<and> RC1(Q))"
+  have 1:"RC1(RC1(P) \<or> RC1(Q)) = (RC1(P) \<or> RC1(Q))"
     apply (rel_auto) using dual_order.trans by blast+
   show ?thesis
     by (metis (no_types) Healthy_def 1 assms)
@@ -1322,30 +1331,35 @@ lemma conj_RC_closed [closure]:
   assumes "P is RC" "Q is RC"
   shows "(P \<and> Q) is RC"
   by (metis Healthy_def RC_R2_def RC_implies_RR assms comp_apply conj_RC1_closed conj_RR)
-
+    
 lemma rea_true_RC [closure]: "true\<^sub>r is RC"
-  by (metis (no_types, lifting) Healthy_def R1_true_comp RC1_def RC_def comp_apply rea_true_RR)
+  by (rel_auto)
 
 lemma false_RC [closure]: "false is RC"
   by (rel_auto)
    
 lemma disj_RC_closed [closure]: "\<lbrakk> P is RC; Q is RC \<rbrakk> \<Longrightarrow> (P \<or> Q) is RC"
-  by (metis Healthy_def RC1_disj RC_def RC_implies_RR comp_def disj_RR)
+  by (metis Healthy_def RC_R2_def RC_implies_RR comp_apply disj_RC1_closed disj_RR)
     
 lemma trace_ext_prefix_RR [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RR"
   apply (rel_auto)
   apply (metis (no_types, lifting) Prefix_Order.same_prefix_prefix less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
   apply (metis append_minus list_append_prefixD minus_cancel_le order_refl trace_class.diff_zero)
-done
-
-lemma trace_ext_prefix_RC [closure]: 
-  "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"
-  apply (rule RC_intro, simp add: trace_ext_prefix_RR)
-  apply (rel_auto)
-  apply (metis (no_types, lifting) dual_order.trans)
-done
+done  
   
+lemma neg_trace_ext_prefix_RC [closure]: 
+  "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> \<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"
+  by (rule RC_intro, simp add: closure, metis RC1_def RC1_trace_ext_prefix)
+
+lemma RC1_unrest:
+  "\<lbrakk> mwb_lens x; x \<bowtie> tr \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> RC1(P)"
+  by (simp add: RC1_def unrest)
+    
+lemma RC_unrest_dashed [unrest]:
+  "\<lbrakk> P is RC; mwb_lens x; x \<bowtie> tr \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
+  by (metis Healthy_if RC1_unrest RC_implies_RC1)
+    
 subsection {* Trace Contribution Lens *}
   
 definition itrace :: "'t::trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("\<^bold>i\<^bold>t") where

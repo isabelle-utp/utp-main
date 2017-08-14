@@ -1404,8 +1404,8 @@ lemma wpR_cond [wp]:
   by (simp add: wpR_def cond_seq_left_distr, rel_auto)
     
 lemma wpR_RC_false [wp]: 
-  "P is RC \<Longrightarrow> P wp\<^sub>R false = (\<not>\<^sub>r P)"
-  by (simp add: wpR_def, metis Healthy_def RC1_def RC_implies_RC1)
+  "P is RC \<Longrightarrow> (\<not>\<^sub>r P) wp\<^sub>R false = P"
+  by (metis Healthy_if RC1_def RC_implies_RC1 rea_not_false wpR_def)
     
 lemma wpR_seq [wp]:
   assumes "Q is R1"
@@ -1426,6 +1426,16 @@ lemma wpR_skip [wp]:
   shows "II wp\<^sub>R Q = Q"
   by (simp add: wpR_def rpred assms Healthy_if)
 
+lemma wpR_assigns [wp]:
+  assumes "Q is RR"
+  shows "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R Q = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Q"
+proof -
+  have "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R (RR Q) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (RR Q)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+    
 lemma wpR_miracle [wp]: "false wp\<^sub>R Q = true\<^sub>r"
   by (simp add: wpR_def)
 
@@ -2573,10 +2583,10 @@ lemma NSRD_intro':
   by (metis (no_types, hide_lams) Healthy_def NSRD_def R1_R2c_is_R2 RHS_def assms comp_apply)
 
 lemma NSRD_RC_intro:
-  assumes "P is SRD" "(\<not>\<^sub>r pre\<^sub>R(P)) is RC" "$st\<acute> \<sharp> peri\<^sub>R(P)"
+  assumes "P is SRD" "pre\<^sub>R(P) is RC" "$st\<acute> \<sharp> peri\<^sub>R(P)"
   shows "P is NSRD"
-  by (metis Healthy_def NSRD_form R1_preR SRD_reactive_tri_design assms(1) assms(2) assms(3) 
-      ex_unrest rea_not_false rea_not_not wpR_RC_false wpR_def)
+  by (metis Healthy_def NSRD_form SRD_reactive_tri_design assms(1) assms(2) assms(3) 
+      ex_unrest rea_not_false  wpR_RC_false wpR_def)
   
 lemma SRD_RD3_implies_NSRD:
   "\<lbrakk> P is SRD; P is RD3 \<rbrakk> \<Longrightarrow> P is NSRD"
@@ -2677,8 +2687,8 @@ lemma postR_RR [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is RR"
     
 lemma NSRD_neg_pre_RC [closure]:
   assumes "P is NSRD"
-  shows "(\<not>\<^sub>r pre\<^sub>R(P)) is RC"
-  by (rule RC_intro, simp_all add: closure assms NSRD_neg_pre_unit)
+  shows "pre\<^sub>R(P) is RC"
+  by (rule RC_intro, simp_all add: closure assms NSRD_neg_pre_unit rpred)
   
 lemma NSRD_iff:
   "P is NSRD \<longleftrightarrow> ((P is SRD) \<and> (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1(true) = (\<not>\<^sub>r pre\<^sub>R(P)) \<and> ($st\<acute> \<sharp> peri\<^sub>R(P)))"
@@ -2777,16 +2787,16 @@ proof -
 qed
   
 lemma RHS_tri_normal_design_composition' [rdes_def]:
-  assumes "P is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
-          "(\<not>\<^sub>r P) is RC" "$st\<acute> \<sharp> Q\<^sub>1"
+  assumes "P is RC" "Q\<^sub>1 is RR" "$st\<acute> \<sharp> Q\<^sub>1" "Q\<^sub>2 is RR" "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
          = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>R R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
 proof -
   have "R1 (\<not> P) ;; R1 true = R1(\<not> P)"
-    using RC_implies_RC1[OF assms(7)]
+    using RC_implies_RC1[OF assms(1)]
     by (simp add: Healthy_def RC1_def rea_not_def)
+       (metis R1_negate_R1 R1_seqr utp_pred_laws.double_compl)
   thus ?thesis
-    by (simp add: RHS_tri_normal_design_composition assms unrest RR_implies_R1 RR_implies_R2c)
+    by (simp add: RHS_tri_normal_design_composition assms closure unrest RR_implies_R2c)
 qed
 
 lemma NSRD_Chaos [closure]: "Chaos is NSRD"
@@ -2859,7 +2869,7 @@ proof -
     by (rel_auto)
   show ?thesis
     by (simp add: NSRD_composition_wp closure assms rdes rpred wp)
-       (metis 1 2 3 Healthy_if NSRD_is_SRD SRD_healths(1) assms)
+       (metis (mono_tags, hide_lams) "2" "3" R1_design_R1_pre R1_extend_conj utp_pred_laws.inf_top_left)
 qed
 
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
@@ -2883,10 +2893,10 @@ lemma assigns_Chaos: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Chaos = Chaos"
 lemma NSRD_cond_srea [closure]:
   assumes "P is NSRD" "Q is NSRD"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NSRD"
-proof (rule NSRD_intro)
+proof (rule NSRD_RC_intro)
   show "P \<triangleleft> b \<triangleright>\<^sub>R Q is SRD"
     by (simp add: closure assms)
-  show "(\<not>\<^sub>r pre\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q)) ;; R1 true = (\<not>\<^sub>r pre\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q))"
+  show "pre\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q) is RC"
   proof -
     have 1:"(\<lceil>\<not> b\<rceil>\<^sub>S\<^sub>< \<or> \<not>\<^sub>r pre\<^sub>R P) ;; R1(true) = (\<lceil>\<not> b\<rceil>\<^sub>S\<^sub>< \<or> \<not>\<^sub>r pre\<^sub>R P)"
       by (metis (no_types, lifting) NSRD_neg_pre_unit aext_not assms(1) seqr_or_distl st_lift_R1_true_right)
@@ -2894,10 +2904,6 @@ proof (rule NSRD_intro)
       by (simp add: NSRD_neg_pre_unit assms seqr_or_distl st_lift_R1_true_right)
     show ?thesis
       by (simp add: rdes closure assms)
-         (metis (no_types, lifting) Healthy_def' NSRD_healthy_form NSRD_iff NSRD_neg_pre_RC RD3_def 
-          SRD_RD3_implies_NSRD SRD_right_unit_tri_lemma \<open>P \<triangleleft> b \<triangleright>\<^sub>R Q is SRD\<close> assms(1) assms(2) 
-          cond_seq_left_distr lift_cond_srea_def out_alpha_unrest_st_lift_pre preR_cond_srea 
-          rea_not_demorgan1 rea_not_demorgan2 wpR_RC_false)
   qed
   show "$st\<acute> \<sharp> peri\<^sub>R (P \<triangleleft> b \<triangleright>\<^sub>R Q)"
    by (simp add: rdes assms closure unrest)
