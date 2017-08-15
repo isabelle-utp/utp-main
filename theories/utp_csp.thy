@@ -1530,7 +1530,9 @@ lemma periR_Guard [rdes]:
 proof -
   have "peri\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
     by (simp add: assms Guard_tri_design rea_peri_RHS_design usubst unrest R1_rea_impl R2c_rea_not 
-        R2c_rea_impl R2c_preR R2c_periR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr closure)
+           R2c_rea_impl R2c_preR R2c_periR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr closure)
+       (metis (no_types, lifting) CRR_implies_RR NCSP_Stop R1_extend_conj' R1_idem RR_implies_R1 
+              assms lift_cond_srea_def periR_CRR periR_Stop rea_true_conj(2) st_cond_R1_closed)
   also have "... = ((pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr))"
     by (rel_auto)
   also have "... = (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr))"      
@@ -1862,7 +1864,7 @@ lemma UINF_rea_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow>\<^sub>r G
   by (rel_auto)  
 
 lemma periR_ExtChoice [rdes]:
-  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<noteq> {}"
   shows "peri\<^sub>R(ExtChoice A) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R P)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R P)"
 proof -
   have "peri\<^sub>R (ExtChoice A) = peri\<^sub>R (\<^bold>R\<^sub>s ((\<Squnion> P \<in> A \<bullet> pre\<^sub>R P) \<turnstile>
@@ -1894,7 +1896,7 @@ proof -
   also have "... = (((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R (NCSP P))) 
                       \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> 
                     ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R (NCSP P))))"
-    by (rel_blast)
+    by (simp add: R1_rea_impl R1_cond R1_USUP R1_UINF assms Healthy_if closure, rel_auto)
   also have "... = (((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R (NCSP P))) 
                       \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> 
                     ((\<Sqinter> P\<in>A \<bullet> pre\<^sub>R (NCSP P) \<Rightarrow>\<^sub>r peri\<^sub>R (NCSP P))))"
@@ -1911,12 +1913,12 @@ proof -
 qed
   
 lemma periR_ExtChoice' [rdes]:
-  assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP"
+  assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP" "A \<noteq> {}"
   shows "peri\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R (F P))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R (F P))"
   using assms by (subst periR_ExtChoice, auto simp add: closure unrest)
 
 lemma postR_ExtChoice [rdes]:
-  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<noteq> {}"
   shows "post\<^sub>R(ExtChoice A) = (\<Sqinter> P\<in>A \<bullet> post\<^sub>R P)"
 proof -
   have "post\<^sub>R (ExtChoice A) = post\<^sub>R (\<^bold>R\<^sub>s ((\<Squnion> P \<in> A \<bullet> pre\<^sub>R P) \<turnstile>
@@ -1940,8 +1942,8 @@ proof -
   also have "... = R1 ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> post\<^sub>R (NCSP P)))"
     by (simp add: R2c_rea_impl R2c_condr R2c_UINF R2c_preR R2c_postR
                   R2c_tr'_minus_tr R2c_USUP closure)
-  also have "... = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> post\<^sub>R (NCSP P)))"
-    by (rel_blast)
+  also from assms(2) have "... = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (NCSP P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> post\<^sub>R (NCSP P)))"
+    by (simp add: R1_rea_impl R1_cond R1_USUP R1_UINF assms Healthy_if closure)
   also have "... = (\<Sqinter> P\<in>A \<bullet> pre\<^sub>R (NCSP P) \<Rightarrow>\<^sub>r post\<^sub>R (NCSP P))"
     by (simp add: UINF_rea_impl)
   also have "... = (\<Sqinter> P\<in>A \<bullet> post\<^sub>R (NCSP P))"   
@@ -1951,7 +1953,7 @@ proof -
 qed
 
 lemma postR_ExtChoice' [rdes]:
-  assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP"
+  assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP" "A \<noteq> {}"
   shows "post\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> post\<^sub>R(F(P)))"
   using assms by (subst postR_ExtChoice, auto simp add: closure unrest)
 
@@ -2044,7 +2046,7 @@ next
       by (simp add: NCSP_Healthy_subset_member NCSP_implies_NSRD NSRD_st'_unrest_peri assms)
     from a b show ?thesis
       apply (subst periR_ExtChoice)
-      apply (simp_all add: assms closure unrest CSP4_set_unrest_st' CSP4_set_unrest_wait') 
+      apply (simp_all add: assms closure unrest CSP4_set_unrest_st' CSP4_set_unrest_wait' False) 
     done
   qed
   have 3: "$ref\<acute> \<sharp> post\<^sub>R (ExtChoice A)"
@@ -2054,7 +2056,7 @@ next
     have b: "\<And> P. P \<in> A \<Longrightarrow> $ref\<acute> \<sharp> post\<^sub>R(P)"
       by (simp add: CSP4_ref'_unrest_post CSP_Healthy_subset_member NCSP_Healthy_subset_member NCSP_implies_CSP4 NCSP_subset_implies_CSP assms)
     from a b show ?thesis
-      by (subst postR_ExtChoice, simp_all add: assms CSP4_set_unrest_st' CSP4_set_unrest_wait' unrest)
+      by (subst postR_ExtChoice, simp_all add: assms CSP4_set_unrest_st' CSP4_set_unrest_wait' unrest False)
   qed
   show ?thesis
     by (rule CSP4_tri_intro, simp_all add: 1 2 3 assms closure)
