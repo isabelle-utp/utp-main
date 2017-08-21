@@ -325,7 +325,9 @@ consts
   ucard      :: "'f \<Rightarrow> nat"
   -- \<open> Collection summation \<close>
   usums      :: "'f \<Rightarrow> 'a"
-
+  -- \<open> Construct a collection from a list of entries \<close>
+  uentries   :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> 'f"
+  
 text \<open> We need a function corresponding to function application in order to overload. \<close>
   
 definition fun_apply :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
@@ -333,19 +335,23 @@ where "fun_apply f x = f x"
 
 declare fun_apply_def [simp]
 
+definition ffun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> ('k, 'v) ffun" where
+"ffun_entries d f = graph_ffun {(k, f k) | k. k \<in> d}"
+
 text \<open> We then set up the overloading for a number of useful constructs for various collections. \<close>
   
 adhoc_overloading
   uempty 0 and
   uapply fun_apply and uapply nth and uapply pfun_app and
   uapply ffun_app and
-  uupd pfun_upd and uupd ffun_upd and uupd list_update and
+  uupd pfun_upd and uupd ffun_upd and uupd list_augment and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
   udom Range and uran pran and uran fran and uran set and
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length and
-  usums list_sum and usums Sum
+  usums list_sum and usums Sum and
+  uentries pfun_entries and uentries ffun_entries
   
 subsection \<open> Syntax translations \<close>
 
@@ -388,6 +394,7 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
     
 syntax -- \<open> Polymorphic constructs \<close>
+  "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
   "_umap_empty" :: "logic" ("[]\<^sub>u")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
@@ -410,6 +417,7 @@ syntax -- \<open> Polymorphic constructs \<close>
   "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
   "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
   "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
+  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
   
 translations
   -- \<open> Pretty printing for adhoc-overloaded constructs \<close>
@@ -431,8 +439,10 @@ translations
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "[]\<^sub>u"     == "\<guillemotleft>CONST uempty\<guillemotright>"
+  "\<bottom>\<^sub>u"     == "\<guillemotleft>CONST undefined\<guillemotright>"
   "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
   "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
+  "entr\<^sub>u(d,f)" == "CONST bop CONST uentries d \<guillemotleft>f\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
@@ -442,8 +452,8 @@ translations
   -- \<open> Type-class polymorphic constructs \<close>
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y"
-  "x >\<^sub>u y"   == "y <\<^sub>u x"
-  "x \<ge>\<^sub>u y"   == "y \<le>\<^sub>u x"
+  "x >\<^sub>u y"   => "y <\<^sub>u x"
+  "x \<ge>\<^sub>u y"   => "y \<le>\<^sub>u x"
   "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y"
   "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
   "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"

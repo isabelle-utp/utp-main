@@ -487,6 +487,9 @@ theorem ndesign_composition_wp:
 lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wp Q(i))"
   by (rel_auto)
 
+lemma UINF_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
+  by (pred_auto)
+    
 theorem ndesign_iteration_wp:
   "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
 proof (induct n)

@@ -14,7 +14,8 @@ typedef ('a, 'b) pfun = "UNIV :: ('a \<rightharpoonup> 'b) set" ..
 
 setup_lifting type_definition_pfun
 
-lift_definition pfun_app :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>p" [999,0] 999) is "\<lambda> f x. the (f x)" .
+lift_definition pfun_app :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>p" [999,0] 999) is 
+"\<lambda> f x. if (x \<in> dom f) then the (f x) else undefined" .
 
 lift_definition pfun_upd :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) pfun"
 is "\<lambda> f k v. f(k := Some v)" .
@@ -42,6 +43,9 @@ lift_definition pfun_graph :: "('a, 'b) pfun \<Rightarrow> ('a \<times> 'b) set"
 
 lift_definition graph_pfun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) pfun" is graph_map .
 
+lift_definition pfun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> ('k, 'v) pfun" is
+"\<lambda> d f x. if (x \<in> d) then Some (f x) else None" .
+    
 definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
 where "pcard f = card (pdom f)"
 
@@ -212,6 +216,13 @@ lemma pfun_upd_comm_linorder [simp]:
 lemma pfun_app_minus [simp]: "x \<notin> pdom g \<Longrightarrow> (f - g)(x)\<^sub>p = f(x)\<^sub>p"
   by (transfer, auto simp add: map_minus_def)
 
+lemma pfun_app_empty [simp]: "{}\<^sub>p(x)\<^sub>p = undefined"
+  by (transfer, simp)
+
+lemma pfun_app_not_in_dom: 
+  "x \<notin> pdom(f) \<Longrightarrow> f(x)\<^sub>p = undefined"
+  by (transfer, simp)
+
 lemma pfun_upd_minus [simp]:
   "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)"
   by (transfer, auto simp add: map_minus_def)
@@ -364,6 +375,19 @@ lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inte
   apply (transfer, auto simp add: map_graph_def)
   apply (metis option.discI)+
 done
+
+subsection {* Entries *}
+  
+lemma pfun_entries_empty [simp]: "pfun_entries {} f = {}\<^sub>p"
+  by (transfer, simp)
+
+lemma pfun_entries_apply_1 [simp]: 
+  "x \<in> d \<Longrightarrow> (pfun_entries d f)(x)\<^sub>p = f x"
+  by (transfer, auto)
+
+lemma pfun_entries_apply_2 [simp]: 
+  "x \<notin> d \<Longrightarrow> (pfun_entries d f)(x)\<^sub>p = undefined"
+  by (transfer, auto)
 
 text {* Hide implementation details for partial functions *}
 

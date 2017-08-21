@@ -399,11 +399,6 @@ lemma conj_var_subst:
   shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"
   using assms
   by (pred_simp, (metis (full_types) vwb_lens_def wb_lens.get_put)+)
-    
-lemma le_pred_refl [simp]:
-  fixes x :: "('a::preorder, '\<alpha>) uexpr"
-  shows "(x \<le>\<^sub>u x) = true"
-  by (pred_auto)
 
 subsection {* HOL Variable Quantifiers *}
     
@@ -677,6 +672,60 @@ lemma disj_conds:
   "(P1 \<triangleleft> b \<triangleright> Q1 \<or> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<or> P2) \<triangleleft> b \<triangleright> (Q1 \<or> Q2)"
   by pred_auto
 
+subsection {* Additional Expression Laws *}
+
+lemma le_pred_refl [simp]:
+  fixes x :: "('a::preorder, '\<alpha>) uexpr"
+  shows "(x \<le>\<^sub>u x) = true"
+  by (pred_auto)
+
+lemma uzero_le_laws [simp]:
+  "(0 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u numeral x = true"
+  "(1 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u numeral x = true"
+  "(0 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u 1 = true"
+  by (pred_simp)+
+  
+lemma unumeral_le_1 [simp]:
+  assumes "(numeral i :: 'a::{numeral,ord}) \<le> numeral j"
+  shows "(numeral i :: ('a, '\<alpha>) uexpr) \<le>\<^sub>u numeral j = true"
+  using assms by (pred_auto)
+
+lemma unumeral_le_2 [simp]:
+  assumes "(numeral i :: 'a::{numeral,linorder}) > numeral j"
+  shows "(numeral i :: ('a, '\<alpha>) uexpr) \<le>\<^sub>u numeral j = false"
+  using assms by (pred_auto)
+    
+lemma uset_laws [simp]:
+  "x \<in>\<^sub>u {}\<^sub>u = false"
+  "x \<in>\<^sub>u {m..n}\<^sub>u = (m \<le>\<^sub>u x \<and> x \<le>\<^sub>u n)"
+  by (pred_auto)+
+  
+lemma pfun_entries_apply [simp]:
+  "(entr\<^sub>u(d,f) :: (('k, 'v) pfun, '\<alpha>) uexpr)(i)\<^sub>a = ((\<guillemotleft>f\<guillemotright>(i)\<^sub>a) \<triangleleft> i \<in>\<^sub>u d \<triangleright> \<bottom>\<^sub>u)"
+  by (pred_auto)
+    
+lemma udom_uupdate_pfun [simp]:
+  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
+  shows "dom\<^sub>u(m(k \<mapsto> v)\<^sub>u) = {k}\<^sub>u \<union>\<^sub>u dom\<^sub>u(m)"
+  by (rel_auto)
+
+lemma uapply_uupdate_pfun [simp]:
+  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
+  shows "(m(k \<mapsto> v)\<^sub>u)(i)\<^sub>a = v \<triangleleft> i =\<^sub>u k \<triangleright> m(i)\<^sub>a"
+  by (rel_auto)
+
+lemma ulit_eq [simp]: "x = y \<Longrightarrow> (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>) = true"
+  by (rel_auto)
+    
+lemma ulit_neq [simp]: "x \<noteq> y \<Longrightarrow> (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>) = false"
+  by (rel_auto)
+    
+lemma uset_mems [simp]:
+  "x \<in>\<^sub>u {y}\<^sub>u = (x =\<^sub>u y)"
+  "x \<in>\<^sub>u A \<union>\<^sub>u B = (x \<in>\<^sub>u A \<or> x \<in>\<^sub>u B)"
+  "x \<in>\<^sub>u A \<inter>\<^sub>u B = (x \<in>\<^sub>u A \<and> x \<in>\<^sub>u B)"
+  by (rel_auto)+
+    
 subsection {* Refinement By Observation *}
     
 text {* Function to obtain the set of observations of a predicate *}

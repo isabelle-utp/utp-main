@@ -249,12 +249,21 @@ lemma rea_init_conj [rpred]:
   "(\<I>(P,t) \<and> \<I>(Q,t)) = \<I>(P\<and>Q,t)"
   by (rel_auto)
 
+lemma rea_init_empty_trace [rpred]: "\<I>(s,\<langle>\<rangle>) = [s]\<^sub>S"
+  by (rel_auto)
+    
+lemma rea_init_disj_same [rpred]: "(\<I>(s\<^sub>1,t) \<or> \<I>(s\<^sub>2,t)) = \<I>(s\<^sub>1 \<or> s\<^sub>2, t)"
+  by (rel_auto)
+
+lemma rea_init_impl_same [rpred]: "(\<I>(s\<^sub>1,t) \<Rightarrow>\<^sub>r \<I>(s\<^sub>2,t)) = (\<I>(s\<^sub>1, t) \<Rightarrow>\<^sub>r [s\<^sub>2]\<^sub>S)"
+  apply (rel_auto) using dual_order.trans le_add by blast+
+    
 definition trace_subst ("_\<lbrakk>_\<rbrakk>\<^sub>t" [999,0] 999) 
-where [upred_defs]: "P\<lbrakk>v\<rbrakk>\<^sub>t = (P\<lbrakk>&tt-\<lceil>v\<rceil>\<^sub>S\<^sub></&tt\<rbrakk> \<and> \<I>(true,v))"
+where [upred_defs]: "P\<lbrakk>v\<rbrakk>\<^sub>t = (P\<lbrakk>&tt-\<lceil>v\<rceil>\<^sub>S\<^sub></&tt\<rbrakk> \<and> $tr + \<lceil>v\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u $tr\<acute>)"
 
 lemma unrest_trace_subst [unrest]:
   "\<lbrakk> mwb_lens x; x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v\<rbrakk>\<^sub>t"
-  by (simp add: trace_subst_def unrest)
+  by (simp add: trace_subst_def lens_indep_sym unrest)
   
 lemma tsubst_st_cond [usubst]: "[P]\<^sub>S\<lbrakk>t\<rbrakk>\<^sub>t = \<I>(P,t)"
   by (rel_auto)
@@ -1256,8 +1265,8 @@ syntax
 
 text {* Syntax translations *}
 
-abbreviation lconj :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('b \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<times> 'b \<Rightarrow> '\<alpha> upred)" (infixr "\<and>\<^sub>l" 35)
-where "(P \<and>\<^sub>l Q) \<equiv> (\<lambda> (x,y). P x \<and> Q y)"
+definition lconj :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('b \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<times> 'b \<Rightarrow> '\<alpha> upred)" (infixr "\<and>\<^sub>l" 35)
+where [upred_defs]: "(P \<and>\<^sub>l Q) \<equiv> (\<lambda> (x,y). P x \<and> Q y)"
 
 definition outp_constraint (infix "=\<^sub>o" 60) where
 [upred_defs]: "outp_constraint v \<equiv> (\<lambda> x. \<guillemotleft>x\<guillemotright> =\<^sub>u v)"
@@ -1399,6 +1408,33 @@ lemma post_AssignCSP_list_update [rdes]:
 
 lemma AssignCSP_list_update_NCSP [closure]:
   "(AssignCSP_list_update x k v) is NCSP"
+proof (rule NCSP_intro)
+  show "{x[k]} :=\<^sub>C v is CSP"
+    by (simp add: closure)
+  show "{x[k]} :=\<^sub>C v is CSP3"
+    by (rule CSP3_SRD_intro, simp_all add: csp_do_def closure rdes unrest)
+  show "{x[k]} :=\<^sub>C v is CSP4"
+    by (rule CSP4_tri_intro, simp_all add: csp_do_def closure rdes unrest, rel_auto)
+qed
+
+lemma AssignCSP_pfun_update_CSP [closure]:
+  "AssignCSP_pfun_update x k v is CSP"
+  by (simp add: AssignCSP_pfun_update_def RHS_tri_design_is_SRD unrest)
+    
+lemma preR_AssignCSP_pfun_update [rdes]: 
+  "pre\<^sub>R(AssignCSP_pfun_update x k v) = [k \<in>\<^sub>u dom\<^sub>u(&x)]\<^sub>S"
+  by (rel_auto)
+
+lemma periR_AssignCSP_pfun_update [rdes]:
+  "peri\<^sub>R(AssignCSP_pfun_update x k v) = [k \<notin>\<^sub>u dom\<^sub>u(&x)]\<^sub>S"
+  by (rel_simp)
+
+lemma post_AssignCSP_pfun_update [rdes]:
+  "post\<^sub>R(AssignCSP_pfun_update x k v) = (\<Phi>(true,[x \<mapsto>\<^sub>s &x(k \<mapsto> v)\<^sub>u],\<langle>\<rangle>) \<triangleleft> k \<in>\<^sub>u dom\<^sub>u(&x) \<triangleright>\<^sub>R R1(true))"
+  by (rel_auto, simp_all add: minus_zero_eq zero_pfun_def) 
+
+lemma AssignCSP_pfun_update_NCSP [closure]:
+  "(AssignCSP_pfun_update x k v) is NCSP"
 proof (rule NCSP_intro)
   show "{x[k]} :=\<^sub>C v is CSP"
     by (simp add: closure)
@@ -1759,6 +1795,9 @@ proof -
     by (simp add: ExtChoice_def)
 qed
 
+lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
+  by (rel_auto)
+  
 lemma ExtChoice_empty: "ExtChoice {} = Stop"
   by (simp add: ExtChoice_def cond_def Stop_def)
 
@@ -2297,7 +2336,7 @@ qed
   
 lemma postR_PrefixCSP [rdes]:
   assumes "P is NCSP"
-  shows "post\<^sub>R(PrefixCSP a P) = (\<I>(true,\<langle>a\<rangle>) \<and> (post\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
+  shows "post\<^sub>R(PrefixCSP a P) = (post\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t"
 proof -
   have "post\<^sub>R(PrefixCSP a P) = ((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r (pre\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<Rightarrow>\<^sub>r (post\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
     by (simp add: PrefixCSP_def assms Healthy_if) 
@@ -2306,6 +2345,8 @@ proof -
     by (rel_auto)
   also have "... = (\<I>(true,\<langle>a\<rangle>) \<and> (post\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"      
     by (simp add: SRD_post_under_pre assms closure unrest)
+  also have "... = (post\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t"
+    by (rel_auto)
   finally show ?thesis .
 qed
       
@@ -2353,7 +2394,7 @@ lemma periR_InputCSP [rdes]:
 lemma postR_InputCSP [rdes]:
   assumes "\<And> v. P(v) is NCSP"
   shows "post\<^sub>R(a?(v:A(v)) \<^bold>\<rightarrow> P(v)) =
-          (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> \<I>(true,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) \<and> post\<^sub>R (P x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
+          (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> post\<^sub>R (P x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
   using assms by (simp add: InputCSP_def rdes closure assms usubst unrest)
 
 lemma InputCSP_rdes_def [rdes_def]:
@@ -2364,14 +2405,14 @@ lemma InputCSP_rdes_def [rdes_def]:
            \<turnstile> (((\<Squnion> x \<bullet> [A(x)]\<^sub>S \<Rightarrow>\<^sub>r \<E>(true, \<langle>\<rangle>, {(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u))) 
                \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
                (\<Sqinter> x \<bullet> [A(x)]\<^sub>S \<and> (P x \<and> Q x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))
-           \<diamondop> (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> \<I>(true,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) \<and> (P x \<and> R x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))" (is "?lhs = ?rhs")
+           \<diamondop> (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> (P x \<and> R x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))" (is "?lhs = ?rhs")
 proof -
   have 1:"pre\<^sub>R(?lhs) = (\<Squnion> v \<bullet> [A v]\<^sub>S \<Rightarrow>\<^sub>r \<I>(true,\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r P v\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)" (is "_ = ?A")
     by (simp add: rdes NCSP_rdes_intro assms conj_comm closure)
   have 2:"peri\<^sub>R(?lhs) = (\<Squnion> x \<bullet> [A x]\<^sub>S \<Rightarrow>\<^sub>r \<E>(true,\<langle>\<rangle>, {(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> (P x \<Rightarrow>\<^sub>r Q x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
     (is "_ = ?B")
     by (simp add: rdes NCSP_rdes_intro assms closure)
-  have 3:"post\<^sub>R(?lhs) = (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> \<I>(true,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) \<and> (P x \<Rightarrow>\<^sub>r R x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
+  have 3:"post\<^sub>R(?lhs) = (\<Sqinter> x \<bullet> [A x]\<^sub>S \<and> (P x \<Rightarrow>\<^sub>r R x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
     (is "_ = ?C")
     by (simp add: rdes NCSP_rdes_intro assms closure)
   have "?lhs = \<^bold>R\<^sub>s(?A \<turnstile> ?B \<diamondop> ?C)"
@@ -2421,12 +2462,12 @@ lemma output_prefix_is_OutputCSP [simp]:
 lemma OutputCSP_pair_simp [simp]:
   "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j)\<guillemotright> P"
   using output_prefix_is_OutputCSP[of "P" a]
-  by (simp add: outp_constraint_prod InputCSP_def closure del: output_prefix_is_OutputCSP)
+  by (simp add: outp_constraint_prod lconj_def InputCSP_def closure del: output_prefix_is_OutputCSP)
     
 lemma OutputCSP_triple_simp [simp]:
   "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>).(\<guillemotleft>k\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j,k)\<guillemotright> P"
   using output_prefix_is_OutputCSP[of "P" a]
-  by (simp add: outp_constraint_prod InputCSP_def closure del: output_prefix_is_OutputCSP)
+  by (simp add: outp_constraint_prod lconj_def InputCSP_def closure del: output_prefix_is_OutputCSP)
     
 text {* Useful laws for reducing assignments and identities within peri and postconditions *}
   
