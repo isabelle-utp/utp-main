@@ -314,7 +314,7 @@ lemma assigns_r_feasible:
 lemma assign_subst [usubst]:
   "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by (rel_auto)
-
+    
 lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
@@ -330,12 +330,12 @@ lemma assign_pred_transfer:
   assumes "$x \<sharp> b" "out\<alpha> \<sharp> b"
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_blast)
-
+    
 lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst alpha)
-
+    
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
-  by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
+  by (simp add: assigns_comp usubst)
 
 lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
   by (simp add: assigns_comp usubst)
@@ -370,7 +370,8 @@ lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
 
 lemma assigns_r_swap_uinj:
   "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
-  using assigns_r_uinj swap_usubst_inj by auto
+  using assigns_r_uinj swap_usubst_inj
+  by (simp add: assigns_r_uinj swap_usubst_inj subst_upd_pr_var) 
 
 lemma assign_unfold:
   "vwb_lens x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"

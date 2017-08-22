@@ -1524,12 +1524,12 @@ text {* Weakest precondition laws for design variable scopes *}
 lemma wpd_var_begin [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
   shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x/x\<rbrakk>"
-  by (simp add: var_begin_def ndes_assigns_def wp)
+  by (simp add: var_begin_def ndes_assigns_def wp usubst)
 
 lemma wpd_var_end [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
   shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(&x)/x\<rbrakk>"
-  by (simp add: var_end_def ndes_assigns_def wp)
+  by (simp add: var_end_def ndes_assigns_def wp usubst)
 
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}

@@ -1429,5 +1429,5 @@ lemma rea_substs_lattice [usubst]:
 lemma rea_subst_USUP_set [usubst]:
   "A \<noteq> {} \<Longrightarrow> (\<Squnion> i\<in>A \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r   = (\<Squnion> i\<in>A \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
   by (rel_auto)+
-     
+    
 end

@@ -419,16 +419,16 @@ lemma subst_pre_skip [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II = 
     
 lemma usubst_upd_in_comp [usubst]:
   "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
-  by (simp add: fst_lens_def in\<alpha>_def in_var_def)
+  by (simp add: pr_var_def fst_lens_def in\<alpha>_def in_var_def)
 
 lemma usubst_upd_out_comp [usubst]:
   "\<sigma>(&out\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x\<acute> \<mapsto>\<^sub>s v)"
-  by (simp add: out\<alpha>_def out_var_def snd_lens_def)
+  by (simp add: pr_var_def out\<alpha>_def out_var_def snd_lens_def)
 
 lemma subst_lift_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<lceil>\<sigma>(x \<mapsto>\<^sub>s v)\<rceil>\<^sub>s = \<lceil>\<sigma>\<rceil>\<^sub>s($x \<mapsto>\<^sub>s \<lceil>v\<rceil>\<^sub><)"
-  by (simp add: alpha usubst, simp add: fst_lens_def in\<alpha>_def in_var_def)
+  by (simp add: alpha usubst, simp add: pr_var_def fst_lens_def in\<alpha>_def in_var_def)
 
 lemma subst_drop_upd [alpha]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"

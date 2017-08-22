@@ -8,7 +8,7 @@ subsection {* Weakest Prespecification *}
   
 definition wpre :: "'a hrel \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" (infixl "\\" 70) where
   [upred_defs]: "Q \\ R = \<Sqinter> { Y. R \<sqsubseteq> Y ;; Q}"
-
+  
 lemma wpre_sol1: "R \<sqsubseteq> (Q \\ R) ;; Q"
   by (rel_auto)
  
@@ -32,7 +32,19 @@ lemma wpre_choice: "(P \<sqinter> Q) \\ R = (P \\ R \<and> Q \\ R)"
   apply (metis (no_types, lifting) semilattice_sup_class.le_sup_iff upred_semiring.distrib_left utp_pred_laws.le_inf_iff wpre_galois wpre_sol1)
   apply (metis conj_comm semilattice_sup_class.le_supI upred_semiring.distrib_left utp_pred_laws.inf_le2 wpre_galois)
 done
+
+text {* We cannot write the weakest prespecification as a weakest precondition construction *}
+  
+lemma "Q \\ R = (\<not> (Q ;; (\<not> R)))"
+  apply (rel_auto)
+  nitpick
+oops
     
+lemma "R \<sqsubseteq> P ;; Q \<longleftrightarrow> (\<not> Q ;; (\<not> R)) \<sqsubseteq> P"
+  apply (rel_auto)
+  nitpick
+oops
+  
 subsection {* Weakest Postspecification *}
     
 definition wpost :: "'a hrel \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" (infixl "\<^bold>'/" 70) where

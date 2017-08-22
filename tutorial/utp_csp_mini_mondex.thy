@@ -148,9 +148,28 @@ text {* We perform verification by writing contracts that specify desired behavi
   care about intermediate behaviour here. The postcondition has that the summation of the 
   sequence of card values remains the same, though of course individual records will change. *}
   
+setup_lifting type_definition_pfun
+setup_lifting type_definition_ffun
+  
+definition pfun_elems :: "('k::linorder, 'v) pfun \<Rightarrow> 'v list" where
+"pfun_elems f = (let d = pdom(f) in if (finite d) then map (pfun_app f) (sorted_list_of_set d) else [])"
+
+definition pfun_sum :: "('k::linorder, 'v::{plus,zero}) pfun \<Rightarrow> 'v" where
+"pfun_sum f = list_sum (pfun_elems f)"
+
+adhoc_overloading
+  usums pfun_sum
+
 theorem money_constant:
-  assumes "i < cardNum" "j < cardNum" "i \<noteq> j"
-  shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
+  assumes "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
+  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
+proof (simp add: assms Pay_contract, rule CRD_refine_rdes)    
+  from assms 
+  have 1:"`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S \<Rightarrow>
+            \<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r
+            [(\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S`"
+    by (rel_auto)
+    
 -- {* We first apply the reactive design contract introduction law and discharge well-formedness of Pay *}
 proof (rule CRD_contract_refine, simp add: closure)
 

@@ -144,7 +144,7 @@ lemma var_open_close:
   by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assigns pvar_assigns_comp pvar_assign_unit usubst assms)
 
 text {* Opening and then immediately closing a variable blocks yields a skip. *}
-
+    
 lemma var_open_close_commute:
   fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"

@@ -147,6 +147,12 @@ lemma usubst_lookup_upd [usubst]:
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
 
+lemma usubst_lookup_upd_pr_var [usubst]:
+  assumes "mwb_lens x"
+  shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s (pr_var x) = v"
+  using assms
+  by (simp add: subst_upd_uvar_def pr_var_def, transfer) (simp)
+    
 text {* Substitution update is idempotent. *}
     
 lemma usubst_upd_idem [usubst]:
@@ -168,6 +174,9 @@ lemma usubst_upd_comm2:
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
+lemma subst_upd_pr_var [usubst]:  "s(&x \<mapsto>\<^sub>s v) = s(x \<mapsto>\<^sub>s v)"
+  by (simp add: pr_var_def) 
+    
 text {* A substitution which swaps two independent variables is an injective function. *}
     
 lemma swap_usubst_inj:
@@ -194,6 +203,14 @@ lemma usubst_upd_var_id [usubst]:
   apply (auto)
 done
 
+lemma usubst_upd_pr_var_id [usubst]:
+  "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var (pr_var x)] = id"
+  apply (simp add: subst_upd_uvar_def pr_var_def)
+  apply (transfer)
+  apply (rule ext)
+  apply (auto)
+done
+  
 lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
@@ -227,7 +244,7 @@ text {* There follows various laws about deleting variables from a substitution.
     
 lemma subst_del_id [usubst]:
   "vwb_lens x \<Longrightarrow> id -\<^sub>s x = id"
-  by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)
+  by (simp add: subst_del_def subst_upd_uvar_def pr_var_def, transfer, auto)
 
 lemma subst_del_upd_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"

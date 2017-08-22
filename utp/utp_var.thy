@@ -84,7 +84,7 @@ text \<open> The next construct is vacuous and simply exists to help the parser 
   variables from input and output variables. \<close>
 
 definition pr_var :: "('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('a \<Longrightarrow> '\<beta>)" where
-[simp]: "pr_var x = x"
+[lens_defs]: "pr_var x = x"
 
 subsection \<open> Variable lens properties \<close>
 
@@ -95,6 +95,14 @@ lemma in_var_semi_uvar [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (in_var x)"
   by (simp add: comp_mwb_lens in_var_def)
 
+lemma pr_var_mwb_lens [simp]:
+  "mwb_lens x \<Longrightarrow> mwb_lens (pr_var x)"
+  by (simp add: pr_var_def)
+    
+lemma pr_var_vwb_lens [simp]: 
+  "vwb_lens x \<Longrightarrow> vwb_lens (pr_var x)"
+  by (simp add: pr_var_def)
+    
 lemma in_var_uvar [simp]:
   "vwb_lens x \<Longrightarrow> vwb_lens (in_var x)"
   by (simp add: in_var_def)
@@ -126,6 +134,11 @@ lemma out_var_indep [simp]:
   "x \<bowtie> y \<Longrightarrow> out_var x \<bowtie> out_var y"
   by (simp add: out_var_def)
 
+lemma pr_var_indeps [simp]: 
+  "x \<bowtie> y \<Longrightarrow> pr_var x \<bowtie> y"
+  "x \<bowtie> y \<Longrightarrow> x \<bowtie> pr_var y"
+  by (simp_all add: pr_var_def)
+    
 lemma prod_lens_indep_in_var [simp]:
   "a \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> in_var x"
   by (metis in_var_def in_var_indep out_in_indep out_var_def plus_pres_lens_indep prod_as_plus)
@@ -134,6 +147,14 @@ lemma prod_lens_indep_out_var [simp]:
   "b \<bowtie> x \<Longrightarrow> a \<times>\<^sub>L b \<bowtie> out_var x"
   by (metis in_out_indep in_var_def out_var_def out_var_indep plus_pres_lens_indep prod_as_plus)
 
+lemma in_var_pr_var [simp]:
+  "in_var (pr_var x) = in_var x"
+  by (simp add: pr_var_def)
+
+lemma out_var_pr_var [simp]:
+  "out_var (pr_var x) = out_var x"
+  by (simp add: pr_var_def)
+    
 subsection \<open> Lens simplifications \<close>
     
 text \<open> We also define some lookup abstraction simplifications. \<close>
