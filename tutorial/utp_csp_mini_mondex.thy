@@ -92,7 +92,7 @@ text {* The precondition of pay requires that, under the assumption that a payme
 
 *}
   
-lemma Pay_contract:
+lemma Pay_contract [rdes_def]:
   assumes "i \<noteq> j"
   shows
   "Pay i j n = 

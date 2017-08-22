@@ -163,6 +163,14 @@ instance
   by (intro_classes) (transfer, auto)+
 end
 
+lemma top_uexpr_rep_eq [simp]: 
+  "\<lbrakk>Orderings.bot\<rbrakk>\<^sub>e b = False"
+  by (transfer, auto)
+
+lemma bot_uexpr_rep_eq [simp]: 
+  "\<lbrakk>Orderings.top\<rbrakk>\<^sub>e b = True"
+  by (transfer, auto)
+    
 instance uexpr :: (distrib_lattice, type) distrib_lattice
   by (intro_classes) (transfer, rule ext, auto simp add: sup_inf_distrib1)
 

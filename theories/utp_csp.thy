@@ -786,6 +786,10 @@ lemma CSP3_commutes_CSP4: "CSP3(CSP4(P)) = CSP4(CSP3(P))"
 lemma NCSP_implies_CSP [closure]: "P is NCSP \<Longrightarrow> P is CSP"
   by (metis (no_types, hide_lams) CSP3_def CSP4_def Healthy_def NCSP_def SRD_idem SRD_seqr_closure Skip_is_CSP comp_apply)
 
+lemma NCSP_elim [RD_elim]: 
+  "\<lbrakk> X is NCSP; P(\<^bold>R\<^sub>s(pre\<^sub>R(X) \<turnstile> peri\<^sub>R(X) \<diamondop> post\<^sub>R(X))) \<rbrakk> \<Longrightarrow> P(X)"
+  by (simp add: SRD_reactive_tri_design closure)
+    
 lemma NCSP_implies_CSP3 [closure]:
   "P is NCSP \<Longrightarrow> P is CSP3"
   by (metis (no_types, lifting) CSP3_def Healthy_def' NCSP_def Skip_is_CSP Skip_left_unit Skip_unrest_ref comp_apply seqr_assoc)
@@ -1355,6 +1359,14 @@ lemma periR_AssignsCSP [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C)
 lemma postR_AssignsCSP [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C) = \<Phi>(true,\<sigma>,\<langle>\<rangle>)"
   by (rel_auto)
 
+lemma AssignsCSP_rdes_def [rdes_def] : "\<langle>\<sigma>\<rangle>\<^sub>C = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<Phi>(true,\<sigma>,\<langle>\<rangle>))"
+  by (rel_auto)
+    
+lemma AssignCSP_conditional:
+  assumes "vwb_lens x"
+  shows "x :=\<^sub>C e \<triangleleft> b \<triangleright>\<^sub>R x :=\<^sub>C f = x :=\<^sub>C (e \<triangleleft> b \<triangleright> f)" 
+  by (rdes_eq cls: assms)
+    
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   by (rel_auto)
 
@@ -2164,22 +2176,17 @@ qed
 lemma rea_impl_conj [rpred]: 
   "(P \<Rightarrow>\<^sub>r Q \<Rightarrow>\<^sub>r R) = ((P \<and> Q) \<Rightarrow>\<^sub>r R)"
   by (rel_auto)
-    
-lemma conj_disj_distl:
-  fixes P Q R :: "'\<alpha> upred"
-  shows "((P \<or> Q) \<and> R) = ((P \<and> R) \<or> (Q \<and> R))"
-  by (rel_auto)
-    
+               
 lemma Guard_conditional:
   assumes "P is NCSP"
-  shows "b &\<^sub>u P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"
-  using assms by (rdes_eq)
-
+  shows "b &\<^sub>u P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"  
+  by (rdes_eq cls: assms)
+    
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
-  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"
-  using assms by (rdes_eq)
-
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
+  by (rdes_eq cls: assms)
+    
 lemma InputCSP_CSP [closure]: "x?(v:A(v)) \<^bold>\<rightarrow> P(v) is CSP"
   by (simp add: CSP_ExtChoice InputCSP_def)
 
