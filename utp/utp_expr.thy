@@ -350,7 +350,7 @@ adhoc_overloading
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length and
-  usums list_sum and usums Sum and
+  usums list_sum and usums Sum and usums pfun_sum and
   uentries pfun_entries and uentries ffun_entries
   
 subsection \<open> Syntax translations \<close>

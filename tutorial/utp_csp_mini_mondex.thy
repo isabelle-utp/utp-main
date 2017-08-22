@@ -91,13 +91,13 @@ text {* The precondition of pay requires that, under the assumption that a payme
   and accept, and the states of the two cards was updated appropriately.
 
 *}
-
+  
 lemma Pay_contract:
   assumes "i \<noteq> j"
   shows
   "Pay i j n = 
     \<^bold>R\<^sub>s ( (\<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r 
-           [(\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S) 
+           [(\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><) 
        
        \<turnstile> (\<E>(true,\<langle>\<rangle>, {(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u}\<^sub>u) \<or>
             \<E>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>, {(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u}\<^sub>u) 
@@ -129,11 +129,6 @@ lemma AllPay_Productive [closure]:
   "cardNum \<ge> 2 \<Longrightarrow> AllPay cardNum is Productive"
   by (simp add: AllPay_def closure)
     
-lemma preR_AllPay [rdes]:
-  "cardNum \<ge> 2 \<Longrightarrow> pre\<^sub>R(AllPay cardNum) = 
-    (\<Squnion> (i, j, n) \<in> PaySet cardNum \<bullet> $tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<langle>(pay\<cdot>\<guillemotleft>(i, j, n)\<guillemotright>)\<^sub>u\<rangle> \<and> \<guillemotleft>i\<guillemotright> \<noteq>\<^sub>u \<guillemotleft>j\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> $st:accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<Rightarrow> {\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>}\<^sub>u \<subseteq>\<^sub>u dom\<^sub>u($st:accts))"
-  by (simp add: AllPay_def rdes closure)    
-    
 subsection {* Verification *}
 
 text {* We perform verification by writing contracts that specify desired behaviours of our
@@ -147,31 +142,12 @@ text {* We perform verification by writing contracts that specify desired behavi
   that initially the number of cards is $cardNum$. The pericondition is $true$ as we don't
   care about intermediate behaviour here. The postcondition has that the summation of the 
   sequence of card values remains the same, though of course individual records will change. *}
-  
-setup_lifting type_definition_pfun
-setup_lifting type_definition_ffun
-  
-definition pfun_elems :: "('k::linorder, 'v) pfun \<Rightarrow> 'v list" where
-"pfun_elems f = (let d = pdom(f) in if (finite d) then map (pfun_app f) (sorted_list_of_set d) else [])"
-
-definition pfun_sum :: "('k::linorder, 'v::{plus,zero}) pfun \<Rightarrow> 'v" where
-"pfun_sum f = list_sum (pfun_elems f)"
-
-adhoc_overloading
-  usums pfun_sum
-
+     
 theorem money_constant:
-  assumes "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
+  assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
   shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
+-- {* We first calculate the reactive design contract and apply refinement introduction *}
 proof (simp add: assms Pay_contract, rule CRD_refine_rdes)    
-  from assms 
-  have 1:"`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S \<Rightarrow>
-            \<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r
-            [(\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S`"
-    by (rel_auto)
-    
--- {* We first apply the reactive design contract introduction law and discharge well-formedness of Pay *}
-proof (rule CRD_contract_refine, simp add: closure)
 
   -- {* Three proof obligations result for the pre/peri/postconditions. The first requires us to
     show that the contract's precondition is weakened by the implementation precondition. 
@@ -179,13 +155,20 @@ proof (rule CRD_contract_refine, simp add: closure)
     input and the money amount constraints. We discharge by first calculating the precondition, 
     as done above, and then using the relational calculus tactic. *}
 
-  from assms show "`\<lceil>#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R (Pay i j n)`"
-    by (rdes_calc, rel_auto)
+  from assms 
+  show "`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<Rightarrow>
+            \<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r
+            [(\<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><`"
+    by (rel_auto)
 
   -- {* The second is trivial as we don't care about intermediate states. *}
       
-  show "`\<lceil>#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<and> peri\<^sub>R (Pay i j n) \<Rightarrow> \<lceil>true\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
-    by rel_auto
+  show "[true]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<sqsubseteq>
+    ([dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<and>
+     (\<E>(true,\<langle>\<rangle>, {(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u}\<^sub>u) \<or>
+      \<E>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>, {(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u}\<^sub>u) \<triangleleft> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
+         \<E>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>, {(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u}\<^sub>u)))"
+    by (simp add: rpred usubst, rel_auto)
 
   -- {* The third requires that we show that the postcondition implies that the total amount remains
     unaltered. We calculate the postcondition, and then use relational calculus. In this case, this
@@ -193,25 +176,26 @@ proof (rule CRD_contract_refine, simp add: closure)
     be retrieved by sledgehammer. However, we actually had to prove that property first and add it to our library. *}
       
   from assms
-  show " `\<lceil>#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R (Pay i j n) \<Rightarrow> \<lceil>sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>tt\<rbrakk>`"
-    by (rdes_calc, rel_auto, simp add: listsum_update)
+  show "[sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq>
+    ([dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<and>
+     \<Phi>(true,id,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle>) \<triangleleft> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
+        \<Phi>(true,[&accts \<mapsto>\<^sub>s &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u],\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle>))"
+    by (rel_simp, simp add: pfun_sums_upd_2)
 qed
-
+      
 text {* The next property is that no card value can go below 0, assuming it was non-zero to start
   with. *}
   
 theorem no_overdrafts:
-  assumes "i < cardNum" "j < cardNum" "i \<noteq> j"
-  shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> <\<^sub>u \<guillemotleft>cardNum\<guillemotright> \<and> $accts(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
-  apply (rule CRD_contract_refine)
-  apply (simp add: Pay_def closure)
-  apply (simp add: rdes)
+  assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j"
+  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> \<in>\<^sub>u \<guillemotleft>cards\<guillemotright> \<and> $accts(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
   using assms
+  apply (simp add: Pay_contract)
+  apply (rule CRD_refine_rdes)
   apply (rel_auto)
-  apply (simp add: usubst alpha rdes)
-  apply (simp add: usubst alpha rdes)
-  using assms apply (rel_auto)
-  apply (auto simp add: nth_list_update)
+  apply (rel_auto)
+  apply (rel_simp)
+  apply (metis diff_ge_0_iff_ge dual_order.trans le_add_same_cancel2 less_le not_le pfun_app_upd_1 pfun_app_upd_2)
 done
   
 text {* The next property shows liveness of transfers. If a payment is accepted, and we have enough
@@ -219,18 +203,14 @@ text {* The next property shows liveness of transfers. If a payment is accepted,
   this is specified using the pericondition as we are talking about intermediate states and refusals. *}
   
 theorem transfer_live:
-  assumes "i < cardNum" "j < cardNum" "i \<noteq> j" "n > 0"
-  shows "[#\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cardNum\<guillemotright> 
+  assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" "n > 0"
+  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>
          \<turnstile> \<guillemotleft>trace\<guillemotright> \<noteq>\<^sub>u \<langle>\<rangle> \<and> last\<^sub>u(\<guillemotleft>trace\<guillemotright>) =\<^sub>u (pay\<cdot>(\<guillemotleft>(i,j,k)\<guillemotright>))\<^sub>u \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<Rightarrow> (accept\<cdot>(\<guillemotleft>(i)\<guillemotright>))\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright>
          | true]\<^sub>C \<sqsubseteq> Pay i j n"
-  apply (rule_tac CRD_contract_refine)
-  apply (simp add: Pay_def closure)
-  apply (simp add: rdes)
-  using assms apply (rel_auto)
-  apply (simp add: rdes)    
-  using assms apply (rel_auto)
-  apply (simp add: zero_list_def)
-  apply (rel_auto)
+  using assms
+  apply (simp add: Pay_contract)
+  apply (rule CRD_refine_rdes)
+  apply (rel_auto)+
 done
     
 end

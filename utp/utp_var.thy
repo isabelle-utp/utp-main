@@ -2,24 +2,7 @@ section \<open> UTP variables \<close>
 
 theory utp_var
   imports
-  Deriv
-  "~~/src/HOL/Library/Prefix_Order"
-  "~~/src/HOL/Library/Char_ord"
-  "~~/src/HOL/Library/Product_Order"
-  "~~/src/Tools/Adhoc_Overloading"
-  "~~/src/HOL/Library/Monad_Syntax"
-  "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/Library/Order_Continuity"
-  "~~/src/HOL/Eisbach/Eisbach"
-  "../contrib/Algebra/Complete_Lattice"
-  "../contrib/Algebra/Galois_Connection"
-  "../optics/Lenses"
-  "../utils/Profiling"
-  "../utils/TotalRecall"
-  "../utils/Library_extra/Pfun"
-  "../utils/Library_extra/Ffun"
-  "../utils/Library_extra/List_lexord_alt"
-  "../utils/Library_extra/Monoid_extra"
+  "../utils/utp_imports"
   utp_parser_utils
 begin
 

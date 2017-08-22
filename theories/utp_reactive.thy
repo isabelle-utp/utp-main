@@ -11,7 +11,9 @@ alphabet 't::trace rp_vars = des_vars +
   tr   :: "'t"
 
 declare rp_vars.splits [alpha_splits]
-
+declare zero_list_def [upred_defs]
+declare prefixE [elim]
+  
 text {*
   The two locale interpretations below are a technicality to improve automatic
   proof support via the predicate and relational tactics. This is to enable the
@@ -491,8 +493,7 @@ lemma R1_R2s_tr'_eq_tr:
 lemma R1_R2s_tr'_extend_tr:
   "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr  ^\<^sub>u v)"
   apply (rel_auto)
-  apply (metis less_eq_list_def prefix_concat_minus self_append_conv2 zero_list_def)
-  apply (metis append_minus self_append_conv2 zero_list_def)
+  apply (metis append_minus)
   apply (simp add: Prefix_Order.prefixI)
 done
 
