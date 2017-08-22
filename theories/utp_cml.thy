@@ -124,7 +124,7 @@ proof -
     have 1:"?Q = false"
       by (pred_auto)
     have 2:"R1(?R) = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-      by (rel_auto, simp_all add: minus_zero_eq zero_list_def)
+      by (rel_auto)
     show ?thesis
       by (metis (no_types, lifting) "1" "2" RHS_design_post_R1)
   qed
@@ -259,7 +259,7 @@ proof -
       have 1:"?Q = (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt))"
         by (pred_auto)
       show ?thesis
-        by (simp add: 1, rel_auto)
+        by (simp add: 1)
     qed
     also have "... = Wait (m + n)"
       by (simp add: Wait_def)
