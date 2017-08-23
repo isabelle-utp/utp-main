@@ -1771,9 +1771,6 @@ proof -
   finally show ?thesis
     by (simp add: ExtChoice_def)
 qed
-
-lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
-  by (rel_auto)
   
 lemma ExtChoice_empty: "ExtChoice {} = Stop"
   by (simp add: ExtChoice_def cond_def Stop_def)

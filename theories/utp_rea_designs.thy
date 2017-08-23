@@ -1398,6 +1398,10 @@ lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
 lemma wpR_conj [wp]: "P wp\<^sub>R (Q \<and> R) = (P wp\<^sub>R Q \<and> P wp\<^sub>R R)"
   by (simp add: wpR_def seqr_or_distr)
     
+lemma wpR_USUP_mem [wp]: 
+  "A \<noteq> {} \<Longrightarrow> P wp\<^sub>R (\<Squnion> i\<in>A \<bullet> Q(i)) = (\<Squnion> i\<in>A \<bullet> P wp\<^sub>R Q(i))"
+  by (simp add: wpR_def seq_UINF_distl)
+    
 lemma wpR_div [wp]:
   "(\<not>\<^sub>r P ;; true\<^sub>r) = true\<^sub>r \<Longrightarrow> true\<^sub>r wp\<^sub>R P = false"
   by (simp add: wpR_def rpred, rel_blast)
@@ -3362,6 +3366,116 @@ next
   also have "... = (pre\<^sub>R(P\<^bold>^(Suc (Suc n))) \<Rightarrow>\<^sub>r post\<^sub>R P \<^bold>^ Suc (Suc n))"
     by (simp add: rdes closure assms)
   finally show ?case by (simp)
+qed
+    
+  
+lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
+  by (rel_auto)
+
+lemma UINF_ind_RR_closed [closure]:
+  assumes "\<And> i. P i is RR"
+  shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is RR"
+proof -
+  have 1:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R1"
+    by (unfold Healthy_def, subst R1_USUP, simp_all add: Healthy_if assms closure)
+  have 2:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R2c"
+    by (unfold Healthy_def, subst R2c_USUP, simp_all add: Healthy_if assms RR_implies_R2c closure)
+  show ?thesis
+    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
+qed
+    
+lemma USUP_elem_RR [closure]: 
+  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  shows "(\<Squnion> i \<in> A \<bullet> P i) is RR"
+proof -
+  have 1:"(\<Squnion> i\<in>A \<bullet> P(i)) is R1"
+    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
+  have 2:"(\<Squnion> i\<in>A \<bullet> P(i)) is R2c"
+    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
+  show ?thesis
+    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
+qed
+
+lemma seq_RR_closed [closure]: 
+  assumes "P is RR" "Q is RR"
+  shows "P ;; Q is RR"
+  unfolding Healthy_def
+  by (simp add: RR_def  Healthy_if assms closure RR_implies_R2 ex_unrest unrest)
+  
+lemma wpR_RR_closed [closure]: "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RR"
+  by (simp add: wpR_def closure)    
+    
+lemma power_Suc_RR_closed [closure]:
+  "P is RR \<Longrightarrow> P ;; P \<^bold>^ i is RR"
+  by (induct i, simp_all add: closure)
+    
+lemma power_wpR_RR_closed [closure]: 
+  "\<lbrakk> R is RR; P is RR \<rbrakk> \<Longrightarrow> R \<^bold>^ i wp\<^sub>R P is RR"
+  by (induct i, simp_all add: wp closure)
+    
+lemma power_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^bold>^(Suc n) 
+        = \<^bold>R\<^sub>s((\<Squnion> i\<in>{0..n} \<bullet> (R \<^bold>^ i) wp\<^sub>R P) \<turnstile> ((\<Sqinter> i\<in>{0..n} \<bullet> R \<^bold>^ i) ;; Q) \<diamondop> (R \<^bold>^ Suc n))"
+proof (induct n)
+  case 0
+  then show ?case
+    by (simp add: wp assms closure, rel_auto)
+next
+  case (Suc n)
+
+  have 1: "(P \<and> (\<Squnion> i \<in> {0..n} \<bullet> R wp\<^sub>R (R \<^bold>^ i wp\<^sub>R P))) = (\<Squnion> i \<in> {0..Suc n} \<bullet> R \<^bold>^ i wp\<^sub>R P)"
+    (is "?lhs = ?rhs")
+  proof -
+    have "?lhs = (P \<and> (\<Squnion> i \<in> {0..n} \<bullet> (R \<^bold>^ Suc i wp\<^sub>R P)))"
+      by (simp add: wp closure assms)
+    also have "... = (P \<and> (\<Squnion> i \<in> {0..n}. (R \<^bold>^ Suc i wp\<^sub>R P)))"
+      by (simp only: USUP_as_Inf_collect)
+    also have "... = (P \<and> (\<Squnion> i \<in> {1..Suc n}. (R \<^bold>^ i wp\<^sub>R P)))"
+      by (metis (no_types, lifting) INF_cong One_nat_def image_Suc_atLeastAtMost image_image)
+    also have "... = (\<Squnion> i \<in> insert 0 {1..Suc n}. (R \<^bold>^ i wp\<^sub>R P))"
+      by (simp add: wp assms closure conj_upred_def)
+    also have "... = (\<Squnion> i \<in> {0..Suc n}. (R \<^bold>^ i wp\<^sub>R P))"        
+      by (simp add: atLeastAtMost_insertL)      
+    finally show ?thesis
+      by (simp add: USUP_as_Inf_collect)
+  qed
+
+  have 2: "(Q \<or> R ;; (\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ i) ;; Q) = (\<Sqinter> i \<in> {0..Suc n} \<bullet> R \<^bold>^ i) ;; Q"
+    (is "?lhs = ?rhs")
+  proof -
+    have "?lhs = (Q \<or> (\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ Suc i) ;; Q)"
+      by (simp add: seqr_assoc seq_UINF_distl)
+    also have "... = (Q \<or> (\<Sqinter> i \<in> {0..n}. R \<^bold>^ Suc i) ;; Q)"        
+      by (simp only: UINF_as_Sup_collect)
+    also have "... = (Q \<or> (\<Sqinter> i \<in> {1..Suc n}. R \<^bold>^ i) ;; Q)"
+      by (metis One_nat_def image_Suc_atLeastAtMost image_image)        
+    also have "... = ((\<Sqinter> i \<in> insert 0 {1..Suc n}. R \<^bold>^ i) ;; Q)"      
+      by (simp add: disj_upred_def[THEN sym] seqr_or_distl)
+    also have "... = ((\<Sqinter> i \<in> {0..Suc n}. R \<^bold>^ i) ;; Q)"    
+      by (simp add: atLeastAtMost_insertL)
+    finally show ?thesis
+      by (simp add: UINF_as_Sup_collect)
+  qed
+        thm image_Suc_atLeastLessThan
+  have 3: "(\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ i) ;; Q is RR"
+  proof -
+    have "(\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ i) ;; Q = (\<Sqinter> i \<in> {0..n}. R \<^bold>^ i) ;; Q"
+      by (simp add: UINF_as_Sup_collect)
+    also have "... = (\<Sqinter> i \<in> insert 0 {1..n}. R \<^bold>^ i) ;; Q"
+      by (simp add: atLeastAtMost_insertL)
+    also have "... = (Q \<or> (\<Sqinter> i \<in> {1..n}. R \<^bold>^ i) ;; Q)"
+      by (metis (no_types, lifting) SUP_insert disj_upred_def seqr_left_unit seqr_or_distl upred_semiring.power_0)
+    also have "... = (Q \<or> (\<Sqinter> i \<in> {0..<n}. R \<^bold>^ Suc i) ;; Q)"
+      by (metis One_nat_def atLeastLessThanSuc_atLeastAtMost image_Suc_atLeastLessThan image_image)
+    also have "... = (Q \<or> (\<Sqinter> i \<in> {0..<n} \<bullet> R \<^bold>^ Suc i) ;; Q)"
+      by (simp add: UINF_as_Sup_collect)
+    also have "... is RR"
+      by (simp_all add: closure assms)
+    finally show ?thesis .
+  qed
+  from 1 2 3 Suc show ?case
+    by (simp add: Suc RHS_tri_normal_design_composition' closure assms wp)
 qed
   
 subsection {* Syntax for reactive design contracts *}
