@@ -347,6 +347,13 @@ lemma RHS_INF:
   "A \<noteq> {} \<Longrightarrow> \<^bold>R\<^sub>s(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i)))"
   by (simp add: RHS_def R3h_UINF R2c_USUP R1_USUP)
 
+lemma RHS_sup: "\<^bold>R\<^sub>s(P \<squnion> Q) = \<^bold>R\<^sub>s(P) \<squnion> \<^bold>R\<^sub>s(Q)"
+  by (rel_auto)
+
+lemma RHS_SUP: 
+  "A \<noteq> {} \<Longrightarrow> \<^bold>R\<^sub>s(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i)))"
+  by (rel_auto)
+    
 lemma RHS_cond: "\<^bold>R\<^sub>s(P \<triangleleft> b \<triangleright> Q) = (\<^bold>R\<^sub>s(P) \<triangleleft> R2c b \<triangleright> \<^bold>R\<^sub>s(Q))"
   by (simp add: RHS_def R3h_cond R2c_condr R1_cond)
 
@@ -2197,6 +2204,9 @@ lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<
 
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
+    
+lemma RHS_design_sup: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<squnion> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> P\<^sub>2) \<turnstile> ((P\<^sub>1 \<Rightarrow> Q\<^sub>1) \<and> (P\<^sub>2 \<Rightarrow> Q\<^sub>2)))"
+  by (metis RHS_sup design_inf)
 
 lemma RHS_tri_design_choice [rdes_def]: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqinter> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3))"
   apply (simp add: RHS_design_choice)
@@ -2205,6 +2215,10 @@ lemma RHS_tri_design_choice [rdes_def]: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile
   apply (rel_auto)
 done
 
+lemma RHS_tri_design_sup [rdes_def]: 
+  "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<squnion> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow> P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>3)))"
+  by (simp add: RHS_design_sup, rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  
 lemma RHS_design_USUP [rdes_def]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
