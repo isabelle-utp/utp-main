@@ -1157,6 +1157,11 @@ lemma cond_tt_RR_closed [closure]:
   apply (simp_all add: R1_cond R2c_condr Healthy_if assms RR_implies_R2c closure R2c_tr'_minus_tr)
 done
 
+lemma rea_skip_RR [closure]:
+  "II\<^sub>r is RR"
+  apply (rel_auto) using minus_zero_eq by blast
+
+  
 lemma rea_skip_unit:
   assumes "P is RR"
   shows "P ;; II\<^sub>r = P" "II\<^sub>r ;; P = P"
@@ -1172,12 +1177,7 @@ qed
 lemma rea_assert_RR_closed [closure]:
   assumes "b is RR"
   shows "{b}\<^sub>r is RR"
-proof -
-  have 1:"$tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R is RR"
-    apply (rel_auto) using minus_zero_eq by blast
-  show ?thesis
-    by (simp add: 1 closure assms rea_skip_def rea_assert_def)
-qed
+  by (simp add: closure assms rea_assert_def)
   
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
@@ -1285,22 +1285,14 @@ lemma USUP_mem_rea_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion> i \
 lemma USUP_ind_rea_true [simp]: "(\<Squnion> i \<bullet> true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
     
-named_theorems rea_droppers
+lemma rea_assert_true:
+  "{true\<^sub>r}\<^sub>r = II\<^sub>r"
+  by (rel_auto)
+
+lemma rea_false_true:
+  "{false}\<^sub>r = true\<^sub>r"
+  by (rel_auto)
     
-lemma [rea_droppers]: 
-  "[true]\<^sub>r = true\<^sub>r"
-  "[true\<^sub>r]\<^sub>r = true\<^sub>r"
-  "[\<not> P]\<^sub>r = (\<not>\<^sub>r [P]\<^sub>r)"
-  "[\<not>\<^sub>r P]\<^sub>r = (\<not>\<^sub>r [P]\<^sub>r)"
-  "[P \<Rightarrow>\<^sub>r Q]\<^sub>r = ([P]\<^sub>r \<Rightarrow>\<^sub>r [Q]\<^sub>r)"
-  "[P \<Rightarrow> Q]\<^sub>r = ([P]\<^sub>r \<Rightarrow>\<^sub>r [Q]\<^sub>r)"
-  "[P \<and> Q]\<^sub>r = ([P]\<^sub>r \<and> [Q]\<^sub>r)"
-  "[P \<or> Q]\<^sub>r = ([P]\<^sub>r \<or> [Q]\<^sub>r)"
-  by (rel_auto)+
-  
-method rea_drop = (simp add: rea_droppers)
-method rea_lift = (simp add: rea_droppers[THEN sym])
-  
 text {* Healthiness Condition for Reactive Conditions *}
     
 definition [upred_defs]: "RC1(P) = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
