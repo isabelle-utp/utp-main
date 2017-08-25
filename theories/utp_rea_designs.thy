@@ -1550,6 +1550,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RHS_tri_design_form:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = (II\<^sub>R \<triangleleft> $wait \<triangleright> (($ok \<and> P\<^sub>1) \<Rightarrow>\<^sub>r ($ok\<acute> \<and> (P\<^sub>2 \<diamondop> P\<^sub>3))))"
+proof -
+  have "\<^bold>R\<^sub>s(RR(P\<^sub>1) \<turnstile> RR(P\<^sub>2) \<diamondop> RR(P\<^sub>3)) = (II\<^sub>R \<triangleleft> $wait \<triangleright> (($ok \<and> RR(P\<^sub>1)) \<Rightarrow>\<^sub>r ($ok\<acute> \<and> (RR(P\<^sub>2) \<diamondop> RR(P\<^sub>3)))))"
+    apply (rel_auto) using minus_zero_eq by blast
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
 subsection {* Pre-, post-, and periconditions *}
 
 abbreviation "pre\<^sub>s  \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s false, $wait \<mapsto>\<^sub>s false]"
@@ -3019,8 +3029,8 @@ definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::trace,'\<alpha>) h
 [upred_defs]: "\<^bold>R\<^sub>D(P) = \<^bold>R\<^sub>s(\<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<turnstile> (false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S)))"
 
 definition des_rea_drop :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> 's hrel_des" ("\<^bold>D\<^sub>R") where
-[upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><
-                     \<turnstile>\<^sub>n \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S"
+[upred_defs]: "\<^bold>D\<^sub>R(P) = \<lfloor>(pre\<^sub>R(P))\<lbrakk>$tr/$tr\<acute>\<rbrakk> \<restriction>\<^sub>v $st\<rfloor>\<^sub>S\<^sub><
+                     \<turnstile>\<^sub>n \<lfloor>(post\<^sub>R(P))\<lbrakk>$tr/$tr\<acute>\<rbrakk> \<restriction>\<^sub>v {$st,$st\<acute>}\<rfloor>\<^sub>S"
 
 lemma ndesign_rea_lift_inverse: "\<^bold>D\<^sub>R(\<^bold>R\<^sub>D(p \<turnstile>\<^sub>n Q)) = p \<turnstile>\<^sub>n Q"
   apply (simp add: des_rea_lift_def des_rea_drop_def rea_pre_RHS_design rea_post_RHS_design)
@@ -3040,21 +3050,14 @@ proof -
     by (simp add: ndesign_form assms)
 qed
 
-lemma
-  assumes "P is NSRD"
-  shows "P \<sqsubseteq> \<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P))"
-proof -
-  have "\<^bold>R\<^sub>D(\<^bold>D\<^sub>R(P)) = \<^bold>R\<^sub>D(\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (pre\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><
-                    \<turnstile>\<^sub>n \<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> (post\<^sub>R(P))\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S)"
-    by (simp add: des_rea_drop_def)
-  also have "... =
-    \<^bold>R\<^sub>s (\<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>S\<^sub>< \<turnstile>
-        false \<diamondop>
-       ($tr\<acute> =\<^sub>u $tr \<and> (\<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> pre\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<^sub><\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<lceil>\<lfloor>\<exists> $tr;$tr\<acute>;$\<Sigma>\<^sub>S;$\<Sigma>\<^sub>S\<acute> \<bullet> post\<^sub>R P\<lbrakk>$tr\<acute>/$tr\<rbrakk>\<rfloor>\<^sub>S\<rceil>\<^sub>S)))"
-    by (simp add: des_rea_lift_def alpha unrest)
-  also have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<sqsubseteq> ..."
-    oops
-
+  
+lemma design_refine_thms:
+  assumes "P \<sqsubseteq> Q"
+  shows "`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)`" "`pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`"
+  apply (metis assms design_pre_choice disj_comm disj_upred_def order_refl rdesign_refinement utp_pred_laws.le_iff_sup)
+  apply (metis assms conj_comm design_post_choice disj_upred_def refBy_order semilattice_sup_class.le_iff_sup utp_pred_laws.inf.coboundedI1)
+done
+        
 lemma des_rea_lift_closure [closure]: "\<^bold>R\<^sub>D(P) is SRD"
   by (simp add: des_rea_lift_def RHS_design_is_SRD unrest)
 
@@ -3115,16 +3118,17 @@ proof -
 qed
 
 lemma R_D_inf:
-  assumes "P is \<^bold>N" "Q is \<^bold>N"
-  shows "\<^bold>R\<^sub>D(P \<sqinter> Q) = \<^bold>R\<^sub>D(P) \<sqinter> \<^bold>R\<^sub>D(Q)"
+  "\<^bold>R\<^sub>D(P \<sqinter> Q) = \<^bold>R\<^sub>D(P) \<sqinter> \<^bold>R\<^sub>D(Q)"
   by (rule antisym, rel_auto+)
 
+lemma R_D_cond:
+  "\<^bold>R\<^sub>D(P \<triangleleft> \<lceil>b\<rceil>\<^sub>D\<^sub>< \<triangleright> Q) = \<^bold>R\<^sub>D(P) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>D(Q)"
+  by (rule antisym, rel_auto+)
+   
 lemma R_D_seq_ndesign:
   "\<^bold>R\<^sub>D(p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; \<^bold>R\<^sub>D(p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) = \<^bold>R\<^sub>D((p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) ;; (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2))"
   apply (rule antisym)
   apply (rule SRD_refine_intro)
-oops
-(*
   apply (simp_all add: closure rdes ndesign_composition_wp)
   using dual_order.trans apply (rel_blast)
   using dual_order.trans apply (rel_blast)
@@ -3136,15 +3140,17 @@ oops
   apply (rel_auto)
 done
 
-
 lemma R_D_seq:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
-*)
 
-text {* This law is applicable only when there is no further alphabet extension *}
+text {* Thes laws are applicable only when there is no further alphabet extension *}
 
+lemma R_D_skip:
+  "\<^bold>R\<^sub>D(II\<^sub>D) = (II\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"
+  apply (rel_auto) using minus_zero_eq by blast+
+  
 lemma R_D_assigns:
   "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"
   by (simp add: assigns_d_def des_rea_lift_def alpha assigns_rea_RHS_tri_des, rel_auto)
@@ -3552,7 +3558,7 @@ proof -
   thus ?thesis
     by (simp add: SRD_reactive_tri_design assms(1))
 qed
-
+    
 subsection {* Reactive design parallel-by-merge *}
 
 text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also

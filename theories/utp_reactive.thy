@@ -52,6 +52,12 @@ translations
 notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")
 notation rp_vars_child_lens ("\<Sigma>\<^sub>R")
 
+syntax
+  "_svid_rea_alpha"  :: "svid" ("\<Sigma>\<^sub>R")
+
+translations
+  "_svid_rea_alpha" => "CONST rp_vars_child_lens"
+
 lemma rea_var_ords [usubst]:
   "$tr \<prec>\<^sub>v $tr\<acute>" "$wait \<prec>\<^sub>v $wait\<acute>"
   "$ok \<prec>\<^sub>v $tr" "$ok\<acute> \<prec>\<^sub>v $tr\<acute>" "$ok \<prec>\<^sub>v $tr\<acute>" "$ok\<acute> \<prec>\<^sub>v $tr"
@@ -1038,6 +1044,12 @@ where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
 definition rea_lift :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
 where [upred_defs]: "[P]\<^sub>r = R1(P)"
    
+definition rea_skip :: "('t::trace,'\<alpha>) hrel_rp" ("II\<^sub>r") 
+where [upred_defs]: "II\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
+  
+definition rea_assert :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
+where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
+   
 lemma rea_lift_R1 [closure]: "[P]\<^sub>r is R1"
   by (rel_simp)
     
@@ -1144,6 +1156,28 @@ lemma cond_tt_RR_closed [closure]:
   apply (simp_all add: Healthy_def) 
   apply (simp_all add: R1_cond R2c_condr Healthy_if assms RR_implies_R2c closure R2c_tr'_minus_tr)
 done
+
+lemma rea_skip_unit:
+  assumes "P is RR"
+  shows "P ;; II\<^sub>r = P" "II\<^sub>r ;; P = P"
+proof -
+  have 1: "RR(P) ;; II\<^sub>r = RR(P)"
+    by (rel_auto)
+  have 2: "II\<^sub>r ;; RR(P) = RR(P)"
+    by (rel_auto)
+  from 1 2 show "P ;; II\<^sub>r = P" "II\<^sub>r ;; P = P"
+    by (simp_all add: Healthy_if assms)
+qed
+  
+lemma rea_assert_RR_closed [closure]:
+  assumes "b is RR"
+  shows "{b}\<^sub>r is RR"
+proof -
+  have 1:"$tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R is RR"
+    apply (rel_auto) using minus_zero_eq by blast
+  show ?thesis
+    by (simp add: 1 closure assms rea_skip_def rea_assert_def)
+qed
   
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
@@ -1250,7 +1284,7 @@ lemma USUP_mem_rea_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion> i \
 
 lemma USUP_ind_rea_true [simp]: "(\<Squnion> i \<bullet> true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
-
+    
 named_theorems rea_droppers
     
 lemma [rea_droppers]: 
