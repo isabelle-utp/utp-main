@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
-(* File: utp_circus_tutorial.thy                                              *)
+(* File: utp_circus_tutorial_ex.thy                                           *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
 section {* {\Circus} Tutorial *}
 
-theory utp_circus_tutorial
+theory utp_circus_tutorial_ex
 imports "../theories/utp_circus" Transitive_Closure
 begin recall_syntax
 
@@ -20,6 +20,10 @@ no_translations
 
 translations
   "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a()\<guillemotright> P"
+
+text \<open>Hints for the tutorial exercise.\<close>
+
+consts COMPLETE :: "'a" ("\<^bold>C\<^bold>O\<^bold>M\<^bold>P\<^bold>L\<^bold>E\<^bold>T\<^bold>E")
 
 paragraph \<open>Additional proof support\<close>
 
@@ -69,10 +73,8 @@ definition [rdes]:
   Step = (
     (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<^bold>\<rightarrow> currentTime :=\<^sub>C \<guillemotleft>t\<guillemotright>) \<box>
     (tm:updateSS?(ss) \<^bold>\<rightarrow> stepSize :=\<^sub>C \<guillemotleft>ss\<guillemotright>) \<box>
-    (tm:step!(&currentTime)!(&stepSize) \<^bold>\<rightarrow>
-      currentTime :=\<^sub>C min\<^sub>u(&currentTime + &stepSize, \<guillemotleft>tN\<guillemotright>)) \<box>
-    (&currentTime =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<^bold>\<rightarrow> Stop) ;; Step
-  \<bullet> (currentTime, stepSize) :=\<^sub>C (\<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
+    \<^bold>C\<^bold>O\<^bold>M\<^bold>P\<^bold>L\<^bold>E\<^bold>T\<^bold>E) ;; Step
+  \<bullet> \<^bold>C\<^bold>O\<^bold>M\<^bold>P\<^bold>L\<^bold>E\<^bold>T\<^bold>E
 end"
 
 text \<open>The same process definition using deep variables.\<close>
@@ -92,10 +94,8 @@ end"
 text \<open>Proof that the @{const Timer} process does not diverge.\<close>
 
 lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true"
-apply (rdes_calc)
-apply (unfold hide_state_def)
-apply (simp add: alpha)
-done
+-- \<open>TODO: try to complete this prove using the @{method rdes_calc} tactic.\<close>
+oops
 
 text \<open>Proof about the initial refusal set of the @{const Timer} process.\<close>
 
@@ -132,20 +132,13 @@ lemma StepBody_muI:
   \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> StepBody tN ;; X)"
 apply (unfold StepBody_def)
 apply (rule CRD_mu_basic_refine)
+-- \<open>TODO: Can you finalise the rest of the proof?\<close>
 -- {* Subgoal 1 *}
-apply (simp add: closure unrest alpha)
 -- {* Subgoal 2 *}
-apply (simp add: closure unrest alpha)
 -- {* Subgoal 3 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
 -- {* Subgoal 4 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
-apply (rel_auto)
 -- {* Subgoal 5 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
-apply (rel_auto)
-apply (metis Prefix_Order.same_prefix_nil less_eq_list_def list_append_prefixD prefix_concat_minus)+
-done
+oops
 
 text \<open>@{const setT} is only enabled when \<open>t < tN\<close>.\<close>
 
@@ -162,8 +155,6 @@ apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_co
 apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_conv timer_evt.distinct(1) list.discI minus_list_def prefix_concat_minus)
 apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_conv timer_evt.distinct(3) list.discI minus_list_def prefix_concat_minus)
 done
-
-thm CRD_mu_basic_refine -- \<open>Ask Simon to explain the 5th proviso!\<close>
 
 lemma StepBody_muI3:
 "[true \<turnstile> \<^bold>\<forall> (ct, ss) \<bullet> \<guillemotleft>ct\<guillemotright> <\<^sub>u \<guillemotleft>tN\<guillemotright> \<and>

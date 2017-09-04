@@ -1,15 +1,15 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: utp_circus.thy                                                       *)
-(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
-(* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 (* LAST REVIEWED: 28 June 2017 *)
 
 section {* Theory of {\Circus} *}
 
 theory utp_circus
-imports utp_theories_deep utp_circus_prel
+imports utp_circus_prel
 begin (* recall_syntax *)
 
 text {* Types are not printed correctly, have a chat with Simon Foster. *}
@@ -62,6 +62,8 @@ definition RecAction ::
 
 lemmas circus_syntax =
   Process_def ProcessSt_def Action_def RecAction_def
+
+declare circus_syntax [rdes]
 
 subsection {* Process Syntax *}
 

@@ -1,8 +1,8 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: Railways.thy                                                         *)
-(* Authors: Frank Zeyda and Simon Foster                                      *)
-(* Emails: frank.zeyda@york.ac.uk simon.foster@york.ac.uk                     *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 (* LAST REVIEWED: 19 June 2017 *)
 

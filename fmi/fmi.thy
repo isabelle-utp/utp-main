@@ -1,8 +1,8 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: fmi.thy                                                              *)
-(* Authors: Simon Foster and Frank Zeyda                                      *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 (* LAST REVIEWED: 8 Feb 2017 *)
 
