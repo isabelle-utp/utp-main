@@ -1,0 +1,27 @@
+\BOOKMARK [1][-]{section.1}{Interpretation Tools}{}% 1
+\BOOKMARK [2][-]{subsection.1.1}{Interpretation Locale}{section.1}% 2
+\BOOKMARK [1][-]{section.2}{Types of cardinality 2 or greater}{}% 3
+\BOOKMARK [1][-]{section.3}{Core Lens Laws}{}% 4
+\BOOKMARK [2][-]{subsection.3.1}{Lens signature}{section.3}% 5
+\BOOKMARK [2][-]{subsection.3.2}{Weak lenses}{section.3}% 6
+\BOOKMARK [2][-]{subsection.3.3}{Well-behaved lenses}{section.3}% 7
+\BOOKMARK [2][-]{subsection.3.4}{Mainly well-behaved lenses}{section.3}% 8
+\BOOKMARK [2][-]{subsection.3.5}{Very well-behaved lenses}{section.3}% 9
+\BOOKMARK [2][-]{subsection.3.6}{Ineffectual lenses}{section.3}% 10
+\BOOKMARK [2][-]{subsection.3.7}{Bijective lenses}{section.3}% 11
+\BOOKMARK [2][-]{subsection.3.8}{Lens independence}{section.3}% 12
+\BOOKMARK [1][-]{section.4}{Lens algebraic operators}{}% 13
+\BOOKMARK [2][-]{subsection.4.1}{Lens composition, plus, unit, and identity}{section.4}% 14
+\BOOKMARK [2][-]{subsection.4.2}{Closure properties}{section.4}% 15
+\BOOKMARK [2][-]{subsection.4.3}{Composition laws}{section.4}% 16
+\BOOKMARK [2][-]{subsection.4.4}{Independence laws}{section.4}% 17
+\BOOKMARK [2][-]{subsection.4.5}{Algebraic laws}{section.4}% 18
+\BOOKMARK [1][-]{section.5}{Order and equivalence on lenses}{}% 19
+\BOOKMARK [2][-]{subsection.5.1}{Lens algebraic laws}{section.5}% 20
+\BOOKMARK [1][-]{section.6}{Lens instances}{}% 21
+\BOOKMARK [2][-]{subsection.6.1}{Function lens}{section.6}% 22
+\BOOKMARK [2][-]{subsection.6.2}{Map lens}{section.6}% 23
+\BOOKMARK [2][-]{subsection.6.3}{List lens}{section.6}% 24
+\BOOKMARK [2][-]{subsection.6.4}{Record field lenses}{section.6}% 25
+\BOOKMARK [2][-]{subsection.6.5}{Lens Interpretation}{section.6}% 26
+\BOOKMARK [1][-]{section.7}{Prisms}{}% 27

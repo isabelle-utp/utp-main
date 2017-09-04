@@ -1,0 +1,164 @@
+%
+\begin{isabellebody}%
+\setisabellecontext{Interp}%
+%
+\isamarkupsection{Interpretation Tools%
+}
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Interp\isanewline
+\isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsubsection{Interpretation Locale%
+}
+\isamarkuptrue%
+\isacommand{locale}\isamarkupfalse%
+\ interp\ {\isacharequal}\isanewline
+\isakeyword{fixes}\ f\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\isanewline
+\isakeyword{assumes}\ f{\isacharunderscore}inj\ {\isacharcolon}\ {\isachardoublequoteopen}inj\ f{\isachardoublequoteclose}\isanewline
+\isakeyword{begin}\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ meta{\isacharunderscore}interp{\isacharunderscore}law{\isacharcolon}\isanewline
+{\isachardoublequoteopen}{\isacharparenleft}{\isasymAnd}P{\isachardot}\ PROP\ Q\ P{\isacharparenright}\ {\isasymequiv}\ {\isacharparenleft}{\isasymAnd}P{\isachardot}\ PROP\ Q\ {\isacharparenleft}P\ o\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ equal{\isacharunderscore}intr{\isacharunderscore}rule{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 1%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ f{\isachardoublequoteclose}\ \isakeyword{in}\ meta{\isacharunderscore}spec{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}assumption{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 2%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ inv\ f{\isachardoublequoteclose}\ \isakeyword{in}\ meta{\isacharunderscore}spec{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ f{\isacharunderscore}inj{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ all{\isacharunderscore}interp{\isacharunderscore}law{\isacharcolon}\isanewline
+{\isachardoublequoteopen}{\isacharparenleft}{\isasymforall}P{\isachardot}\ Q\ P{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymforall}P{\isachardot}\ Q\ {\isacharparenleft}P\ o\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}safe{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 1%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ f{\isachardoublequoteclose}\ \isakeyword{in}\ spec{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}assumption{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 2%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ inv\ f{\isachardoublequoteclose}\ \isakeyword{in}\ spec{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ f{\isacharunderscore}inj{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ exists{\isacharunderscore}interp{\isacharunderscore}law{\isacharcolon}\isanewline
+{\isachardoublequoteopen}{\isacharparenleft}{\isasymexists}P{\isachardot}\ Q\ P{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}{\isasymexists}P{\isachardot}\ Q\ {\isacharparenleft}P\ o\ f{\isacharparenright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}safe{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 1%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ inv\ f{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ f{\isacharunderscore}inj{\isacharparenright}\isanewline
+%
+\isamarkupcmt{Subgoal 2%
+}
+\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule{\isacharunderscore}tac\ x\ {\isacharequal}\ {\isachardoublequoteopen}P\ o\ f{\isachardoublequoteclose}\ \isakeyword{in}\ exI{\isacharparenright}\isanewline
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}assumption{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+\isanewline
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

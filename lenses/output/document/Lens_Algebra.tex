@@ -1,0 +1,1129 @@
+%
+\begin{isabellebody}%
+\setisabellecontext{Lens{\isacharunderscore}Algebra}%
+%
+\isamarkupsection{Lens algebraic operators%
+}
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Lens{\isacharunderscore}Algebra\isanewline
+\isakeyword{imports}\ Lens{\isacharunderscore}Laws\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isamarkupsubsection{Lens composition, plus, unit, and identity%
+}
+\isamarkuptrue%
+%
+\begin{isamarkuptext}%
+We introduce the algebraic lens operators; for more information please see our paper~\cite{Foster16a}.
+      Lens composition constructs a lens by composing the source of one lens with the view of another.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}comp\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharsemicolon}\isactrlsub L{\isachardoublequoteclose}\ {\isadigit{8}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}lens{\isacharunderscore}comp\ Y\ X\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ lens{\isacharunderscore}get\ Y\ {\isasymcirc}\ lens{\isacharunderscore}get\ X\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isasymsigma}\ v{\isachardot}\ lens{\isacharunderscore}put\ X\ {\isasymsigma}\ {\isacharparenleft}lens{\isacharunderscore}put\ Y\ {\isacharparenleft}lens{\isacharunderscore}get\ X\ {\isasymsigma}{\isacharparenright}\ v{\isacharparenright}{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+Lens plus parallel composes two indepedent lenses, resulting in a lens whose view is the 
+  product of the two underlying lens views.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}c{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharplus}\isactrlsub L{\isachardoublequoteclose}\ {\isadigit{7}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isacharplus}\isactrlsub L\ Y\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isasymsigma}{\isachardot}\ {\isacharparenleft}lens{\isacharunderscore}get\ X\ {\isasymsigma}{\isacharcomma}\ lens{\isacharunderscore}get\ Y\ {\isasymsigma}{\isacharparenright}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isasymsigma}\ {\isacharparenleft}u{\isacharcomma}\ v{\isacharparenright}{\isachardot}\ lens{\isacharunderscore}put\ X\ {\isacharparenleft}lens{\isacharunderscore}put\ Y\ {\isasymsigma}\ v{\isacharparenright}\ u{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The product functor lens similarly parallel composes two lenses, but in this case the lenses
+  have different sources and so the resulting source is also a product.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}prod\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}d{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}c\ {\isasymtimes}\ {\isacharprime}d{\isacharparenright}{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isasymtimes}\isactrlsub L{\isachardoublequoteclose}\ {\isadigit{8}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}lens{\isacharunderscore}prod\ X\ Y\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ map{\isacharunderscore}prod\ get\isactrlbsub X\isactrlesub \ get\isactrlbsub Y\isactrlesub \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isasymlambda}\ {\isacharparenleft}u{\isacharcomma}\ v{\isacharparenright}\ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}{\isachardot}\ {\isacharparenleft}put\isactrlbsub X\isactrlesub \ u\ x{\isacharcomma}\ put\isactrlbsub Y\isactrlesub \ v\ y{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The $\lfst$ and $\lsnd$ lenses project the first and second elements, respectively, of a 
+  product source type.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ fst{\isacharunderscore}lens\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}fst\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}fst\isactrlsub L\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ fst{\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isacharparenleft}{\isasymsigma}{\isacharcomma}\ {\isasymrho}{\isacharparenright}\ u{\isachardot}\ {\isacharparenleft}u{\isacharcomma}\ {\isasymrho}{\isacharparenright}{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ snd{\isacharunderscore}lens\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}snd\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}snd\isactrlsub L\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ snd{\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isacharparenleft}{\isasymsigma}{\isacharcomma}\ {\isasymrho}{\isacharparenright}\ u{\isachardot}\ {\isacharparenleft}{\isasymsigma}{\isacharcomma}\ u{\isacharparenright}{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ get{\isacharunderscore}fst{\isacharunderscore}lens\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}get\isactrlbsub fst\isactrlsub L\isactrlesub \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ fst{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ get{\isacharunderscore}snd{\isacharunderscore}lens\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}get\isactrlbsub snd\isactrlsub L\isactrlesub \ {\isacharparenleft}x{\isacharcomma}\ y{\isacharparenright}\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ snd{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The swap lens is a bijective lens which swaps over the elements of the product source type.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{abbreviation}\isamarkupfalse%
+\ swap{\isacharunderscore}lens\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymtimes}\ {\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}b\ {\isasymtimes}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}swap\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}swap\isactrlsub L\ {\isasymequiv}\ snd\isactrlsub L\ {\isacharplus}\isactrlsub L\ fst\isactrlsub L{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The zero lens is an ineffectual lens whose view is a unit type. This means the zero lens
+  cannot distinguish or change the source type.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ zero{\isacharunderscore}lens\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}unit\ {\isasymLongrightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isadigit{0}}\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\isactrlsub L\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isacharunderscore}{\isachardot}\ {\isacharparenleft}{\isacharparenright}{\isacharparenright}{\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isasymsigma}\ x{\isachardot}\ {\isasymsigma}{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The identity lens is a bijective lens where the source and view type are the same.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ id{\isacharunderscore}lens\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{1}}\isactrlsub L\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ id{\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ {\isacharunderscore}{\isachardot}\ id{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+The quotient operator $X \lquot Y$ shortens lens $X$ by cutting off $Y$ from the end. It is
+  thus the dual of the composition operator.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}quotient\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}c{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}b{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixr}\ {\isachardoublequoteopen}{\isacharprime}{\isacharslash}\isactrlsub L{\isachardoublequoteclose}\ {\isadigit{9}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isacharslash}\isactrlsub L\ Y\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ {\isasymlambda}\ {\isasymsigma}{\isachardot}\ get\isactrlbsub X\isactrlesub \ {\isacharparenleft}create\isactrlbsub Y\isactrlesub \ {\isasymsigma}{\isacharparenright}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isasymlambda}\ {\isasymsigma}\ v{\isachardot}\ get\isactrlbsub Y\isactrlesub \ {\isacharparenleft}put\isactrlbsub X\isactrlesub \ {\isacharparenleft}create\isactrlbsub Y\isactrlesub \ {\isasymsigma}{\isacharparenright}\ v{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+Lens override uses a lens to override part of a source type.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}override\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}a\ {\isasymRightarrow}\ {\isacharprime}a\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}a{\isacharparenright}\ {\isasymRightarrow}\ {\isacharprime}a{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}{\isacharunderscore}\ {\isasymoplus}\isactrlsub L\ {\isacharunderscore}\ on\ {\isacharunderscore}{\isachardoublequoteclose}\ {\isacharbrackleft}{\isadigit{9}}{\isadigit{5}}{\isacharcomma}{\isadigit{0}}{\isacharcomma}{\isadigit{9}}{\isadigit{6}}{\isacharbrackright}\ {\isadigit{9}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}S\isactrlsub {\isadigit{1}}\ {\isasymoplus}\isactrlsub L\ S\isactrlsub {\isadigit{2}}\ on\ X\ {\isacharequal}\ put\isactrlbsub X\isactrlesub \ S\isactrlsub {\isadigit{1}}\ {\isacharparenleft}get\isactrlbsub X\isactrlesub \ S\isactrlsub {\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}%
+\begin{isamarkuptext}%
+Lens inversion take a bijective lens and swaps the source and view types.%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{definition}\isamarkupfalse%
+\ lens{\isacharunderscore}inv\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a\ {\isasymLongrightarrow}\ {\isacharprime}b{\isacharparenright}\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b\ {\isasymLongrightarrow}\ {\isacharprime}a{\isacharparenright}{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}inv\isactrlsub L{\isachardoublequoteclose}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isacharbrackleft}lens{\isacharunderscore}defs{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}lens{\isacharunderscore}inv\ x\ {\isacharequal}\ {\isasymlparr}\ lens{\isacharunderscore}get\ {\isacharequal}\ create\isactrlbsub x\isactrlesub {\isacharcomma}\ lens{\isacharunderscore}put\ {\isacharequal}\ {\isasymlambda}\ {\isasymsigma}{\isachardot}\ get\isactrlbsub x\isactrlesub \ {\isasymrparr}{\isachardoublequoteclose}%
+\isamarkupsubsection{Closure properties%
+}
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ id{\isacharunderscore}wb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ id{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ unit{\isacharunderscore}wb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ {\isadigit{0}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ zero{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ comp{\isacharunderscore}wb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ wb{\isacharunderscore}lens\ x{\isacharsemicolon}\ wb{\isacharunderscore}lens\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ wb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ comp{\isacharunderscore}mwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ mwb{\isacharunderscore}lens\ x{\isacharsemicolon}\ mwb{\isacharunderscore}lens\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ mwb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ id{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ id{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ unit{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ {\isadigit{0}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ zero{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ comp{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ vwb{\isacharunderscore}lens\ x{\isacharsemicolon}\ vwb{\isacharunderscore}lens\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ vwb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ unit{\isacharunderscore}ief{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}ief{\isacharunderscore}lens\ {\isadigit{0}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ zero{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ plus{\isacharunderscore}mwb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}mwb{\isacharunderscore}lens\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}mwb{\isacharunderscore}lens\ y{\isachardoublequoteclose}\ {\isachardoublequoteopen}x\ {\isasymbowtie}\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}mwb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharplus}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ assms\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ plus{\isacharunderscore}wb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ y{\isachardoublequoteclose}\ {\isachardoublequoteopen}x\ {\isasymbowtie}\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharplus}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ assms\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ plus{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ x{\isachardoublequoteclose}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ y{\isachardoublequoteclose}\ {\isachardoublequoteopen}x\ {\isasymbowtie}\ y{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ {\isacharparenleft}x\ {\isacharplus}\isactrlsub L\ y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ assms\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}comm\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}mwb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ mwb{\isacharunderscore}lens\ X{\isacharsemicolon}\ mwb{\isacharunderscore}lens\ Y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ mwb{\isacharunderscore}lens\ {\isacharparenleft}X\ {\isasymtimes}\isactrlsub L\ Y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}wb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ wb{\isacharunderscore}lens\ X{\isacharsemicolon}\ wb{\isacharunderscore}lens\ Y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ wb{\isacharunderscore}lens\ {\isacharparenleft}X\ {\isasymtimes}\isactrlsub L\ Y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ vwb{\isacharunderscore}lens\ X{\isacharsemicolon}\ vwb{\isacharunderscore}lens\ Y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ vwb{\isacharunderscore}lens\ {\isacharparenleft}X\ {\isasymtimes}\isactrlsub L\ Y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}bij{\isacharunderscore}lens{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ bij{\isacharunderscore}lens\ X{\isacharsemicolon}\ bij{\isacharunderscore}lens\ Y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ bij{\isacharunderscore}lens\ {\isacharparenleft}X\ {\isasymtimes}\isactrlsub L\ Y{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ fst{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ fst\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ fst{\isacharunderscore}lens{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ snd{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}vwb{\isacharunderscore}lens\ snd\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ snd{\isacharunderscore}lens{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ id{\isacharunderscore}bij{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}bij{\isacharunderscore}lens\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ id{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ inv{\isacharunderscore}id{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}inv\isactrlsub L\ {\isadigit{1}}\isactrlsub L\ {\isacharequal}\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}inv{\isacharunderscore}def\ id{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}create{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}inv{\isacharunderscore}bij{\isacharcolon}\ {\isachardoublequoteopen}bij{\isacharunderscore}lens\ X\ {\isasymLongrightarrow}\ bij{\isacharunderscore}lens\ {\isacharparenleft}inv\isactrlsub L\ X{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}inv{\isacharunderscore}def\ lens{\isacharunderscore}create{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ swap{\isacharunderscore}bij{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}bij{\isacharunderscore}lens\ swap\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharcomma}\ simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if\ fst{\isacharunderscore}lens{\isacharunderscore}def\ snd{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Composition laws%
+}
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}assoc{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}X\ {\isacharsemicolon}\isactrlsub L\ Y{\isacharparenright}\ {\isacharsemicolon}\isactrlsub L\ Z\ {\isacharequal}\ X\ {\isacharsemicolon}\isactrlsub L\ {\isacharparenleft}Y\ {\isacharsemicolon}\isactrlsub L\ Z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}left{\isacharunderscore}id\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{1}}\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ X\ {\isacharequal}\ X{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ id{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}right{\isacharunderscore}id\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isacharsemicolon}\isactrlsub L\ {\isadigit{1}}\isactrlsub L\ {\isacharequal}\ X{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ id{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}anhil\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ X\ {\isasymLongrightarrow}\ {\isadigit{0}}\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ X\ {\isacharequal}\ {\isadigit{0}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ zero{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def\ comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Independence laws%
+}
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ zero{\isacharunderscore}lens{\isacharunderscore}indep{\isacharcolon}\ {\isachardoublequoteopen}{\isadigit{0}}\isactrlsub L\ {\isasymbowtie}\ X{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ zero{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}indep{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}quasi{\isacharunderscore}irrefl{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ wb{\isacharunderscore}lens\ x{\isacharsemicolon}\ eff{\isacharunderscore}lens\ x\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isasymnot}\ {\isacharparenleft}x\ {\isasymbowtie}\ x{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}def\ ief{\isacharunderscore}lens{\isacharunderscore}def\ ief{\isacharunderscore}lens{\isacharunderscore}axioms{\isacharunderscore}def{\isacharcomma}\ metis\ {\isacharparenleft}full{\isacharunderscore}types{\isacharparenright}\ wb{\isacharunderscore}lens{\isachardot}get{\isacharunderscore}put{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}left{\isacharunderscore}comp\ {\isacharbrackleft}simp{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ mwb{\isacharunderscore}lens\ z{\isacharsemicolon}\ x\ {\isasymbowtie}\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ z{\isacharparenright}\ {\isasymbowtie}\ {\isacharparenleft}y\ {\isacharsemicolon}\isactrlsub L\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ lens{\isacharunderscore}indepI{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}right{\isacharunderscore}comp{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}y\ {\isasymbowtie}\ z\ {\isasymLongrightarrow}\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ y{\isacharparenright}\ {\isasymbowtie}\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ intro{\isacharbang}{\isacharcolon}\ lens{\isacharunderscore}indepI\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{using}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}comm\ lens{\isacharunderscore}indep{\isacharunderscore}sym\ \isacommand{apply}\isamarkupfalse%
+\ fastforce\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}left{\isacharunderscore}ext\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}y\ {\isasymbowtie}\ z\ {\isasymLongrightarrow}\ {\isacharparenleft}x\ {\isacharsemicolon}\isactrlsub L\ y{\isacharparenright}\ {\isasymbowtie}\ z{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ intro{\isacharbang}{\isacharcolon}\ lens{\isacharunderscore}indepI\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}right{\isacharunderscore}ext\ {\isacharbrackleft}intro{\isacharbrackright}{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}x\ {\isasymbowtie}\ z\ {\isasymLongrightarrow}\ x\ {\isasymbowtie}\ {\isacharparenleft}y\ {\isacharsemicolon}\isactrlsub L\ z{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}left{\isacharunderscore}ext\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ fst{\isacharunderscore}snd{\isacharunderscore}lens{\isacharunderscore}indep{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}fst\isactrlsub L\ {\isasymbowtie}\ snd\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}def\ fst{\isacharunderscore}lens{\isacharunderscore}def\ snd{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ split{\isacharunderscore}prod{\isacharunderscore}lens{\isacharunderscore}indep{\isacharcolon}\isanewline
+\ \ \isakeyword{assumes}\ {\isachardoublequoteopen}mwb{\isacharunderscore}lens\ X{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{shows}\ {\isachardoublequoteopen}{\isacharparenleft}fst\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ X{\isacharparenright}\ {\isasymbowtie}\ {\isacharparenleft}snd\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ X{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ assms\ fst{\isacharunderscore}snd{\isacharunderscore}lens{\isacharunderscore}indep\ lens{\isacharunderscore}indep{\isacharunderscore}left{\isacharunderscore}comp\ vwb{\isacharunderscore}lens{\isacharunderscore}mwb\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ plus{\isacharunderscore}pres{\isacharunderscore}lens{\isacharunderscore}indep{\isacharcolon}\ {\isachardoublequoteopen}{\isasymlbrakk}\ X\ {\isasymbowtie}\ Z{\isacharsemicolon}\ Y\ {\isasymbowtie}\ Z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ {\isacharparenleft}X\ {\isacharplus}\isactrlsub L\ Y{\isacharparenright}\ {\isasymbowtie}\ Z{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ lens{\isacharunderscore}indepI{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}indep{\isacharunderscore}cong{\isacharunderscore}left{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ mwb{\isacharunderscore}lens\ Z{\isacharsemicolon}\ X\ {\isacharsemicolon}\isactrlsub L\ Z\ {\isasymbowtie}\ Y\ {\isacharsemicolon}\isactrlsub L\ Z\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ X\ {\isasymbowtie}\ Y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ lens{\isacharunderscore}indepI{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rename{\isacharunderscore}tac\ u\ v\ {\isasymsigma}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ u{\isacharequal}u\ \isakeyword{and}\ v{\isacharequal}v\ \isakeyword{and}\ {\isasymsigma}{\isacharequal}{\isachardoublequoteopen}create\isactrlbsub Z\isactrlesub \ {\isasymsigma}{\isachardoublequoteclose}\ \isakeyword{in}\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}meson\ mwb{\isacharunderscore}lens{\isacharunderscore}weak\ weak{\isacharunderscore}lens{\isachardot}view{\isacharunderscore}determination{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rename{\isacharunderscore}tac\ v\ {\isasymsigma}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ v{\isacharequal}v\ \isakeyword{and}\ {\isasymsigma}{\isacharequal}{\isachardoublequoteopen}create\isactrlbsub Z\isactrlesub \ {\isasymsigma}{\isachardoublequoteclose}\ \isakeyword{in}\ lens{\isacharunderscore}indep{\isacharunderscore}get{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rename{\isacharunderscore}tac\ u\ {\isasymsigma}{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}drule{\isacharunderscore}tac\ v{\isacharequal}u\ \isakeyword{and}\ {\isasymsigma}{\isacharequal}{\isachardoublequoteopen}create\isactrlbsub Z\isactrlesub \ {\isasymsigma}{\isachardoublequoteclose}\ \isakeyword{in}\ lens{\isacharunderscore}indep{\isacharunderscore}get{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}indep{\isacharunderscore}cong{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}mwb{\isacharunderscore}lens\ Z\ {\isasymLongrightarrow}\ {\isacharparenleft}X\ {\isacharsemicolon}\isactrlsub L\ Z{\isacharparenright}\ {\isasymbowtie}\ {\isacharparenleft}Y\ {\isacharsemicolon}\isactrlsub L\ Z{\isacharparenright}\ {\isasymlongleftrightarrow}\ X\ {\isasymbowtie}\ Y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ lens{\isacharunderscore}comp{\isacharunderscore}indep{\isacharunderscore}cong{\isacharunderscore}left\ lens{\isacharunderscore}indep{\isacharunderscore}left{\isacharunderscore}comp\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}indep{\isacharunderscore}prod{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ X\isactrlsub {\isadigit{1}}\ {\isasymbowtie}\ X\isactrlsub {\isadigit{2}}{\isacharsemicolon}\ Y\isactrlsub {\isadigit{1}}\ {\isasymbowtie}\ Y\isactrlsub {\isadigit{2}}\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ X\isactrlsub {\isadigit{1}}\ {\isasymtimes}\isactrlsub L\ Y\isactrlsub {\isadigit{1}}\ {\isasymbowtie}\ X\isactrlsub {\isadigit{2}}\ {\isasymtimes}\isactrlsub L\ Y\isactrlsub {\isadigit{2}}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}rule\ lens{\isacharunderscore}indepI{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if\ lens{\isacharunderscore}indep{\isacharunderscore}comm\ map{\isacharunderscore}prod{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ lens{\isacharunderscore}indep{\isacharunderscore}sym{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\isamarkupsubsection{Algebraic laws%
+}
+\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ fst{\isacharunderscore}lens{\isacharunderscore}plus{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}wb{\isacharunderscore}lens\ y\ {\isasymLongrightarrow}\ fst\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ {\isacharparenleft}x\ {\isacharplus}\isactrlsub L\ y{\isacharparenright}\ {\isacharequal}\ x{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ fst{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}plus{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def\ comp{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+%
+\endisadelimproof
+%
+\begin{isamarkuptext}%
+The second law requires independence as we have to apply x first, before y%
+\end{isamarkuptext}\isamarkuptrue%
+\isacommand{lemma}\isamarkupfalse%
+\ snd{\isacharunderscore}lens{\isacharunderscore}plus{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isasymlbrakk}\ wb{\isacharunderscore}lens\ x{\isacharsemicolon}\ x\ {\isasymbowtie}\ y\ {\isasymrbrakk}\ {\isasymLongrightarrow}\ snd\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ {\isacharparenleft}x\ {\isacharplus}\isactrlsub L\ y{\isacharparenright}\ {\isacharequal}\ y{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ snd{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}plus{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def\ comp{\isacharunderscore}def{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}subst\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ lens{\isacharunderscore}plus{\isacharunderscore}swap{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}X\ {\isasymbowtie}\ Y\ {\isasymLongrightarrow}\ {\isacharparenleft}snd\isactrlsub L\ {\isacharplus}\isactrlsub L\ fst\isactrlsub L{\isacharparenright}\ {\isacharsemicolon}\isactrlsub L\ {\isacharparenleft}X\ {\isacharplus}\isactrlsub L\ Y{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}Y\ {\isacharplus}\isactrlsub L\ X{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def\ fst{\isacharunderscore}lens{\isacharunderscore}def\ snd{\isacharunderscore}lens{\isacharunderscore}def\ id{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def\ lens{\isacharunderscore}indep{\isacharunderscore}comm{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}as{\isacharunderscore}plus{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isasymtimes}\isactrlsub L\ Y\ {\isacharequal}\ X\ {\isacharsemicolon}\isactrlsub L\ fst\isactrlsub L\ {\isacharplus}\isactrlsub L\ Y\ {\isacharsemicolon}\isactrlsub L\ snd\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ fst{\isacharunderscore}lens{\isacharunderscore}def\ snd{\isacharunderscore}lens{\isacharunderscore}def\ lens{\isacharunderscore}comp{\isacharunderscore}def\ lens{\isacharunderscore}plus{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}lens{\isacharunderscore}id{\isacharunderscore}equiv{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}{\isadigit{1}}\isactrlsub L\ {\isasymtimes}\isactrlsub L\ {\isadigit{1}}\isactrlsub L\ {\isacharequal}\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}prod{\isacharunderscore}def\ id{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prod{\isacharunderscore}lens{\isacharunderscore}comp{\isacharunderscore}plus{\isacharcolon}\isanewline
+\ \ {\isachardoublequoteopen}X\isactrlsub {\isadigit{2}}\ {\isasymbowtie}\ Y\isactrlsub {\isadigit{2}}\ {\isasymLongrightarrow}\ {\isacharparenleft}{\isacharparenleft}X\isactrlsub {\isadigit{1}}\ {\isasymtimes}\isactrlsub L\ Y\isactrlsub {\isadigit{1}}{\isacharparenright}\ {\isacharsemicolon}\isactrlsub L\ {\isacharparenleft}X\isactrlsub {\isadigit{2}}\ {\isacharplus}\isactrlsub L\ Y\isactrlsub {\isadigit{2}}{\isacharparenright}{\isacharparenright}\ {\isacharequal}\ {\isacharparenleft}X\isactrlsub {\isadigit{1}}\ {\isacharsemicolon}\isactrlsub L\ X\isactrlsub {\isadigit{2}}{\isacharparenright}\ {\isacharplus}\isactrlsub L\ {\isacharparenleft}Y\isactrlsub {\isadigit{1}}\ {\isacharsemicolon}\isactrlsub L\ Y\isactrlsub {\isadigit{2}}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}comp{\isacharunderscore}def\ lens{\isacharunderscore}plus{\isacharunderscore}def\ lens{\isacharunderscore}prod{\isacharunderscore}def\ prod{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if\ fun{\isacharunderscore}eq{\isacharunderscore}iff{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ fst{\isacharunderscore}snd{\isacharunderscore}id{\isacharunderscore}lens{\isacharcolon}\ {\isachardoublequoteopen}fst\isactrlsub L\ {\isacharplus}\isactrlsub L\ snd\isactrlsub L\ {\isacharequal}\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}auto\ simp\ add{\isacharcolon}\ lens{\isacharunderscore}plus{\isacharunderscore}def\ fst{\isacharunderscore}lens{\isacharunderscore}def\ snd{\isacharunderscore}lens{\isacharunderscore}def\ id{\isacharunderscore}lens{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ swap{\isacharunderscore}lens{\isacharunderscore}idem{\isacharcolon}\ {\isachardoublequoteopen}swap\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ swap\isactrlsub L\ {\isacharequal}\ {\isadigit{1}}\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ fst{\isacharunderscore}snd{\isacharunderscore}id{\isacharunderscore}lens\ fst{\isacharunderscore}snd{\isacharunderscore}lens{\isacharunderscore}indep\ lens{\isacharunderscore}indep{\isacharunderscore}sym\ lens{\isacharunderscore}plus{\isacharunderscore}swap{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ swap{\isacharunderscore}lens{\isacharunderscore}fst{\isacharcolon}\ {\isachardoublequoteopen}fst\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ swap\isactrlsub L\ {\isacharequal}\ snd\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ fst{\isacharunderscore}lens{\isacharunderscore}plus\ fst{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ swap{\isacharunderscore}lens{\isacharunderscore}snd{\isacharcolon}\ {\isachardoublequoteopen}snd\isactrlsub L\ {\isacharsemicolon}\isactrlsub L\ swap\isactrlsub L\ {\isacharequal}\ fst\isactrlsub L{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ fst{\isacharunderscore}snd{\isacharunderscore}lens{\isacharunderscore}indep\ lens{\isacharunderscore}indep{\isacharunderscore}sym\ snd{\isacharunderscore}lens{\isacharunderscore}plus\ snd{\isacharunderscore}vwb{\isacharunderscore}lens{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+%
+\isadelimtheory
+\ \ \isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

@@ -1,0 +1,155 @@
+%
+\begin{isabellebody}%
+\setisabellecontext{Prisms}%
+%
+\isamarkupsection{Prisms%
+}
+\isamarkuptrue%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{theory}\isamarkupfalse%
+\ Prisms\isanewline
+\ \ \isakeyword{imports}\ Main\isanewline
+\isakeyword{begin}%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+\isanewline
+\isanewline
+\isacommand{record}\isamarkupfalse%
+\ {\isacharparenleft}{\isacharprime}v{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism\ {\isacharequal}\isanewline
+\ \ prism{\isacharunderscore}match\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}s\ {\isasymRightarrow}\ {\isacharprime}v\ option{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}match{\isasymindex}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\ \ prism{\isacharunderscore}build\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharprime}v\ {\isasymRightarrow}\ {\isacharprime}s{\isachardoublequoteclose}\ {\isacharparenleft}{\isachardoublequoteopen}build{\isasymindex}{\isachardoublequoteclose}{\isacharparenright}\isanewline
+\isanewline
+\isacommand{locale}\isamarkupfalse%
+\ wb{\isacharunderscore}prism\ {\isacharequal}\isanewline
+\ \ \isakeyword{fixes}\ x\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}v{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{structure}{\isacharparenright}\isanewline
+\ \ \isakeyword{assumes}\ match{\isacharunderscore}build{\isacharcolon}\ {\isachardoublequoteopen}match\ {\isacharparenleft}build\ v{\isacharparenright}\ {\isacharequal}\ Some\ v{\isachardoublequoteclose}\isanewline
+\ \ \isakeyword{and}\ build{\isacharunderscore}match{\isacharcolon}\ {\isachardoublequoteopen}match\ s\ {\isacharequal}\ Some\ v\ {\isasymLongrightarrow}\ s\ {\isacharequal}\ build\ v{\isachardoublequoteclose}\isanewline
+\isakeyword{begin}\isanewline
+\ \ \isanewline
+\ \ \isacommand{lemma}\isamarkupfalse%
+\ build{\isacharunderscore}match{\isacharunderscore}iff{\isacharcolon}\ {\isachardoublequoteopen}match\ s\ {\isacharequal}\ Some\ v\ {\isasymlongleftrightarrow}\ s\ {\isacharequal}\ build\ v{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ build{\isacharunderscore}match\ match{\isacharunderscore}build\ \isacommand{by}\isamarkupfalse%
+\ blast%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \ \ \isanewline
+\ \ \isacommand{lemma}\isamarkupfalse%
+\ range{\isacharunderscore}build{\isacharcolon}\ {\isachardoublequoteopen}range\ build\ {\isacharequal}\ dom\ match{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ \ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{using}\isamarkupfalse%
+\ build{\isacharunderscore}match\ match{\isacharunderscore}build\ \isacommand{by}\isamarkupfalse%
+\ fastforce%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\isacommand{end}\isamarkupfalse%
+\isanewline
+\isanewline
+\isacommand{definition}\isamarkupfalse%
+\ prism{\isacharunderscore}suml\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}a\ {\isacharplus}\ {\isacharprime}b{\isacharparenright}\ prism{\isachardoublequoteclose}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}prism{\isacharunderscore}suml\ {\isacharequal}\ {\isasymlparr}\ prism{\isacharunderscore}match\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ v{\isachardot}\ case\ v\ of\ Inl\ x\ {\isasymRightarrow}\ Some\ x\ {\isacharbar}\ {\isacharunderscore}\ {\isasymRightarrow}\ None{\isacharparenright}{\isacharcomma}\ prism{\isacharunderscore}build\ {\isacharequal}\ Inl\ {\isasymrparr}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ wb{\isacharunderscore}prim{\isacharunderscore}suml{\isacharcolon}\ {\isachardoublequoteopen}wb{\isacharunderscore}prism\ prism{\isacharunderscore}suml{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}unfold{\isacharunderscore}locales{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}simp{\isacharunderscore}all\ add{\isacharcolon}\ prism{\isacharunderscore}suml{\isacharunderscore}def\ sum{\isachardot}case{\isacharunderscore}eq{\isacharunderscore}if{\isacharparenright}\isanewline
+\ \ \isacommand{apply}\isamarkupfalse%
+\ {\isacharparenleft}metis\ option{\isachardot}inject\ option{\isachardot}simps{\isacharparenleft}{\isadigit{3}}{\isacharparenright}\ sum{\isachardot}collapse{\isacharparenleft}{\isadigit{1}}{\isacharparenright}{\isacharparenright}\isanewline
+\isacommand{done}\isamarkupfalse%
+%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ prism{\isacharunderscore}diff\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism\ {\isasymRightarrow}\ bool{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infix}\ {\isachardoublequoteopen}{\isasymnabla}{\isachardoublequoteclose}\ {\isadigit{5}}{\isadigit{0}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}prism{\isacharunderscore}diff\ X\ Y\ {\isacharequal}\ {\isacharparenleft}range\ build\isactrlbsub X\isactrlesub \ {\isasyminter}\ range\ build\isactrlbsub Y\isactrlesub \ {\isacharequal}\ {\isacharbraceleft}{\isacharbraceright}{\isacharparenright}{\isachardoublequoteclose}\isanewline
+\isanewline
+\isacommand{lemma}\isamarkupfalse%
+\ prism{\isacharunderscore}diff{\isacharunderscore}build{\isacharcolon}\ {\isachardoublequoteopen}X\ {\isasymnabla}\ Y\ {\isasymLongrightarrow}\ build\isactrlbsub X\isactrlesub \ u\ {\isasymnoteq}\ build\isactrlbsub Y\isactrlesub \ v{\isachardoublequoteclose}\isanewline
+%
+\isadelimproof
+\ \ %
+\endisadelimproof
+%
+\isatagproof
+\isacommand{by}\isamarkupfalse%
+\ {\isacharparenleft}simp\ add{\isacharcolon}\ disjoint{\isacharunderscore}iff{\isacharunderscore}not{\isacharunderscore}equal\ prism{\isacharunderscore}diff{\isacharunderscore}def{\isacharparenright}%
+\endisatagproof
+{\isafoldproof}%
+%
+\isadelimproof
+\isanewline
+%
+\endisadelimproof
+\ \ \ \ \isanewline
+\isacommand{definition}\isamarkupfalse%
+\ prism{\isacharunderscore}plus\ {\isacharcolon}{\isacharcolon}\ {\isachardoublequoteopen}{\isacharparenleft}{\isacharprime}a{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}b{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism\ {\isasymRightarrow}\ {\isacharparenleft}{\isacharprime}a\ {\isacharplus}\ {\isacharprime}b{\isacharcomma}\ {\isacharprime}s{\isacharparenright}\ prism{\isachardoublequoteclose}\ {\isacharparenleft}\isakeyword{infixl}\ {\isachardoublequoteopen}{\isacharplus}\isactrlsub P{\isachardoublequoteclose}\ {\isadigit{8}}{\isadigit{5}}{\isacharparenright}\ \isakeyword{where}\isanewline
+{\isachardoublequoteopen}X\ {\isacharplus}\isactrlsub P\ Y\ {\isacharequal}\ {\isasymlparr}\ prism{\isacharunderscore}match\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ s{\isachardot}\ case\ {\isacharparenleft}match\isactrlbsub X\isactrlesub \ s{\isacharcomma}\ match\isactrlbsub Y\isactrlesub \ s{\isacharparenright}\ of\ \isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}Some\ u{\isacharcomma}\ {\isacharunderscore}{\isacharparenright}\ {\isasymRightarrow}\ Some\ {\isacharparenleft}Inl\ u{\isacharparenright}\ {\isacharbar}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}None{\isacharcomma}\ Some\ v{\isacharparenright}\ {\isasymRightarrow}\ Some\ {\isacharparenleft}Inr\ v{\isacharparenright}\ {\isacharbar}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ {\isacharparenleft}None{\isacharcomma}\ None{\isacharparenright}\ {\isasymRightarrow}\ None{\isacharparenright}{\isacharcomma}\isanewline
+\ \ \ \ \ \ \ \ \ \ \ prism{\isacharunderscore}build\ {\isacharequal}\ {\isacharparenleft}{\isasymlambda}\ v{\isachardot}\ case\ v\ of\ Inl\ x\ {\isasymRightarrow}\ build\isactrlbsub X\isactrlesub \ x\ {\isacharbar}\ Inr\ y\ {\isasymRightarrow}\ build\isactrlbsub Y\isactrlesub \ y{\isacharparenright}\ {\isasymrparr}{\isachardoublequoteclose}\isanewline
+%
+\isadelimtheory
+\isanewline
+%
+\endisadelimtheory
+%
+\isatagtheory
+\isacommand{end}\isamarkupfalse%
+%
+\endisatagtheory
+{\isafoldtheory}%
+%
+\isadelimtheory
+%
+\endisadelimtheory
+%
+\end{isabellebody}%
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: "root"
+%%% End:

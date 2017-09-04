@@ -1,0 +1,30 @@
+section {* Thermostat *}
+
+theory utp_thermostat
+  imports "../utp_hybrid"
+begin
+
+subsection {* State-space *}
+  
+alphabet thermo_c =
+  temp :: real
+
+alphabet thermo_d =
+  isOn :: bool
+
+setup_lifting type_definition_thermo_c_ext
+
+instantiation thermo_c_ext :: (t2_space) t2_space
+begin
+  lift_definition open_thermo_c_ext :: "'a thermo_c_scheme set \<Rightarrow> bool" is "open" .
+  instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
+end
+  
+definition thermostat :: "(thermo_d, thermo_c) hyrel" where
+  "thermostat =
+    (\<mu> X \<bullet> \<^bold>c:temp, \<^bold>d:isOn := 20, false ;;
+           (\<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. 5 - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>r \<langle>temp \<bullet> \<guillemotleft>(\<lambda> _ t. - 0.1 * t)\<guillemotright>\<rangle>\<^sub>h)
+            [$temp\<acute> <\<^sub>u 19 \<or> $temp\<acute> >\<^sub>u 21]\<^sub>h
+           (\<^bold>d:isOn := true \<triangleleft> &\<^bold>c:temp <\<^sub>u 19 \<triangleright>\<^sub>r \<^bold>d:isOn := false))"
+
+end
