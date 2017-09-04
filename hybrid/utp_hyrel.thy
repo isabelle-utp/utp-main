@@ -386,7 +386,13 @@ lemma R2c_init_cont: "R2c(ll(x)) = ll(x)"
 
 lemma R2c_final_cont: "R2c(rl(x)) = rl(x)"
   by (rel_auto)
-  
+    
+lemma ll_RR_closed [closure]: "ll(x) is RR"
+  by (rel_auto)
+
+lemma rl_RR_closed [closure]: "rl(x) is RR"
+  by (rel_auto)
+
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
 [upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
@@ -449,6 +455,28 @@ lemma R2s_hInt: "R2c(\<lceil>P(time)\<rceil>\<^sub>h) = \<lceil>P(time)\<rceil>\
 lemma R2_hInt: "R2(\<lceil>P(time)\<rceil>\<^sub>h) = \<lceil>P(time)\<rceil>\<^sub>h"
   by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
 
+lemma hInt_RR_closed [closure]: "\<lceil>P(time)\<rceil>\<^sub>h is RR"
+  by (rel_auto)
+
+text {* The following theorem demonstrates that we can use an interval specification in a reactive
+  design precondition. *}
+    
+lemma neg_hInt_R1_true: "(\<not>\<^sub>r \<lceil>P(time)\<rceil>\<^sub>h) ;; R1(true) = (\<not>\<^sub>r \<lceil>P(time)\<rceil>\<^sub>h)"
+proof (rel_auto)
+  fix tr tr' tr'' :: "'a ttrace" and b :: "'a" and t :: real
+  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P t\<rbrakk>\<^sub>e (b, \<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
+  hence "tr'' - tr \<le> tr' - tr"
+    by (simp add: minus_cancel_le)
+  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P x\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t x)"
+    apply (rule_tac x="t" in exI, auto)
+    using tt_sub_end apply fastforce
+    apply (metis dual_order.trans trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
+  done
+qed
+    
+lemma hInt_RC_closed [closure]: "\<lceil>P(time)\<rceil>\<^sub>h is RC"
+  by (rule RC_intro, simp_all add: closure neg_hInt_R1_true rpred)
+    
 text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
   is fixed by the regular interval operator. This is because the regular interval operator
   does not refer to state variables but only the evolution of the trajectory. We can also
@@ -461,13 +489,13 @@ lemma hInt_subst_init_cont [usubst]:
   "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(time)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(time)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
   by (simp add: hInt_def usubst)
   
-lemma hInt_false: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
+lemma hInt_false [rpred]: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
   by (rel_auto, meson eq_iff leI minus_zero_eq tt_end_0_iff tt_end_ge_0)
 
-lemma hInt_true: "\<lceil>true\<rceil>\<^sub>h = R1(true)"
+lemma hInt_true [rpred]: "\<lceil>true\<rceil>\<^sub>h = true\<^sub>r"
   by (rel_auto)
 
-lemma hInt_conj: "\<lceil>P(time) \<and> Q(time)\<rceil>\<^sub>h = (\<lceil>P(time)\<rceil>\<^sub>h \<and> \<lceil>Q(time)\<rceil>\<^sub>h)"
+lemma hInt_conj [rpred]: "\<lceil>P(time) \<and> Q(time)\<rceil>\<^sub>h = (\<lceil>P(time)\<rceil>\<^sub>h \<and> \<lceil>Q(time)\<rceil>\<^sub>h)"
   by (rel_auto)
 
 lemma hInt_disj: "\<lceil>P(time) \<or> Q(time)\<rceil>\<^sub>h \<sqsubseteq> (\<lceil>P(time)\<rceil>\<^sub>h \<or> \<lceil>Q(time)\<rceil>\<^sub>h)"
@@ -475,22 +503,6 @@ lemma hInt_disj: "\<lceil>P(time) \<or> Q(time)\<rceil>\<^sub>h \<sqsubseteq> (\
 
 lemma hInt_refine: "`\<^bold>\<forall> time \<bullet> P(time) \<Rightarrow> Q(time)` \<Longrightarrow> \<lceil>Q(time)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(time)\<rceil>\<^sub>h"
   by (rel_auto)
-    
-text {* The following theorem demonstrates that we can use an interval specification in a reactive
-  design precondition. *}
-    
-lemma neg_hInt_R1_true: "R1(\<not> \<lceil>P\<rceil>\<^sub>h) ;; R1(true) = R1(\<not> \<lceil>P\<rceil>\<^sub>h)"
-proof (rel_auto)
-  fix tr tr' tr'' :: "'a ttrace" and b :: "'a" and t :: real
-  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P\<rbrakk>\<^sub>e (b, \<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
-  hence "tr'' - tr \<le> tr' - tr"
-    by (simp add: minus_cancel_le)
-  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t x)"
-    apply (rule_tac x="t" in exI, auto)
-    using tt_sub_end apply fastforce
-    apply (metis dual_order.trans trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
-  done
-qed
         
 text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
   about intervals over false and true. Theorem @{thm [source] hInt_conj} allows us to rewrite
@@ -551,6 +563,42 @@ lemma seq_var_ident_liftr:
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
+subsection {* Somewhere operator *}
+  
+text {* Dual of the interval operator *}
+  
+definition hSomewhere :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
+[upred_defs]: "hSomewhere P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+
+syntax
+  "_hSomewhere"     :: "logic \<Rightarrow> logic" ("\<lfloor>_\<rfloor>\<^sub>h")
+
+translations
+  "\<lfloor>P\<rfloor>\<^sub>h"    => "CONST hSomewhere (\<lambda> _time_var. P)"
+  "\<lfloor>P\<rfloor>\<^sub>h"    <= "CONST hSomewhere (\<lambda> x. P)"
+  
+lemma hSomewhere_RR_closed [closure]:
+  "\<lfloor>P(time)\<rfloor>\<^sub>h is RR"
+  by (rel_auto)
+
+lemma st'_unrest_hSomewhere [unrest]: 
+  "$st\<acute> \<sharp> \<lfloor>P(time)\<rfloor>\<^sub>h"
+  by (rel_auto)
+
+lemma hSomewhere_false [rpred]: "\<lfloor>false\<rfloor>\<^sub>h = false"
+  by (rel_auto)
+
+lemma hSomewhere_true [rpred]: "\<lfloor>true\<rfloor>\<^sub>h = ($tr <\<^sub>u $tr\<acute>)"
+  by (rel_auto)
+    
+lemma rea_not_hInt [rpred]:
+  "(\<not>\<^sub>r \<lceil>P(time)\<rceil>\<^sub>h) = \<lfloor>\<not> P(time)\<rfloor>\<^sub>h"
+  apply (rel_auto) using tt_end_gr_zero_iff by fastforce
+
+lemma rea_not_hSomewhere [rpred]:
+  "(\<not>\<^sub>r \<lfloor>P(time)\<rfloor>\<^sub>h) = \<lceil>\<not> P(time)\<rceil>\<^sub>h"
+  apply (rel_auto) using tt_end_gr_zero_iff by fastforce
+    
 subsection {* Evolve by continuous function *}
  
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
