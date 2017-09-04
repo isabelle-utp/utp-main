@@ -4178,20 +4178,41 @@ qed
      
 lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
   by (rel_blast)
-
+ 
 lemma wrR_RR [closure]: 
   assumes "P is RR" "Q is RR" "M is RDM"
-  shows "(\<not>\<^sub>r Q wr\<^sub>R(M) P) is RR"
+  shows "Q wr\<^sub>R(M) P is RR"
   apply (rule RR_intro)
   apply (simp_all add: unrest assms closure wrR_def rpred)
-oops
-    
+  apply (metis (no_types, lifting) Healthy_def' R1_R2c_commute R1_R2c_is_R2 R1_rea_not RDM_R2m 
+               RR_implies_R2 assms(1) assms(2) assms(3) par_by_merge_seq_add rea_not_R2_closed 
+               wrR_R2_lemma)
+done
+             
 lemma wrR_RC [closure]: 
-  assumes "P is SRD" "Q is SRD" "M is RDM"
-  shows "(\<not>\<^sub>r Q wr\<^sub>R(M) P) is RC"
-  apply (simp add: Healthy_def RC_def) 
-  oops
+  assumes "P is RR" "Q is RR" "M is RDM"
+  shows "(Q wr\<^sub>R(M) P) is RC"
+  apply (rule RC_intro)
+  apply (simp add: closure assms)
+  apply (simp add: wrR_def rpred closure assms)
+  apply (simp add: par_by_merge_def seqr_assoc[THEN sym])
+done
     
+lemma wppR_choice [wp]: "(P \<or> Q) wr\<^sub>R(M) R = (P wr\<^sub>R(M) R \<and> Q wr\<^sub>R(M) R)"
+proof -
+  have "(P \<or> Q) wr\<^sub>R(M) R = 
+        (\<not>\<^sub>r ((\<not>\<^sub>r R) ;; U0 \<and> (P ;; U1 \<or> Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M ;; true\<^sub>r)"
+    by (simp add: wrR_def par_by_merge_def seqr_or_distl)
+  also have "... = (\<not>\<^sub>r ((\<not>\<^sub>r R) ;; U0 \<and> P ;; U1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma> \<or> (\<not>\<^sub>r R) ;; U0 \<and> Q ;; U1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M ;; true\<^sub>r)"
+    by (simp add: conj_disj_distr utp_pred_laws.inf_sup_distrib2)
+  also have "... = (\<not>\<^sub>r (((\<not>\<^sub>r R) ;; U0 \<and> P ;; U1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M ;; true\<^sub>r \<or> 
+                        ((\<not>\<^sub>r R) ;; U0 \<and> Q ;; U1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M ;; true\<^sub>r))"    
+    by (simp add: seqr_or_distl)
+  also have "... = (P wr\<^sub>R(M) R \<and> Q wr\<^sub>R(M) R)"
+    by (simp add: wrR_def par_by_merge_def)
+  finally show ?thesis .
+qed
+      
 lemma wppR_miracle [wp]: "false wr\<^sub>R(M) P = true\<^sub>r"
   by (simp add: wrR_def)
 
@@ -4209,15 +4230,17 @@ lemma parallel_rdes_def [rdes_def]:
           "$st\<acute> \<sharp> P\<^sub>2" "$st\<acute> \<sharp> Q\<^sub>2"
           "M is RDM" "M is SymMerge"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = 
-         \<^bold>R\<^sub>s( Q\<^sub>2 wr\<^sub>R(M) P\<^sub>1 \<and> Q\<^sub>2 wr\<^sub>R(M) P\<^sub>1 \<and> P\<^sub>2 wr\<^sub>R(M) Q\<^sub>1 \<and> P\<^sub>3 wr\<^sub>R(M) Q\<^sub>1
-           \<turnstile> P\<^sub>2 \<parallel>\<^bsub>\<exists>$st\<acute>\<bullet>M\<^esub> Q\<^sub>2 \<or> P\<^sub>3 \<parallel>\<^bsub>\<exists>$st\<acute>\<bullet>M\<^esub> Q\<^sub>2 \<or> P\<^sub>2 \<parallel>\<^bsub>\<exists>$st\<acute>\<bullet>M\<^esub> Q\<^sub>3
-           \<diamondop> P\<^sub>3 \<parallel>\<^bsub>M\<^esub> Q\<^sub>3)" (is "?lhs = ?rhs")
+         \<^bold>R\<^sub>s (((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3) wr\<^sub>R(M) P\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) wr\<^sub>R(M) Q\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) wr\<^sub>R(M) Q\<^sub>1) \<turnstile>
+          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or>
+           (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)) \<diamondop>
+          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))" (is "?lhs = ?rhs")
 proof -
   have "?lhs = \<^bold>R\<^sub>s (pre\<^sub>R ?lhs \<turnstile> peri\<^sub>R ?lhs \<diamondop> post\<^sub>R ?lhs)"
     by (simp add: SRD_reactive_tri_design assms closure)
   also have "... = ?rhs"
-    apply (simp add: rdes closure unrest assms) 
-oops
+    by (simp add: rdes closure unrest assms, rel_auto) 
+  finally show ?thesis .
+qed
 
 lemma Miracle_parallel_left_zero:
   assumes "P is SRD" "M is RDM"

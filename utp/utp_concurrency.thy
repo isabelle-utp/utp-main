@@ -253,6 +253,16 @@ lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\
 lemma shEx_pbm_right: "(P \<parallel>\<^bsub>M\<^esub> (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P \<parallel>\<^bsub>M\<^esub> Q x))"
   by (rel_auto)
 
+subsection {* Unrestriction Laws *}
+  
+lemma unrest_in_par_by_merge [unrest]:
+  "\<lbrakk> $x \<sharp> P; $x\<^sub>< \<sharp> M; $x \<sharp> Q \<rbrakk> \<Longrightarrow> $x \<sharp> P \<parallel>\<^bsub>M\<^esub> Q"
+  by (rel_auto, fastforce+)
+
+lemma unrest_out_par_by_merge [unrest]:
+  "\<lbrakk> $x\<acute> \<sharp> M \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P \<parallel>\<^bsub>M\<^esub> Q"
+  by (rel_auto)
+    
 subsection {* Substitution laws *}
 
 text {* Substitution is a little tricky because when we push the expression through the composition

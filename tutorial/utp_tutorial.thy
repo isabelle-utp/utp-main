@@ -147,7 +147,7 @@ lemma "(&y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = (&y =\<^sub>u 2)"
 
 lemma "(&y =\<^sub>u &x \<and> &y \<in>\<^sub>u &z)\<lbrakk>2/y\<rbrakk> = (2 =\<^sub>u &x \<and> 2 \<in>\<^sub>u &z)"
   by (subst_tac)
-
+    
 lemma "(\<exists> &x \<bullet> &x \<in>\<^sub>u &z)\<lbrakk>76/&x\<rbrakk> = (\<exists> &x \<bullet> &x \<in>\<^sub>u &z)"
   by (subst_tac)
 

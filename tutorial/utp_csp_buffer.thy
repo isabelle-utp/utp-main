@@ -63,13 +63,13 @@ text {* The postcondition has two possibilities. In the first option a particula
   is removed from the buffer. *}
 
 lemma postR_DoBuff:
-  "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle> \<and> \<lceil>buff := &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>\<rceil>\<^sub>S) \<or>
-                    #\<^sub>u($st:buff) >\<^sub>u 0 \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>buff := tail\<^sub>u(&buff)\<rceil>\<^sub>S)"
+  "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> \<Phi>(true,[buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>],\<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>)) \<or>
+                    [0 <\<^sub>u #\<^sub>u(&buff)]\<^sub>S\<^sub>< \<and> \<Phi>(true,[buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)],\<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))"
   by rdes_calc
 
 text {* The precondition of the overall buffer is again true as no divergence can occur. *}
 
-lemma preR_Buffer: "pre\<^sub>R(Buffer) = true"
+lemma preR_Buffer: "pre\<^sub>R(Buffer) = true\<^sub>r"
   by rdes_calc
 
 text {* The postcondition is false as it is a non-terminating process. *}

@@ -529,6 +529,10 @@ lemma subst_ex_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+lemma subst_ex_same' [usubst]:
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> &x \<bullet> P) = \<sigma> \<dagger> (\<exists> &x \<bullet> P)"
+  by (pred_auto)
+    
 lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"

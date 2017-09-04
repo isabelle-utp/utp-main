@@ -224,6 +224,12 @@ done
 lemma csp_init_CRR [closure]: "\<I>(s,t) is CRR"
   by (rule CRR_intro, simp_all add: unrest closure)
     
+lemma rea_init_impl_st [closure]: "(\<I>(b,t) \<Rightarrow>\<^sub>r [c]\<^sub>S\<^sub><) is RC"
+  apply (rule RC_intro)
+  apply (simp add: closure)
+  apply (rel_auto)
+  using order_trans by auto
+    
 (*
 lemma rea_init_RC1: 
   "\<not>\<^sub>r \<I>(P,t) is RC1"
@@ -264,6 +270,25 @@ where [upred_defs]: "P\<lbrakk>v\<rbrakk>\<^sub>t = (P\<lbrakk>&tt-\<lceil>v\<rc
 lemma unrest_trace_subst [unrest]:
   "\<lbrakk> mwb_lens x; x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v\<rbrakk>\<^sub>t"
   by (simp add: trace_subst_def lens_indep_sym unrest)
+  
+lemma trace_subst_RR_closed [closure]:
+  assumes "P is RR"
+  shows "P\<lbrakk>v\<rbrakk>\<^sub>t is RR"
+proof -
+  have "(RR P)\<lbrakk>v\<rbrakk>\<^sub>t is RR"
+    apply (rel_auto)
+    apply (metis diff_add_cancel_left' trace_class.add_left_mono)
+    apply (metis le_add minus_cancel_le trace_class.add_diff_cancel_left)
+    using le_add order_trans apply blast
+  done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma trace_subst_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "P\<lbrakk>v\<rbrakk>\<^sub>t is CRR"
+  by (rule CRR_intro, simp_all add: closure assms unrest)
   
 lemma tsubst_st_cond [usubst]: "[P]\<^sub>S\<^sub><\<lbrakk>t\<rbrakk>\<^sub>t = \<I>(P,t)"
   by (rel_auto)
@@ -1016,6 +1041,11 @@ lemma NCSP_rdes_intro:
   apply (simp_all add: rdes closure assms unrest)
   apply (metis (no_types, lifting) CRC_implies_RC R1_seqr_closure assms(1) rea_not_R1 rea_not_false rea_not_not wpR_RC_false wpR_def)
 done
+    
+lemma NCSP_preR_CRC [closure]:
+  assumes "P is NCSP"
+  shows "pre\<^sub>R(P) is CRC"
+  by (rule CRC_intro, simp_all add: closure assms unrest)
  
 subsection {* CSP theories *}
 
@@ -1105,6 +1135,9 @@ syntax
 
 translations
   "{x[k]} :=\<^sub>C v" == "CONST csp_assign_upd x k v"
+  
+definition circus_assume ("{_}\<^sub>C") where
+[rdes_def]: "{b}\<^sub>C = \<^bold>R\<^sub>s(\<I>(b,\<langle>\<rangle>) \<turnstile> (false \<diamondop> \<Phi>(true,id,\<langle>\<rangle>)))"
   
 text {* The CSP weakest fixed-point is obtained simply by precomposing the body with the CSP
   healthiness condition. *}
