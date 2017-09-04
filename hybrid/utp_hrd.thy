@@ -23,13 +23,13 @@ translations
   "_svarcont x" == "CONST svar_cont x"
 
 definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
+[upred_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
 
 definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
+[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
                                     \<diamondop> ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
                                         \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
                                        ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)))"
@@ -73,7 +73,7 @@ definition hrdPreempt ::
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64) where
 [upred_defs]: "P [b]\<^sub>H Q = (Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P [b]\<^sub>H\<^sup>+ Q))"
 
-lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = true"
+lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = true\<^sub>r"
   by (rel_auto)
     
 lemma periR_hrdEvolve [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = (x \<leftarrow>\<^sub>h f(time))"
@@ -88,7 +88,7 @@ lemma hrdEvolve_SRD [closure]: "x \<leftarrow>\<^sub>H f(time) is SRD"
 lemma hrdEvolve_NSRD [closure]: "x \<leftarrow>\<^sub>H f(time) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def rdes closure unrest)
     
-lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = true"
+lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = true\<^sub>r"
   by (rel_auto)
     
 lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) "
@@ -110,19 +110,20 @@ lemma hrdEvolveTil_NSRD [closure]: "x \<leftarrow>\<^sub>H(t) f(time) is NSRD"
     
 lemma preR_hrdUntil [rdes]: 
   "P is SRD \<Longrightarrow> pre\<^sub>R(P until\<^sub>H b) = pre\<^sub>R(P)"
-  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 R2_neg_pre_SRD)
+  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2 Healthy_if)
 
 lemma periR_hrdUntil [rdes]: 
-  "P is NSRD \<Longrightarrow> peri\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h)"
+  "P is NSRD \<Longrightarrow> peri\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h)"
   by (simp add: hrdUntil_def rea_peri_RHS_design unrest usubst impl_alt_def
-      NSRD_is_SRD R1_disj R1_extend_conj' R1_hInt R1_neg_R2c_pre_RHS R2c_and R2c_disj 
-      R2c_not R2c_peri_SRD R2s_hInt)
+      NSRD_is_SRD R1_disj R1_extend_conj' R1_hInt  R2c_and R2c_disj 
+      R2c_not R2c_peri_SRD R2s_hInt  R1_rea_impl R2c_preR R2c_rea_impl)
 
 lemma postR_hrdUntil [rdes]:
-  "P is NSRD \<Longrightarrow> post\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+  "P is NSRD \<Longrightarrow> post\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
   apply (simp add: hrdUntil_def rea_post_RHS_design unrest usubst impl_alt_def
-      NSRD_is_SRD R1_disj R1_extend_conj R1_hInt R1_neg_R2c_pre_RHS R2c_and R2c_disj 
-      R2c_not R1_post_SRD R1_peri_SRD R2c_peri_SRD R2c_post_SRD R2s_hInt R2c_init_cont R2c_final_cont)
+      NSRD_is_SRD R1_disj R1_extend_conj R1_hInt R2c_and R2c_disj 
+      R2c_not R1_post_SRD R1_peri_SRD R2c_peri_SRD R2c_post_SRD R2s_hInt R2c_init_cont R2c_final_cont
+      R1_rea_impl R2c_rea_impl R2c_preR)
   apply (rel_auto)
 done
     
@@ -154,11 +155,11 @@ lemma hrdPreempt_true:
 lemma hrdIntF_zero: "x \<leftarrow>\<^sub>H(0) f(time) = II\<^sub>R"
   by (simp add: hrdEvolveTil_def alpha, rel_auto)
 
-lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P \<rbrakk> \<Longrightarrow> $x \<sharp> (P wp\<^sub>R Q)"
-  by (simp add: wpR_def unrest R1_def)
+lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x \<sharp> (P wp\<^sub>R Q)"
+  by (simp add: wpR_def unrest R1_def rea_not_def)
 
 lemma out_var_unrest_wpR [unrest]: "\<lbrakk> $x\<acute> \<sharp> Q; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> (P wp\<^sub>R Q)"
-  by (simp add: wpR_def unrest R1_def)
+  by (simp add: wpR_def unrest R1_def rea_not_def)
     
 lemma "(x::real) > 0 \<Longrightarrow> at_left x = at x within {0 ..< x}"
   by (simp add: at_left_from_zero)

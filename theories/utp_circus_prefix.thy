@@ -120,7 +120,6 @@ declare NewInputCircus'_def [urel_defs]
 lemma "inj c \<Longrightarrow> NewInputCircus c P A = NewInputCircus' c P A"
 apply (rel_simp)
 apply (safe; clarsimp?)
-apply (simp_all add: zero_list_def)
 apply (metis)+
 done
 

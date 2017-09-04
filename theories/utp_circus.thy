@@ -65,7 +65,7 @@ lemmas circus_syntax =
 
 subsection {* Process Syntax *}
 
-nonterminal state and action and actions and process
+nonterminal statep and action and actions and process
 
 text {*
   We support both basic and composite process definitions. Moreover, processes
@@ -77,12 +77,12 @@ text {*
 *}
 
 syntax
-  "_State" :: "type \<Rightarrow> state"                  ("state'(_')")
+  "_State" :: "type \<Rightarrow> statep"                  ("state'(_')")
   "_Action"  :: "[pttrn, logic] \<Rightarrow> action"     ("(2_ =/ _)" 10)
   ""         :: "action \<Rightarrow> actions"            ("_")
   "_Actions" :: "[action, actions] \<Rightarrow> actions" ("_and//_")
   "_ProcBody" :: "[actions, logic] \<Rightarrow> process"          ("((2begin//(_)//\<bullet> (_))//end)")
-  "_ProcBodySt" :: "[state, actions, logic] \<Rightarrow> process" ("((2begin//(_)//(_)//\<bullet> (_))//end)")
+  "_ProcBodySt" :: "[statep, actions, logic] \<Rightarrow> process" ("((2begin//(_)//(_)//\<bullet> (_))//end)")
   "_BasicProc" :: "idt \<Rightarrow> process \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
   "_BasicDefn" :: "idt \<Rightarrow> logic   \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
   "_ParamProc" :: "idt \<Rightarrow> args \<Rightarrow> process \<Rightarrow> bool" ("(process _ _ \<triangleq>//_)" [0, 0, 10] 10)
@@ -101,7 +101,7 @@ text {*
 *}
 
 translations
-  (state) "state('type)" \<rightleftharpoons> "TYPE('type)"
+  (statep) "state('type)" \<rightleftharpoons> "TYPE('type)"
 -- \<open>Shift the type argument from ProcBodySt into (Basic/Param)ProcSt.\<close>
   "_BasicProc name (_ProcBodySt type actions main)" \<rightleftharpoons>
   "_BasicProcSt name type (_ProcBody actions main)"
@@ -151,11 +151,6 @@ purge_notation
 consts ParCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>
    ('\<sigma>, '\<phi>) action" (infixl "[|(_)|]" 60)
-
-definition InterleaveCircus ::
-  "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>
-   ('\<sigma>, '\<phi>) action" (infixl "|||" 62) where
-"P ||| Q = P [| {} |] Q"
 
 consts HideCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\\" 55)

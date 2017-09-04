@@ -115,7 +115,7 @@ proof -
     apply (subst hUntil_solve[of _ "416/140"])
     apply (simp_all add: usubst unrest)
     apply (force intro: continuous_intros)
-    apply (force intro: continuous_intros)
+    apply (force simp add: pr_var_def intro: continuous_intros)
     apply (pred_auto)
   done
   also have "?lhs \<sqsubseteq> ..."
