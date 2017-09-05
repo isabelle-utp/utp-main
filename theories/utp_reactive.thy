@@ -1161,6 +1161,8 @@ lemma rea_skip_RR [closure]:
   "II\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by blast
 
+lemma tr'_eq_tr_RR_closed [closure]: "$tr\<acute> =\<^sub>u $tr is RR"
+  apply (rel_auto) using minus_zero_eq by auto
   
 lemma rea_skip_unit:
   assumes "P is RR"

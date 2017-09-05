@@ -78,10 +78,10 @@ lemma out_alpha_unrest_st_lift_pre [unrest]:
   "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
     
-lemma tr_unrest_st_lift [unrest]: 
-  "$tr \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>" "$tr\<acute> \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
-  by (rel_auto)+
-        
+lemma unrest_st_list [unrest]:
+  "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
+  by (metis in_var_def in_var_prod_lens lens_comp_left_id st_vwb_lens unrest_subst_alpha_ext vwb_lens_wb)
+           
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
@@ -115,6 +115,25 @@ lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^su
   
 lemma unrest_st_indep [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
   by (metis lens_comp_left_id st_qual_alpha unrest_subst_alpha_ext)
+
+text {* Reactive state assignment *}
+    
+definition rea_assigns :: "('s \<Rightarrow> 's) \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>r") where
+[upred_defs]: "\<langle>\<sigma>\<rangle>\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
+
+lemma rea_assigns_RR_closed [closure]: 
+  "\<langle>\<sigma>\<rangle>\<^sub>r is RR"
+  apply (rel_auto) using minus_zero_eq by auto
+    
+lemma rea_assigns_comp [rpred]:
+  assumes "P is RR"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>r ;; P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
+proof -
+  have "\<langle>\<sigma>\<rangle>\<^sub>r ;; (RR P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (RR P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
     
 subsection {* Healthiness conditions *}
 
@@ -1439,17 +1458,17 @@ lemma wpR_skip [wp]:
   assumes "Q is R1"
   shows "II wp\<^sub>R Q = Q"
   by (simp add: wpR_def rpred assms Healthy_if)
-
-lemma wpR_assigns [wp]:
-  assumes "Q is RR"
-  shows "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R Q = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Q"
+    
+lemma wpR_rea_assigns [wp]:
+  assumes "P is RR"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>r wp\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
 proof -
-  have "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R (RR Q) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (RR Q)"
+  have "\<langle>\<sigma>\<rangle>\<^sub>r wp\<^sub>R (RR P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (RR P)"
     by (rel_auto)
   thus ?thesis
-    by (simp add: Healthy_if assms)
+    by (metis Healthy_def assms)
 qed
-    
+  
 lemma wpR_miracle [wp]: "false wp\<^sub>R Q = true\<^sub>r"
   by (simp add: wpR_def)
 
@@ -1994,7 +2013,7 @@ lemma SRD_eq_intro:
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
 
-lemma srdes_skip_tri_design [rdes_def]: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
+lemma srdes_skip_tri_design [rdes_def]: "II\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> II\<^sub>r)"
   by (simp add: srdes_skip_def, rel_auto)
     
 subsection {* Reactive design signature *}
@@ -2032,6 +2051,13 @@ abbreviation cond_srea ::
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
 "cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
 
+text {* We introduce a special operator for lifting a state variable substitution to a reactive design.
+  The substitution is only applied when the design has been started; it is not waiting for the predecessor
+  and has not diverged. *}
+
+definition srd_subst :: "'s usubst \<Rightarrow> (('s,'t::trace,'\<alpha>) rsp \<times> ('s,'t::trace,'\<alpha>) rsp) usubst" ("<_>\<^sub>S") where
+[upred_defs]: "<\<sigma>>\<^sub>S = (\<lambda> s. if \<lbrakk>$ok \<and> \<not> $wait\<rbrakk>\<^sub>e s then \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> s else s)" 
+  
 text {* We introduce state abstraction by creating some lens functors that allow us to lift
   a lens on the state-space to one on the whole stateful reactive alphabet. *}
 
@@ -2141,9 +2167,9 @@ proof -
     by (simp add: Chaos_def)
   finally show ?thesis .
 qed
-
+  
 lemma assigns_rea_RHS_tri_des [rdes_def]:
-  "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+  "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<langle>\<sigma>\<rangle>\<^sub>r)"
   by (rel_auto)
 
 lemma preR_Chaos [rdes]: "pre\<^sub>R(Chaos) = false"
@@ -2561,7 +2587,7 @@ lemma RHS_tri_design_right_unit_lemma:
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
 proof -
   have "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
-    by (simp add: srdes_skip_tri_design)
+    by (simp add: srdes_skip_tri_design, rel_auto)
   also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> (R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))))"
     by (simp_all add: RHS_tri_design_composition assms unrest R2s_true R1_false R2s_false)
   also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> R1 (R2s R))"
@@ -2895,10 +2921,7 @@ lemma NSRD_Miracle [closure]: "Miracle is NSRD"
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
-  by (metis (no_types, lifting) Miracle_def NSRD_composition_wp NSRD_healthy_form NSRD_is_SRD 
-      SRD_right_unit_tri_lemma SRD_srdes_skip assms disj_upred_def periR_Miracle postR_Miracle 
-      preR_NSRD_seq rea_not_false rea_pre_RHS_design seqr_right_zero srdes_skip_tri_design 
-      srdes_theory_continuous.top_closed upred_semiring.add.right_neutral wpR_def)
+  by (simp add: NSRD_composition_wp closure assms rdes wp rpred)
     
 lemma Miracle_right_zero_law:
   assumes "$ok\<acute> \<sharp> P"
@@ -2944,30 +2967,72 @@ lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
 lemma NSRD_state_srea [closure]: "P is NSRD \<Longrightarrow> state 'a \<bullet> P is NSRD"
   by (metis Healthy_def NSRD_is_RD3 NSRD_is_SRD RD3_state_srea SRD_RD3_implies_NSRD SRD_state_srea)
 
-lemma assigns_rea_left_seq:
-  assumes "P is NSRD"
-  shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = \<^bold>R\<^sub>s (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R P \<turnstile> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> peri\<^sub>R P \<diamondop> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R P)"
+lemma srd_subst_RHS_tri_design [usubst]:
+  "<\<sigma>>\<^sub>S \<dagger> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s((\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) \<turnstile> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Q) \<diamondop> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> R))"
+  by (rel_auto)
+
+lemma srd_subst_SRD_closed [closure]: 
+  assumes "P is SRD"
+  shows "<\<sigma>>\<^sub>S \<dagger> P is SRD"
 proof -
-  have 1: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) wp\<^sub>R pre\<^sub>R (R1 P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (pre\<^sub>R (R1 P))"
+  have "SRD(<\<sigma>>\<^sub>S \<dagger> (SRD P)) = <\<sigma>>\<^sub>S \<dagger> (SRD P)"
     by (rel_auto)
-  have 2: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; peri\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (peri\<^sub>R P)"
-    by (rel_auto)
-  have 3: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; post\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (post\<^sub>R P)"
-    by (rel_auto)
-  show ?thesis
-    by (simp add: NSRD_composition_wp closure assms rdes rpred wp)
-       (metis (mono_tags, hide_lams) "2" "3" R1_design_R1_pre R1_extend_conj utp_pred_laws.inf_top_left)
+  thus ?thesis
+    by (metis Healthy_def assms)
 qed
 
+lemma preR_srd_subst [rdes]:
+  "pre\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R(P)"
+  by (rel_auto)
+
+lemma periR_srd_subst [rdes]:
+  "peri\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> peri\<^sub>R(P)"
+  by (rel_auto)
+
+lemma postR_srd_subst [rdes]:
+  "post\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R(P)"
+  by (rel_auto)
+    
+lemma st_subst_rea_not [usubst]: 
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (\<not>\<^sub>r P) = (\<not>\<^sub>r \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)"
+  by (rel_auto)
+
+lemma st_subst_seq [usubst]: 
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (P ;; Q) = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) ;; Q"
+  by (rel_auto)
+    
+lemma st_subst_RR_closed [closure]:
+  assumes "P is RR"
+  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is RR"
+proof -
+  have "RR(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma st_subst_RC_closed [closure]:
+  assumes "P is RC"
+  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is RC"
+  apply (rule RC_intro, simp add: closure assms)
+  apply (simp add: st_subst_rea_not[THEN sym] st_subst_seq[THEN sym])
+  apply (metis Healthy_if RC1_def RC_implies_RC1 assms)
+done
+  
+lemma srd_subst_NSRD_closed [closure]: 
+  assumes "P is NSRD"
+  shows "<\<sigma>>\<^sub>S \<dagger> P is NSRD"
+  by (rule NSRD_RC_intro, simp_all add: closure rdes assms unrest)
+              
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
 proof -
   have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
         ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
     by (rel_auto)
-  have "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<^bold>R\<^sub>s (true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+  have "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<^bold>R\<^sub>s (true\<^sub>r \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
     by (simp add: NSRD_composition_wp closure preR_assigns_rea periR_assigns_rea postR_assigns_rea R1_design_R1_pre wp a)
   also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
-    by (simp add: assigns_rea_RHS_tri_des)
+    by (simp add: assigns_rea_RHS_tri_des, rel_auto)
   finally show ?thesis .
 qed
 
@@ -4391,6 +4456,36 @@ method rdes_refine' =
 text {* The following tactic combines antisymmetry with the previous tactic to prove an equality. *}
 
 method rdes_eq' =
-  (rule_tac antisym, rdes_refine, rdes_refine)
+  (rule_tac antisym, rdes_refine, rdes_refine)  
 
+subsection {* Reactive Design Substitution Laws *}
+  
+lemma srd_subst_Chaos [usubst]:
+  "<\<sigma>>\<^sub>S \<dagger> Chaos = Chaos"
+  by (rdes_simp)
+
+lemma srd_subst_Miracle [usubst]:
+  "<\<sigma>>\<^sub>S \<dagger> Miracle = Miracle"
+  by (rdes_simp)
+
+lemma srd_subst_skip [usubst]:
+  "<\<sigma>>\<^sub>S \<dagger> II\<^sub>R = \<langle>\<sigma>\<rangle>\<^sub>R"
+  by (rdes_eq)
+    
+lemma srd_subst_assigns [usubst]:
+  "<\<sigma>>\<^sub>S \<dagger> \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+  by (rdes_eq)
+    
+lemma srd_subst_seq [usubst]:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "<\<sigma>>\<^sub>S \<dagger> (P ;; Q) = <\<sigma>>\<^sub>S \<dagger> P ;; Q"
+  by (rdes_eq cls: assms)
+    
+subsection {* Algebraic Laws *}
+  
+lemma assigns_srd_left_seq:
+  assumes "P is NSRD"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = (<\<sigma>>\<^sub>S \<dagger> P)"
+  by (rdes_simp cls: assms)  
+    
 end

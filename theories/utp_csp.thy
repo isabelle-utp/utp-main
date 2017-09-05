@@ -766,27 +766,11 @@ qed
       
 lemma Skip_srdes_right_unit:
   "(Skip :: ('\<sigma>,'\<phi>) action) ;; II\<^sub>R = Skip"
-proof -
-  have "($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R)
-         = (($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st) :: ('\<sigma>,'\<phi>) action)"
-    by (rel_auto)
-  thus ?thesis
-    by (simp add: Skip_RHS_tri_design srdes_skip_tri_design RHS_tri_normal_design_composition
-                  unrest R2c_true Healthy_def R1_false R2c_false R1_extend_conj R1_tr'_eq_tr R2c_and
-                  R2c_tr'_minus_tr R2c_st'_eq_st wp R2c_lift_rea R1_design_R1_pre)
-qed
+  by (rdes_eq)
 
 lemma Skip_srdes_left_unit:
   "II\<^sub>R ;; (Skip :: ('\<sigma>,'\<phi>) action) = Skip"
-proof -
-  have "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R) ;; ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)
-         = (($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st) :: ('\<sigma>,'\<phi>) action)"
-    by (rel_auto)
-  thus ?thesis
-    by (simp add: Skip_RHS_tri_design srdes_skip_tri_design RHS_tri_normal_design_composition
-                  unrest R2c_true Healthy_def R1_false R2c_false R1_extend_conj R1_tr'_eq_tr R2c_and
-                  R2c_tr'_minus_tr R2c_st'_eq_st wp R2c_lift_rea R1_design_R1_pre)
-qed
+  by (rdes_eq)
 
 lemma CSP4_right_subsumes_RD3: "RD3(CSP4(P)) = CSP4(P)"
   by (metis (no_types, hide_lams) CSP4_def RD3_def Skip_srdes_right_unit seqr_assoc)
