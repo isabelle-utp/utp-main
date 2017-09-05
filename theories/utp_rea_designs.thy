@@ -2288,7 +2288,7 @@ lemma periR_inf [rdes]: "peri\<^sub>R(P \<sqinter> Q) = (peri\<^sub>R(P) \<or> p
 lemma postR_inf [rdes]: "post\<^sub>R(P \<sqinter> Q) = (post\<^sub>R(P) \<or> post\<^sub>R(Q))"
   by (rel_simp)
 
-lemma SRD_USUP [rdes_def]:
+lemma SRD_UINF [rdes_def]:
   assumes "A \<noteq> {}" "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "\<Sqinter> A = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
 proof -
@@ -2297,6 +2297,20 @@ proof -
               srdes_theory_continuous.healthy_inf srdes_theory_continuous.healthy_inf_def)
   also have "... = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
     by (simp add: preR_INF periR_INF postR_INF assms)
+  finally show ?thesis .
+qed
+  
+lemma SRD_UINF_ind [rdes_def]:
+  assumes "A \<noteq> {}" "\<And> i. P i is SRD"
+  shows "(\<Sqinter> i\<in>A \<bullet> P i) = \<^bold>R\<^sub>s((\<And> i\<in>A \<bullet> pre\<^sub>R(P i)) \<turnstile> (\<Or> i\<in>A \<bullet> peri\<^sub>R(P i)) \<diamondop> (\<Or> i\<in>A \<bullet> post\<^sub>R(P i)))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<Sqinter> (P ` A))"
+    by (rel_auto) 
+  also have " ... =  \<^bold>R\<^sub>s ((\<Squnion> Pa \<in> P ` A \<bullet> pre\<^sub>R Pa) \<turnstile> (\<Sqinter> Pa \<in> P ` A \<bullet> peri\<^sub>R Pa) \<diamondop> (\<Sqinter> Pa \<in> P ` A \<bullet> post\<^sub>R Pa))"
+    by (subst rdes_def, simp_all add: assms image_subsetI)
+  also have "... = ?rhs"
+    by (rel_auto)
   finally show ?thesis .
 qed
 

@@ -1285,6 +1285,9 @@ lemma USUP_mem_rea_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Squnion> i \
 lemma USUP_ind_rea_true [simp]: "(\<Squnion> i \<bullet> true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
     
+lemma UINF_ind_rea_true [rpred]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> true\<^sub>r) = true\<^sub>r"
+  by (rel_auto)
+    
 lemma rea_assert_true:
   "{true\<^sub>r}\<^sub>r = II\<^sub>r"
   by (rel_auto)
