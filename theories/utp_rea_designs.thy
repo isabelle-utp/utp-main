@@ -2050,13 +2050,6 @@ abbreviation cond_srea ::
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
 "cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
-
-text {* We introduce a special operator for lifting a state variable substitution to a reactive design.
-  The substitution is only applied when the design has been started; it is not waiting for the predecessor
-  and has not diverged. *}
-
-definition srd_subst :: "'s usubst \<Rightarrow> (('s,'t::trace,'\<alpha>) rsp \<times> ('s,'t::trace,'\<alpha>) rsp) usubst" ("<_>\<^sub>S") where
-[upred_defs]: "<\<sigma>>\<^sub>S = (\<lambda> s. if \<lbrakk>$ok \<and> \<not> $wait\<rbrakk>\<^sub>e s then \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> s else s)" 
   
 text {* We introduce state abstraction by creating some lens functors that allow us to lift
   a lens on the state-space to one on the whole stateful reactive alphabet. *}
@@ -2968,29 +2961,29 @@ lemma NSRD_state_srea [closure]: "P is NSRD \<Longrightarrow> state 'a \<bullet>
   by (metis Healthy_def NSRD_is_RD3 NSRD_is_SRD RD3_state_srea SRD_RD3_implies_NSRD SRD_state_srea)
 
 lemma srd_subst_RHS_tri_design [usubst]:
-  "<\<sigma>>\<^sub>S \<dagger> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s((\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) \<turnstile> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Q) \<diamondop> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> R))"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s((\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) \<turnstile> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Q) \<diamondop> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> R))"
   by (rel_auto)
-
+    
 lemma srd_subst_SRD_closed [closure]: 
   assumes "P is SRD"
-  shows "<\<sigma>>\<^sub>S \<dagger> P is SRD"
+  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is SRD"
 proof -
-  have "SRD(<\<sigma>>\<^sub>S \<dagger> (SRD P)) = <\<sigma>>\<^sub>S \<dagger> (SRD P)"
+  have "SRD(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (SRD P)) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (SRD P)"
     by (rel_auto)
   thus ?thesis
     by (metis Healthy_def assms)
 qed
 
 lemma preR_srd_subst [rdes]:
-  "pre\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R(P)"
+  "pre\<^sub>R(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R(P)"
   by (rel_auto)
 
 lemma periR_srd_subst [rdes]:
-  "peri\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> peri\<^sub>R(P)"
+  "peri\<^sub>R(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> peri\<^sub>R(P)"
   by (rel_auto)
 
 lemma postR_srd_subst [rdes]:
-  "post\<^sub>R(<\<sigma>>\<^sub>S \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R(P)"
+  "post\<^sub>R(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R(P)"
   by (rel_auto)
     
 lemma st_subst_rea_not [usubst]: 
@@ -3021,7 +3014,7 @@ done
   
 lemma srd_subst_NSRD_closed [closure]: 
   assumes "P is NSRD"
-  shows "<\<sigma>>\<^sub>S \<dagger> P is NSRD"
+  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is NSRD"
   by (rule NSRD_RC_intro, simp_all add: closure rdes assms unrest)
               
 lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
@@ -4461,31 +4454,26 @@ method rdes_eq' =
 subsection {* Reactive Design Substitution Laws *}
   
 lemma srd_subst_Chaos [usubst]:
-  "<\<sigma>>\<^sub>S \<dagger> Chaos = Chaos"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Chaos = Chaos"
   by (rdes_simp)
 
 lemma srd_subst_Miracle [usubst]:
-  "<\<sigma>>\<^sub>S \<dagger> Miracle = Miracle"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Miracle = Miracle"
   by (rdes_simp)
 
 lemma srd_subst_skip [usubst]:
-  "<\<sigma>>\<^sub>S \<dagger> II\<^sub>R = \<langle>\<sigma>\<rangle>\<^sub>R"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> II\<^sub>R = \<langle>\<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
     
 lemma srd_subst_assigns [usubst]:
-  "<\<sigma>>\<^sub>S \<dagger> \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
-    
-lemma srd_subst_seq [usubst]:
-  assumes "P is NSRD" "Q is NSRD"
-  shows "<\<sigma>>\<^sub>S \<dagger> (P ;; Q) = <\<sigma>>\<^sub>S \<dagger> P ;; Q"
-  by (rdes_eq cls: assms)
-    
+       
 subsection {* Algebraic Laws *}
   
 lemma assigns_srd_left_seq:
   assumes "P is NSRD"
-  shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = (<\<sigma>>\<^sub>S \<dagger> P)"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)"
   by (rdes_simp cls: assms)  
     
 end
