@@ -2688,7 +2688,7 @@ lemma NSRD_RC_intro:
   shows "P is NSRD"
   by (metis Healthy_def NSRD_form SRD_reactive_tri_design assms(1) assms(2) assms(3) 
       ex_unrest rea_not_false  wpR_RC_false wpR_def)
-  
+    
 lemma NSRD_rdes_intro [closure]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is NSRD"
@@ -3581,9 +3581,13 @@ text {* We give an experimental syntax for reactive design contracts $[P \vdash 
 definition mk_RD :: "'s upred \<Rightarrow> ('t::trace \<Rightarrow> 's upred) \<Rightarrow> ('t \<Rightarrow> 's hrel) \<Rightarrow> ('s, 't, 'a) hrel_rsp" where
 "mk_RD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q(x)\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
 
+definition trace_pred :: "('t::trace \<Rightarrow> 's upred) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
+[upred_defs]: "trace_pred P = [(P x)]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>"
+
 syntax
   "_trace_var" :: "logic"
   "_mk_RD"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>R")
+  "_trace_pred"    :: "logic \<Rightarrow> logic" ("[_]\<^sub>t")
 
 parse_translation {*
 let
@@ -3597,6 +3601,9 @@ end
 translations
   "[P \<turnstile> Q | R]\<^sub>R" => "CONST mk_RD P (\<lambda> _trace_var. Q) (\<lambda> _trace_var. R)"
   "[P \<turnstile> Q | R]\<^sub>R" <= "CONST mk_RD P (\<lambda> x. Q) (\<lambda> y. R)"
+  "[P]\<^sub>t" => "CONST trace_pred (\<lambda> _trace_var. P)"
+  "[P]\<^sub>t" <= "CONST trace_pred (\<lambda> t. P)"
+
   
 lemma SRD_mk_RD [closure]: "[P \<turnstile> Q(trace) | R(trace)]\<^sub>R is SRD"
   by (simp add: mk_RD_def closure unrest)
@@ -3604,6 +3611,14 @@ lemma SRD_mk_RD [closure]: "[P \<turnstile> Q(trace) | R(trace)]\<^sub>R is SRD"
 lemma preR_mk_RD [rdes]: "pre\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^sub>R) = R1(\<lceil>P\<rceil>\<^sub>S\<^sub><)"
   by (simp add: mk_RD_def rea_pre_RHS_design usubst unrest R2c_not R2c_lift_state_pre)
 
+lemma trace_pred_RR_closed [closure]: 
+  "[P trace]\<^sub>t is RR"
+  by (rel_auto)
+    
+lemma unrest_trace_pred_st' [unrest]:
+  "$st\<acute> \<sharp> [P trace]\<^sub>t"
+  by (rel_auto)
+    
 lemma R2c_msubst_tt: "R2c (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) &tt) = (msubst (\<lambda>x. \<lceil>Q x\<rceil>\<^sub>S) &tt)"
   by (rel_auto)
 
@@ -4175,11 +4190,11 @@ lemma swap_nmerge_rd0:
 lemma SymMerge_nmerge_rd0 [closure]:
   "M is SymMerge \<Longrightarrow> N\<^sub>0(M) is SymMerge"
   by (rel_auto, meson+)
-
+    
 lemma swap_merge_rd':
   "swap\<^sub>m ;; N\<^sub>R(M) = N\<^sub>R(swap\<^sub>m ;; M)"
   by (rel_blast)
-     
+    
 lemma swap_merge_rd:
   "swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(swap\<^sub>m ;; M)"
   by (simp add: merge_rd_def seqr_assoc swap_merge_rd')
