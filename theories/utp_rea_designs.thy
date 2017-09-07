@@ -3767,7 +3767,7 @@ abbreviation rdes_par ("_ \<parallel>\<^sub>R\<^bsub>_\<^esub> _" [85,0,86] 85) 
 
 text {* Healthiness condition for reactive design merge predicates *}
 
-definition "RDM(M) = R2m(\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M)"
+definition [upred_defs]: "RDM(M) = R2m(\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M)"
 
 lemma nmerge_rd_is_R1m [closure]:
   "N\<^sub>R(M) is R1m"
@@ -3791,7 +3791,7 @@ lemma merge_rd_is_RD3: "M\<^sub>R(M) is RD3"
 
 lemma merge_rd_is_RD2: "M\<^sub>R(M) is RD2"
   by (simp add: RD3_implies_RD2 merge_rd_is_RD3)
-
+    
 lemma par_rdes_NSRD [closure]:
   assumes "P is SRD" "Q is SRD" "M is RDM"
   shows "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Q is NSRD"
@@ -3815,8 +3815,7 @@ lemma RDM_unrests [unrest]:
   assumes "M is RDM"
   shows "$0-ok \<sharp> M" "$1-ok \<sharp> M" "$ok\<^sub>< \<sharp> M" "$ok\<acute> \<sharp> M"
         "$0-wait \<sharp> M" "$1-wait \<sharp> M" "$wait\<^sub>< \<sharp> M" "$wait\<acute> \<sharp> M"
-  using assms
-  by (subst Healthy_if[OF assms, THEN sym], simp add: RDM_def unrest, rel_auto)+
+  by (subst Healthy_if[OF assms, THEN sym], simp_all add: RDM_def unrest, rel_auto)+
 
 lemma RDM_R1m [closure]: "M is RDM \<Longrightarrow> M is R1m"
   by (metis (no_types, hide_lams) Healthy_def R1m_idem R2m_def RDM_def)
@@ -4202,7 +4201,31 @@ lemma swap_merge_rd:
 lemma SymMerge_merge_rd [closure]:
   "M is SymMerge \<Longrightarrow> M\<^sub>R(M) is SymMerge"
   by (simp add: Healthy_def swap_merge_rd)
+    
+lemma nmerge_rd1_merge3:
+  assumes "M is RDM"
+  shows "\<^bold>M3(N\<^sub>1(M)) = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> 
+                      $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> 
+                      \<^bold>M3(M))"
+proof -
+  have "\<^bold>M3(N\<^sub>1(M)) = \<^bold>M3($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and>
+                       $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> 
+                       $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> 
+                       (\<exists> {$0-ok, $1-ok, $ok\<^sub><, $ok\<acute>, $0-wait, $1-wait, $wait\<^sub><, $wait\<acute>} \<bullet> RDM(M)))"
+    by (simp add: nmerge_rd1_def nmerge_rd0_def assms Healthy_if)
+  also have "... = \<^bold>M3($ok\<acute> =\<^sub>u ($0-ok \<and> $1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-wait) \<and> RDM(M))"
+    by (rel_blast)
+  also have "... = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> \<^bold>M3(RDM(M)))"  
+    by (rel_blast)
+  also have "... = ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> \<^bold>M3(M))"
+    by (simp add: assms Healthy_if)
+  finally show ?thesis .
+qed
 
+lemma nmerge_rd_merge3:
+  "\<^bold>M3(N\<^sub>R(M)) = (\<exists> $st\<^sub>< \<bullet> $\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright> \<^bold>M3(N\<^sub>1 M) \<triangleleft> $ok\<^sub>< \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  by (rel_blast) (* 15 seconds *)
+    
 lemma parallel_precondition:
   fixes M :: "('s,'t::trace,'\<alpha>) rsp merge"
   assumes "P is NSRD" "Q is NSRD" "M is RDM" "M is SymMerge"
