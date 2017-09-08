@@ -258,7 +258,7 @@ subsection {* Parallel Operators *}
 text {* We implement the following useful abbreviation for separating of two parallel processes and
   copying of the before variables, all to act as input to the merge predicate. *}
 
-abbreviation par_sep (infixl "\<parallel>\<^sub>s" 85) where
+abbreviation par_sep (infixr "\<parallel>\<^sub>s" 85) where
 "P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>"
 
 text {* The following implementation of parallel by merge is less general than the book version, in
@@ -360,6 +360,9 @@ lemma par_by_merge_skip:
 lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
   by (rel_auto)
 
+lemma par_sep_swap: "P \<parallel>\<^sub>s Q ;; swap\<^sub>m = Q \<parallel>\<^sub>s P"
+  by (rel_auto)
+        
 text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
 
 lemma par_by_merge_commute_swap:
@@ -408,4 +411,28 @@ proof -
   finally show ?thesis .
 qed
         
+theorem par_by_merge_choice_left:
+  "(P \<sqinter> Q) \<parallel>\<^bsub>M\<^esub> R = (P \<parallel>\<^bsub>M\<^esub> R) \<sqinter> (Q \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
+  
+theorem par_by_merge_choice_right:
+  "P \<parallel>\<^bsub>M\<^esub> (Q \<sqinter> R) = (P \<parallel>\<^bsub>M\<^esub> Q) \<sqinter> (P \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
+    
+theorem par_by_merge_USUP_mem_left:
+  "(\<Sqinter> i\<in>I \<bullet> P(i)) \<parallel>\<^bsub>M\<^esub> Q = (\<Sqinter> i\<in>I \<bullet> P(i) \<parallel>\<^bsub>M\<^esub> Q)"
+  by (rel_auto)
+
+theorem par_by_merge_USUP_ind_left:
+  "(\<Sqinter> i \<bullet> P(i)) \<parallel>\<^bsub>M\<^esub> Q = (\<Sqinter> i \<bullet> P(i) \<parallel>\<^bsub>M\<^esub> Q)"
+  by (rel_auto)
+    
+theorem par_by_merge_USUP_mem_right:
+  "P \<parallel>\<^bsub>M\<^esub> (\<Sqinter> i\<in>I \<bullet> Q(i)) = (\<Sqinter> i\<in>I \<bullet> P \<parallel>\<^bsub>M\<^esub> Q(i))"
+  by (rel_auto)
+
+theorem par_by_merge_USUP_ind_right:
+  "P \<parallel>\<^bsub>M\<^esub> (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<parallel>\<^bsub>M\<^esub> Q(i))"
+  by (rel_auto)
+    
 end
