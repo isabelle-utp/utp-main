@@ -23,7 +23,8 @@ purge_notation
   LFP ("\<mu>\<index>") and
   GFP ("\<nu>\<index>") and
   Set.member ("op :") and
-  Set.member ("(_/ : _)" [51, 51] 50)
+  Set.member ("(_/ : _)" [51, 51] 50) and
+  disj  (infixr "|" 30)
   
 text \<open> We hide HOL's built-in relation type since we will replace it with our own \<close>
 

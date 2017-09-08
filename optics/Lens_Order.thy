@@ -317,6 +317,34 @@ proof (rule lens_equivI)
   done
 qed
 
+lemma lens_get_put_quasi_commute:
+  "\<lbrakk> vwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> s v) = put\<^bsub>X /\<^sub>L Y\<^esub> (get\<^bsub>Y\<^esub> s) v"
+proof -
+  assume a1: "vwb_lens Y"
+  assume a2: "X \<subseteq>\<^sub>L Y"
+  have "\<And>l la. put\<^bsub>l ;\<^sub>L la\<^esub> = (\<lambda>b c. put\<^bsub>la\<^esub> (b::'b) (put\<^bsub>l\<^esub> (get\<^bsub>la\<^esub> b::'a) (c::'c)))"
+    by (simp add: lens_comp_def)
+  then have "\<And>l la b c. get\<^bsub>l\<^esub> (put\<^bsub>la ;\<^sub>L l\<^esub> (b::'b) (c::'c)) = put\<^bsub>la\<^esub> (get\<^bsub>l\<^esub> b::'a) c \<or> \<not> weak_lens l"
+    by force
+  then show ?thesis
+    using a2 a1 by (metis lens_quotient_comp vwb_lens_wb wb_lens_def)
+qed
+  
+lemma lens_put_of_quotient:
+  "\<lbrakk> vwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> put\<^bsub>Y\<^esub> s (put\<^bsub>X /\<^sub>L Y\<^esub> v\<^sub>2 v\<^sub>1) = put\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> s v\<^sub>2) v\<^sub>1"
+proof -
+  assume a1: "vwb_lens Y"
+  assume a2: "X \<subseteq>\<^sub>L Y"
+  have f3: "\<And>l b. put\<^bsub>l\<^esub> (b::'b) (get\<^bsub>l\<^esub> b::'a) = b \<or> \<not> vwb_lens l"
+    by force
+  have f4: "\<And>b c. put\<^bsub>X /\<^sub>L Y\<^esub> (get\<^bsub>Y\<^esub> b) c = get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> b c)"
+    using a2 a1 by (simp add: lens_get_put_quasi_commute)
+  have "\<And>b c a. put\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> b c) a = put\<^bsub>Y\<^esub> b a"
+    using a2 a1 by (simp add: sublens_put_put)
+  then show ?thesis
+    using f4 f3 a1 by (metis mwb_lens.put_put mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+qed
+  
 subsection \<open>Bijective Lens Equivalences\<close>
   
 text \<open>A bijective lens, like a bijective function, is its own inverse. Thus, if we compose its inverse
@@ -432,6 +460,10 @@ lemma lens_override_id [simp]:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 1\<^sub>L = S\<^sub>2"
   by (simp add: lens_override_def id_lens_def)
 
+lemma lens_override_idem [simp]:
+  "vwb_lens X \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
+  by (simp add: lens_override_def)
+    
 lemma lens_override_unit [simp]:
   "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on 0\<^sub>L = S\<^sub>1"
   by (simp add: lens_override_def zero_lens_def)
@@ -444,4 +476,12 @@ lemma lens_override_overshadow:
 lemma lens_override_plus:
   "X \<bowtie> Y \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on (X +\<^sub>L Y) = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>2 on Y"
   by (simp add: lens_indep_comm lens_override_def lens_plus_def)
+    
+lemma lens_override_put_right_in:
+  "\<lbrakk> vwb_lens A; X \<subseteq>\<^sub>L A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = put\<^bsub>X\<^esub> (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A) v"
+  by (simp add: lens_override_def lens_get_put_quasi_commute lens_put_of_quotient)
+
+lemma lens_override_put_right_out:
+  "\<lbrakk> vwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
+  by (simp add: lens_override_def  lens_indep.lens_put_irr2)    
 end

@@ -359,8 +359,8 @@ text \<open> The follows a large number of translations that lift HOL functions 
   using the various expression constructors defined above. Much of the time we try to keep
   the HOL syntax but add a "u" subscript. \<close>
   
-abbreviation "ulens_override x f g \<equiv> lens_override f g x"
-
+abbreviation (input) "ulens_override x f g \<equiv> lens_override f g x"
+  
 translations
   "0" <= "CONST uempty" -- {* We have to do this so we don't see uempty. Is there a better way of printing? *}
     
@@ -376,8 +376,9 @@ syntax -- \<open> Core expression constructs \<close>
 translations
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
-  "_ulens_ovrd f g a" == "CONST bop (CONST ulens_override a) f g"
-  
+  "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
+  "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
+
 syntax -- \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
