@@ -4336,11 +4336,11 @@ qed
 lemma wppR_miracle [wp]: "false wr\<^sub>R(M) P = true\<^sub>r"
   by (simp add: wrR_def)
 
-lemma wppR_true [wp]: "P wr\<^sub>R(M) true = true\<^sub>r"
+lemma wppR_true [wp]: "P wr\<^sub>R(M) true\<^sub>r = true\<^sub>r"
   by (simp add: wrR_def)
 
 lemma parallel_precondition_wr [rdes]:
-  assumes "P is NSRD" "Q is NSRD" "M is RDM" "M is SymMerge"
+  assumes "P is NSRD" "Q is NSRD" "M is RDM"
   shows "pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (peri\<^sub>R(Q) wr\<^sub>R(M) pre\<^sub>R(P) \<and> post\<^sub>R(Q) wr\<^sub>R(M) pre\<^sub>R(P) \<and>
                               peri\<^sub>R(P) wr\<^sub>R(swap\<^sub>m ;; M) pre\<^sub>R(Q) \<and> post\<^sub>R(P) wr\<^sub>R(swap\<^sub>m ;; M) pre\<^sub>R(Q))"
   by (simp add: assms parallel_precondition wrR_def)
@@ -4348,7 +4348,7 @@ lemma parallel_precondition_wr [rdes]:
 lemma parallel_rdes_def [rdes_def]:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>1 is RC" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
           "$st\<acute> \<sharp> P\<^sub>2" "$st\<acute> \<sharp> Q\<^sub>2"
-          "M is RDM" "M is SymMerge"
+          "M is RDM"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = 
          \<^bold>R\<^sub>s (((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3) wr\<^sub>R(M) P\<^sub>1 \<and> 
               (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1) \<turnstile>
