@@ -186,7 +186,7 @@ syntax -- \<open> Decorations \<close>
   "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [998] 998)
   "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [998] 998)
 
-text \<open> A cariable can be decorated with an ampersand, to indicate it is a predicate variable, with 
+text \<open> A variable can be decorated with an ampersand, to indicate it is a predicate variable, with 
   a dollar to indicate its an unprimed relational variable, or a dollar and ``acute'' symbol to 
   indicate its a primed relational variable. Isabelle's parser is extensible so additional
   decorations can be and are added later. \<close>
