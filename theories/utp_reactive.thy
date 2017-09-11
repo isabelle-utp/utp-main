@@ -1017,6 +1017,11 @@ lemma RR_intro:
   shows "P is RR"
   by (simp add: RR_def Healthy_def ex_plus R2_R2c_def, simp add: Healthy_if assms ex_unrest)
     
+lemma RR_R2_intro:
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "P is R2"
+  shows "P is RR"
+  by (simp add: RR_def Healthy_def ex_plus, simp add: Healthy_if assms ex_unrest)
+    
 lemma RR_unrests [unrest]: 
   assumes "P is RR"
   shows "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P"

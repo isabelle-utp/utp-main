@@ -1944,6 +1944,11 @@ lemma srdes_tri_refine_intro:
   using assms
   by (rule_tac srdes_refine_intro, simp_all, rel_auto)
 
+lemma srdes_tri_eq_intro:
+  assumes "P\<^sub>1 = Q\<^sub>1" "P\<^sub>2 = Q\<^sub>2" "P\<^sub>3 = Q\<^sub>3"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
+  using assms by (simp)
+
 lemma srdes_tri_refine_intro':
   assumes "P\<^sub>2 \<sqsubseteq> P\<^sub>1" "Q\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)" "R\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> R\<^sub>2)"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
@@ -3822,6 +3827,22 @@ lemma RDM_R1m [closure]: "M is RDM \<Longrightarrow> M is R1m"
 
 lemma RDM_R2m [closure]: "M is RDM \<Longrightarrow> M is R2m"
   by (metis (no_types, hide_lams) Healthy_def R2m_idem RDM_def)
+
+lemma ex_st'_R2m_closed [closure]: 
+  assumes "P is R2m"
+  shows "(\<exists> $st\<acute> \<bullet> P) is R2m"
+proof -
+  have "R2m(\<exists> $st\<acute> \<bullet> R2m P) = (\<exists> $st\<acute> \<bullet> R2m P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def' assms) 
+qed
+    
+lemma parallel_RR_closed: 
+  assumes "P is RR" "Q is RR" "M is R2m" 
+          "$ok\<^sub>< \<sharp> M" "$wait\<^sub>< \<sharp> M" "$ok\<acute> \<sharp> M" "$wait\<acute> \<sharp> M"
+  shows "P \<parallel>\<^bsub>M\<^esub> Q is RR"
+  by (rule RR_R2_intro, simp_all add: unrest assms RR_implies_R2 closure)
 
 lemma parallel_ok_cases:
 "((P \<parallel>\<^sub>s Q) ;; M) = (
