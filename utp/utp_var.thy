@@ -36,7 +36,7 @@ declare snd_vwb_lens [simp]
 declare comp_vwb_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
-
+  
 subsection \<open> Variable foundations \<close>
   
 text \<open> This theory describes the foundational structure of UTP variables, upon which the rest      

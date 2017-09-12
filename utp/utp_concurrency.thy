@@ -434,5 +434,30 @@ theorem par_by_merge_USUP_mem_right:
 theorem par_by_merge_USUP_ind_right:
   "P \<parallel>\<^bsub>M\<^esub> (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<parallel>\<^bsub>M\<^esub> Q(i))"
   by (rel_auto)
+   
+subsection {* Example: Simple State-Space Division *}
+  
+text {* The following merge predicate divides the state space using a pair of independent lenses. *}
+  
+definition StateMerge :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> merge" ("M[_|_]\<^sub>\<sigma>") where
+[upred_defs]: "M[a|b]\<^sub>\<sigma> = ($\<Sigma>\<acute> =\<^sub>u ($\<Sigma>\<^sub>< \<oplus> $0-\<Sigma> on &a) \<oplus> $1-\<Sigma> on &b)"
+
+lemma swap_StateMerge: "a \<bowtie> b \<Longrightarrow> (swap\<^sub>m ;; M[a|b]\<^sub>\<sigma>) = M[b|a]\<^sub>\<sigma>"
+  by (rel_auto, simp_all add: lens_indep_comm)
+   
+abbreviation StateParallel :: "'\<alpha> hrel \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_ |_|_|\<^sub>\<sigma> _" [85,0,0,86] 86)
+where "P |a|b|\<^sub>\<sigma> Q \<equiv> P \<parallel>\<^bsub>M[a|b]\<^sub>\<sigma>\<^esub> Q"
     
+lemma StateParallel_commute: "a \<bowtie> b \<Longrightarrow> P |a|b|\<^sub>\<sigma> Q = Q |b|a|\<^sub>\<sigma> P"
+  by (metis par_by_merge_commute_swap swap_StateMerge)
+        
+lemma StateParallel_form: 
+  "P |a|b|\<^sub>\<sigma> Q = (\<^bold>\<exists> (st\<^sub>0, st\<^sub>1) \<bullet> P\<lbrakk>\<guillemotleft>st\<^sub>0\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>st\<^sub>1\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> $\<Sigma>\<acute> =\<^sub>u ($\<Sigma> \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &a) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &b)"
+  by (rel_auto)
+    
+lemma StateParallel_skip: 
+  assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
+  shows "II |a|b|\<^sub>\<sigma> P = b:[P]"
+  using assms by (rel_auto)
+        
 end

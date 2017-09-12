@@ -425,6 +425,8 @@ lemma post_convr [simp]: "\<lceil>p\<rceil>\<^sub>>\<^sup>- = \<lceil>p\<rceil>\
 
 subsection {* Assertion and Assumption Laws *}
 
+declare sublens_def [lens_defs del]
+  
 lemma assume_false: "[false]\<^sup>\<top> = false"
   by (rel_auto)
   
@@ -446,22 +448,29 @@ lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^s
 lemma frame_disj: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)
 
-lemma frame_conj: "(x:\<lbrakk>P\<rbrakk> \<and> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<and> Q\<rbrakk>"
-  by (rel_auto)
-
 lemma frame_seq:
   "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
   by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
-
+    
 lemma antiframe_to_frame:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
+    
+lemma antiframe_skip [simp]:
+  "vwb_lens x \<Longrightarrow> x:[II] = II"
+  by (rel_auto)
+    
+lemma antiframe_assign_in:
+  "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> a:[x := v] = x := v"
+  by (rel_auto, simp_all add: lens_get_put_quasi_commute lens_put_of_quotient)
 
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
     
 lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
   by (rel_auto)
+
+declare sublens_def [lens_defs]
     
 subsection {* While Loop Laws *}
 
