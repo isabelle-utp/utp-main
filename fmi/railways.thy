@@ -203,6 +203,8 @@ begin
 end
 
 subsection {* Port Dependency Graph (PDG) *}
+
+(*<*)
 (*
 consts dummy :: "'a" ("\<dots>")
 
@@ -216,7 +218,7 @@ definition pdg :: "port relation" where
   ((merger, $track_segment2:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)), \<dots>
 }"
 *)
-
+(*>*)
 definition pdg :: "port relation" where
 "pdg = {
   (* External Dependencies (Connections) *)
