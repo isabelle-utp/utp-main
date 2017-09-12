@@ -134,7 +134,8 @@ lemma seqr_wait_false [usubst]: "(P ;; Q) \<^sub>f = (P \<^sub>f ;; Q)"
 
 subsection {* R1: Events cannot be undone *}
 
-definition R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
+definition R1 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+R1_def [upred_defs]: "R1 (P) =  (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
 
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_auto
@@ -290,8 +291,10 @@ definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<
 definition R2a' :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
 R2a'_def [upred_defs]: "R2a' (P :: _ upred) = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
-definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
-definition R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
+definition R2 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
+definition R2c :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+R2c_def [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
 
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   by (rel_auto)
@@ -1305,9 +1308,11 @@ lemma rea_false_true:
     
 text {* Healthiness Condition for Reactive Conditions *}
     
-definition [upred_defs]: "RC1(P) = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
+definition RC1 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "RC1(P) = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
   
-definition [upred_defs]: "RC = RC1 \<circ> RR"
+definition RC :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "RC = RC1 \<circ> RR"
   
 lemma RC_intro: "\<lbrakk> P is RR; ((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) = P) \<rbrakk> \<Longrightarrow> P is RC"
   by (simp add: Healthy_def RC1_def RC_def)
@@ -1377,6 +1382,36 @@ lemma false_RC [closure]: "false is RC"
    
 lemma disj_RC_closed [closure]: "\<lbrakk> P is RC; Q is RC \<rbrakk> \<Longrightarrow> (P \<or> Q) is RC"
   by (metis Healthy_def RC_R2_def RC_implies_RR comp_apply disj_RC1_closed disj_RR)
+    
+term "RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i))"
+  
+lemma UINF_ind_RC1_closed [closure]:
+  assumes "\<And> i. P i is RC1"
+  shows "(\<Sqinter> i\<in>A \<bullet> P i) is RC1"
+proof -
+  have 1:"RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i)) = (\<Sqinter> i\<in>A \<bullet> RC1(P i))"
+    by (rel_auto, meson order.trans)
+  show ?thesis
+    by (metis (mono_tags, lifting) "1" Healthy_def' UINF_all_cong UINF_alt_def assms)
+qed
+  
+lemma UINF_mem_RC_closed [closure]:
+  assumes "\<And> i. P i is RC"
+  shows "(\<Sqinter> i\<in>A \<bullet> P i) is RC"
+proof -
+  have "RC(\<Sqinter> i\<in>A \<bullet> P i) = (RC1 \<circ> RR)(\<Sqinter> i\<in>A \<bullet> P i)"
+    by (simp add: RC_def)
+  also have "... = RC1(\<Sqinter> i\<in>A \<bullet> RR(P i))"
+    by (rel_blast)
+  also have "... = RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i))"
+    by (simp add: Healthy_if RC_implies_RR RC_implies_RC1 assms)
+  also have "... = (\<Sqinter> i\<in>A \<bullet> RC1(P i))"
+    by (rel_auto, meson order.trans)
+  also have "... = (\<Sqinter> i\<in>A \<bullet> P i)"
+    by (simp add: Healthy_if RC_implies_RC1 assms)
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
     
 lemma trace_ext_prefix_RR [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RR"
