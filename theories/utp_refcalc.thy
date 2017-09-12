@@ -24,13 +24,13 @@ lemma rc_weaken_pre:
   using assms by (rel_auto)
 
 lemma rc_skip:
-  assumes "`pre \<Rightarrow> post`"
+  assumes "vwb_lens w" "`pre \<Rightarrow> post`"
   shows "w:[pre, post]\<^sub>u \<sqsubseteq> II\<^sub>D"
   using assms by (rel_auto)
 
 lemma rc_seq:
   assumes "vwb_lens w"
   shows "w:[pre, post]\<^sub>u \<sqsubseteq> w:[pre, mid]\<^sub>u ;; w:[mid, post]\<^sub>u"
-  using assms
-  by (rel_auto, metis vwb_lens.put_eq)
+  using assms oops
+  (* FIXME: Need to correct this law *)
 end
