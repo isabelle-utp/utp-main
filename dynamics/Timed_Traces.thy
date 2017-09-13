@@ -1132,6 +1132,10 @@ lemma tt_apply_mk [simp]:
   "\<lbrakk> 0 \<le> t; t < l; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>t l f\<rangle>\<^sub>t t = f t"
   by (transfer, simp)
     
+lemma tt_mk_nempty [simp]:
+  "\<lbrakk> 0 < n; continuous_on {0..n} f \<rbrakk> \<Longrightarrow> 0 < mk\<^sub>t n f" 
+  by (metis dual_order.strict_implies_not_eq dual_order.strict_implies_order neq_zero_impl_greater tt_end_empty tt_end_mk)
+    
 text {* Finally, we hide the implementation details for contiguous functions and timed traces. *}
 
 lifting_update cgf.lifting

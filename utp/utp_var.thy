@@ -194,7 +194,9 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
 syntax -- \<open> Variable sets \<close>
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
+  "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
+  "_salphaprod"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<times>" 85)
   "_svar_nil"    :: "svar \<Rightarrow> svars" ("_")
   "_svar_cons"   :: "svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
   "_salphaset"   :: "svars \<Rightarrow> salpha" ("{_}")
@@ -252,8 +254,10 @@ translations
   "_soutvar x" \<rightleftharpoons> "CONST ovar x"
 
   -- \<open> Alphabets \<close>
+  "_salphaparen a" \<rightharpoonup> "a"
   "_salphaid x" \<rightharpoonup> "x"
   "_salphacomp x y" \<rightharpoonup> "x +\<^sub>L y"
+  "_salphaprod a b" \<rightleftharpoons> "a \<times>\<^sub>L b"
   "_salphavar x" \<rightharpoonup> "x"
   "_svar_nil x" \<rightharpoonup> "x"
   "_svar_cons x xs" \<rightharpoonup> "x +\<^sub>L xs"

@@ -11,6 +11,12 @@ imports
 begin recall_syntax
   
 subsection {* Preliminaries *}
+
+text {* The one lens is continuous *}
+  
+lemma one_lens_continuous [simp]:
+  "continuous_on UNIV get\<^bsub>1\<^sub>L\<^esub>"
+  by (simp add: lens_defs continuous_on_id)
   
 text {* Lens summation of two continuous lenses is continuous *}
   
@@ -822,6 +828,40 @@ next
     
   show "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t)"
     using assms(1) c gL vwb_lens.put_eq by fastforce    
+qed
+
+subsection {* Stepping a Hybrid Relation Forward *}
+  
+definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<Sigma>)) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
+  
+lemma HyStep_hEvolve:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "n > 0" "continuous_on {0..n} f"
+  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>  :: ('d,'c) hyrel) = ($\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
+proof -
+  from assms(1) have "?lhs = \<lfloor>(&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+    by (simp add: hStepRel_def, rel_auto)
+  also have "... = \<lfloor>(&\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f time\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+    by (rel_auto)           
+  also have "... = ?rhs"
+  proof (rel_auto)
+    fix tr tr'
+    assume "n = end\<^sub>t (tr' - tr)" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t" "tr < tr'"
+    with assms have "get\<^bsub>\<Sigma>\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
+      by (rule_tac Lim_continuous_lens, simp_all, simp add: lens_defs)
+    thus "(Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
+      by (simp add: lens_defs)
+  next
+    from assms
+    show "\<exists>tr tr'.
+            tr \<le> tr' \<and>
+            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr' - tr\<rangle>\<^sub>t t) = f t) \<and>
+            tr < tr' \<and> end\<^sub>t (tr' - tr) = n \<and> tr < tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)"
+      by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
+         (auto simp add: Limit_solve at_left_from_zero)
+  qed
+  finally show ?thesis .
 qed
   
 end
