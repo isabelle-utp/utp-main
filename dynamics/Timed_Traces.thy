@@ -1076,7 +1076,62 @@ lemma ttrace_convergent_end:
   obtains l where "(\<langle>t\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t t))"
   using assms
   by (transfer, blast intro: piecewise_convergent_end)
+  
+text {* We next construct a function to build an atomic timed trace from a continuous function,
+  this requires that be prove a number of continuity lemmas first. *}
+    
+lemma continuous_on_mk_cgf:
+  assumes "continuous_on {0..l} f" 
+  shows "continuous_on {0..<l} \<langle>mk\<^sub>C l f\<rangle>\<^sub>C"
+proof -
+  have "\<And>x. x \<in> {0..<l} \<Longrightarrow> \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x = f x"
+    by (simp)
+  thus ?thesis
+    by (metis (full_types) assms atLeastLessThan_subseteq_atLeastAtMost_iff continuous_on_eq continuous_on_subset order_refl)
+qed
+  
+lemma cgf_mk_tendto:
+  assumes "l > 0" "continuous_on {0..l} f"
+  shows "(\<langle>mk\<^sub>C l f\<rangle>\<^sub>C \<longlongrightarrow> f l) (at l within {0..l})"
+proof -
+  have 1:"\<forall>\<^sub>F x in at l within {0..l}. f x = \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x"
+    by (simp add: eventually_at_filter)
+  have "(f \<longlongrightarrow> f l) (at l within {0..l})"
+    using assms(2) continuous_on by force
+  thus ?thesis
+    using "1" filterlim_cong by blast
+qed
+      
+lemma piecewise_convergent_cgf_mk:
+  "\<lbrakk> l > 0; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> piecewise_convergent (mk\<^sub>C l f)"
+  apply (simp add: piecewise_convergent_def)
+  apply (rule_tac x="[0,l]" in exI)
+  apply (unfold_locales)
+  apply (simp_all add: continuous_on_mk_cgf)
+  apply (rule_tac x="f l" in exI)
+  apply (meson atLeastLessThan_subseteq_atLeastAtMost_iff cgf_mk_tendto order_refl tendsto_within_subset)
+done
 
+text {* The function $mk_t$ builds a timed trace from a function, provided it is continuous on
+  the given domain. If it isn't, then an empty timed trace is produced. *}
+  
+lift_definition tt_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a ttrace" ("mk\<^sub>t")
+is "\<lambda> t f. if (continuous_on {0..t} f) then mk\<^sub>C t f else []\<^sub>C"
+  apply (auto)
+  apply (rename_tac t f)
+  apply (case_tac "t \<le> 0")
+  apply (simp)
+  apply (simp add: piecewise_convergent_cgf_mk)
+done
+    
+lemma tt_end_mk [simp]:
+  "\<lbrakk> l \<ge> 0; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> end\<^sub>t(mk\<^sub>t l f) = l"
+  by (transfer, simp)
+  
+lemma tt_apply_mk [simp]: 
+  "\<lbrakk> 0 \<le> t; t < l; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>t l f\<rangle>\<^sub>t t = f t"
+  by (transfer, simp)
+    
 text {* Finally, we hide the implementation details for contiguous functions and timed traces. *}
 
 lifting_update cgf.lifting

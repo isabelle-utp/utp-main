@@ -76,6 +76,9 @@ lemma Sup'_empty [simp]: "Sup' {} = 0"
 lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
 
+lemma Sup'_interval': "Sup' {t. 0 \<le> t \<and> t < l} = (if (l > 0) then l else 0)"
+  by (metis (no_types, lifting) Sup'_interval atLeastLessThan_iff equalityI mem_Collect_eq subsetI)
+    
 text {* The first property tells us that the supremum of an empty set is zero, and the second
   tells us that the supremum of a right open interval is the limit of the interval. *}
 
@@ -584,6 +587,31 @@ lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
   using trace_class.add_diff_cancel_left' by blast
+
+text {* The following function constructs a contiguous function from a given end point and total
+  function. *}
+    
+lift_definition cgf_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> 'a cgf" ("mk\<^sub>C") is
+"\<lambda> l f. [t \<mapsto> f t | t. 0 \<le> t \<and> t < l]"
+  apply (auto simp add: graph_map_dom)
+  apply (rename_tac l f)
+  apply (case_tac "l < 0")
+  apply (rule_tac x="0" in exI)
+  apply (simp) 
+  apply (rule_tac x="l" in exI)  
+  apply (auto simp add: image_iff)
+done
+    
+lemma cgf_mk_apply [simp]: "\<lbrakk> 0 \<le> x; x < l \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x = f x"
+  by (transfer, simp)
+    
+lemma cgf_mk_end [simp]: 
+  "0 \<le> l \<Longrightarrow> end\<^sub>C(mk\<^sub>C l f) = l"
+  by (transfer, simp add: Sup'_interval')
+
+lemma cgf_mk_le_0 [simp]: "l \<le> 0 \<Longrightarrow> mk\<^sub>C l f = []\<^sub>C"
+  by (transfer, auto)
+    
 (*<*)
 end
 (*>*)
