@@ -241,7 +241,7 @@ syntax
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
   -- {* Indexed assignment *}
-  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "[_] :=" 72)
+  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_[_] :=/ _)" [73, 0, 0] 72)
   -- {* Substitution constructor *}
   "_mk_usubst"      :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
   -- {* Alphabetised skip *}
@@ -366,6 +366,10 @@ lemma unrest_out_rel_var_res [unrest]:
   "vwb_lens x \<Longrightarrow> $x\<acute> \<sharp> (P \<restriction>\<^sub>\<alpha> x)"
   by (simp add: rel_var_res_def unrest)
 
+lemma unrest_out_alpha_usubst_rel_lift [unrest]: 
+  "out\<alpha> \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>s"
+  by (rel_auto)
+    
 subsection {* Substitution laws *}
 
 lemma subst_seq_left [usubst]:
@@ -436,8 +440,8 @@ lemma subst_drop_upd [alpha]:
   by pred_simp
 
 lemma subst_lift_pre [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>b\<rceil>\<^sub>< = \<lceil>\<sigma> \<dagger> b\<rceil>\<^sub><"
-  by (metis apply_subst_ext fst_vwb_lens in\<alpha>_def)
-
+  by (metis apply_subst_ext fst_vwb_lens in\<alpha>_def) 
+    
 lemma unrest_usubst_lift_in [unrest]:
   "x \<sharp> P \<Longrightarrow> $x \<sharp> \<lceil>P\<rceil>\<^sub>s"
   by pred_simp
