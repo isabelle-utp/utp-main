@@ -5,15 +5,15 @@
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
-subsection {* Interlocking Model *}
+section {* Interlocking Model *}
 
 theory Interlocking
-imports Vector "../utp/utp_hoare"
+imports Vector utp_hoare
 begin recall_syntax
 
 subsection {* Type Definitions *}
 
-text \<open>Possible configurations of railway switches.\<close> 
+text \<open>Possible configurations of railway switches.\<close>
 
 datatype switch =
   STRAIGHT |
@@ -96,7 +96,7 @@ subsubsection {* Relay Setting *}
 
 definition set_relays :: "ilock_state hrel" where [urel_defs]:
 "set_relays =
-  ((relays[1] := true) \<triangleleft> \<lceil>TC[4] \<and> \<not> TC[3] \<and> \<not> R2 \<and> \<not> R4 \<and> (*\<not> CDV[3] \<and>*) CDV[4] \<and> CDV[5]\<rceil>\<^sub>< \<triangleright> II) ;;
+  ((relays[1] := true) \<triangleleft> TC[4] \<and> \<not> TC[3] \<and> \<not> R2 \<and> \<not> R4 \<and> (*\<not> CDV[3] \<and>*) CDV[4] \<and> CDV[5] \<triangleright>\<^sub>r II) ;;
   ((relays[2] := true) \<triangleleft> \<lceil>TC[3] \<and> \<not> TC[4] \<and> \<not> R1 \<and> \<not> R3 \<and> \<not> R4 \<and> \<not> R5 \<and> (*\<not> CDV[3] \<and>*) CDV[4] \<and> CDV[8] \<and> CDV[9] \<and> CDV[10] \<and> CDV[1]\<rceil>\<^sub>< \<triangleright> II) ;;
   ((relays[4] := true) \<triangleleft> \<lceil>TC[3] \<and> \<not> TC[4] \<and> \<not> R1 \<and> \<not> R2 \<and> \<not> R3 \<and> \<not> R5 \<and> (*\<not> CDV[3] \<and>*) CDV[4] \<and> CDV[8] \<and> CDV[9] \<and> CDV[11] \<and> CDV[2]\<rceil>\<^sub>< \<triangleright> II) ;;
   ((relays[3] := true) \<triangleleft> \<lceil>TC[1] \<and> \<not> R2 \<and> \<not> R4 \<and> \<not> R5 \<and> (*\<not> CDV[1] \<and>*) CDV[10] \<and> CDV[9] \<and> CDV[8] \<and> CDV[7] \<and> CDV[6]\<rceil>\<^sub>< \<triangleright> II) ;;
@@ -134,8 +134,7 @@ definition set_signals :: "ilock_state hrel" where [urel_defs]:
   (signals[2] := (R5 \<and> SW5 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW4 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright>)) ;;
   (signals[3] := ((R1 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright>) \<or>
     (R2 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW5 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright>) \<or>
-    (R4 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW5 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright>)))
-)"
+    (R4 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW5 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright>))))"
 
 subsubsection {* Complete Cycle *}
 
@@ -143,6 +142,8 @@ definition ilock_cycle :: "ilock_state hrel" where [urel_defs]:
 "ilock_cycle = (set_relays ;; reset_relays ;; pos_switches ;; set_signals)"
 
 subsection {* Invariants *}
+
+text \<open>We next prove several invariants of the interlocking model.\<close>
 
 subsubsection {* Type Invariant *}
 
@@ -160,22 +161,22 @@ lemma init_ilock_type_inv:
 "\<lbrace>true\<rbrace>init_ilock\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
 apply (rel_simp)
 done
-    
+
 lemma set_relays_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>set_relays\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-  unfolding set_relays_def by hoare_auto
+  unfolding set_relays_def by (hoare_auto)
 
 lemma reset_relays_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>reset_relays\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-  unfolding reset_relays_def by hoare_auto
-    
+  unfolding reset_relays_def by (hoare_auto)
+
 lemma pos_switches_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>pos_switches\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-  unfolding pos_switches_def by hoare_auto
+  unfolding pos_switches_def by (hoare_auto)
 
 lemma set_signals_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>set_signals\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-  unfolding set_signals_def by hoare_auto
+  unfolding set_signals_def by (hoare_auto)
 
 lemma "\<lbrace>ilock_type_inv\<rbrace>ilock_cycle\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
 apply (unfold ilock_cycle_def)
@@ -202,46 +203,66 @@ definition relays_inv :: "ilock_state upred" where [urel_defs]:
 
 lemma init_ilock_relays_inv:
 "\<lbrace>true\<rbrace>init_ilock\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding init_ilock_def by hoare_auto
+  unfolding init_ilock_def by (hoare_auto)
 
 lemma set_relays_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>set_relays\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding set_relays_def by hoare_auto
+  unfolding set_relays_def by (hoare_auto)
 
 lemma reset_relays_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>reset_relays\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding reset_relays_def by hoare_auto
+  unfolding reset_relays_def by (hoare_auto)
 
 lemma pos_switches_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>pos_switches\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding pos_switches_def by hoare_auto
+  unfolding pos_switches_def by (hoare_auto)
 
 lemma set_signals_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>set_signals\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding set_signals_def by hoare_auto
+  unfolding set_signals_def by (hoare_auto)
 
-text {* First way of solving: using the lemmas about directly. *}
+text \<open>Below are three ways to prove invariant preservation for the complete cycle.\<close>
+
+text {* First way: using the lemmas directly after @{method hoare_split}. *}
 
 lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  apply (unfold ilock_cycle_def)
-  apply (hoare_split)
-  apply (simp_all add: hoare_r_weaken_pre(1) set_relays_type_inv set_relays_relays_inv 
-                       reset_relays_relays_inv pos_switches_relays_inv set_signals_relays_inv 
-                       reset_relays_type_inv pos_switches_type_inv)
+apply (unfold ilock_cycle_def)
+apply (hoare_split)
+apply (rule hoare_r_weaken_pre(1))
+apply (rule set_relays_type_inv)
+apply (rule set_relays_relays_inv)
+apply (rule hoare_r_weaken_pre(1))
+apply (rule reset_relays_type_inv)
+apply (rule reset_relays_relays_inv)
+apply (rule hoare_r_weaken_pre(1))
+apply (rule pos_switches_type_inv)
+apply (rule pos_switches_relays_inv)
+apply (rule set_signals_relays_inv)
 done
-    
-text {* Second method: add the lemmas add additional Hoare rules (could also mark the theorems $hoare\_safe$) *}
+
+text {* Second way: add the lemmas as additional Hoare rules to the method. *}
+
+-- {* We could also mark the theorems as @{attribute hoare_safe}. *}
 
 lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding ilock_cycle_def
-  by (hoare_split hr: set_relays_type_inv set_relays_relays_inv reset_relays_relays_inv 
-                      pos_switches_relays_inv set_signals_relays_inv reset_relays_type_inv 
-                      pos_switches_type_inv)
+  unfolding ilock_cycle_def by (hoare_split hr:
+    set_relays_type_inv
+    set_relays_relays_inv
+    reset_relays_type_inv
+    reset_relays_relays_inv
+    pos_switches_type_inv
+    pos_switches_relays_inv
+    set_signals_relays_inv)
 
-text {* Third method: direct proof *}                    
-                    
+text {* Third way: direct proof after unfolding all program definitions. *}
+
 lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
-  unfolding ilock_cycle_def set_signals_def pos_switches_def  set_relays_def reset_relays_def init_ilock_def
+  unfolding
+    ilock_cycle_def
+    set_relays_def
+    reset_relays_def
+    pos_switches_def
+    set_signals_def
   by (hoare_auto)
 
 subsection {* Proof Experiments *}

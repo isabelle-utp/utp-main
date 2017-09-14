@@ -4,26 +4,17 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 19 June 2017 *)
+(* LAST REVIEWED: 14 Sep 2017 *)
 
 section {* Railways Mechanisation *}
 
-theory railways
+theory Railways
 imports fmi String
 begin
 
-subsection {* FM2 Types *}
-
-text {* This should be moved to the Isabelle theory @{theory fmi}. *}
-
-type_synonym fmi2Real = "real"
-type_synonym fmi2Integer = "int"
-type_synonym fmi2String = "string"
-type_synonym fmi2Boolean = "bool"
-
 subsection {* Railways Constants *}
 
-text {* Track Segments: CDV1-CDV11  *}
+text {* Track Segments: CDV1-CDV11. *}
 
 definition "CDV1 = (1::fmi2Integer)"
 definition "CDV2 = (2::fmi2Integer)"
@@ -45,9 +36,9 @@ definition "Q2V2 = (3::fmi2Integer)"
 definition "V1Q3 = (4::fmi2Integer)"
 definition "Q3V2 = (5::fmi2Integer)"
 
-text {* Signal Encoding *}
+subsection {* Signal Encoding *}
 
-text {* TODO: Use ``Isabelle Theories for Machine Words'' by Jeremy Dawson. *}
+text {* TODO: Use `Isabelle Theories for Machine Words' by Jeremy Dawson. *}
 
 definition "RED == False"
 definition "GREEN == True"
@@ -58,9 +49,9 @@ fun signals :: "(bool \<times> bool \<times> bool) \<Rightarrow> fmi2Integer" wh
   (if s2 then 2 else 0) +
   (if s3 then 4 else 0)"
 
-text {* Track Switch Encoding *}
+subsection {* Switch Encoding *}
 
-text {* TODO: Use ``Isabelle Theories for Machine Words'' by Jeremy Dawson. *}
+text {* TODO: Use `Isabelle Theories for Machine Words' by Jeremy Dawson. *}
 
 definition "STRAIGHT == False"
 definition "DIVERGING == True"
@@ -73,11 +64,15 @@ fun switches :: "(bool \<times> bool \<times> bool \<times> bool \<times> bool) 
   (if sw4 then 8 else 0) +
   (if sw5 then 16 else 0)"
 
-text {* Railways FMUs *}
+subsection {* Model Instantiation *}
+
+subsubsection {* Railways FMUs *}
 
 axiomatization
-  train1 :: "FMI2COMP" and train2 :: "FMI2COMP" and
-  merger :: "FMI2COMP" and interlocking :: "FMI2COMP" where
+  train1 :: "FMI2COMP" and
+  train2 :: "FMI2COMP" and
+  merger :: "FMI2COMP" and
+  interlocking :: "FMI2COMP" where
   fmus_distinct : "distinct [train1, train2, merger, interlocking]" and
   FMI2COMP_def : "FMI2COMP = {train1, train2, merger, interlocking}"
 
@@ -85,7 +80,7 @@ paragraph {* Proof Support *}
 
 code_datatype "train1" "train2" "merger" "interlocking"
 
-lemma fmus_simps [simp]:
+lemma fmu_simps [simp]:
 "train1 \<noteq> train2"
 "train1 \<noteq> merger"
 "train1 \<noteq> interlocking"
@@ -98,10 +93,10 @@ lemma fmus_simps [simp]:
 "interlocking \<noteq> train1"
 "interlocking \<noteq> train2"
 "interlocking \<noteq> merger"
-using railways.fmus_distinct apply (auto)
+using Railways.fmus_distinct apply (auto)
 done
 
-lemma fmus_eq_simps [code]:
+lemma fmu_code_simps [code]:
 "equal_class.equal train1 train1 \<equiv> True"
 "equal_class.equal train1 train2 \<equiv> False"
 "equal_class.equal train1 merger \<equiv> False"
@@ -119,10 +114,10 @@ lemma fmus_eq_simps [code]:
 "equal_class.equal interlocking merger \<equiv> False"
 "equal_class.equal interlocking interlocking \<equiv> True"
 apply (unfold equal_FMI2COMP_def)
-apply (simp_all only: fmus_simps refl)
+apply (simp_all only: fmu_simps refl)
 done
 
-subsection {* Parameters *}
+subsubsection {* Parameters *}
 
 overloading
   railways_parameters \<equiv> "parameters :: (FMI2COMP \<times> VAR \<times> VAL) list"
@@ -135,7 +130,7 @@ begin
     (train2, $fixed_route:{fmi2Integer}\<^sub>u, InjU Q3V2)]"
 end
 
-subsection {* Inputs *}
+subsubsection {* Inputs and Outputs *}
 
 overloading
   railways_inputs \<equiv> "inputs :: (FMI2COMP \<times> VAR) list"
@@ -154,8 +149,6 @@ begin
     (interlocking, $TC:{fmi2Integer}\<^sub>u)]"
 end
 
-subsection {* Outputs *}
-
 overloading
   railways_outputs \<equiv> "outputs :: (FMI2COMP \<times> VAR) list"
 begin
@@ -173,7 +166,7 @@ begin
     (interlocking, $switches:{fmi2Integer}\<^sub>u)]"
 end
 
-subsection {* Initial Values *}
+subsubsection {* Initial Values *}
 
 text {* The following constants have to be defined as appropriate. *}
 
@@ -202,26 +195,10 @@ begin
     (interlocking, $TC:{fmi2Integer}\<^sub>u, undefined)]"
 end
 
-subsection {* Port Dependency Graph (PDG) *}
-
-(*<*)
-(*
-consts dummy :: "'a" ("\<dots>")
+subsubsection {* Port Dependency Graph (\<open>pdg\<close>) *}
 
 definition pdg :: "port relation" where
 "pdg = {
-  (* External Dependencies *)
-  ((train1, $track_segment:{int}\<^sub>u), (merger, $track_segment1:{int}\<^sub>u)),
-  ((train2, $track_segment:{int}\<^sub>u), (merger, $track_segment2:{int}\<^sub>u)), \<dots>,
-  (* Internal Dependencies *)
-  ((merger, $track_segment1:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)),
-  ((merger, $track_segment2:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)), \<dots>
-}"
-*)
-(*>*)
-definition pdg :: "port relation" where
-"pdg = {
-  (* External Dependencies (Connections) *)
   ((train1, $track_segment:{fmi2Integer}\<^sub>u), (merger, $track_segment1:{fmi2Integer}\<^sub>u)),
   ((train2, $track_segment:{fmi2Integer}\<^sub>u), (merger, $track_segment2:{fmi2Integer}\<^sub>u)),
   ((train1, $telecommand:{fmi2Integer}\<^sub>u), (merger, $telecommand:{fmi2Integer}\<^sub>u)),
@@ -231,9 +208,14 @@ definition pdg :: "port relation" where
   ((interlocking, $signals:{fmi2Integer}\<^sub>u), (train1, $signals:{fmi2Integer}\<^sub>u)),
   ((interlocking, $signals:{fmi2Integer}\<^sub>u), (train2, $signals:{fmi2Integer}\<^sub>u)),
   ((interlocking, $switches:{fmi2Integer}\<^sub>u), (train1, $switches:{fmi2Integer}\<^sub>u)),
-  ((interlocking, $switches:{fmi2Integer}\<^sub>u), (train2, $switches:{fmi2Integer}\<^sub>u)),
-  (* Internal Dependencies (Direct) *)
-  (* The next are not direct dependencies due to integrators in the CTL. *)
+  ((interlocking, $switches:{fmi2Integer}\<^sub>u), (train2, $switches:{fmi2Integer}\<^sub>u))
+}"
+
+subsubsection {* Internal Direct Dependencies (\<open>idd\<close>) *}
+
+definition idd :: "port relation" where
+"idd = {
+  (* The two below are not direct dependencies due to integrators in the CTL. *)
   (* ((train1, $switches:{fmi2Integer}\<^sub>u), (train1, $track_segment:{fmi2Integer}\<^sub>u)), *)
   (* ((train2, $switches:{fmi2Integer}\<^sub>u), (train1, $track_segment:{fmi2Integer}\<^sub>u)), *)
   ((merger, $track_segment1:{fmi2Integer}\<^sub>u), (merger, $CDV:{fmi2Integer}\<^sub>u)),
@@ -246,11 +228,55 @@ definition pdg :: "port relation" where
   ((interlocking, $TC:{fmi2Integer}\<^sub>u), (interlocking, $switches:{fmi2Integer}\<^sub>u))
 }"
 
-text {* Needed to enable evaluation of @{term "(STR s1) = (STR s2)"} terms. *}
+(*<*)
+(* Content used for the CoSim-CPS 2017 paper. *)
+
+consts dummy :: "'a" ("\<dots>")
+
+experiment
+begin
+definition pdg :: "port relation" where
+"pdg = {
+  (* External Dependencies *)
+  ((train1, $track_segment:{int}\<^sub>u), (merger, $track_segment1:{int}\<^sub>u)),
+  ((train2, $track_segment:{int}\<^sub>u), (merger, $track_segment2:{int}\<^sub>u)), \<dots>,
+  (* Internal Dependencies *)
+  ((merger, $track_segment1:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)),
+  ((merger, $track_segment2:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)), \<dots>
+}"
+end
+(*>*)
+
+subsection {* Proof of Properties *}
+
+subsubsection {* Port Conformance Check *}
+
+inductive conformant :: "port relation \<Rightarrow> bool" where
+"conformant {}" |
+"type (snd p1) = type (snd p2) \<Longrightarrow>
+  conformant S \<Longrightarrow> conformant (insert (p1, p2)  S)"
+
+declare conformant.intros [intro!]
+
+lemma pdg_conformant:
+"conformant pdg" unfolding pdg_def by (auto)
+
+lemma idd_conformant:
+"conformant idd" unfolding idd_def by (auto)
+
+subsubsection {* Absence of Algebraic Loops *}
+
+text {* Needed for evaluation of @{term "(STR s1) = (STR s2)"} terms. *}
 
 declare equal_literal.rep_eq [code del]
 
-text {* We next prove via code evaluation that the PDG is acyclic indeed. *}
+text {* We next prove via code evaluation that there are no algebraic loops. *}
+
+lemma "acyclic (pdg \<union> idd)"
+profile (eval)
+done
+
+subsection {* Proof Experiments *}
 
 lemma acyclic_witnessI:
 "(\<exists>s. r \<subseteq> s \<and> s O r \<subseteq> s \<and> irrefl s) \<Longrightarrow> acyclic r"
@@ -259,9 +285,5 @@ apply (subgoal_tac "r\<^sup>+ \<subseteq> s")
 apply (meson acyclic_def irrefl_def subsetCE)
 apply (erule trancl_Int_subset)
 apply (auto)
-done
-
-lemma "acyclic pdg"
-apply (eval)
 done
 end

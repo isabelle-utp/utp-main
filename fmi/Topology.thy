@@ -5,7 +5,7 @@
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
-subsection {* Railway Topology *}
+section {* Railway Topology *}
 
 theory Topology
 imports Main

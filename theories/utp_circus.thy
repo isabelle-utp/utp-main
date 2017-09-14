@@ -160,7 +160,7 @@ consts HideCircus ::
 consts InterruptCircus ::
   "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\<triangle>" 100)
 
-subsection {* Circus Conditional *}
+subsection {* {\Circus} Conditional *}
 
 syntax "_if_then_else" ::
   "'a upred \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel"

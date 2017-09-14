@@ -180,16 +180,16 @@ session "UTP-HYBRID-DEEP" in "theories" = "UTP-HYBRID" +
   theories utp_theories_deep
 
 (* Hybrid UTP examples *)
-    
+
 session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
   options [document = false]
   theories
     utp_bouncing_ball
     utp_thermostat
     utp_trains
-  
+
 (* Modelica Mechanisation *)
-    
+
 session "Modelica" in "modelica" = "UTP-HYBRID" +
   options [document = false]
   theories
@@ -223,7 +223,11 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
 session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
-    fmi railways
+    fmi
+    Time
+    Railways
+    Topology
+    Interlocking
   document_files
     (* "root.bib" *)
     "root.tex"
