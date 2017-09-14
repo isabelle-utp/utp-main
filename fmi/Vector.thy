@@ -11,7 +11,7 @@ section {* Vectors *}
 text \<open>Encoding of fixed-size vectors (arrays).\<close>
 
 theory Vector
-imports Main utp
+imports Main "../utp/utp"
 begin recall_syntax
 
 hide_fact Congruence.set_eqI
@@ -116,17 +116,9 @@ syntax "uat_vector" ::
 
 translations "v[i]\<^sub>u" \<rightleftharpoons> "(CONST bop) (CONST at_vector) v \<guillemotleft>i\<guillemotright>"
 
-text \<open>Indexed assignment for the @{type vector} type.\<close>
+text \<open>Indexed assignment and application for the @{type vector} type.\<close>
 
-adhoc_overloading uupd vector_upd
-
-text \<open>TODO: Change the following in theory @{theory utp_rel}.\<close>
-
-purge_syntax
-  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "[_] :=" 72)
-
-syntax
-  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_[_] :=/ _)" [73, 0, 0] 72)
+adhoc_overloading uupd vector_upd and uapply at_vector
 
 text \<open>TODO: Pretty-printing of indexed assignment. See theory @{theory utp_rel}.\<close>
 

@@ -8,12 +8,8 @@
 subsection {* Interlocking Model *}
 
 theory Interlocking
-imports Vector utp_hoare utp_theories
+imports Vector "../utp/utp_hoare"
 begin recall_syntax
-
-hide_const (open) "utp_reactive.R1"
-hide_const (open) "utp_reactive.R2"
-hide_const (open) "utp_reactive.R3"
 
 subsection {* Type Definitions *}
 
@@ -164,44 +160,22 @@ lemma init_ilock_type_inv:
 "\<lbrace>true\<rbrace>init_ilock\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
 apply (rel_simp)
 done
-
+    
 lemma set_relays_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>set_relays\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-apply (unfold set_relays_def)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding set_relays_def by hoare_auto
 
 lemma reset_relays_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>reset_relays\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-apply (unfold reset_relays_def)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
-
+  unfolding reset_relays_def by hoare_auto
+    
 lemma pos_switches_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>pos_switches\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-apply (unfold pos_switches_def)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding pos_switches_def by hoare_auto
 
 lemma set_signals_type_inv:
 "\<lbrace>ilock_type_inv\<rbrace>set_signals\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
-apply (unfold set_signals_def)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding set_signals_def by hoare_auto
 
 lemma "\<lbrace>ilock_type_inv\<rbrace>ilock_cycle\<lbrace>ilock_type_inv\<rbrace>\<^sub>u"
 apply (unfold ilock_cycle_def)
@@ -228,64 +202,47 @@ definition relays_inv :: "ilock_state upred" where [urel_defs]:
 
 lemma init_ilock_relays_inv:
 "\<lbrace>true\<rbrace>init_ilock\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (rel_simp)
-done
+  unfolding init_ilock_def by hoare_auto
 
 lemma set_relays_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>set_relays\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (unfold set_relays_def)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding set_relays_def by hoare_auto
 
 lemma reset_relays_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>reset_relays\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (unfold reset_relays_def)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding reset_relays_def by hoare_auto
 
 lemma pos_switches_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>pos_switches\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (unfold pos_switches_def)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding pos_switches_def by hoare_auto
 
 lemma set_signals_relays_inv:
 "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>set_signals\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (unfold set_signals_def)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r, rel_auto)
-apply (rel_auto)
-done
+  unfolding set_signals_def by hoare_auto
 
-lemma hoare_l_conj [hoare]:
-"\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u"
-"\<lbrace>q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u"
-apply (rel_auto)
-apply (rel_auto)
-done
+text {* First way of solving: using the lemmas about directly. *}
 
 lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
-apply (unfold ilock_cycle_def)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r)
-apply (metis hoare_r_conj hoare_l_conj(1) set_relays_type_inv set_relays_relays_inv)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r)
-apply (metis hoare_r_conj hoare_l_conj(1) reset_relays_type_inv reset_relays_relays_inv)
-apply (rule_tac s = "ilock_type_inv \<and> relays_inv" in seq_hoare_r)
-apply (metis hoare_r_conj hoare_l_conj(1) pos_switches_type_inv pos_switches_relays_inv)
-apply (metis set_signals_relays_inv)
+  apply (unfold ilock_cycle_def)
+  apply (hoare_split)
+  apply (simp_all add: hoare_r_weaken_pre(1) set_relays_type_inv set_relays_relays_inv 
+                       reset_relays_relays_inv pos_switches_relays_inv set_signals_relays_inv 
+                       reset_relays_type_inv pos_switches_type_inv)
 done
+    
+text {* Second method: add the lemmas add additional Hoare rules (could also mark the theorems $hoare\_safe$) *}
+
+lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
+  unfolding ilock_cycle_def
+  by (hoare_split hr: set_relays_type_inv set_relays_relays_inv reset_relays_relays_inv 
+                      pos_switches_relays_inv set_signals_relays_inv reset_relays_type_inv 
+                      pos_switches_type_inv)
+
+text {* Third method: direct proof *}                    
+                    
+lemma "\<lbrace>ilock_type_inv \<and> relays_inv\<rbrace>ilock_cycle\<lbrace>relays_inv\<rbrace>\<^sub>u"
+  unfolding ilock_cycle_def set_signals_def pos_switches_def  set_relays_def reset_relays_def init_ilock_def
+  by (hoare_auto)
 
 subsection {* Proof Experiments *}
 
