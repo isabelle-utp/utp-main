@@ -17,7 +17,7 @@ syntax
   
 translations
   "_usedBy x p" == "CONST usedBy x p"                                           
-  "_usedBy (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uuses (x +\<^sub>L y) P"
+  "_usedBy (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_usedBy (x +\<^sub>L y) P"
 
 lift_definition usedBy_uexpr :: "('b \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> bool" 
 is "\<lambda> x e. (\<forall> b b'. e (b' \<oplus>\<^sub>L b on x) = e b)" .
@@ -34,6 +34,15 @@ lemma usedBy_sublens:
   using assms 
   by (transfer, auto, metis lens_override_def lens_override_idem sublens_obs_get vwb_lens_mwb)
 
+lemma usedBy_svar [unrest]: "x \<natural> P \<Longrightarrow> &x \<natural> P"
+  by (transfer, simp add: lens_defs)
+    
+lemma usedBy_lens_plus_1 [unrest]: "x \<natural> P \<Longrightarrow> x;y \<natural> P"
+  by (transfer, simp add: lens_defs)
+
+lemma usedBy_lens_plus_2 [unrest]: "\<lbrakk> x \<bowtie> y; y \<natural> P \<rbrakk> \<Longrightarrow> x;y \<natural> P"
+  by (transfer, auto simp add: lens_defs lens_indep_comm)
+    
 text {* Linking used-by to unrestriction: if x is used-by P, and x is independent of y, then
   P cannot depend on any variable in y. *}
     

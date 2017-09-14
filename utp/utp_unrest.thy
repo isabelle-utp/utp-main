@@ -71,6 +71,9 @@ lemma unrest_var_comp [unrest]:
   "\<lbrakk> x \<sharp> P; y \<sharp> P \<rbrakk> \<Longrightarrow> x;y \<sharp> P"
   by (transfer, simp add: lens_defs)
 
+lemma unrest_svar [unrest]: "x \<sharp> P \<Longrightarrow> &x \<sharp> P"
+  by (transfer, simp add: lens_defs)
+    
 text {* No lens is restricted by a literal, since it returns the same value for any state binding. *}
     
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
@@ -102,7 +105,7 @@ text {* The following laws demonstrate the primary motivation for lens independe
 
 lemma unrest_var [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
   by (transfer, auto)
-
+    
 lemma unrest_iuvar [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
   by (simp add: unrest_var)
 

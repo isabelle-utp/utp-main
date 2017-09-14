@@ -59,6 +59,21 @@ lemma seq_hoare_inv_r_3 [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace
 lemma cond_hoare_r [hoare_safe]: "\<lbrakk> \<lbrace>b \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u ; \<lbrace>\<not>b \<and> p\<rbrace>T\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
 
+text {* Frame rule: If starting $S$ in a state satisfying $p establishes q$ in the final state, then
+  we can insert an invariant predicate $r$ when $S$ is framed by $a$, provided that $r$ does not
+  refer to variables in the frame, and $q$ does not refer to variables outside the frame. *}
+    
+lemma frame_hoare_r [hoare_safe]: 
+  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p \<and> r\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>p \<and> r\<rbrace>a:[S]\<lbrace>q \<and> r\<rbrace>\<^sub>u"
+  using assms by (rel_simp)
+
+lemma frame_hoare_r' [hoare_safe]: 
+  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>r \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>r \<and> p\<rbrace>a:[S]\<lbrace>r \<and> q\<rbrace>\<^sub>u"
+  using assms
+  by (simp add: frame_hoare_r utp_pred_laws.inf.commute)
+    
 lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"

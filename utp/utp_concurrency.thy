@@ -460,34 +460,67 @@ lemma StateParallel_commute: "a \<bowtie> b \<Longrightarrow> P |a|b|\<^sub>\<si
 lemma StateParallel_form: 
   "P |a|b|\<^sub>\<sigma> Q = (\<^bold>\<exists> (st\<^sub>0, st\<^sub>1) \<bullet> P\<lbrakk>\<guillemotleft>st\<^sub>0\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>st\<^sub>1\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> $\<Sigma>\<acute> =\<^sub>u ($\<Sigma> \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &a) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &b)"
   by (rel_auto)
+
+lemma StateParallel_frame_left:
+  assumes "vwb_lens a"
+  shows "a:[P] |a|b|\<^sub>\<sigma> Q = P |a|b|\<^sub>\<sigma> Q"
+  using assms by (simp add: StateParallel_form, rel_auto, blast, fastforce)
+
+lemma StateParallel_frame_right:
+  assumes "vwb_lens b"
+  shows "P |a|b|\<^sub>\<sigma> b:[Q] = P |a|b|\<^sub>\<sigma> Q"
+  using assms by (simp add: StateParallel_form, rel_auto, blast, fastforce)
+    
+text {* We can frame all the variables that the parallel operator refers to *}
+    
+lemma StateParallel_frame:
+  assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
+  shows "{&a,&b}:[P |a|b|\<^sub>\<sigma> Q] = P |a|b|\<^sub>\<sigma> Q"
+  using assms
+  apply (simp add: StateParallel_form, rel_auto)
+  using lens_indep_comm apply fastforce+
+done
     
 lemma StateParallel_skip: 
   assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
   shows "II |a|b|\<^sub>\<sigma> P = b:[P]"
   using assms by (rel_auto)
-   
+
 text {* Parallel Hoare logic rule. This employs something similar to separating conjunction in
   the postcondition, but we explicitly require that the two conjuncts only refer to variables
   on the left and right of the parallel composition explicitly. *}
   
-theorem hoare_StateParallel [hoare]:
-  assumes "a \<bowtie> b" "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
+theorem StateParallel_hoare [hoare]:
+  assumes "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<bowtie> b" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
   shows "\<lbrace>c\<rbrace>P |a|b|\<^sub>\<sigma> Q\<lbrace>d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
 proof -
   -- {* Parallelise the specification *}
   from assms(4,5)
   have 1:"(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1 \<and> d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) |a|b|\<^sub>\<sigma> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>)" (is "?lhs \<sqsubseteq> ?rhs")
-    by (rel_auto, metis assms(1) lens_indep_comm lens_override_def)
+    by (simp add: StateParallel_form, rel_auto, metis assms(3) lens_indep_comm)
   -- {* Prove Hoare rule by monotonicity of parallelism *}
-  have 2:"?rhs \<sqsubseteq>  P |a|b|\<^sub>\<sigma> Q"
+  have 2:"?rhs \<sqsubseteq> P |a|b|\<^sub>\<sigma> Q"
   proof (rule par_by_merge_mono)
     show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) \<sqsubseteq> P"
-      using assms(2) hoare_r_def by blast
+      using assms(1) hoare_r_def by auto
     show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> Q"
-      using assms(3) hoare_r_def by auto
+      using assms(2) hoare_r_def by auto
   qed
   show ?thesis
-    using 1 2 hoare_r_def order_trans by blast
+    unfolding hoare_r_def using 1 2 order_trans by auto
 qed
-    
+
+text {* Specialised version of the above law where an invariant expression referring to variables
+  outside the frame is preserved. *}
+  
+theorem StateParallel_frame_hoare [hoare]:
+  assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2" "a \<sharp> c\<^sub>1" "b \<sharp> c\<^sub>1" "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u"
+  shows "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>P |a|b|\<^sub>\<sigma> Q\<lbrace>c\<^sub>1 \<and> d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
+proof -
+  have "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>{&a,&b}:[P |a|b|\<^sub>\<sigma> Q]\<lbrace>c\<^sub>1 \<and> d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
+    by (auto intro!: frame_hoare_r' StateParallel_hoare simp add: assms unrest plus_vwb_lens)
+  thus ?thesis
+    by (simp add: StateParallel_frame assms)
+qed
+      
 end
