@@ -2,6 +2,7 @@ section {* Concurrent Programming *}
 
 theory utp_concurrency
   imports
+    utp_hoare
     utp_rel
     utp_tactics
     utp_theory
@@ -383,7 +384,7 @@ theorem par_by_merge_commute:
   assumes "M is SymMerge"
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>M\<^esub> P"
   by (metis Healthy_if assms par_by_merge_commute_swap)
-
+    
 lemma par_by_merge_mono_1:
   assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2"
   shows "P\<^sub>1 \<parallel>\<^bsub>M\<^esub> Q \<sqsubseteq> P\<^sub>2 \<parallel>\<^bsub>M\<^esub> Q"
@@ -393,7 +394,12 @@ lemma par_by_merge_mono_2:
   assumes "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q\<^sub>1) \<sqsubseteq> (P \<parallel>\<^bsub>M\<^esub> Q\<^sub>2)"
   using assms by (rel_blast)
-    
+
+lemma par_by_merge_mono:
+  assumes "P\<^sub>1 \<sqsubseteq> P\<^sub>2" "Q\<^sub>1 \<sqsubseteq> Q\<^sub>2"
+  shows "P\<^sub>1 \<parallel>\<^bsub>M\<^esub> Q\<^sub>1 \<sqsubseteq> P\<^sub>2 \<parallel>\<^bsub>M\<^esub> Q\<^sub>2"
+  by (meson assms dual_order.trans par_by_merge_mono_1 par_by_merge_mono_2)
+
 theorem par_by_merge_assoc: 
   assumes "M is SymMerge" "AssocMerge M"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) \<parallel>\<^bsub>M\<^esub> R = P \<parallel>\<^bsub>M\<^esub> (Q \<parallel>\<^bsub>M\<^esub> R)"
@@ -459,5 +465,29 @@ lemma StateParallel_skip:
   assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
   shows "II |a|b|\<^sub>\<sigma> P = b:[P]"
   using assms by (rel_auto)
-        
+   
+text {* Parallel Hoare logic rule. This employs something similar to separating conjunction in
+  the postcondition, but we explicitly require that the two conjuncts only refer to variables
+  on the left and right of the parallel composition explicitly. *}
+  
+theorem hoare_StateParallel:
+  assumes "a \<bowtie> b" "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
+  shows "\<lbrace>c\<rbrace>P |a|b|\<^sub>\<sigma> Q\<lbrace>d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
+proof -
+  -- {* Parallelise the specification *}
+  from assms(4,5)
+  have 1:"(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1 \<and> d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) |a|b|\<^sub>\<sigma> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>)" (is "?lhs \<sqsubseteq> ?rhs")
+    by (rel_auto, metis assms(1) lens_indep_comm lens_override_def)
+  -- {* Parallelise the specification *}
+  have 2:"?rhs \<sqsubseteq>  P |a|b|\<^sub>\<sigma> Q"
+  proof (rule par_by_merge_mono)
+    show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) \<sqsubseteq> P"
+      using assms(2) hoare_r_def by blast
+    show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> Q"
+      using assms(3) hoare_r_def by auto
+  qed
+  show ?thesis
+    using 1 2 hoare_r_def order_trans by blast
+qed
+    
 end

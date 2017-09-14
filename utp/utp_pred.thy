@@ -475,6 +475,28 @@ lemma unrest_closure [unrest]:
   "x \<sharp> [P]\<^sub>u"
   by (pred_auto)
 
+subsection {* Used-by laws *}
+
+lemma usedBy_not [unrest]:
+  "\<lbrakk> x \<natural> P \<rbrakk> \<Longrightarrow> x \<natural> (\<not> P)"
+  by (pred_simp)
+    
+lemma usedBy_conj [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<and> Q)"
+  by (pred_simp)
+
+lemma usedBy_disj [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<or> Q)"
+  by (pred_simp)
+
+lemma usedBy_impl [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Rightarrow> Q)"
+  by (pred_simp)
+
+lemma usedBy_iff [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Leftrightarrow> Q)"
+  by (pred_simp)
+    
 subsection {* Substitution Laws *}
 
 text {* Substitution is monotone *}

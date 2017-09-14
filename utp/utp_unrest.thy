@@ -53,6 +53,10 @@ is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
 adhoc_overloading
   unrest unrest_uexpr
 
+lemma unrest_expr_alt_def:
+  "weak_lens x \<Longrightarrow> (x \<sharp> P) = (\<forall> b b'. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>L b' on x) = \<lbrakk>P\<rbrakk>\<^sub>e b)"
+  by (transfer, metis lens_override_def weak_lens.put_get)
+  
 subsection {* Unrestriction laws *}
   
 text {* We now prove unrestriction laws for the key constructs of our expression model. Many
@@ -72,6 +76,16 @@ text {* No lens is restricted by a literal, since it returns the same value for 
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 
+text {* If one lens is smaller than another, then any unrestriction on the larger lens implies
+  unrestriction on the smaller. *}
+    
+lemma unrest_sublens:
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "x \<sharp> P" "y \<subseteq>\<^sub>L x"
+  shows "y \<sharp> P" 
+  using assms
+  by (transfer, metis (no_types, lifting) lens.select_convs(2) lens_comp_def sublens_def)
+    
 text {* If two lenses are equivalent, and thus they characterise the same state-space regions,
   then clearly unrestrictions over them are equivalent. *}
     

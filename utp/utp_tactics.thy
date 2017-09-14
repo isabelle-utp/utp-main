@@ -11,7 +11,7 @@ text_raw {* \newpage *}
 section {* UTP Tactics *}
 
 theory utp_tactics
-imports Eisbach Lenses Interp utp_expr utp_unrest
+imports Eisbach Lenses Interp utp_expr utp_unrest utp_usedby
 keywords "update_uexpr_rep_eq_thms" :: thy_decl
 begin
 
@@ -155,6 +155,7 @@ declare uexpr_eq_iff [uexpr_transfer_laws]
 named_theorems uexpr_transfer_extra "extra simplifications for uexpr transfer"
 
 declare unrest_uexpr.rep_eq [uexpr_transfer_extra]
+  usedBy_uexpr.rep_eq [uexpr_transfer_extra]
   utp_expr.numeral_uexpr_rep_eq [uexpr_transfer_extra]
   utp_expr.less_eq_uexpr.rep_eq [uexpr_transfer_extra]
   Abs_uexpr_inverse [simplified, uexpr_transfer_extra]
