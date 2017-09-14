@@ -2497,6 +2497,10 @@ lemma cond_st_false [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<tr
 lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<triangleleft> b \<triangleright>\<^sub>R P) = ([b]\<^sub>S\<^sub>< \<or> P)"
   by (rel_blast)
     
+lemma st_cond_left_impl_RC_closed [closure]:
+  "P is RC \<Longrightarrow> ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) is RC"
+  by (simp add: rea_impl_def rpred closure)
+    
 lemma wpR_st_cond_div [wp]:
   "P \<noteq> true \<Longrightarrow> true\<^sub>r wp\<^sub>R [P]\<^sub>S\<^sub>< = false"
   by (rel_auto)

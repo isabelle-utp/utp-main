@@ -1131,30 +1131,40 @@ lemma conj_RR [closure]:
 lemma disj_RR [closure]:
   "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> (P \<or> Q) is RR"
   by (metis Healthy_def' R1_RR R1_idem R1_rea_not' RR_rea_impl RR_rea_not disj_comm double_negation rea_impl_def rea_not_def)
-    
-lemma USUP_ind_RR_closed [closure]:
-  assumes "\<And> i. P i is RR"
-  shows "(\<Squnion> i \<bullet> P(i)) is RR"
+
+lemma USUP_mem_RR_closed [closure]:
+  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  shows "(\<Squnion> i\<in>A \<bullet> P(i)) is RR"
 proof -
-  have 1:"(\<Squnion> i\<in>UNIV \<bullet> P(i)) is R1"
+  have 1:"(\<Squnion> i\<in>A \<bullet> P(i)) is R1"
     by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
-  have 2:"(\<Squnion> i\<in>UNIV \<bullet> P(i)) is R2c"
+  have 2:"(\<Squnion> i\<in>A \<bullet> P(i)) is R2c"
     by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
   show ?thesis
     using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
 qed
-    
-lemma UINF_ind_RR_closed [closure]:
+
+lemma USUP_ind_RR_closed [closure]:
   assumes "\<And> i. P i is RR"
-  shows "(\<Sqinter> i \<bullet> P(i)) is RR"
+  shows "(\<Squnion> i \<bullet> P(i)) is RR"
+  using USUP_mem_RR_closed[of P UNIV] by (simp add: assms)
+
+lemma UINF_mem_RR_closed [closure]:
+  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is RR"
 proof -
-  have 1:"(\<Sqinter> i\<in>UNIV \<bullet> P(i)) is R1"
+  have 1:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R1"
     by (unfold Healthy_def, subst R1_USUP, simp_all add: Healthy_if assms closure)
-  have 2:"(\<Sqinter> i\<in>UNIV \<bullet> P(i)) is R2c"
+  have 2:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R2c"
     by (unfold Healthy_def, subst R2c_USUP, simp_all add: Healthy_if assms RR_implies_R2c closure)
   show ?thesis
     using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
 qed
+
+lemma UINF_ind_RR_closed [closure]:
+  assumes "\<And> i. P i is RR"
+  shows "(\<Sqinter> i \<bullet> P(i)) is RR"
+  using UINF_mem_RR_closed[of P UNIV] by (simp add: assms)
 
 lemma cond_tt_RR_closed [closure]: 
   assumes "P is RR" "Q is RR"
@@ -1316,7 +1326,10 @@ definition RC :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<
   
 lemma RC_intro: "\<lbrakk> P is RR; ((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) = P) \<rbrakk> \<Longrightarrow> P is RC"
   by (simp add: Healthy_def RC1_def RC_def)
-  
+
+lemma RC_intro': "\<lbrakk> P is RR; P is RC1 \<rbrakk> \<Longrightarrow> P is RC"
+  by (simp add: Healthy_def RC1_def RC_def)
+
 lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
   by (rel_auto, (blast intro: dual_order.trans)+)
   
@@ -1382,10 +1395,8 @@ lemma false_RC [closure]: "false is RC"
    
 lemma disj_RC_closed [closure]: "\<lbrakk> P is RC; Q is RC \<rbrakk> \<Longrightarrow> (P \<or> Q) is RC"
   by (metis Healthy_def RC_R2_def RC_implies_RR comp_apply disj_RC1_closed disj_RR)
-    
-term "RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i))"
   
-lemma UINF_ind_RC1_closed [closure]:
+lemma UINF_mem_RC1_closed [closure]:
   assumes "\<And> i. P i is RC1"
   shows "(\<Sqinter> i\<in>A \<bullet> P i) is RC1"
 proof -
@@ -1412,6 +1423,30 @@ proof -
   finally show ?thesis
     by (simp add: Healthy_def)
 qed
+
+lemma UINF_ind_RC_closed [closure]:
+  assumes "\<And> i. P i is RC"
+  shows "(\<Sqinter> i \<bullet> P i) is RC"
+  by (metis (no_types) UINF_as_Sup_collect' UINF_as_Sup_image UINF_mem_RC_closed assms)
+  
+lemma USUP_mem_RC1_closed [closure]:
+  assumes "\<And> i. P i is RC1" "A \<noteq> {}"
+  shows "(\<Squnion> i\<in>A \<bullet> P i) is RC1"
+proof -
+  have "RC1(\<Squnion> i\<in>A \<bullet> P i) = RC1(\<Squnion> i\<in>A \<bullet> RC1(P i))"
+    by (simp add: Healthy_if assms(1))
+  also from assms(2) have "... = (\<Squnion> i\<in>A \<bullet> RC1(P i))"
+    using dual_order.trans by (rel_blast)
+  also have "... = (\<Squnion> i\<in>A \<bullet> P i)"
+    by (simp add: Healthy_if assms(1))
+  finally show ?thesis
+    using Healthy_def by blast
+qed
+
+lemma USUP_mem_RC_closed [closure]:
+  assumes "\<And> i. P i is RC" "A \<noteq> {}"
+  shows "(\<Squnion> i\<in>A \<bullet> P i) is RC"
+  by (rule RC_intro', simp_all add: closure assms RC_implies_RC1)  
     
 lemma trace_ext_prefix_RR [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RR"

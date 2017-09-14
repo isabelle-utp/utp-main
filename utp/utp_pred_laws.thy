@@ -317,6 +317,11 @@ lemma UINF_cong:
   shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"
   by (simp add: UINF_as_Sup_collect assms)
 
+lemma USUP_all_cong:
+  assumes "\<And> P. F(P) = G(P)"
+  shows "(\<Squnion> P \<bullet> F(P)) = (\<Squnion> P \<bullet> G(P))"
+  by (simp add: assms)
+    
 lemma USUP_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> G(P))"
