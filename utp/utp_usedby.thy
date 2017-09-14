@@ -19,10 +19,10 @@ translations
   "_usedBy x p" == "CONST usedBy x p"                                           
   "_usedBy (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uuses (x +\<^sub>L y) P"
 
-lift_definition usedBy_expr :: "('b \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> bool" 
+lift_definition usedBy_uexpr :: "('b \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> bool" 
 is "\<lambda> x e. (\<forall> b b'. e (b' \<oplus>\<^sub>L b on x) = e b)" .
 
-adhoc_overloading usedBy usedBy_expr
+adhoc_overloading usedBy usedBy_uexpr
   
 lemma usedBy_lit [unrest]: "x \<natural> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
