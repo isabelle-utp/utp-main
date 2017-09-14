@@ -470,7 +470,7 @@ text {* Parallel Hoare logic rule. This employs something similar to separating 
   the postcondition, but we explicitly require that the two conjuncts only refer to variables
   on the left and right of the parallel composition explicitly. *}
   
-theorem hoare_StateParallel:
+theorem hoare_StateParallel [hoare]:
   assumes "a \<bowtie> b" "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
   shows "\<lbrace>c\<rbrace>P |a|b|\<^sub>\<sigma> Q\<lbrace>d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
 proof -
@@ -478,7 +478,7 @@ proof -
   from assms(4,5)
   have 1:"(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1 \<and> d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) |a|b|\<^sub>\<sigma> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>)" (is "?lhs \<sqsubseteq> ?rhs")
     by (rel_auto, metis assms(1) lens_indep_comm lens_override_def)
-  -- {* Parallelise the specification *}
+  -- {* Prove Hoare rule by monotonicity of parallelism *}
   have 2:"?rhs \<sqsubseteq>  P |a|b|\<^sub>\<sigma> Q"
   proof (rule par_by_merge_mono)
     show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) \<sqsubseteq> P"
