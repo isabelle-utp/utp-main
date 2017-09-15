@@ -23,16 +23,13 @@ translations
   "_svarcont x" == "CONST svar_cont x"
 
 definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdEvolve x f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
+[upred_defs, rdes_def]: "hrdEvolve x f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> x \<leftarrow>\<^sub>h f(time) \<diamondop> false)"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
 
 definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) 
-                                    \<diamondop> ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
-                                        \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
-                                       ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)))"
+[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(t) f(time)) \<diamondop> ((x \<leftarrow>\<^sub>h(t) f(time)) \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r))"
 
 syntax
   "_hrdEvolve"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H _" [90,91] 90)
@@ -62,7 +59,7 @@ text {* Should the until construct include in the pericondition the state where 
 definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" (infixl "until\<^sub>H" 85)
   where [upred_defs]: 
 "P until\<^sub>H b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
-  
+
 definition hrdPreempt_nz ::
     "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H\<^sup>+ _" [64,0,65] 64) where
@@ -91,15 +88,13 @@ lemma hrdEvolve_NSRD [closure]: "x \<leftarrow>\<^sub>H f(time) is NSRD"
 lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = true\<^sub>r"
   by (rel_auto)
     
-lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = (0 <\<^sub>u \<^bold>l \<and> x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) "
+lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = (x \<leftarrow>\<^sub>h\<le>(t) f(time)) "
   by (rel_auto)
 
 declare minus_zero_eq [dest]
     
-lemma postR_hrdEvolveTil [rdes]: "post\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) =
-                             ((x \<leftarrow>\<^sub>h f(time) \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) 
-                                        \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R 
-                                       ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
+lemma postR_hrdEvolveTil [rdes]: 
+  "post\<^sub>R(x \<leftarrow>\<^sub>H(t) f(time)) = ((x \<leftarrow>\<^sub>h(t) f(time)) \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r)"
   by (rel_auto)
     
 lemma hrdEvolveTil_SRD [closure]: "x \<leftarrow>\<^sub>H(t) f(time) is SRD"
@@ -193,32 +188,98 @@ proof -
   finally show ?thesis .
 qed
 
-(*
 lemma hrdUntil_solve:
   assumes 
-    "k > 0" "continuous_on {0..k} f"
-    "\<forall> t \<in> {0..<k}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/&\<Sigma>\<rbrakk> = false" "b\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/&\<Sigma>\<rbrakk> = true"
-  shows "x \<leftarrow>\<^sub>H f(time)\<guillemotright> until\<^sub>H b = x \<leftarrow>\<^sub>H(\<guillemotleft>k\<guillemotright>) f(time)"
-proof -
-  from assms have 1:"((0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h) = (0 <\<^sub>u \<^bold>l \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h \<and> \<guillemotleft>k\<guillemotright> \<ge>\<^sub>u end\<^sub>u(\<^bold>t))"
-    by (fast_uexpr_transfer)
-       (rel_auto, meson approximation_preproc_push_neg(2) less_eq_real_def)
-  from assms have 2: "((end\<^sub>u(\<^bold>t) >\<^sub>u 0 \<and> \<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h) \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>> \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) =
-                       (\<lceil>&\<Sigma> =\<^sub>u \<guillemotleft>f time\<guillemotright>\<rceil>\<^sub>h \<and> end\<^sub>u(\<^bold>t) =\<^sub>u \<guillemotleft>k\<guillemotright> \<and> rl \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<triangleleft> \<guillemotleft>k\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+    "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "c\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
+  shows "(x \<leftarrow>\<^sub>H \<guillemotleft>f(time)\<guillemotright>) until\<^sub>H c = x \<leftarrow>\<^sub>H(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(time)\<guillemotright>"
+proof (rule SRD_eq_intro, simp_all add: closure assms rdes rpred)
+  from assms(5,6) show 1:"(x \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h) = x \<leftarrow>\<^sub>h\<le>(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f time\<guillemotright>"
     apply (fast_uexpr_transfer)
-    apply (rel_auto)
-    apply (rename_tac t t')
-    apply (rule_tac x="end\<^sub>t(t' - t)" and y="k" in linorder_cases)
-    apply (simp only: at_left_from_zero Limit_solve[of _ f])
-    apply (subst (asm) Limit_solve [of _ f])
-    apply (auto)
-    apply (rule continuous_on_subset[of "{0..k}"], auto)
-    apply (simp add: Limit_solve at_left_from_zero)
+    apply (rel_simp)
+    apply (safe, simp_all)
+     apply (rule hUntil_lemma2[of x k _ _ c f], simp_all add: assms)
+    apply (rename_tac tr b tr' t)
+    apply (drule_tac x="t" in bspec)
+     apply (simp_all add: assms)
+    apply (metis assms(1) vwb_lens.put_eq)
   done
-
-  from 1 2 show ?thesis
-    by (rule_tac SRD_eq_intro, simp_all add: closure rdes alpha wp)
+  from assms(2,5,6) show
+    "(x \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>c\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f time\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>k\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r"
+    apply (fast_uexpr_transfer)
+    apply (rel_simp)
+    apply (safe, simp_all)
+    apply (rule hUntil_lemma3[of x], auto simp add: assms)
+    apply (rename_tac tr b tr' t)
+    apply (drule_tac x="t" in bspec)
+     apply (simp_all add: assms)
+    apply (metis assms(1) vwb_lens.put_eq)
+    apply (rule hUntil_lemma4[of x k f _])
+    using assms apply (simp_all)
+  done
 qed
-*)
+  
+subsection {* Stepping a Hybrid Reactive Design *}
+
+definition hrdStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("Step[_]\<^sub>H") where
+[upred_defs]: "Step[t]\<^sub>H P = HyStep[t](peri\<^sub>R(P))"
+
+lemma hrdStep_hrdEvolve:
+  assumes "n > 0" "continuous_on {0..n} f"
+  shows "Step[n]\<^sub>H(&\<Sigma> \<leftarrow>\<^sub>H \<guillemotleft>f(time)\<guillemotright>) = (\<Sigma> := \<guillemotleft>f n\<guillemotright>)"
+  by (simp add: hrdStepRel_def rdes assms HyStep_hEvolve)
+  
+lemma tt_eq_iff_end_same:
+  "\<lbrakk> s \<le> t; end\<^sub>t(s) = end\<^sub>t(t) \<rbrakk> \<Longrightarrow> s = t"
+  using tt_end_minus by fastforce
+
+lemma hrdStep_hrdEvolveAt_le:
+  fixes P :: "('d, 'c::t2_space) hyrel"
+  assumes "n > 0" "l \<ge> n" "continuous_on {0..n} f" "P is NSRD" "pre\<^sub>R(P) = true\<^sub>r"
+  shows "Step[n]\<^sub>H(&\<Sigma> \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; P) = (\<Sigma> := \<guillemotleft>f n\<guillemotright>)"
+proof -
+  from assms(1,2) 
+  have 1:"peri\<^sub>R(&\<Sigma> \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; P) = (&\<Sigma> \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright> \<or> &\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright> ;; RR(peri\<^sub>R P))"
+    (is "?lhs = ?rhs")
+    by (simp add: hrdStepRel_def hStepRel_def rdes closure assms rpred wp Healthy_if, rel_auto)
+  from assms(1,2) have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = (&\<Sigma> \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+    by (simp add: 1, rel_auto, simp add: tt_end_minus, metis eq_iff tt_eq_iff_end_same tt_sub_end)
+  also from assms(1,2) have "... = &\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f time\<guillemotright>"
+    by (rel_auto)
+  finally have "HyStep[n](?lhs) = HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> :: ('d, 'c) hyrel)"
+    using assms(1,2) by (simp add: hStepRel_def, rel_auto)
+  thus ?thesis
+    by (simp add: hrdStepRel_def HyStep_hEvolve assms)
+qed 
+  
+lemma time_length_conj_seq:
+  assumes "m < n" "P is R1" "Q is R1"
+  shows  "((\<^bold>l =\<^sub>u \<guillemotleft>m\<guillemotright> \<and> P) ;; Q \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright>) = ((\<^bold>l =\<^sub>u \<guillemotleft>m\<guillemotright> \<and> P) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-m\<guillemotright> \<and> Q))"
+proof -
+  from assms(1) have "((\<^bold>l =\<^sub>u \<guillemotleft>m\<guillemotright> \<and> R1(P)) ;; R1(Q) \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright>) = ((\<^bold>l =\<^sub>u \<guillemotleft>m\<guillemotright> \<and> R1(P)) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-m\<guillemotright> \<and> R1(Q)))"
+    apply (rel_auto, simp_all add: tt_end_minus)
+    using tt_end_minus apply blast+
+  done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
+lemma hrdStep_hrdEvolveAt_greater:
+  fixes P :: "('d, 'c::t2_space) hyrel"
+  assumes "0 < l" "l < n" "continuous_on {0..n} f" "P is NSRD" "pre\<^sub>R(P) = true\<^sub>r"
+  shows "Step[n]\<^sub>H(&\<Sigma> \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; P) = (\<Sigma> := \<guillemotleft>f n\<guillemotright> ;; Step[n-l]\<^sub>H(P))"
+proof -
+  from assms(1,2)
+  have 1:"peri\<^sub>R(&\<Sigma> \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; P) = (&\<Sigma> \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright> \<or> &\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright> ;; RR(peri\<^sub>R P))"
+    (is "?lhs = ?rhs")
+    by (simp add: hrdStepRel_def hStepRel_def rdes closure assms rpred wp Healthy_if, rel_auto)
+  from assms(1,2) 
+  have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = 
+        (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright>) ;; RR(peri\<^sub>R P) \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+    by (simp add: 1, rel_auto)
+  also from assms(1,2) 
+  have "... = (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f time\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P))) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+    by (subst time_length_conj_seq, simp_all add: assms closure)
+oops
   
 end

@@ -1182,7 +1182,7 @@ lemma rea_skip_RR [closure]:
 lemma tr'_eq_tr_RR_closed [closure]: "$tr\<acute> =\<^sub>u $tr is RR"
   apply (rel_auto) using minus_zero_eq by auto
   
-lemma rea_skip_unit:
+lemma rea_skip_unit [rpred]:
   assumes "P is RR"
   shows "P ;; II\<^sub>r = P" "II\<^sub>r ;; P = P"
 proof -

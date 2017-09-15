@@ -610,16 +610,22 @@ subsection {* Evolve by continuous function *}
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(time)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
+definition hEvolveBound :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+[upred_defs]: "hEvolveBound x t f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><)"
+
 definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> rl(&\<Sigma>))"
+[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d \<and> rl(&\<Sigma>))"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
+  "_hEvolveBound"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h\<le>'(_') _" [90,0,91] 90)
   "_hEvolveAt" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h'(_') _" [90,0,91] 90)  
   
 translations
   "_hEvolve a f" => "CONST hEvolve a (\<lambda> _time_var. f)"
   "_hEvolve a f" <= "CONST hEvolve a (\<lambda> time. f)"
+  "_hEvolveBound a t f" => "CONST hEvolveBound a t (\<lambda> _time_var. f)"
+  "_hEvolveBound a t f" <= "CONST hEvolveBound a t (\<lambda> time. f)"
   "_hEvolveAt a t f" => "CONST hEvolveAt a t (\<lambda> _time_var. f)"
   "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> time. f)"
 
@@ -627,9 +633,22 @@ lemma hEvolve_unrests [unrest]:
   "$ok \<sharp> x \<leftarrow>\<^sub>h f(time)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(time)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(time)"
   by (simp_all add: hEvolve_def unrest)
 
+lemma hEvolveBound_st'_unrest [unrest]:
+  "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h\<le>(n) f(time)"
+  by (rel_auto)
+    
 lemma hEvolve_usubst [usubst]:
   "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(time) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f time)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
   by (simp add: hEvolve_def usubst unrest)
+    
+lemma hEvolve_RR_closed [closure]: "x \<leftarrow>\<^sub>h f(time) is RR"
+  by (rel_auto)
+
+lemma hEvolveBound_RR_closed [closure]: "x \<leftarrow>\<^sub>h\<le>(l) f(time) is RR"
+  by (rel_auto)
+    
+lemma hEvolveAt_RR_closed [closure]: "x \<leftarrow>\<^sub>h(l) f(time) is RR"
+  by (rel_auto)
     
 lemma hEvolve_spec_refine:
   assumes "vwb_lens x" "\<forall> time\<ge>0. `P(time)\<lbrakk>\<lceil>f(time)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
@@ -644,7 +663,7 @@ subsection {* Pre-emption *}
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [74,75] 74) where
-[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C)"
+[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
@@ -737,6 +756,138 @@ lemma hUntil_subst_init_cont [usubst]:
   "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   by (simp add: hUntil_def usubst unrest)
   
+lemma hUntil_RR_closed [closure]:
+  assumes "P is RR"
+  shows "P until\<^sub>h b is RR"
+proof -
+  have "RR (RR(P) until\<^sub>h b) = RR(P) until\<^sub>h b"
+    by (rel_auto)
+  with assms show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+lemma hUntil_lemma1:
+  fixes tr tr' :: "'a::topological_space ttrace"
+  assumes
+    "vwb_lens x" "k > 0" "tr < tr'"
+    "\<forall>t\<in>{0..<k}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+    "0 \<le> t" "t < end\<^sub>t(tr'-tr)" "end\<^sub>t(tr'-tr) \<le> k"
+  shows 
+    "\<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+  using assms
+  apply (drule_tac x="t" in bspec, simp)
+  apply (drule_tac x="t" in spec)
+  apply (metis assms(1) vwb_lens.put_eq)
+done
+    
+lemma hUntil_lemma2:
+  fixes tr tr' :: "'a::topological_space ttrace"
+  assumes
+    "vwb_lens x" "k > 0" "tr < tr'"
+    "\<forall>t\<in>{0..<k}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f k))"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr'-tr) \<longrightarrow> \<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+  shows "end\<^sub>t (tr'-tr) \<le> k"
+proof -
+  let ?l = "end\<^sub>t (tr' - tr)"
+    
+  have etr_nz: "?l > 0"
+    by (simp add: assms)
+    
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+    by (simp add: assms less_imp_le)
+
+  show "end\<^sub>t (tr'-tr) \<le> k"
+  proof (rule ccontr)
+    assume less: "\<not> end\<^sub>t (tr' - tr) \<le> k"
+    with assms have 1:"\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
+      by (auto)
+    from assms tr_f less have "get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t k) = f k"
+      by auto
+    with assms have 2:"\<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
+      apply (drule_tac x="b" in spec)
+      apply (drule_tac x="\<langle>tr' - tr\<rangle>\<^sub>t k" in spec)
+      apply (metis vwb_lens.put_eq)
+    done
+    from 1 2 show False
+      by blast
+  qed      
+qed  
+
+lemma hUntil_lemma3:
+  fixes tr tr' :: "'a::t2_space ttrace"
+  and x :: "'c::t2_space \<Longrightarrow> 'a::t2_space"
+  assumes
+    "vwb_lens x" "k > 0" "tr < tr'"
+    "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall>t\<in>{0..<k}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f k))"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+    "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr'-tr) \<longrightarrow> \<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+    "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left (end\<^sub>t (tr'-tr))) \<langle>tr'-tr\<rangle>\<^sub>t)"
+  shows "end\<^sub>t (tr'-tr) = k"
+proof -
+  let ?l = "end\<^sub>t (tr' - tr)"
+
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+    by (simp add: assms less_imp_le)
+    
+  have k:"end\<^sub>t (tr'-tr) \<le> k"
+    by (rule hUntil_lemma2[of x k tr tr' c f b], simp_all add: assms)
+      
+  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
+    using assms tr_f k 
+    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
+
+  show "end\<^sub>t (tr'-tr) = k"
+  proof (cases k "end\<^sub>t (tr'-tr)" rule:linorder_cases)
+    case less show ?thesis
+      using k less by auto
+  next
+    case equal
+    then show ?thesis by simp
+  next
+    case greater
+    with assms have "\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f ?l))"
+      by simp
+    then show ?thesis
+      using assms(10) assms(1) gL vwb_lens.put_eq by force 
+  qed
+qed
+
+lemma hUntil_lemma4:
+  fixes tr tr' b
+  and x :: "'c::t2_space \<Longrightarrow> 'a::t2_space"    
+  assumes
+    "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall>t\<in>{0..<end\<^sub>t (tr' - tr)}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
+    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f (end\<^sub>t (tr'-tr))))"
+    "\<forall>xa. 0 \<le> xa \<and> xa < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(xa + end\<^sub>t tr)) = f xa"
+    "tr < tr'"
+    "k = end\<^sub>t (tr'-tr)"
+  shows "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr'-tr\<rangle>\<^sub>t)"  
+proof -
+  let ?l = "end\<^sub>t (tr' - tr)"
+    
+  have etr_nz: "?l > 0"
+    by (simp add: assms)
+    
+  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+    by (simp add: assms less_imp_le)
+      
+  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f ?l"
+    using assms(1-4) assms tr_f 
+    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
+    
+  have c: "\<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr'-tr))))"
+    by (simp add: assms)
+    
+  show "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t)"
+    using assms(1) c gL vwb_lens.put_eq by fastforce    
+qed
+    
 (* FIXME: Try and convert this to a pure Isar proof, or couple of lemmas *)
   
 lemma hUntil_solve:
@@ -833,12 +984,12 @@ qed
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<Sigma>)) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
   
 lemma HyStep_hEvolve:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "n > 0" "continuous_on {0..n} f"
-  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>  :: ('d,'c) hyrel) = ($\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
+  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>  :: ('d,'c) hyrel) = (\<Sigma> := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
 proof -
   from assms(1) have "?lhs = \<lfloor>(&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
     by (simp add: hStepRel_def, rel_auto)
