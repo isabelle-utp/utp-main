@@ -164,6 +164,16 @@ apply (transfer)
 apply (clarsimp)
 done
 
+theorem vector_from_list_upd [simp]:
+"i \<in> {1..length l} \<Longrightarrow>
+  (vector_from_list l)\<^bold>[i\<^bold>] \<hookleftarrow> x = (vector_from_list (list_update l (i-1) x))"
+apply (transfer)
+apply (subst dom_lambda_pfun)
+apply (clarsimp)
+apply (rule ext)
+apply (simp add: eq_diff_iff)
+done
+
 lemma vector_app_eq_None:
 "v \<in> vector \<Longrightarrow> v i = None \<longleftrightarrow> i \<notin> {1..(THE n. dom v = {1..n})}"
 apply (unfold vector_def)
@@ -215,6 +225,23 @@ theorem vector_upd_cancel [simp]:
 "((v\<^bold>[i\<^bold>] \<hookleftarrow> x)\<^bold>[i\<^bold>] \<hookleftarrow> y) = (v\<^bold>[i\<^bold>] \<hookleftarrow> y)"
 apply (transfer')
 apply (clarsimp)
+done
+
+(* TODO: Revise the proof below! *)
+
+lemma eq_vector_from_list:
+"v = vector_from_list l \<longleftrightarrow>
+  size v = (length l) \<and> (\<forall>i\<in>{1..length l}. v\<^bold>[i\<^bold>] = l ! (i - 1))"
+apply (transfer)
+apply (simp add: fun_eq_iff)
+apply (rule the1I2)
+apply (unfold vector_def)
+apply (force)
+apply (safe; clarsimp?)
+apply (smt Icc_eq_Icc atLeastAtMost_iff atLeastAtMost_insertL domIff le_0_eq not_less_eq_eq option.simps(3) order_refl)
+apply (metis atLeastAtMost_iff domIff option.exhaust_sel)
+using atLeastAtMost_iff apply (blast)
+apply (metis atLeastAtMost_iff domIff le0 le_SucE not_less_eq_eq)
 done
 
 hide_fact dom_lambda_pfun vector_app_eq_None
