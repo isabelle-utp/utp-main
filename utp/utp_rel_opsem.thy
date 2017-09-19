@@ -1,7 +1,9 @@
-section {* Relational operational semantics *}
+section {* Relational Operational Semantics *}
 
 theory utp_rel_opsem
-  imports utp_rel_laws
+  imports 
+    utp_rel_laws 
+    utp_hoare
 begin
 
 text {* This theory uses the laws of relational calculus to create a basic operational semantics.
@@ -63,5 +65,17 @@ lemma while_false_trel:
   shows "(\<sigma>, while b do P od) \<rightarrow>\<^sub>u (\<sigma>, II)"
   by (metis assms rcond_false_trel while_unfold)
 
+text {* Theorem linking Hoare calculus and operational semantics. If we start $Q$ in a state $\sigma_0$
+  satisfying $p$, and $Q$ reaches final state $\sigma_1$ then $r$ holds in this final state. *}
+    
+theorem hoare_opsem_link:
+  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = (\<forall> \<sigma>\<^sub>0 \<sigma>\<^sub>1. `\<sigma>\<^sub>0 \<dagger> p` \<and> (\<sigma>\<^sub>0, Q) \<rightarrow>\<^sub>u (\<sigma>\<^sub>1, II) \<longrightarrow> `\<sigma>\<^sub>1 \<dagger> r`)"
+  apply (rel_auto)
+  apply (rename_tac a b)
+  apply (drule_tac x="\<lambda> _. a" in spec, simp)
+  apply (drule_tac x="\<lambda> _. b" in spec, simp)
+done
+    
 declare trel.simps [simp del]
+
 end
