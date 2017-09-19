@@ -1014,5 +1014,17 @@ proof -
   qed
   finally show ?thesis .
 qed
+
+lemma "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<Sigma>,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<Sigma>,$b\<acute>})]"
+  apply (simp add: StateParallel_form, rel_auto)
+  apply (smt lens_indep_comm vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+  apply (smt lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
+done  
+  
+lemma HyStep_hEvolveAt:
+  fixes P :: "('d,'c :: t2_space) hyrel"
+  assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
+  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; RR(P)) = ($\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
+  oops
   
 end
