@@ -1116,29 +1116,21 @@ text {* There are different collections that we would like to assign to, but the
   types and perhaps more importantly different conditions on the update being well defined. For example,
   for a list well-definedness equates to the index being less than the length etc. Thus we here set
   up a polymorphic constant for CSP assignment updates that can be specialised to different types. *}
-  
-consts
-  csp_assign_upd :: "('f \<Longrightarrow> '\<sigma>) \<Rightarrow> ('k, '\<sigma>) uexpr \<Rightarrow> ('v, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action"  
-  
-definition AssignCSP_list_update :: 
-  "('a list \<Longrightarrow> '\<sigma>) \<Rightarrow> (nat, '\<sigma>) uexpr \<Rightarrow> ('a, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action" where
-[upred_defs,rdes_def]: "AssignCSP_list_update x k v = \<^bold>R\<^sub>s([k \<in>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub>< \<turnstile> false \<diamondop> \<Phi>(true,[x \<mapsto>\<^sub>s &x(k \<mapsto> v)\<^sub>u], \<langle>\<rangle>))"
-  
-definition AssignCSP_pfun_update :: 
-  "(('k, 'v) pfun \<Longrightarrow> '\<sigma>) \<Rightarrow> ('k, '\<sigma>) uexpr \<Rightarrow> ('v, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action" where
-[upred_defs,rdes_def]: "AssignCSP_pfun_update x k v = \<^bold>R\<^sub>s([k \<in>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub>< \<turnstile> false \<diamondop> \<Phi>(true,[x \<mapsto>\<^sub>s &x(k \<mapsto> v)\<^sub>u], \<langle>\<rangle>))"
+    
+definition AssignCSP_update :: 
+  "('f \<Rightarrow> 'k set) \<Rightarrow> ('f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f) \<Rightarrow> ('f \<Longrightarrow> '\<sigma>) \<Rightarrow> 
+   ('k, '\<sigma>) uexpr \<Rightarrow> ('v, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[upred_defs,rdes_def]: "AssignCSP_update domf updatef x k v = 
+  \<^bold>R\<^sub>s([k \<in>\<^sub>u uop domf (&x)]\<^sub>S\<^sub>< \<turnstile> false \<diamondop> \<Phi>(true,[x \<mapsto>\<^sub>s trop updatef (&x) k v], \<langle>\<rangle>))"
 
-adhoc_overloading
-  csp_assign_upd AssignCSP_list_update and csp_assign_upd AssignCSP_pfun_update
-  
 text {* All different assignment updates have the same syntax; the type resolves which implementation
   to use. *}
   
 syntax
-  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("{_[_]} :=\<^sub>C _" [0,0,72] 72)
+  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [0,0,72] 72)
 
 translations
-  "{x[k]} :=\<^sub>C v" == "CONST csp_assign_upd x k v"
+  "x[k] :=\<^sub>C v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
   
 definition circus_assume ("{_}\<^sub>C") where
 [rdes_def]: "{b}\<^sub>C = \<^bold>R\<^sub>s(\<I>(b,\<langle>\<rangle>) \<turnstile> (false \<diamondop> \<Phi>(true,id,\<langle>\<rangle>)))"
@@ -1407,57 +1399,31 @@ lemma AssignCSP_conditional:
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   by (rel_auto)
 
-lemma AssignCSP_list_update_CSP [closure]:
-  "AssignCSP_list_update x k v is CSP"
-  by (simp add: AssignCSP_list_update_def RHS_tri_design_is_SRD unrest)
+lemma AssignCSP_update_CSP [closure]:
+  "AssignCSP_update domf updatef x k v is CSP"
+  by (simp add: AssignCSP_update_def RHS_tri_design_is_SRD unrest)
     
-lemma preR_AssignCSP_list_update [rdes]: 
-  "pre\<^sub>R(AssignCSP_list_update x k v) = [k \<in>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub><"
+lemma preR_AssignCSP_update [rdes]: 
+  "pre\<^sub>R(AssignCSP_update domf updatef x k v) = [k \<in>\<^sub>u uop domf (&x)]\<^sub>S\<^sub><"
   by (rel_auto)
 
-lemma periR_AssignCSP_list_update [rdes]:
-  "peri\<^sub>R(AssignCSP_list_update x k v) = [k \<notin>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub><"
+lemma periR_AssignCSP_update [rdes]:
+  "peri\<^sub>R(AssignCSP_update domf updatef x k v) = [k \<notin>\<^sub>u uop domf (&x)]\<^sub>S\<^sub><"
   by (rel_simp)
 
-lemma post_AssignCSP_list_update [rdes]:
-  "post\<^sub>R(AssignCSP_list_update x k v) = (\<Phi>(true,[x \<mapsto>\<^sub>s &x(k \<mapsto> v)\<^sub>u],\<langle>\<rangle>) \<triangleleft> k \<in>\<^sub>u dom\<^sub>u(&x) \<triangleright>\<^sub>R R1(true))"
+lemma post_AssignCSP_update [rdes]:
+  "post\<^sub>R(AssignCSP_update domf updatef x k v) = 
+    (\<Phi>(true,[x \<mapsto>\<^sub>s trop updatef (&x) k v],\<langle>\<rangle>) \<triangleleft> k \<in>\<^sub>u uop domf (&x) \<triangleright>\<^sub>R R1(true))"
   by (rel_auto) 
 
-lemma AssignCSP_list_update_NCSP [closure]:
-  "(AssignCSP_list_update x k v) is NCSP"
+lemma AssignCSP_update_NCSP [closure]:
+  "(AssignCSP_update domf updatef x k v) is NCSP"
 proof (rule NCSP_intro)
-  show "{x[k]} :=\<^sub>C v is CSP"
+  show "(AssignCSP_update domf updatef x k v) is CSP"
     by (simp add: closure)
-  show "{x[k]} :=\<^sub>C v is CSP3"
+  show "(AssignCSP_update domf updatef x k v) is CSP3"
     by (rule CSP3_SRD_intro, simp_all add: csp_do_def closure rdes unrest)
-  show "{x[k]} :=\<^sub>C v is CSP4"
-    by (rule CSP4_tri_intro, simp_all add: csp_do_def closure rdes unrest, rel_auto)
-qed
-
-lemma AssignCSP_pfun_update_CSP [closure]:
-  "AssignCSP_pfun_update x k v is CSP"
-  by (simp add: AssignCSP_pfun_update_def RHS_tri_design_is_SRD unrest)
-    
-lemma preR_AssignCSP_pfun_update [rdes]: 
-  "pre\<^sub>R(AssignCSP_pfun_update x k v) = [k \<in>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub><"
-  by (rel_auto)
-
-lemma periR_AssignCSP_pfun_update [rdes]:
-  "peri\<^sub>R(AssignCSP_pfun_update x k v) = [k \<notin>\<^sub>u dom\<^sub>u(&x)]\<^sub>S\<^sub><"
-  by (rel_simp)
-
-lemma post_AssignCSP_pfun_update [rdes]:
-  "post\<^sub>R(AssignCSP_pfun_update x k v) = (\<Phi>(true,[x \<mapsto>\<^sub>s &x(k \<mapsto> v)\<^sub>u],\<langle>\<rangle>) \<triangleleft> k \<in>\<^sub>u dom\<^sub>u(&x) \<triangleright>\<^sub>R R1(true))"
-  by (rel_auto) 
-
-lemma AssignCSP_pfun_update_NCSP [closure]:
-  "(AssignCSP_pfun_update x k v) is NCSP"
-proof (rule NCSP_intro)
-  show "{x[k]} :=\<^sub>C v is CSP"
-    by (simp add: closure)
-  show "{x[k]} :=\<^sub>C v is CSP3"
-    by (rule CSP3_SRD_intro, simp_all add: csp_do_def closure rdes unrest)
-  show "{x[k]} :=\<^sub>C v is CSP4"
+  show "(AssignCSP_update domf updatef x k v) is CSP4"
     by (rule CSP4_tri_intro, simp_all add: csp_do_def closure rdes unrest, rel_auto)
 qed
   
