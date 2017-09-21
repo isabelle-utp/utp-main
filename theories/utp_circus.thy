@@ -175,7 +175,7 @@ apply (simp_all)
 done
 
 lemma seqc_iter_singleton [simp]:
-"(P x) is CSP4 \<Longrightarrow> (;;\<^sub>C x : [x] \<bullet> P x) = P x"
+"(P c) is CSP4 \<Longrightarrow> (;;\<^sub>C x : [c] \<bullet> P x) = P c"
 apply (unfold seqc_iter_def)
 apply (simp)
 apply (metis CSP4_def Healthy_if)
@@ -192,8 +192,13 @@ syntax "_interleave_iter" ::
   "pttrn \<Rightarrow> 'a list \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
   ("(3||| _ : _ \<bullet>/ _)" [0, 0, 10] 10)
 
+syntax "_interleave_iter_alt" ::
+  "pttrn \<Rightarrow> 'a list \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3'(||| _ : _ \<bullet>/ _'))" [0, 0, 10])
+
 translations
-  "||| x : xs \<bullet> P" \<rightleftharpoons> "(CONST interleave_iter) xs (\<lambda>x. P)"
+  "( ||| x : xs \<bullet> P)" \<rightharpoonup> "(CONST interleave_iter) xs (\<lambda>x. P)"
+  "(||| x : xs \<bullet> P)" \<rightleftharpoons> "(CONST interleave_iter) xs (\<lambda>x. P)"
 
 -- {* Prevent eta-contraction for robust pretty-printing. *}
 
@@ -201,6 +206,60 @@ print_translation {*
  [Syntax_Trans.preserve_binder_abs2_tr'
    @{const_syntax interleave_iter} @{syntax_const "_interleave_iter"}]
 *}
+
+lemma interleave_iter_simps [simp]:
+"(||| x : [] \<bullet> P x) = Skip"
+"(||| x : (x # xs) \<bullet> P x) = P x ||| (||| x : xs \<bullet> P x)"
+apply (unfold interleave_iter_def)
+apply (simp_all)
+done
+
+lemma interleave_iter_singleton [simp]:
+"(P c) is CSP5 \<Longrightarrow> (||| x : [c] \<bullet> P x) = P c"
+apply (simp)
+apply (metis CSP5_def Healthy_if)
+done
+
+subsubsection {* Iterated Parallel *}
+
+primrec parallel_iter :: "'a list \<Rightarrow> ('a \<Rightarrow> ('\<phi> set \<times> ('\<sigma>, '\<phi>) action)) \<Rightarrow>
+  ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+"parallel_iter [] cs_body env = env" |
+"parallel_iter (x # xs) cs_body env =
+  snd (cs_body x) \<lbrakk>fst (cs_body x)\<rbrakk>\<^sub>C (parallel_iter xs cs_body env)"
+
+syntax "_parallel_iter" :: "pttrn \<Rightarrow>
+  'a list \<Rightarrow> '\<phi> set \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3|| _ : _ \<bullet>/ [_] _ | _)" [0, 0, 0, 0, 10] 10)
+
+syntax "_parallel_iter" :: "pttrn \<Rightarrow>
+  'a list \<Rightarrow> '\<phi> set \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3'(|| _ : _ \<bullet>/ [_] _ | _'))" [0, 0, 0, 0, 10])
+
+syntax "_parallel_iter_noenv" :: "pttrn \<Rightarrow>
+  'a list \<Rightarrow> '\<phi> set \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3|| _ : _ \<bullet>/ [_] _)" [0, 0, 0, 10] 10)
+
+syntax "_parallel_iter_noenv" :: "pttrn \<Rightarrow>
+  'a list \<Rightarrow> '\<phi> set \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3'(|| _ : _ \<bullet>/ [_] _'))" [0, 0, 0, 10])
+
+translations
+  "( || x : xs \<bullet> [cs] P | Env)" \<rightharpoonup> "(CONST parallel_iter) xs (\<lambda>x. (cs, P)) Env"
+  "(|| x : xs \<bullet> [cs] P | Env)" \<rightleftharpoons> "(CONST parallel_iter) xs (\<lambda>x. (cs, P)) Env"
+
+translations
+  "( || x : xs \<bullet> [cs] P)" \<rightharpoonup> "(CONST parallel_iter) xs (\<lambda>x. (cs, P)) (CONST Skip)"
+  "(|| x : xs \<bullet> [cs] P)" \<rightleftharpoons> "(CONST parallel_iter) xs (\<lambda>x. (cs, P)) (CONST Skip)"
+
+-- {* \todo{How to prevent eta-contraction for robust pretty-printing here?} *}
+
+lemma parallel_iter_simps [simp]:
+"(|| x : [] \<bullet> [cs x] P x | Env) = Env"
+"(|| x : (x # xs) \<bullet> [cs x] P x | Env) =
+  P x \<lbrakk>cs x\<rbrakk>\<^sub>C  (|| x : xs \<bullet> [cs x] P x | Env)"
+apply (simp_all)
+done
 
 subsection {* {\Circus} Laws *}
 

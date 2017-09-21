@@ -500,7 +500,7 @@ subsubsection {* FMI Process Type *}
 type_synonym ('\<sigma>, '\<tau>, 'ext) fmi_action =
   "('\<sigma>, '\<tau> fmi_event + '\<tau> timer_event + ctrl_event + 'ext) action"
 
-type_synonym ('\<sigma>, '\<tau>, 'ext) fmi_process = "(unit, '\<tau>, 'ext) fmi_action"
+type_synonym ('\<tau>, 'ext) fmi_process = "(unit, '\<tau>, 'ext) fmi_action"
 
 subsection {* FMI Ports *}
 
@@ -621,6 +621,7 @@ definition
 end"
 *)
 (*>*)
+
 text \<open>Prove that @{const Timer} and @{const DvarTimer} do not diverge.\<close>
 
 lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true\<^sub>r"
@@ -709,7 +710,7 @@ definition
         (fmi:fmi2GetMaxStepSize.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(t)?(st) \<^bold>\<rightarrow> X)) \<box>
         (fmi:fmi2DoStep.(\<guillemotleft>FMUs!nat i\<guillemotright>).(&<t>).(&<hc>)?(st) \<^bold>\<rightarrow> Skip)
     else
-      (\<mu> X \<bullet>
+      (\<mu>\<^sub>C X \<bullet>
         (fmi:fmi2GetBooleanStatusfmi2Terminated.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(b)?(st) \<^bold>\<rightarrow> X) \<box>
         (fmi:fmi2GetMaxStepSize.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(t)?(st) \<^bold>\<rightarrow> X)) \<box>
         (ctr:stepAnalysed \<^bold>\<rightarrow> Skip)))
@@ -799,22 +800,22 @@ text {* \todo{Write the same process using the axiomatic model.} *}
 
 definition
 "process FMUStatesManager \<triangleq>
-  ( ||| i : FMUs \<bullet> FMUStateManager(i)) \<triangle> endSimulation"
+  (||| i : FMUs \<bullet> FMUStateManager(i)) \<triangle> endSimulation"
 
-subsubsection {* Error Handling (WIP) *}
+subsubsection {* Error Handling *}
 
 text {*
   The encoding of the \<open>ErrorMonitor\<close> is a bit more tricky due to the presence
   of mutual recursion and parametrised actions. Parameters of actions are dealt
-  with through a state component to pass the argument. This works well here as
+  with through a state component \<open>st_arg\<close> to pass the argument. This works as
   all calls are tail recursive. Mutual recursion is dealt with by defining one
-  of the mutually-recursive actions i.e.~\<open>StopError\<close> as a higher-order action
+  of the mutually-recursive actions i.e.~\<open>StopError\<close> as a higher-order function
   \emph{outside} the scope of the process. Effectively, this mirrors expanding
   \<open>StopError\<close> within the process definition, turning the mutual recursion into
   a single-recursive action.
 *}
 
-hide_const (open) utp_rea_designs.st
+hide_const (open) utp_rea_designs.st -- \<open>Conflicts with the use of \<open>st\<close> below.\<close>
 
 text {* Since we only have a single state component. *}
 
@@ -827,34 +828,30 @@ text {*
   is used to pass an argument back to the \<open>Monitor\<close> action.
 *}
 
-definition StopError :: "
-  (error, '\<tau>::ctime, 'ext) fmi_action \<Rightarrow>
-  (error) \<Rightarrow> (error) \<Rightarrow>
-  (error, '\<tau>::ctime, 'ext) fmi_action" where
-"StopError Monitor st mst =
-  (let MCall = (\<lambda>st. st_arg :=\<^sub>C \<guillemotleft>st\<guillemotright> ;; Monitor) in
-    (\<guillemotleft>st = mst\<guillemotright> &\<^sub>u ctr:error!(\<guillemotleft>mst\<guillemotright>) \<^bold>\<rightarrow> MCall(st)) \<box> (\<guillemotleft>st \<noteq> mst\<guillemotright> &\<^sub>u MCall(st)))"
-
-notation StopError ("StopError[_]")
+definition
+"process StopError(Monitor, st, mst) \<triangleq>
+  (let MonitorCall = (\<lambda>st. st_arg :=\<^sub>C \<guillemotleft>st\<guillemotright> ;; Monitor) in
+    (\<guillemotleft>st = mst\<guillemotright> &\<^sub>u ctr:error!(\<guillemotleft>mst\<guillemotright>) \<^bold>\<rightarrow> MonitorCall(st)) \<box>
+    (\<guillemotleft>st \<noteq> mst\<guillemotright> &\<^sub>u MonitorCall(st)))"
 
 definition
 "process ErrorMonitor(mst) \<triangleq> begin
   Monitor = (
-    (fmi:fmi2Get?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2Set?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError[Monitor] (fmi2StatusOf st) mst) \<box>
-    (fmi:fmi2GetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2SetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2SetUpExperiment?(i)?(t)?(b)?(hc)?(st) \<^bold>\<rightarrow> StopError[Monitor] mst st) \<box>
-    (fmi:fmi2EnterInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2ExitInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2GetBooleanStatusfmi2Terminated?(i)?(b)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2DoStep?(i)?(t)?(hc)?(st) \<^bold>\<rightarrow> StopError[Monitor] (fmi2StatusOf st) mst) \<box>
-    (fmi:fmi2Terminate?(i)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
-    (fmi:fmi2GetMaxStepSize?(i)?(t)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst) \<box>
+    (fmi:fmi2Get?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2Set?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError(Monitor, (fmi2StatusOf st), mst)) \<box>
+    (fmi:fmi2GetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2SetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2SetUpExperiment?(i)?(t)?(b)?(hc)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2EnterInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2ExitInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2GetBooleanStatusfmi2Terminated?(i)?(b)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2DoStep?(i)?(t)?(hc)?(st) \<^bold>\<rightarrow> StopError(Monitor, (fmi2StatusOf st), mst)) \<box>
+    (fmi:fmi2Terminate?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2GetMaxStepSize?(i)?(t)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
     (fmi:fmi2Instantiate?(i)?(b) \<^bold>\<rightarrow>
-      (if b then StopError[Monitor] fmi2OK mst
-            else StopError[Monitor] fmi2Fatal mst)) \<box>
-    (fmi:fmi2FreeInstance?(i)?(st) \<^bold>\<rightarrow> StopError[Monitor] st mst))
+      (if b then StopError(Monitor, fmi2OK, mst)
+            else StopError(Monitor, fmi2Fatal, mst))) \<box>
+    (fmi:fmi2FreeInstance?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)))
 
   \<bullet> Monitor \<triangle> (ctr:endsimulation \<^bold>\<rightarrow> Skip)
 end"
@@ -865,11 +862,30 @@ definition
     \<lbrakk>(FMIAPI \<union> \<epsilon>(ctr:endsimulation))\<rbrakk>\<^sub>C
   ErrorMonitor(fmi2Fatal)"
 
-definition "process ErrorManager \<triangleq> Skip"
+definition
+"process FatalError \<triangleq>
+  ctr:error.(\<guillemotleft>fmi2Fatal\<guillemotright>) \<^bold>\<rightarrow> ctr:endsimulation \<^bold>\<rightarrow> Skip"
+
+definition
+"process ShutdownCreated(i) \<triangleq>
+  (ctr:error.(\<guillemotleft>fmi2Error\<guillemotright>) \<^bold>\<rightarrow> fmi:fmi2FreeInstance.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) \<box>
+  (fmi:fmi2FreeInstance.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip)"
+
+definition
+"process Shutdown(i) \<triangleq>
+  (fmi:fmi2Instantiate.(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> ShutdownCreated(i) ;; ctr:endsimulation \<^bold>\<rightarrow> Skip) \<box>
+  (ctr:error.(\<guillemotleft>fmi2Error\<guillemotright>) \<^bold>\<rightarrow> ctr:endsimulation \<^bold>\<rightarrow> Skip)"
+
+definition
+"process ErrorManagement \<triangleq>
+  (|| i : FMUs \<bullet> [\<epsilon>(ctr:error) \<union> \<epsilon>(ctr:endsimulation)] Shutdown(i))"
+
+definition
+"process ErrorManager \<triangleq> FatalError \<box> ErrorManagement"
 
 subsubsection {* Master Algorithm *}
 
--- {* \todo{See why the below does not pretty-print correctly.} *}
+-- {* \todo{Check why the below does not pretty-print correctly.} *}
 
 definition
 "process TimedInteraction(t0, hc, tN) \<triangleq>
@@ -891,7 +907,7 @@ subsection {* Concrete MAs *}
 
 definition
 "process NoStatesManager \<triangleq>
-  ( ||| i : FMUs \<bullet> fmi:fmi2Instantiate!(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> Stop) \<triangle> endSimulation"
+  (||| i : FMUs \<bullet> fmi:fmi2Instantiate!(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> Stop) \<triangle> endSimulation"
 
 theorem "FMUStatesManager \<sqsubseteq> NoStatesManager"
 apply (simp add: FMUStatesManager_def NoStatesManager_def)
