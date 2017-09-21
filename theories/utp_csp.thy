@@ -3804,23 +3804,23 @@ oops
   
 subsection {* Parallel Operator *}
 
-abbreviation ParCSP ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76) where
-"P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q \<equiv> P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
-
-abbreviation ParCSP_NS ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> '\<theta> event set \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "\<lbrakk>_\<rbrakk>\<^sub>C" 75) where
-"P \<lbrakk>cs\<rbrakk>\<^sub>C Q \<equiv> P \<lbrakk>0\<^sub>L\<parallel>cs\<parallel>0\<^sub>L\<rbrakk> Q"
-
-abbreviation InterleaveCSP ::
-  "('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" (infixr "|||" 75) where
-"P ||| Q \<equiv> P \<lbrakk>0\<^sub>L\<parallel>{}\<parallel>0\<^sub>L\<rbrakk> Q"
-
+syntax
+  "_par_circus"   :: "logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76)
+  "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<lbrakk>_\<rbrakk>\<^sub>C" 75)
+  "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
+  "_inter_csp"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "|||" 75)
+  
+translations
+  "_par_circus P ns1 cs ns2 Q" == "P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
+  "_par_csp P cs Q" == "_par_circus P 0\<^sub>L cs 0\<^sub>L Q"
+  "_inter_circus P ns1 ns2 Q" == "_par_circus P ns1 {} ns2 Q"
+  "_inter_csp P Q" == "_par_csp P {} Q"
+  
 definition CSP5 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
 [upred_defs]: "CSP5(P) = (P ||| Skip)"
 
 definition C2 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
-[upred_defs]: "C2(P) = (P \<lbrakk>1\<^sub>L\<parallel>{}\<parallel>0\<^sub>L\<rbrakk> Skip)"
+[upred_defs]: "C2(P) = (P \<lbrakk>&\<Sigma>\<parallel>{}\<parallel>&\<emptyset>\<rbrakk> Skip)"
 
 lemma Skip_right_form:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "$st\<acute> \<sharp> P\<^sub>2"
@@ -3988,7 +3988,7 @@ proof -
   proof -
     have "C2(P) = \<^bold>R\<^sub>s (\<Phi>(true,id,\<langle>\<rangle>) wr[1\<^sub>L|{}|0\<^sub>L]\<^sub>C pre\<^sub>R P \<turnstile>
           (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>1\<^sub>L|{}|0\<^sub>L\<rbrakk>\<^sup>I \<Phi>(true,id,\<langle>\<rangle>) \<diamondop> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>1\<^sub>L|{}|0\<^sub>L\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>))"
-      by (simp add: C2_def, rdes_simp cls: assms, simp add: id_def)
+      by (simp add: C2_def, rdes_simp cls: assms, simp add: id_def pr_var_def)
     also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
       by (simp add: 1 2 3)
     finally show ?thesis .
