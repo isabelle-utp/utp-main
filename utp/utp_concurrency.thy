@@ -123,13 +123,13 @@ type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha
 text {* skip is the merge predicate which ignores the output of both parallel predicates *}
 
 definition skip\<^sub>m :: "'\<alpha> merge" where
-[upred_defs]: "skip\<^sub>m = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>\<^sub><)"
+[upred_defs]: "skip\<^sub>m = ($\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><)"
 
 text {* swap is a predicate that the swaps the left and right indices; it is used to specify
         commutativity of the parallel operator *}
 
 definition swap\<^sub>m :: "(('\<alpha>, '\<beta>, '\<beta>) mrg) hrel" where
-[upred_defs]: "swap\<^sub>m = (0-\<Sigma>,1-\<Sigma>) := (&1-\<Sigma>,&0-\<Sigma>)"
+[upred_defs]: "swap\<^sub>m = (0-\<^bold>v,1-\<^bold>v) := (&1-\<^bold>v,&0-\<^bold>v)"
 
 text {* A symmetric merge is one for which swapping the order of the merged concurrent predicates
   has no effect. We represent this by the following healthiness condition that states that
@@ -144,10 +144,10 @@ text {* U0 and U1 are relations modify the variables of the input state-space su
   indexed with $0$ and $1$, respectively. *}
 
 definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
-[upred_defs]: "U0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+[upred_defs]: "U0 = ($0-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
 definition U1 :: "('\<beta>\<^sub>1, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
-[upred_defs]: "U1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+[upred_defs]: "U1 = ($1-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
   by (rel_auto)
@@ -208,10 +208,10 @@ lemma U0_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>0 = $0-x\<acut
 lemma U1_alpha_out_var [alpha]: "\<lceil>$x\<acute>\<rceil>\<^sub>1 = $1-x\<acute>"
   by (rel_auto)
 
-lemma U0_skip [alpha]: "\<lceil>II\<rceil>\<^sub>0 = ($0-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+lemma U0_skip [alpha]: "\<lceil>II\<rceil>\<^sub>0 = ($0-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
   by (rel_auto)
 
-lemma U1_skip [alpha]: "\<lceil>II\<rceil>\<^sub>1 = ($1-\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+lemma U1_skip [alpha]: "\<lceil>II\<rceil>\<^sub>1 = ($1-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
   by (rel_auto)
 
 lemma U0_seqr [alpha]: "\<lceil>P ;; Q\<rceil>\<^sub>0 = P ;; \<lceil>Q\<rceil>\<^sub>0"
@@ -243,11 +243,11 @@ text {* Associativity of a merge means that if we construct a three way merge fr
 *}
   
 definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) rel" ("\<^bold>M3'(_')") where
-[upred_defs]: "ThreeWayMerge M = (($0-\<Sigma>\<acute> =\<^sub>u $0-\<Sigma> \<and> $1-\<Sigma>\<acute> =\<^sub>u $1-0-\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>\<^sub><) ;; M ;; U0 \<and> $1-\<Sigma>\<acute> =\<^sub>u $1-1-\<Sigma> \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>\<^sub><) ;; M"
+[upred_defs]: "ThreeWayMerge M = (($0-\<^bold>v\<acute> =\<^sub>u $0-\<^bold>v \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-0-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M ;; U0 \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-1-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M"
   
 text {* The next definition rotates the inputs to a three way merge to the left one place. *}
 
-abbreviation rotate\<^sub>m where "rotate\<^sub>m \<equiv> (0-\<Sigma>,1-0-\<Sigma>,1-1-\<Sigma>) := (&1-0-\<Sigma>,&1-1-\<Sigma>,&0-\<Sigma>)"
+abbreviation rotate\<^sub>m where "rotate\<^sub>m \<equiv> (0-\<^bold>v,1-0-\<^bold>v,1-1-\<^bold>v) := (&1-0-\<^bold>v,&1-1-\<^bold>v,&0-\<^bold>v)"
 
 text {* Finally, a merge is associative if rotating the inputs does not effect the output. *}
   
@@ -260,7 +260,7 @@ text {* We implement the following useful abbreviation for separating of two par
   copying of the before variables, all to act as input to the merge predicate. *}
 
 abbreviation par_sep (infixr "\<parallel>\<^sub>s" 85) where
-"P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>"
+"P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v"
 
 text {* The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
@@ -270,7 +270,7 @@ text {* The following implementation of parallel by merge is less general than t
 definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
-lemma par_by_merge_alt_def: "P \<parallel>\<^bsub>M\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M"
+lemma par_by_merge_alt_def: "P \<parallel>\<^bsub>M\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; M"
   by (simp add: par_by_merge_def U0_as_alpha U1_as_alpha)
 
 lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\<^esub> Q) = (\<^bold>\<exists> x \<bullet> (P x \<parallel>\<^bsub>M\<^esub> Q))"
@@ -369,11 +369,11 @@ text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap
 lemma par_by_merge_commute_swap:
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P"
 proof -
-  have "Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P = ((((Q ;; U0) \<and> (P ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; swap\<^sub>m) ;; M)"
+  have "Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P = ((((Q ;; U0) \<and> (P ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; swap\<^sub>m) ;; M)"
     by (simp add: par_by_merge_def seqr_assoc)
-  also have "... = (((Q ;; U0 ;; swap\<^sub>m) \<and> (P ;; U1 ;; swap\<^sub>m) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+  also have "... = (((Q ;; U0 ;; swap\<^sub>m) \<and> (P ;; U1 ;; swap\<^sub>m) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; M)"
     by (rel_auto)
-  also have "... = (((Q ;; U1) \<and> (P ;; U0) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; M)"
+  also have "... = (((Q ;; U1) \<and> (P ;; U0) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; M)"
     by (simp add: U0_swap U1_swap)
   also have "... = P \<parallel>\<^bsub>M\<^esub> Q"
     by (simp add: par_by_merge_def utp_pred_laws.inf.left_commute)
@@ -404,11 +404,11 @@ theorem par_by_merge_assoc:
   assumes "M is SymMerge" "AssocMerge M"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) \<parallel>\<^bsub>M\<^esub> R = P \<parallel>\<^bsub>M\<^esub> (Q \<parallel>\<^bsub>M\<^esub> R)"
 proof -
-  have "(P \<parallel>\<^bsub>M\<^esub> Q) \<parallel>\<^bsub>M\<^esub> R = ((P ;; U0) \<and> (Q ;; U0 ;; U1) \<and> (R ;; U1 ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; \<^bold>M3(M)"
+  have "(P \<parallel>\<^bsub>M\<^esub> Q) \<parallel>\<^bsub>M\<^esub> R = ((P ;; U0) \<and> (Q ;; U0 ;; U1) \<and> (R ;; U1 ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; \<^bold>M3(M)"
     by (rel_blast)
-  also have "... = ((P ;; U0) \<and> (Q ;; U0 ;; U1) \<and> (R ;; U1 ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; rotate\<^sub>m ;; \<^bold>M3(M)"
+  also have "... = ((P ;; U0) \<and> (Q ;; U0 ;; U1) \<and> (R ;; U1 ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; rotate\<^sub>m ;; \<^bold>M3(M)"
     using AssocMerge_def assms(2) by force
-  also have "... = ((Q ;; U0) \<and> (R ;; U0 ;; U1) \<and> (P ;; U1 ;; U1) \<and> $\<Sigma>\<^sub><\<acute> =\<^sub>u $\<Sigma>) ;; \<^bold>M3(M)"
+  also have "... = ((Q ;; U0) \<and> (R ;; U0 ;; U1) \<and> (P ;; U1 ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; \<^bold>M3(M)"
     by (rel_blast)
   also have "... = (Q \<parallel>\<^bsub>M\<^esub> R) \<parallel>\<^bsub>M\<^esub> P"
     by (rel_blast)
@@ -446,7 +446,7 @@ subsection {* Example: Simple State-Space Division *}
 text {* The following merge predicate divides the state space using a pair of independent lenses. *}
   
 definition StateMerge :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> merge" ("M[_|_]\<^sub>\<sigma>") where
-[upred_defs]: "M[a|b]\<^sub>\<sigma> = ($\<Sigma>\<acute> =\<^sub>u ($\<Sigma>\<^sub>< \<oplus> $0-\<Sigma> on &a) \<oplus> $1-\<Sigma> on &b)"
+[upred_defs]: "M[a|b]\<^sub>\<sigma> = ($\<^bold>v\<acute> =\<^sub>u ($\<^bold>v\<^sub>< \<oplus> $0-\<^bold>v on &a) \<oplus> $1-\<^bold>v on &b)"
 
 lemma swap_StateMerge: "a \<bowtie> b \<Longrightarrow> (swap\<^sub>m ;; M[a|b]\<^sub>\<sigma>) = M[b|a]\<^sub>\<sigma>"
   by (rel_auto, simp_all add: lens_indep_comm)
@@ -458,7 +458,7 @@ lemma StateParallel_commute: "a \<bowtie> b \<Longrightarrow> P |a|b|\<^sub>\<si
   by (metis par_by_merge_commute_swap swap_StateMerge)
         
 lemma StateParallel_form: 
-  "P |a|b|\<^sub>\<sigma> Q = (\<^bold>\<exists> (st\<^sub>0, st\<^sub>1) \<bullet> P\<lbrakk>\<guillemotleft>st\<^sub>0\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>st\<^sub>1\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> $\<Sigma>\<acute> =\<^sub>u ($\<Sigma> \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &a) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &b)"
+  "P |a|b|\<^sub>\<sigma> Q = (\<^bold>\<exists> (st\<^sub>0, st\<^sub>1) \<bullet> P\<lbrakk>\<guillemotleft>st\<^sub>0\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>st\<^sub>1\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u ($\<^bold>v \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &a) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &b)"
   by (rel_auto)
 
 lemma StateParallel_frame_left:

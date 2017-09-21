@@ -218,17 +218,17 @@ text {* We next describe frames and antiframes with the help of lenses. A frame 
   variables remain the same. For more information please see \cite{Morgan90a}.*}
 
 definition frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "frame a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> $\<Sigma>\<acute> =\<^sub>u \<guillemotleft>st\<guillemotright> \<oplus> $\<Sigma> on &a)"
+[urel_defs]: "frame a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u \<guillemotleft>st\<guillemotright> \<oplus> $\<^bold>v on &a)"
 
 definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "antiframe a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> $\<Sigma>\<acute> =\<^sub>u $\<Sigma> \<oplus> \<guillemotleft>st\<guillemotright> on &a)"
+[urel_defs]: "antiframe a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> \<guillemotleft>st\<guillemotright> on &a)"
 
 text {* The nameset operator can be used to hide a portion of the after-state that lies outside
   the lens $a$. It can be useful to partition a relation's variables in order to conjoin it
   with another relation. *}
 
 definition nameset :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<Sigma>,$a\<acute>})" 
+[urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>})" 
 
 subsection {* Syntax Translations *}
     

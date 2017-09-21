@@ -376,7 +376,7 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
 subsection {* Unrestriction Laws *}
 
 lemma unrest_allE:
-  "\<lbrakk> &\<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+  "\<lbrakk> \<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   by (pred_auto)
   
 lemma unrest_true [unrest]: "x \<sharp> true"

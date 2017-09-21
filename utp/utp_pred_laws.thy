@@ -20,7 +20,7 @@ lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
 
 lemma upred_eval_taut:
-  "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<Sigma>\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
+  "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<^bold>v\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
   by (pred_auto)
     
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
@@ -537,11 +537,11 @@ lemma all_equiv:
   by (pred_simp, metis (no_types, lifting) lens.select_convs(2))
 
 lemma ex_zero:
-  "(\<exists> &\<emptyset> \<bullet> P) = P"
+  "(\<exists> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
 lemma all_zero:
-  "(\<forall> &\<emptyset> \<bullet> P) = P"
+  "(\<forall> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
 lemma ex_plus:
@@ -553,7 +553,7 @@ lemma all_plus:
   by (pred_auto)
 
 lemma closure_all:
-  "[P]\<^sub>u = (\<forall> &\<Sigma> \<bullet> P)"
+  "[P]\<^sub>u = (\<forall> \<Sigma> \<bullet> P)"
   by (pred_auto)
 
 lemma unrest_as_exists:
@@ -587,7 +587,7 @@ lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bul
 subsection {* Variable Restriction *}    
   
 lemma var_res_all: 
-  "P \<restriction>\<^sub>v &\<Sigma> = P"
+  "P \<restriction>\<^sub>v \<Sigma> = P"
   by (rel_auto)
   
 lemma var_res_twice: 

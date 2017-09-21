@@ -424,11 +424,11 @@ lemma par_subst_id [usubst]:
   by (simp add: par_subst_def lens_override_idem id_def)
 
 lemma par_subst_left_empty [usubst]:
-  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [&\<emptyset>|A]\<^sub>s \<rho> = id [&\<emptyset>|A]\<^sub>s \<rho>"
+  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [\<emptyset>|A]\<^sub>s \<rho> = id [\<emptyset>|A]\<^sub>s \<rho>"
   by (simp add: par_subst_def pr_var_def)
 
 lemma par_subst_right_empty [usubst]:
-  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [A|&\<emptyset>]\<^sub>s \<rho> = \<sigma> [A|&\<emptyset>]\<^sub>s id"
+  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [A|\<emptyset>]\<^sub>s \<rho> = \<sigma> [A|\<emptyset>]\<^sub>s id"
   by (simp add: par_subst_def pr_var_def)
     
 lemma par_subst_comm:

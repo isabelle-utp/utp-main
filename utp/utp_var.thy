@@ -187,12 +187,11 @@ syntax -- \<open> Identifiers \<close>
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_unit"   :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"   :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
-  "_svid_alpha"  :: "svid" ("\<Sigma>")
-  "_svid_empty"  :: "svid" ("\<emptyset>")
+  "_svid_alpha"  :: "svid" ("\<^bold>v")
   "_svid_dot"    :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 999)
 
 text \<open> A variable identifier can either be a HOL identifier, the complete set of variables in the
-  alphabet $\Sigma$, the empty set $\emptyset$, or a composite identifier separated by colons, which
+  alphabet $\textbf{v}$, or a composite identifier separated by colons, which
   corresponds to a sort of qualification. The final option is effectively a lens composition. \<close>
   
 syntax -- \<open> Decorations \<close>
@@ -211,6 +210,8 @@ syntax -- \<open> Variable sets \<close>
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_salphaprod"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<times>" 85)
+  "_salpha_all"  :: "salpha" ("\<Sigma>")
+  "_salpha_none" :: "salpha" ("\<emptyset>")
   "_svar_nil"    :: "svar \<Rightarrow> svars" ("_")
   "_svar_cons"   :: "svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
   "_salphaset"   :: "svars \<Rightarrow> salpha" ("{_}")
@@ -253,7 +254,6 @@ translations
   -- \<open> Identifiers \<close>
   "_svid x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
-  "_svid_empty" \<rightleftharpoons> "0\<^sub>L"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
 
   -- \<open> Decorations \<close>
@@ -277,7 +277,9 @@ translations
   "_svar_cons x xs" \<rightharpoonup> "x +\<^sub>L xs"
   "_salphaset A" \<rightharpoonup> "A"  
   "(_svar_cons x (_salphamk y))" \<leftharpoondown> "_salphamk (x +\<^sub>L y)" 
-  "x" \<leftharpoondown> "_salphamk x"    
+  "x" \<leftharpoondown> "_salphamk x"
+  "_salpha_all" \<rightleftharpoons> "1\<^sub>L"
+  "_salpha_none" \<rightleftharpoons> "0\<^sub>L"
 
   -- \<open> Quotations \<close>
   "_ualpha_set A" \<rightharpoonup> "A"

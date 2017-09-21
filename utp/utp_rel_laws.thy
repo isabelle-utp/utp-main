@@ -108,7 +108,7 @@ lemma seqr_and_distl_uinj:
   by (rel_auto)
 
 lemma seqr_unfold:
-  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<rbrakk>)"
+  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<rbrakk>)"
   by (rel_auto)
 
 lemma seqr_middle:
@@ -284,7 +284,7 @@ lemma skip_r_unfold:
   by (rel_simp, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
 
 lemma skip_r_alpha_eq:
-  "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+  "II = ($\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
   by (rel_auto)
 
 lemma skip_ra_unfold:
