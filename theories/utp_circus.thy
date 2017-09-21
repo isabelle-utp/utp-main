@@ -4,21 +4,13 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 28 June 2017 *)
+(* LAST REVIEWED: 20 Sep 2017 *)
 
 section {* Theory of {\Circus} *}
 
 theory utp_circus
 imports utp_circus_prel
-begin (* recall_syntax *)
-
-text {* Types are not printed correctly, have a chat with Simon Foster. *}
-
-typ "('\<sigma>, '\<epsilon>) st_csp"
-
-(* type_synonym 'a relation = "'a Relation.rel" *)
-
-(* translations (type) "'a relation" \<rightleftharpoons> (type)"'a Relation.rel" *)
+begin
 
 text {* The below cause ambiguities wrt the corresponding CSP definitions. *}
 
@@ -29,62 +21,59 @@ subsection {* Process Semantics *}
 
 text {*
   We could get away without the hiding of the state alphabet if we assume that
-  all processes have the same state type. The two lemmas we prove following the
-  definition establish this and are useful in proofs It is still on open issue
-  to what extent the hiding of the state alphabet poses challenges to proofs.
+  all processes have the same state type. The lemmas we prove in {\Circus} laws
+  section establish this and may be useful in proofs. It is still an open issue
+  to what extent the hiding of the state alphabet poses challenges in proofs.
 *}
 
 definition Process ::
-  "('\<sigma>, '\<epsilon>) action \<Rightarrow>
-   (unit, '\<epsilon>) action" where
-"Process P = hide_state (\<exists> {$st,$st\<acute>} \<bullet> P)"
-
-text {* The function below makes the state type explicit via an argument. *}
+  "('\<sigma>, '\<phi>) action \<Rightarrow>
+   (unit, '\<phi>) action" where
+"Process P = state '\<sigma> \<bullet> P"
 
 definition ProcessSt ::
   "('\<sigma> itself) \<Rightarrow>
-   ('\<sigma>, '\<epsilon>) action \<Rightarrow>
-   (unit, '\<epsilon>) action" where
+   ('\<sigma>, '\<phi>) action \<Rightarrow>
+   (unit, '\<phi>) action" where
 "ProcessSt t P = Process P"
 
-definition Action ::
-  "('\<epsilon>, '\<alpha>) action \<Rightarrow>
-   (('\<epsilon>, '\<alpha>) action \<Rightarrow> ('\<epsilon>, '\<alpha>) action) \<Rightarrow>
-   ('\<epsilon>, '\<alpha>) action" where
-"Action = Let"
+definition LocalAction ::
+  "('\<sigma>, '\<phi>) action \<Rightarrow>
+   (('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action) \<Rightarrow>
+   ('\<sigma>, '\<phi>) action" where
+"LocalAction = Let"
 
 definition RecAction ::
-  "(('\<sigma>, '\<epsilon>) action \<Rightarrow>
-    ('\<sigma>, '\<epsilon>) action \<times> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
-   ('\<sigma>, '\<epsilon>) action" where
-"RecAction act_body =
-  Action (\<mu>\<^sub>C X \<bullet> fst (act_body X)) (\<lambda>X. snd (act_body X))"
+  "(('\<sigma>, '\<phi>) action \<Rightarrow>
+    ('\<sigma>, '\<phi>) action \<times> ('\<sigma>, '\<phi>) action) \<Rightarrow>
+   ('\<sigma>, '\<phi>) action" where
+"RecAction body =
+  LocalAction (\<mu>\<^sub>C X \<bullet> fst (body X)) (\<lambda>X. snd (body X))"
 
 lemmas circus_syntax =
-  Process_def ProcessSt_def Action_def RecAction_def
+  Process_def ProcessSt_def LocalAction_def RecAction_def
 
 declare circus_syntax [rdes]
 
 subsection {* Process Syntax *}
 
-nonterminal statep and action and actions and process
+nonterminal p_state and action and actions and process
 
 text {*
   We support both basic and composite process definitions. Moreover, processes
-  may be parametrised and can include an option state paragraph which must be
-  of the form @{text "state('\<sigma>)"}, where @{typ "'\<sigma>"} is a HOL type to be used
-  for the state space. If no state paragraph is given, it is inferred by type
-  checking. Parametrised actions are current not supported - this is work in
-  progress. For examples, see the bottom of the theory.
+  may be parametrised and can include an optional state paragraph which must be
+  of the form \<open>state('\<sigma>)\<close>, where @{typ "'\<sigma>"} is the HOL type to be used for the
+  state space. If no state paragraph is given, it is inferred by type checking.
+  Parametrised actions are current not supported - this is a work in progress.
 *}
 
 syntax
-  "_State" :: "type \<Rightarrow> statep"                  ("state'(_')")
+  "_State" :: "type \<Rightarrow> p_state"                ("state'(_')")
   "_Action"  :: "[pttrn, logic] \<Rightarrow> action"     ("(2_ =/ _)" 10)
   ""         :: "action \<Rightarrow> actions"            ("_")
   "_Actions" :: "[action, actions] \<Rightarrow> actions" ("_and//_")
-  "_ProcBody" :: "[actions, logic] \<Rightarrow> process"          ("((2begin//(_)//\<bullet> (_))//end)")
-  "_ProcBodySt" :: "[statep, actions, logic] \<Rightarrow> process" ("((2begin//(_)//(_)//\<bullet> (_))//end)")
+  "_ProcBody" :: "[actions, logic] \<Rightarrow> process" ("((2begin//(_)//\<bullet> (_))//end)")
+  "_ProcBodySt" :: "[p_state, actions, logic] \<Rightarrow> process" ("((2begin//(_)//(_)//\<bullet> (_))//end)")
   "_BasicProc" :: "idt \<Rightarrow> process \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
   "_BasicDefn" :: "idt \<Rightarrow> logic   \<Rightarrow> bool"     ("(process _ \<triangleq>//_)" [0, 10] 10)
   "_ParamProc" :: "idt \<Rightarrow> args \<Rightarrow> process \<Rightarrow> bool" ("(process _ _ \<triangleq>//_)" [0, 0, 10] 10)
@@ -96,14 +85,14 @@ syntax (output) -- {* Cosmetics *}
   "_Actions_tr'" :: "[action, actions] \<Rightarrow> actions"  ("_//_")
 
 text {*
-  Interestingly, it matters whether we split the below into separate blocks
-  of @{command translations} statements. Isabelle seems to respect the order
-  of translations only when they are included in the same block. Here, the
-  order is very important.
+  Interestingly, it does make a difference whether we split translations into
+  separate blocks of @{command translations} statements. Isabelle seems to
+  respect the order of translations only when they are included in the same
+  block. Here, the order is very important.
 *}
 
 translations
-  (statep) "state('type)" \<rightleftharpoons> "TYPE('type)"
+  (p_state) "state('type)" \<rightleftharpoons> "TYPE('type)"
 -- \<open>Shift the type argument from ProcBodySt into (Basic/Param)ProcSt.\<close>
   "_BasicProc name (_ProcBodySt type actions main)" \<rightleftharpoons>
   "_BasicProcSt name type (_ProcBody actions main)"
@@ -111,7 +100,7 @@ translations
   "_ParamProcSt name args type (_ProcBody actions main)"
   "_ProcBody (_Actions     act acts) e" \<rightharpoonup> "_ProcBody act (_ProcBody acts e)"
   "_ProcBody (_Actions_tr' act acts) e" \<leftharpoondown> "_ProcBody act (_ProcBody acts e)"
-(*"_ProcBody (_Action name act) more" \<rightleftharpoons> "(CONST Action) act (\<lambda>name. more)"*)
+(*"_ProcBody (_Action name act) more" \<rightleftharpoons> "(CONST LocalAction) act (\<lambda>name. more)"*)
   "_ProcBody (_Action name act) more" \<rightleftharpoons> "(CONST RecAction) (\<lambda>name. (act, more))"
   "_BasicProc name      body" \<rightleftharpoons> "name =         (CONST Process) body"
   "_ParamProc name args body" \<rightleftharpoons> "name = (\<lambda>args. (CONST Process) body)"
@@ -123,7 +112,7 @@ translations
 
 print_translation {*
   [Syntax_Trans.preserve_binder_abs2_tr'
-    @{const_syntax Action} @{syntax_const "_Action"}]
+    @{const_syntax LocalAction} @{syntax_const "_Action"}]
 *}
 
 text {* Hide non-terminals as this interferes with parsing the action type. *}
@@ -132,76 +121,148 @@ hide_type (open)
   utp_circus.action
   utp_circus.actions
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
-subsection {* Stub Constructs (TODO) *}
-
-text {* TODO: Define the semantics of the operators below. *}
+subsection {* {\Circus} Constructs *}
 
 text {*
-  Make parallel composition bind weaker than set union, so that the latter can
-  be used to combine channel sets. Operator precedence is still and issue that
-  we need to address within Isabelle/UTP.
+  The semantics of some of the constructs still needs to be defined, namely of
+  channel hiding and {\Circus} interrupt. With regards to iterated sequence,
+  it is an open issue whether we require a {\Circus}-specific version of it.
+  In syntactic terms, perhaps make parallel composition bind weaker than set
+  union so that the latter can be used to combine channel sets. Precedence of
+  operators in Isabelle/UTP is still an issue in general that may need to be
+  look at more carefully.
 *}
 
-purge_notation
-  ParCSP_NS (infixr "[|_|]" 105) and
-  InterleaveCSP (infixr "|||" 105)
+subsubsection {* Channel Hiding *}
 
-consts ParCircus ::
-  "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow>
-   ('\<sigma>, '\<phi>) action" (infixl "[|(_)|]" 60)
+text {* \todo{Define the semantics of this operator and prove relevant laws.} *}
 
 consts HideCircus ::
-  "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\\" 55)
+  "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<phi> event set) \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\\" 55)
 
-consts InterruptCircus ::
-  "('\<sigma>, '\<phi>) action  \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\<triangle>" 100)
+subsubsection {* {\Circus} Interrupt *}
 
-subsection {* {\Circus} Conditional *}
+text {* \todo{Define the semantics of this operator and prove relevant laws.} *}
 
-syntax "_if_then_else" ::
-  "'a upred \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel"
-    ("(if\<^sub>\<C> (_)/ then\<^sub>\<C> (_)/ else\<^sub>\<C> (_))" [0, 0, 10] 10)
+consts IntCircus ::
+  "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\<triangle>" 100)
 
-translations "if\<^sub>\<C> b then\<^sub>\<C> P else\<^sub>\<C> Q" \<rightleftharpoons> "P \<triangleleft> b \<triangleright>\<^sub>r Q"
+subsubsection {* Iterated Sequence *}
 
-subsection {* Iterated Constructs *}
+definition seqc_iter ::
+  "'a list \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<phi>) action) \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+[urel_defs]: "seqc_iter xs body = foldr (\<lambda>x A. body(x) ;; A) xs Skip"
 
-text {* In this section, we define various iterated constructs. *}
+syntax "_seqc_iter" ::
+  "pttrn \<Rightarrow> 'a list \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  ("(3;;\<^sub>C _ : _ \<bullet>/ _)" [0, 0, 10] 10)
+
+translations
+  ";;\<^sub>C x : xs \<bullet> P" \<rightleftharpoons> "(CONST seqc_iter) xs (\<lambda>x. P)"
+
+-- {* Prevent eta-contraction for robust pretty-printing. *}
+
+print_translation {*
+ [Syntax_Trans.preserve_binder_abs2_tr'
+   @{const_syntax seqc_iter} @{syntax_const "_seqc_iter"}]
+*}
+
+lemma seqc_iter_simps [simp]:
+"(;;\<^sub>C x : [] \<bullet> P x) = Skip"
+"(;;\<^sub>C x : (x # xs) \<bullet> P x) = P x ;; (;;\<^sub>C x : xs \<bullet> P x)"
+apply (unfold seqc_iter_def)
+apply (simp_all)
+done
+
+lemma seqc_iter_singleton [simp]:
+"(P x) is CSP4 \<Longrightarrow> (;;\<^sub>C x : [x] \<bullet> P x) = P x"
+apply (unfold seqc_iter_def)
+apply (simp)
+apply (metis CSP4_def Healthy_if)
+done
 
 subsubsection {* Iterated Interleaving *}
 
 primrec interleave_iter ::
   "'a list \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<phi>) action) \<Rightarrow> ('\<sigma>, '\<phi>) action" where
-"interleave_iter [] f = Skip" |
-"interleave_iter (h # t) f = (f h) ||| (interleave_iter t f)"
+"interleave_iter [] body = Skip" |
+"interleave_iter (x # xs) body = (body x) ||| (interleave_iter xs body)"
 
-syntax "_interleave_iter_iter" ::
+syntax "_interleave_iter" ::
   "pttrn \<Rightarrow> 'a list \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action"
   ("(3||| _ : _ \<bullet>/ _)" [0, 0, 10] 10)
 
-translations "||| x : l \<bullet> P" \<rightleftharpoons> "(CONST interleave_iter) l (\<lambda>x. P)"
+translations
+  "||| x : xs \<bullet> P" \<rightleftharpoons> "(CONST interleave_iter) xs (\<lambda>x. P)"
 
-subsection {* Proof Experiments *}
+-- {* Prevent eta-contraction for robust pretty-printing. *}
 
-text {* Make the below a default simplification! [TODO] *}
+print_translation {*
+ [Syntax_Trans.preserve_binder_abs2_tr'
+   @{const_syntax interleave_iter} @{syntax_const "_interleave_iter"}]
+*}
+
+subsection {* {\Circus} Laws *}
+
+text {* Make the below a default simplification in @{theory utp_recursion}! *}
 
 declare mu_const [simp]
 
 lemma mu_CSP_const [simp]:
 "(\<mu>\<^sub>C X \<bullet> P) = P"
 apply (unfold comp_def)
-apply (simp only: mu_const)
+apply (rule mu_const)
 done
+
+text \<open>Why did I add the law below?!\<close>
+
+lemma all_true [simp]:
+"(\<forall> x \<bullet> true) = true"
+apply(pred_auto)
+done
+
+paragraph \<open>Simplification laws for processes with the same state alphabet.\<close>
+
+text \<open>These are in particular useful for processes with deep/axiomatic states.\<close>
+
+lemma Process_eq_simp:
+"(Process P = Process Q) \<longleftrightarrow>
+  (\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> Q)"
+apply (unfold Process_def)
+apply (rel_simp)
+done
+
+lemma Process_ref_simp:
+"(Process P \<sqsubseteq> Process Q) \<longleftrightarrow>
+  (\<exists> {$st, $st\<acute>} \<bullet> P) \<sqsubseteq> (\<exists> {$st, $st\<acute>} \<bullet> Q)"
+apply (unfold Process_def)
+apply (rel_simp)
+done
+
+lemma pre_ex_st_dist [rdes]:
+"pre\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<forall> {$st, $st\<acute>} \<bullet> pre\<^sub>R P)"
+apply (rel_auto)
+done
+
+lemma peri_ex_st_dist [rdes]:
+"peri\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> peri\<^sub>R P)"
+apply (rel_auto)
+done
+
+lemma post_ex_st_dist [rdes]:
+"post\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> post\<^sub>R P)"
+apply (rel_auto)
+done
+
+subsection {* Proof Experiments *}
+
+text {* \todo{Tactic to apply the copy rule selectively.} *}
 
 theorem
 "process P \<triangleq> begin A = Act1 and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
  P = Process (Main (Act1, Act2 ;; Act1))"
 apply (unfold circus_syntax)
-apply (unfold Let_def) -- {* \todo{How to apply the copy rule selectively?!} *}
+apply (unfold Let_def)
 apply (simp add: o_def)
 done
 
@@ -209,7 +270,7 @@ theorem
 "process P \<triangleq> begin state(vstore) A = Act1 and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
  P = ProcessSt TYPE(vstore) (Main (Act1, Act2 ;; Act1))"
 apply (unfold circus_syntax)
-apply (unfold Let_def) -- {* \todo{How to apply the copy rule selectively?!} *}
+apply (unfold Let_def)
 apply (simp add: o_def)
 done
 
@@ -217,46 +278,7 @@ theorem
 "process P(x::nat) \<triangleq> begin state('\<sigma>) A = Act1 x and B = (Act2 ;; A) \<bullet> Main(A, B) end \<Longrightarrow>
  P = (\<lambda>x. ProcessSt TYPE('\<sigma>) (Main (Act1 x, Act2 ;; Act1 x)))"
 apply (unfold circus_syntax)
-apply (unfold Let_def) -- {* \todo{How to apply the copy rule selectively?!} *}
+apply (unfold Let_def)
 apply (simp add: o_def)
-done
-
-subsection {* Supplementary Laws *}
-
-lemma all_true [simp]:
-"(\<forall> x \<bullet> true) = true"
-apply(pred_auto)
-done
-
-text \<open>Simplification laws for processes with the same state type.\<close>
-
-lemma Process_eq_simp:
-"(Process P = Process Q) \<longleftrightarrow>
-  ((\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> Q))"
-apply (unfold Process_def)
-apply (unfold hide_state_def)
-apply (rel_simp)
-done
-
-lemma Process_ref_simp:
-"(Process P \<sqsubseteq> Process Q) \<longleftrightarrow>
-  ((\<exists> {$st, $st\<acute>} \<bullet> P) \<sqsubseteq> (\<exists> {$st, $st\<acute>} \<bullet> Q))"
-apply (unfold Process_def)
-apply (rel_simp)
-done
-
-lemma preR_ex_st_vars [rdes]:
-"pre\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<forall> {$st, $st\<acute>} \<bullet> pre\<^sub>R P)"
-apply (rel_auto)
-done
-
-lemma periR_ex_st_vars [rdes]:
-"peri\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> peri\<^sub>R P)"
-apply (rel_auto)
-done
-
-lemma postR_ex_st_vars [rdes]:
-"post\<^sub>R(\<exists> {$st, $st\<acute>} \<bullet> P) = (\<exists> {$st, $st\<acute>} \<bullet> post\<^sub>R P)"
-apply (rel_auto)
 done
 end

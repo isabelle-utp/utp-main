@@ -1,0 +1,6 @@
+# Directories that are ignored by git if present.
+output
+export
+obsolete
+misc
+tmp

@@ -4,7 +4,7 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 28 June 2017 *)
+(* LAST REVIEWED: 18 Sep 2017 *)
 
 section {* {\Circus} Preliminaries *}
 
@@ -12,13 +12,23 @@ theory utp_circus_prel
 imports utp_theories_deep
 begin
 
-text {* Hide HOL's @{typ "'a rel"} type again (recall should do that)! *}
+text {* Hide HOL's @{typ "'a rel"} type once again. *}
 
-hide_type Relation.rel
+text {* TODO: The recall package ought to hide type syntax too! *}
 
-text \<open>The CSP closure law for \<open>hide_state\<close> still needs to be proved!\<close>
+hide_type (open) Relation.rel
 
-declare [[quick_and_dirty]]
+type_synonym 'a hol_rel = "'a Relation.rel"
+
+translations (type) "'a hol_rel" \<rightleftharpoons> (type)"'a Relation.rel"
+
+subsection {* Syntax Adjustments *}
+
+no_translations
+  "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a\<guillemotright> P"
+
+translations
+  "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a()\<guillemotright> P"
 
 subsection {* Channel Events *}
 
@@ -30,121 +40,6 @@ text {*
 
 definition events :: "('a, '\<epsilon>) chan \<Rightarrow> '\<epsilon> set" ("\<epsilon>'(_')") where
 "events c = c ` UNIV"
-
-subsection {* Mapper Lenses *}
-
-text {*
-  The parse translation below yields a heterogeneous mapping function for any
-  record type. This is effectively lifting a function on its extension type to
-  an update on the entire record. We note that the \<open>more_update\<close> function does
-  something similar, but is not precisely suitable here since it only considers
-  homogeneous functions, namely of type \<open>'a \<Rightarrow> 'a\<close> rather than \<open>'a \<Rightarrow> 'b\<close>.
-*}
-
-syntax "_map_ext" :: "id \<Rightarrow> logic" ("map'_ext[_]")
-
-ML \<open>
-  fun map_ext_tr [Free (name, _)] =
-    let
-      val extend = Free (name ^ ".extend", dummyT);
-      val truncate = Free (name ^ ".truncate", dummyT);
-      val more = Free (name ^ ".more", dummyT)
-    in
-      Abs ("f", dummyT,
-      Abs ("r", dummyT,
-        extend $ (truncate $ Bound 0) $ (Bound 1 $ (more $ (Bound 0)))))
-    end
-  | map_ext_tr _ = raise Match;
-\<close>
-
-parse_translation \<open>[(@{syntax_const "_map_ext"}, K map_ext_tr)]\<close>
-
-subsubsection {* Mapping Functors *}
-
-definition map_des_ext ::
-  "('\<alpha> \<Rightarrow> '\<beta>) \<Rightarrow>
-   ('\<alpha> des \<Rightarrow> '\<beta> des)" where
-[lens_defs]: "map_des_ext = map_ext[des_vars]"
-
-definition map_rp_ext ::
-  "('\<alpha> \<Rightarrow> '\<beta>) \<Rightarrow>
-   ('\<tau>::trace, '\<alpha>) rp_vars_scheme \<Rightarrow> ('\<tau>::trace, '\<beta>) rp_vars_scheme" where
-[lens_defs]: "map_rp_ext = map_ext[rp_vars]"
-
-definition map_rsp_st ::
-  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
-   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<tau>, '\<alpha>) rsp_vars_scheme" where
-[lens_defs]:
-"map_rsp_st f = (\<lambda>r. \<lparr>st\<^sub>v = f (rsp_vars.st\<^sub>v r), \<dots> = rsp_vars.more r\<rparr>)"
-
-definition map_rsp_ext ::
-  "('\<alpha> \<Rightarrow> '\<beta>) \<Rightarrow>
-   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<sigma>, '\<beta>) rsp_vars_scheme" where
-[lens_defs]: "map_rsp_ext = map_ext[rsp_vars]"
-
-definition map_csp_ext ::
-  "('\<alpha> \<Rightarrow> '\<beta>) \<Rightarrow>
-   ('c, '\<alpha>) csp_vars_scheme \<Rightarrow> ('c, '\<beta>) csp_vars_scheme" where
-[lens_defs]: "map_csp_ext = map_ext[csp_vars]"
-
-subsubsection {* Lens Definitions *}
-
-definition map_des_lens ::
-  "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des \<Longrightarrow> '\<beta> des)" ("map'_des\<^sub>L") where
-[lens_defs]:
-"map_des_lens l = \<lparr>
-  lens_get = map_des_ext (get\<^bsub>l\<^esub>),
-  lens_put = map_des_ext o (put\<^bsub>l\<^esub>) o des_vars.more\<rparr>"
-
-definition map_rp_lens ::
-  "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow>
-   (('\<tau>::trace, '\<alpha>) rp \<Longrightarrow> ('\<tau>::trace, '\<beta>) rp)" ("map'_rp\<^sub>L") where
-[lens_defs]:
-"map_rp_lens l = map_des\<^sub>L \<lparr>
-  lens_get = map_rp_ext (get\<^bsub>l\<^esub>),
-  lens_put = map_rp_ext o (put\<^bsub>l\<^esub>) o rp_vars.more\<rparr>"
-
-definition map_rsp_lens ::
-  "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow>
-   (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<sigma>, '\<tau>::trace, '\<beta>) rsp)" ("map'_rsp\<^sub>L") where
-[lens_defs]:
-"map_rsp_lens l = map_rp\<^sub>L \<lparr>
-  lens_get = map_rsp_ext (get\<^bsub>l\<^esub>),
-  lens_put = map_rsp_ext o (put\<^bsub>l\<^esub>) o rsp_vars.more\<rparr>"
-
-definition map_rsp_st_lens ::
-  "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
-   (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_rsp'_st\<^sub>L") where
-[lens_defs]:
-"map_rsp_st_lens l = map_rp\<^sub>L \<lparr>
-  lens_get = map_rsp_st (get\<^bsub>l\<^esub>),
-  lens_put = map_rsp_st o (put\<^bsub>l\<^esub>) o rsp_vars.st\<^sub>v\<rparr>"
-
-subsubsection {* Lenses Laws *}
-
-lemma vwb_map_des_lens:
-"vwb_lens l \<Longrightarrow> vwb_lens (map_des\<^sub>L l)"
-apply (unfold_locales)
-apply (unfold map_des_lens_def map_des_ext_def)
-apply (unfold des_vars.extend_def des_vars.truncate_def)
-apply (auto)
-done
-
-lemma map_des_lens_id:
-"map_des\<^sub>L 1\<^sub>L = 1\<^sub>L"
-apply (unfold map_des_lens_def map_des_ext_def id_lens_def)
-apply (unfold des_vars.extend_def des_vars.truncate_def)
-apply (auto simp: fun_eq_iff)
-done
-
-lemma map_des_lens_comp:
-"map_des\<^sub>L (l1 ;\<^sub>L l2) = (map_des\<^sub>L l1) ;\<^sub>L (map_des\<^sub>L l2)"
-apply (unfold map_des_lens_def map_des_ext_def lens_comp_def)
-apply (unfold des_vars.extend_def des_vars.truncate_def)
-apply (auto simp: fun_eq_iff)
-done
-
-text {* More laws need to be proved here! [TODO] *}
 
 subsection {* Proof Support *}
 
@@ -159,50 +54,35 @@ declare csp_vars.truncate_def [lens_defs]
 
 subsection {* State Hiding *}
 
-text {* Move this to the theory @{theory utp_csp}. [TODO] *}
-
-definition hide_state :: "('\<sigma>, '\<epsilon>) action \<Rightarrow> (unit, '\<epsilon>) action" where
-[urel_defs]: "hide_state A = A \<restriction>\<^sub>p ((map_rsp_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_rsp_st\<^sub>L 0\<^sub>L))"
-
-definition st_rel ::
-  "'\<sigma> \<times> '\<sigma> \<Longrightarrow> ('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<times> ('\<sigma>, '\<tau>::trace, '\<alpha>) rsp" where
-[lens_defs]: "st_rel = st \<times>\<^sub>L st"
-
 text {* Note that the following lemma does not hold! *}
 
 lemma hide_state_ex_cancel [simp]:
-"hide_state (\<exists> {$st,$st\<acute>} \<bullet> P) = hide_state P"
-apply (unfold hide_state_def)
-apply (rel_simp)
+"abs_st (\<exists> {$st,$st\<acute>} \<bullet> P) = abs_st P"
+apply (rel_auto)
 oops
 
-text \<open>Laws for the pre-, peri- and postconitions of @{const hide_state}\<close>
+text \<open>Laws for the pre-, peri- and postcondition of @{const abs_st}\<close>
 
-lemma preR_hide_state [rdes]:
-"pre\<^sub>R(hide_state P) = hide_state(pre\<^sub>R(P))"
-apply (unfold hide_state_def)
-apply (unfold pre\<^sub>R_def)
+lemma pre\<^sub>R_abs_st [rdes]:
+"pre\<^sub>R(abs_st P) = abs_st(pre\<^sub>R(P))"
 apply (rel_auto)
 done
 
-lemma periR_hide_state [rdes]:
-"peri\<^sub>R(hide_state P) = hide_state(peri\<^sub>R(P))"
-apply (unfold hide_state_def)
+lemma peri\<^sub>R_abs_st [rdes]:
+"peri\<^sub>R(abs_st P) = abs_st(peri\<^sub>R(P))"
 apply (rel_auto)
 done
 
-lemma postR_hide_state [rdes]:
-"post\<^sub>R(hide_state P) = hide_state(post\<^sub>R(P))"
-apply (unfold hide_state_def)
+lemma post\<^sub>R_abs_st [rdes]:
+"post\<^sub>R(abs_st P) = abs_st(post\<^sub>R(P))"
 apply (rel_auto)
 done
 
 text \<open>Closure Laws\<close>
 
-lemma hide_state_CSP_closure [closure]:
-"P is CSP \<Longrightarrow> hide_state (\<exists> {$st, $st\<acute>} \<bullet> P) is CSP"
-apply (unfold hide_state_def)
-sorry
+lemma abs_st_CSP_closure [closure]:
+"P is CSP \<Longrightarrow> abs_st (\<exists> {$st, $st\<acute>} \<bullet> P) is CSP"
+  by (metis SRD_state_srea state_srea_def)
 
 subsection {* Instantiations *}
 
