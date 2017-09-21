@@ -702,19 +702,20 @@ lemma stlist_minus_nils_imp_minus:
   fixes a b :: "'a::fzero_trace"
   (*assumes "\<forall>x::'a::trace stlist. fzero x = 0"*)
   shows "[;a] - [;b] = [;c] \<Longrightarrow> a - b = c"
-  
   apply (simp add:minus_stlist_def minus_def) 
-  using assms subtract_monoid_fzero_eq add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero fzero_trace_class.le_iff_add fzero_trace_class.minus_def fzero_trace_class.not_le_minus
+  using subtract_monoid_fzero_eq add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero fzero_trace_class.le_iff_add fzero_trace_class.minus_def fzero_trace_class.not_le_minus
   
 
  
 lemma stlist_minus_imp_minus_nils:
-  fixes a b :: "'a::trace"
+  fixes a b :: "'a::fzero_trace"
   shows "a - b = c \<Longrightarrow> [;a] - [;b] = [;c]"
   unfolding minus_stlist_def minus_def
+    nitpick
 proof - (* massaged from an smt Isar proof *)
   assume a1: "a - b = c"
   have f2: "[;a] - [;b] = 0 \<longrightarrow> [;a] -\<^sub>m [;b] = [;0]"
+    
     by (simp add: minus_stlist_def stlist_zero_is_zero)
   obtain aas :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where
     "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
@@ -769,16 +770,20 @@ proof -
   then show ?thesis using a b by auto
 qed
 
-lemma
+lemma stlist_zero_minus:
   fixes a :: "'a::fzero_trace"
-  shows "[;a] - [;a] = [;a - a]"
+  assumes "b \<le> a"
+  shows "[;a] - [;b] = [;a - b]"
+  using assms
   apply (simp add:minus_stlist_def fzero_subtract_def)
   apply auto
-  apply (rule the_equality)
-  apply (simp add: plus_stlist_def)  
-  apply (metis add_fzero_right stlist_left_cancel_monoid0 stlist_plus_nils)
-  using eq_refl less_eq_stlist_def stlist_le_nil_iff_le_elements by blast
-
+   apply (rule the_equality)
+    apply (simp add: plus_stlist_def)
+    apply (metis fzero_trace_class.add_diff_cancel_left fzero_trace_class.le_iff_add)
+  apply (metis concat_stlist.simps(1) fzero_trace_class.diff_add_cancel_left' left_cancel_semigroup_class.add_left_imp_eq plus_stlist_def)
+  by (metis less_eq_stlist_def stlist_le_nil_iff_le_elements)
+  
+(* a - (b + c) = a - b - c *)
     (*
 lemma
   fixes a :: "'a::trace"

@@ -469,6 +469,31 @@ lemma stlist_trace_subtract_common:
   (*by (metis stlist_concat_zero_left stlist_plus_follow_concat trace_class.add_diff_cancel_left')
     *)   
     
+lemma
+  fixes a :: "'a::fzero_trace"
+  assumes "b + c \<le> a"
+  shows "a - (b + c) = a - b - c"
+  using assms
+  apply (simp add:minus_def)
+  apply (simp add:fzero_subtract_def)
+  apply (simp add:fzero_le_def)
+  apply auto
+        apply (rule the_equality)
+        apply (simp add:)
+    
+lemma stlist_head_front_last:
+  fixes t :: "'a::fzero_trace stlist"
+  assumes "t \<le> s"
+  shows "head(s - (front(t) + [;last(t)])) = head(s - front(t)) - last(t)"
+  using assms
+  apply (induct t s rule:stlist_induct_cons)
+    apply (simp add:plus_stlist_def)
+    apply (simp add: stlist_le_nil_imp_le_elements stlist_zero_minus)
+   apply auto
+  using diff_zero
+  apply (induct t s rule:stlist_induct_cons)
+  
+    
 lemma stlist_head_front_last:
   fixes t :: "'a::fzero_trace stlist"
   assumes "t \<le> s"
@@ -479,16 +504,53 @@ lemma stlist_head_front_last:
   apply (simp add: plus_stlist_def trace_class.le_iff_add)
   apply (simp add: less_eq_stlist_def monoid_le_def plus_stlist_def)
   apply (simp add: minus_stlist_def fzero_subtract_def)
-  sledgehammer
+  (*
      apply (metis (no_types, lifting) add_fzero_left concat_stlist.simps(1) head.simps(2) plus_stlist_def stlist_cons_minus_nil_eq trace_class.add_diff_cancel_left trace_class.le_add trace_class.sum_minus_left)
   apply (simp add: plus_stlist_def trace_class.le_iff_add)
   by (simp add:stlist_trace_subtract_common)
+*)
+  oops
 
+(*
+In general we don't instantiate it because fzero is
+can't be defined in a generic way in terms of the 
+parameterised type.
+
+instantiation stlist :: (fzero_trace) fzero_trace
+*)
+    
+lemma
+  assumes "z \<le> x"
+  shows "(x #\<^sub>t y) - [;z] = (x - z) #\<^sub>t y"
+  oops
+    
+declare [[show_sorts]]
+lemma add_monoid_diff_cancel_left: 
+  fixes a :: "'a::{left_cancel_semigroup,semigroup_add_fzero}"
+  shows "(a + b) -\<^sub>d a = b"
+  apply (simp add: fzero_subtract_def monoid_le_add)
+  apply (rule the_equality)
+  apply (simp)
+  using left_cancel_semigroup_class.add_left_imp_eq 
+  by (metis left_cancel_semigroup_class.add_left_imp_eq)    
+    
 lemma stlist_tail_front_last:
-  fixes t :: "'a::fzero_trace_0 stlist"
+  fixes t :: "'a::fzero_trace stlist"
   assumes "t \<le> s"
   shows "tail(s - (front(t) + [;last(t)])) = tail(s - front(t))"
   using assms
+  apply (induct t)
+   apply auto
+   apply (simp add:plus_stlist_def)
+   apply (simp add:less_eq_stlist_def fzero_le_def)
+   apply auto
+   apply (case_tac c)
+   apply auto
+   apply (metis (mono_tags, lifting) add.assoc add_fzero_left concat_stlist.simps(1) fzero_trace_class.add_diff_cancel_left fzero_trace_class.add_diff_cancel_left' fzero_trace_class.diff_cancel fzero_trace_class.le_add plus_stlist_def stlist_zero_minus tail.simps(1)) 
+   apply (simp add:plus_stlist_def)
+   apply (induct s)
+    
+  (* old *)
   apply (induct t s rule:stlist_induct_cons)
   apply (smt Terminated_lists.last.simps(1) head.simps(1) minus_stlist_def pre_trace_class.add_monoid_diff_cancel_left stlist_eq_nil_pluses_imp0 stlist_front_concat_last stlist_head_concat_tail trace_class.le_iff_add trace_class.sum_minus_left)
     apply (simp add: plus_stlist_def trace_class.le_iff_add)
@@ -502,7 +564,8 @@ lift_definition front :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('
 lift_definition tail :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a::fzero_add_zero,'b) slotted_trace" is "Terminated_lists.tail" .
 lift_definition head :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.head x)" .
 lift_definition last :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.last x)" .
-  
+
+    (*
 lemma slotted_trace_head_front_last:
   fixes t :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
   assumes "t \<le> s"
@@ -510,14 +573,14 @@ lemma slotted_trace_head_front_last:
   using assms stlist_head_front_last
   apply (induct t, auto)
   apply (induct s, auto)
-  sledgehammer
+  
   apply (metis (mono_tags, lifting) add.right_neutral add_fzero_left front.simps(1) fzero_idem head.simps(1) stlist_front_concat_last stlist_minus_imp_minus_nils trace_class.add_diff_cancel_left zero_stlist_def)
   apply (simp add: plus_stlist_def trace_class.le_iff_add)
   apply (simp add: less_eq_stlist_def monoid_le_def plus_stlist_def)
   apply (metis (no_types, lifting) add_fzero_left concat_stlist.simps(1) head.simps(2) plus_stlist_def stlist_cons_minus_nil_eq trace_class.add_diff_cancel_left trace_class.le_add trace_class.sum_minus_left)
   apply (simp add: plus_stlist_def trace_class.le_iff_add)
   by (simp add:stlist_trace_subtract_common)
-    
+    *)
 lemma 
   fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
   shows "a + b = front(a) + stlist2slotted [;last(a) + head(b)] + tail(b)"
@@ -582,7 +645,8 @@ lemma
   assumes "[;z] \<le> [;x]"
   shows "([;x] + y) - [;z] = ([;x] - [;z]) + y"
   using assms
-  using trace_class.sum_minus_left by blast
+  using trace_class.sum_minus_left
+  oops (*by blast*)
 
 lemma xyz:
   fixes x :: "'a::fzero_trace_0"
