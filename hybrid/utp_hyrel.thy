@@ -400,7 +400,7 @@ lemma rl_RR_closed [closure]: "rl(x) is RR"
   by (rel_auto)
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
-[upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<Sigma>) \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<^bold>v) \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
@@ -614,7 +614,7 @@ definition hEvolveBound :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Righ
 [upred_defs]: "hEvolveBound x t f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><)"
 
 definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d \<and> rl(&\<Sigma>))"
+[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d \<and> rl(&\<^bold>v))"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
@@ -663,12 +663,12 @@ subsection {* Pre-emption *}
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [74,75] 74) where
-[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
-where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<Sigma>/$\<Sigma>\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<Sigma>) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
+where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
@@ -984,16 +984,16 @@ qed
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<Sigma>) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
   
 lemma HyStep_hEvolve:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "n > 0" "continuous_on {0..n} f"
-  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>  :: ('d,'c) hyrel) = (\<Sigma> := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
+  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(time)\<guillemotright>  :: ('d,'c) hyrel) = (\<^bold>v := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
 proof -
-  from assms(1) have "?lhs = \<lfloor>(&\<Sigma> \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<Sigma>) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f time\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
     by (simp add: hStepRel_def, rel_auto)
-  also have "... = \<lfloor>(&\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f time\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f time\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
     by (rel_auto)           
   also have "... = ?rhs"
   proof (rel_auto)
@@ -1015,7 +1015,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<Sigma>,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<Sigma>,$b\<acute>})]"
+lemma "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<^bold>v,$b\<acute>})]"
   apply (simp add: StateParallel_form, rel_auto)
   apply (smt lens_indep_comm vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
   apply (smt lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
@@ -1024,7 +1024,7 @@ done
 lemma HyStep_hEvolveAt:
   fixes P :: "('d,'c :: t2_space) hyrel"
   assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
-  shows "HyStep[n](&\<Sigma> \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; RR(P)) = ($\<Sigma>\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
+  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(time)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
   oops
   
 end
