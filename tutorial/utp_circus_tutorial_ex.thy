@@ -13,8 +13,6 @@ begin recall_syntax
 
 subsection {* Preliminaries *}
 
-purge_notation nth (infixl "!" 100)
-
 no_translations
   "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a\<guillemotright> P"
 
@@ -35,9 +33,9 @@ lemma list_Cons_minus [simp]:
 
 subsection {* Time Types *}
 
-text \<open>Below we define type synonyms for \<open>TIME\<close> and \<open>PERIOD\<close> type.\<close>
+text \<open>Below we define synonyms for the types \<open>TIME\<close> and \<open>PERIOD\<close>.\<close>
 
-type_synonym TIME = "nat"
+type_synonym TIME   = "nat"
 type_synonym PERIOD = "nat"
 
 subsection {* Channel Declarations *}
@@ -56,7 +54,7 @@ abbreviation timer_prefix ::
 notation timer_prefix ("tm:_" [1000] 1000)
 
 abbreviation "tm_events \<equiv>
-  \<epsilon>(tm:step) \<union> \<epsilon>(tm:endc) \<union> \<epsilon>(tm:setT) \<union> \<epsilon>(tm:updateSS)"
+  \<epsilon>(tm:setT) \<union> \<epsilon>(tm:updateSS) \<union> \<epsilon>(tm:step) \<union> \<epsilon>(tm:endc)"
 
 subsection {* Process Definition *}
 
@@ -93,7 +91,7 @@ end"
 
 text \<open>Proof that the @{const Timer} process does not diverge.\<close>
 
-lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true"
+lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true\<^sub>r"
 -- \<open>TODO: try to complete this prove using the @{method rdes_calc} tactic.\<close>
 oops
 
@@ -103,7 +101,8 @@ text \<open>
   Simplified encoding of the @{const Timer} process action. The simplification
   does not consider hiding of the state in the process semantics and neither
   uses the extensible event type. The @{const setT} communication is slightly
-  more restrictive, requiring \<open>t < tN\<close> rather than \<open>t \<le> tN\<close>.\<close>
+  more restrictive, requiring \<open>t < tN\<close> rather than \<open>t \<le> tN\<close>.
+\<close>
 
 definition StepBody :: "TIME \<Rightarrow> timer_action" where
 "StepBody tN =
@@ -122,10 +121,10 @@ text \<open>Additional lemma needed for the proof below.\<close>
 lemma wpR_assign [wp]:
   assumes "P is NCSP"
   shows "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S) wp\<^sub>R pre\<^sub>R P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> pre\<^sub>R(P)"
-apply (simp add: wpR_def unrest rdes assms closure R1_neg_preR usubst)
+apply (simp add: wpR_def unrest rdes assms rea_not_not closure usubst)
 done
 
-text \<open>Communication on @{const setT} is initially not refused.\<close>
+text \<open>Communications on @{const setT} are initially not refused.\<close>
 
 lemma StepBody_muI:
 "[true \<turnstile> \<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> <\<^sub>u \<guillemotleft>tN\<guillemotright> \<and> \<guillemotleft>trace\<guillemotright> =\<^sub>u \<langle>\<rangle> \<Rightarrow> (setT\<cdot>\<guillemotleft>t\<guillemotright>)\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright> | false]\<^sub>C
@@ -147,13 +146,18 @@ lemma StepBody_muI2:
   \<sqsubseteq> (\<mu>\<^sub>C X \<bullet> StepBody tN ;; X)"
 apply (unfold StepBody_def)
 apply (rule CRD_mu_basic_refine)
-apply (simp_all add: rdes wp closure unrest usubst alpha)
+-- {* Subgoal 1 *}
+apply (simp add: closure unrest alpha)
+-- {* Subgoal 2 *}
+apply (simp add: closure unrest alpha)
+-- {* Subgoal 3 *}
+apply (rdes_calc)
+-- {* Subgoal 4 *}
+apply (rdes_calc)
+apply (rel_simp)
+-- {* Subgoal 5 *}
+apply (rdes_calc)
 apply (rel_auto)
-apply (simp_all add: zero_list_def) [2]
-apply (rel_auto)
-apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_conv timer_evt.inject(1) list.discI minus_list_def prefix_concat_minus)
-apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_conv timer_evt.distinct(1) list.discI minus_list_def prefix_concat_minus)
-apply (metis Prefix_Order.prefix_snoc Prefix_Order.same_prefix_nil append1_eq_conv timer_evt.distinct(3) list.discI minus_list_def prefix_concat_minus)
 done
 
 lemma StepBody_muI3:
@@ -168,27 +172,18 @@ apply (simp add: closure unrest alpha)
 -- {* Subgoal 2 *}
 apply (simp add: closure unrest alpha)
 -- {* Subgoal 3 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
+apply (rdes_calc)
 -- {* Subgoal 4 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
-apply (rel_auto)
-apply (simp_all add: zero_list_def) [2]
+apply (rdes_calc)
+apply (rel_simp)
 -- {* Subgoal 5 *}
-apply (simp add: rdes wp closure unrest usubst alpha)
-apply (rel_auto)
--- {* Subgoal 5.1 *}
+apply (rdes_calc)
+apply (rel_simp)
 apply (erule prefixE)
-apply (clarsimp)
-defer
--- {* Subgoal 5.1 *}
-apply (erule prefixE)
-apply (clarsimp)
--- {* Subgoal 5.1 *}
-apply (erule prefixE)
-apply (clarsimp)
+apply (auto)
 oops
 
-text \<open>Simpler version of the Timer with fewer communications and no recursion.\<close>
+text \<open>A simpler version of \<open>Timer\<close> with fewer communications and no recursion.\<close>
 
 definition [rdes]:
 "process SimpleTimer(ct::TIME, hc::PERIOD, tN::TIME) \<triangleq> begin
@@ -205,31 +200,34 @@ lemma
 apply (unfold SimpleTimer_def)
 apply (unfold circus_syntax)
 apply (simp add: Let_def)
-(* apply (rdes_refine) *)
-apply (rule SRD_refine_intro)
+apply (rule_tac SRD_refine_intro)
 -- {* Subgoal 1 *}
 apply (simp add: closure)
 -- {* Subgoal 2 *}
 apply (simp add: closure)
 -- {* Subgoal 3 *}
 apply (rdes_calc)
+apply (rel_simp)
 -- {* Subgoal 4 *}
 apply (rdes_calc)
 apply (rel_simp)
 apply (erule_tac Q = "endc () \<in> ref\<^sub>v" in contrapos_pp)
-apply (simp)
-defer
+apply (simp) defer
 -- {* Subgoal 4 *}
 apply (rdes_calc)
 apply (rel_simp)
 oops
+
+method rdes_refine_auto =
+  (rule_tac SRD_refine_intro;
+    (simp add: closure rdes unrest usubst; (rdes_calc, rel_auto?)))
 
 lemma
 "ct < tN \<Longrightarrow> SimpleTimer(ct, hc, tN) \<sqsubseteq> step!(\<guillemotleft>ct\<guillemotright>)!(\<guillemotleft>hc\<guillemotright>) \<^bold>\<rightarrow> Skip"
 apply (unfold SimpleTimer_def)
 apply (unfold circus_syntax)
 apply (simp add: Let_def)
-apply (rdes_refine)
+apply (rdes_refine_auto)
 done
 
 text \<open>Simpler version of the Timer communicating only on channel @{const step}.\<close>
@@ -293,8 +291,6 @@ apply (case_tac moreb)
 apply (clarsimp)
 using dual_order.strict_trans by (blast)
 
-text \<open>Let us try again with those lemmas.\<close>
-
 lemma empty_trace_neq_relpowI [rule_format]:
 "0 < n \<Longrightarrow>
   (\<forall>ok1 ok2 wait1 wait2 (tr1::'\<epsilon> list) (tr2::'\<epsilon> list) (st1::'\<sigma>) (st2::'\<sigma>)
@@ -312,6 +308,8 @@ apply (subgoal_tac "tr < tr")
 apply (clarsimp)
 apply (blast)
 done
+
+text \<open>Let us try again with those two lemmas above.\<close>
 
 lemma "`peri\<^sub>R(SimpleTimer2(ct, hc, tN)) \<and> $tr =\<^sub>u $tr\<acute> \<Rightarrow> \<guillemotleft>step(ct, hc)\<guillemotright> \<notin>\<^sub>u $ref\<acute>`"
 apply (rdes_calc)

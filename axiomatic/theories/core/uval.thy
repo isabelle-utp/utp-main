@@ -133,6 +133,13 @@ theorem InjU_inject :
 apply (metis InjU_inverse)
 done
 
+theorem InjU_eq [simp]:
+"(InjU x) = (InjU y) \<longleftrightarrow> (x = y)"
+apply (rule iffI)
+apply (erule InjU_inject)
+apply (clarsimp)
+done
+
 theorem ProjU_inject :
 "\<lbrakk>x :\<^sub>u UTYPE('a); y :\<^sub>u UTYPE('a)\<rbrakk> \<Longrightarrow>
  (ProjU :: uval \<Rightarrow> 'a::injectable) x =

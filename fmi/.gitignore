@@ -1,2 +1,4 @@
 # Ignore output directory for Isabelle/HOL proof documents.
 output
+# Ignore resources directory containing documents and models.
+resources

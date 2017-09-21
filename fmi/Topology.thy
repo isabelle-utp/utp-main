@@ -5,7 +5,7 @@
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
 
-subsection {* Railway Topology *}
+section {* Railway Topology *}
 
 theory Topology
 imports Main
@@ -13,10 +13,21 @@ begin
 
 subsection {* Permissible Routes *}
 
-type_synonym path = "nat list"
+text \<open>Available routes and their corresponding relay index.\<close>
 
-definition ilock_paths :: "path list" where
-"ilock_paths = [
+abbreviation (input) "V1Q1 \<equiv> 1"
+abbreviation (input) "V1Q2 \<equiv> 2"
+abbreviation (input) "Q2V2 \<equiv> 3"
+abbreviation (input) "V1Q3 \<equiv> 4"
+abbreviation (input) "Q3V2 \<equiv> 5"
+
+type_synonym path = "int list"
+
+definition void :: "'a" where
+"void = undefined"
+
+definition routes :: "path list" where
+"routes = [void,
   [3, 4, 5],
   [3, 4, 12, 8, 9, 10, 1],
   [1, 10, 9, 8, 7, 6],
