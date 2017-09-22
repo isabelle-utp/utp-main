@@ -350,12 +350,23 @@ lemma monoid_le_add_left_mono:
     
 end
   
-context semigroup_add_fzero
+class semigroup_add_left_cancel = semigroup_add + left_cancel_semigroup
+  
+context semigroup_add
 begin
  
 definition fzero_subtract (infixl "-\<^sub>d" 65)
   where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else THE c. \<forall>d. c \<le>\<^sub>d d)"  
-    
+end
+  
+context semigroup_add_left_cancel
+begin
+lemma add_monoid_diff_cancel_left [simp]: 
+  "(a + b) -\<^sub>d a = b"
+  apply (simp add: fzero_subtract_def monoid_le_add)
+  apply (rule the_equality)
+  apply (simp)
+  by (metis local.add_left_imp_eq)
 end
   
 text {* We then define an equivalent class as a pre_trace, where
@@ -375,19 +386,13 @@ lemma monoid_le_refl: "a \<le>\<^sub>d a"
 
 end
   
-class fzero_pre_trace = left_cancel_semigroup + fzero_sum_zero +
+class fzero_pre_trace = semigroup_add_left_cancel + fzero_sum_zero +
   assumes
   sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
 begin
   
   (* still unsure whether this should be moved into another class *)
-lemma add_monoid_diff_cancel_left [simp]: 
-  "(a + b) -\<^sub>d a = b"
-  apply (simp add: fzero_subtract_def monoid_le_add)
-  apply (rule the_equality)
-  apply (simp)
-  using left_cancel_semigroup_class.add_left_imp_eq 
-  by (metis local.add_left_imp_eq)
+
 end
   
 instance fzero_pre_trace \<subseteq> semigroup_add_fzero
