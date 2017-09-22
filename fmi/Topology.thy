@@ -11,6 +11,19 @@ theory Topology
 imports Main
 begin
 
+subsection {* Type Definitions *}
+
+text \<open>Possible configurations of railway switches.\<close>
+
+datatype switch =
+  STRAIGHT |
+  DIVERGING
+
+text \<open>Possible states of the interlocking relays.\<close>
+
+abbreviation (input) "ON  \<equiv> True"
+abbreviation (input) "OFF \<equiv> False"
+
 subsection {* Permissible Routes *}
 
 text \<open>Available routes and their corresponding relay index.\<close>
@@ -27,7 +40,7 @@ definition void :: "'a" where
 "void = undefined"
 
 definition routes :: "path list" where
-"routes = [void,
+"routes = [void, (* So that we can used one-based indices *)
   [3, 4, 5],
   [3, 4, 12, 8, 9, 10, 1],
   [1, 10, 9, 8, 7, 6],

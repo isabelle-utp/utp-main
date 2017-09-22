@@ -4,47 +4,35 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
+(* LAST REVIEWED: 22 Sep 2017 *)
 
 section {* Railways Specification *}
 
 theory Railways_Spec
-imports Vector Topology utp
+imports Vector Topology utp_hoare_ext
 begin recall_syntax
-
-subsection {* Type Definitions *}
-
-text \<open>Possible configurations of railway switches.\<close>
-
-datatype switch =
-  STRAIGHT |
-  DIVERGING
-
-text \<open>Possible states of Interlocking relays.\<close>
-
-abbreviation (input) "ON  \<equiv> True"
-abbreviation (input) "OFF \<equiv> False"
 
 subsection {* Centralised FMU State *}
 
 alphabet railways_state =
   current_track\<^sub>1 :: "int"
   current_track\<^sub>2 :: "int"
-  telecommand\<^sub>1 :: "int"
-  telecommand\<^sub>2 :: "int"
+  telecommand\<^sub>1 :: "bool vector"
+  telecommand\<^sub>2 :: "bool vector"
   cdv :: "bool vector"
   tc :: "bool vector"
   relays :: "bool vector"
   signals :: "bool vector"
   switches :: "switch vector"
 
-text \<open>Convenience syntax for access elements of @{const cdv}.\<close>
+text \<open>Convenience syntax for indexed access of @{const cdv}.\<close>
 
-abbreviation (input) CDV :: "nat \<Rightarrow> (bool, railways_state) uexpr" ("CDV[_]") where
+abbreviation CDV :: "nat \<Rightarrow> (bool, railways_state) uexpr" ("CDV[_]") where
 "CDV[i] \<equiv> &cdv[i]\<^sub>u"
 
-text \<open>Convenience syntax for access elements of @{const tc}.\<close>
+text \<open>Convenience syntax for indexed access of @{const tc}.\<close>
 
-abbreviation (input) TC :: "nat \<Rightarrow> (bool, railways_state) uexpr" ("TC[_]") where
+abbreviation TC :: "nat \<Rightarrow> (bool, railways_state) uexpr" ("TC[_]") where
 "TC[i] \<equiv> &tc[i]\<^sub>u"
 
 text \<open>Convenience syntax for accessing elements of @{const relays}.\<close>
@@ -103,17 +91,21 @@ done
 
 subsection {* Type Invariant *}
 
-definition type_inv :: "railways_state upred" where [upred_defs]:
-"type_inv = (
+(***********************)
+(* REVIEWED UNTIL HERE *)
+(***********************)
+
+definition railways_type_inv :: "railways_state upred" where [upred_defs]:
+"railways_type_inv = (
   &current_track\<^sub>1 \<in>\<^sub>u \<guillemotleft>{-1..11}\<guillemotright> \<and>
   &current_track\<^sub>2 \<in>\<^sub>u \<guillemotleft>{-1..11}\<guillemotright> \<and>
-  &telecommand\<^sub>1 \<in>\<^sub>u \<guillemotleft>{0..4}\<guillemotright> \<and>
-  &telecommand\<^sub>2 \<in>\<^sub>u \<guillemotleft>{0..4}\<guillemotright> \<and>
-  #\<^sub>u(&cdv) =\<^sub>u \<guillemotleft>11\<guillemotright> \<and>
-  #\<^sub>u(&tc) =\<^sub>u \<guillemotleft>4\<guillemotright> \<and>
-  #\<^sub>u(&relays) =\<^sub>u \<guillemotleft>5\<guillemotright> \<and>
-  #\<^sub>u(&signals) =\<^sub>u \<guillemotleft>3\<guillemotright> \<and>
-  #\<^sub>u(&switches) =\<^sub>u \<guillemotleft>5\<guillemotright>)"
+  #\<^sub>u(&telecommand\<^sub>1) =\<^sub>u 4 \<and>
+  #\<^sub>u(&telecommand\<^sub>2) =\<^sub>u 4 \<and>
+  #\<^sub>u(&cdv) =\<^sub>u 11 \<and>
+  #\<^sub>u(&tc) =\<^sub>u 4 \<and>
+  #\<^sub>u(&relays) =\<^sub>u 5 \<and>
+  #\<^sub>u(&signals) =\<^sub>u 3 \<and>
+  #\<^sub>u(&switches) =\<^sub>u 5)"
 
 subsection {* Safety Invariant *}
 
@@ -124,10 +116,10 @@ definition present\<^sub>2 :: "railways_state upred" where [upred_defs]:
 "present\<^sub>2 = (&current_track\<^sub>2 \<noteq>\<^sub>u 0)"
 
 definition derailed\<^sub>1 :: "railways_state upred" where [upred_defs]:
-"derailed\<^sub>1 = (&current_track\<^sub>1 =\<^sub>u \<guillemotleft>-1\<guillemotright>)"
+"derailed\<^sub>1 = (&current_track\<^sub>1 =\<^sub>u -1)"
 
 definition derailed\<^sub>2 :: "railways_state upred" where [upred_defs]:
-"derailed\<^sub>2 = (&current_track\<^sub>2 =\<^sub>u \<guillemotleft>-1\<guillemotright>)"
+"derailed\<^sub>2 = (&current_track\<^sub>2 =\<^sub>u -1)"
 
 definition safety_inv :: "railways_state upred" where [upred_defs]:
 "safety_inv = (\<not> derailed\<^sub>1 \<and> \<not> derailed\<^sub>2 \<and> 
@@ -135,9 +127,11 @@ definition safety_inv :: "railways_state upred" where [upred_defs]:
 
 subsection {* Relays Invariant *}
 
-definition relays_excl_inv :: "railways_state upred" where (*[upred_defs]:*)
-"relays_excl_inv =
-  (#\<^sub>u(&relays) =\<^sub>u \<guillemotleft>5\<guillemotright> \<and>
+text \<open>Ensures that at most one relay can be activated at a time.\<close>
+
+definition relays_excl_inv :: "railways_state upred" where [upred_defs]:
+"relays_excl_inv = (
+  (#\<^sub>u(&relays) =\<^sub>u \<guillemotleft>5\<guillemotright>) \<and>
   (R1 \<Rightarrow> \<not> R2 \<and> \<not> R4) \<and>
   (R2 \<Rightarrow> \<not> R1 \<and> \<not> R3 \<and> \<not> R4 \<and> \<not> R5) \<and>
   (R4 \<Rightarrow> \<not> R1 \<and> \<not> R2 \<and> \<not> R3 \<and> \<not> R5) \<and>
@@ -146,10 +140,10 @@ definition relays_excl_inv :: "railways_state upred" where (*[upred_defs]:*)
 
 paragraph {* Proof Support *}
 
-definition valid_relay_config :: "(bool vector) set" where
-"valid_relay_config =
- vector_from_list `
-  {[OFF, OFF, OFF, OFF, OFF],
+definition valid_relay_states :: "(bool vector) set" where
+"valid_relay_states =
+ vector_from_list ` {
+  [OFF, OFF, OFF, OFF, OFF],
   [ON, OFF, OFF, OFF, OFF],
   [ON, OFF, OFF, OFF, ON],
   [ON, OFF, ON, OFF, OFF],
@@ -164,33 +158,53 @@ lemma eq_vector_from_list_5:
 "size v = 5 \<Longrightarrow>
   (v = vector_from_list [b1, b2, b3, b4, b5]) =
   (v\<^bold>[1\<^bold>] = b1 \<and> v\<^bold>[2\<^bold>] = b2 \<and> v\<^bold>[3\<^bold>] = b3 \<and> v\<^bold>[4\<^bold>] = b4 \<and> v\<^bold>[5\<^bold>] = b5)"
-apply (subst eq_vector_from_list)
+apply (subst vector_equality)
 apply (clarsimp)
-apply (safe; clarsimp?)
+apply (safe; clarsimp)
 apply (subgoal_tac "i \<in> {1, 2, 3, 4, 5}")
-apply (safe; clarsimp?)
-apply (safe; clarsimp?)
+apply (safe; clarsimp)
+apply (safe; clarsimp)
 done
 
 lemma relays_excl_inv_cases:
-"relays_excl_inv = (&relays \<in>\<^sub>u \<guillemotleft>valid_relay_config\<guillemotright>)"
+"relays_excl_inv = (&relays \<in>\<^sub>u \<guillemotleft>valid_relay_states\<guillemotright>)"
 apply (unfold relays_excl_inv_def)
 apply (rel_simp)
 apply (safe; clarsimp?)
-apply (unfold valid_relay_config_def)
+apply (unfold valid_relay_states_def)
 apply (simp_all add: eq_vector_from_list_5)
-apply (safe; simp?)+
+apply (safe; clarsimp)+
 done
 
 lemma relays_excl_inv_split:
-"`relays_excl_inv \<Rightarrow> P` = `\<^bold>\<forall> v\<in>\<guillemotleft>valid_relay_config\<guillemotright> \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright> / &relays\<rbrakk>`"
+"`relays_excl_inv \<Rightarrow> P` = `\<^bold>\<forall> v\<in>\<guillemotleft>valid_relay_states\<guillemotright> \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright> / &relays\<rbrakk>`"
 apply (unfold relays_excl_inv_cases)
 apply (pred_simp robust)
-apply (blast)
+apply (safe; clarsimp)
+done
+
+subsection {* Lemmas *}
+
+lemma in_nat_set_1_to_5:
+"x \<in> {(1::nat)..5} = (x = 1 \<or> x = 2 \<or> x = 3 \<or> x = 4 \<or> x = 5)"
+apply (safe; clarsimp)
+done
+
+lemma routes_disjoint:
+"rs \<in> valid_relay_states \<Longrightarrow>
+ rs\<^bold>[i\<^bold>] \<Longrightarrow>
+ rs\<^bold>[j\<^bold>] \<Longrightarrow>
+ i \<in> {1..5} \<Longrightarrow>
+ j \<in> {1..5} \<Longrightarrow>
+ i \<noteq> j \<Longrightarrow> set (routes ! i) \<inter> set (routes ! j) = {}"
+apply (unfold valid_relay_states_def)
+apply (safe; thin_tac "rs = vector_from_list _")
+apply (unfold in_nat_set_1_to_5)
+apply (safe; simp; unfold routes_def; auto)+
 done
 
 subsection {* Proof Experiments *}
-
+(*
 declare atLeastAtMost_iff [simp del]
 
 lemma [simp]:
@@ -203,18 +217,5 @@ lemma [simp]:
 apply (unfold atLeastAtMost_iff)
 apply (auto)
 done
-
-lemma routes_disjoint:
-"rc \<in> valid_relay_config \<Longrightarrow>
- rc\<^bold>[i\<^bold>] \<Longrightarrow>
- rc\<^bold>[j\<^bold>] \<Longrightarrow>
- i \<in> {1..5} \<and>
- j \<in> {1..5} \<and>
- i \<noteq> j \<Longrightarrow> set (routes ! i) \<inter> set (routes ! j) = {}"
-apply (clarsimp; safe)
-apply (unfold valid_relay_config_def)
-apply (simp_all)
-apply (unfold routes_def)
-apply (safe; clarsimp)+
-done
+*)
 end

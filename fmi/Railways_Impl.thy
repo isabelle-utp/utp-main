@@ -4,6 +4,7 @@
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
+(* LAST REVIEWED: 22 Sep 2017 *)
 
 section {* Railways Implementation *}
 
@@ -13,7 +14,7 @@ begin
 
 subsection {* Interlocking FMU *}
 
-subsection {* Initialisation *}
+subsubsection {* Initialisation *}
 
 definition init_ilock :: "railways_state hrel" where [urel_defs]:
 "init_ilock =
@@ -24,9 +25,9 @@ definition init_ilock :: "railways_state hrel" where [urel_defs]:
     mk_vector\<^sub>u 3 false,
     mk_vector\<^sub>u 5 \<guillemotleft>STRAIGHT\<guillemotright>)"
 
-subsection {* Cyclic Behaviour *}
+subsubsection {* Cyclic Behaviour *}
 
-subsubsection {* Relay Setting *}
+paragraph {* Relay Setting *}
 
 definition set_relays :: "railways_state hrel" where
 [urel_defs]: "set_relays =
@@ -36,7 +37,7 @@ definition set_relays :: "railways_state hrel" where
   ((relays[3] := true) \<triangleleft> TC[1] \<and> \<not> R2 \<and> \<not> R4 \<and> \<not> R5 \<and> (*\<not> CDV[1] \<and>*) CDV[10] \<and> CDV[9] \<and> CDV[8] \<and> CDV[7] \<and> CDV[6] \<triangleright>\<^sub>r II) ;;
   ((relays[5] := true) \<triangleleft> TC[2] \<and> \<not> R2 \<and> \<not> R3 \<and> \<not> R4 \<and> (*\<not> CDV[2] \<and>*) CDV[11] \<and> CDV[9] \<and> CDV[8] \<and> CDV[7] \<and> CDV[6] \<triangleright>\<^sub>r II)"
 
-subsubsection {* Relay Clearing *}
+paragraph {* Relay Clearing *}
 
 definition clear_relays :: "railways_state hrel" where
 [urel_defs]: "clear_relays =
@@ -46,15 +47,15 @@ definition clear_relays :: "railways_state hrel" where
   ((relays[4] := false) \<triangleleft> R4 \<and> \<not> CDV[2] \<triangleright>\<^sub>r II) ;;
   ((relays[5] := false) \<triangleleft> R5 \<and> \<not> CDV[6] \<triangleright>\<^sub>r II)"
 
-subsubsection {* Switch Setting *}
+paragraph {* Switch Setting *}
 
 definition set_switches :: "railways_state hrel" where
 [urel_defs]: "set_switches = (
   (switches[1] := \<guillemotleft>STRAIGHT\<guillemotright>) ;;
-  ((switches[2] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> \<lceil>R3 \<or> R5\<rceil>\<^sub>< \<triangleright> (switches[2] := \<guillemotleft>DIVERGING\<guillemotright>)) ;;
-  ((switches[3] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> \<lceil>R1\<rceil>\<^sub>< \<triangleright> (switches[3] := \<guillemotleft>DIVERGING\<guillemotright>)) ;;
+  ((switches[2] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> R3 \<or> R5 \<triangleright>\<^sub>r (switches[2] := \<guillemotleft>DIVERGING\<guillemotright>)) ;;
+  ((switches[3] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> R1 \<triangleright>\<^sub>r (switches[3] := \<guillemotleft>DIVERGING\<guillemotright>)) ;;
   (switches[4] := \<guillemotleft>STRAIGHT\<guillemotright>) ;;
-  ((switches[5] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> \<lceil>R2 \<or> R3\<rceil>\<^sub>< \<triangleright> (switches[5] := \<guillemotleft>DIVERGING\<guillemotright>)))"
+  ((switches[5] := \<guillemotleft>STRAIGHT\<guillemotright>) \<triangleleft> R2 \<or> R3 \<triangleright>\<^sub>r (switches[5] := \<guillemotleft>DIVERGING\<guillemotright>)))"
 
 subsubsection {* Signal Setting *}
 
@@ -66,87 +67,57 @@ definition set_signals :: "railways_state hrel" where
     (R2 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW5 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright>) \<or>
     (R4 \<and> SW1 =\<^sub>u \<guillemotleft>STRAIGHT\<guillemotright> \<and> SW3 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW2 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright> \<and> SW5 =\<^sub>u \<guillemotleft>DIVERGING\<guillemotright>))))"
 
-subsubsection {* Complete Cycle *}
+paragraph {* Complete Cycle *}
 
 definition ilock_cycle :: "railways_state hrel" where [urel_defs]:
 "ilock_cycle = (set_relays ;; clear_relays ;; set_switches ;; set_signals)"
 
-subsection {* Invariant Preservation *}
+subsubsection {* Invariant Proofs *}
+
+paragraph {* Proof Support *}
 
 lemma relays_excl_inv_extr:
 "`relays_excl_inv \<and> P \<Rightarrow> Q` = `relays_excl_inv \<Rightarrow> P \<Rightarrow> Q`"
-apply (rel_auto)
-done
+  by (simp add: impl_alt_def utp_pred_laws.sup.assoc)
 
-lemma init_ilock_relays_inv:
+text {* Do \<open>,\<close>  and \<open>;\<close> have the same precedence? Are they right-associative? *}
+
+method ilock_relays_excl_inv_tac =
+  (hoare_split_inv; (
+    (unfold relays_excl_inv_extr)?,
+    (unfold relays_excl_inv_cases),
+    (rel_simp);
+    (unfold valid_relay_states_def),
+    (safe; simp)))
+
+paragraph {* Invariant Preservation *}
+
+lemma init_ilock_relays_excl_inv:
 "\<lbrace>true\<rbrace>init_ilock\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
-apply (unfold init_ilock_def)
-apply (unfold relays_excl_inv_def)
-apply (rel_simp)
-done
+  unfolding init_ilock_def by (rel_simp)
 
-lemma set_relays_relays_inv:
+lemma set_relays_relays_excl_inv:
 "\<lbrace>relays_excl_inv\<rbrace>set_relays\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
-apply (unfold set_relays_def)
-apply (hoare_split)
-apply (simp_all only: relays_excl_inv_extr)
-apply (simp_all only: relays_excl_inv_split)
-apply (unfold relays_excl_inv_cases)
--- {* Subgoals 1-5 *}
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-done
+  unfolding set_relays_def by (ilock_relays_excl_inv_tac)
 
-lemma clear_relays_relays_inv:
+lemma clear_relays_relays_excl_inv:
 "\<lbrace>relays_excl_inv\<rbrace>clear_relays\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
-apply (unfold clear_relays_def)
-apply (hoare_split)
-apply (simp_all only: relays_excl_inv_extr)
-apply (simp_all only: relays_excl_inv_split)
-apply (unfold relays_excl_inv_cases)
--- {* Subgoals 1-5 *}
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-done
+  unfolding clear_relays_def by (ilock_relays_excl_inv_tac)
 
-lemma set_switches_relays_inv:
+lemma set_switches_relays_excl_inv:
 "\<lbrace>relays_excl_inv\<rbrace>set_switches\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
-apply (unfold set_switches_def)
-apply (hoare_split)
-apply (simp_all only: relays_excl_inv_extr)
-apply (simp_all only: relays_excl_inv_split)
-apply (unfold relays_excl_inv_cases)
--- {* Subgoals 1-6 *}
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-done
+  unfolding set_switches_def by (ilock_relays_excl_inv_tac)
 
-lemma set_signals_relays_inv:
+lemma set_signals_relays_excl_inv:
 "\<lbrace>relays_excl_inv\<rbrace>set_signals\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
-apply (unfold set_signals_def)
-apply (hoare_split)
-apply (simp only: relays_excl_inv_split)
-apply (unfold relays_excl_inv_cases)
--- {* Subgoals 1-6 *}
-apply (rel_simp; unfold valid_relay_config_def; safe; simp)
-done
+  unfolding set_signals_def by (ilock_relays_excl_inv_tac)
 
 lemma "\<lbrace>relays_excl_inv\<rbrace>ilock_cycle\<lbrace>relays_excl_inv\<rbrace>\<^sub>u"
 apply (unfold ilock_cycle_def)
 apply (hoare_split)
-apply (rule set_relays_relays_inv)
-apply (rule clear_relays_relays_inv)
-apply (rule set_switches_relays_inv)
-apply (rule set_signals_relays_inv)
+apply (rule set_relays_relays_excl_inv)
+apply (rule clear_relays_relays_excl_inv)
+apply (rule set_switches_relays_excl_inv)
+apply (rule set_signals_relays_excl_inv)
 done
 end
