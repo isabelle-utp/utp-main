@@ -112,6 +112,7 @@ operators~\cite{Foster16a}, as illustrated.
   $\mathdollar x$          & $x$                & relational before variable            & \verb|$x| \\
   $\mathdollar x \acute{}$ & $x'$               & relational after variable             & \verb|$x\acute| \\
   $x\!:\!y$                & --                 & name qualification (lens composition) & \verb|x:y| \\
+  $\textbf{v}$             & $v$                & whole state-space variable (``one'' lens) & \verb|\bold v| \\
   $\{\mathdollar x,\mathdollar y, \mathdollar z \acute{}\}$  
                            & $\{x,y,z'\}$       & variable set (lens summation)         & \verb|{$x,$y,$z\acute}| \\
   $\Sigma$                 & --                 & all variables (``one'' lens)          & \verb|\Sigma| \\
@@ -246,7 +247,8 @@ analogues are statements of the form ``$x$ is not mentioned in $P$'', for exampl
 \begin{center}
 \begin{tabular}{|c|c|c|c|} \hline
   \textbf{Isabelle/UTP}         & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
-  $x \mathop{\sharp} P$         &  $P$ does not depend on variable $x$             & \verb|x \sharp P| \\
+  $x \mathop{\sharp} P$         & $P$ does not depend on variable (alphabet) $x$   & \verb|x \sharp P| \\
+  $x \mathop{\natural} P$       & $P$ can only depend on variables within $x$      & \verb|x \natural P| \\
   $x \mathop{\bowtie} y$        & variables different (lens independence)          & \verb|x \bowtie y| \\
   $[x_1 \mapsto v_1, \cdots]_s$  & 
   \begin{tabular}{c}                                                                 
@@ -345,9 +347,10 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
    \end{tabular}
          & \verb|x := v| \\
   $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=\!(e_1, e_2)$        & multiple assignment                   & \verb|(x1,x2) := (e1,e2)| \\
-  $b^{\top}$                  & $b^{\top}$                     & relational assumption                 & \verb|b \sup \top| \\
-  $b_{\bot}$                  & $b_{\bot}$                     & relational assertion                  & \verb|b \sub \bottom| \\
+  $b^{\top}$                  & $[b]^{\top}$                     & relational assumption                 & \verb|[b] \sup \top| \\
+  $b_{\bot}$                  & $\{b\}_{\bot}$                     & relational assertion                  & \verb|{b} \sub \bottom| \\
   $\{\,b\,\}\,P\,\{\,c\,\}$  & $\{\!| b |\!\} \,P\, \{\!| c |\!\}_u$ & Hoare logic triple                 & \texttt{\{|b|\} P \{|c|\}} \verb|\sub u| \\
+  $x\!:\![P]$                    & $x\!:\![P]$                               & frame $P$ by lens $x$              & \verb|x:[P]| \\
   $b \star P$                & $\textbf{while}~b~\textbf{do}~P~\textbf{od}$ & while loop (strongest fixed-point)            & \verb|while b do P od| \\
   \hline
 \end{tabular}
@@ -379,8 +382,14 @@ variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must m
   $b \guard P$               & $b \guard_u P$                & process guarded by condition $b$       & \verb|b & \sub u P| \\
   $P \extchoice Q$           & $P ~ \Box ~ Q$                & binary external choice                 & \verb|P \box Q| \\
   $\Extchoice i : I @ P(i)$  & $\Box ~ i \in I @ P(i)$       & indexed external choice                & \verb|\box i \in I \bullet P(i)| \\
+  $P \parallel[ns_1\!|\!A\!|\!ns_2]$ & $P \llbracket ns_1 \!\parallel\! A \!\parallel\! ns_2 \rrbracket Q$
+                                                             & nameset (lens) parallel composition    & \texttt{P [|ns1|A|ns2|] Q} \\
+  $P \parallel[A] Q$         & $P ~\llbracket A \rrbracket_C~ Q$             
+                                                             & parallel composition                   & \texttt{P [|A|]} \verb|\sub| \texttt{C Q} \\
+  $P \parallel[ns_1\!|\!ns_2]$ & $P \llbracket ns_1 \!\parallel\! A \!\parallel\! ns_2 \rrbracket Q$
+                                                             & nameset (lens) interleaving    & \texttt{P [|ns1|ns2|] Q} \\
+
   $P \interleave Q$          & $P ||| Q$                     & interleaving                           & \texttt{P ||| Q} \\
-  $P \parallel[A] Q$         & $P ~[|\!A\!|]~ Q$             & parallel composition                   & \texttt{P [|A|] Q} \\
   $\rc{P}{Q}{R}$             & $[ P \vdash Q | R ]_C$        & reactive contract / specification      & \texttt{[ P |- Q | R ]}\verb|\sub C| \\
   --                         & $\lceil P \rceil_S$           & lift relation on state to process      & \verb|\lceil P \rceil \sub s| \\
   --                         & $\lceil P \rceil_{S<}$         & lift predicate on state to process     & \verb|\lceil P \rceil \sub s| \\
