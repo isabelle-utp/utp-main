@@ -354,7 +354,7 @@ context semigroup_add_fzero
 begin
  
 definition fzero_subtract (infixl "-\<^sub>d" 65)
-  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else fzero a)"  
+  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else THE c. \<forall>d. c \<le>\<^sub>d d)"  
     
 end
   
@@ -448,9 +448,10 @@ begin
     "a \<le> a + b"
     using local.le_iff_add by blast
    
+      (*
   lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero b"
     by (simp add: fzero_subtract_def local.le_is_fzero_le local.minus_def)
-
+*)
   lemma add_diff_cancel_left [simp]: 
     "(a + b) - a = b"
     by (simp add: minus_def)
@@ -474,8 +475,11 @@ begin
   next
     case False thus ?thesis
       using local.add_le_imp_le_left not_le_minus 
-      by (metis add_assoc local.add_fzero_right local.add_monoid_diff_cancel_left)
-  qed
+      
+      by (metis local.fzero_subtract_def local.le_is_fzero_le local.minus_def)
+     (* apply (metis add_assoc local.add_fzero_right local.add_monoid_diff_cancel_left)
+  *)  
+qed
    
   lemma zero_le_minus_imp_le: "\<lbrakk> b \<le> a; fzero b < a - b \<rbrakk> \<Longrightarrow> b < a"
     by (smt local.add.semigroup_axioms local.add_monoid_diff_cancel_left local.le_iff_add local.less_iff local.minus_def semigroup.assoc)
@@ -560,9 +564,24 @@ lemma fzero_le_list:
     
 lemma fzero_subtract_list:
   "(xs :: 'a list) -\<^sub>d ys = xs - ys"
-  apply (auto simp add: fzero_subtract_def fzero_le_list minus_list_def less_eq_list_def)
-  apply (rule the_equality)
-  by (simp_all add: fzero_list_def plus_list_def prefix_drop)
+  proof (cases "ys \<le> xs")
+    case True
+    then show ?thesis 
+      apply (auto simp add: fzero_subtract_def fzero_le_list minus_list_def less_eq_list_def)
+      apply (rule the_equality)
+      by (simp_all add: fzero_list_def plus_list_def prefix_drop)
+  next
+    case False
+    then have "xs -\<^sub>d ys = (THE c. \<forall>d. c \<le>\<^sub>d d)"
+      using fzero_le_list
+      by (metis fzero_subtract_def)
+    also have "... = []"
+      apply (rule the_equality)
+      apply (auto simp add:fzero_le_list)
+      using Prefix_Order.prefix_Nil by blast
+    finally show ?thesis
+      by (simp add: False zero_list_def)
+  qed
     
 instance list :: (type) fzero_trace
   apply intro_classes
