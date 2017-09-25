@@ -52,7 +52,7 @@ text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>time\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>time\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>time\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>time\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
 
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")

@@ -1135,7 +1135,56 @@ lemma tt_apply_mk [simp]:
 lemma tt_mk_nempty [simp]:
   "\<lbrakk> 0 < n; continuous_on {0..n} f \<rbrakk> \<Longrightarrow> 0 < mk\<^sub>t n f" 
   by (metis dual_order.strict_implies_not_eq dual_order.strict_implies_order neq_zero_impl_greater tt_end_empty tt_end_mk)
+   
+text {* Limit of a timed trace *}
+   
+abbreviation lim_ttrace :: "'a::t2_space ttrace \<Rightarrow> 'a" ("lim\<^sub>t") where
+"lim_ttrace t \<equiv> Lim (at_left (end\<^sub>t t)) \<langle>t\<rangle>\<^sub>t"
+
+lemma Lim_ttrace_plus_shift:
+  assumes "0 \<le> m" "m < n"
+  shows "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> L) (at (n+end\<^sub>t(f)) within {m+end\<^sub>t(f)..<n+end\<^sub>t(f)})
+         \<longleftrightarrow>
+         (\<langle>g\<rangle>\<^sub>t \<longlongrightarrow> L) (at n within {m..<n})"
+  (is "?L1 \<longleftrightarrow> ?L2")
+  using assms by (transfer, simp add: Lim_cgf_plus_shift)
     
+theorem ttrace_lim_exists:
+  fixes f :: "'a::topological_space ttrace"
+  assumes "0 < end\<^sub>t f"
+  shows "\<exists> l. (\<langle>f\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t f))"
+using assms proof (transfer, clarsimp simp add: piecewise_convergent_def)
+  fix f :: "'a cgf" and I :: "real list"
+  assume a: "0 < end\<^sub>C f" "pc_cvg_interval I f"
+  then interpret I: pc_cvg_interval I f
+    by (simp)
+  from a(1) show "\<exists>l. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C f))"
+    using I.pc_cvg_interval_axioms piecewise_convergent_def piecewise_convergent_end by blast
+qed
+    
+lemma lim_tt_cat:
+  assumes "end\<^sub>t g > 0"
+  shows "lim\<^sub>t(f + g) = lim\<^sub>t g"
+proof -
+  obtain l where l:"(\<langle>g\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t g))"
+    using assms ttrace_convergent_end by blast
+  hence 1: "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> l) (at (end\<^sub>t f + end\<^sub>t g) within {end\<^sub>t f..<end\<^sub>t f + end\<^sub>t g})"
+    using Lim_ttrace_plus_shift[of 0 "end\<^sub>t g" f g l, simplified]
+    by (metis add.commute assms atLeastLessThan_iff lessThan_iff subsetI tendsto_within_subset)
+  hence "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t f + end\<^sub>t g))"
+  proof -
+    from assms have "at_left (end\<^sub>t f + end\<^sub>t g) = (at (end\<^sub>t f + end\<^sub>t g) within {0..<end\<^sub>t f + end\<^sub>t g})"
+      by (rule_tac at_within_nhd[of _ "{0<..<(end\<^sub>t f + end\<^sub>t g)+1}"], auto)
+         (metis (full_types) less_eq_real_def tt_end_0_iff tt_end_cat tt_end_ge_0 zero_sum_right)
+    also have "... = (at (end\<^sub>t f + end\<^sub>t g) within {end\<^sub>t f..<end\<^sub>t f + end\<^sub>t g})"
+      by (rule filter_upto_contract, simp_all add: assms)
+    finally show ?thesis
+      by (simp add: 1)
+  qed
+  thus ?thesis
+    by (metis l tendsto_Lim trivial_limit_at_left_real tt_end_cat)
+qed
+
 text {* Finally, we hide the implementation details for contiguous functions and timed traces. *}
 
 lifting_update cgf.lifting

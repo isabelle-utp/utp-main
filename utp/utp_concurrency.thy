@@ -461,6 +461,16 @@ lemma StateParallel_form:
   "P |a|b|\<^sub>\<sigma> Q = (\<^bold>\<exists> (st\<^sub>0, st\<^sub>1) \<bullet> P\<lbrakk>\<guillemotleft>st\<^sub>0\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>st\<^sub>1\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u ($\<^bold>v \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &a) \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &b)"
   by (rel_auto)
 
+lemma StateParallel_form':
+  assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
+  shows "P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<^bold>v,$b\<acute>})]"
+  using assms
+  apply (simp add: StateParallel_form, rel_auto)
+  apply (smt lens_indep_comm vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+  apply (smt lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
+done  
+
+    
 lemma StateParallel_frame_left:
   assumes "vwb_lens a"
   shows "a:[P] |a|b|\<^sub>\<sigma> Q = P |a|b|\<^sub>\<sigma> Q"

@@ -356,10 +356,10 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
   by (simp_all add: hInt_def unrest)
     
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "init_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t(0)\<^sub>a:(x))"
+[upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t(0)\<^sub>a:(x))"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "final_cont x = ($tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>x\<guillemotright>)\<^sub>a):(x))"
+[upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>x\<guillemotright>)\<^sub>a):(x))"
 
 syntax
   "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
@@ -657,18 +657,18 @@ lemma hEvolve_spec_refine:
   apply (simp add: hEvolve_def)
   apply (rel_simp)
   apply (metis vwb_lens.put_eq)
-done    
+done
 
 subsection {* Pre-emption *}
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [74,75] 74) where
-[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
-where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
+where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
 text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
@@ -1008,18 +1008,12 @@ proof -
     show "\<exists>tr tr'.
             tr \<le> tr' \<and>
             (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr' - tr\<rangle>\<^sub>t t) = f t) \<and>
-            tr < tr' \<and> end\<^sub>t (tr' - tr) = n \<and> tr < tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)"
+            tr < tr' \<and> end\<^sub>t (tr' - tr) = n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)"
       by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
          (auto simp add: Limit_solve at_left_from_zero)
   qed
   finally show ?thesis .
 qed
-
-lemma "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<^bold>v,$b\<acute>})]"
-  apply (simp add: StateParallel_form, rel_auto)
-  apply (smt lens_indep_comm vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-  apply (smt lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
-done  
   
 lemma HyStep_hEvolveAt:
   fixes P :: "('d,'c :: t2_space) hyrel"
