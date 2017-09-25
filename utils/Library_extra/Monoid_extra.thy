@@ -256,8 +256,6 @@ instance nat :: trace
 subsection {* Trace algebra based on left-cancellative unitary semigroup whose
   unitary function is idempotent. *}
   
-
-
 text {* We call the unitary function fzero (as in a functional zero
         when compared to the monoid-based trace algebra). *}
   
@@ -327,9 +325,7 @@ instance fzero_is_0_sum_zero \<subseteq> monoid_sum_0
   by (metis fzero_is_0 fzero_sum)
   
 text {* We also define the less operator and minus in terms of
-        plus. *}  
-  
-
+        plus. *}
     
 context semigroup_add
 begin
@@ -350,23 +346,81 @@ lemma monoid_le_add_left_mono:
     
 end
   
-class semigroup_add_left_cancel = semigroup_add + left_cancel_semigroup
-  
 context semigroup_add
 begin
  
 definition fzero_subtract (infixl "-\<^sub>d" 65)
   where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else THE c. \<forall>d. c \<le>\<^sub>d d)"  
-end
+end                                                   (* \<forall>d. \<exists>b. d = c + b*)
+ 
+text {* The class for left cancellative semigroups. *}  
   
-context semigroup_add_left_cancel
+class semigroup_add_left_cancel = semigroup_add + left_cancel_semigroup  
 begin
+  
 lemma add_monoid_diff_cancel_left [simp]: 
   "(a + b) -\<^sub>d a = b"
   apply (simp add: fzero_subtract_def monoid_le_add)
   apply (rule the_equality)
   apply (simp)
   by (metis local.add_left_imp_eq)
+    
+lemma add_le_imp_le_left: 
+  "c + a \<le>\<^sub>d c + b \<Longrightarrow> a \<le>\<^sub>d b"
+  by (auto simp add:fzero_le_def, metis add_assoc local.add_monoid_diff_cancel_left)
+ 
+end
+  
+text {* This allows relating minus and ord from an existing type with
+        just the left-cancellative semigroup properties, without instantiating
+        an fzero function. *}  
+  
+class semigroup_add_left_cancel_minus_ord = semigroup_add_left_cancel + ord + minus +
+ assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>d b)"
+  and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
+  and minus_def: "a - b = a -\<^sub>d b"
+begin
+  
+  lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
+    by (simp add: local.fzero_le_def local.le_is_fzero_le)
+  
+  lemma le_add [simp]: "a \<le> a + b"
+    using local.le_iff_add by blast
+      
+  lemma add_diff_cancel_left [simp]: "(a + b) - a = b"
+    by (simp add: minus_def)
+      
+  lemma add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
+    by (simp add: local.le_is_fzero_le local.monoid_le_add_left_mono)
+
+  lemma add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
+    by (auto simp add: le_iff_add, metis add_assoc local.add_diff_cancel_left)
+      
+  lemma add_diff_cancel_left' [simp]:  "(c + a) - (c + b) = a - b"
+  proof (cases "b \<le> a")
+    case True thus ?thesis
+      by (metis add_assoc local.add_diff_cancel_left local.le_iff_add)
+  next
+    case False thus ?thesis
+      using local.add_le_imp_le_left  
+      by (metis local.fzero_subtract_def local.le_is_fzero_le local.minus_def)
+  qed
+    
+  lemma diff_add_cancel_left': "a \<le> b \<Longrightarrow> a + (b - a) = b"
+    using local.le_iff_add local.le_is_fzero_le by auto
+      
+  lemma add_left_strict_mono: "\<lbrakk> a + b < a + c \<rbrakk> \<Longrightarrow> b < c"
+    using local.add_le_imp_le_left local.add_left_mono local.less_iff by blast
+      
+  lemma sum_minus_left: "c \<le> a \<Longrightarrow> (a + b) - c = (a - c) + b"
+    by (metis add_assoc diff_add_cancel_left' local.add_monoid_diff_cancel_left local.minus_def)      
+    
+  lemma minus_cancel_le: "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
+    using add_assoc le_iff_add by auto
+
+  lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
+    by (metis diff_add_cancel_left' local.add_diff_cancel_left') 
+      
 end
   
 text {* We then define an equivalent class as a pre_trace, where
@@ -382,7 +436,6 @@ lemma monoid_le_least_zero: "fzero a \<le>\<^sub>d a"
 lemma monoid_le_refl: "a \<le>\<^sub>d a"
   apply (simp add: local.fzero_le_def)
   by (metis local.add_fzero_right)
-    
 
 end
   
@@ -436,30 +489,17 @@ qed
 text {* We then define the trace algebra using fzero. We reprove
         properties of the monoid-based trace algebra. *}  
 
-class fzero_trace = fzero_pre_trace + ord + minus +
-  assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>d b)"
-  and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
-  and minus_def: "a - b = a -\<^sub>d b"
+class fzero_trace = fzero_pre_trace + semigroup_add_left_cancel_minus_ord
 begin
   
-  lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
-    by (simp add: local.fzero_le_def local.le_is_fzero_le)
-
   lemma least_zero [simp]: 
      "fzero a \<le> b"
      by (metis local.add.semigroup_axioms local.add_fzero_right local.add_left_imp_eq local.le_iff_add semigroup.assoc)
-    
-  lemma le_add [simp]:
-    "a \<le> a + b"
-    using local.le_iff_add by blast
-   
-      (*
-  lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero b"
-    by (simp add: fzero_subtract_def local.le_is_fzero_le local.minus_def)
-*)
-  lemma add_diff_cancel_left [simp]: 
-    "(a + b) - a = b"
-    by (simp add: minus_def)
+
+  (* TODO: maybe this result can still be established.. but
+           I don't think it is needed.
+
+  lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = fzero b" *)
       
   lemma diff_zero [simp]: "a - fzero b = a"
     by (metis add_assoc local.add_diff_cancel_left local.add_fzero_right)
@@ -467,25 +507,6 @@ begin
   lemma diff_cancel [simp]: "a - a = fzero a"
     by (metis local.add_fzero_right local.add_diff_cancel_left)
       
-  lemma add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
-    by (simp add: local.le_is_fzero_le local.monoid_le_add_left_mono)
-
-  lemma add_le_imp_le_left: "c + a \<le> c + b \<Longrightarrow> a \<le> b"
-    by (auto simp add: le_iff_add, metis add_assoc local.add_diff_cancel_left)
-      
-  lemma add_diff_cancel_left' [simp]:  "(c + a) - (c + b) = a - b"
-  proof (cases "b \<le> a")
-    case True thus ?thesis
-      by (metis add_assoc local.add_diff_cancel_left local.le_iff_add)
-  next
-    case False thus ?thesis
-      using local.add_le_imp_le_left not_le_minus 
-      
-      by (metis local.fzero_subtract_def local.le_is_fzero_le local.minus_def)
-     (* apply (metis add_assoc local.add_fzero_right local.add_monoid_diff_cancel_left)
-  *)  
-qed
-   
   lemma zero_le_minus_imp_le: "\<lbrakk> b \<le> a; fzero b < a - b \<rbrakk> \<Longrightarrow> b < a"
     by (smt local.add.semigroup_axioms local.add_monoid_diff_cancel_left local.le_iff_add local.less_iff local.minus_def semigroup.assoc)
 
@@ -500,23 +521,10 @@ qed
       
   lemma minus_zero_eq: "\<lbrakk> b \<le> a; a - b = fzero b \<rbrakk> \<Longrightarrow> a = b"
     using local.le_iff_add by auto
- 
-  lemma diff_add_cancel_left': "a \<le> b \<Longrightarrow> a + (b - a) = b"
-    using local.le_iff_add local.le_is_fzero_le by auto
-
-  lemma add_left_strict_mono: "\<lbrakk> a + b < a + c \<rbrakk> \<Longrightarrow> b < c"
-    using local.add_le_imp_le_left local.add_left_mono local.less_iff by blast
-      
-  lemma sum_minus_left: "c \<le> a \<Longrightarrow> (a + b) - c = (a - c) + b"
-    by (metis add_assoc diff_add_cancel_left' local.add_monoid_diff_cancel_left local.minus_def)      
-     
+  
   lemma neq_zero_impl_greater:
     "x \<noteq> fzero x \<Longrightarrow> fzero x < x"
     by (metis least_zero local.add_fzero_left local.diff_cancel local.fzero_sum_right local.less_iff sum_minus_left)
-
-  lemma minus_cancel_le:
-    "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
-    using add_assoc le_iff_add by auto
 
   text {* The set subtraces of a common trace $c$ is totally ordered *} 
   lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
@@ -531,9 +539,6 @@ qed
 
   lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
     by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_fzero_le minus_def monoid_le_add_left_mono fzero_le_def monoid_le_trans)
-    
-  lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
-    by (metis diff_add_cancel_left' local.add_diff_cancel_left') 
 
   (* under what circumstances is - associative? *)
 end
@@ -543,9 +548,9 @@ text {* This algebra forms a preorder. It turns out this is
   
 instance fzero_trace \<subseteq> preorder
   apply (intro_classes)
-  apply (simp add: fzero_trace_class.less_iff)
+  apply (simp add: less_iff)
   apply (simp add: fzero_add_zero_class.monoid_le_refl le_is_fzero_le)
-  using fzero_trace_class.le_is_fzero_le 
+  using le_is_fzero_le 
   by (metis semigroup_add_class.monoid_le_trans)
 
 instantiation list :: (type) fzero_is_0
@@ -605,24 +610,42 @@ begin
   instance
     by (intro_classes, auto simp add:fzero_nat_def)
 end
+  
+lemma fzero_le_nat:
+  "(x :: nat) \<le>\<^sub>d y \<longleftrightarrow> x \<le> y"
+  by (simp add: fzero_le_def trace_class.le_iff_add)
+  
+lemma fzero_subtract_nat:
+  "(x :: nat) -\<^sub>d y = x - y"
+  by (auto simp add:fzero_subtract_def fzero_le_nat) 
+    
+instantiation nat :: fzero_trace
+begin
+instance
+  apply intro_classes
+  apply (simp_all add: fzero_nat_def)
+  apply (simp add: pre_trace_class.sum_eq_sum_conv)
+  apply (simp add: fzero_le_def trace_class.le_iff_add)
+  apply (simp add: trace_class.less_iff)
+  by (simp add:fzero_subtract_nat)
     
 (* the following are properties satisfied by left/right restriction semigroups,
    but the fzero_trace class does not satisfy all of them. I do not think that
-   properties related to commutativity will ever be satisfied in the general case. *)    
+   properties related to commutativity are ever satisfied in the general case. *)    
     
 lemma fzero_restrict0:
   fixes a :: "'a::fzero_trace"
   shows "fzero(fzero(a) + b) = fzero(a) + fzero b"
-  by (metis fzero_trace_class.add_diff_cancel_left fzero_trace_class.diff_zero)
+  by (metis add_diff_cancel_left fzero_trace_class.diff_zero)
     
 lemma fzero_restrict1:
   fixes a :: "'a::fzero_trace"
   shows "fzero(a) + b = b + fzero(a + b)"
-  by (metis (no_types, lifting) add_fzero_right fzero_trace_class.add_diff_cancel_left fzero_trace_class.le_add fzero_trace_class.sum_minus_left)
+  by (metis (no_types, lifting) add_fzero_right add_diff_cancel_left le_add sum_minus_left)
 
 lemma fzero_dist_plus:
   fixes a :: "'a::fzero_trace"
   shows "fzero(a + b) = fzero(a) + fzero(b)"
-  by (metis add.assoc add_fzero_right fzero_trace_class.add_diff_cancel_left)
+  by (metis add.assoc add_fzero_right add_diff_cancel_left)
     
 end

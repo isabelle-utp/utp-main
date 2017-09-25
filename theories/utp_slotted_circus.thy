@@ -460,32 +460,48 @@ lemma stlist_last_cons:
     
 lemma stlist_trace_subtract_common:
   fixes ys :: "'a::trace stlist"
-  assumes "fzero (x #\<^sub>t ys) = fzero ys"
+  (*assumes "fzero (x #\<^sub>t ys) = fzero ys"*)
   shows "(x #\<^sub>t ys) - (x #\<^sub>t xs) = (ys - xs)"
   apply (simp add:minus_stlist_def fzero_subtract_def plus_stlist_def)
   apply auto
-  apply (simp add: fzero_le_def plus_stlist_def)+
-  using assms by auto
+  by (simp add: fzero_le_def plus_stlist_def)+
+ (* using assms by auto*)
   (*by (metis stlist_concat_zero_left stlist_plus_follow_concat trace_class.add_diff_cancel_left')
     *)   
     
+(* TODO: Should this be proved elsewhere? 
+         I though this was not true before the changes..*)    
 lemma
   fixes a :: "'a::fzero_trace"
   assumes "b + c \<le> a"
   shows "a - (b + c) = a - b - c"
-  using assms
-  apply (simp add:minus_def)
-  apply (simp add:fzero_subtract_def)
-  apply (simp add:fzero_le_def)
-  apply auto
-        apply (rule the_equality)
-        apply (simp add:)
+  by (metis assms fzero_trace_class.add_diff_cancel_left' fzero_trace_class.diff_add_cancel_left' fzero_trace_class.le_add fzero_trace_class.le_sum_iff)
+  (* in turn these theorems should be reproved without using
+     the fzero_trace class *) 
+    
+lemma add_le_imp_le_left:
+  fixes a :: "'a::semigroup_add_left_cancel"
+  shows "c + a \<le>\<^sub>d c + b \<Longrightarrow> a \<le>\<^sub>d b"
+  by (metis (no_types, lifting) add.assoc fzero_le_def semigroup_add_left_cancel_class.add_monoid_diff_cancel_left)   
+    
+lemma add_diff_cancel_leftz:  
+  fixes a :: "'a::semigroup_add_left_cancel"
+  shows "(c + a) -\<^sub>d (c + b) = a -\<^sub>d b"
+  proof (cases "b \<le>\<^sub>d a")
+    case True thus ?thesis
+      by (metis add.assoc fzero_le_def semigroup_add_left_cancel_class.add_monoid_diff_cancel_left)
+  next
+    case False thus ?thesis
+      using add_le_imp_le_left
+      by (metis fzero_subtract_def)
+  qed
     
 lemma stlist_head_front_last:
   fixes t :: "'a::fzero_trace stlist"
   assumes "t \<le> s"
   shows "head(s - (front(t) + [;last(t)])) = head(s - front(t)) - last(t)"
   using assms
+    
   apply (induct t s rule:stlist_induct_cons)
     apply (simp add:plus_stlist_def)
     apply (simp add: stlist_le_nil_imp_le_elements stlist_zero_minus)
