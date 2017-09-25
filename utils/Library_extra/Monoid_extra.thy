@@ -619,9 +619,7 @@ lemma fzero_subtract_nat:
   "(x :: nat) -\<^sub>d y = x - y"
   by (auto simp add:fzero_subtract_def fzero_le_nat) 
     
-instantiation nat :: fzero_trace
-begin
-instance
+instance nat :: fzero_trace
   apply intro_classes
   apply (simp_all add: fzero_nat_def)
   apply (simp add: pre_trace_class.sum_eq_sum_conv)
