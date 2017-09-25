@@ -420,7 +420,10 @@ begin
 
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left') 
-      
+  
+  lemma diff_diff_add: "b + c \<le> a \<Longrightarrow> a - (b + c) = a - b - c"
+    by (metis local.add_diff_cancel_left local.diff_add_cancel_left' local.le_add local.sum_minus_left)    
+    
 end
   
 text {* We then define an equivalent class as a pre_trace, where

@@ -471,12 +471,7 @@ lemma stlist_trace_subtract_common:
     
 (* TODO: Should this be proved elsewhere? 
          I though this was not true before the changes..*)    
-lemma
-  fixes a :: "'a::fzero_trace"
-  assumes "b + c \<le> a"
-  shows "a - (b + c) = a - b - c"
-  by (metis assms fzero_trace_class.add_diff_cancel_left' fzero_trace_class.diff_add_cancel_left' fzero_trace_class.le_add fzero_trace_class.le_sum_iff)
-  (* in turn these theorems should be reproved without using
+(* in turn these theorems should be reproved without using
      the fzero_trace class *) 
     
 lemma add_le_imp_le_left:
@@ -501,7 +496,11 @@ lemma stlist_head_front_last:
   assumes "t \<le> s"
   shows "head(s - (front(t) + [;last(t)])) = head(s - front(t)) - last(t)"
   using assms
-    
+  apply (induct t)
+   apply auto
+   apply (simp add:plus_stlist_def)
+   apply (simp add:minus_stlist_def fzero_subtract_def)
+   apply auto
   apply (induct t s rule:stlist_induct_cons)
     apply (simp add:plus_stlist_def)
     apply (simp add: stlist_le_nil_imp_le_elements stlist_zero_minus)
