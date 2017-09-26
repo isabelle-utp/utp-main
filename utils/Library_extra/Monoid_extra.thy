@@ -350,7 +350,7 @@ context semigroup_add
 begin
  
 definition fzero_subtract (infixl "-\<^sub>d" 65)
-  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else THE c. \<forall>d. c \<le>\<^sub>d d)"  
+  where "a -\<^sub>d b = (if (b \<le>\<^sub>d a) then THE c. a = b + c else SOME c. \<forall>d. c \<le>\<^sub>d d)"  
 end                                                   (* \<forall>d. \<exists>b. d = c + b*)
  
 text {* The class for left cancellative semigroups. *}  
@@ -585,11 +585,11 @@ lemma fzero_subtract_list:
       by (simp_all add: fzero_list_def plus_list_def prefix_drop)
   next
     case False
-    then have "xs -\<^sub>d ys = (THE c. \<forall>d. c \<le>\<^sub>d d)"
+    then have "xs -\<^sub>d ys = (SOME c. \<forall>d. c \<le>\<^sub>d d)"
       using fzero_le_list
       by (metis fzero_subtract_def)
     also have "... = []"
-      apply (rule the_equality)
+      apply (rule some_equality)
       apply (auto simp add:fzero_le_list)
       using Prefix_Order.prefix_Nil by blast
     finally show ?thesis

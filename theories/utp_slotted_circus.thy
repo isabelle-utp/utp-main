@@ -478,7 +478,8 @@ begin
      apply (metis (mono_tags, lifting) fzero_le_def minus_slotted_trace.rep_eq plus_slotted_trace.rep_eq semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left slotted2stlist_inject)
      
      apply (metis minus_slotted_trace.rep_eq plus_slotted_trace.rep_eq semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left slotted2stlist_inject)
-    apply (rule the_equality[symmetric])
+    apply (rule some_equality[symmetric])
+      sledgehammer
      apply (induct a rule:stlist2slotted_induct)
      apply auto
     apply (induct b)
@@ -486,7 +487,7 @@ begin
      apply (simp add:minus_slotted_trace_def stlist2slotted_inverse)
      apply (induct_tac y)
      apply (induct_tac ya)
-     sledgehammer
+     
     apply (rule theI2[where a="a-b"])
      apply (simp add:minus_slotted_trace_def)
      apply (simp add:slotted2stlist_inject[symmetric] stlist2slotted_inverse)
