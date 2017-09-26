@@ -764,8 +764,8 @@ proof -
     apply (rule the_equality)
      apply (simp add:plus_stlist_def)
     using assms minus_def stlist_nil_le_cons_imp_le 
-     apply (metis fzero_trace_class.diff_add_cancel_left')
-    by (metis assms fzero_trace_class.diff_add_cancel_left' stlist_cons_plus_nils_eq_cons stlist_left_cancel_monoid stlist_nil_le_cons_imp_le)
+     apply (metis diff_add_cancel_left')
+    by (metis assms diff_add_cancel_left' stlist_cons_plus_nils_eq_cons stlist_left_cancel_monoid stlist_nil_le_cons_imp_le)
       
   then show ?thesis using a b by auto
 qed
@@ -779,8 +779,8 @@ lemma stlist_zero_minus:
   apply auto
    apply (rule the_equality)
     apply (simp add: plus_stlist_def)
-    apply (metis fzero_trace_class.add_diff_cancel_left fzero_trace_class.le_iff_add)
-  apply (metis concat_stlist.simps(1) fzero_trace_class.diff_add_cancel_left' left_cancel_semigroup_class.add_left_imp_eq plus_stlist_def)
+    apply (metis add_diff_cancel_left le_iff_add)
+  apply (metis concat_stlist.simps(1) diff_add_cancel_left' left_cancel_semigroup_class.add_left_imp_eq plus_stlist_def)
   by (metis less_eq_stlist_def stlist_le_nil_iff_le_elements)
   
 (* a - (b + c) = a - b - c *)
@@ -838,4 +838,10 @@ lemma stlist_cons_minus_zero_left:
   shows "[a;c] - [;a] = [0;c]"
   by (simp add: stlist_cons_minus_nil_eq stlist_cons_right_prefix)
   *)
+ 
+instance stlist :: (semigroup_add_left_cancel) semigroup_add_left_cancel_minus_ord 
+  apply intro_classes
+  apply (simp add: less_eq_stlist_def)
+  apply (simp add: less_stlist_def)
+  by (simp add: minus_stlist_def)
 end
