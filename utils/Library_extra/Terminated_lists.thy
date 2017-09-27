@@ -605,10 +605,13 @@ instance fzero_pre_trace_0 \<subseteq> pre_trace
   
 instance fzero_trace_0 \<subseteq> trace
   apply intro_classes
-  using fzero_is_0 apply (simp add: fzero_trace_class.le_iff_add monoid_le_def)
+  using fzero_is_0 apply (simp add: le_iff_add monoid_le_def)
   using fzero_is_0 apply (simp add: less_le_not_le)
   using fzero_is_0 apply (simp add: minus_def fzero_is_0 monoid_subtract_def fzero_subtract_def, auto)
-    by (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
+    apply (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
+    apply (rule some_equality)
+  using fzero_le_def apply fastforce
+  by (metis add.left_neutral fzero_monoid_le_antisym semigroup_add_class.monoid_le_add)
     
 instance fzero_trace_0 \<subseteq> monoid_add
   by intro_classes
@@ -623,15 +626,21 @@ lemma subtract_monoid_fzero_eq:
   fixes a :: "'a::fzero_pre_trace_0"
   shows "a -\<^sub>d b = a -\<^sub>m b"
   apply (simp add: minus_def fzero_is_0 monoid_subtract_def fzero_subtract_def, auto)
-  by (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
-
+  apply (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
+  apply (rule some_equality)
+  apply simp
+  by (metis zero_sum_left)
+    
+(* TODO: redo the following proof, which we expect to hold. *)
 lemma stlist_subtract_monoid_fzero_eq:
   fixes a :: "'a::monoid_add stlist"
   assumes "\<forall>x::'a::monoid_add stlist. fzero x = 0"
   shows "a -\<^sub>d b = a -\<^sub>m b"
   apply (simp add: minus_def fzero_is_0 monoid_subtract_def fzero_subtract_def, auto)
-  apply (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
-  using assms by simp
+    apply (simp_all add:fzero_is_0 fzero_le_def monoid_le_def)
+  apply (rule some_equality, simp) 
+  using assms zero_sum_left 
+  oops
     
  (*
 instantiation stlist :: (pre_trace) trace
@@ -703,7 +712,7 @@ lemma stlist_minus_nils_imp_minus:
   (*assumes "\<forall>x::'a::trace stlist. fzero x = 0"*)
   shows "[;a] - [;b] = [;c] \<Longrightarrow> a - b = c"
   apply (simp add:minus_stlist_def minus_def) 
-  using subtract_monoid_fzero_eq add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero fzero_trace_class.le_iff_add fzero_trace_class.minus_def fzero_trace_class.not_le_minus
+  using subtract_monoid_fzero_eq add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero le_iff_add minus_def not_le_minus
   
 
  
@@ -711,7 +720,7 @@ lemma stlist_minus_imp_minus_nils:
   fixes a b :: "'a::fzero_trace"
   shows "a - b = c \<Longrightarrow> [;a] - [;b] = [;c]"
   unfolding minus_stlist_def minus_def
-    nitpick
+    
 proof - (* massaged from an smt Isar proof *)
   assume a1: "a - b = c"
   have f2: "[;a] - [;b] = 0 \<longrightarrow> [;a] -\<^sub>m [;b] = [;0]"
