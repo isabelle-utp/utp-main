@@ -36,3 +36,4 @@ isabelle build -d $ROOT -c -b UTP-HYBRID
 isabelle build -d $ROOT -c -b VDM-SL
 isabelle build -d $ROOT -c -b UTP-TUTORIAL
 isabelle build -d $ROOT -c -b FMI
+isabelle build -d $ROOT -c -b Modelica
