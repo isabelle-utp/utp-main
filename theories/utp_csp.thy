@@ -473,6 +473,9 @@ fun tr_par ::
           {[e\<^sub>1]} \<^sup>\<frown> (tr_par cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2)) \<union>
           {[e\<^sub>2]} \<^sup>\<frown> (tr_par cs (e\<^sub>1 # t\<^sub>1) t\<^sub>2))"
 
+abbreviation tr_inter :: "'\<theta> list \<Rightarrow> '\<theta> list \<Rightarrow> '\<theta> list set" (infixr "|||\<^sub>t" 100) where
+"x |||\<^sub>t y \<equiv> tr_par {} x y"
+
 subsubsection {* Lifted Trace Merge *}
 
 syntax "_utr_par" ::
@@ -508,6 +511,9 @@ apply (clarsimp)
 apply (blast)
 done
 
+lemma tr_inter_sym: "x |||\<^sub>t y = y |||\<^sub>t x"
+  by (simp add: tr_par_sym)
+    
 lemma trace_merge_nil [simp]: "x \<star>\<^bsub>{}\<^sub>u\<^esub> \<langle>\<rangle> = {x}\<^sub>u"
   by (pred_auto, simp_all add: tr_par_empty, metis takeWhile_eq_all_conv)
 
@@ -3340,6 +3346,14 @@ definition CSPInnerMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarro
     ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
     $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
 
+definition CSPInnerInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>I") where
+  [upred_defs]:
+  "N\<^sub>I ns1 ns2 = (
+    $ref\<acute> \<subseteq>\<^sub>u ($0-ref \<inter>\<^sub>u $1-ref) \<and>
+    $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
+    ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>{}\<^sub>u\<^esub> ($1-tr - $tr\<^sub><) \<and>
+    $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
+  
 text {* An intermediate merge hides the state, whilst a final merge hides the refusals. *}
   
 definition CSPInterMerge where
@@ -3363,7 +3377,7 @@ lemma CSPInnerMerge_R2m [closure]: "N\<^sub>C ns1 cs ns2 is R2m"
 
 lemma CSPInnerMerge_RDM [closure]: "N\<^sub>C ns1 cs ns2 is RDM"
   by (rule RDM_intro, simp add: closure, simp_all add: CSPInnerMerge_def unrest)
-
+    
 lemma ex_ref'_R2m_closed [closure]: 
   assumes "P is R2m"
   shows "(\<exists> $ref\<acute> \<bullet> P) is R2m"
@@ -3393,9 +3407,16 @@ lemma CSPFinalMerge_RR_closed [closure]:
   shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q is RR"
   by (simp add: CSPFinalMerge_def parallel_RR_closed assms closure unrest)
     
+lemma CSPInnerMerge_empty_Interleave:
+  "N\<^sub>C ns1 {} ns2 = N\<^sub>I ns1 ns2"
+  by (rel_auto)
+
 definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>C") where
 [upred_defs]: "M\<^sub>C ns1 cs ns2 = M\<^sub>R(N\<^sub>C ns1 cs ns2) ;; Skip"
-  
+
+definition CSPInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>I") where
+[upred_defs]: "M\<^sub>I ns1 ns2 = M\<^sub>R(N\<^sub>I ns1 ns2) ;; Skip"
+
 lemma swap_CSPInnerMerge:
   "ns1 \<bowtie> ns2 \<Longrightarrow> swap\<^sub>m ;; (N\<^sub>C ns1 cs ns2) = (N\<^sub>C ns2 cs ns1)"
   apply (rel_auto)
@@ -3408,6 +3429,17 @@ done
 lemma SymMerge_CSPInnerMerge_NS [closure]: "N\<^sub>C 0\<^sub>L cs 0\<^sub>L is SymMerge"
   by (simp add: Healthy_def swap_CSPInnerMerge)
                              
+lemma SymMerge_CSPInnerInterleave [closure]:
+  "N\<^sub>I 0\<^sub>L 0\<^sub>L is SymMerge"
+  by (metis CSPInnerMerge_empty_Interleave SymMerge_CSPInnerMerge_NS)  
+    
+lemma SymMerge_CSPInnerInterleave [closure]:
+  "AssocMerge (N\<^sub>I 0\<^sub>L 0\<^sub>L)"
+  apply (rel_auto)
+  apply (rename_tac tr tr\<^sub>2' ref\<^sub>0 tr\<^sub>0' ref\<^sub>0' tr\<^sub>1' ref\<^sub>1' tr' ref\<^sub>2' tr\<^sub>i' ref\<^sub>3')
+oops
+    
+    
 lemma CSPInterMerge_false [rpred]: "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I false = false"
   by (simp add: CSPInterMerge_def)
 

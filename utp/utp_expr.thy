@@ -479,6 +479,7 @@ syntax -- \<open> Lists / Sequences \<close>
   "_uupto"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_.._\<rangle>")
   "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
   "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
+  "_uzip"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("zip\<^sub>u")
   
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
@@ -499,7 +500,8 @@ translations
   "\<langle>n..k\<rangle>" == "CONST bop CONST upto n k"
   "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
   "map\<^sub>u f xs" == "CONST bop CONST map f xs"
-
+  "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
+  
 syntax -- \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")

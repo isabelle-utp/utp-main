@@ -113,7 +113,9 @@ lemma hoare_ex_2:
        (x := (&x - &y)) \<triangleleft> (&x >\<^sub>u &y) \<triangleright>\<^sub>r (y := (&y - &x))
     od
     \<lbrace>&x =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)\<rbrace>\<^sub>u"
+  using assms
   apply (hoare_auto)
+  apply (simp add: gcd_diff1)
 oops
     
 lemma "x :=\<^sub>D 1 ;; x :=\<^sub>D (&x + 1) = x :=\<^sub>D 2"
