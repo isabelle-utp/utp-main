@@ -585,13 +585,7 @@ lemma stlist2slotted_dist_minus:
   using assms
   by (simp add: stlist2slotted_inverse stlist2slotted_minus stlist2slotted_ope)
   
-lemma stlist_trace_subtract_common:
-  fixes ys :: "'a::trace stlist"
-  (*assumes "fzero (x #\<^sub>t ys) = fzero ys"*)
-  shows "(x #\<^sub>t ys) - (x #\<^sub>t xs) = (ys - xs)"
-  apply (simp add:minus_stlist_def fzero_subtract_def plus_stlist_def)
-  apply auto
-  by (simp add: fzero_le_def plus_stlist_def)+
+
  (* using assms by auto*)
   (*by (metis stlist_concat_zero_left stlist_plus_follow_concat trace_class.add_diff_cancel_left')
     *)   
@@ -600,105 +594,8 @@ lemma stlist_trace_subtract_common:
          I though this was not true before the changes..*)    
 (* in turn these theorems should be reproved without using
      the fzero_trace class *)
-    
-lemma stlist_tail_minus_eq_tail_minus_front:
-  fixes t :: "'a::fzero_pre_trace stlist"
-  assumes "s \<le> t"
-  shows "tail(t - front(s)) = tail(t-s)"
-proof -
-  obtain x where x: "s + x = t"
-    using assms
-    by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
-      
-  obtain y where y: "y = last(s)"
-    by simp
-      
-  have "tail(t - front(s)) = tail(s + x - front(s))"
-    using x by simp
-  also have "... = tail(front(s) + [;last(s)] + x - front(s))"
-    by (metis stlist_front_concat_last)
-  also have lhs:"... = tail([;last(s)] + x)"
-    by (simp add: semigroup_add_left_cancel_minus_ord_class.sum_minus_left)
-      
-  have rhs:"tail(t-s) = tail(x)"
-    using x by auto
-      
-  then have "tail([;y] + x) = tail(x)"
-    proof (cases x)
-      case (Nil x1)
-      then show ?thesis 
-        by (metis concat_stlist.simps(1) head.simps(1) plus_stlist_def semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left' stlist_head_concat_tail)
-    next
-      case (Cons x21 x22)
-      then show ?thesis
-        by (metis (no_types, lifting) head.simps(2) plus_seq_assoc semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left stlist_head_concat_tail stlist_nil_concat_cons stlist_plus_nils)
-    qed
+       
 
-    then show ?thesis
-      by (simp add: calculation lhs rhs y)
-qed   
-      
-lemma stlist_head_minus_last_eq_head:
-  fixes t :: "'a::fzero_trace stlist"
-  assumes "s \<le> t"
-  shows "head(t - front(s)) - last(s) = head(t-s)"
-proof -
-  obtain x where x: "s + x = t"
-    using assms
-    by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
-      
-  obtain y where y: "y = last(s)"
-    by simp
- 
-  have lhs:"head(t - front(s)) - last(s) = head([;last(s)] + x) - last(s)"
-    by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.le_add semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_front_concat_last x)
-  
-  have rhs:"head(t-s) = head(x)"
-    using x by auto
-  
-  then have "head([;y]+x) - y = head(x)"
-    proof (cases x)
-      case (Nil x1)
-      then show ?thesis 
-        by (simp add: plus_stlist_def)
-    next
-      case (Cons x21 x22)
-      then show ?thesis
-        by (simp add: stlist_nil_concat_cons)
-    qed
-  
-  then show ?thesis
-    by (simp add: lhs rhs y)
-qed
-    
-lemma stlist_head_front_last:
-  fixes t :: "'a::fzero_trace stlist"
-  assumes "t \<le> s"
-  shows "[;head(s - (front(t) + [;last(t)]))] = [;head(s - front(t)) - last(t)]"
-  using assms
-  by (metis stlist_front_concat_last stlist_head_minus_last_eq_head)
-
-lemma stlist_last_le_head_minus_front:
-  fixes t :: "'a::fzero_trace stlist"
-  assumes "s \<le> t"
-  shows "last(s) \<le> head(t-front(s))"  
-proof -
-  obtain x where x:"s + x = t"
-    by (metis assms semigroup_add_left_cancel_minus_ord_class.le_iff_add)
-  
-  then have "head(t-front(s)) = head(s + x - front(s))"
-    by simp
-  also have p:"... = head([;last(s)]+x)"
-    by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.le_add semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_front_concat_last)
-
-  have q:"last(s) \<le> head([;last(s)]+x)"
-    apply (induct x)
-    apply (simp add:plus_stlist_def)
-    by (simp add: stlist_nil_concat_cons)
-
-  finally show ?thesis
-    using p q x by auto
-qed
   
 (*
 In general we don't instantiate it because fzero is
@@ -818,7 +715,7 @@ lemma
   assumes "[;z] \<le> [;x] + [0;y]"
   shows "([;x] + [0;y]) - [;z] = ([;x] - [;z]) + [0;y]"
   using assms
-  by (metis (no_types, lifting) add.right_neutral stlist_cons_minus_nil_eq stlist_minus_nils_imp_minus stlist_nil_concat_cons trace_class.not_le_minus trace_class.sum_minus_left zero_stlist_def)
+  by (metis add.right_neutral semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_le_elements_imp_stlist_le_nil stlist_nil_concat_cons stlist_nil_le_cons_imp_le)
 
 lemma 
   fixes z :: "'a::fzero_trace_0"

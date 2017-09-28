@@ -1,4 +1,4 @@
-section {* Terminated lists *}
+chapter {* Terminated lists *}
 
 theory Terminated_lists
 imports
@@ -9,7 +9,7 @@ begin
 text {* Finite terminated lists are lists where the Nil element 
         can record some information.*}
 
-subsection {* Generic terminated lists datatype *}
+section {* Generic terminated lists datatype *}
 
 datatype ('\<alpha>,'\<theta>) gtlist = Nil "'\<alpha>" ("[;;(_)]") | Cons "'\<theta>" "('\<alpha>,'\<theta>) gtlist" (infixr "#\<^sub>g\<^sub>t" 65) 
   
@@ -47,7 +47,7 @@ text {* If we wanted to show that given a plus operator between
         here, and would need a function ('\<alpha> => '\<theta> => '\<theta>) to be
         able to define plus in a generic way. *}
 
-subsection {* Standard terminated lists *}
+section {* Standard terminated lists *}
   
 datatype '\<alpha> stlist = Nil "'\<alpha>" ("[;(_)]") | Cons "'\<alpha>" "'\<alpha> stlist" (infixr "#\<^sub>t" 65)  
   
@@ -116,7 +116,7 @@ lemma stlist_induct_cons:
   apply (case_tac "x")
   by auto
 
-subsection {* Operators *}
+subsection {* Operators and Functions *}
   
 text {* We define a concatenation operator (plus) based on the plus of the
         parametrised type being used. *}  
@@ -127,11 +127,33 @@ where
 "[;z] @\<^sub>t (x#\<^sub>txs) = (z+x)#\<^sub>txs" |
 "(x#\<^sub>txs) @\<^sub>t zs = x#\<^sub>t(xs@\<^sub>tzs)"
 
-text {* We define a last function *}
+text {* We define a last and a head function *}
   
 primrec last :: "'a stlist \<Rightarrow> 'a" where
 "last [;x] = x" |
 "last (x#\<^sub>txs) = last xs"
+
+primrec head :: "'a stlist \<Rightarrow> 'a" where
+"head [;x] = x" |
+"head (x#\<^sub>txs) = x"
+
+text {* Given a semigroup type where fzero is an identity (left and right, as
+        defined in the type class fzero_add_zero), we can define a front function
+        that satisfies s = front(s) + [;last(s)] for a given stlist s *}
+    
+primrec front :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
+"front [;x] = [;fzero x]" |
+"front (x#\<^sub>txs) = (x#\<^sub>tfront xs)"
+
+text {* Given a list with a single element, tail returns an fzero inside.
+        This allows for a consistent treatment, and also for the property
+        s = [;head(s)] + tail(s) to hold. *}
+
+primrec tail :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
+"tail [;x] = [;fzero x]" |
+"tail (x#\<^sub>txs) = (fzero x#\<^sub>txs)"
+
+value "front [a;b]"
 
 subsection {* Classes *}
 
@@ -255,14 +277,13 @@ end
 instantiation stlist :: (monoid_add) monoid_add
 begin
   
-subsubsection {* Lemmas on monoid_add with stlist *}
+paragraph {* Lemmas on monoid_add with stlist *}
     
 lemma stlist_concat_zero_left[simp]: 
   fixes y::"'a stlist"
   shows "[;0] + y = y"
   unfolding plus_stlist_def
   by (induct y, auto)
-
    
 lemma stlist_concat_zero_right[simp]: 
   fixes y::"'a stlist"
@@ -275,33 +296,12 @@ instance
   by (auto simp:plus_seq_assoc zero_stlist_def)
 end
 
-text {* Given an additive monoid type, we can define a front function
-        that yields front(s) + last(s) for a given stlist s *}
-    
-primrec front :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
-"front [;x] = [;fzero x]" |
-"front (x#\<^sub>txs) = (x#\<^sub>tfront xs)"
-
-primrec tail :: "'a::fzero_add_zero stlist \<Rightarrow> 'a stlist" where
-"tail [;x] = [;fzero x]" |
-"tail (x#\<^sub>txs) = (fzero x#\<^sub>txs)"
-
-primrec head :: "'a::fzero_add_zero stlist \<Rightarrow> 'a" where
-"head [;x] = x" |
-"head (x#\<^sub>txs) = x"
-
-value "front [a;b]"
+paragraph {* Lemmas on front, last, head, and tail *}
 
 lemma stlist_front_concat_last: "s = front(s) + [;last(s)]"
   unfolding plus_stlist_def
   apply (induct s)
   by auto
-
-lemma 
-  assumes "x \<noteq> []"
-  shows "x = [hd x] + (tl x)"
-  using assms
-  by (simp add: plus_list_def)
 
 lemma stlist_head_concat_tail: 
   "s = [;head(s)] + tail(s)"
@@ -326,37 +326,26 @@ lemma stlist_plus_cons_eq_front_plus:
   shows "e + (x #\<^sub>t xs) = front(e) + ((last(e) + x) #\<^sub>t xs)"
   by (metis plus_seq_assoc stlist_cons_plus_nils_eq_cons stlist_front_concat_last)
     
-subsubsection {* Orders *}
+subsubsection {* Syntactic orders *}
+
+text {* Furthermore, we also have an additive semigroup if our type
+        satisfies semigroup_add. This is required to instantiate ord next. *}  
   
-
-text {* We now instantiate the ord class for the stlist type. *}
-
 instance stlist :: (semigroup_add) semigroup_add
   apply intro_classes
   by (metis (no_types, lifting) plus_seq_assoc)
+    
+text {* We now instantiate the ord class for the stlist type by using the ord
+        of fzero_le. *}
   
 instantiation stlist :: (semigroup_add) ord
 begin
   definition less_eq_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_eq_stlist == fzero_le"
   definition less_stlist :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> bool" where "less_stlist x y == x \<le> y \<and> \<not> (y \<le> x)"
-(*
-  lemma stlist_plus_follow_concat:
-  fixes a c :: "'a stlist"
-  shows "a + (b #\<^sub>t c) = a + [b;0] + c"
-  by (metis concat_stlist.simps(3) plus_seq_assoc plus_stlist_def stlist_concat_zero_left)  
- *)   
+
   instance by (intro_classes)
 end
-  (*
-lemma monoid_le_stlist2:
-  "(xs :: 'a::monoid_add stlist) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
-  by (simp add: less_eq_stlist_def)
 
-  *)
-lemma stlist_right_cancel_monoid2:
-  "(b#\<^sub>ta) = (c#\<^sub>ta) \<longleftrightarrow> b = c"  
-  by auto
-    
 subsubsection {* Left Cancelative Semigroup *}
   
 text {* We now instantiate the left_cancel_monoid class for the stlist type. *}
@@ -396,7 +385,7 @@ begin
   instance by (intro_classes)
 end
   
-subsubsection {* Right Cancelative Monoid *}
+subsubsection {* Right Cancellative Monoid *}
   
 text {* We now instantiate the right_cancel_monoid class for the stlist type. *}  
   
@@ -558,15 +547,10 @@ lemma stlist_sum_eq_sum_conv:
   
 instance by (intro_classes, simp add:stlist_sum_eq_sum_conv)
 end
-
-subsubsection {* Trace *} 
   
-text {* Given a type of class pre_trace we get a trace. This means that
-        for a given type, as long as we define an appropriate zero, and
-        plus operator, and it obeys the required monoid laws in addition
-        to sum_eq_sum_conv, then the resulting stlist is a trace. *}
-
-  class fzero_add_zero_0 = fzero_add_zero + fzero_is_0
+(* TO BE MOVED TO Monoid_Extra *)  
+  
+class fzero_add_zero_0 = fzero_add_zero + fzero_is_0
   
 class fzero_sum_zero_0 = fzero_sum_zero + fzero_is_0
   
@@ -622,6 +606,71 @@ instance fzero_trace_0 \<subseteq> fzero_trace
 instance fzero_pre_trace_0 \<subseteq> fzero_pre_trace
   by intro_classes
     
+(* TO BE MOVED TO Monoid_Extra *)
+    
+instance stlist :: (semigroup_add_left_cancel) semigroup_add_left_cancel_minus_ord 
+  apply intro_classes
+  apply (simp add: less_eq_stlist_def)
+  apply (simp add: less_stlist_def)
+  by (simp add: minus_stlist_def)
+  
+paragraph {* Lemmas *}
+  
+lemma stlist_tail_minus_eq_tail_minus_front:
+  fixes t :: "'a::fzero_pre_trace stlist"
+  assumes "s \<le> t"
+  shows "tail(t - front(s)) = tail(t-s)"
+proof -
+  obtain x where x: "s + x = t"
+    using assms
+    by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
+      
+  obtain y where y: "y = last(s)"
+    by simp
+      
+  have "tail(t - front(s)) = tail(s + x - front(s))"
+    using x by simp
+  also have "... = tail(front(s) + [;last(s)] + x - front(s))"
+    by (metis stlist_front_concat_last)
+  also have lhs:"... = tail([;last(s)] + x)"
+    by (simp add: semigroup_add_left_cancel_minus_ord_class.sum_minus_left)
+      
+  have rhs:"tail(t-s) = tail(x)"
+    using x by auto
+      
+  then have "tail([;y] + x) = tail(x)"
+    proof (cases x)
+      case (Nil x1)
+      then show ?thesis 
+        by (metis concat_stlist.simps(1) head.simps(1) plus_stlist_def semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left' stlist_head_concat_tail)
+    next
+      case (Cons x21 x22)
+      then show ?thesis
+        by (metis (no_types, lifting) head.simps(2) plus_seq_assoc semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left stlist_head_concat_tail stlist_nil_concat_cons stlist_plus_nils)
+    qed
+
+    then show ?thesis
+      by (simp add: calculation lhs rhs y)
+qed   
+
+subsubsection {* Trace *} 
+  
+text {* Given a type of class pre_trace we get a trace. This means that
+        for a given type, as long as we define an appropriate zero, and
+        plus operator, and it obeys the required monoid laws in addition
+        to sum_eq_sum_conv, then the resulting stlist is a trace. *}
+
+
+    
+section {* Properties *}    
+
+lemma stlist_trace_subtract_common:
+  fixes ys :: "'a::trace stlist"
+  shows "(x #\<^sub>t ys) - (x #\<^sub>t xs) = (ys - xs)"
+  apply (simp add:minus_stlist_def fzero_subtract_def plus_stlist_def)
+  apply auto
+  by (simp add: fzero_le_def plus_stlist_def)+  
+  
 lemma subtract_monoid_fzero_eq:
   fixes a :: "'a::fzero_pre_trace_0"
   shows "a -\<^sub>d b = a -\<^sub>m b"
@@ -642,10 +691,11 @@ lemma stlist_subtract_monoid_fzero_eq:
   using assms zero_sum_left 
   oops
     
- (*
+(* Q: We do not want to instantiate this because of fzero?
+      That is, a -\<^sub>d b = a -\<^sub>m b is not true in general. *)
+(*   
 instantiation stlist :: (pre_trace) trace
 begin
-declare [[show_sorts]]
 instance 
   apply (intro_classes, simp_all add:less_eq_stlist_def less_stlist_def minus_stlist_def)
   
@@ -656,8 +706,6 @@ instance
     apply (simp add: fzero_le_def monoid_le_def)
     
    apply (simp add: fzero_le_def monoid_le_def)
-  sledgehammer
-    nitpick
 end*)
  
 lemma monoid_plus_prefix_iff_zero:
@@ -706,49 +754,72 @@ lemma monoid_subtract_stlist:
   fixes a :: "'a::semigroup_add stlist"
   shows "(a - b) = (a -\<^sub>d b)"
   by (simp add:minus_def minus_stlist_def) 
+
+lemma stlist_zero_minus:
+  fixes a :: "'a::fzero_trace"
+  assumes "b \<le> a"
+  shows "[;a] - [;b] = [;a - b]"
+  using assms
+  apply (simp add:minus_stlist_def fzero_subtract_def)
+  apply auto
+   apply (rule the_equality)
+    apply (simp add: plus_stlist_def)
+    apply (metis add_diff_cancel_left le_iff_add)
+  apply (metis concat_stlist.simps(1) diff_add_cancel_left' left_cancel_semigroup_class.add_left_imp_eq plus_stlist_def)
+  by (metis less_eq_stlist_def stlist_le_nil_iff_le_elements)
+
+lemma
+  assumes "\<exists>x. \<forall>y::'a::fzero_trace. fzero x = y"
+  shows "\<exists>!c::'a::fzero_trace. \<forall>d. c \<le> d"
+proof -
+  obtain x where y:"\<forall>d::'a::fzero_trace. fzero x \<le> d"          
+  using fzero_trace_class.least_zero by blast
+    
+  then show ?thesis using assms
+      by (simp, metis (full_types))
+qed
+      
+lemma
+  fixes b a::"'a::fzero_trace"
+  assumes "\<not> b \<le> a" and "\<exists>x. \<forall>y::'a::fzero_trace. fzero x = y"
+  shows "a - b = fzero c"
+  using assms
+  apply (simp add:minus_def fzero_subtract_def)
+  apply (auto)                                          
+  apply (simp add: le_is_fzero_le)
+  apply (rule some1_equality)
+  proof -
+    fix x :: 'a
+    obtain aa :: 'a where
+      "\<forall>a. fzero aa = a"
+      using assms(2) by blast
+    then show "\<exists>!c. \<forall>d. (c::'a) \<le>\<^sub>d d"
+    by (metis (full_types) assms(1) fzero_trace_class.least_zero)
+  next
+  show "\<forall>d. fzero c \<le>\<^sub>d d "
+    using fzero_trace_class.least_zero assms by smt
+  qed
     
 lemma stlist_minus_nils_imp_minus:
   fixes a b :: "'a::fzero_trace"
-  (*assumes "\<forall>x::'a::trace stlist. fzero x = 0"*)
+  assumes "b \<le> a"
   shows "[;a] - [;b] = [;c] \<Longrightarrow> a - b = c"
-  apply (simp add:minus_stlist_def minus_def) 
-  using subtract_monoid_fzero_eq add.left_neutral pre_trace_class.add_monoid_diff_cancel_left stlist_plus_nils stlist_zero_is_zero le_iff_add minus_def not_le_minus
-  
-
+  using stlist_zero_minus assms by fastforce
  
 lemma stlist_minus_imp_minus_nils:
   fixes a b :: "'a::fzero_trace"
+  assumes "b \<le> a"
   shows "a - b = c \<Longrightarrow> [;a] - [;b] = [;c]"
-  unfolding minus_stlist_def minus_def
-    
-proof - (* massaged from an smt Isar proof *)
-  assume a1: "a - b = c"
-  have f2: "[;a] - [;b] = 0 \<longrightarrow> [;a] -\<^sub>m [;b] = [;0]"
-    
-    by (simp add: minus_stlist_def stlist_zero_is_zero)
-  obtain aas :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where
-    "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
-    by moura
-  then have f3: "\<forall>as asa. (\<not> as \<le> asa \<or> asa = as + aas asa as) \<and> (as \<le> asa \<or> (\<forall>asb. asa \<noteq> as + asb))"
-    by (meson trace_class.le_iff_add)
-  obtain aa :: "'a stlist \<Rightarrow> 'a" where
-    "\<forall>x0. (\<exists>v3. x0 = [;v3]) = (x0 = [;aa x0])"
-    by moura
-  then have "\<forall>a ab as. [;a] \<noteq> [;ab] + as \<or> as = [;aa as]"
-    by (meson stlist_eq_nil_pluses_imp0)
-  then show "[;a] -\<^sub>m [;b] = [;c]"
-    using f3 f2 a1 by (metis (no_types) minus_stlist_def pre_trace_class.add_monoid_diff_cancel_left stlist_minus_nils_imp_minus trace_class.not_le_minus)
-qed
-*)
-    
+  using assms by (simp add: stlist_zero_minus)
+
+(* TODO: Probably true?    
 lemma stlist_minus_eq_minus_nils:
   fixes a b :: "'a::trace"
   assumes "\<forall>x::'a::trace stlist. fzero x = 0"
   shows "a - b = c \<longleftrightarrow> [;a] - [;b] = [;c]"  
-  using assms
-  by (smt concat_stlist.simps(1) minus_stlist_def monoid_le_def monoid_subtract_def plus_stlist_def pre_trace_class.add_monoid_diff_cancel_left stlist_eq_nil_pluses_imp0 stlist_plus_nils stlist_subtract_monoid_fzero_eq stlist_zero_is_zero trace_class.minus_def)
- (* by (metis stlist_minus_nils_imp_minus stlist_minus_imp_minus_nils)
-   *) 
+  using assms 
+*)
+
 lemma
   fixes a :: "'a::{trace,right_cancel_monoid}"
   shows "a = e + a \<longleftrightarrow> e = 0"
@@ -772,85 +843,98 @@ proof -
     apply (auto)
     apply (rule the_equality)
      apply (simp add:plus_stlist_def)
-    using assms minus_def stlist_nil_le_cons_imp_le 
+    using assms stlist_nil_le_cons_imp_le 
      apply (metis diff_add_cancel_left')
     by (metis assms diff_add_cancel_left' stlist_cons_plus_nils_eq_cons stlist_left_cancel_monoid stlist_nil_le_cons_imp_le)
       
   then show ?thesis using a b by auto
 qed
-
-lemma stlist_zero_minus:
-  fixes a :: "'a::fzero_trace"
-  assumes "b \<le> a"
-  shows "[;a] - [;b] = [;a - b]"
-  using assms
-  apply (simp add:minus_stlist_def fzero_subtract_def)
-  apply auto
-   apply (rule the_equality)
-    apply (simp add: plus_stlist_def)
-    apply (metis add_diff_cancel_left le_iff_add)
-  apply (metis concat_stlist.simps(1) diff_add_cancel_left' left_cancel_semigroup_class.add_left_imp_eq plus_stlist_def)
-  by (metis less_eq_stlist_def stlist_le_nil_iff_le_elements)
   
-(* a - (b + c) = a - b - c *)
-    (*
-lemma
-  fixes a :: "'a::trace"
-  shows "[;a] - [;b] = [;a - b]"
-  using stlist_minus_eq_minus_nils by blast
-    *)
-
 lemma stlist_le_sum_cases:
 fixes a :: "'a::pre_trace stlist"
 shows "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
 by (metis less_eq_stlist_def fzero_le_def stlist_sum_eq_sum_conv)
     
+(* TODO: Probably good to have, but assumption needs to be strengthened.
 lemma stlist_nil_minus:
   fixes a b :: "'a::trace"
   assumes "\<forall>x::'a::trace stlist. fzero x = 0"
   shows "[;b] - [;a] = [;b-a]"
   apply (case_tac "a \<le> b")
   apply auto
-  apply (simp add:minus_stlist_def)
+   apply (simp add:minus_stlist_def)
    apply (metis assms minus_stlist_def stlist_minus_eq_minus_nils)
    using assms apply (simp add:zero_stlist_def)
   using assms stlist_minus_eq_minus_nils trace_class.not_le_minus by blast
   (*apply (metis assms stlist_le_nil_iff_le_elements zero_stlist_def)
   by (simp add:zero_stlist_def)
 *)
-(* assorted lemmas below *)
-(*
-lemma stlist_cons_right_prefix:
-  fixes a :: "'a::pre_trace"
-  assumes "\<forall>x::'a::pre_trace stlist. fzero x = 0"
-  shows "[;a] \<le> [a;c]"
-  using assms sledgehammer
+*)
+
+subsection{* On elements satisfying fzero_pre_trace class *}
+  
+
+  
+lemma stlist_head_minus_last_eq_head:
+  fixes t :: "'a::fzero_trace stlist"
+  assumes "s \<le> t"
+  shows "head(t - front(s)) - last(s) = head(t-s)"
 proof -
-  obtain aas :: "'a stlist \<Rightarrow> 'a stlist \<Rightarrow> 'a stlist" where
-    "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2) = (x0 = x1 + aas x0 x1)"
-    by moura
-  then have f1: "\<forall>as asa. (\<not> as \<le> asa \<or> asa = as + aas asa as) \<and> (as \<le> asa \<or> (\<forall>asb. asa \<noteq> as + asb))"
-    using assms fzero_trace_class.le_iff_add
-    by (meson assms trace_class.le_iff_add)
-  have f2: "[;a] + [;0] \<le> [;a]"
-    by (simp add: monoid_plus_prefix_iff_zero zero_stlist_def)
-  have "aas ([;a] + [;0] + aas [;a] ([;a] + [;0])) ([;a] + [;0] + aas [;a] ([;a] + [;0])) = 0"
-    using f1 by (metis (no_types) monoid_plus_prefix_iff_zero order_refl)
-  then have "a + 0 = a"
-    using f2 f1 by (metis Terminated_lists.last.simps(1) concat_stlist.simps(1) order_refl plus_stlist_def zero_stlist_def)
-  then show ?thesis
-    using f1 by (metis (no_types) stlist_cons_plus_nils_eq_cons)
-qed
-    
-lemma stlist_cons_minus_zero_left:
-  fixes a :: "'a::trace"
-  shows "[a;c] - [;a] = [0;c]"
-  by (simp add: stlist_cons_minus_nil_eq stlist_cons_right_prefix)
-  *)
+  obtain x where x: "s + x = t"
+    using assms
+    by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
+      
+  obtain y where y: "y = last(s)"
+    by simp
  
-instance stlist :: (semigroup_add_left_cancel) semigroup_add_left_cancel_minus_ord 
-  apply intro_classes
-  apply (simp add: less_eq_stlist_def)
-  apply (simp add: less_stlist_def)
-  by (simp add: minus_stlist_def)
+  have lhs:"head(t - front(s)) - last(s) = head([;last(s)] + x) - last(s)"
+    by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.le_add semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_front_concat_last x)
+  
+  have rhs:"head(t-s) = head(x)"
+    using x by auto
+  
+  then have "head([;y]+x) - y = head(x)"
+    proof (cases x)
+      case (Nil x1)
+      then show ?thesis 
+        by (simp add: plus_stlist_def)
+    next
+      case (Cons x21 x22)
+      then show ?thesis
+        by (simp add: stlist_nil_concat_cons)
+    qed
+  
+  then show ?thesis
+    by (simp add: lhs rhs y)
+qed
+  
+lemma stlist_head_front_last:
+  fixes t :: "'a::fzero_trace stlist"
+  assumes "t \<le> s"
+  shows "[;head(s - (front(t) + [;last(t)]))] = [;head(s - front(t)) - last(t)]"
+  using assms
+  by (metis stlist_front_concat_last stlist_head_minus_last_eq_head)
+
+lemma stlist_last_le_head_minus_front:
+  fixes t :: "'a::fzero_trace stlist"
+  assumes "s \<le> t"
+  shows "last(s) \<le> head(t-front(s))"  
+proof -
+  obtain x where x:"s + x = t"
+    by (metis assms semigroup_add_left_cancel_minus_ord_class.le_iff_add)
+  
+  then have "head(t-front(s)) = head(s + x - front(s))"
+    by simp
+  also have p:"... = head([;last(s)]+x)"
+    by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.le_add semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_front_concat_last)
+
+  have q:"last(s) \<le> head([;last(s)]+x)"
+    apply (induct x)
+    apply (simp add:plus_stlist_def)
+    by (simp add: stlist_nil_concat_cons)
+
+  finally show ?thesis
+    using p q x by auto
+qed
+  
 end
