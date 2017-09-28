@@ -1,7 +1,7 @@
 section {* Isabelle/UTP Examples *}
 
 theory utp_examples
-  imports "../theories/utp_theories"
+  imports "../theories/utp_designs"
 begin
 
 alphabet my_state =
@@ -116,7 +116,22 @@ lemma hoare_ex_2:
   using assms
   apply (hoare_auto)
   apply (simp add: gcd_diff1)
-oops
+  oops
+  
+lemma hoare_ex_3:
+  assumes "X > 0" "Y > 0"
+  shows
+  "\<lbrace>&x =\<^sub>u \<guillemotleft>X\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>Y\<guillemotright>\<rbrace>
+    while \<not>(&x =\<^sub>u &y)
+    invr &x >\<^sub>u 0 \<and> &y >\<^sub>u 0 \<and> (gcd\<^sub>u(&x,&y) =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>,\<guillemotleft>Y\<guillemotright>))
+    vrt (\<guillemotleft>nat\<guillemotright>((&x + &y))\<^sub>a)
+    do
+       (x := (&x - &y)) \<triangleleft> (&x >\<^sub>u &y) \<triangleright>\<^sub>r (y := (&y - &x))
+    od
+    \<lbrace>&x =\<^sub>u gcd\<^sub>u(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)\<rbrace>\<^sub>u"
+  using assms 
+  apply (hoare_auto)
+  oops
     
 lemma "x :=\<^sub>D 1 ;; x :=\<^sub>D (&x + 1) = x :=\<^sub>D 2"
   oops (* Rule required: assigns_d_comp *)
