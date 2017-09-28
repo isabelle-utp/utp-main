@@ -84,4 +84,56 @@ lemma while_invr_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
   shows "\<lbrace>pre\<rbrace>while b invr p do S od\<lbrace>post\<rbrace>\<^sub>u"
   by (metis assms hoare_r_conseq while_hoare_r while_inv_def)
+
+lemma approx_chain: 
+  "(\<Sqinter>n::nat. \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><) = \<lceil>p\<rceil>\<^sub><"
+  by (rel_auto)
+
+text {* Total correctness law for Hoare logic *}
+    
+lemma while_term_hoare_r:
+  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v =\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v <\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u"
+  shows "\<lbrace>p\<rbrace>while\<^sub>\<bottom> b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
+proof -
+  have "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<not> b \<and> p\<rceil>\<^sub>>) \<sqsubseteq> (\<mu> X \<bullet> S ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+  proof (rule mu_refine_intro)
+
+    from assms show "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<not> b \<and> p\<rceil>\<^sub>>) \<sqsubseteq> S ;; (\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<not> b \<and> p\<rceil>\<^sub>>) \<triangleleft> b \<triangleright>\<^sub>r II"
+      by (rel_auto)
+
+    let ?E = "\<lambda> n. \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><"
+    show "(\<lceil>p\<rceil>\<^sub>< \<and> (\<mu> X \<bullet> S ;; X \<triangleleft> b \<triangleright>\<^sub>r II)) = (\<lceil>p\<rceil>\<^sub>< \<and> (\<nu> X \<bullet> S ;; X \<triangleleft> b \<triangleright>\<^sub>r II))"
+    proof (rule constr_fp_uniq[where E="?E"])
+
+      show "(\<Sqinter>n. ?E(n)) = \<lceil>p\<rceil>\<^sub><"
+        by (rel_auto)
+          
+      show "mono (\<lambda>X. S ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+        by (simp add: cond_mono monoI seqr_mono)
+          
+      show "constr (\<lambda>X. S ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ?E"
+      proof (rule constrI)
+        
+        show "chain ?E"
+        proof (rule chainI)
+          show "\<lceil>p \<and> v <\<^sub>u \<guillemotleft>0\<guillemotright>\<rceil>\<^sub>< = false"
+            by (rel_auto)
+          show "\<And>i. \<lceil>p \<and> v <\<^sub>u \<guillemotleft>Suc i\<guillemotright>\<rceil>\<^sub>< \<sqsubseteq> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>i\<guillemotright>\<rceil>\<^sub><"
+            by (rel_auto)
+        qed
+          
+        from assms
+        show "\<And>X n. (S ;; X \<triangleleft> b \<triangleright>\<^sub>r II \<and> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n + 1\<guillemotright>\<rceil>\<^sub><) =
+                     (S ;; (X \<and> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><) \<triangleleft> b \<triangleright>\<^sub>r II \<and> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n + 1\<guillemotright>\<rceil>\<^sub><)"
+          apply (rel_auto)
+          using less_antisym less_trans apply blast
+        done
+      qed  
+    qed
+  qed
+
+  thus ?thesis
+    by (simp add: hoare_r_def while_bot_def)
+qed
+        
 end

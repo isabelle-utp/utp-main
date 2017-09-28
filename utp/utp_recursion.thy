@@ -19,7 +19,7 @@ lemma nu_const: "(\<nu> X \<bullet> P) = P"
   by (simp add: lfp_const)
 
 lemma mu_refine_intro:
-  assumes "(C \<Rightarrow> S) \<sqsubseteq> F(C \<Rightarrow> S)" "`C \<Rightarrow> (\<mu> F \<Leftrightarrow> \<nu> F)`"
+  assumes "(C \<Rightarrow> S) \<sqsubseteq> F(C \<Rightarrow> S)" "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
   shows "(C \<Rightarrow> S) \<sqsubseteq> \<mu> F"
 proof -
   from assms have "(C \<Rightarrow> S) \<sqsubseteq> \<nu> F"
@@ -61,6 +61,11 @@ text {* Constructive chains *}
 definition constr ::
   "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
 "constr F E \<longleftrightarrow> chain E \<and> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
+
+lemma constrI:
+  assumes "chain E" "\<And> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1)))"
+  shows "constr F E"
+  using assms by (auto simp add: constr_def)
 
 text {* This lemma gives a way of showing that there is a unique fixed-point when
         the predicate function can be built using a constructive function F
