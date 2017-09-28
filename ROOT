@@ -225,8 +225,10 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   theories
     fmi
     Time
-    Railways
     Topology
+    Railways
+    Railways_Spec
+    Railways_Impl
     Interlocking
   document_files
     (* "root.bib" *)
