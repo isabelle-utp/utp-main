@@ -358,9 +358,12 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t(0)\<^sub>a:(x))"
 
-definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>x\<guillemotright>)\<^sub>a):(x))"
+abbreviation tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
+"tt_final \<equiv> lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a)"
 
+definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
+[upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
+  
 syntax
   "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
   "_final_cont" :: "salpha \<Rightarrow> logic" ("rl'(_')")
@@ -605,6 +608,16 @@ lemma rea_not_hSomewhere [rpred]:
   "(\<not>\<^sub>r \<lfloor>P(time)\<rfloor>\<^sub>h) = \<lceil>\<not> P(time)\<rceil>\<^sub>h"
   apply (rel_auto) using tt_end_gr_zero_iff by fastforce
     
+subsection {* At Limit *}
+
+text {* Predicate evaluated at the limit of the trajectory. *}
+  
+definition hAtLimit :: "'c::t2_space hrel \<Rightarrow> ('d,'c) hyrel" ("\<lceil>_\<rceil>\<^sup>\<rightarrow>") where
+[upred_defs]: "hAtLimit P = ($tr <\<^sub>u $tr\<acute> \<and> [$\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<^sup>\<rightarrow>] \<dagger> \<lceil>P\<rceil>\<^sub>C)"
+    
+lemma hAtLimit_RR_closed [closure]: "\<lceil>P\<rceil>\<^sup>\<rightarrow> is RR"
+  by (rel_auto)
+
 subsection {* Evolve by continuous function *}
  
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where

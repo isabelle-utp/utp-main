@@ -10,6 +10,10 @@ definition Clock :: "real \<Rightarrow> real \<Rightarrow> (real \<Longrightarro
 definition Constant :: "'a::real_algebra \<Rightarrow> ('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "Constant k y = [ true | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>k\<guillemotright>\<rceil>\<^sub>h ]\<^sub>M"
 
+definition Step :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> (real \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
+"Step offset startTime height y =
+  [true | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>offset + (if time < startTime then 0 else height)\<guillemotright>\<rceil>\<^sub>h ]\<^sub>M"
+
 definition Ramp :: 
   "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> (real \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [urel_defs]: "Ramp height duration offset startTime y
@@ -26,8 +30,5 @@ definition Sine ::
                              then 0 
                              else sin(2 * pi * freqHz * (time - startTime) + phase))\<guillemotright>\<rceil>\<^sub>h]\<^sub>M"
   
-definition Step :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> (real \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-"Step offset startTime height y =
-  [true | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>offset + (if time < startTime then 0 else height)\<guillemotright>\<rceil>\<^sub>h ]\<^sub>M"
 
 end
