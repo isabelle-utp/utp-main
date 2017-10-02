@@ -358,8 +358,11 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u \<^bold>t(0)\<^sub>a:(x))"
 
-abbreviation tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
-"tt_final \<equiv> lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a)"
+text {* Take the continuous state space at the limit. If the duration is 0 then take the initial
+  value of the continuous state instead. *}
+
+definition tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
+[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $\<^bold>c"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
@@ -377,12 +380,12 @@ lemma init_cont_unrests [unrest]:
   by (rel_auto)+
 
 lemma final_cont_unrests [unrest]:
-  "$ok \<sharp> rl(x)" "$ok\<acute> \<sharp> rl(x)" "$wait \<sharp> rl(x)" "$wait\<acute> \<sharp> rl(x)" "$st \<sharp> rl(x)"
+  "$ok \<sharp> rl(x)" "$ok\<acute> \<sharp> rl(x)" "$wait \<sharp> rl(x)" "$wait\<acute> \<sharp> rl(x)"
   by (rel_auto)+
 
 lemma usubst_final_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
-  by (simp add: final_cont_def usubst unrest)
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
+  by (simp add: final_cont_def tt_final_def usubst unrest)
     
 lemma R1_init_cont: "R1(ll(x)) = ll(x)"
   by (rel_auto)
@@ -772,9 +775,13 @@ proof -
     using L tendsto_Lim trivial_limit_at_left_real by blast
 qed
 
+lemma hUntil_expand_lemma:
+  "hUntil P b = (P \<and> \<lceil>\<not> b time\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  by (rel_auto)
+  
 lemma hUntil_subst_init_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b(time)) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b(time)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
-  by (simp add: hUntil_def usubst unrest)
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b(time)) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b(time)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  by (simp add: hUntil_expand_lemma usubst unrest)
   
 lemma hUntil_RR_closed [closure]:
   assumes "P is RR"
@@ -1025,10 +1032,12 @@ proof -
       by (simp add: lens_defs)
   next
     from assms
-    show "\<exists>tr tr'.
+    show "(\<exists>tr tr'.
+           (tr < tr' \<longrightarrow>
             tr \<le> tr' \<and>
-            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr' - tr\<rangle>\<^sub>t t) = f t) \<and>
-            tr < tr' \<and> end\<^sub>t (tr' - tr) = n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)"
+            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = f t) \<and>
+            end\<^sub>t (tr' - tr) = n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) \<and>
+           tr < tr')"
       by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
          (auto simp add: Limit_solve at_left_from_zero)
   qed
