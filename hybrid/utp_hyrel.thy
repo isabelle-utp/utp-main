@@ -675,8 +675,15 @@ done
 subsection {* Pre-emption *}
 
 definition hUntil ::
-  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" ("_ until\<^sub>h _" [74,75] 74) where
-[upred_defs]: "P until\<^sub>h b = (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"  where
+[upred_defs]: "hUntil P b = (P \<and> \<lceil>\<not> b(time)\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+
+syntax
+  "_hUntil" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>h _" [74,75] 74)
+
+translations
+  "_hUntil P b" => "CONST hUntil P (\<lambda> _time_var. b)"
+  "_hUntil P b" <= "CONST hUntil P (\<lambda> t. b)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
@@ -766,14 +773,14 @@ proof -
 qed
 
 lemma hUntil_subst_init_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b(time)) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b(time)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   by (simp add: hUntil_def usubst unrest)
   
 lemma hUntil_RR_closed [closure]:
   assumes "P is RR"
-  shows "P until\<^sub>h b is RR"
+  shows "P until\<^sub>h (b time) is RR"
 proof -
-  have "RR (RR(P) until\<^sub>h b) = RR(P) until\<^sub>h b"
+  have "RR (RR(P) until\<^sub>h (b(time))) = RR(P) until\<^sub>h (b time)"
     by (rel_auto)
   with assms show ?thesis
     by (simp add: Healthy_def)

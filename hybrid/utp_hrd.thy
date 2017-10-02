@@ -56,19 +56,32 @@ text {* Should the until construct include in the pericondition the state where 
   has been satisfied at the limit? Currently it does, but this means that that particular evolution
   is present both as an intermediate and also a final state. *}
   
-definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow> ('d,'c) hyrel" (infixl "until\<^sub>H" 85)
+definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel" (infixl "until\<^sub>H" 85)
   where [upred_defs]: 
-"P until\<^sub>H b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+"P until\<^sub>H b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b(time)\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b(time)\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
 
 definition hrdPreempt_nz ::
-    "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
-    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H\<^sup>+ _" [64,0,65] 64) where
-[upred_defs]: "hrdPreempt_nz P b Q = (P until\<^sub>H b) ;; Q"
+    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
+    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" where
+[upred_defs]: "hrdPreempt_nz P b Q = (hrdUntil P b) ;; Q"
 
 definition hrdPreempt ::
-    "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
+    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64) where
-[upred_defs]: "P [b]\<^sub>H Q = (Q \<triangleleft> \<lceil>b\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P [b]\<^sub>H\<^sup>+ Q))"
+[upred_defs]: "hrdPreempt P b Q = (Q \<triangleleft> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C) \<triangleright> (hrdPreempt_nz P b Q))"
+
+syntax
+  "_hrdUntil"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>H _" [74,75] 74)
+  "_hrdPreempt_nz" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_]\<^sub>H\<^sup>+ _" [64,0,65] 64)
+  "_hrdPreempt"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_]\<^sub>H _" [64,0,65] 64)
+  
+translations
+  "_hrdUntil P b" => "CONST hrdUntil P (\<lambda> _time_var. b)"
+  "_hrdUntil P b" <= "CONST hrdUntil P (\<lambda> t. b)"
+  "_hrdPreempt_nz P b Q" => "CONST hrdPreempt_nz P (\<lambda> _time_var. b) Q"
+  "_hrdPreempt_nz P b Q" <= "CONST hrdPreempt_nz P (\<lambda> t. b) Q"
+  "_hrdPreempt P b Q" => "CONST hrdPreempt P (\<lambda> _time_var. b) Q"
+  "_hrdPreempt P b Q" <= "CONST hrdPreempt P (\<lambda> t. b) Q"
 
 lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(time)) = true\<^sub>r"
   by (rel_auto)
@@ -104,7 +117,7 @@ lemma hrdEvolveTil_NSRD [closure]: "x \<leftarrow>\<^sub>H(t) f(time) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def final_cont_def rdes closure unrest)    
     
 lemma preR_hrdUntil [rdes]: 
-  "P is SRD \<Longrightarrow> pre\<^sub>R(P until\<^sub>H b) = pre\<^sub>R(P)"
+  "P is SRD \<Longrightarrow> pre\<^sub>R(P until\<^sub>H b(time)) = pre\<^sub>R(P)"
   by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2 Healthy_if)
 
 lemma periR_hrdUntil [rdes]: 
