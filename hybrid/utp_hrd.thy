@@ -58,7 +58,7 @@ text {* Should the until construct include in the pericondition the state where 
   
 definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"
   where [upred_defs]: 
-"hrdUntil P b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+"hrdUntil P b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
 
 definition hrdPreempt_nz ::
     "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
@@ -67,7 +67,7 @@ definition hrdPreempt_nz ::
 
 definition hrdPreempt ::
     "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
-    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64) where
+    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hrdPreempt P b Q = (Q \<triangleleft> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C) \<triangleright> (hrdPreempt_nz P b Q))"
 
 syntax
@@ -127,7 +127,7 @@ lemma periR_hrdUntil [rdes]:
       R2c_not R2c_peri_SRD R2s_hInt  R1_rea_impl R2c_preR R2c_rea_impl)
 
 lemma postR_hrdUntil [rdes]:
-  "P is NSRD \<Longrightarrow> post\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>b\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+  "P is NSRD \<Longrightarrow> post\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>b\<rceil>\<^sub>C \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
   apply (simp add: hrdUntil_def rea_post_RHS_design unrest usubst impl_alt_def
       NSRD_is_SRD R1_disj R1_extend_conj R1_hInt R2c_and R2c_disj 
       R2c_not R1_post_SRD R1_peri_SRD R2c_peri_SRD R2c_post_SRD R2s_hInt R2c_init_cont R2c_final_cont
@@ -218,7 +218,7 @@ proof (rule SRD_eq_intro, simp_all add: closure assms rdes rpred)
     apply (metis assms(1) vwb_lens.put_eq)
   done
   from assms(2,5,6) show
-    "(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>c\<rceil>\<^sub>C \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>k\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r"
+    "(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>c\<rceil>\<^sub>C \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>k\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r"
     apply (fast_uexpr_transfer)
     apply (rel_simp)
     apply (safe, simp_all)
@@ -255,7 +255,7 @@ proof -
   have 1:"peri\<^sub>R(&\<^bold>v \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; P) = (&\<^bold>v \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<or> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> ;; RR(peri\<^sub>R P))"
     (is "?lhs = ?rhs")
     by (simp add: hrdStepRel_def hStepRel_def rdes closure assms rpred wp Healthy_if, rel_auto)
-  from assms(1,2) have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = (&\<^bold>v \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  from assms(1,2) have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) = (&\<^bold>v \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
     by (simp add: 1, rel_auto, simp add: tt_end_minus, metis eq_iff tt_eq_iff_end_same tt_sub_end)
   also from assms(1,2) have "... = &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright>"
     by (rel_auto)
@@ -318,7 +318,7 @@ qed
         
 lemma hrdStep_hrdEvolveAt_lemma1:
   assumes "0 < l" "l < n"  
-  shows "(\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> rl(&\<^bold>v)) = (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a))"
+  shows "(\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> rl(&\<^bold>v)) = (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a))"
   using assms
   by (rel_auto)
   
@@ -332,33 +332,33 @@ proof -
     (is "?lhs = ?rhs")
     by (simp add: hrdStepRel_def hStepRel_def rdes closure assms rpred wp Healthy_if, rel_auto)
   from assms(1,2) 
-  have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) = 
-        (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; RR(peri\<^sub>R P) \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright>) \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  have "(?lhs \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) = 
+        (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; RR(peri\<^sub>R P) \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright>) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
     by (simp add: 1, rel_auto)
   also from assms(1,2) 
-  have "... = ((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P)) \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  have "... = ((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P)) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
     by (subst time_length_conj_seq, simp_all add: assms closure) 
   also
-  have "... = (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P)) \<and> rl(&\<^bold>v)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  have "... = (((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P)) \<and> rl(&\<^bold>v)) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
     by (simp add: conj_assoc)
   also from assms(1-2)
-  have "... = ((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> rl(&\<^bold>v)) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  have "... = ((\<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> &\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> rl(&\<^bold>v)) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
     by (subst final_cont_seq_right_length_eq, (rel_auto)+)
   also
-  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; ((\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> rl(&\<^bold>v)) \<and> RR(peri\<^sub>R P) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; ((\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> rl(&\<^bold>v)) \<and> RR(peri\<^sub>R P) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
     by (rel_auto)
   also
-  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; ((\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a)) \<and> RR(peri\<^sub>R P) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; ((\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a)) \<and> RR(peri\<^sub>R P) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
     by (simp add: hrdStep_hrdEvolveAt_lemma1 assms)  
   also
-  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d))"
+  have "... = ((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n-l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
     by (rel_auto)
   finally 
   have "Step[n]\<^sub>H(&\<^bold>v \<leftarrow>\<^sub>H(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; P) = 
-        \<lfloor>((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+        \<lfloor>((&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>) ;; (\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
     using assms(1-2)
     by (simp add: hrdStepRel_def hStepRel_def 1 Healthy_if closure assms, rel_auto)
-  also have "... = (\<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d, 'c::t2_space) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C) ;;\<^sub>h \<lfloor>(\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  also have "... = (\<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d, 'c::t2_space) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C) ;;\<^sub>h \<lfloor>(\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
     apply (rel_auto)
     apply (rename_tac tr tr' tr'' d tr''')
     apply (rule_tac x="tr" in exI)
@@ -368,7 +368,7 @@ proof -
     apply (rule_tac x="tr''" in exI)
     apply (auto)
   done
-  also have "... = \<^bold>v := \<guillemotleft>f n\<guillemotright> ;;\<^sub>h \<lfloor>(\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  also have "... = \<^bold>v := \<guillemotleft>f n\<guillemotright> ;;\<^sub>h \<lfloor>(\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
 oops
   
 end

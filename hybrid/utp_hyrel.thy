@@ -111,11 +111,11 @@ translations
   "\<^bold>l" <= "CONST uop CONST tt_end (&tt)"
   "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
   
-definition disc_alpha :: "'d \<Longrightarrow> ('d, 'c::topological_space) hybs" ("\<^bold>d") where
-[lens_defs]: "disc_alpha = fst\<^sub>L ;\<^sub>L st"
+definition disc_alpha :: "'d \<Longrightarrow> ('d \<times> 'c::topological_space)" ("\<^bold>d") where
+[lens_defs]: "disc_alpha = fst\<^sub>L"
 
-definition cont_alpha :: "'c \<Longrightarrow> ('d, 'c::topological_space) hybs" ("\<^bold>c") where
-[lens_defs]: "cont_alpha = snd\<^sub>L ;\<^sub>L st"
+definition cont_alpha :: "'c \<Longrightarrow> ('d \<times> 'c::topological_space)" ("\<^bold>c") where
+[lens_defs]: "cont_alpha = snd\<^sub>L"
 
 text {* We also set up some lenses to focus on the discrete and continuous parts of the state,
   which we call @{term "\<^bold>d"} and @{term "\<^bold>c"}, respectively. We then prove some of the key lens
@@ -129,29 +129,6 @@ lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
 
 lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
    by (simp_all add: disc_alpha_def cont_alpha_def)
-
-text {* Both lenses are very well-behaved, effectively meaning they are valid variables. Moreover
-  they are also independent, @{term "\<^bold>c \<bowtie> \<^bold>d"}, meaning they refer to disjoint parts of the
-  state space, as expected. We also show some similar independence theorems with some of the other
-  observational variables. *}
-
-lemma disc_indep_ok [simp]: "\<^bold>d \<bowtie> ok" "ok \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_sym)
-
-lemma disc_indep_wait [simp]: "\<^bold>d \<bowtie> wait" "wait \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_sym)
-
-lemma disc_indep_tr [simp]: "\<^bold>d \<bowtie> tr" "tr \<bowtie> \<^bold>d"
-  by (simp_all add: disc_alpha_def lens_indep_sym)
-
-lemma cont_indep_ok [simp]: "\<^bold>c \<bowtie> ok" "ok \<bowtie> \<^bold>c"
-  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
-
-lemma cont_indep_wait [simp]: "\<^bold>c \<bowtie> wait" "wait \<bowtie> \<^bold>c"
-  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
-
-lemma cont_indep_tr [simp]: "\<^bold>c \<bowtie> tr" "tr \<bowtie> \<^bold>c"
-  by (simp_all add: cont_alpha_def lens_indep_left_ext lens_indep_sym)
 
  syntax
   "_cont_alpha" :: "svid" ("\<^bold>c")
@@ -171,34 +148,30 @@ lemma var_out_var_prod [simp]:
   shows "utp_expr.var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
 
-lemma rea_var_ords [usubst]:
-  "$\<^bold>c \<prec>\<^sub>v $tr" "$\<^bold>c \<prec>\<^sub>v $tr\<acute>" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr" "$\<^bold>c\<acute> \<prec>\<^sub>v $tr\<acute>"
-  by (simp_all add: var_name_ord_def)
-
 text {* We next define some useful "lifting" operators. These operators effectively extend the state
   space of an expression by adding additional variables. This is useful, for instance, to lift an
   expression only on discrete variables to a hybrid expression. *}
 
 abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
-"\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)"
+"\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> \<lceil>P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)\<rceil>\<^sub>S"
 
 abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C") where
-"\<lceil>P\<rceil>\<^sub>C \<equiv> P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+"\<lceil>P\<rceil>\<^sub>C \<equiv> \<lceil>P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)\<rceil>\<^sub>S"
 
 abbreviation cont_drop :: "('a, 'd, 'c::topological_space) hyexpr \<Rightarrow> ('a, 'c \<times> 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C") where
-"\<lfloor>P\<rfloor>\<^sub>C \<equiv> P \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
 
 abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
-"\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> P \<oplus>\<^sub>p (ivar \<^bold>c)"
+"\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub><"
 
 abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub>>") where
-"\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> P \<oplus>\<^sub>p (ovar \<^bold>c)"
+"\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> undefined" (* \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub>> *)
 
 abbreviation cont_pre_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub><") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> P \<restriction>\<^sub>p (ivar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (ivar \<^bold>c)"
 
 abbreviation cont_post_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub>>") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> P \<restriction>\<^sub>p (ovar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (ovar \<^bold>c)"
 
 translations
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
@@ -207,13 +180,17 @@ translations
   "\<lfloor>P\<rfloor>\<^sub>C\<^sub>>" <= "CONST arestr P (CONST ovar CONST cont_alpha)"
 
 lemma unrest_lift_cont_subst [unrest]:
-  "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$\<^bold>c\<rbrakk>"
+  "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$st:\<^bold>c\<rbrakk>"
   by (rel_auto)
  
 lemma lift_cont_subst [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P\<rceil>\<^sub>C = \<sigma> \<dagger> (\<lceil>P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>C)"
+  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P\<rceil>\<^sub>C = \<sigma> \<dagger> (\<lceil>P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>C)"
   by (rel_simp)    
 
+lemma unrest_lift_cont_disc [unrest]: 
+  "$st:\<^bold>d \<sharp> \<lceil>P\<rceil>\<^sub>C" "$st:\<^bold>d\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>C"
+  by (rel_auto)+
+    
 text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
   the discrete state @{typ "'d"}, that is @{typ "'d \<times> 'd"} and lifts it into the hybrid state
   space, @{typ "('d, 'c) hybs"}. Note that following this lifting all continuous variables will
@@ -237,7 +214,7 @@ subsection {* Instant Predicates *}
 definition at ::
   "('a, 'c::topological_space \<times> 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
   (infix "@\<^sub>u" 60) where
-[upred_defs]: "P @\<^sub>u t = [$\<^bold>c\<acute> \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a] \<dagger> \<lceil>P\<rceil>\<^sub>C"
+[upred_defs]: "P @\<^sub>u t = [$st:\<^bold>c\<acute> \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a] \<dagger> \<lceil>P\<rceil>\<^sub>C"
 
 text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
   the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
@@ -260,12 +237,12 @@ text {* @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R
   the predicate @{term "\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u"}, since this only refers to @{term "\<^bold>l"}, which
   denotes the length of the present computation, and does not depend on the history. *}
 
-lemma at_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> (P @\<^sub>u t)"
+lemma at_unrest_cont [unrest]: "$st:\<^bold>c\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest)
-
-lemma at_unrest_dis [unrest]: "$\<^bold>d \<sharp> (P @\<^sub>u t)" "$\<^bold>d\<acute> \<sharp> (P @\<^sub>u t)"
+  
+lemma at_unrest_dis [unrest]: "$st:\<^bold>d \<sharp> (P @\<^sub>u t)" "$st:\<^bold>d\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest)
-
+    
 lemma at_unrest_ok [unrest]: "$ok \<sharp> (P @\<^sub>u t)" "$ok\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest alpha)
 
@@ -306,9 +283,9 @@ lemma at_lambda [simp]:
 lemma at_bop [simp]:
   "(bop f x y) @\<^sub>u t = bop f (x @\<^sub>u t) (y @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
-
+    
 lemma at_subst_init_cont [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P @\<^sub>u t) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk> @\<^sub>u t)"
+  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P @\<^sub>u t) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk> @\<^sub>u t)"
   by (rel_simp)
     
 lemma at_var [simp]:
@@ -320,7 +297,7 @@ text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat con
   @{term "x"}. It results in an expression which refers to that particular variable within the
   timed trace at instant @{term "t"}. *}
 
-lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
+lemma subst_cvar_traj [usubst]: "\<langle>[$st:\<^bold>c \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a]\<rangle>\<^sub>s (x ;\<^sub>L \<^bold>c ;\<^sub>L in_var st) = x~(\<guillemotleft>t\<guillemotright>)"
   by (pred_auto)
 
 subsection {* The Interval Operator *}
@@ -345,20 +322,20 @@ lemma hInt_unrest_ok [unrest]: "$ok \<sharp> hInt P" "$ok\<acute> \<sharp> hInt 
 lemma hInt_unrest_wait [unrest]: "$wait \<sharp> hInt P" "$wait\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
 
-lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute> \<sharp> hInt P"
+lemma hInt_unrest_dis [unrest]: "$st:\<^bold>d \<sharp> hInt P" "$st:\<^bold>d\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
     
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x =\<^sub>u &tt(0)\<^sub>a:(x))"
+[upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $st:\<^bold>c:x =\<^sub>u &tt(0)\<^sub>a:(x))"
 
 text {* Take the continuous state space at the limit. If the duration is 0 then take the initial
   value of the continuous state instead. *}
 
 definition tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
-[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $\<^bold>c"
+[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
+[upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $st:\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
   
 syntax
   "_init_cont"  :: "salpha \<Rightarrow> logic" ("ll'(_')")
@@ -380,7 +357,7 @@ lemma trace_expr: "&tt = $tr\<acute> - $tr"
   by (rel_auto)
     
 lemma usubst_final_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $st:\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
   by (simp add: final_cont_def tt_final_def trace_expr usubst unrest)
     
 lemma R1_init_cont: "R1(ll(x)) = ll(x)"
@@ -402,15 +379,15 @@ lemma rl_RR_closed [closure]: "rl(x) is RR"
   by (rel_auto)
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
-[upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<^bold>v) \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<^bold>v) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
   invariants, and yield what we might call a ``hybrid interval''. The first invariant
   states that the continuous state within the trace at instant 0 must
-  correspond to the before value of the continuous state, i.e. @{term "$\<^bold>c =\<^sub>u &tt(0)\<^sub>a"}. The second
+  correspond to the before value of the continuous state. The second
   states that the after value of the continuous state must take on the limit of the continuous
-  state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>x\<guillemotright>)\<^sub>a)"}.
+  state as the trace approaches the end value @{term "\<^bold>l"}, i.e. @{term "$st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>x\<guillemotright>)\<^sub>a)"}.
   This second constraint requires that the timed trace must converge to a point at @{term "\<^bold>l"},
   which is true because our timed trace is piecewise convergent. The last two constraints are what
   makes our model a hybrid computational model, since we link together discrete assignments to
@@ -447,7 +424,7 @@ text {* A regular interval can be written using the notation @{term "\<lceil>P(t
   we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>ti\<guillemotright>\<rceil>\<^sub>h"} for
   example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(ti)\<^bold>\<rceil>\<^sub>h"}. *}
 
-lemma hInt_unrest_cont [unrest]: "$\<^bold>c\<acute> \<sharp> \<lceil>P(ti)\<rceil>\<^sub>h"
+lemma hInt_unrest_cont [unrest]: "$st:\<^bold>c\<acute> \<sharp> \<lceil>P(ti)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
 lemma st'_unrest_hInt [unrest]: 
@@ -494,7 +471,7 @@ text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous bef
   We also prove some laws about intervals. *}
 
 lemma hInt_subst_init_cont [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(ti)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
+  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(ti)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
   by (simp add: hInt_def usubst)
   
 lemma hInt_false [rpred]: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
@@ -612,7 +589,7 @@ subsection {* At Limit *}
 text {* Predicate evaluated at the limit of the trajectory. *}
   
 definition hAtLimit :: "'c::t2_space hrel \<Rightarrow> ('d,'c) hyrel" ("\<lceil>_\<rceil>\<^sup>\<rightarrow>") where
-[upred_defs]: "hAtLimit P = ($tr <\<^sub>u $tr\<acute> \<and> [$\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<^sup>\<rightarrow>] \<dagger> \<lceil>P\<rceil>\<^sub>C)"
+[upred_defs]: "hAtLimit P = ($tr <\<^sub>u $tr\<acute> \<and> [$st:\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<^sup>\<rightarrow>] \<dagger> \<lceil>P\<rceil>\<^sub>C)"
     
 lemma hAtLimit_RR_closed [closure]: "\<lceil>P\<rceil>\<^sup>\<rightarrow> is RR"
   by (rel_auto)
@@ -626,7 +603,7 @@ definition hEvolveBound :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Righ
 [upred_defs]: "hEvolveBound x t f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><)"
 
 definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d \<and> rl(&\<^bold>v))"
+[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d \<and> rl(&\<^bold>v))"
 
 syntax
   "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
@@ -650,7 +627,7 @@ lemma hEvolveBound_st'_unrest [unrest]:
   by (rel_auto)
     
 lemma hEvolve_usubst [usubst]:
-  "\<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(ti) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(ti) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
   by (simp add: hEvolve_def usubst unrest)
     
 lemma hEvolve_RR_closed [closure]: "x \<leftarrow>\<^sub>h f(ti) is RR"
@@ -675,7 +652,7 @@ subsection {* Pre-emption *}
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"  where
-[upred_defs]: "hUntil P b = (P \<and> \<lceil>\<not> b(ti)\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[upred_defs]: "hUntil P b = (P \<and> \<lceil>\<not> b(ti)\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
 
 syntax
   "_hUntil" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>h _" [74,75] 74)
@@ -772,11 +749,11 @@ proof -
 qed
 
 lemma hUntil_expand_lemma:
-  "hUntil P b = (P \<and> \<lceil>\<not> b ti\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+  "hUntil P b = (P \<and> \<lceil>\<not> b ti\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
   by (rel_auto)
   
 lemma hUntil_subst_init_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b(ti)) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>c:x\<rbrakk> until\<^sub>h b(ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
+  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $st:\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> (P until\<^sub>h b(ti)) = \<sigma> \<dagger> (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$st:\<^bold>c:x\<rbrakk> until\<^sub>h b(ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   by (simp add: hUntil_expand_lemma usubst unrest)
   
 lemma hUntil_RR_closed [closure]:
@@ -1007,16 +984,16 @@ qed
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)) \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>p ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
   
 lemma HyStep_hEvolve:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "n > 0" "continuous_on {0..n} f"
   shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: ('d,'c) hyrel) = (\<^bold>v := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
 proof -
-  from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
     by (simp add: hStepRel_def, rel_auto)
-  also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&\<^bold>c \<times> &\<^bold>c)\<rfloor>\<^sub>C"
+  also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
     by (rel_auto)           
   also have "... = ?rhs"
   proof (rel_auto)

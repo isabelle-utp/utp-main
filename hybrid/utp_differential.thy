@@ -52,7 +52,7 @@ text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>time\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>time\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>ti\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
 
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
@@ -81,7 +81,7 @@ text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rang
   the limit, which is always defined as per our previous definition. *}
 
 abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>h") where
-"\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h \<equiv> (\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h)"
+"\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h \<equiv> (st:\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h)"
 
 text {* We also set up notation that explicitly sets up the initial value for the continuous state,
   @{term "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that the initial value of @{term "x"} in the ODE
@@ -89,18 +89,18 @@ text {* We also set up notation that explicitly sets up the initial value for th
   solutions to ODEs. *}
 
 lemma at_has_deriv [simp]:
-  "(f has-ode-deriv f' at time < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (time @\<^sub>u t) < (l @\<^sub>u t)"
+  "(f has-ode-deriv f' at ti < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (ti @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
   
 lemma ode_to_ivp:
-  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
+  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $st:\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
   by (rel_auto)
 
 lemma ode_solution_refine:
   "\<lbrakk> vwb_lens x;
      \<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV;
      \<forall> x. \<F>(x)(0) = x \<rbrakk>
-   \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>time\<guillemotright>)\<^sub>a"
+   \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   apply (rel_auto)    
   apply (rename_tac tr b tr')    
   apply (rule_tac x="\<F> (get\<^bsub>x\<^esub>b)" in exI)
@@ -117,7 +117,7 @@ done
 lemma ode_uniq_solution_refine:
   assumes
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>time\<guillemotright>)\<^sub>a \<sqsubseteq> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
+  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<sqsubseteq> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
 proof (rel_simp)
   fix tr b tr' \<G> t
 
@@ -157,7 +157,7 @@ qed
 theorem ode_solution:
   assumes 
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>time\<guillemotright>)\<^sub>a"
+  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   using ode_solution_refine[of x \<F> \<F>'] ode_uniq_solution_refine[of x \<F> \<F>']
   by (auto intro: antisym simp add: assms)
 
