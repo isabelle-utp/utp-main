@@ -45,6 +45,12 @@ where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^su
 abbreviation drop_state_pre ("\<lfloor>_\<rfloor>\<^sub>S\<^sub><")
 where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>< \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub><"
 
+abbreviation lift_state_post ("\<lceil>_\<rceil>\<^sub>S\<^sub>>")
+where "\<lceil>p\<rceil>\<^sub>S\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub>>\<rceil>\<^sub>S"
+
+abbreviation drop_state_post ("\<lfloor>_\<rfloor>\<^sub>S\<^sub>>")
+where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>> \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub>>"
+
 text {* Lifting substitutions on the reactive state *}
 
 abbreviation usubst_st_lift  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
