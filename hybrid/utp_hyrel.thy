@@ -599,22 +599,37 @@ subsection {* Evolve by continuous function *}
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(ti)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
-definition hEvolveBound :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolveBound x t f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><)"
+definition hEvolveUpTo :: 
+  "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
+   (real, 'd \<times> 'c) uexpr \<Rightarrow> 
+   (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> 
+   ('d,'c) hyrel" where
+[upred_defs]: "hEvolveUpTo x l f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>l\<rceil>\<^sub>S\<^sub>< )"
 
-definition hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolveAt x t f = (hEvolve x f \<and> \<^bold>l =\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d \<and> rl(&\<^bold>v))"
+definition hEvolveBounds :: 
+  "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
+   (real, 'd \<times> 'c) uexpr \<Rightarrow>
+   (real, 'd \<times> 'c) uexpr \<Rightarrow> 
+   (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> 
+   ('d,'c) hyrel" where
+[upred_defs]: "hEvolveBounds x l u f = (hEvolve x f \<and> \<lceil>l\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u \<^bold>l  \<and> \<^bold>l \<le>\<^sub>u \<lceil>u\<rceil>\<^sub>S\<^sub>< \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d \<and> rl(&\<^bold>v))"
+
+abbreviation hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+"hEvolveAt x t f \<equiv> hEvolveBounds x t t f"
 
 syntax
-  "_hEvolve"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
-  "_hEvolveBound"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h\<le>'(_') _" [90,0,91] 90)
-  "_hEvolveAt" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h'(_') _" [90,0,91] 90)  
+  "_hEvolve"       :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h _" [90,91] 90)
+  "_hEvolveUpTo"   :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h\<le>'(_') _" [90,0,91] 90)
+  "_hEvolveBounds" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>[_,_]\<^sub>h _" [90,0,0,91] 90)
+  "_hEvolveAt"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>h'(_') _" [90,0,91] 90)  
   
 translations
   "_hEvolve a f" => "CONST hEvolve a (\<lambda> _time_var. f)"
   "_hEvolve a f" <= "CONST hEvolve a (\<lambda> ti. f)"
-  "_hEvolveBound a t f" => "CONST hEvolveBound a t (\<lambda> _time_var. f)"
-  "_hEvolveBound a t f" <= "CONST hEvolveBound a t (\<lambda> ti. f)"
+  "_hEvolveUpTo a t f" => "CONST hEvolveUpTo a t (\<lambda> _time_var. f)"
+  "_hEvolveUpTo a t f" <= "CONST hEvolveUpTo a t (\<lambda> ti. f)"
+  "_hEvolveBounds a l u f" => "CONST hEvolveBounds a l u (\<lambda> _time_var. f)"
+  "_hEvolveBounds a l u f" <= "CONST hEvolveBounds a l u (\<lambda> ti. f)"
   "_hEvolveAt a t f" => "CONST hEvolveAt a t (\<lambda> _time_var. f)"
   "_hEvolveAt a t f" <= "CONST hEvolveAt a t (\<lambda> ti. f)"
 
@@ -622,8 +637,8 @@ lemma hEvolve_unrests [unrest]:
   "$ok \<sharp> x \<leftarrow>\<^sub>h f(ti)" "$ok\<acute> \<sharp> x \<leftarrow>\<^sub>h f(ti)" "$wait \<sharp> x \<leftarrow>\<^sub>h f(ti)" "$wait\<acute> \<sharp> x \<leftarrow>\<^sub>h f(ti)" "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h f(ti)"
   by (simp_all add: hEvolve_def unrest)
 
-lemma hEvolveBound_st'_unrest [unrest]:
-  "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h\<le>(n) f(ti)"
+lemma hEvolveUpTo_st'_unrest [unrest]:
+  "$st\<acute> \<sharp> x \<leftarrow>\<^sub>h\<le>(l) f(ti)"
   by (rel_auto)
     
 lemma hEvolve_usubst [usubst]:
@@ -633,9 +648,12 @@ lemma hEvolve_usubst [usubst]:
 lemma hEvolve_RR_closed [closure]: "x \<leftarrow>\<^sub>h f(ti) is RR"
   by (rel_auto)
 
-lemma hEvolveBound_RR_closed [closure]: "x \<leftarrow>\<^sub>h\<le>(l) f(ti) is RR"
+lemma hEvolveBounds_RR_closed [closure]: "(x \<leftarrow>[m,n]\<^sub>h f(ti)) is RR"
   by (rel_auto)
     
+lemma hEvolveUpTo_RR_closed [closure]: "(x \<leftarrow>\<^sub>h\<le>(l) f(ti)) is RR"
+  by (rel_auto)
+
 lemma hEvolveAt_RR_closed [closure]: "x \<leftarrow>\<^sub>h(l) f(ti) is RR"
   by (rel_auto)
     
@@ -651,15 +669,17 @@ done
 subsection {* Pre-emption *}
 
 definition hUntil ::
-  "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"  where
-[upred_defs]: "hUntil P b = (P \<and> \<lceil>\<not> b(ti)\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
+  "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"  where
+[upred_defs]: "hUntil P b c = (P \<and> \<lceil>b(ti)\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>c(l)\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
 
 syntax
-  "_hUntil" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>h _" [74,75] 74)
+  "_hUntil_inv" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ inv _ until\<^sub>h _" [74,0,75] 74)
+  "_hUntil"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>h _" [74,75] 74)
 
 translations
-  "_hUntil P b" => "CONST hUntil P (\<lambda> _time_var. b)"
-  "_hUntil P b" <= "CONST hUntil P (\<lambda> t. b)"
+  "_hUntil P b" => "CONST hUntil P (\<lambda> _time_var. \<not> b) (\<lambda> _time_var. b)"
+  "_hUntil_inv P b c" => "CONST hUntil P (\<lambda> _time_var . b) (\<lambda> _time_var. c)"
+  "_hUntil_inv P b c" <= "CONST hUntil P (\<lambda> t. b) (\<lambda> t'. c)"
 
 definition hPreempt ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel \<Rightarrow>
@@ -749,7 +769,7 @@ proof -
 qed
 
 lemma hUntil_expand_lemma:
-  "hUntil P b = (P \<and> \<lceil>\<not> b ti\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
+  "P until\<^sub>h b(ti) = (P \<and> \<lceil>\<not> b ti\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
   by (rel_auto)
   
 lemma hUntil_subst_init_cont [usubst]:
@@ -888,98 +908,122 @@ proof -
     using assms(1) c gL vwb_lens.put_eq by fastforce    
 qed
     
-(* FIXME: Try and convert this to a pure Isar proof, or couple of lemmas *)
+text {* The following theorem can be used to ascertain the bounds on when a hybrid evolution can
+  terminate. We require two time instants, $k$ and $l$, such that $k \le l$. Up until $l$, the 
+  invariant of the evolution ($b$) holds, but it becomes false at this point. Up until $k$,
+  condition $c$ does not hold, but it becomes true and stays true from $k$ through to $l$. Thus,
+  the evolution can terminate at any point between $k$ and $l$. *}
   
+theorem hUntil_inv_solve:
+  assumes 
+    "vwb_lens x" "0 < k" "k \<le> l" "continuous_on {0..l} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall> t \<in> {0..<l}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = true" "b\<lbrakk>\<guillemotleft>f(l)\<guillemotright>/$x\<acute>\<rbrakk> = false"
+    "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "\<forall> t \<in> {k..l}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = true"
+  shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>) inv b until\<^sub>h c = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f(ti)\<guillemotright>"
+proof -
+  from assms(6-9) 
+  have a: 
+    "\<forall>t\<in>{0..<l}. \<forall>s s'. \<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    "\<forall>s s'. \<not> \<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f l))"
+    "\<forall>t\<in>{0..<k}. \<forall>s s'. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    "\<forall>t\<in>{k..l}. \<forall>s s'. \<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    by (rel_auto)+
+  show ?thesis
+  proof (rule antisym)
+    show "x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright> \<sqsubseteq> (x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright>) inv b until\<^sub>h c"
+    proof (rel_simp)
+      fix tr tr' s
+      assume b:
+        "tr < tr'"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = f t"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> \<lbrakk>b\<rbrakk>\<^sub>e (s, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+        "\<lbrakk>c\<rbrakk>\<^sub>e (s, Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t)"
+      let ?l = "end\<^sub>t (tr' - tr)"
+    
+      have etr_nz: "?l > 0"
+        by (simp add: b)
+    
+      have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+        by (simp add: b less_imp_le)          
+          
+      show "k \<le> end\<^sub>t (tr' - tr) \<and> end\<^sub>t (tr' - tr) \<le> l"
+      proof
+        show l: "end\<^sub>t (tr' - tr) \<le> l"
+        proof (rule ccontr)
+          assume less: "\<not> end\<^sub>t (tr' - tr) \<le> l"
+          with assms(2,3) b(1,3) have 1:"\<lbrakk>b\<rbrakk>\<^sub>e (s, \<langle>tr' - tr\<rangle>\<^sub>t l)"
+            by (auto)
+          from assms(2,3) tr_f less have "get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t l) = f l"
+            by auto
+          with a(2) have 2:"\<not> \<lbrakk>b\<rbrakk>\<^sub>e (s, \<langle>tr' - tr\<rangle>\<^sub>t l)"
+            apply (drule_tac x="s" in spec)
+            apply (drule_tac x="\<langle>tr' - tr\<rangle>\<^sub>t l" in spec)
+            using assms(1) vwb_lens.put_eq apply fastforce
+          done
+          from 1 2 show False
+            by blast
+        qed
+        have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
+          using assms(1-5) b(1) tr_f l
+          by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
+        show "k \<le> end\<^sub>t (tr' - tr)"
+        proof (rule ccontr)
+          assume "\<not> k \<le> end\<^sub>t (tr' - tr)"
+          hence "\<not> \<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr' - tr\<rangle>\<^sub>t) (f ?l))"
+            using a(3) by auto
+          moreover have "\<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr' - tr\<rangle>\<^sub>t) (f ?l))"
+            using assms(1) b(4) gL vwb_lens.put_eq by fastforce
+          ultimately show False
+            by blast
+        qed
+      qed
+    qed
+    show "(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright>) inv b until\<^sub>h c \<sqsubseteq> x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright>"
+    proof (rel_simp)
+      fix tr tr' s\<^sub>0 s\<^sub>1
+      assume b: 
+        "tr < tr'"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+        "k \<le> end\<^sub>t (tr' - tr)"
+        "end\<^sub>t (tr' - tr) \<le> l"
+      show "(\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> \<lbrakk>b\<rbrakk>\<^sub>e (s\<^sub>0, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))) \<and>
+            (\<lbrakk>c\<rbrakk>\<^sub>e (s\<^sub>0, Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t))"
+      proof (safe)
+        fix t
+        assume c: "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+        show "\<lbrakk>b\<rbrakk>\<^sub>e (s\<^sub>0, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+        proof -
+          have "\<lbrakk>b\<rbrakk>\<^sub>e (s\<^sub>0, put\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) (f t))"
+            using c a(1) b(4) by auto
+          moreover have "get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+            by (simp add: b(2) c(1) c(2))
+          ultimately show ?thesis
+            by (metis assms(1) vwb_lens.put_eq) 
+        qed
+      next
+        have c:"\<lbrakk>c\<rbrakk>\<^sub>e (s\<^sub>0, put\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr' - tr))))"
+          by (simp add: a(4) b(3) b(4))
+        have tr_f: "\<forall>t. 0 \<le> t \<and> t < (end\<^sub>t (tr' - tr)) \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
+          by (metis (no_types, hide_lams) approximation_preproc_push_neg(2) b(2) comp_apply not_le_minus tt_apply_minus tt_end_empty)
+        have gL: "get\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
+          using assms(1-5) b(1) tr_f b(4)
+          by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)   
+        hence "put\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr' - tr))) =(Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t)"
+          using assms(1) vwb_lens.put_eq by force            
+        with c show "\<lbrakk>c\<rbrakk>\<^sub>e (s\<^sub>0, Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t)"
+          by (simp)
+      qed
+    qed
+  qed
+qed
+        
 lemma hUntil_solve:
   assumes 
     "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
     "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "c\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
   shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright>"
-  using assms(5,6) 
-  apply (fast_uexpr_transfer)
-  apply (rel_simp)
-  apply (safe, simp_all)
-  defer
-  apply (metis assms(1) atLeastLessThan_iff vwb_lens.put_eq)
-proof -
-  fix tr tr' b
-  assume a:
-    "\<forall>t\<in>{0..<k}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
-    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f k))"
-    "\<forall>xa. 0 \<le> xa \<and> xa < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(xa + end\<^sub>t tr)) = f xa"
-    "tr < tr'"
-    "\<forall>x. 0 \<le> x \<and> x < end\<^sub>t (tr'-tr) \<longrightarrow> \<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr'\<rangle>\<^sub>t(x + end\<^sub>t tr))"
-    "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left (end\<^sub>t (tr'-tr))) \<langle>tr'-tr\<rangle>\<^sub>t)"
-    
-  let ?l = "end\<^sub>t (tr' - tr)"
-    
-  have etr_nz: "?l > 0"
-    by (simp add: a(4))
-    
-  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
-    by (simp add: a less_imp_le)
-
-  have k:"end\<^sub>t (tr'-tr) \<le> k"
-  proof (rule ccontr)
-    assume less: "\<not> end\<^sub>t (tr' - tr) \<le> k"
-    with assms(2) a(4,5) have 1:"\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
-      by (auto)
-    from assms(2) tr_f less have "get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t k) = f k"
-      by auto
-    with a(2) have 2:"\<lbrakk>c\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t k)"
-      apply (drule_tac x="b" in spec)
-      apply (drule_tac x="\<langle>tr' - tr\<rangle>\<^sub>t k" in spec)
-      using assms(1) vwb_lens.put_eq apply fastforce
-    done
-    from 1 2 show False
-      by blast
-  qed      
-      
-  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
-    using assms(1-4) a(4) tr_f k 
-    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
-
-  show "end\<^sub>t (tr'-tr) = k"
-  proof (cases k "end\<^sub>t (tr'-tr)" rule:linorder_cases)
-    case less show ?thesis
-      using k less by auto
-  next
-    case equal
-    then show ?thesis by simp
-  next
-    case greater
-    with a(1) have "\<not> \<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f ?l))"
-      by simp
-    then show ?thesis
-      using a(6) assms(1) gL vwb_lens.put_eq by force 
-  qed
-next
-  fix tr tr' b
-  assume a:
-    "\<forall>t\<in>{0..<end\<^sub>t (tr' - tr)}. \<forall>a b. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f t))"
-    "\<forall>a b. \<lbrakk>c\<rbrakk>\<^sub>e (a, put\<^bsub>x\<^esub> b (f (end\<^sub>t (tr'-tr))))"
-    "\<forall>xa. 0 \<le> xa \<and> xa < end\<^sub>t (tr'-tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(xa + end\<^sub>t tr)) = f xa"
-    "tr < tr'"
-    "k = end\<^sub>t (tr'-tr)"
-    
-  let ?l = "end\<^sub>t (tr' - tr)"
-    
-  have etr_nz: "?l > 0"
-    by (simp add: a(4))
-    
-  have tr_f: "\<forall>t. 0 \<le> t \<and> t < ?l \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
-    by (simp add: a less_imp_le)
-      
-  have gL: "get\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) = f ?l"
-    using assms(1-4) a tr_f 
-    by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)
-    
-  have c: "\<lbrakk>c\<rbrakk>\<^sub>e (b, put\<^bsub>x\<^esub> (Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr'-tr))))"
-    by (simp add: a(2))
-    
-  show "\<lbrakk>c\<rbrakk>\<^sub>e (b, Lim (at_left ?l) \<langle>tr'-tr\<rangle>\<^sub>t)"
-    using assms(1) c gL vwb_lens.put_eq by fastforce    
-qed
+  using assms
+  by (rule_tac hUntil_inv_solve, simp_all, (rel_auto)+)
 
 subsection {* Stepping a Hybrid Relation Forward *}
   
@@ -994,7 +1038,7 @@ proof -
   from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
     by (simp add: hStepRel_def, rel_auto)
   also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
-    by (rel_auto)           
+    by (rel_auto, blast)  
   also have "... = ?rhs"
   proof (rel_auto)
     fix tr tr'
@@ -1009,7 +1053,7 @@ proof -
            (tr < tr' \<longrightarrow>
             tr \<le> tr' \<and>
             (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = f t) \<and>
-            end\<^sub>t (tr' - tr) = n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) \<and>
+            n \<le> end\<^sub>t (tr' - tr) \<and> end\<^sub>t (tr' - tr) \<le> n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) \<and>
            tr < tr')"
       by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
          (auto simp add: Limit_solve at_left_from_zero)
