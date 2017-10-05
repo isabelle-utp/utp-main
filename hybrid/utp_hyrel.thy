@@ -165,7 +165,7 @@ abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topologic
 "\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub><"
 
 abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub>>") where
-"\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> undefined" (* \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub>> *)
+"\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub>>"
 
 abbreviation cont_pre_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub><") where
 "\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (ivar \<^bold>c)"
@@ -186,7 +186,7 @@ lemma unrest_lift_cont_subst [unrest]:
 lemma lift_cont_subst [usubst]:
   "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P\<rceil>\<^sub>C = \<sigma> \<dagger> (\<lceil>P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>C)"
   by (rel_simp)    
-
+   
 lemma unrest_lift_cont_disc [unrest]: 
   "$st:\<^bold>d \<sharp> \<lceil>P\<rceil>\<^sub>C" "$st:\<^bold>d\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>C"
   by (rel_auto)+
@@ -200,10 +200,16 @@ text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P
   on the hybrid state. Effectively this is building a precondition, since it can only
   refer to unprimed continuous variables. *}
 
+definition cont_st_post :: "'c::topological_space upred \<Rightarrow> ('d, 'c) hyrel" ("[_]\<^sub>C\<^sub>>") where
+[upred_defs]: "cont_st_post b = R1(\<lceil>b\<rceil>\<^sub>C\<^sub>>)"
+
+lemma cont_st_post_RR: "[b]\<^sub>C\<^sub>> is RR"
+  by (rel_auto)
+  
 lemma zero_least_uexpr [simp]:
   "0 \<le>\<^sub>u (x::('a::trace, '\<alpha>) uexpr) = true"
   by (rel_auto)
-
+    
 text {* The next properties states that the end point of an empty timed trace is 0. *}
 
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"

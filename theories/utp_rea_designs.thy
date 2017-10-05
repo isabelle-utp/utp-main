@@ -127,6 +127,16 @@ text {* Reactive state assignment *}
 definition rea_assigns :: "('s \<Rightarrow> 's) \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>r") where
 [upred_defs]: "\<langle>\<sigma>\<rangle>\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
 
+syntax
+  "_assign_rea" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') :=\<^sub>r '(_')")  
+  "_assign_rea" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>r" 90)
+
+translations
+  "_assign_rea xs vs" => "CONST rea_assigns (_mk_usubst (CONST id) xs vs)"
+  "x :=\<^sub>r v" <= "CONST rea_assigns (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x :=\<^sub>r v" <= "CONST rea_assigns (CONST subst_upd (CONST id) x v)"
+  "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+
 lemma rea_assigns_RR_closed [closure]: 
   "\<langle>\<sigma>\<rangle>\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by auto
@@ -2035,6 +2045,16 @@ definition [upred_defs]: "RD3(P) = P ;; II\<^sub>R"
 
 definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
 [upred_defs]: "assigns_rea \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+
+syntax
+  "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') :=\<^sub>R '(_')")  
+  "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>R" 90)
+
+translations
+  "_assign_srd xs vs" => "CONST assigns_rea (_mk_usubst (CONST id) xs vs)"
+  "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) x v)"
+  "x,y :=\<^sub>R u,v" <= "CONST assigns_rea (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
 abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"

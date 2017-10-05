@@ -43,10 +43,10 @@ subsection {* System Definition *}
 
 definition thermostat :: "(thermo_d, thermo_c) hyrel" where
   "thermostat =
-    (\<^bold>c:temp := \<guillemotleft>init_temp\<guillemotright> ;; 
-     \<^bold>d:isOn := false ;;
-     (\<nu> X \<bullet> (\<langle>temp \<bullet> \<guillemotleft>heating_ode\<guillemotright>\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>r \<langle>temp \<bullet> \<guillemotleft>cooling_ode\<guillemotright>\<rangle>\<^sub>h)
+    (\<^bold>c:temp :=\<^sub>r \<guillemotleft>init_temp\<guillemotright> ;; 
+     \<^bold>d:isOn :=\<^sub>r false ;;
+     (\<nu> X \<bullet> (\<langle>temp \<bullet> \<guillemotleft>heating_ode\<guillemotright>\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>R \<langle>temp \<bullet> \<guillemotleft>cooling_ode\<guillemotright>\<rangle>\<^sub>h)
               [$temp\<acute> <\<^sub>u \<guillemotleft>min_temp\<guillemotright> \<or> $temp\<acute> >\<^sub>u \<guillemotleft>max_temp\<guillemotright>]\<^sub>h
-            (\<^bold>d:isOn := true \<triangleleft> &\<^bold>c:temp <\<^sub>u \<guillemotleft>min_temp\<guillemotright> \<triangleright>\<^sub>r \<^bold>d:isOn := false) ;; X))"
+            (\<^bold>d:isOn := true \<triangleleft> &\<^bold>c:temp <\<^sub>u \<guillemotleft>min_temp\<guillemotright> \<triangleright>\<^sub>R \<^bold>d:isOn := false) ;; X))"
 
 end
