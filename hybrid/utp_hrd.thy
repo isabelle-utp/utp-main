@@ -6,82 +6,79 @@ theory utp_hrd
     utp_differential
 begin
 
-text {* Lenses for discrete and continous state variables *}
-  
-definition svar_disc :: "('a \<Longrightarrow> 'd) \<Rightarrow> ('a \<Longrightarrow> 'd \<times> 'c)" where
-[upred_defs]: "svar_disc x = x ;\<^sub>L fst\<^sub>L"
-
-definition svar_cont :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'd \<times> 'c)" where
-[upred_defs]: "svar_cont x = x ;\<^sub>L snd\<^sub>L"
-  
-syntax
-  "_svardisc" :: "svid \<Rightarrow> svid" ("d-_" [999] 999)
-  "_svarcont" :: "svid \<Rightarrow> svid" ("c-_" [999] 999)
-
-translations
-  "_svardisc x" == "CONST svar_disc x"
-  "_svarcont x" == "CONST svar_cont x"
-
 definition hrdEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs, rdes_def]: "hrdEvolve x f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> x \<leftarrow>\<^sub>h f(ti) \<diamondop> false)"
 
+definition hrdEvolveBounds :: 
+  "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
+   (real, 'd \<times> 'c) uexpr \<Rightarrow> 
+   (real, 'd \<times> 'c) uexpr \<Rightarrow>
+   (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> 
+   ('d,'c) hyrel" where
+[upred_defs]: "hrdEvolveBounds x l u f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(u) f(ti)) \<diamondop> ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> u >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r))"
+
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
-
-definition hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdEvolveTil x t f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(t) f(ti)) \<diamondop> ((x \<leftarrow>\<^sub>h(t) f(ti)) \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r))"
+  
+abbreviation hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+"hrdEvolveTil x t f \<equiv> hrdEvolveBounds x t t f"
 
 syntax
-  "_hrdEvolve"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H _" [90,91] 90)
-  "_hrdEvolveTil" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H'(_') _" [90,0,91] 90)  
+  "_hrdEvolve"       :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H _" [90,91] 90)
+  "_hrdEvolveBounds" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>[_,_]\<^sub>H _" [90,0,0,91] 90)
+  "_hrdEvolveTil"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H'(_') _" [90,0,91] 90)  
   
 translations
   "_hrdEvolve a f" => "CONST hrdEvolve a (\<lambda> _time_var. f)"
   "_hrdEvolve a f" <= "CONST hrdEvolve a (\<lambda> ti. f)"
+  "_hrdEvolveBounds a l u f" => "CONST hrdEvolveBounds a l u (\<lambda> _time_var. f)"
+  "_hrdEvolveBounds a l u f" <= "CONST hrdEvolveBounds a l u (\<lambda> ti. f)"
   "_hrdEvolveTil a t f" => "CONST hrdEvolveTil a t (\<lambda> _time_var. f)"
   "_hrdEvolveTil a t f" <= "CONST hrdEvolveTil a t (\<lambda> ti. f)"
 
 definition hrdODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
    ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[upred_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
+[upred_defs]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
 
 syntax
   "_hrdODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>H")
 
 translations
-  "_hrdODE a P" == "CONST hODE a P"
+  "_hrdODE a P" == "CONST hrdODE a P"
 
 text {* Should the until construct include in the pericondition the state where the condition
   has been satisfied at the limit? Currently it does, but this means that that particular evolution
   is present both as an intermediate and also a final state. *}
   
-definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"
+definition hrdUntil :: "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"
   where [upred_defs]: 
-"hrdUntil P b = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b(ti)\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
+"hrdUntil P b c = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (peri\<^sub>R(P) \<and> \<lceil>b(ti)\<rceil>\<^sub>h) \<diamondop> (post\<^sub>R(P) \<or> hUntil (peri\<^sub>R(P)) b c))"
 
 definition hrdPreempt_nz ::
-    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
+    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdPreempt_nz P b Q = (hrdUntil P b) ;; Q"
+[upred_defs]: "hrdPreempt_nz P b c Q = (hrdUntil P b c) ;; Q"
 
 definition hrdPreempt ::
-    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
+    "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow>
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hrdPreempt P b Q = (Q \<triangleleft> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C) \<triangleright> (hrdPreempt_nz P b Q))"
+[upred_defs]: "hrdPreempt P b c Q = (Q \<triangleleft> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b(l)\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C) \<triangleright> (hrdPreempt_nz P b c Q))"
 
 syntax
+  "_hrdUntil_inv"  :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ inv _ until\<^sub>H _" [74,0,75] 74)
   "_hrdUntil"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ until\<^sub>H _" [74,75] 74)
-  "_hrdPreempt_nz" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_]\<^sub>H\<^sup>+ _" [64,0,65] 64)
-  "_hrdPreempt"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_]\<^sub>H _" [64,0,65] 64)
+  "_hrdPreempt_nz" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>H\<^sup>+ _" [64,0,65] 64)
+  "_hrdPreempt"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>H _" [64,0,65] 64)
   
 translations
-  "_hrdUntil P b" => "CONST hrdUntil P (\<lambda> _time_var. b)"
-  "_hrdUntil P b" <= "CONST hrdUntil P (\<lambda> t. b)"
-  "_hrdPreempt_nz P b Q" => "CONST hrdPreempt_nz P (\<lambda> _time_var. b) Q"
-  "_hrdPreempt_nz P b Q" <= "CONST hrdPreempt_nz P (\<lambda> t. b) Q"
-  "_hrdPreempt P b Q" => "CONST hrdPreempt P (\<lambda> _time_var. b) Q"
-  "_hrdPreempt P b Q" <= "CONST hrdPreempt P (\<lambda> t. b) Q"
+  "_hrdUntil_inv P b c" => "CONST hrdUntil P (\<lambda> _time_var. b) (\<lambda> _time_var. c)"
+  "_hrdUntil_inv P b c" <= "CONST hrdUntil P (\<lambda> t. b) (\<lambda> t'. c)"
+  "_hrdUntil P b"       => "CONST hrdUntil P (\<lambda> _time_var. \<not> b) (\<lambda> _time_var. b)"
+  "_hrdPreempt_nz P b c Q" => "CONST hrdPreempt_nz P (\<lambda> _time_var. b) (\<lambda> _time_var. c) Q"
+  "_hrdPreempt_nz P b c Q" <= "CONST hrdPreempt_nz P (\<lambda> t. b) (\<lambda> t'. c) Q"
+  "_hrdPreempt P b c Q" => "CONST hrdPreempt P (\<lambda> _time_var. b) (\<lambda> _time_var. c) Q"
+  "_hrdPreempt P b c Q" <= "CONST hrdPreempt P (\<lambda> t. b) (\<lambda> t'. c) Q"
 
 lemma preR_hrdEvolve [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H f(ti)) = true\<^sub>r"
   by (rel_auto)
@@ -98,49 +95,64 @@ lemma hrdEvolve_SRD [closure]: "x \<leftarrow>\<^sub>H f(ti) is SRD"
 lemma hrdEvolve_NSRD [closure]: "x \<leftarrow>\<^sub>H f(ti) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def rdes closure unrest)
     
-lemma preR_hrdEvolveTil [rdes]: "pre\<^sub>R(x \<leftarrow>\<^sub>H(t) f(ti)) = true\<^sub>r"
+lemma preR_hrdEvolveBounds [rdes]: "pre\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(ti)) = true\<^sub>r"
   by (rel_auto)
     
-lemma periR_hrdEvolveTil [rdes]: "peri\<^sub>R(x \<leftarrow>\<^sub>H(t) f(ti)) = (x \<leftarrow>\<^sub>h\<le>(t) f(ti)) "
+lemma periR_hrdEvolveBounds [rdes]: "peri\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(ti)) = (x \<leftarrow>\<^sub>h\<le>(u) f(ti)) "
   by (rel_auto)
 
 declare minus_zero_eq [dest]
     
 lemma postR_hrdEvolveTil [rdes]: 
-  "post\<^sub>R(x \<leftarrow>\<^sub>H(t) f(ti)) = ((x \<leftarrow>\<^sub>h(t) f(ti)) \<triangleleft> t >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r)"
+  "post\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(ti)) = ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> u >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r)"
   by (rel_auto)
     
-lemma hrdEvolveTil_SRD [closure]: "x \<leftarrow>\<^sub>H(t) f(ti) is SRD"
-  by (simp add: hrdEvolveTil_def init_cont_def final_cont_def closure unrest)
+lemma hrdEvolveBounds_SRD [closure]: "x \<leftarrow>[l,u]\<^sub>H f(ti) is SRD"
+  by (simp add: hrdEvolveBounds_def init_cont_def final_cont_def closure unrest)
     
-lemma hrdEvolveTil_NSRD [closure]: "x \<leftarrow>\<^sub>H(t) f(ti) is NSRD"
+lemma hrdEvolveBounds_NSRD [closure]: "x \<leftarrow>[l,u]\<^sub>H f(ti) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def final_cont_def rdes closure unrest)    
-    
+
+lemma preR_hrdODE [rdes]:
+  "pre\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = true\<^sub>r"
+  by (simp add: hrdODE_def rdes closure)
+
+lemma periR_hrdODE [rdes]:
+  "peri\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"
+  by (simp add: hrdODE_def rdes closure rpred)
+
+lemma postR_hrdODE [rdes]:
+  "post\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = false"
+  by (simp add: hrdODE_def rdes closure rpred)
+   
+lemma hrdODE_SRD [closure]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H is SRD"
+  by (simp add: hrdODE_def closure unrest)
+
+lemma hrdODE_NSRD [closure]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H is NSRD"
+  by (simp add: hrdODE_def closure unrest)
+
 lemma preR_hrdUntil [rdes]: 
-  "P is SRD \<Longrightarrow> pre\<^sub>R(P until\<^sub>H b(ti)) = pre\<^sub>R(P)"
+  "P is SRD \<Longrightarrow> pre\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = pre\<^sub>R(P)"
   by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2 Healthy_if)
 
 lemma periR_hrdUntil [rdes]: 
-  "P is NSRD \<Longrightarrow> peri\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h)"
+  "P is NSRD \<Longrightarrow> peri\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R(P) \<and> \<lceil>b(ti)\<rceil>\<^sub>h)"
   by (simp add: hrdUntil_def rea_peri_RHS_design unrest usubst impl_alt_def
       NSRD_is_SRD R1_disj R1_extend_conj' R1_hInt  R2c_and R2c_disj 
       R2c_not R2c_peri_SRD R2s_hInt  R1_rea_impl R2c_preR R2c_rea_impl)
 
 lemma postR_hrdUntil [rdes]:
-  "P is NSRD \<Longrightarrow> post\<^sub>R(P until\<^sub>H b) = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> peri\<^sub>R(P) \<and> \<lceil>\<not>b\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>b\<rceil>\<^sub>C \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d))"
-  apply (simp add: hrdUntil_def rea_post_RHS_design unrest usubst impl_alt_def
-      NSRD_is_SRD R1_disj R1_extend_conj R1_hInt R2c_and R2c_disj 
-      R2c_not R1_post_SRD R1_peri_SRD R2c_peri_SRD R2c_post_SRD R2s_hInt R2c_init_cont R2c_final_cont
-      R1_rea_impl R2c_rea_impl R2c_preR)
-  apply (rel_auto)
-done
+  "P is NSRD \<Longrightarrow>
+   post\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = 
+  (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> (peri\<^sub>R(P) inv b(ti) until\<^sub>h c(ti))))"
+  by (simp add: hrdUntil_def rdes closure unrest)
     
-lemma hrdUntil_SRD [closure]: "P is SRD \<Longrightarrow> P until\<^sub>H b is SRD"
+lemma hrdUntil_SRD [closure]: "P is SRD \<Longrightarrow> P inv b(ti) until\<^sub>H c(ti) is SRD"
   by (simp add: hrdUntil_def closure unrest)
     
-lemma hrdUntil_NSRD [closure]: "P is NSRD \<Longrightarrow> P until\<^sub>H b is NSRD"
+lemma hrdUntil_NSRD [closure]: "P is NSRD \<Longrightarrow> P inv b(ti) until\<^sub>H c(ti) is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest NSRD_neg_pre_unit)
-        
+    
 lemma hrdUntil_false: 
   assumes "P is SRD"
   shows "P until\<^sub>H false = P"
@@ -148,7 +160,7 @@ proof -
   have "(peri\<^sub>R P \<and> \<lceil>true\<rceil>\<^sub>h) = peri\<^sub>R P"
     by (metis R1_extend_conj' R1_peri_SRD assms hInt_true utp_pred_laws.inf_top_right)
   thus ?thesis 
-    by (simp add: hrdUntil_def alpha SRD_reactive_tri_design assms)
+    by (simp add: hUntil_false hrdUntil_def alpha SRD_reactive_tri_design assms)
 qed
 
 lemma hrdUntil_true: 
@@ -156,21 +168,20 @@ lemma hrdUntil_true:
   shows "P until\<^sub>H true = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> (peri\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr) \<diamondop> (post\<^sub>R P))"
   by (simp add: hrdUntil_def hInt_false alpha, rel_auto)
 
+(*
 lemma hrdPreempt_true:
   "P is SRD \<Longrightarrow> P [true]\<^sub>H Q = Q"
   by (simp add: hrdPreempt_def alpha usubst, rel_auto)
-        
+*)  
+      
 lemma hrdIntF_zero: "x \<leftarrow>\<^sub>H(0) f(ti) = II\<^sub>R"
-  by (simp add: hrdEvolveTil_def alpha, rel_auto)
+  by (simp add: hrdEvolveBounds_def alpha, rel_auto)
 
 lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x \<sharp> (P wp\<^sub>R Q)"
   by (simp add: wpR_def unrest R1_def rea_not_def)
 
 lemma out_var_unrest_wpR [unrest]: "\<lbrakk> $x\<acute> \<sharp> Q; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> (P wp\<^sub>R Q)"
   by (simp add: wpR_def unrest R1_def rea_not_def)
-    
-lemma "(x::real) > 0 \<Longrightarrow> at_left x = at x within {0 ..< x}"
-  by (simp add: at_left_from_zero)
     
 lemma Limit_continuous: 
   assumes "x > 0" "continuous_on {0..x::real} f"
@@ -201,36 +212,84 @@ proof -
   finally show ?thesis .
 qed
 
+theorem hrdODE_solution:
+  assumes 
+    "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
+  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H = x \<leftarrow>\<^sub>H \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  by (rule SRD_eq_intro, simp_all add: closure assms rdes rpred ode_solution)
+  
+theorem hrdUntil_inv_solve:
+  assumes 
+    "vwb_lens x" "0 < k" "k \<le> l" "continuous_on {0..l} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
+    "\<forall> t \<in> {0..<l}. b\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = true" "b\<lbrakk>\<guillemotleft>f(l)\<guillemotright>/$x\<acute>\<rbrakk> = false"
+    "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "\<forall> t \<in> {k..l}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = true"
+  shows "(x \<leftarrow>\<^sub>H \<guillemotleft>f(ti)\<guillemotright>) inv b until\<^sub>H c = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>H \<guillemotleft>f(ti)\<guillemotright>"
+proof (rule SRD_eq_intro, simp_all add: closure assms rdes rpred)
+  from assms(6-9) 
+  have a: 
+    "\<forall>t\<in>{0..<l}. \<forall>s s'. \<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    "\<forall>s s'. \<not> \<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f l))"
+    "\<forall>t\<in>{0..<k}. \<forall>s s'. \<not> \<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    "\<forall>t\<in>{k..l}. \<forall>s s'. \<lbrakk>c\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> s' (f t))"
+    by (rel_auto)+
+  show "(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<lceil>b\<rceil>\<^sub>h) = x \<leftarrow>\<^sub>h\<le>(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright>" (is "?lhs = ?rhs")
+  proof (rule antisym)
+    show "?lhs \<sqsubseteq> ?rhs"
+    proof (rel_simp)
+      fix tr tr' s t
+      assume b:
+        "tr < tr'"
+        "end\<^sub>t (tr' - tr) \<le> l"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+        "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+      from a(1) b(2,4-5) have "\<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) (f t))"
+        by (auto)
+      moreover have "put\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) (f t) = (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+        by (metis assms(1) b(3) b(4) b(5) vwb_lens.put_eq)
+      ultimately show "\<lbrakk>b\<rbrakk>\<^sub>e (s, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+        by simp
+    qed
+    show "?rhs \<sqsubseteq> ?lhs"
+    proof (rel_simp)
+      fix tr tr' s t
+      assume b:
+        "tr < tr'"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+        "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> \<lbrakk>b\<rbrakk>\<^sub>e (s, \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))"
+      have 1:"\<not> \<lbrakk>b\<rbrakk>\<^sub>e (s, put\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) (f l))"
+        using a(2) by auto
+      show "end\<^sub>t (tr' - tr) \<le> l"
+      proof (rule ccontr)
+        assume l: "\<not> end\<^sub>t (tr' - tr) \<le> l"
+        with assms(2-3) b(3) have 1:"\<lbrakk>b\<rbrakk>\<^sub>e (s, (\<langle>tr'\<rangle>\<^sub>t(l + end\<^sub>t tr)))"
+          by (auto)
+        have "get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t (l + end\<^sub>t tr)) = f l"
+          using assms(2) assms(3) b(2) l by auto
+        hence "put\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t (l + end\<^sub>t tr)) (f l) = (\<langle>tr'\<rangle>\<^sub>t (l + end\<^sub>t tr))"
+          by (metis assms(1) vwb_lens.put_eq) 
+        hence "\<not> \<lbrakk>b\<rbrakk>\<^sub>e (s, (\<langle>tr'\<rangle>\<^sub>t (l + end\<^sub>t tr)))"
+          by (metis a(2))
+        with 1 show False
+          by auto
+      qed
+    qed
+  qed
+  show "x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> inv b until\<^sub>h c = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>l\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r" (is "?lhs = ?rhs")
+  proof -
+    have "?lhs = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright>"
+      by (rule hUntil_inv_solve, simp_all add: assms)
+    with assms(2-3) show ?thesis
+      by (simp, rel_auto)
+  qed
+qed
+  
 lemma hrdUntil_solve:
   assumes 
     "vwb_lens x" "k > 0" "continuous_on {0..k} f" "continuous_on UNIV get\<^bsub>x\<^esub>"
     "\<forall> t \<in> {0..<k}. c\<lbrakk>\<guillemotleft>f(t)\<guillemotright>/$x\<acute>\<rbrakk> = false" "c\<lbrakk>\<guillemotleft>f(k)\<guillemotright>/$x\<acute>\<rbrakk> = true"
   shows "(x \<leftarrow>\<^sub>H \<guillemotleft>f(ti)\<guillemotright>) until\<^sub>H c = x \<leftarrow>\<^sub>H(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright>"
-proof (rule SRD_eq_intro, simp_all add: closure assms rdes rpred)
-  from assms(5,6) show 1:"(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h) = x \<leftarrow>\<^sub>h\<le>(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f ti\<guillemotright>"
-    apply (fast_uexpr_transfer)
-    apply (rel_simp)
-    apply (safe, simp_all)
-     apply (rule hUntil_lemma2[of x k _ _ c f], simp_all add: assms)
-    apply (rename_tac tr b tr' t)
-    apply (drule_tac x="t" in bspec)
-     apply (simp_all add: assms)
-    apply (metis assms(1) vwb_lens.put_eq)
-  done
-  from assms(2,5,6) show
-    "(x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<lceil>\<not> c\<rceil>\<^sub>h \<and> rl(&\<^bold>v) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil>c\<rceil>\<^sub>C \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f ti\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>k\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r"
-    apply (fast_uexpr_transfer)
-    apply (rel_simp)
-    apply (safe, simp_all)
-    apply (rule hUntil_lemma3[of x], auto simp add: assms)
-    apply (rename_tac tr b tr' t)
-    apply (drule_tac x="t" in bspec)
-     apply (simp_all add: assms)
-    apply (metis assms(1) vwb_lens.put_eq)
-    apply (rule hUntil_lemma4[of x k f _])
-    using assms apply (simp_all)
-  done
-qed
+  using assms
+  by (rule_tac hrdUntil_inv_solve, simp_all, rel_auto+)
   
 subsection {* Stepping a Hybrid Reactive Design *}
 
@@ -242,6 +301,7 @@ lemma hrdStep_hrdEvolve:
   shows "Step[n]\<^sub>H(&\<^bold>v \<leftarrow>\<^sub>H \<guillemotleft>f(ti)\<guillemotright>) = (\<^bold>v := \<guillemotleft>f n\<guillemotright>)"
   by (simp add: hrdStepRel_def rdes assms HyStep_hEvolve)
   
+(*
 lemma tt_eq_iff_end_same:
   "\<lbrakk> s \<le> t; end\<^sub>t(s) = end\<^sub>t(t) \<rbrakk> \<Longrightarrow> s = t"
   using tt_end_minus by fastforce
@@ -370,5 +430,6 @@ proof -
   done
   also have "... = \<^bold>v := \<guillemotleft>f n\<guillemotright> ;;\<^sub>h \<lfloor>(\<^bold>l =\<^sub>u \<guillemotleft>n - l\<guillemotright> \<and> RR(peri\<^sub>R P) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
 oops
-  
+*)  
+
 end

@@ -768,6 +768,10 @@ proof -
     using L tendsto_Lim trivial_limit_at_left_real by blast
 qed
 
+lemma hUntil_false:
+  "P inv b(ti) until\<^sub>h false = false"
+  by (simp add: hUntil_def alpha)
+  
 lemma hUntil_expand_lemma:
   "P until\<^sub>h b(ti) = (P \<and> \<lceil>\<not> b ti\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> $st:\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<and> (\<^bold>\<exists> l \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> \<lceil>b l\<rceil>\<^sub>C) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
   by (rel_auto)
@@ -778,9 +782,9 @@ lemma hUntil_subst_init_cont [usubst]:
   
 lemma hUntil_RR_closed [closure]:
   assumes "P is RR"
-  shows "P until\<^sub>h (b ti) is RR"
+  shows "P inv b(ti) until\<^sub>h c(ti) is RR"
 proof -
-  have "RR (RR(P) until\<^sub>h (b(ti))) = RR(P) until\<^sub>h (b ti)"
+  have "RR (RR(P) inv b(ti) until\<^sub>h c(ti)) = RR(P) inv b(ti) until\<^sub>h c(ti)"
     by (rel_auto)
   with assms show ?thesis
     by (simp add: Healthy_def)

@@ -25,7 +25,7 @@ abbreviation hasDerivAtBefore ::
    (real, '\<alpha>) uexpr \<Rightarrow>
    '\<alpha> upred" ("_ has-deriv _ at _ < _" [90, 0, 0, 91] 90) where  
 "hasDerivAtBefore \<equiv> qtop (\<lambda> f f' t l. (f has_vector_derivative f') (at t within {0..l}))"
-  
+
 abbreviation hasDerivAll :: 
   "(real \<Rightarrow> 'a::real_normed_vector, 'd, 'c::t2_space) hyexpr \<Rightarrow> 
   (real \<Rightarrow> 'a, 'd, 'c) hyexpr \<Rightarrow> ('d,'c) hyrel" ("_ has-vderiv _" [90, 91] 90) where
@@ -43,6 +43,11 @@ abbreviation hasOdeDerivAt ::
 where "hasOdeDerivAt \<F> \<F>' \<tau> l \<equiv>
        qtop (\<lambda> \<F> \<F>' \<tau> l. (\<F> has_vector_derivative \<F>' \<tau> (\<F> \<tau>)) (at \<tau> within {0..l})) \<F> \<F>' \<tau> l"
   
+definition lensHasDeriv :: 
+  "('a::real_normed_vector \<Longrightarrow> 'c::topological_space) \<Rightarrow> ('a, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel"
+  ("_ has-der _" [90, 91] 90) where
+[upred_defs]: "lensHasDeriv x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~ has-deriv \<lceil>f\<rceil>\<^sub>> @\<^sub>u t at \<guillemotleft>t\<guillemotright> < \<^bold>l))"
+
 text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
   of a function @{term "\<F>"} is given by the ODE @{term "\<F>'"} at a point $t$ in the time domain
   $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed
@@ -60,6 +65,9 @@ syntax
 translations
   "_hODE a P" == "CONST hODE a P"
 
+lemma hODE_RR_closed [closure]: "\<langle>x \<bullet> F\<rangle>\<^sub>h is RR"
+  by (rel_auto)
+  
 lemma hODE_unrests [unrest]:
   "$ok \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h" "$ok\<acute> \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h"
   "$wait \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h" "$wait\<acute> \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h"
@@ -185,4 +193,42 @@ text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems 
 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
+lemma at_within_closed_open:
+  "\<lbrakk> 0 \<le> (t::real); t < l \<rbrakk> \<Longrightarrow> (at t within {0..l}) = (at t within {0..<l})"
+  by (rule at_within_nhd[where S="{..<l}"], auto)
+
+text {* Example illustrating the relationship between derivative constrains and ordinary differential
+  equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. *}
+    
+lemma der_const_ode:
+  assumes "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>"
+  shows "(ll(x) \<and> x has-der \<guillemotleft>n\<guillemotright>) = \<langle>x \<bullet> \<guillemotleft>\<lambda> t x. n\<guillemotright>\<rangle>\<^sub>h" (is "?lhs = ?rhs")
+proof (rule antisym)
+  show "?lhs \<sqsubseteq> ?rhs"
+  proof (rel_simp)
+    fix tr tr' f b t
+    assume a:
+      "get\<^bsub>x\<^esub> b = get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(end\<^sub>t tr))"
+       "tr < tr'"
+       "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow>
+             (f has_vector_derivative n) (at t within {0..end\<^sub>t (tr' - tr)}) \<and> 
+             get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t"
+       "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+    from a(3)
+    have b: "(f has_vector_derivative n) (at t within {0..end\<^sub>t (tr' - tr)})"
+      using a(4) a(5) by blast
+    have c: "(\<And>t. t \<in> {0..<end\<^sub>t (tr' - tr)} \<Longrightarrow> f t = get\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>tt))"
+      by (simp add: a(2) a(3) dual_order.strict_implies_order)
+        
+    have "(f has_vector_derivative n) (at t within {0..<end\<^sub>t (tr' - tr)}) \<longleftrightarrow>
+          ((\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>tt)) has_vector_derivative n) (at t within {0..<end\<^sub>t (tr' - tr)})"
+      by (rule has_vector_derivative_cong, simp_all add: a c)
+
+    with b show "((\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>tt)) has_vector_derivative n) (at t within {0..end\<^sub>t (tr' - tr)})"
+      using a(4) a(5) at_within_closed_open b by auto
+  qed
+  show "?rhs \<sqsubseteq> ?lhs"  
+    by (rel_auto)
+qed
+    
 end
