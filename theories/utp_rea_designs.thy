@@ -4252,7 +4252,7 @@ lemma swap_merge_rd':
     
 lemma swap_merge_rd:
   "swap\<^sub>m ;; M\<^sub>R(M) = M\<^sub>R(swap\<^sub>m ;; M)"
-  by (simp add: merge_rd_def seqr_assoc swap_merge_rd')
+  by (simp add: merge_rd_def seqr_assoc[THEN sym] swap_merge_rd')
 
 lemma SymMerge_merge_rd [closure]:
   "M is SymMerge \<Longrightarrow> M\<^sub>R(M) is SymMerge"
@@ -4371,7 +4371,7 @@ lemma wrR_RC [closure]:
   apply (rule RC_intro)
   apply (simp add: closure assms)
   apply (simp add: wrR_def rpred closure assms )
-  apply (simp add: par_by_merge_def)
+  apply (simp add: par_by_merge_def seqr_assoc)
 done
     
 lemma wppR_choice [wp]: "(P \<or> Q) wr\<^sub>R(M) R = (P wr\<^sub>R(M) R \<and> Q wr\<^sub>R(M) R)"
