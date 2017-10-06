@@ -188,12 +188,19 @@ session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
     utp_thermostat
     utp_trains
 
-(* Modelica Mechanisation *)
+(* Modelica Mechanisation: Limited Compositional Semantics *)
 
 session "Modelica" in "modelica" = "UTP-HYBRID" +
   options [document = false]
   theories
     Modelica
+
+(* Modelica Mechanisation: Non-Compositional Semantics *)
+
+session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
+  options [document = false]
+  theories
+    Modelica_NonComp
 
 (* VDM-SL Mechanisation *)
 

@@ -4,6 +4,28 @@ theory Modelica_Core
 imports "../hybrid/utp_hrd"
 begin
   
+named_theorems mo_defs
+  
+alphabet mst =
+  time :: real
+  
+setup_lifting type_definition_mst_ext
+
+instantiation mst_ext :: (t2_space) t2_space
+begin
+  lift_definition open_mst_ext :: "'a mst_scheme set \<Rightarrow> bool" is "open" .
+  instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
+end
+  
+type_synonym 'c mrel = "('c mst_ext, 'c mst_ext) hyrel"
+type_synonym ('d, 'c) mpred = "('d, 'c mst_ext) hybs upred"
+type_synonym ('a, 'c) mexpr = "('a, 'c mst_ext) uexpr"  
+  
+translations
+  (type) "'c mrel" <= (type) "('c mst_scheme, 'c' mst_scheme) hyrel"
+  (type) "('d,'c) mpred" <= (type) "('d, 'c mst_scheme) hybs upred"
+  (type) "('a,'c) mexpr" <= (type) "('a, 'c mst_scheme) uexpr"
+  
 text {* Preconditions are captured by negating the continuous divergences, that is the set of
   trajectories that eventually violate the precondition. Every divergence can be extended
   aribtrarily. The precondition effectively states that no trace must violate the precondition
