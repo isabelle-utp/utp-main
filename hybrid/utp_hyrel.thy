@@ -201,11 +201,19 @@ text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P
   refer to unprimed continuous variables. *}
 
 definition cont_st_post :: "'c::topological_space upred \<Rightarrow> ('d, 'c) hyrel" ("[_]\<^sub>C\<^sub>>") where
-[upred_defs]: "cont_st_post b = R1(\<lceil>b\<rceil>\<^sub>C\<^sub>>)"
+[upred_defs]: "cont_st_post b = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>>)"
 
-lemma cont_st_post_RR: "[b]\<^sub>C\<^sub>> is RR"
+lemma cont_st_post_RR [closure]: "[b]\<^sub>C\<^sub>> is RR"
+  using minus_zero_eq by (rel_auto)
+
+lemma cont_st_post_false [rpred]: 
+  "[false]\<^sub>C\<^sub>> = false"
+  by rel_auto
+    
+lemma cont_st_post_true [rpred]: 
+  "[true]\<^sub>C\<^sub>> = ($tr\<acute> =\<^sub>u $tr)"
   by (rel_auto)
-  
+    
 lemma zero_least_uexpr [simp]:
   "0 \<le>\<^sub>u (x::('a::trace, '\<alpha>) uexpr) = true"
   by (rel_auto)
@@ -602,13 +610,13 @@ lemma hAtLimit_RR_closed [closure]: "\<lceil>P\<rceil>\<^sup>\<rightarrow> is RR
 
 subsection {* Evolve by continuous function *}
  
-definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
-[upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u \<lceil>f(ti)\<rceil>\<^sub><\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
+definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> ('d,'c) hyrel" where
+[upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u f(ti)\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
 
 definition hEvolveUpTo :: 
   "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
    (real, 'd \<times> 'c) uexpr \<Rightarrow> 
-   (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> 
+   (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> 
    ('d,'c) hyrel" where
 [upred_defs]: "hEvolveUpTo x l f = (hEvolve x f \<and> \<^bold>l \<le>\<^sub>u \<lceil>l\<rceil>\<^sub>S\<^sub>< )"
 
@@ -616,11 +624,11 @@ definition hEvolveBounds ::
   "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> 
    (real, 'd \<times> 'c) uexpr \<Rightarrow>
    (real, 'd \<times> 'c) uexpr \<Rightarrow> 
-   (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> 
+   (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> 
    ('d,'c) hyrel" where
 [upred_defs]: "hEvolveBounds x l u f = (hEvolve x f \<and> \<lceil>l\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u \<^bold>l  \<and> \<^bold>l \<le>\<^sub>u \<lceil>u\<rceil>\<^sub>S\<^sub>< \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d \<and> rl(&\<^bold>v))"
 
-abbreviation hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d,'c) hyrel" where
+abbreviation hEvolveAt :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> ('d,'c) hyrel" where
 "hEvolveAt x t f \<equiv> hEvolveBounds x t t f"
 
 syntax
@@ -648,7 +656,7 @@ lemma hEvolveUpTo_st'_unrest [unrest]:
   by (rel_auto)
     
 lemma hEvolve_usubst [usubst]:
-  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(ti) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> y \<leftarrow>\<^sub>h f(ti) = \<sigma> \<dagger> y \<leftarrow>\<^sub>h ((f ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   by (simp add: hEvolve_def usubst unrest)
     
 lemma hEvolve_RR_closed [closure]: "x \<leftarrow>\<^sub>h f(ti) is RR"
@@ -663,8 +671,12 @@ lemma hEvolveUpTo_RR_closed [closure]: "(x \<leftarrow>\<^sub>h\<le>(l) f(ti)) i
 lemma hEvolveAt_RR_closed [closure]: "x \<leftarrow>\<^sub>h(l) f(ti) is RR"
   by (rel_auto)
     
+lemma hEvolve_conj [rpred]: 
+  "(x \<leftarrow>\<^sub>h f(ti) \<and> y \<leftarrow>\<^sub>h g(ti)) = ({&x, &y} \<leftarrow>\<^sub>h (f ti, g ti)\<^sub>u)"
+  by (rel_auto)
+    
 lemma hEvolve_spec_refine:
-  assumes "vwb_lens x" "\<forall> ti\<ge>0. `P(ti)\<lbrakk>\<lceil>f(ti)\<rceil>\<^sub></$x\<acute>\<rbrakk>`"
+  assumes "vwb_lens x" "\<forall> ti\<ge>0. `P(ti)\<lbrakk>f(ti)/$x\<acute>\<rbrakk>`"
   shows "\<lceil>P(ti)\<rceil>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h f(ti)"
   using assms
   apply (simp add: hEvolve_def)
@@ -773,8 +785,8 @@ proof -
   thus ?thesis
     using L tendsto_Lim trivial_limit_at_left_real by blast
 qed
-
-lemma hUntil_false:
+  
+lemma hUntil_false [rpred]:
   "P inv b(ti) until\<^sub>h false = false"
   by (simp add: hUntil_def alpha)
   

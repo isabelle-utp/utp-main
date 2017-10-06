@@ -2053,7 +2053,8 @@ translations
   "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) (CONST svar x) v)"
   "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) x v)"
   "x,y :=\<^sub>R u,v" <= "CONST assigns_rea (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  "_assign_srd (_svid_dot y x) v" <= "CONST assigns_rea (CONST subst_upd (CONST id) (CONST svar (x ;\<^sub>L y)) v)"
+  
 abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
 
@@ -2818,7 +2819,7 @@ proof -
     by (simp add: R1_def R2c_def unrest)
   finally show ?thesis .
 qed
-
+  
 lemma preR_RR [closure]: "P is NSRD \<Longrightarrow> pre\<^sub>R(P) is RR"
   by (rule RR_intro, simp_all add: closure unrest)
 
@@ -2855,6 +2856,9 @@ proof -
     by (rule SRD_refine_intro', simp_all add: closure assms 1 2 SRD_post_under_pre SRD_peri_under_pre unrest)
 qed
     
+lemma NSRD_right_unit: "P is NSRD \<Longrightarrow> P ;; II\<^sub>R = P"
+  by (metis Healthy_if NSRD_is_RD3 RD3_def)
+  
 lemma NSRD_composition_wp:
   assumes "P is NSRD" "Q is SRD"
   shows "P ;; Q =
