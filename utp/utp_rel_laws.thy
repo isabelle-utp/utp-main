@@ -53,7 +53,7 @@ theorem feasibile_iff_true_right_zero:
     
 subsection {* Sequential Composition Laws *}
     
-lemma seqr_assoc: "P ;; (Q ;; R) = (P ;; Q) ;; R"
+lemma seqr_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
 
 lemma seqr_left_unit [simp]:
@@ -615,7 +615,7 @@ next
   have "R ;; P \<^bold>^ Suc n = (R ;; P \<^bold>^ n) ;; P"
     by (metis seqr_assoc upred_semiring.power_Suc2)
   also have "Q ;; P \<sqsubseteq> ..."
-    using Suc.hyps assms seqr_mono by auto
+    by (meson Suc.hyps assms eq_iff seqr_mono)
   also have "Q \<sqsubseteq> ..."
     using assms by auto
   finally show ?case .
@@ -649,7 +649,7 @@ definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<o
 subsection {* Relation Algebra Laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
-  using seqr_assoc by auto
+  by (simp add: seqr_assoc)
 
 theorem RA2: "(P ;; II) = P" "(II ;; P) = P"
   by simp_all

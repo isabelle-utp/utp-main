@@ -674,10 +674,8 @@ proof -
     by (simp add: skip_rea_R1_lemma)
   also have "... = (((\<not> $ok \<and> R1(true)) ;; P) \<or> P)"
     by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred_laws.inf_top_left utp_pred_laws.sup_commute)
-  also have "... = (((R1(\<not> $ok) ;; R1(true\<^sub>h)) ;; P) \<or> P)"
-    by (rel_auto, metis order.trans)
   also have "... = ((R1(\<not> $ok) ;; (R1(true\<^sub>h) ;; P)) \<or> P)"
-    by (simp add: seqr_assoc)
+    using dual_order.trans by (rel_blast)
   also have "... = ((R1(\<not> $ok) ;; R1(true\<^sub>h)) \<or> P)"
     by (simp add: assms(2))
   also have "... = (R1(\<not> $ok) \<or> P)"
@@ -2276,9 +2274,13 @@ lemma RHS_tri_design_choice [rdes_def]: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile
 done
 
 lemma RHS_tri_design_sup [rdes_def]: 
-  "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<squnion> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow> P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>3)))"
-  by (simp add: RHS_design_sup, rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
-  
+  "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<squnion> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))"
+  by (simp add: RHS_design_sup, rel_auto)
+
+lemma RHS_tri_design_conj [rdes_def]: 
+  "(\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<and> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))"
+  by (simp add: RHS_tri_design_sup conj_upred_def)
+    
 lemma RHS_design_USUP [rdes_def]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
@@ -2563,7 +2565,7 @@ proof -
   have a: "II\<^sub>R ;; II\<^sub>R = II\<^sub>R"
     by (simp add: SRD_left_unit SRD_srdes_skip)
   show ?thesis
-    by (simp add: RD3_def seqr_assoc[THEN sym] a)
+    by (simp add: RD3_def seqr_assoc a)
 qed
 
 lemma RD3_Idempotent [closure]: "Idempotent RD3"
@@ -2902,7 +2904,7 @@ lemma NSRD_seqr_closure [closure]:
   shows "(P ;; Q) is NSRD"
 proof -
   have "(\<not>\<^sub>r post\<^sub>R P wp\<^sub>R pre\<^sub>R Q) ;; true\<^sub>r = (\<not>\<^sub>r post\<^sub>R P wp\<^sub>R pre\<^sub>R Q)"
-    by (simp add: wpR_def rpred assms closure seqr_assoc[THEN sym] NSRD_neg_pre_unit)
+    by (simp add: wpR_def rpred assms closure seqr_assoc NSRD_neg_pre_unit)
   moreover have "$st\<acute> \<sharp> pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R Q \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q"
     by (simp add: unrest assms wpR_def)
   ultimately show ?thesis
@@ -2940,6 +2942,9 @@ proof -
     by (simp add: RHS_tri_normal_design_composition assms closure unrest RR_implies_R2c)
 qed
 
+lemma NSRD_srd_skip [closure]: "II\<^sub>R is NSRD"
+  by (rule NSRD_intro, simp_all add: rdes closure unrest)
+  
 lemma NSRD_Chaos [closure]: "Chaos is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
@@ -3441,7 +3446,7 @@ next
     by (pred_auto)
   also
   have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ (Suc i)) ;; peri\<^sub>R P))"
-    by (simp add: seq_Sup_distl seqr_assoc)
+    by (simp add: seq_Sup_distl seqr_assoc[THEN sym])
   also
   have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>R pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> ((\<Sqinter>i\<in>{1..Suc n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"
   proof -
@@ -3572,7 +3577,7 @@ next
     (is "?lhs = ?rhs")
   proof -
     have "?lhs = (Q \<or> (\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ Suc i) ;; Q)"
-      by (simp add: seqr_assoc seq_UINF_distl)
+      by (simp add: seqr_assoc[THEN sym] seq_UINF_distl)
     also have "... = (Q \<or> (\<Sqinter> i \<in> {0..n}. R \<^bold>^ Suc i) ;; Q)"        
       by (simp only: UINF_as_Sup_collect)
     also have "... = (Q \<or> (\<Sqinter> i \<in> {1..Suc n}. R \<^bold>^ i) ;; Q)"
@@ -3769,7 +3774,7 @@ proof -
   also from assms have "... = ((P \<parallel>\<^sub>s Q) ;; (M ;; J))"
     by (simp add: Healthy_def' RD2_def H2_def)
   also from assms have "... = (((P \<parallel>\<^sub>s Q) ;; M) ;; J)"
-    by (meson seqr_assoc)
+    by (simp add: seqr_assoc)
   also from assms have "... = RD2(P \<parallel>\<^bsub>M\<^esub> Q)"
     by (simp add: RD2_def H2_def par_by_merge_def)
   finally show ?thesis
@@ -4302,7 +4307,7 @@ proof -
 
   have b: "(\<not>\<^sub>r cmt\<^sub>R P \<parallel>\<^bsub>N\<^sub>0 M ;; R1 true\<^esub> (\<not>\<^sub>r pre\<^sub>R Q)) =
            (\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(Q)) \<parallel>\<^bsub>N\<^sub>0(swap\<^sub>m ;; M) ;; R1(true)\<^esub> cmt\<^sub>R(P))"
-    by (simp add: swap_nmerge_rd0[THEN sym] seqr_assoc par_by_merge_def par_sep_swap)
+    by (simp add: swap_nmerge_rd0[THEN sym] seqr_assoc[THEN sym] par_by_merge_def par_sep_swap)
   have c: "(\<not>\<^sub>r pre\<^sub>R(Q)) \<parallel>\<^bsub>N\<^sub>0(swap\<^sub>m ;; M) ;; R1(true)\<^esub> cmt\<^sub>R(P) =
            ((\<not>\<^sub>r pre\<^sub>R Q) \<parallel>\<^bsub>(swap\<^sub>m ;; M) ;; R1(true)\<^esub> peri\<^sub>R P \<or> (\<not>\<^sub>r pre\<^sub>R Q) \<parallel>\<^bsub>(swap\<^sub>m ;; M) ;; R1(true)\<^esub> post\<^sub>R P)"
     by (simp add: parallel_precondition_lemma closure assms)
@@ -4365,8 +4370,8 @@ lemma wrR_RC [closure]:
   shows "(Q wr\<^sub>R(M) P) is RC"
   apply (rule RC_intro)
   apply (simp add: closure assms)
-  apply (simp add: wrR_def rpred closure assms)
-  apply (simp add: par_by_merge_def seqr_assoc[THEN sym])
+  apply (simp add: wrR_def rpred closure assms )
+  apply (simp add: par_by_merge_def)
 done
     
 lemma wppR_choice [wp]: "(P \<or> Q) wr\<^sub>R(M) R = (P wr\<^sub>R(M) R \<and> Q wr\<^sub>R(M) R)"
