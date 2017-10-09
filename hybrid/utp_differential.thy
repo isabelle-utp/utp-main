@@ -48,6 +48,12 @@ definition lensHasDeriv ::
   ("_ has-der _" [90, 91] 90) where
 [upred_defs]: "lensHasDeriv x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~ has-deriv \<lceil>f\<rceil>\<^sub>> @\<^sub>u t at \<guillemotleft>t\<guillemotright> < \<^bold>l))"
 
+lemma lensHasDeriv_RR_closed [closure]: "(x has-der v) is RR"
+  by (rel_auto)
+    
+lemma unrest_st'_lensHasDeriv [unrest]: "$st\<acute> \<sharp> (x has-der v)"
+  by (rel_auto)
+  
 text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
   of a function @{term "\<F>"} is given by the ODE @{term "\<F>'"} at a point $t$ in the time domain
   $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed

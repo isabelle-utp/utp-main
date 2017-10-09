@@ -735,7 +735,7 @@ proof -
     using at_left_from_zero apply force
   done
 qed
-  
+
 lemma Limit_solve:
   assumes "x > 0" "continuous_on {0..x::real} g" "\<forall> x\<in>{0..<x}. f x = g x"
   shows "Lim (at x within {0..<x}) f = g(x)"
