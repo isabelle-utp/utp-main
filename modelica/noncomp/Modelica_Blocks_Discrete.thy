@@ -6,7 +6,7 @@ definition sample\<^sub>m :: "real \<Rightarrow> real \<Rightarrow> real \<Right
 [upred_defs, mo_defs]: "sample\<^sub>m s p ti = (\<exists> n::nat. ti = s + of_nat n * p)"
   
 definition Sampler :: 
-  "real \<Rightarrow> real \<Rightarrow> (real, 'c) mcon \<Rightarrow> (real, 'c) mcon \<Rightarrow> 'c mblock" where
+  "real \<Rightarrow> real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
 [upred_defs, mo_defs]:
   "Sampler samplePeriod startTime u y =
     \<lparr> minit = &y =\<^sub>u &u

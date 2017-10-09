@@ -2,7 +2,7 @@ theory Modelica_Blocks_Sources
   imports Modelica_Blocks_Core
 begin
 
-definition Clock :: "real \<Rightarrow> real \<Rightarrow> (real, 'c) mcon \<Rightarrow> 'c mblock" where
+definition Clock :: "real \<Rightarrow> real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
 [upred_defs, mo_defs]:
   "Clock offset startTime y =
     \<lparr> minit = true
@@ -10,7 +10,7 @@ definition Clock :: "real \<Rightarrow> real \<Rightarrow> (real, 'c) mcon \<Rig
     , mgrds = []
     \<rparr>"
   
-definition Constant :: "real \<Rightarrow> (real, 'c) mcon \<Rightarrow> 'c mblock" where
+definition Constant :: "real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
 [upred_defs, mo_defs]: 
   "Constant k y =
     \<lparr> minit = true
@@ -18,7 +18,7 @@ definition Constant :: "real \<Rightarrow> (real, 'c) mcon \<Rightarrow> 'c mblo
     , mgrds = []
     \<rparr>"
   
-definition Step :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> (real, 'c) mcon \<Rightarrow> 'c mblock" where
+definition Step :: "real \<Rightarrow> real \<Rightarrow> real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
 [upred_defs, mo_defs]: 
   "Step height offset startTime y =
     \<lparr> minit = (&y =\<^sub>u \<guillemotleft>offset\<guillemotright>)
