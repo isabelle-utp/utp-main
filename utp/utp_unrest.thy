@@ -71,7 +71,7 @@ lemma unrest_var_comp [unrest]:
   "\<lbrakk> x \<sharp> P; y \<sharp> P \<rbrakk> \<Longrightarrow> x;y \<sharp> P"
   by (transfer, simp add: lens_defs)
 
-lemma unrest_svar [unrest]: "x \<sharp> P \<Longrightarrow> &x \<sharp> P"
+lemma unrest_svar [unrest]: "(&x \<sharp> P) \<longleftrightarrow> (x \<sharp> P)"
   by (transfer, simp add: lens_defs)
     
 text {* No lens is restricted by a literal, since it returns the same value for any state binding. *}

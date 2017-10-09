@@ -1432,6 +1432,12 @@ definition wpR ::
    ('t, '\<alpha>) hrel_rp" (infix "wp\<^sub>R" 60)
 where [upred_defs]: "P wp\<^sub>R Q = (\<not>\<^sub>r P ;; (\<not>\<^sub>r Q))"
 
+lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x \<sharp> (P wp\<^sub>R Q)"
+  by (simp add: wpR_def unrest R1_def rea_not_def)
+
+lemma out_var_unrest_wpR [unrest]: "\<lbrakk> $x\<acute> \<sharp> Q; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> (P wp\<^sub>R Q)"
+  by (simp add: wpR_def unrest R1_def rea_not_def)
+  
 lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
   by (rel_auto)
     

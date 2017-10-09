@@ -213,7 +213,7 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
   decorations can be and are added later. \<close>
   
 syntax -- \<open> Variable sets \<close>
-  "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [998] 998)
+  "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [998] 998)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
