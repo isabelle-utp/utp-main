@@ -174,6 +174,11 @@ lemma Monotonic_seqr_tail [closure]:
   assumes "Monotonic F"
   shows "Monotonic (\<lambda> X. P ;; F(X))"
   by (simp add: assms monoD monoI seqr_mono)
+
+lemma Monotonic_cond [closure]:
+  assumes "Monotonic P" "Monotonic Q"
+  shows "Monotonic (\<lambda> X. P(X) \<triangleleft> b \<triangleright> Q(X))"
+  by (simp add: assms cond_monotonic)
     
 lemma Conjuctive_Idempotent:
   "Conjunctive(H) \<Longrightarrow> Idempotent(H)"

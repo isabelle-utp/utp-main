@@ -3,7 +3,7 @@ theory Modelica_Blocks_Math
 begin
 
 definition MathBlock ::  "('a, 'c mst_scheme) hexpr \<Rightarrow> ('a, 'c) mcon \<Rightarrow> 'c mblock" where
-[upred_defs, mo_defs]: "MathBlock e y = \<lparr> minit = true, mceqs = y \<leftarrow>\<^sub>H e, mgrds = [] \<rparr>"
+[upred_defs, mo_defs]: "MathBlock e y = \<lparr> minit = true, mceqs = y \<leftarrow>\<^sub>h e, mgrds = [] \<rparr>"
 
 abbreviation MathBlockUnary :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'c) mcon \<Rightarrow> ('b, 'c) mcon \<Rightarrow> 'c mblock" where
 "MathBlockUnary f u y \<equiv> MathBlock (\<guillemotleft>f\<guillemotright>($u\<acute>)\<^sub>a) y"

@@ -6,25 +6,57 @@ begin
   
 named_theorems mo_defs
   
-alphabet mst =
-  time :: real
+alphabet 'l mst =
+  time    :: real
+  mintern :: "'l" -- {* Internal continuous variables *}
   
 setup_lifting type_definition_mst_ext
 
-instantiation mst_ext :: (t2_space) t2_space
+text {* Syntax for internal variables *}
+  
+notation mintern ("\<^bold>i")
+  
+syntax
+  "_svid_mintern"  :: "svid" ("\<^bold>i")
+  
+translations
+  "_svid_mintern" => "CONST mintern"
+  
+instantiation mst_ext :: (t2_space,t2_space) t2_space
 begin
-  lift_definition open_mst_ext :: "'a mst_scheme set \<Rightarrow> bool" is "open" .
+  lift_definition open_mst_ext :: "('a, 'b) mst_scheme set \<Rightarrow> bool" is "open" .
   instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
 end
   
-type_synonym 'c mrel = "('c mst_ext, 'c mst_ext) hyrel"
-type_synonym ('d, 'c) mpred = "('d, 'c mst_ext) hybs upred"
-type_synonym ('a, 'c) mexpr = "('a, 'c mst_ext) uexpr"  
+definition map_mst ::
+  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
+   ('\<sigma>, 'c) mst_scheme \<Rightarrow> ('\<tau>, 'c) mst_scheme" where
+[lens_defs]: "map_mst f = (\<lambda>r. \<lparr>time\<^sub>v = time\<^sub>v r, mintern\<^sub>v = f (mintern\<^sub>v r), \<dots> = more r\<rparr>)"
+
+definition map_mst_lens ::
+  "('\<sigma> \<Longrightarrow> '\<tau>) \<Rightarrow> 
+   (('\<sigma>, 'b) mst_scheme, 't::trace, 'c) rsp \<Longrightarrow> (('\<tau>, 'b) mst_scheme, 't, 'c) rsp" ("map'_mst\<^sub>L") where
+[lens_defs]:
+"map_mst_lens l = map_st\<^sub>L \<lparr>
+  lens_get = map_mst (get\<^bsub>l\<^esub>),
+  lens_put = map_mst o (put\<^bsub>l\<^esub>) o mintern\<^sub>v\<rparr>"
+
+
+lemma map_mst_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_mst\<^sub>L X)"
+  apply (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
+  apply (metis des_vars.surjective mst.surjective rp_vars.surjective rsp_vars.surjective)+
+done
+
+abbreviation "abs_mst\<^sub>L \<equiv> (map_mst\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_mst\<^sub>L 0\<^sub>L)"
+
+type_synonym ('l, 'c) mrel = "(('l, 'c) mst_ext, ('l, 'c) mst_ext) hyrel"
+type_synonym ('d, 'l, 'c) mpred = "('d, ('l, 'c) mst_ext) hybs upred"
+type_synonym ('a, 'l, 'c) mexpr = "('a, ('l, 'c) mst_ext) uexpr"  
   
 translations
-  (type) "'c mrel" <= (type) "('c mst_scheme, 'c' mst_scheme) hyrel"
-  (type) "('d,'c) mpred" <= (type) "('d, 'c mst_scheme) hybs upred"
-  (type) "('a,'c) mexpr" <= (type) "('a, 'c mst_scheme) uexpr"
+  (type) "('l,'c) mrel" <= (type) "(('l, 'c) mst_scheme, ('l', 'c') mst_scheme) hyrel"
+  (type) "('d,'l,'c) mpred" <= (type) "('d, ('l, 'c) mst_scheme) hybs upred"
+  (type) "('a,'l,'c) mexpr" <= (type) "('a, ('l, 'c) mst_scheme) uexpr"
   
 text {* Preconditions are captured by negating the continuous divergences, that is the set of
   trajectories that eventually violate the precondition. Every divergence can be extended

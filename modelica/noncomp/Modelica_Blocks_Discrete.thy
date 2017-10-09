@@ -10,7 +10,7 @@ definition Sampler ::
 [upred_defs, mo_defs]:
   "Sampler samplePeriod startTime u y =
     \<lparr> minit = &y =\<^sub>u &u
-    , mceqs = y \<leftarrow>\<^sub>H $y
+    , mceqs = y \<leftarrow>\<^sub>h $y
     , mgrds = [(TimeEvent (sample\<^sub>m startTime samplePeriod), \<^bold>c:y :=\<^sub>R &\<^bold>c:u)]
     \<rparr>"
   
