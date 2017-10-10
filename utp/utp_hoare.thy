@@ -135,5 +135,13 @@ proof -
   thus ?thesis
     by (simp add: hoare_r_def while_bot_def)
 qed
-        
+
+lemma while_vrt_hoare_r [hoare_safe]:
+  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v =\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v <\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
+  shows "\<lbrace>pre\<rbrace>while b invr p vrt v do S od\<lbrace>post\<rbrace>\<^sub>u"
+  apply (rule hoare_r_conseq[OF assms(2) _ assms(3)])
+  apply (simp add: while_vrt_def)
+  apply (rule while_term_hoare_r[where v="v", OF assms(1)]) 
+done
+  
 end

@@ -57,7 +57,55 @@ lemma has_vector_derivative_divide[simp, derivative_intros]:
   apply (rule has_derivative_divide)
   apply (auto simp add: divide_inverse real_vector.scale_right_diff_distrib)
 done
+
+lemma Pair_has_vector_derivative:
+  assumes "(f has_vector_derivative f') (at x within s)"
+    "(g has_vector_derivative g') (at x within s)"
+  shows "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros)
+  
+lemma has_vector_derivative_fst:
+  assumes "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  shows "(f has_vector_derivative f') (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros dest: has_derivative_fst)
+
+lemma has_vector_derivative_fst' [derivative_intros]:
+  assumes "(f has_vector_derivative (f', g')) (at x within s)"
+  shows "(fst \<circ> f has_vector_derivative f') (at x within s)"
+proof -
+  have "(\<lambda> x. (fst (f x), snd (f x))) = f"
+    by (simp)
+  with assms have "((\<lambda> x. (fst (f x), snd (f x))) has_vector_derivative (f', g')) (at x within s)"
+    by (simp)
+  thus ?thesis
+    by (drule_tac has_vector_derivative_fst, simp add: comp_def)
+qed
     
+lemma has_vector_derivative_snd:
+  assumes "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  shows "(g has_vector_derivative g') (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros dest: has_derivative_snd)
+
+lemma has_vector_derivative_snd'' [derivative_intros]:
+  assumes "(f has_vector_derivative (f', g')) (at x within s)"
+  shows "(snd \<circ> f has_vector_derivative g') (at x within s)"
+proof -
+  have "(\<lambda> x. (fst (f x), snd (f x))) = f"
+    by (simp)
+  with assms have "((\<lambda> x. (fst (f x), snd (f x))) has_vector_derivative (f', g')) (at x within s)"
+    by (simp)
+  thus ?thesis
+    by (drule_tac has_vector_derivative_snd, simp add: comp_def)
+qed
+
+lemma Pair_has_vector_derivative_iff:
+  "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s) \<longleftrightarrow>
+   (f has_vector_derivative f') (at x within s) \<and> (g has_vector_derivative g') (at x within s)"
+  using Pair_has_vector_derivative has_vector_derivative_fst has_vector_derivative_snd by blast
+  
 text {* The next four rules allow us to prove derivatives when the function is equivalent to
   another a function when approach from the left or right. *}
  

@@ -82,7 +82,7 @@ text {* The pericondition is where the main behaviour of the buffer appears. Ess
   not reproduce it as it is a little long, but the calculation can be seen in Isabelle. *}
 
 lemma periR_Buffer: "peri\<^sub>R(Buffer) = undefined"
-    apply (simp add: Buffer_def rdes closure wp unrest usubst alpha seq_UINF_distr)
+    apply (simp add: Buffer_def rdes closure wp unrest rpred usubst alpha seq_UINF_distr)
 oops
 
 

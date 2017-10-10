@@ -13,7 +13,7 @@ abbreviation "InitialOutput :: Init \<equiv> 4"
   
 definition Integrator where
 [urel_defs]: "Integrator k y_start initType u y =
-                [ true\<^sub>r
+                [ true
                 | ((y~ has-deriv 0 at 0 < \<^bold>l) \<triangleleft> \<guillemotleft>initType = SteadyState\<guillemotright> \<triangleright> (y~(0) =\<^sub>u \<guillemotleft>y_start\<guillemotright>))
                   \<and> y~ has-vderiv (\<lambda> t \<bullet> \<guillemotleft>k\<guillemotright> * u~(\<guillemotleft>t\<guillemotright>)) ]\<^sub>M"
 

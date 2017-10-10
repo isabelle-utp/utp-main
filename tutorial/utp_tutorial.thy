@@ -240,12 +240,12 @@ text {* UTP also gives us an if-then-else conditional construct, written @{term 
   is a more concise way of writing $\textbf{if}~b~\textbf{then}~P~\textbf{else}~Q$. It also allows
   the expression of while loops, which gives us a simple imperative programming language. *}
 
-lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y := 1,7)"
+lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8)) = (x,y) := (1,7)"
   by (rel_auto)
 
 text {* Below is an illustration of how we can express a simple while loop in Isabelle/UTP. *}
 
-term "(x,y := 3,1;; while &x >\<^sub>u 0 do x := (&x - 1);; y := (&y * 2) od)"
+term "(x,y) := (3,1);; while &x >\<^sub>u 0 do x := (&x - 1);; y := (&y * 2) od"
 
 subsection {* Non-determinism and Complete Lattices *}
 
@@ -393,7 +393,7 @@ theorem assign_twice:
 
 theorem assign_null:
   assumes "x \<bowtie> y"
-  shows "(x, y := e, &y) = x := e"
+  shows "(x, y) := (e, &y) = x := e"
   using assms by (rel_auto)
 
 text {* Assignments can commute provided that the two variables are independent, and the expressions
@@ -427,7 +427,7 @@ lemma "true ;; P = true"
   nitpick -- {* Counterexample found *}
 oops
 
-lemma "(true ;; x,y,z := \<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) = ((x,y,z := \<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) :: myst hrel)"
+lemma "true ;; (x,y,z) := (\<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) = ((x,y,z) := (\<guillemotleft>c\<^sub>1\<guillemotright>,\<guillemotleft>c\<^sub>2\<guillemotright>,\<guillemotleft>c\<^sub>3\<guillemotright>) :: myst hrel)"
   by (rel_auto)
 
 text {* The latter gives an example of a relation for which @{term true} is actually a left unit
@@ -446,10 +446,10 @@ text {* Though we now have a theory of UTP relations with which can form simple 
   $y$ divided by $x$ to $y$.
 *}
 
-lemma dex1: "(true \<turnstile>\<^sub>r x,y := 2,6) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := (&y div &x))) = true \<turnstile>\<^sub>r x,y := 2,3"
+lemma dex1: "(true \<turnstile>\<^sub>r (x,y) := (2,6)) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r (y := (&y div &x))) = true \<turnstile>\<^sub>r x,y := 2,3"
   by (rel_auto, fastforce+)
 
-lemma dex2: "(true \<turnstile>\<^sub>r x,y := 0,4) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := (&y div &x)) = true"
+lemma dex2: "(true \<turnstile>\<^sub>r (x,y) := (0,4)) ;; (($x \<noteq>\<^sub>u 0) \<turnstile>\<^sub>r y := (&y div &x)) = true"
   by (rel_blast)
 
 text {* The first example shows the result of pre-composing this design with another design that

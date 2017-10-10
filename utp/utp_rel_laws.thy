@@ -53,7 +53,7 @@ theorem feasibile_iff_true_right_zero:
     
 subsection {* Sequential Composition Laws *}
     
-lemma seqr_assoc: "P ;; (Q ;; R) = (P ;; Q) ;; R"
+lemma seqr_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
 
 lemma seqr_left_unit [simp]:
@@ -336,10 +336,10 @@ lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbra
     
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp usubst)
-
+    
 lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
-  by (simp add: assigns_comp usubst)
-
+  by (simp add: assigns_comp usubst unrest)
+ 
 lemma assign_commute:
   assumes "x \<bowtie> y" "x \<sharp> f" "y \<sharp> e"
   shows "(x := e ;; y := f) = (y := f ;; x := e)"
@@ -367,11 +367,10 @@ lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
 
 lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
   by (rel_simp, simp add: inj_eq)
-
+    
 lemma assigns_r_swap_uinj:
-  "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
-  using assigns_r_uinj swap_usubst_inj
-  by (simp add: assigns_r_uinj swap_usubst_inj subst_upd_pr_var) 
+  "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj ((x,y) := (&y,&x))"
+  by (metis assigns_r_uinj pr_var_def swap_usubst_inj)
 
 lemma assign_unfold:
   "vwb_lens x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
@@ -615,7 +614,7 @@ next
   have "R ;; P \<^bold>^ Suc n = (R ;; P \<^bold>^ n) ;; P"
     by (metis seqr_assoc upred_semiring.power_Suc2)
   also have "Q ;; P \<sqsubseteq> ..."
-    using Suc.hyps assms seqr_mono by auto
+    by (meson Suc.hyps assms eq_iff seqr_mono)
   also have "Q \<sqsubseteq> ..."
     using assms by auto
   finally show ?case .
@@ -649,7 +648,7 @@ definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<o
 subsection {* Relation Algebra Laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
-  using seqr_assoc by auto
+  by (simp add: seqr_assoc)
 
 theorem RA2: "(P ;; II) = P" "(II ;; P) = P"
   by simp_all

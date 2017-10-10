@@ -206,6 +206,12 @@ text {* While loops with invariant decoration (cf. \cite{Armstrong2015}). *}
 definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 [urel_defs]: "while b invr p do S od = while b do S od"
 
+text {* While loops with invariant and variant decorations. *}
+
+definition while_vrt :: 
+  "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ vrt _ do _ od") where
+[urel_defs]: "while b invr p vrt v do S od = while\<^sub>\<bottom> b do S od"
+
 text {* We implement a poor man's version of alphabet restriction that hides a variable within 
   a relation. *}
 
