@@ -91,10 +91,6 @@ done
 
 subsection {* Type Invariant *}
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
 definition railways_type_inv :: "railways_state upred" where [upred_defs]:
 "railways_type_inv = (
   &current_track\<^sub>1 \<in>\<^sub>u \<guillemotleft>{-1..11}\<guillemotright> \<and>
@@ -131,7 +127,7 @@ text \<open>Ensures that at most one relay can be activated at a time.\<close>
 
 definition relays_excl_inv :: "railways_state upred" where [upred_defs]:
 "relays_excl_inv = (
-  (#\<^sub>u(&relays) =\<^sub>u \<guillemotleft>5\<guillemotright>) \<and>
+  (#\<^sub>u(&relays) =\<^sub>u 5) \<and>
   (R1 \<Rightarrow> \<not> R2 \<and> \<not> R4) \<and>
   (R2 \<Rightarrow> \<not> R1 \<and> \<not> R3 \<and> \<not> R4 \<and> \<not> R5) \<and>
   (R4 \<Rightarrow> \<not> R1 \<and> \<not> R2 \<and> \<not> R3 \<and> \<not> R5) \<and>

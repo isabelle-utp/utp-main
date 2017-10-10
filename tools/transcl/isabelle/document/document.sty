@@ -1,0 +1,42 @@
+%%%%%%%%%%%%
+% Typeface %
+%%%%%%%%%%%%
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+%%%%%%%%%%%%%%
+% References %
+%%%%%%%%%%%%%%
+
+\newcommand{\email}[1]{\href{mailto:#1}{\nolinkurl{#1}}}
+
+%%%%%%%%%%%
+% Colours %
+%%%%%%%%%%%
+
+\definecolor{CodeGreen}{rgb}{0,0.6,0}
+\definecolor{CodePurple}{rgb}{0.58,0,0.82}
+\definecolor{CodeGray}{rgb}{0.5,0.5,0.5}
+
+%%%%%%%%%%%%%%%%
+% listings.sty %
+%%%%%%%%%%%%%%%%
+
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{white},
+  commentstyle=\color{CodeGreen},
+  keywordstyle=\color{red},
+  numberstyle=\tiny\color{CodeGray},
+  stringstyle=\color{Cyan},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,
+  breaklines=false,
+  captionpos=b,
+  keepspaces=true,
+  numbers=left,
+  numbersep=5pt,
+  showspaces=false,
+  showstringspaces=false,
+  showtabs=false,
+  tabsize=2
+}

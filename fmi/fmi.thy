@@ -288,6 +288,11 @@ text {*
 type_synonym VAR = "uvar.uvar" ("VAR")
 type_synonym VAL = "uval.uval" ("VAL")
 
+text {* Translations for pretty-printing. *}
+
+translations (type) "VAR" \<leftharpoondown> (type) "uvar.uvar"
+translations (type) "VAL" \<leftharpoondown> (type) "uval.uval"
+
 subsubsection {* \<open>FMIST\<close> and \<open>FMISTF\<close> *}
 
 text {* We declare a datatype for \<open>fmi2Status\<close> flags the FMI API. *}
@@ -511,14 +516,18 @@ text {*
   ports at the level of the encoding.
 *}
 
-type_synonym port = "FMI2COMP \<times> VAR"
+type_synonym port = "FMI2COMP \<times> VAR" ("PORT")
+
+text {* Shall we pretty-print the @{typ PORT} type too? *}
+
+(* translations (type) "PORT" \<leftharpoondown> (type) "FMI2COMP \<times> VAR" *)
 
 text \<open>Getter function to obtain the FMU and name of a port object.\<close>
 
-abbreviation FMU :: "port \<Rightarrow> FMI2COMP" where
+abbreviation FMU :: "PORT \<Rightarrow> FMI2COMP" where
 "FMU port \<equiv> (fst port)"
 
-abbreviation name :: "port \<Rightarrow> VAR" where
+abbreviation name :: "PORT \<Rightarrow> VAR" where
 "name port \<equiv> (snd port)"
 
 subsection {* FMI Configuration *}
@@ -537,7 +546,7 @@ text {*
   In line with the CSP model of Deliverable D2.2d, I added a separate list
   \<open>initialValues\<close> rather than using the \<open>inputs\<close> sequence to provide initial
   values for inputs. This also proves to be slightly more convenient in terms
-  of the mechanised model. Further, I changed the type of the port-dependency
+  of the mechanised model. Further, I changed the type of the port dependency
   graph to bee a function rather than a relation, mapping each outputs to a
   list of connected inputs. The advantage of this is that it facilitates the
   definition of the @{text DistributeInputs} action since currently, iterated
@@ -548,16 +557,16 @@ text {*
   guarantee the absence of algebraic loops.
 *}
 
--- \<open>In D2.2d: \<open>inputs :: FMI2COMP \<times> VAR \<times> VAL\<close> and \<open>pdg :: port relation\<close>.\<close>
+-- \<open>In D2.2d: \<open>inputs :: FMI2COMP \<times> VAR \<times> VAL\<close> and \<open>pdg :: PORT relation\<close>.\<close>
 
 consts
   FMUs :: "FMI2COMP list"
   parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list"
-  initialValues :: "(FMI2COMP \<times> VAR \<times> VAL) list"
-  inputs :: "port list"
-  outputs :: "port list"
-  pdg :: "port \<Rightarrow> (port list)" -- \<open>Port Dependency Graph\<close>
-  idd :: "port \<Rightarrow> (port list)" -- \<open>Internal Direct Dependencies\<close>
+  initialValues :: "(PORT \<times> VAL) list"
+  inputs :: "PORT list"
+  outputs :: "PORT list"
+  pdg :: "PORT \<Rightarrow> (PORT list)" -- \<open>Port Dependency Graph\<close>
+  idd :: "PORT \<Rightarrow> (PORT list)" -- \<open>Internal Direct Dependencies\<close>
 
 subsection {* Simulation Parameters *}
 
@@ -639,7 +648,7 @@ done
 subsubsection {* \<open>Interaction\<close> Process *}
 
 text \<open>
-  We here use the type @{typ "port \<rightharpoonup> VAL"} for \<open>rinps\<close>, rather than the type
+  We here use the type @{typ "PORT \<rightharpoonup> VAL"} for \<open>rinps\<close>, rather than the type
   @{typ "FMI2COMP \<rightharpoonup> (VAR \<rightharpoonup> VAL)"} as in Figure 4 of D2.2d. Simon developed a
   separate embedding of partial maps in theory @{theory Pfun}); it may be worth
   considering using it here too. Importantly, the state space also includes a
@@ -650,7 +659,7 @@ text \<open>
 \<close>
 
 alphabet ia_state =
-  rinps :: "port \<rightharpoonup> VAL"
+  rinps :: "PORT \<rightharpoonup> VAL"
   ia_locals :: "vstore"
 
 instantiation ia_state_ext :: (type) vst
@@ -680,7 +689,7 @@ definition
       fmi:fmi2EnterInitializationMode.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) and
 
   InitializationMode =
-    (;;\<^sub>C (i, x, v) : initialValues \<bullet>
+    (;;\<^sub>C ((i, x), v) : initialValues \<bullet>
       fmi:fmi2Set!(\<guillemotleft>i\<guillemotright>)!(\<guillemotleft>x\<guillemotright>)!(\<guillemotleft>v\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) ;;
     (;;\<^sub>C i : FMUs \<bullet>
       fmi:fmi2ExitInitializationMode!(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) and
