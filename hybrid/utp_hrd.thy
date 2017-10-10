@@ -47,8 +47,8 @@ definition hrdPreempt ::
 
 definition hrdODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
-   ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[upred_defs, rdes_def]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h \<diamondop> false)"
+   'a ODE \<Rightarrow> ('d, 'c) hyrel" where
+[upred_defs, rdes_def]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h \<diamondop> false)"
 
 subsection {* Syntax Translations *} 
 
@@ -69,7 +69,8 @@ translations
   "_hrdEvolveBounds a l u f" <= "CONST hrdEvolveBounds a l u (\<lambda> ti. f)"
   "_hrdEvolveTil a t f" => "CONST hrdEvolveTil a t (\<lambda> _time_var. f)"
   "_hrdEvolveTil a t f" <= "CONST hrdEvolveTil a t (\<lambda> ti. f)"
-  "_hrdODE a P" == "CONST hrdODE a P"
+  "_hrdODE a P" => "CONST hrdODE a (\<lambda> _time_var. P)"
+  "_hrdODE a P" <= "CONST hrdODE a (\<lambda> t. P)"
   "_hrdUntil_inv P b c" => "CONST hrdUntil P (\<lambda> _time_var. b) (\<lambda> _time_var. c)"
   "_hrdUntil_inv P b c" <= "CONST hrdUntil P (\<lambda> t. b) (\<lambda> t'. c)"
   "_hrdUntil P b"       => "CONST hrdUntil P (\<lambda> _time_var. \<not> b) (\<lambda> _time_var. b)"
@@ -113,15 +114,15 @@ lemma postR_hrdEvolveBounds [rdes]:
   by (rel_auto)
 
 lemma preR_hrdODE [rdes]:
-  "pre\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = true\<^sub>r"
+  "pre\<^sub>R(\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H) = true\<^sub>r"
   by (simp add: hrdODE_def rdes closure)
 
 lemma periR_hrdODE [rdes]:
-  "peri\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"
+  "peri\<^sub>R(\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H) = \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h"
   by (simp add: hrdODE_def rdes closure rpred)
 
 lemma postR_hrdODE [rdes]:
-  "post\<^sub>R(\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H) = false"
+  "post\<^sub>R(\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H) = false"
   by (simp add: hrdODE_def rdes closure rpred)
 
 lemma hrdUntil_rdes_def [rdes_def]:
@@ -174,10 +175,10 @@ lemma hrdEvolveBounds_SRD [closure]: "x \<leftarrow>[l,u]\<^sub>H f(ti) is SRD"
 lemma hrdEvolveBounds_NSRD [closure]: "x \<leftarrow>[l,u]\<^sub>H f(ti) is NSRD"
   by (rule NSRD_intro, simp_all add: init_cont_def final_cont_def rdes closure unrest)    
    
-lemma hrdODE_SRD [closure]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H is SRD"
+lemma hrdODE_SRD [closure]: "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H is SRD"
   by (simp add: hrdODE_def closure unrest)
 
-lemma hrdODE_NSRD [closure]: "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>H is NSRD"
+lemma hrdODE_NSRD [closure]: "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H is NSRD"
   by (simp add: hrdODE_def closure unrest)
     
 lemma hrdUntil_SRD [closure]: "P is SRD \<Longrightarrow> P inv b(ti) until\<^sub>H c(ti) is SRD"
@@ -242,7 +243,7 @@ lemma hrdIntF_zero: "x \<leftarrow>\<^sub>H(0) f(ti) = II\<^sub>R"
 theorem hrdODE_solution:
   assumes 
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>H = x \<leftarrow>\<^sub>H \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  shows "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>H = x \<leftarrow>\<^sub>H \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   by (rule SRD_eq_intro, simp_all add: closure assms rdes rpred ode_solution)
   
 theorem hrdUntil_inv_solve:

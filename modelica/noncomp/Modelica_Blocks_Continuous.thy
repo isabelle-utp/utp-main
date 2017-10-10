@@ -14,4 +14,13 @@ definition Integrator ::
     , mgrds = []
     \<rparr>"
   
+definition Der ::
+  "(real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
+[upred_defs, mo_defs]:
+  "Der u y = 
+    \<lparr> minit = true
+    , mceqs = u has-der &y
+    , mgrds = []
+    \<rparr>"
+  
 end

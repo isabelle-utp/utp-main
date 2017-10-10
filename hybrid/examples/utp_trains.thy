@@ -74,10 +74,10 @@ proof -
 qed
   
 lemma train_sol: 
-  "\<langle>{&accel,&vel,&pos} \<bullet> \<guillemotleft>train_ode\<guillemotright>\<rangle>\<^sub>h = 
-    {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>((&accel,&vel,&pos)\<^sub>u)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  "\<langle>{&accel,&vel,&pos} \<bullet> train_ode(ti)\<rangle>\<^sub>h = 
+    {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>(($accel,$vel,$pos)\<^sub>u)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
     apply (subst ode_solution[where \<F>="train_sol"])
-    apply (simp add: lens_indep_sym plus_vwb_lens)
+    apply (simp add: lens_indep_sym)
     apply (rule allI)
     apply (rule allI)
     apply (rule impI)
@@ -93,16 +93,16 @@ subsection {* Braking train scenario *}
   
 definition 
 "BrakingTrain = 
-   \<^bold>c:accel, \<^bold>c:vel, \<^bold>c:pos :=\<^sub>r \<guillemotleft>normal_deceleration\<guillemotright>, \<guillemotleft>max_speed\<guillemotright>, \<guillemotleft>0\<guillemotright> ;; 
-   \<langle>{&accel,&vel,&pos} \<bullet> \<guillemotleft>train_ode\<guillemotright>\<rangle>\<^sub>h until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; \<^bold>c:accel :=\<^sub>r 0"
+   (\<^bold>c:accel, \<^bold>c:vel, \<^bold>c:pos) :=\<^sub>r (\<guillemotleft>normal_deceleration\<guillemotright>, \<guillemotleft>max_speed\<guillemotright>, \<guillemotleft>0\<guillemotright>) ;; 
+   \<langle>{&accel,&vel,&pos} \<bullet> train_ode(ti)\<rangle>\<^sub>h until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; \<^bold>c:accel :=\<^sub>r 0"
   
 theorem braking_train_pos_le:
  "($st:\<^bold>c:accel\<acute> =\<^sub>u 0 \<and> \<lceil>$pos\<acute> <\<^sub>u 44\<rceil>\<^sub>h) \<sqsubseteq> BrakingTrain" (is "?lhs \<sqsubseteq> ?rhs")
 proof -
   -- {* Solve ODE, replacing it with an explicit solution: @{term train_sol}. *}
   have "?rhs =
-    \<^bold>c:accel, \<^bold>c:vel, \<^bold>c:pos :=\<^sub>r \<guillemotleft>-1.4\<guillemotright>, \<guillemotleft>4.16\<guillemotright>, \<guillemotleft>0\<guillemotright> ;; 
-    {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>(&accel,&vel,&pos)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; 
+    (\<^bold>c:accel, \<^bold>c:vel, \<^bold>c:pos) :=\<^sub>r (\<guillemotleft>-1.4\<guillemotright>, \<guillemotleft>4.16\<guillemotright>, \<guillemotleft>0\<guillemotright>) ;; 
+    {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>($accel,$vel,$pos)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; 
     \<^bold>c:accel :=\<^sub>r 0"
   by (simp only: BrakingTrain_def train_sol)
   -- {* Set up initial values for the ODE solution using assigned variables. *}

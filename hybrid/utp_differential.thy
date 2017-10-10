@@ -44,14 +44,20 @@ where "hasOdeDerivAt \<F> \<F>' \<tau> l \<equiv>
        qtop (\<lambda> \<F> \<F>' \<tau> l. (\<F> has_vector_derivative \<F>' \<tau> (\<F> \<tau>)) (at \<tau> within {0..l})) \<F> \<F>' \<tau> l"
   
 definition lensHasDeriv :: 
-  "('a::real_normed_vector \<Longrightarrow> 'c::topological_space) \<Rightarrow> ('a, 'c) uexpr \<Rightarrow> ('d, 'c) hyrel"
-  ("_ has-der _" [90, 91] 90) where
-[upred_defs]: "lensHasDeriv x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~ has-deriv \<lceil>f\<rceil>\<^sub>> @\<^sub>u t at \<guillemotleft>t\<guillemotright> < \<^bold>l))"
+  "('a::real_normed_vector \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) uexpr) \<Rightarrow> ('d, 'c) hyrel" where
+[upred_defs]: "lensHasDeriv x f = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> x~ has-deriv \<lceil>f(t)\<rceil>\<^sub>> @\<^sub>u t at \<guillemotleft>t\<guillemotright> < \<^bold>l))"
 
-lemma lensHasDeriv_RR_closed [closure]: "(x has-der v) is RR"
+syntax
+  "_has_der" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ has-der _" [90, 91] 90)
+
+translations
+  "_has_der a f" => "CONST lensHasDeriv a (\<lambda> _time_var. f)"
+  "_has_der a f" <= "CONST lensHasDeriv a (\<lambda> t. f)"
+
+lemma lensHasDeriv_RR_closed [closure]: "(x has-der v(ti)) is RR"
   by (rel_auto)
     
-lemma unrest_st'_lensHasDeriv [unrest]: "$st\<acute> \<sharp> (x has-der v)"
+lemma unrest_st'_lensHasDeriv [unrest]: "$st\<acute> \<sharp> (x has-der v(ti))"
   by (rel_auto)
   
 text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
@@ -59,25 +65,26 @@ text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>
   $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed
   intervals; the final value at $\tau$ will correspond to the after value of the continuous
   state and justify that our timed trace is piecewise convergent. *}
-  
+ 
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
-   ('a ODE, 'c \<times> 'c) uexpr \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<F>' at \<guillemotleft>ti\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
-
+   'a ODE \<Rightarrow> ('d, 'c) hyrel" where
+[urel_defs]: "hODE x \<F>' = (\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> =\<^sub>u \<^bold>l \<and> ll(x) \<and> $tr <\<^sub>u $tr\<acute> \<and> \<lceil> \<guillemotleft>\<F>\<guillemotright> has-ode-deriv \<guillemotleft>\<F>'\<guillemotright> at \<guillemotleft>ti\<guillemotright> < \<guillemotleft>l\<guillemotright> \<and> $x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<rceil>\<^sub>h)"
+        
 syntax
   "_hODE" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ \<bullet> _\<rangle>\<^sub>h")
 
 translations
-  "_hODE a P" == "CONST hODE a P"
-
-lemma hODE_RR_closed [closure]: "\<langle>x \<bullet> F\<rangle>\<^sub>h is RR"
+  "_hODE a P" => "CONST hODE a (\<lambda> _time_var. P)"
+  "_hODE a P" <= "CONST hODE a (\<lambda> t. P)"    
+  
+lemma hODE_RR_closed [closure]: "\<langle>x \<bullet> F(ti)\<rangle>\<^sub>h is RR"
   by (rel_auto)
   
 lemma hODE_unrests [unrest]:
-  "$ok \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h" "$ok\<acute> \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h"
-  "$wait \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h" "$wait\<acute> \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h"
-  "$st\<acute> \<sharp> \<langle>x \<bullet> F\<rangle>\<^sub>h"  
+  "$ok \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h" "$ok\<acute> \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h"
+  "$wait \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h" "$wait\<acute> \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h"
+  "$st\<acute> \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h"  
   by (rel_auto)+
   
 text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that continuous state lens
@@ -106,15 +113,54 @@ lemma at_has_deriv [simp]:
   "(f has-ode-deriv f' at ti < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (ti @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
   
+lemma at_within_closed_open:
+  "\<lbrakk> 0 \<le> (t::real); t < l \<rbrakk> \<Longrightarrow> (at t within {0..l}) = (at t within {0..<l})"
+  by (rule at_within_nhd[where S="{..<l}"], auto)
+
+lemma hODE_as_has_der:
+  assumes "vwb_lens x"
+  shows "hODE x F' = (ll(x) \<and> x has-der \<guillemotleft>F' ti\<guillemotright>(&x)\<^sub>a)"
+proof (rule antisym)
+  show "hODE x F' \<sqsubseteq> (ll(x) \<and> x has-der \<guillemotleft>F' ti\<guillemotright>(&x)\<^sub>a)"
+    by (rel_simp, metis tt_apply_minus)
+  show "(ll(x) \<and> x has-der \<guillemotleft>F' ti\<guillemotright>(&x)\<^sub>a) \<sqsubseteq> hODE x F'"
+  proof (rel_simp)
+    fix tr b tr' t F
+    assume a:
+       "get\<^bsub>x\<^esub> b = get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(end\<^sub>t tr))" "tr < tr'"
+       "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow>
+            (F has_vector_derivative F' t (F t)) (at t within {0..end\<^sub>t (tr' - tr)}) \<and> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = F t"
+       "0 \<le> t" "t < end\<^sub>t (tr' - tr)"
+              
+    from a(3) have b: "\<And> t. t \<in> {0..<end\<^sub>t (tr' - tr)} \<Longrightarrow> F(t) = get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t(t))"
+      apply (auto)
+      apply (drule_tac x="t" in spec)
+      apply (simp)
+      using a(2) apply auto
+    done
+        
+    have c: "(F has_vector_derivative F' t (F t)) (at t within {0..<end\<^sub>t (tr' - tr)})" (is "?P")
+      using a(3) a(4) a(5) at_within_closed_open by auto
+            
+    let ?G = "(\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t(t)))"
+        
+    from a(4,5) b have "?P \<longleftrightarrow> (?G has_vector_derivative F' t (F t)) (at t within {0..<end\<^sub>t (tr' - tr)})"
+      by (rule_tac has_vector_derivative_cong, auto)
+      
+    with a(4,5) c show "(?G has_vector_derivative F' t (F t)) (at t within {0..end\<^sub>t (tr' - tr)})"
+      by (simp add: at_within_closed_open)
+  qed
+qed
+    
 lemma ode_to_ivp:
-  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $st:\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h)"
+  "vwb_lens x \<Longrightarrow> \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h = (\<^bold>\<exists> x\<^sub>0 \<bullet> \<guillemotleft>x\<^sub>0\<guillemotright> =\<^sub>u $st:\<^bold>c:x \<and> \<langle>x := \<guillemotleft>x\<^sub>0\<guillemotright> \<bullet> \<F>'\<rangle>\<^sub>h)"
   by (rel_auto)
 
 lemma ode_solution_refine:
   "\<lbrakk> vwb_lens x;
      \<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV;
      \<forall> x. \<F>(x)(0) = x \<rbrakk>
-   \<Longrightarrow> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+   \<Longrightarrow> \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   apply (rel_auto)    
   apply (rename_tac tr b tr')    
   apply (rule_tac x="\<F> (get\<^bsub>x\<^esub>b)" in exI)
@@ -131,7 +177,7 @@ done
 lemma ode_uniq_solution_refine:
   assumes
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<sqsubseteq> \<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h"
+  shows "x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<sqsubseteq> \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h"
 proof (rel_simp)
   fix tr b tr' \<G> t
 
@@ -171,7 +217,7 @@ qed
 theorem ode_solution:
   assumes 
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
-  shows "\<langle>x \<bullet> \<guillemotleft>\<F>'\<guillemotright>\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  shows "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   using ode_solution_refine[of x \<F> \<F>'] ode_uniq_solution_refine[of x \<F> \<F>']
   by (auto intro: antisym simp add: assms)
 
@@ -199,16 +245,12 @@ text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems 
 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
-lemma at_within_closed_open:
-  "\<lbrakk> 0 \<le> (t::real); t < l \<rbrakk> \<Longrightarrow> (at t within {0..l}) = (at t within {0..<l})"
-  by (rule at_within_nhd[where S="{..<l}"], auto)
-
 text {* Example illustrating the relationship between derivative constrains and ordinary differential
   equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. *}
     
 lemma der_const_ode:
   assumes "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>"
-  shows "(ll(x) \<and> x has-der \<guillemotleft>n\<guillemotright>) = \<langle>x \<bullet> \<guillemotleft>\<lambda> t x. n\<guillemotright>\<rangle>\<^sub>h" (is "?lhs = ?rhs")
+  shows "(ll(x) \<and> x has-der \<guillemotleft>n\<guillemotright>) = \<langle>x \<bullet> \<lambda> x. n\<rangle>\<^sub>h" (is "?lhs = ?rhs")
 proof (rule antisym)
   show "?lhs \<sqsubseteq> ?rhs"
   proof (rel_simp)
@@ -236,5 +278,32 @@ proof (rule antisym)
   show "?rhs \<sqsubseteq> ?lhs"  
     by (rel_auto)
 qed
-    
+   
+lemma hODE_conj:
+  "(\<langle>x \<bullet> F'(ti)\<rangle>\<^sub>h \<and> \<langle>y \<bullet> G'(ti)\<rangle>\<^sub>h) = \<langle>{&x,&y} \<bullet> (\<lambda> (x, y). (F' ti x, G' ti y))\<rangle>\<^sub>h"
+  apply (rel_auto)
+    apply (rename_tac tr b tr' F G)
+    apply (rule_tac x="\<lambda> t. (F t, G t)" in exI)
+    apply (clarsimp)
+    apply (rename_tac tr b tr' F G t)
+    apply (drule_tac x="t" in spec)
+    apply (simp)
+    apply (drule_tac x="t" in spec)
+        apply (simp)
+  using Pair_has_vector_derivative apply blast
+   apply (rename_tac tr b tr' FG)
+   apply (rule_tac x="fst \<circ> FG" in exI)
+   apply (clarsimp)
+   apply (rename_tac tr b tr' FG t)
+   apply (drule_tac x="t" in spec)
+    apply (auto intro:derivative_intros)
+   apply (metis fst_conv)
+  apply (rename_tac tr b tr' FG)
+   apply (rule_tac x="snd \<circ> FG" in exI)
+   apply (clarsimp)
+   apply (rename_tac tr b tr' FG t)
+    apply (auto intro:derivative_intros)
+  apply (metis snd_conv)
+done
+  
 end

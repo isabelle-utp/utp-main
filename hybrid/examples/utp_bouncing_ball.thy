@@ -42,7 +42,7 @@ abbreviation grav_sol :: "real \<times> real \<Rightarrow> real \<Rightarrow> re
 "grav_sol \<equiv> \<lambda> (v\<^sub>0, h\<^sub>0) \<tau>. (v\<^sub>0 - grav * \<tau>, v\<^sub>0 * \<tau> - grav * (\<tau> * \<tau>) / 2 + h\<^sub>0)"
   
 lemma grav_ode_sol:
-  "(\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>(&velocity,&height)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  "(\<langle>{&velocity,&height} \<bullet> grav_ode(ti)\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>($velocity, $height)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
 proof -
   have 1:"\<forall>l>0. unique_on_strip 0 {0..l} grav_ode 1"
     by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
@@ -52,7 +52,7 @@ proof -
     by (auto, rule_tac uos_impl_uniq_sol[where L=1], simp_all)
   show ?thesis
     apply (subst ode_solution[where \<F>="grav_sol"])
-    apply (simp_all add: lens_indep_sym plus_vwb_lens)
+    apply (simp_all add: lens_indep_sym)
     using sol apply (simp)
     apply (rel_auto)
   done
@@ -63,7 +63,7 @@ subsection {* System Definition *}
 definition bouncing_ball :: "(unit, bball) hyrel" where
   "bouncing_ball =
      (\<^bold>c:velocity, \<^bold>c:height) :=\<^sub>r (0, 2.0) ;;
-      (\<langle>{&velocity,&height} \<bullet> \<guillemotleft>grav_ode\<guillemotright>\<rangle>\<^sub>h until\<^sub>h ($height\<acute> \<le>\<^sub>u 0) ;;
+      (\<langle>{&velocity,&height} \<bullet> grav_ode(ti)\<rangle>\<^sub>h until\<^sub>h ($height\<acute> \<le>\<^sub>u 0) ;;
        \<^bold>c:velocity :=\<^sub>r (- 0.8 * &\<^bold>c:velocity))\<^sup>\<star>"
   
 subsection {* Example Properties *}
