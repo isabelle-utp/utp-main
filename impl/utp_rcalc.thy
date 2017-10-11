@@ -61,6 +61,12 @@ lemma rc_skip:
   shows "w:[pre, post] \<sqsubseteq> skip"
   using assms by (prauto)
 
+lemma rc_assign:
+  assumes "`pre \<Rightarrow> post\<lbrakk>e/w\<rbrakk>`"
+  shows "{&w,&x}:[pre,post] \<sqsubseteq> w := e"
+  using assms apply (transfer, simp add: assigns_d_def)
+  oops
+    
 lemma rc_seq:
   assumes "vwb_lens w" "w \<natural> mid"
   shows "w:[pre, post] \<sqsubseteq> w:[pre, mid] ; w:[mid, post]"

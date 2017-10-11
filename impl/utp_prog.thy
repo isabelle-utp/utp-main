@@ -32,23 +32,15 @@ lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rig
 subsection {* Syntax Translations *}
     
 adhoc_overloading
-  usubst psubst
-    
-text {* We turn off the relational assignment syntax in favour of our own. *}
-  
-no_syntax
-  "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
-  "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
+  usubst psubst and
+  uassigns passigns
 
-syntax
-  "_rc_assigns"     :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') := '(_')")
-  "_rc_assign"     :: "svid \<Rightarrow> logic \<Rightarrow> logic"  (infixr ":=" 72)
-  
 translations
-  "_rc_assigns xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
-  "_rc_assign x v" => "CONST passigns (_mk_usubst (CONST id) (_svid_unit x) v)"
+  "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"
 
+term "x := v"
+  
 subsection {* Proof Tactic *}
   
 method prauto = (transfer, rel_auto)
