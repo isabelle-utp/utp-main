@@ -12,7 +12,10 @@ is "\<lambda> x p q. (\<Squnion> v \<bullet> ((p \<and> &\<^bold>v =\<^sub>u \<g
   
 lift_definition log_const :: "('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog" 
 is "\<lambda> P. \<Squnion> i \<bullet> P i" by (simp add: closure)
-    
+  
+declare spec.rep_eq [prog_rep_eq]
+declare log_const.rep_eq [prog_rep_eq]
+  
 subsection {* Syntax Translations *}
   
 syntax
@@ -40,36 +43,35 @@ subsection {* Refinement Laws *}
   
 lemma spec_abort:
   "x:[false,post] = abort"
-  by (prauto)
+  by pauto
  
 lemma spec_skip:
   "\<emptyset>:[true,true] = skip"
-  by (prauto)
+  by (pauto)
     
 lemma rc_strengthen_post:
   assumes "`post' \<Rightarrow> post`"
   shows "w:[pre, post] \<sqsubseteq> w:[pre, post']"
-  using assms by (prauto)
+  using assms by (pauto)
 
 lemma rc_weaken_pre:
   assumes "`pre \<Rightarrow> pre'`"
   shows "w:[pre, post] \<sqsubseteq> w:[pre', post]"
-  using assms by (prauto)
+  using assms by prefine
 
 lemma rc_skip:
   assumes "vwb_lens w" "`pre \<Rightarrow> post`"
   shows "w:[pre, post] \<sqsubseteq> skip"
-  using assms by (prauto)
+  using assms by prefine
 
 lemma rc_assign:
-  assumes "`pre \<Rightarrow> post\<lbrakk>e/w\<rbrakk>`"
+  assumes "vwb_lens x" "vwb_lens w" "x \<bowtie> w" "`pre \<Rightarrow> post\<lbrakk>e/w\<rbrakk>`"
   shows "{&w,&x}:[pre,post] \<sqsubseteq> w := e"
-  using assms apply (transfer, simp add: assigns_d_def)
-  oops
-    
+  using assms by prefine
+      
 lemma rc_seq:
   assumes "vwb_lens w" "w \<natural> mid"
   shows "w:[pre, post] \<sqsubseteq> w:[pre, mid] ; w:[mid, post]"
-  using assms by (prauto)
-  
+  using assms by prefine
+    
 end
