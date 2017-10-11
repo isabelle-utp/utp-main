@@ -87,8 +87,9 @@ text {* We set up some overloaded constants for sequential composition and the i
   we want to overload their definitions later. *}
   
 consts
-  useq   :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
-  uskip  :: "'a" ("II")
+  useq     :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
+  uassigns :: "'a usubst \<Rightarrow> 'b" ("\<langle>_\<rangle>\<^sub>a")
+  uskip    :: "'a" ("II")
   
 text {* We define a specialised version of the conditional where the condition can refer only to
   undashed variables, as is usually the case in programs, but not universally in UTP models. 
@@ -133,9 +134,12 @@ text {* Assignment is defined using substitutions, where latter defines what eac
   map to. The definition of the operator identifies the after state binding, $b'$, with the 
   substitution function applied to the before state binding $b$. *}
   
-lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel" ("\<langle>_\<rangle>\<^sub>a")
+lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
   is "\<lambda> \<sigma> (b, b'). b' = \<sigma>(b)" .
 
+adhoc_overloading
+  uassigns assigns_r
+    
 text {* Relational identity, or skip, is then simply an assignment with the identity substitution:
   it simply identifies all variables. *}
     
@@ -264,16 +268,18 @@ translations
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
-  "_assignment xs vs" => "CONST assigns_r (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x := v" <= "CONST assigns_r (CONST subst_upd (CONST id) x v)"
-  "x,y := u,v" <= "CONST assigns_r (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "_assignment xs vs" => "CONST uassigns (_mk_usubst (CONST id) xs vs)"
+  "x := v" <= "CONST uassigns (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x := v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
+  "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
   -- {* Indexed assignment uses the overloaded collection update function \emph{uupd}. *}
   "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
-  "_frame x P" \<rightleftharpoons> "CONST frame x P"
-  "_antiframe x P" \<rightleftharpoons> "CONST antiframe x P"
-  "_nameset x P" \<rightleftharpoons> "CONST nameset x P"
+  "_frame x P" => "CONST frame x P"
+  "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
+  "_antiframe x P" => "CONST antiframe x P"
+  "_antiframe (_salphaset (_salphamk x)) P" <= "CONST antiframe x P"
+  "_nameset x P" == "CONST nameset x P"
   
 text {* The following code sets up pretty-printing for homogeneous relational expressions. We cannot 
   do this via the ``translations'' command as we only want the rule to apply when the input and output
