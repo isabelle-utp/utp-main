@@ -1,0 +1,5 @@
+session "HOL-TRANSCL" in isabelle = "HOL-Eisbach" +
+  options [document = pdf, document_output = "output"]
+  theories [document = false]
+  theories transcl transcl_issue
+  document_files "root.tex" "document.sty"
