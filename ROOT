@@ -202,6 +202,13 @@ session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
   theories
     Modelica_NonComp
 
+(* Imperative Programs based on Designs *)
+    
+session "UTP-IMPL" in "impl" = "UTP-THY-DEEP" +
+  options [document = false]
+  theories
+    utp_impl
+  
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +

@@ -2291,7 +2291,7 @@ lemma RHS_tri_design_conj [rdes_def]:
 lemma RHS_design_USUP [rdes_def]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)))"
-  by (subst RHS_INF[OF assms, THEN sym], simp add: design_USUP assms)
+  by (subst RHS_INF[OF assms, THEN sym], simp add: design_UINF_mem assms)
 
 lemma preR_INF [rdes]: "A \<noteq> {} \<Longrightarrow> pre\<^sub>R(\<Sqinter> A) = (\<And> P\<in>A \<bullet> pre\<^sub>R(P))"
   by (rel_auto)
