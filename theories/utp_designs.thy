@@ -12,6 +12,8 @@ It is used to record the start and termination of a program. *}
 
 subsection {* Definitions *}
 
+named_theorems ndes and ndes_simp
+  
 text {* In the following, the definitions of designs alphabets, designs and
 healthiness (well-formedness) conditions are given. The healthiness conditions of
 designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
@@ -90,6 +92,10 @@ where "\<lceil>p\<rceil>\<^sub>D\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^su
 abbreviation drop_desr ("\<lfloor>_\<rfloor>\<^sub>D")
 where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
+abbreviation dcond :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" 
+  ("(3_ \<triangleleft> _ \<triangleright>\<^sub>D/ _)" [52,0,53] 52)
+where "P \<triangleleft> b \<triangleright>\<^sub>D Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>D\<^sub>< \<triangleright> Q"
+  
 definition design::"('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>" 60)
 where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 
@@ -216,6 +222,10 @@ lemma true_is_design:
 lemma true_is_rdesign:
   "(false \<turnstile>\<^sub>r true) = true"
   by (rel_auto)
+    
+lemma abort_ndes_def:
+  "true = (false \<turnstile>\<^sub>n true)"
+  by (rel_auto)
 
 lemma design_false_pre:
   "(false \<turnstile> P) = true"
@@ -335,23 +345,43 @@ qed
 
 theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
   by (rel_auto)
+    
+theorem des_top_ndes_def [ndes_simp]: 
+  "\<top>\<^sub>D = true \<turnstile>\<^sub>n false"
+  by (rel_auto)
 
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
-  by (rel_auto)
-
-theorem design_inf:
-  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
   by (rel_auto)
 
 theorem rdesign_choice:
   "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>\<^sub>r (P\<^sub>2 \<or> Q\<^sub>2))"
   by (rel_auto)
 
+theorem ndesign_choice [ndes_simp]:
+  "(p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<sqinter> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = ((p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<or> Q\<^sub>2))"
+  by (rel_auto)
+
+theorem design_inf:
+  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+
+theorem rdesign_inf:
+  "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile>\<^sub>r ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+
+theorem ndesign_inf [ndes_simp]:
+  "(p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<squnion> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = ((p\<^sub>1 \<or> q\<^sub>1) \<turnstile>\<^sub>n ((\<lceil>p\<^sub>1\<rceil>\<^sub>< \<Rightarrow> P\<^sub>2) \<and> (\<lceil>q\<^sub>1\<rceil>\<^sub>< \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+    
 theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
   by (rel_auto)
 
+theorem ndesign_dcond [ndes_simp]:
+  "((p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>D (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2)) = ((p\<^sub>1 \<triangleleft> b \<triangleright> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>r Q\<^sub>2))"
+  by (rel_auto)
+    
 lemma design_top:
   "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
   by (rel_auto)
@@ -365,10 +395,28 @@ lemma design_UINF_mem:
   shows "(\<Sqinter> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i))"
   using assms by (rel_auto)
 
+lemma ndesign_UINF_mem [ndes_simp]:
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<in> A \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<in> A \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<in> A \<bullet> Q(i))"
+  using assms by (rel_auto)
+
+lemma ndesign_UINF_ind [ndes_simp]:
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<bullet> Q(i))"
+  using assms by (rel_auto)
+    
 lemma design_USUP_mem:
   "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
   by (rel_auto)
 
+lemma ndesign_USUP_mem [ndes_simp]:
+  "(\<Squnion> i \<in> A \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<in> A \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<in> A \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
+  by (rel_auto)
+
+lemma ndesign_USUP_ind [ndes_simp]:
+  "(\<Squnion> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
+  by (rel_auto)
+    
 theorem design_composition_subst:
   assumes
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
@@ -456,6 +504,9 @@ theorem rdesign_composition:
 lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
   by (rel_auto)
 
+lemma skip_d_ndes_def [ndes_simp]: "II\<^sub>D = true \<turnstile>\<^sub>n II"
+  by (rel_auto)
+    
 theorem design_skip_idem [simp]:
   "(II\<^sub>D ;; II\<^sub>D) = II\<^sub>D"
   by (rel_auto)
@@ -484,7 +535,7 @@ theorem rdesign_composition_wp:
   "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   by (rel_blast)
 
-theorem ndesign_composition_wp:
+theorem ndesign_composition_wp [ndes_simp]:
   "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
   by (rel_blast)
 
@@ -494,7 +545,7 @@ lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squni
 lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
   by (pred_auto)
     
-theorem ndesign_iteration_wp:
+theorem ndesign_iteration_wp [ndes_simp]:
   "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
 proof (induct n)
   case 0
@@ -611,6 +662,10 @@ lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>II\<rceil>\<^sub>D ;; \<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   by (rel_auto)+
 
+lemma assigns_d_ndes_def [ndes_simp]:
+  "\<langle>\<sigma>\<rangle>\<^sub>D = (true \<turnstile>\<^sub>n \<langle>\<sigma>\<rangle>\<^sub>a)"
+  by (rel_auto)
+    
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_auto)
 
@@ -1821,4 +1876,22 @@ begin
 
 end
 
+subsection {* Normal Designs Proof Tactics *}
+  
+named_theorems ND_elim
+  
+lemma ndes_elim [ND_elim]: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (simp add: ndesign_form)
+    
+method ndes_expand uses cls = (insert cls, (erule ND_elim)+)
+  
+method ndes_simp uses cls =
+  ((ndes_expand cls: cls)?, (simp add: ndes_simp cls closure alpha usubst unrest wp prod.case_eq_if))
+
+method ndes_refine uses cls =
+  (ndes_simp cls: cls; rule_tac ndesign_refine_intro; (insert cls; rel_simp; auto?))
+
+method ndes_eq uses cls =
+  (rule_tac antisym; ndes_refine)
+  
 end

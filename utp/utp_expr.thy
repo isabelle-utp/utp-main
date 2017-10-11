@@ -285,6 +285,11 @@ done
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
 
+text \<open> The next theorem lifts powers. \<close>
+
+lemma power_rep_eq: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
+  by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
+    
 text \<open> We can also lift a few arithmetic properties from the class instantiations above using
   \emph{transfer}. \<close>
     
