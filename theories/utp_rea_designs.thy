@@ -2047,19 +2047,19 @@ text {* This additional healthiness condition is analogous to H3 *}
 
 definition [upred_defs]: "RD3(P) = P ;; II\<^sub>R"
 
-definition assigns_rea :: "'s usubst \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
-[upred_defs]: "assigns_rea \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
+definition assigns_srd :: "'s usubst \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>R") where
+[upred_defs]: "assigns_srd \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
 
 syntax
   "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') :=\<^sub>R '(_')")  
   "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>R" 90)
 
 translations
-  "_assign_srd xs vs" => "CONST assigns_rea (_mk_usubst (CONST id) xs vs)"
-  "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x :=\<^sub>R v" <= "CONST assigns_rea (CONST subst_upd (CONST id) x v)"
-  "x,y :=\<^sub>R u,v" <= "CONST assigns_rea (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-  "_assign_srd (_svid_dot y x) v" <= "CONST assigns_rea (CONST subst_upd (CONST id) (CONST svar (x ;\<^sub>L y)) v)"
+  "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (CONST id) xs vs)"
+  "x :=\<^sub>R v" <= "CONST assigns_srd (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x :=\<^sub>R v" <= "CONST assigns_srd (CONST subst_upd (CONST id) x v)"
+  "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "_assign_srd (_svid_dot y x) v" <= "CONST assigns_srd (CONST subst_upd (CONST id) (CONST svar (x ;\<^sub>L y)) v)"
   
 abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
@@ -2086,7 +2086,7 @@ abbreviation cond_srea ::
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
 "cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
-  
+
 text {* We introduce state abstraction by creating some lens functors that allow us to lift
   a lens on the state-space to one on the whole stateful reactive alphabet. *}
 
@@ -2197,7 +2197,7 @@ proof -
   finally show ?thesis .
 qed
   
-lemma assigns_rea_RHS_tri_des [rdes_def]:
+lemma assigns_srd_RHS_tri_des [rdes_def]:
   "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<langle>\<sigma>\<rangle>\<^sub>r)"
   by (rel_auto)
 
@@ -2228,13 +2228,13 @@ lemma periR_srdes_skip [rdes]: "peri\<^sub>R(II\<^sub>R) = false"
 lemma postR_srdes_skip [rdes]: "post\<^sub>R(II\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R)"
   by (rel_auto)
 
-lemma preR_assigns_rea [rdes]: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = true\<^sub>r"
-  by (simp add: assigns_rea_def rea_pre_RHS_design usubst R2c_true)
+lemma preR_assigns_srd [rdes]: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = true\<^sub>r"
+  by (simp add: assigns_srd_def rea_pre_RHS_design usubst R2c_true)
     
-lemma periR_assigns_rea [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = false"
-  by (simp add: assigns_rea_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
+lemma periR_assigns_srd [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = false"
+  by (simp add: assigns_srd_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
 
-lemma postR_assigns_rea [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
+lemma postR_assigns_srd [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
   apply (rel_auto) using minus_zero_eq by blast
 
 lemma R1_state_srea: "R1(state 'a \<bullet> P) = (state 'a \<bullet> R1(P))"
@@ -2526,7 +2526,13 @@ lemma st_cond_conj [rpred]: "([P]\<^sub>S\<^sub>< \<and> [Q]\<^sub>S\<^sub><) = 
 lemma cond_st_distr [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
   by (rel_auto)
         
-lemma cond_st_false [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S\<^sub>< \<and> P)"
+lemma cond_st_miracle [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S\<^sub>< \<and> P)"
+  by (rel_blast)
+
+lemma cond_st_true [rpred]: "P \<triangleleft> true \<triangleright>\<^sub>R Q = P"
+  by (rel_blast)
+    
+lemma cond_st_false [rpred]: "P \<triangleleft> false \<triangleright>\<^sub>R Q = Q"
   by (rel_blast)
     
 lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<triangleleft> b \<triangleright>\<^sub>R P) = ([b]\<^sub>S\<^sub>< \<or> P)"
@@ -2539,7 +2545,6 @@ lemma st_cond_left_impl_RC_closed [closure]:
 lemma wpR_st_cond_div [wp]:
   "P \<noteq> true \<Longrightarrow> true\<^sub>r wp\<^sub>R [P]\<^sub>S\<^sub>< = false"
   by (rel_auto)
-    
      
 lemma preR_cond_srea [rdes]:
   "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S\<^sub>< \<and> pre\<^sub>R(P) \<or> [\<not>b]\<^sub>S\<^sub>< \<and> pre\<^sub>R(Q))"
@@ -2564,7 +2569,7 @@ proof -
   thus ?thesis
     by (rel_auto)
 qed
-
+  
 text {* Properties about healthiness condition RD3 *}
 
 lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
@@ -2995,17 +3000,17 @@ lemma NSRD_seq_post_false:
   using NSRD_is_SRD SRD_reactive_tri_design assms(1,3) apply fastforce
 done
 
-lemma assigns_rea_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
+lemma assigns_srd_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
   by (simp add: srdes_skip_def, rel_auto)
 
-lemma SRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is SRD"
-  by (simp add: assigns_rea_def RHS_design_is_SRD unrest)
+lemma SRD_assigns_srd [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is SRD"
+  by (simp add: assigns_srd_def RHS_design_is_SRD unrest)
 
-lemma RD3_assigns_rea: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
-  by (rule RD3_intro_pre, simp_all add: SRD_assigns_rea preR_assigns_rea periR_assigns_rea unrest)
+lemma RD3_assigns_srd: "\<langle>\<sigma>\<rangle>\<^sub>R is RD3"
+  by (rule RD3_intro_pre, simp_all add: SRD_assigns_srd preR_assigns_srd periR_assigns_srd unrest)
 
-lemma NSRD_assigns_rea [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
-  by (simp add: NSRD_iff SRD_assigns_rea periR_assigns_rea preR_assigns_rea unrest_false)
+lemma NSRD_assigns_srd [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is NSRD"
+  by (simp add: NSRD_iff SRD_assigns_srd periR_assigns_srd preR_assigns_srd unrest_false)
 
 lemma NSRD_state_srea [closure]: "P is NSRD \<Longrightarrow> state 'a \<bullet> P is NSRD"
   by (metis Healthy_def NSRD_is_RD3 NSRD_is_SRD RD3_state_srea SRD_RD3_implies_NSRD SRD_state_srea)
@@ -3067,15 +3072,15 @@ lemma srd_subst_NSRD_closed [closure]:
   shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is NSRD"
   by (rule NSRD_RC_intro, simp_all add: closure rdes assms unrest)
               
-lemma assigns_rea_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+lemma assigns_srd_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
 proof -
   have a: "(($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)) =
         ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
     by (rel_auto)
   have "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<^bold>R\<^sub>s (true\<^sub>r \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S))"
-    by (simp add: NSRD_composition_wp closure preR_assigns_rea periR_assigns_rea postR_assigns_rea R1_design_R1_pre wp a)
+    by (simp add: NSRD_composition_wp closure preR_assigns_srd periR_assigns_srd postR_assigns_srd R1_design_R1_pre wp a)
   also have "... = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
-    by (simp add: assigns_rea_RHS_tri_des, rel_auto)
+    by (simp add: assigns_srd_RHS_tri_des, rel_auto)
   finally show ?thesis .
 qed
 
@@ -3137,11 +3142,11 @@ proof -
   show "utp_local_var TYPE('s) UTHY(SRDES, ('s,'t,'\<alpha>) rsp)"
   proof
     show "\<And>\<sigma>::'s \<Rightarrow> 's. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> is \<H>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def srdes_hcond_def SRD_assigns_rea)
+      by (simp add: srdes_pvar_assigns_def srdes_hcond_def SRD_assigns_srd)
     show "\<And>(\<sigma>::'s \<Rightarrow> 's) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>SRDES\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def assigns_rea_comp)
+      by (simp add: srdes_pvar_assigns_def assigns_srd_comp)
     show "\<^bold>\<langle>id::'s \<Rightarrow> 's\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> = \<I>\<I>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_rea_id)
+      by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_srd_id)
   qed
 qed
 
@@ -3275,8 +3280,91 @@ lemma R_D_skip:
   
 lemma R_D_assigns:
   "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"
-  by (simp add: assigns_d_def des_rea_lift_def alpha assigns_rea_RHS_tri_des, rel_auto)
+  by (simp add: assigns_d_def des_rea_lift_def alpha assigns_srd_RHS_tri_des, rel_auto)
 
+subsection {* Reactive design tactics *}
+
+text {* Tactic to expand out healthy reactive design predicates into the syntactic triple form. *}
+  
+method rdes_expand uses cls = (insert cls, (erule RD_elim)+)    
+
+text {* Tactic to simplify the definition of a reactive design *}
+  
+method rdes_simp uses cls =
+  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if))
+
+text {* Tactic to prove a refinement *}
+  
+method rdes_refine uses cls =
+  (rdes_simp cls: cls; rule_tac srdes_tri_refine_intro; (insert cls; rel_auto))
+
+text {* Tactic to prove an equality *}
+  
+method rdes_eq uses cls =
+  (rdes_simp cls: cls; (rule_tac antisym; (rule_tac srdes_tri_refine_intro; insert cls; rel_auto)))
+
+text {* Tactic to calculate pre/peri/postconditions from reactive designs *}
+
+method rdes_calc = (simp add: rdes rpred closure alpha usubst unrest wp prod.case_eq_if)
+
+text {* The following tactic attempts to prove a reactive design refinement by calculation of
+  the pre-, peri-, and postconditions and then showing three implications between them using
+  rel_blast. *}
+
+method rdes_refine' =
+  (rule_tac SRD_refine_intro; (simp add: closure rdes unrest usubst ; rel_blast?))
+
+text {* The following tactic combines antisymmetry with the previous tactic to prove an equality. *}
+
+method rdes_eq' =
+  (rule_tac antisym, rdes_refine, rdes_refine)  
+    
+subsection {* Alternation *}
+  
+definition AlternateR 
+  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
+[upred_defs]:
+"AlternateR A g P = \<^bold>R\<^sub>s(((\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub><) \<and> (\<And> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(P i))) 
+                       \<turnstile> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> peri\<^sub>R(P i)) 
+                       \<diamondop> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> post\<^sub>R(P i)))"
+
+syntax
+  "_altind_srd" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  
+translations
+  "_altind_srd x A g P" => "CONST AlternateR A (\<lambda> x. g) (\<lambda> x. P)"
+  "_altind_srd x A g P" <= "CONST AlternateR A (\<lambda> x. g) (\<lambda> x'. P)"
+  
+lemma AlternateR_NSRD_closed: 
+  assumes "\<And> i. P(i) is NSRD"
+  shows "AlternateR A g P is NSRD"
+proof (cases "A = {}")
+  case True
+  then show ?thesis 
+    by (simp add: AlternateR_def closure unrest) 
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateR_def closure unrest assms)
+qed
+  
+lemma AlternateR_rdes_def [rdes_def]: 
+  assumes "\<And> i. P\<^sub>1(i) is RR" "\<And> i. P\<^sub>2(i) is RR" "\<And> i. P\<^sub>3(i) is RR"
+  shows
+  "if\<^sub>R i \<in> A \<bullet> g(i) \<rightarrow> \<^bold>R\<^sub>s(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i)) fi = 
+    \<^bold>R\<^sub>s(((\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub><) \<and> (\<And> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P\<^sub>1 i)) 
+        \<turnstile> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> P\<^sub>2 i) 
+        \<diamondop> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> P\<^sub>3 i))"
+  by (simp add: AlternateR_def rdes closure assms, rel_auto)
+
+lemma AlternateR_empty: 
+  "if\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = Chaos"
+  by (simp add: AlternateR_def Chaos_def, rel_auto)
+
+lemma AlternateR_Chaos: 
+  "if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> Chaos fi = Chaos"
+  by (simp add: AlternateR_def Chaos_def, rel_auto)
+    
 subsection {* Recursion laws *}
 
 lemma preR_antitone: "P \<sqsubseteq> Q \<Longrightarrow> pre\<^sub>R(Q) \<sqsubseteq> pre\<^sub>R(P)"
@@ -4529,43 +4617,23 @@ lemma RHS_tri_design_par:
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
   by (simp add: RHS_design_par assms unrest wait'_cond_conj_exchange)
 
-subsection {* Reactive design tactics *}
-
-text {* Tactic to expand out healthy reactive design predicates into the syntactic triple form. *}
+subsection {* Iteration Construction *}
   
-method rdes_expand uses cls = (insert cls, (erule RD_elim)+)    
-
-text {* Tactic to simplify the definition of a reactive design *}
+definition IterateR
+  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
+where "IterateR A g P = (\<mu>\<^sub>R X \<bullet> (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi ;; X) \<triangleleft> (\<Or> i\<in>A \<bullet> g(i)) \<triangleright>\<^sub>R II\<^sub>R)"
+   
+syntax
+  "_iter_srd" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
   
-method rdes_simp uses cls =
-  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if))
-
-text {* Tactic to prove a refinement *}
+translations
+  "_iter_srd x A g P" => "CONST IterateR A (\<lambda> x. g) (\<lambda> x. P)"
+  "_iter_srd x A g P" <= "CONST IterateR A (\<lambda> x. g) (\<lambda> x'. P)"
   
-method rdes_refine uses cls =
-  (rdes_simp cls: cls; rule_tac srdes_tri_refine_intro; (insert cls; rel_auto))
-
-text {* Tactic to prove an equality *}
+lemma IterateR_empty: 
+  "do\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = II\<^sub>R"
+  by (simp add: IterateR_def srd_mu_equiv closure rpred gfp_const)
   
-method rdes_eq uses cls =
-  (rdes_simp cls: cls; (rule_tac antisym; (rule_tac srdes_tri_refine_intro; insert cls; rel_auto)))
-
-text {* Tactic to calculate pre/peri/postconditions from reactive designs *}
-
-method rdes_calc = (simp add: rdes rpred closure alpha usubst unrest wp prod.case_eq_if)
-
-text {* The following tactic attempts to prove a reactive design refinement by calculation of
-  the pre-, peri-, and postconditions and then showing three implications between them using
-  rel_blast. *}
-
-method rdes_refine' =
-  (rule_tac SRD_refine_intro; (simp add: closure rdes unrest usubst ; rel_blast?))
-
-text {* The following tactic combines antisymmetry with the previous tactic to prove an equality. *}
-
-method rdes_eq' =
-  (rule_tac antisym, rdes_refine, rdes_refine)  
-
 subsection {* Reactive Design Substitution Laws *}
   
 lemma srd_subst_Chaos [usubst]:

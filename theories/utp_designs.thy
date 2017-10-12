@@ -1545,7 +1545,7 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   and "le (uthy_order DES) = op \<sqsubseteq>"
   and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
-
+                                                            
 interpretation normal_design_theory_continuous: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
@@ -1901,19 +1901,19 @@ consts
   ualtern      :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r"
   ualtern_list :: "('a \<times> 'r) list \<Rightarrow> 'r"
   
-definition AltD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
+definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]:
-"AltD A g P = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) 
-              \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+"AlternateD A g P = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) 
+                     \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
 
-definition AltD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
+definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
 [upred_defs]:
-"AltD_list xs = 
-  AltD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. \<lfloor>pre\<^sub>D(snd (nth xs i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(snd (nth xs i)))"
+"AlternateD_list xs = 
+  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. \<lfloor>pre\<^sub>D(snd (nth xs i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(snd (nth xs i)))"
 
 adhoc_overloading
-  ualtern AltD and
-  ualtern_list AltD_list
+  ualtern AlternateD and
+  ualtern_list AlternateD_list
 
 nonterminal gcomm and gcomms
   
@@ -1937,19 +1937,19 @@ translations
   "_gcomm_nil c" => "[c]"
   "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
 
-lemma AltD_H1_H3_closed [closure]: 
+lemma AlternateD_H1_H3_closed [closure]: 
   "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi is \<^bold>N"
-  by (simp add: AltD_def closure)
+  by (simp add: AlternateD_def closure)
   
 lemma AltD_ndes_simp [ndes_simp]: 
   "if i\<in>A \<bullet> g(i) \<rightarrow> (P(i) \<turnstile>\<^sub>n Q(i)) fi 
    = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> P i)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> Q i)"
-  by (simp add: AltD_def, rel_auto)
+  by (simp add: AlternateD_def, rel_auto)
 
-declare AltD_list_def [ndes_simp]
+declare AlternateD_list_def [ndes_simp]
     
 lemma AltD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
   by (rel_auto)
-
+  
 end

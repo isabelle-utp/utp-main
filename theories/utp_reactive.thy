@@ -1000,6 +1000,9 @@ lemma RR_idem: "RR(RR(P)) = RR(P)"
 lemma RR_Idempotent [closure]: "Idempotent RR"
   by (simp add: Idempotent_def RR_idem)
 
+lemma RR_Continuous [closure]: "Continuous RR"
+  by (rel_blast)
+    
 lemma R1_RR: "R1(RR(P)) = RR(P)"
   by (rel_auto)
     
