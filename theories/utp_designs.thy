@@ -1894,4 +1894,62 @@ method ndes_refine uses cls =
 method ndes_eq uses cls =
   (rule_tac antisym; ndes_refine)
   
+
+subsection {* Alternation *}
+  
+consts
+  ualtern      :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r"
+  ualtern_list :: "('a \<times> 'r) list \<Rightarrow> 'r"
+  
+definition AltD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
+[upred_defs]:
+"AltD A g P = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) 
+              \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+
+definition AltD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
+[upred_defs]:
+"AltD_list xs = 
+  AltD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. \<lfloor>pre\<^sub>D(snd (nth xs i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(snd (nth xs i)))"
+
+adhoc_overloading
+  ualtern AltD and
+  ualtern_list AltD_list
+
+nonterminal gcomm and gcomms
+  
+syntax
+  "_altind"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_gcomm"      :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [65, 66] 65)
+  "_gcomm_nil"  :: "gcomm \<Rightarrow> gcomms" ("_")
+  "_gcomm_cons" :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ | _" [60, 61] 60)
+  "_gcomm_show" :: "logic \<Rightarrow> logic"
+  "_altgcomm"   :: "gcomms \<Rightarrow> logic" ("if _ fi")
+    
+translations
+  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P)"
+  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P)"
+  "_altgcomm cs" => "CONST ualtern_list cs"
+  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs"
+  "_gcomm g P" => "(g, P)"
+  "_gcomm g P" <= "_gcomm_show (g, P)"
+  "_gcomm_cons c cs" => "c # cs"
+  "_gcomm_cons (_gcomm_show c) (_gcomm_show (d # cs))" <= "_gcomm_show (c # d # cs)"
+  "_gcomm_nil c" => "[c]"
+  "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
+
+lemma AltD_H1_H3_closed [closure]: 
+  "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi is \<^bold>N"
+  by (simp add: AltD_def closure)
+  
+lemma AltD_ndes_simp [ndes_simp]: 
+  "if i\<in>A \<bullet> g(i) \<rightarrow> (P(i) \<turnstile>\<^sub>n Q(i)) fi 
+   = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> P i)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> Q i)"
+  by (simp add: AltD_def, rel_auto)
+
+declare AltD_list_def [ndes_simp]
+    
+lemma AltD_empty:
+  "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
+  by (rel_auto)
+
 end
