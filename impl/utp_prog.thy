@@ -45,6 +45,9 @@ lift_definition skip     :: "'\<alpha> prog" is "II\<^sub>D" by (simp add: closu
 lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infix ";" 71) is "op ;;" by (simp add: closure)
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
 lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "\<lambda> \<sigma> P. ((\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D) \<oplus>\<^sub>s in\<alpha>) \<dagger> P" by (simp add: closure)
+lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
+lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog" is AlternateD_list
+  by (simp add: AlternateD_list_def list_all_def closure)
     
 declare abort.rep_eq [prog_rep_eq]
 declare magic.rep_eq [prog_rep_eq]
@@ -52,12 +55,16 @@ declare skip.rep_eq [prog_rep_eq]
 declare pseq.rep_eq [prog_rep_eq]
 declare passigns.rep_eq [prog_rep_eq]
 declare psubst.rep_eq [prog_rep_eq]
+declare paltern.rep_eq [prog_rep_eq]
+declare paltern_list.rep_eq [prog_rep_eq]
   
 subsection {* Syntax Translations *}
     
 adhoc_overloading
   usubst psubst and
-  uassigns passigns
+  uassigns passigns and
+  ualtern paltern and
+  ualtern_list paltern_list
 
 translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
