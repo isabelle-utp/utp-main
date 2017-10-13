@@ -3,7 +3,6 @@ section {* Alphabetised Relations *}
 theory utp_rel
 imports
   utp_pred_laws
-  utp_recursion
   utp_lift
   utp_tactics
 begin
@@ -205,12 +204,17 @@ abbreviation while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightar
 definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
 [urel_defs]: "while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
-text {* While loops with invariant decoration (cf. \cite{Armstrong2015}). *}
+text {* While loops with invariant decoration (cf. \cite{Armstrong2015}) -- partial correctness. *}
 
 definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 [urel_defs]: "while b invr p do S od = while b do S od"
 
-text {* While loops with invariant and variant decorations. *}
+text {* While loops with invariant decoration -- total correctness. *}
+
+definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ invr _ do _ od" 71) where
+[urel_defs]: "while\<^sub>\<bottom> b invr p do S od = while\<^sub>\<bottom> b do S od"  
+
+text {* While loops with invariant and variant decorations -- total correctness. *}
 
 definition while_vrt :: 
   "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ vrt _ do _ od") where

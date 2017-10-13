@@ -1,7 +1,9 @@
 section {* Relational Calculus Laws *}
 
 theory utp_rel_laws
-  imports utp_rel
+  imports 
+    utp_rel
+    utp_recursion
 begin
 
 subsection {* Conditional Laws *}
@@ -714,4 +716,11 @@ lemma uomega_induct:
   "P ;; P\<^sup>\<omega> \<sqsubseteq> P\<^sup>\<omega>"
   by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
+subsection {* Refinement Laws *}
+  
+lemma cond_refine_rel: 
+  assumes "S \<sqsubseteq> (\<lceil>b\<rceil>\<^sub>< \<and> P)" "S \<sqsubseteq> (\<lceil>\<not>b\<rceil>\<^sub>< \<and> Q)"
+  shows "S \<sqsubseteq> P \<triangleleft> b \<triangleright>\<^sub>r Q"
+  by (metis aext_not assms cond_def utp_pred_laws.le_sup_iff)
+    
 end
