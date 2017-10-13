@@ -1120,16 +1120,19 @@ text {* The function $mk_t$ builds a timed trace from a function, provided it is
   the given domain. If it isn't, then an empty timed trace is produced. *}
   
 lift_definition tt_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a ttrace" ("mk\<^sub>t")
-is "\<lambda> t f. if (continuous_on {0..t} f) then mk\<^sub>C t f else []\<^sub>C"
+is "\<lambda> t f. if (continuous_on {0..t} f) 
+           then mk\<^sub>C t f 
+           else mk\<^sub>C t (\<lambda> x. undefined)"
   apply (auto)
   apply (rename_tac t f)
   apply (case_tac "t \<le> 0")
   apply (simp)
   apply (simp add: piecewise_convergent_cgf_mk)
+  apply (metis (full_types) cgf_mk_le_0 continuous_on_const less_eq_real_def linear piecewise_convergent_cgf_mk piecewise_convergent_empty) 
 done
     
 lemma tt_end_mk [simp]:
-  "\<lbrakk> l \<ge> 0; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> end\<^sub>t(mk\<^sub>t l f) = l"
+  "l \<ge> 0 \<Longrightarrow> end\<^sub>t(mk\<^sub>t l f) = l"
   by (transfer, simp)
   
 lemma tt_apply_mk [simp]: 
@@ -1137,7 +1140,7 @@ lemma tt_apply_mk [simp]:
   by (transfer, simp)
     
 lemma tt_mk_nempty [simp]:
-  "\<lbrakk> 0 < n; continuous_on {0..n} f \<rbrakk> \<Longrightarrow> 0 < mk\<^sub>t n f" 
+  "0 < n \<Longrightarrow> 0 < mk\<^sub>t n f" 
   by (metis dual_order.strict_implies_not_eq dual_order.strict_implies_order neq_zero_impl_greater tt_end_empty tt_end_mk)
    
 text {* Limit of a timed trace *}
