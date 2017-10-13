@@ -341,6 +341,45 @@ lemma UINF_all_nats [simp]:
   shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
   by (pred_auto)
 
+lemma UINF_upto_expand_first:
+  "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = (P(0) \<or> (\<Sqinter> i \<in> {1..<Suc(n)} \<bullet> P(i)))"
+  apply (rel_auto)
+  using not_less by auto
+
+lemma UINF_upto_expand_last:
+  "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = ((\<Sqinter> i \<in> {0..<n} \<bullet> P(i)) \<or> P(n))"
+  apply (rel_auto)
+  using less_SucE by blast
+    
+lemma UINF_Suc_shift: "(\<Sqinter> i \<in> {Suc 0..<Suc n} \<bullet> P(i)) = (\<Sqinter> i \<in> {0..<n} \<bullet> P(Suc i))"
+  apply (rel_simp)
+  apply (rule cong[of Sup], auto)
+  using less_Suc_eq_0_disj by auto
+
+lemma USUP_upto_expand_first:
+  "(\<Squnion> i \<in> {0..<Suc(n)} \<bullet> P(i)) = (P(0) \<and> (\<Squnion> i \<in> {1..<Suc(n)} \<bullet> P(i)))"
+  apply (rel_auto)
+  using not_less by auto
+
+lemma USUP_Suc_shift: "(\<Squnion> i \<in> {Suc 0..<Suc n} \<bullet> P(i)) = (\<Squnion> i \<in> {0..<n} \<bullet> P(Suc i))"
+  apply (rel_simp)
+  apply (rule cong[of Inf], auto)
+  using less_Suc_eq_0_disj by auto
+    
+lemma UINF_list_conv:
+  "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<or> (map f xs) false"    
+  apply (induct xs)
+   apply (rel_auto)
+  apply (simp_all add: UINF_upto_expand_first UINF_Suc_shift)
+done
+
+lemma USUP_list_conv:
+  "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<and> (map f xs) true"    
+  apply (induct xs)
+   apply (rel_auto)
+  apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)
+done
+    
 lemma UINF_refines':
   assumes "\<And> i. P \<sqsubseteq> Q(i)" 
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"

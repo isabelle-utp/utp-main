@@ -214,7 +214,7 @@ lemma lift_dist_seq [simp]:
 
 lemma lift_des_skip_dr_unit_unrest: "$ok\<acute> \<sharp> P \<Longrightarrow> (P ;; \<lceil>II\<rceil>\<^sub>D) = P"
   by (rel_auto)
-
+    
 lemma true_is_design:
   "(false \<turnstile> true) = true"
   by (rel_auto)
@@ -246,6 +246,11 @@ lemma ndesign_miracle:
 lemma state_subst_design [usubst]:
   "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> (P \<turnstile>\<^sub>r Q) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P) \<turnstile>\<^sub>r (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> Q)"
   by (rel_auto)
+    
+lemma ndesign_eq_intro:
+  assumes "p\<^sub>1 = q\<^sub>1" "P\<^sub>2 = Q\<^sub>2"
+  shows "p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2 = q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2"
+  by (simp add: assms)
     
 theorem design_refinement:
   assumes
@@ -1909,7 +1914,7 @@ definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred
 definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
 [upred_defs]:
 "AlternateD_list xs = 
-  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. \<lfloor>pre\<^sub>D(snd (nth xs i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(snd (nth xs i)))"
+  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i))"
 
 adhoc_overloading
   ualtern AlternateD and
@@ -1945,11 +1950,37 @@ lemma AltD_ndes_simp [ndes_simp]:
   "if i\<in>A \<bullet> g(i) \<rightarrow> (P(i) \<turnstile>\<^sub>n Q(i)) fi 
    = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> P i)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> Q i)"
   by (simp add: AlternateD_def, rel_auto)
-
-declare AlternateD_list_def [ndes_simp]
     
-lemma AltD_empty:
+lemma AlternateD_list_alt_def [ndes_simp]:
+  "AlternateD_list xs =
+    (((foldr (op \<or>) (map fst xs) false) \<and> (foldr (op \<and>) (map (\<lambda> (g, P). g \<Rightarrow> \<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><) xs) true))
+    \<turnstile>\<^sub>n foldr (op \<or>) (map (\<lambda> (g, P). \<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>D(P)) xs) false)"
+proof -
+  have 1:"(map (\<lambda>a. fst a \<Rightarrow> \<lfloor>pre\<^sub>D (snd a)\<rfloor>\<^sub><) xs) = (map (\<lambda>(g, P). g \<Rightarrow> \<lfloor>pre\<^sub>D P\<rfloor>\<^sub><) xs)"
+    by (simp add: case_prod_beta)
+  have 2:"map (\<lambda>a. \<lceil>fst a\<rceil>\<^sub>< \<and> post\<^sub>D (snd a)) xs = map (\<lambda>(g, P). \<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>D P) xs"
+    by (simp add: case_prod_beta)
+  show ?thesis
+    apply (simp add: AlternateD_list_def AlternateD_def UINF_list_conv)
+    apply (subst UINF_list_conv)
+    apply (subst USUP_list_conv)
+    apply (simp add: 1 2)
+  done
+qed 
+
+lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
   by (rel_auto)
+  
+lemma AlternateD_singleton:
+  assumes "P is \<^bold>N"
+  shows "if true \<rightarrow> P fi = P"
+  by (ndes_simp cls:assms, metis assms ndesign_def ndesign_form ndesign_pre rdesign_post)
+
+lemma AlternateD_commute:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "if g\<^sub>1 \<rightarrow> P | g\<^sub>2 \<rightarrow> Q fi = if g\<^sub>2 \<rightarrow> Q | g\<^sub>1 \<rightarrow> P fi"
+  by (ndes_simp cls:assms, rel_auto)
+    
   
 end
