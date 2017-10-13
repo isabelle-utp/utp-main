@@ -10,8 +10,33 @@ imports
   "../dynamics/Timed_Traces"
 begin recall_syntax
   
-subsection {* Preliminaries *}
+subsection {* Continuous Lenses and Preliminaries *}
 
+locale continuous_lens = 
+  vwb_lens x for x :: "'a::topological_space \<Longrightarrow> 'b::topological_space" (structure) +
+  assumes get_continuous: "continuous_on A get"
+  and put_continuous: "continuous_on A (\<lambda> s. put s v)"
+ 
+declare continuous_lens.get_continuous [simp]
+declare continuous_lens.put_continuous [simp]
+  
+lemma continuous_lens_vwb [simp]: 
+  "continuous_lens x \<Longrightarrow> vwb_lens x"
+  by (simp_all add: continuous_lens_def)
+  
+lemma continuous_lens_intro:
+  assumes "vwb_lens x" "\<And> A. continuous_on A get\<^bsub>x\<^esub>" "\<And> A v. continuous_on A (\<lambda> s. put\<^bsub>x\<^esub> s v)"
+  shows "continuous_lens x"
+  by (simp add: continuous_lens_def continuous_lens_axioms_def assms)
+    
+lemma fst_continuous_lens [closure]: 
+  "continuous_lens fst\<^sub>L"
+  apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)
+  apply (rule continuous_on_Pair)
+  apply (simp add: continuous_on_const)
+  using ODE_Auxiliarities.continuous_on_snd apply blast
+done
+  
 text {* The one lens is continuous *}
   
 lemma one_lens_continuous [simp]:
@@ -23,10 +48,25 @@ text {* Lens summation of two continuous lenses is continuous *}
 lemma continuous_on_plus_lens [continuous_intros]:
   "\<lbrakk> continuous_on A get\<^bsub>x\<^esub>; continuous_on A get\<^bsub>y\<^esub> \<rbrakk> \<Longrightarrow> continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
   by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair)
-  
+
 declare plus_vwb_lens [simp]
     
-hide_type rel
+lemma lens_plus_continuous [closure]:
+  assumes "continuous_lens x" "continuous_lens y" "x \<bowtie> y"
+  shows "continuous_lens (x +\<^sub>L y)"
+proof (rule continuous_lens_intro)
+  show "vwb_lens (x +\<^sub>L y)"
+    by (simp add: assms)
+  show "\<And>A. continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
+    by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)  
+  show "\<And>A v. continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
+  proof -
+    fix A v
+    from continuous_on_compose[where s=A and g="(\<lambda> s. put\<^bsub>x\<^esub> s (fst v))" and f="(\<lambda> s. put\<^bsub>y\<^esub> s (snd v))"]
+    show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
+      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
+  qed
+qed
 
 no_notation inner (infix "\<bullet>" 70)
 
@@ -1088,5 +1128,104 @@ lemma HyStep_hEvolveAt:
   assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
   shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
   oops
+ 
+subsection {* Pertubation *}
+    
+abbreviation (input) "lens_upd s k v \<equiv> lens_put k s v"
+
+adhoc_overloading
+  uupd lens_upd
+ 
+text {* The following function take a hybrid relation and makes it more non-deterministic by allowing
+  that each continuous variable need only be within eps of its original value at each instant. *}
   
+definition perturb :: "('d, 'c :: t2_space) hyrel \<Rightarrow> ('a :: metric_space \<Longrightarrow> 'c) \<Rightarrow> real \<Rightarrow> ('d, 'c) hyrel"
+  where [upred_defs]:
+  "perturb P x eps = 
+  (\<^bold>\<exists> f \<bullet> P\<lbrakk>\<guillemotleft>f\<guillemotright>/&tt\<rbrakk> \<and> $tr \<le>\<^sub>u $tr\<acute> \<and>  \<^bold>l =\<^sub>u end\<^sub>u(\<guillemotleft>f\<guillemotright>) \<and> 
+       (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>f\<guillemotright>)}\<^sub>u \<bullet> \<^bold>\<exists> v \<bullet> \<guillemotleft>dist\<guillemotright>(\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x))\<^sub>a(\<guillemotleft>v\<guillemotright>)\<^sub>a \<le>\<^sub>u \<guillemotleft>eps\<guillemotright> \<and> &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a =\<^sub>u (\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a)(\<guillemotleft>x\<guillemotright> \<mapsto> \<guillemotleft>v\<guillemotright>)\<^sub>u))"
+  
+lemma perturb_RR_closed [closure]:
+  assumes "P is RR"
+  shows "perturb P x n is RR"
+proof -
+  have "RR (perturb (RR P) x n) = perturb (RR P) x n"
+    by (rel_blast)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+    
+lemma perturb_0:
+  assumes "vwb_lens x" "P is RR"
+  shows "perturb P x 0 = P"
+proof -
+  from assms(1) have "perturb (RR P) x 0 = (RR P)"
+    apply (rel_auto)
+    apply (metis tt_apply_minus ttrace_eqI)
+    apply (fastforce)
+  done
+  with assms(2) show ?thesis  
+    by (simp add: Healthy_if)
+qed
+      
+lemma perturb_weakens:
+  assumes "vwb_lens x" "n \<ge> 0" "P is RR"
+  shows "perturb P x n \<sqsubseteq> P"
+proof -
+  from assms(1,2) have "perturb (RR P) x n \<sqsubseteq> (RR P)"
+    apply (rel_simp)
+    apply (rename_tac tr d c tr' d' c' ok ok' wait wait')
+    apply (rule_tac x="tr' - tr" in exI)
+    apply (auto)
+    apply (rename_tac tr d c tr' d' c' ok ok' wait wait' t)    
+    apply (rule_tac x="get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))" in exI)
+    apply (auto)
+  done
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+
+  
+(*
+lemma tt_apply_continuous:
+  "continuous_on {0..<end\<^sub>t(f)} \<langle>f\<rangle>\<^sub>t"
+  sorry
+  
+lemma tt_apply_mk [simp]: 
+  "\<lbrakk> 0 \<le> t; t < l; continuous_on {0..<l} f \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>t l f\<rangle>\<^sub>t t = f t"
+  sorry
+    
+lemma 
+  fixes x :: "real \<Longrightarrow> 'c::t2_space"
+  assumes "continuous_lens x"
+  shows "perturb \<lceil>$x\<acute> =\<^sub>u 0\<rceil>\<^sub>h x 1 = \<lceil>-1 \<le>\<^sub>u $x\<acute> \<and> $x\<acute> \<le>\<^sub>u 1\<rceil>\<^sub>h"
+proof (rule antisym)
+  show "perturb \<lceil>$x\<acute> =\<^sub>u 0\<rceil>\<^sub>h x 1 \<sqsubseteq> \<lceil>-1 \<le>\<^sub>u $x\<acute> \<and> $x\<acute> \<le>\<^sub>u 1\<rceil>\<^sub>h"
+  proof (rel_simp)
+    fix tr tr'
+    assume a:
+      "tr \<le> tr'"
+      "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> - 1 \<le> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) \<and> get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) \<le> 1"
+    have "continuous_on {0..<end\<^sub>t (tr' - tr)} (\<lambda>t. put\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>t t) 0)"
+      by (rule continuous_on_compose[where g="(\<lambda> s. put\<^bsub>x\<^esub> s 0)" and f="\<langle>tr'-tr\<rangle>\<^sub>t" and s="{0..<end\<^sub>t (tr' - tr)}", simplified])
+         (auto simp add: tt_apply_continuous assms)
+    with assms a show
+      "\<exists>f. (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t f \<longrightarrow> get\<^bsub>x\<^esub> (\<langle>f\<rangle>\<^sub>tt) = 0) \<and>
+            end\<^sub>t (tr' - tr) = end\<^sub>t f \<and>
+            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t f \<longrightarrow> (\<exists>xc. dist (get\<^bsub>x\<^esub> (\<langle>f\<rangle>\<^sub>tt)) xc \<le> 1 \<and> \<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr) = put\<^bsub>x\<^esub> (\<langle>f\<rangle>\<^sub>tt) xc))"
+      apply (rule_tac x="mk\<^sub>t (end\<^sub>t(tr'-tr)) (\<lambda> t. put\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>t t) 0)" in exI)
+      apply (auto)
+      apply (rename_tac t)
+       apply (drule_tac x="t" in spec)
+        apply (subst tt_apply_mk)
+      apply (auto)
+      apply (rule_tac x="get\<^bsub>x\<^esub> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr))" in exI)
+      apply (simp)
+    done
+  qed     
+  from assms show "\<lceil>-1 \<le>\<^sub>u $x\<acute> \<and> $x\<acute> \<le>\<^sub>u 1\<rceil>\<^sub>h \<sqsubseteq> perturb \<lceil>$x\<acute> =\<^sub>u 0\<rceil>\<^sub>h x 1"
+    by (rel_auto)
+qed
+*)  
+
 end

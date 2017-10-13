@@ -392,6 +392,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Lim_shift_cgf_plus_shift':
+  assumes "0 < end\<^sub>C g"
+  shows "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C (f + g))) = (\<langle>g\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C g))"
+proof -
+  thm Lim_cgf_plus_shift
+  have 1:"(at_left (end\<^sub>C f + end\<^sub>C g)) = (at (end\<^sub>C f + end\<^sub>C g) within {end\<^sub>C f..<end\<^sub>C g + end\<^sub>C f})"
+    by (rule at_within_nhd[of _ "{end\<^sub>C f<..<end\<^sub>C g + end\<^sub>C f + 1}"], auto simp add: assms)
+  have 2: "(at_left (end\<^sub>C g)) = (at (end\<^sub>C g) within {0..<end\<^sub>C g})"
+    by (rule at_within_nhd[of _ "{0<..<end\<^sub>C g + 1}"], auto simp add: assms)
+  show ?thesis
+    by (simp add: cgf_end_cat assms 1 2)
+       (metis Lim_cgf_plus_shift add.commute add.left_neutral assms order_refl)  
+qed
+  
 text {* Theorem @{thm [source] Lim_cgf_plus_shift} shows that a composed function converges to a point beyond
   the end of the first (left) function if and only if the second function also conveges to this
   point, but with shifted indices. We then use this properties to show that the a piecewise
