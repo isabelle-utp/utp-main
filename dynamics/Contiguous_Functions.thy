@@ -197,9 +197,9 @@ lemma cgf_cat_right_unit [simp]: "t @\<^sub>C []\<^sub>C = t"
 text {* We can then show that the concatenation operator has @{term "[]\<^sub>C"} as its left and right
   zeros. *}
 
-lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C g. \<langle>f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C x \<rbrakk> \<Longrightarrow> f = g"
+lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<And> t. \<lbrakk> 0 \<le> t; t <end\<^sub>C g \<rbrakk> \<Longrightarrow> \<langle>f\<rangle>\<^sub>C t = \<langle>g\<rangle>\<^sub>C t \<rbrakk> \<Longrightarrow> f = g"
   apply (transfer)
-  apply (auto)[1]
+  apply (auto)
   apply (rename_tac f g i j)
   apply (case_tac "i = 0")
   apply (simp_all)

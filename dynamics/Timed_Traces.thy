@@ -997,6 +997,10 @@ proof -
     by (simp add: assms(1))
 qed
 
+lemma ttrace_eqI:
+  "\<lbrakk> end\<^sub>t f = end\<^sub>t g; \<And> t. \<lbrakk> 0 \<le> t; t < end\<^sub>t g \<rbrakk> \<Longrightarrow> \<langle>f\<rangle>\<^sub>t t = \<langle>g\<rangle>\<^sub>t t \<rbrakk> \<Longrightarrow> f = g"
+  by (transfer, simp add: cgf_eqI)
+  
 lift_definition tt_restrict :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a ttrace" (infix "\<restriction>\<^sub>t" 85)
 is "\<lambda> f n. f \<restriction>\<^sub>C n"
 proof -
