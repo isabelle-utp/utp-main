@@ -326,7 +326,7 @@ qed
 text {* Similarly, we show that concatenation is cancellative in its second argument. *}
 
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
-proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
+proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc)
   fix x
   assume x: "x < end\<^sub>C f + (end\<^sub>C g + end\<^sub>C h)"
   show "\<langle>f @\<^sub>C g @\<^sub>C h\<rangle>\<^sub>C x = \<langle>f @\<^sub>C (g @\<^sub>C h)\<rangle>\<^sub>C x"
