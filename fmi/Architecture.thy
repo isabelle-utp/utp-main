@@ -1,6 +1,6 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
-(* File: Railways.thy                                                         *)
+(* File: Architecture.thy                                                     *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
@@ -8,10 +8,10 @@
 
 section {* Railways Architecture *}
 
-theory Railways
+theory Architecture
 imports fmi String
-  "../tools/transcl/isabelle/transcl"
   "~~/src/HOL/Library/Code_Target_Numeral"
+  "../tools/transcl/isabelle/transcl"
 begin recall_syntax
 
 text {* For the purpose of taking screen shots. *}
@@ -137,7 +137,7 @@ lemma fmu_simps [simp]:
 "interlocking \<noteq> train1"
 "interlocking \<noteq> train2"
 "interlocking \<noteq> merger"
-using Railways.fmus_distinct apply (auto)
+using fmus_distinct apply (auto)
 done
 
 lemma fmu_code_simps [code]:
@@ -241,15 +241,6 @@ end
 
 subsubsection {* Port Dependency Graph (\<open>pdg\<close>) *}
 
-(*
-definition pdg :: "port relation" where
-"pdg = {
-  ((train1, $track_segment:{fmi2Integer}\<^sub>u), (merger, $track_segment1:{fmi2Integer}\<^sub>u)),
-  ((train2, $track_segment:{fmi2Integer}\<^sub>u), (merger, $track_segment2:{fmi2Integer}\<^sub>u)),
-  ((train1, $telecommand:{fmi2Integer}\<^sub>u), (merger, $telecommand1:{fmi2Integer}\<^sub>u)),
-  ((train2, $telecommand:{fmi2Integer}\<^sub>u), (merger, $telecommand2:{fmi2Integer}\<^sub>u)), \<dots>}"
-*)
-
 definition pdg :: "(PORT \<times> PORT) list" where
 "pdg = [
   ((train1, $track_segment:{fmi2Integer}\<^sub>u), (merger, $track_segment1:{fmi2Integer}\<^sub>u)),
@@ -278,6 +269,22 @@ definition pdg_set :: "(PORT \<times> PORT) set" where
   ((interlocking, $switches:{fmi2Integer}\<^sub>u), (train2, $switches:{fmi2Integer}\<^sub>u))
 }"
 
+(*<*)
+(* Extract used int the CoSim-CPS 2017 paper. *)
+
+experiment
+begin
+definition pdg :: "port relation" where
+"pdg = {
+  (* External Dependencies *)
+  ((train1, $track_segment:{int}\<^sub>u), (merger, $track_segment1:{int}\<^sub>u)),
+  ((train2, $track_segment:{int}\<^sub>u), (merger, $track_segment2:{int}\<^sub>u)), \<dots>,
+  (* Internal Dependencies *)
+  ((merger, $track_segment1:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)),
+  ((merger, $track_segment2:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)), \<dots>
+}"
+end
+(*>*)
 subsubsection {* Internal Direct Dependencies (\<open>idd\<close>) *}
 
 definition idd :: "(PORT \<times> PORT) list" where
@@ -314,22 +321,6 @@ definition idd_set :: "(PORT \<times> PORT) set" where
   ((interlocking, $TC:{fmi2Integer}\<^sub>u), (interlocking, $switches:{fmi2Integer}\<^sub>u))
 }"
 
-(*
-<*)
-experiment
-begin
-definition pdg :: "port relation" where
-"pdg = {
-  (* External Dependencies *)
-  ((train1, $track_segment:{int}\<^sub>u), (merger, $track_segment1:{int}\<^sub>u)),
-  ((train2, $track_segment:{int}\<^sub>u), (merger, $track_segment2:{int}\<^sub>u)), \<dots>,
-  (* Internal Dependencies *)
-  ((merger, $track_segment1:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)),
-  ((merger, $track_segment2:{int}\<^sub>u), (merger, $CDV:{int}\<^sub>u)), \<dots>
-}"
-end
-(*>*)
-
 subsection {* Proof of Properties *}
 
 text \<open>
@@ -358,6 +349,14 @@ definition wf_outputs :: "bool" where
 definition wf_inputs_outputs :: "bool" where
 "wf_inputs_outputs \<longleftrightarrow> (set inputs) \<inter> (set outputs) = {}"
 
+definition wf_initialValues_aux :: "(PORT \<times> VAL) list \<Rightarrow> bool" where
+"wf_initialValues_aux inits \<longleftrightarrow>
+  (\<forall>((f, x), v)\<in>set inits. \<not> (\<exists>v'. ((f, x), v') \<in> set inits \<and> v \<noteq> v'))"
+
+abbreviation wf_initialValues :: "bool" where
+"wf_initialValues \<equiv>
+  fst ` (set initialValues) = set inputs \<and> wf_initialValues_aux initialValues"
+
 subsubsection {* Well-formedness Tactics *}
 
 lemma wf_parameters_simps:
@@ -365,6 +364,15 @@ lemma wf_parameters_simps:
 "wf_parameters_aux ((fmu, x, v) # t) \<longleftrightarrow>
   (\<forall>w. (fmu, x, w) \<in> set t \<longrightarrow> v = w) \<and> (wf_parameters_aux t)"
 apply (unfold wf_parameters_aux_def)
+apply (simp_all)
+apply (auto)
+done
+
+lemma wf_initialValues_simps:
+"wf_initialValues_aux []"
+"wf_initialValues_aux (((fmu, x), v) # t) \<longleftrightarrow>
+  (\<forall>w. ((fmu, x), w) \<in> set t \<longrightarrow> v = w) \<and> (wf_initialValues_aux t)"
+apply (unfold wf_initialValues_aux_def)
 apply (simp_all)
 apply (auto)
 done
@@ -383,6 +391,13 @@ method wf_parameters_tac =
     prod.inject fmu_simps
     MkVar_eq HOL.simp_thms)
 
+method wf_initialValues_tac =
+  (simp only:
+    wf_initialValues_simps
+    mem_set_Cons
+    prod.inject fmu_simps
+    MkVar_eq HOL.simp_thms)
+
 subsubsection {* Well-formedness Proof *}
 
 lemma "wf_FMUs"
@@ -395,6 +410,17 @@ done
 lemma "wf_parameters"
 apply (unfold railways_parameters_def)
 apply (wf_parameters_tac)
+apply (safe; clarsimp)
+done
+
+lemma "wf_initialValues"
+apply (unfold railways_initialValues_def)
+apply (rule conjI)
+-- {* Subgoal 1 *}
+apply (unfold railways_inputs_def) [1]
+apply (clarsimp)
+-- {* Subgoal 1 *}
+apply (wf_initialValues_tac)
 apply (safe; clarsimp)
 done
 
@@ -453,7 +479,7 @@ subsubsection {* Port Conformance Check *}
 
 inductive conformant :: "(PORT \<times> PORT) list \<Rightarrow> bool" where
 "conformant []" |
-"type (snd p1) = type (snd p2) \<Longrightarrow>
+"type (name p1) = type (name p2) \<Longrightarrow>
   conformant l \<Longrightarrow> conformant ((p1, p2) # l)"
 
 declare conformant.intros [intro!]
@@ -466,6 +492,16 @@ lemma idd_conformant:
 
 subsubsection {* Absence of Algebraic Loops *}
 
+text {* Proof using the @{method eval} tactic directly. *}
+
+lemma "acyclic (set pdg \<union> set idd)"
+profile (eval)
+done
+
+lemma "acyclic (pdg_set \<union> idd_set)"
+profile (eval)
+done
+
 text {* We next prove via code evaluation that there are no algebraic loops. *}
 
 lemma insert_union_elim:
@@ -474,42 +510,27 @@ lemma insert_union_elim:
 apply (simp_all)
 done
 
+text {* Proof using our external algorithm in C++ for closure calculation. *}
+
+text {*
+  Note that currently we have to run the transcl tool in robust mode for the
+  algorithm to give the correct output. The reason for that is that tuples of
+  the form \<open>((a, b), (c, d))\<close> are pretty-printed as \<open>((a, b), c, d)\<close>, which
+  turns out to cause an issue with the transcl Scanner (to be fixed). This
+  means that the tool may run (very slightly) slower, but execution of the
+  algorithm is anyhow not the bottle-neck. A future improvement is to deal
+  with set expressions of the form @{term "set pdg \<union> set idd"}.
+*}
+
+declare [[transcl_robust]]
+
 lemma "acyclic (set pdg \<union> set idd)"
 apply (unfold pdg_def idd_def)
 apply (unfold set_simps insert_union_elim)
 apply (acyclic_tac)
-oops
-
-lemma "acyclic (pdg_set \<union> idd_set)"
-profile (eval)
-done
-
-lemma "acyclic (set pdg \<union> set idd)"
-profile (eval)
-done
-
-(* transcl(...) does not seem to work due to pair brackets missing! *)
-
-declare [[transcl_robust=false]]
-
-term "transcl(pdg_set \<union> idd_set)"
-
-declare [[transcl_robust]]
-
-lemma "acyclic (pdg_set \<union> idd_set)"
 apply (rule acyclic_witnessI)
 profile (rule_tac x = "transcl(pdg_set \<union> idd_set)" in exI)
+-- {* It would be nice if we did not have to use @{method eval} here! *}
 profile (eval)
-done
-
-subsection {* Proof Experiments *}
-
-lemma acyclic_witnessI:
-"(\<exists>s. r \<subseteq> s \<and> s O r \<subseteq> s \<and> irrefl s) \<Longrightarrow> acyclic r"
-apply (clarsimp)
-apply (subgoal_tac "r\<^sup>+ \<subseteq> s")
-apply (meson acyclic_def irrefl_def subsetCE)
-apply (erule trancl_Int_subset)
-apply (auto)
 done
 end

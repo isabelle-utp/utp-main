@@ -240,7 +240,7 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
     fmi
     Time
     Topology
-    Railways
+    Architecture
     Railways_Spec
     Railways_Impl
     Interlocking

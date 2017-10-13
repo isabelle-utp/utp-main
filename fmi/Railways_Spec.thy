@@ -15,12 +15,15 @@ begin recall_syntax
 subsection {* Centralised FMU State *}
 
 alphabet railways_state =
+  (* Train FMUs *)
   current_track\<^sub>1 :: "int"
   current_track\<^sub>2 :: "int"
   telecommand\<^sub>1 :: "bool vector"
   telecommand\<^sub>2 :: "bool vector"
+  (* Merger FMU *)
   cdv :: "bool vector"
   tc :: "bool vector"
+  (* Interlocking FMU *)
   relays :: "bool vector"
   signals :: "bool vector"
   switches :: "switch vector"
