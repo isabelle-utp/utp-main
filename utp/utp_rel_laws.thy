@@ -717,10 +717,33 @@ lemma uomega_induct:
   by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
 subsection {* Refinement Laws *}
+
+lemma conj_refine_left:
+  "(Q \<Rightarrow> P) \<sqsubseteq> R \<Longrightarrow> P \<sqsubseteq> (Q \<and> R)"
+  by (rel_auto)
   
+lemma pre_weak_rel:
+  assumes "`Pre \<Rightarrow> I`"
+  and     "(I \<Rightarrow> Post) \<sqsubseteq> P"
+  shows "(Pre \<Rightarrow> Post) \<sqsubseteq> P"
+  using assms by(rel_auto)
+    
 lemma cond_refine_rel: 
   assumes "S \<sqsubseteq> (\<lceil>b\<rceil>\<^sub>< \<and> P)" "S \<sqsubseteq> (\<lceil>\<not>b\<rceil>\<^sub>< \<and> Q)"
   shows "S \<sqsubseteq> P \<triangleleft> b \<triangleright>\<^sub>r Q"
   by (metis aext_not assms cond_def utp_pred_laws.le_sup_iff)
+
+lemma seq_refine_pred:
+  assumes "(\<lceil>b\<rceil>\<^sub>< \<Rightarrow> \<lceil>s\<rceil>\<^sub>>) \<sqsubseteq> P" and "(\<lceil>s\<rceil>\<^sub>< \<Rightarrow> \<lceil>c\<rceil>\<^sub>>) \<sqsubseteq> Q"
+  shows "(\<lceil>b\<rceil>\<^sub>< \<Rightarrow> \<lceil>c\<rceil>\<^sub>>) \<sqsubseteq> (P ;; Q)"
+  using assms by rel_auto
+    
+lemma seq_refine_unrest:
+  assumes "out\<alpha> \<sharp> b" "in\<alpha> \<sharp> c"
+  assumes "(b \<Rightarrow> \<lceil>s\<rceil>\<^sub>>) \<sqsubseteq> P" and "(\<lceil>s\<rceil>\<^sub>< \<Rightarrow> c) \<sqsubseteq> Q"
+  shows "(b \<Rightarrow> c) \<sqsubseteq> (P ;; Q)"
+  using assms by rel_blast 
+    
+    
     
 end

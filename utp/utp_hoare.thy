@@ -148,19 +148,27 @@ lemma while_vrt_hoare_r [hoare_safe]:
 done
   
 text {* General total correctness law based on well-founded induction *}
-  
-lemma uwhile_total_rule:
+        
+lemma while_wf_hoare_r:
   assumes WF: "wf R"
-  assumes I0: "`Pre \<Rightarrow> I`"
-  assumes induct_step:"\<And> st. (\<lceil>b \<and> p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright> \<rceil>\<^sub>< \<Rightarrow> (\<lceil>p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<rceil>\<^sub>>)) \<sqsubseteq> Q"  
-  assumes PHI:"`\<not> \<lceil>b\<rceil>\<^sub>< \<and> \<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>Post\<rceil>\<^sub>>`"  
-  shows "\<lbrace>Pre\<rbrace>while\<^sub>\<bottom> b invr p do Q od\<lbrace>Post\<rbrace>\<^sub>u"
+  assumes I0: "`pre \<Rightarrow> p`"
+  assumes induct_step:"\<And> st. \<lbrace>b \<and> p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace>Q\<lbrace>p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace>\<^sub>u"
+  assumes PHI:"`(\<not>b \<and> p) \<Rightarrow> post`"  
+  shows "\<lbrace>pre\<rbrace>while\<^sub>\<bottom> b invr p do Q od\<lbrace>post\<rbrace>\<^sub>u"
 unfolding hoare_r_def while_inv_bot_def while_bot_def
-proof (rule rec_total_utp_rule[where e=e, OF WF])
-  show "Monotonic (\<lambda>X. Q ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
-    by (simp add: closure)
-  show "\<And>st. (\<lceil>Pre\<rceil>\<^sub>< \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> \<lceil>Post\<rceil>\<^sub>>) \<sqsubseteq> Q ;; (\<lceil>Pre\<rceil>\<^sub>< \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> \<lceil>Post\<rceil>\<^sub>>) \<triangleleft> b \<triangleright>\<^sub>r II"
-    apply (rule cond_refine_rel)
-oops
+proof (rule pre_weak_rel[of _ "\<lceil>p\<rceil>\<^sub><" ])
+  from I0 show "`\<lceil>pre\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub><`"
+    by rel_auto
+  show "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>post\<rceil>\<^sub>>) \<sqsubseteq> (\<mu> X \<bullet> Q ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+  proof (rule rec_total_utp_rule[where e=e, OF WF])
+    show "Monotonic (\<lambda>X. Q ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+      by (simp add: closure)
+    have induct_step': "\<And> st. (\<lceil>b \<and> p \<and>  e =\<^sub>u \<guillemotleft>st\<guillemotright> \<rceil>\<^sub>< \<Rightarrow> (\<lceil>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<rceil>\<^sub>> )) \<sqsubseteq> Q"
+      using induct_step by rel_auto  
+    with PHI
+    show "\<And>st. (\<lceil>p\<rceil>\<^sub>< \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> \<lceil>post\<rceil>\<^sub>>) \<sqsubseteq> Q ;; (\<lceil>p\<rceil>\<^sub>< \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> \<lceil>post\<rceil>\<^sub>>) \<triangleleft> b \<triangleright>\<^sub>r II" 
+      by (rel_auto)
+  qed       
+qed
   
 end
