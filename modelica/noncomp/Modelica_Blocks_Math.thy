@@ -18,7 +18,7 @@ definition Sum ::
 
 definition Add ::
   "real \<Rightarrow> real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
-[upred_defs, mo_defs]: "Add k1 k2 u1 u2 y = MathBlock (\<guillemotleft>k1\<guillemotright>*$u1\<acute> + \<guillemotleft>k1\<guillemotright>*$u2\<acute>) y"
+[upred_defs, mo_defs]: "Add k1 k2 u1 u2 y = MathBlock (\<guillemotleft>k1\<guillemotright>*$u1\<acute> + \<guillemotleft>k2\<guillemotright>*$u2\<acute>) y"
 
 definition Product ::
   "(real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where

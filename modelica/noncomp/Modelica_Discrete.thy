@@ -12,7 +12,7 @@ text {* The following function construct the overall event iteration guard by ex
   The latter will not actually yield any behaviour though as the discrete equations are only
   executed when their condition was false and is now true.*}
   
-definition mevs :: "'c mblock \<Rightarrow> 'c mst_scheme hrel" where
+definition mevs :: "('l, 'c) mblock \<Rightarrow> ('l, 'c) mst_scheme hrel" where
 [upred_defs]: "mevs M = foldr (\<lambda> g p. (\<lceil>g\<rceil>\<^sub>< \<noteq>\<^sub>u \<lceil>g\<rceil>\<^sub>>) \<or> p) (map fst (mgrds M)) false"
   
 text {* The next construct describes the behaviour of event iteration. At each step, "when" guards

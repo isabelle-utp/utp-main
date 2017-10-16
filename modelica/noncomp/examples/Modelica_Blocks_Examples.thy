@@ -2,7 +2,7 @@ theory Modelica_Blocks_Examples
   imports "../Modelica_Blocks"
 begin
 
-alphabet hst = mst +
+alphabet 'l hst = "'l mst" +
   v1 :: real
   v2 :: real
   v3 :: real
@@ -12,7 +12,7 @@ setup_lifting type_definition_hst_ext
 
 instantiation hst_ext :: (t2_space) t2_space
 begin
-  lift_definition open_hst_ext :: "'a hst_scheme set \<Rightarrow> bool" is "open" .
+  lift_definition open_hst_ext :: "('l, 'a) hst_scheme set \<Rightarrow> bool" is "open" .
   instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
 end    
     

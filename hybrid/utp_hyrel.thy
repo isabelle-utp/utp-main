@@ -1142,8 +1142,10 @@ text {* The following function take a hybrid relation and makes it more non-dete
 definition perturb :: "('d, 'c :: t2_space) hyrel \<Rightarrow> ('a :: metric_space \<Longrightarrow> 'c) \<Rightarrow> real \<Rightarrow> ('d, 'c) hyrel"
   where [upred_defs]:
   "perturb P x eps = 
+  P \<triangleleft> \<guillemotleft>eps\<guillemotright> \<le>\<^sub>u 0 \<triangleright>
   (\<^bold>\<exists> f \<bullet> P\<lbrakk>\<guillemotleft>f\<guillemotright>/&tt\<rbrakk> \<and> $tr \<le>\<^sub>u $tr\<acute> \<and>  \<^bold>l =\<^sub>u end\<^sub>u(\<guillemotleft>f\<guillemotright>) \<and> 
-       (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>f\<guillemotright>)}\<^sub>u \<bullet> \<^bold>\<exists> v \<bullet> \<guillemotleft>dist\<guillemotright>(\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x))\<^sub>a(\<guillemotleft>v\<guillemotright>)\<^sub>a \<le>\<^sub>u \<guillemotleft>eps\<guillemotright> \<and> &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a =\<^sub>u (\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a)(\<guillemotleft>x\<guillemotright> \<mapsto> \<guillemotleft>v\<guillemotright>)\<^sub>u))"
+       (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>f\<guillemotright>)}\<^sub>u \<bullet> \<^bold>\<exists> v \<bullet> \<guillemotleft>dist\<guillemotright>(\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x))\<^sub>a(\<guillemotleft>v\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>eps\<guillemotright> \<and> 
+                                       &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a =\<^sub>u (\<guillemotleft>f\<guillemotright>(\<guillemotleft>t\<guillemotright>)\<^sub>a)(\<guillemotleft>x\<guillemotright> \<mapsto> \<guillemotleft>v\<guillemotright>)\<^sub>u))"
   
 lemma perturb_RR_closed [closure]:
   assumes "P is RR"
@@ -1156,18 +1158,9 @@ proof -
 qed
     
 lemma perturb_0:
-  assumes "vwb_lens x" "P is RR"
-  shows "perturb P x 0 = P"
-proof -
-  from assms(1) have "perturb (RR P) x 0 = (RR P)"
-    apply (rel_auto)
-    apply (metis tt_apply_minus ttrace_eqI)
-    apply (fastforce)
-  done
-  with assms(2) show ?thesis  
-    by (simp add: Healthy_if)
-qed
-      
+  "perturb P x 0 = P"
+  by (rel_auto)
+  
 lemma perturb_weakens:
   assumes "vwb_lens x" "n \<ge> 0" "P is RR"
   shows "perturb P x n \<sqsubseteq> P"
@@ -1228,4 +1221,38 @@ proof (rule antisym)
 qed
 *)  
 
+definition nearly :: "('d \<times> 'c::t2_space) upred \<Rightarrow> ('a::real_normed_vector \<Longrightarrow> 'c) \<Rightarrow> real \<Rightarrow> ('d \<times> 'c::t2_space) upred" where
+[upred_defs]: "nearly p x eps = p \<triangleleft> \<guillemotleft>eps\<guillemotright> \<le>\<^sub>u 0 \<triangleright> (\<^bold>\<exists> v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>c:x\<rbrakk> \<and> \<guillemotleft>dist\<guillemotright>(&\<^bold>c:x)\<^sub>a(\<guillemotleft>v\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>eps\<guillemotright>)"
+  
+lemma nearly_weaken: 
+  "\<lbrakk> vwb_lens x; eps \<ge> 0 \<rbrakk> \<Longrightarrow> `p \<Rightarrow> nearly p x eps`"
+  apply (rel_simp)
+  apply (metis dist_self less_eq_real_def vwb_lens.put_eq)
+  done
+
+lemma nearly_example: 
+  "vwb_lens x \<Longrightarrow> nearly (&\<^bold>c:x \<ge>\<^sub>u \<guillemotleft>0::real\<guillemotright>) x 1 = (&\<^bold>c:x >\<^sub>u -1)"
+  apply (rel_auto)
+   apply (rename_tac b v)
+   apply (case_tac "0 \<le> get\<^bsub>x\<^esub> b")
+    apply (auto)
+    apply (subgoal_tac "v - get\<^bsub>x\<^esub> b < 1")
+    apply linarith
+   apply (simp add: dist_real_def)
+  apply (case_tac "0 \<le> get\<^bsub>x\<^esub> b")
+    apply (auto)
+done
+    
+lemma nearly_false: 
+  "nearly false x eps = false"
+  by (rel_auto)
+
+lemma nearly_true: 
+  "nearly true x eps = true"
+  by (rel_simp, metis approximation_preproc_push_neg(1) dist_self)
+
+lemma nearly_conj:
+  "nearly (p \<or> q) x eps = (nearly p x eps \<or> nearly q x eps)"
+  by (rel_auto)
+    
 end

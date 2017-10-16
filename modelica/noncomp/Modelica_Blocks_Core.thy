@@ -13,8 +13,6 @@ translations
 datatype ('l, 'c) mevgrd =
   TimeEvent (ofTimeEvent: "real \<Rightarrow> bool") | StateEvent (ofStateEvent: "(real, 'l, 'c) mexpr")
   
-print_theorems
-  
 record (overloaded) ('l, 'c) mblock = 
   minit :: "('l, 'c) mst_scheme upred"
   mceqs :: "('l, 'c) mrel"
