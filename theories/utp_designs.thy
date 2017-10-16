@@ -1352,13 +1352,13 @@ lemma H1_H3_comp: "H1_H3 = H1 \<circ> H3"
 lemma H1_H3_idempotent: "\<^bold>N (\<^bold>N P) = \<^bold>N P"
   by (simp add: H1_H3_commute H1_idem H3_idem)
 
-lemma H1_H3_Idempotent: "Idempotent \<^bold>N"
+lemma H1_H3_Idempotent [closure]: "Idempotent \<^bold>N"
   by (simp add: Idempotent_def H1_H3_idempotent)
 
-lemma H1_H3_monotonic: "Monotonic \<^bold>N"
+lemma H1_H3_monotonic [closure]: "Monotonic \<^bold>N"
   by (simp add: H1_monotone H3_mono mono_def)
 
-lemma H1_H3_Continuous: "Continuous \<^bold>N"
+lemma H1_H3_Continuous [closure]: "Continuous \<^bold>N"
   by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)
 
 lemma H1_H3_intro:
@@ -1416,6 +1416,16 @@ lemma seq_r_H1_H3_closed [closure]:
   shows "(P ;; Q) is \<^bold>N"
   by (metis (no_types) H1_H2_eq_design H1_H3_eq_design_d_comp H1_H3_impl_H2 Healthy_def assms(1) assms(2) seq_r_H1_H2_closed seqr_assoc)
   
+lemma dcond_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<triangleleft> b \<triangleright>\<^sub>D Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_dcond ndesign_form)
+
+lemma inf_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<sqinter> Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_choice ndesign_form)
+    
 lemma ndes_seqr_miracle:
   assumes "P is \<^bold>N"
   shows "P ;; \<top>\<^sub>D = \<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<turnstile>\<^sub>n false"
@@ -1945,19 +1955,46 @@ method ndes_eq uses cls =
 
 subsection {* Alternation *}
   
-consts
-  ualtern      :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r"
-  ualtern_list :: "('a \<times> 'r) list \<Rightarrow> 'r"
+definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("_ \<rightarrow>\<^sub>D _" [85, 86] 85) where
+[upred_defs, ndes_simp]: "b \<rightarrow>\<^sub>D P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
   
-definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
-[upred_defs]:
-"AlternateD A g P = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) 
-                     \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+lemma GrdCommD_H1_H3_closed [closure]: "P is \<^bold>N \<Longrightarrow> b \<rightarrow>\<^sub>D P is \<^bold>N"
+  by (simp add: GrdCommD_def closure)
 
-definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
+consts
+  ualtern      :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r \<Rightarrow> 'r"
+  ualtern_list :: "('a \<times> 'r) list \<Rightarrow> 'r \<Rightarrow> 'r"
+  
+definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]:
-"AlternateD_list xs = 
-  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i))"
+"AlternateD A g P Q = (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D P(i)) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D Q"
+
+text {* This lemma shows that our generalised alternation is the same operator as Marcel Oliveira's
+  definition of alternation when the else branch is abort. *}
+
+lemma AlternateD_abort_alternate:
+  assumes "\<And> i. P(i) is \<^bold>N"
+  shows
+  "AlternateD A g P \<bottom>\<^sub>D = 
+  ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+proof (cases "A = {}")
+  case False
+  have "AlternateD A g P \<bottom>\<^sub>D = 
+        (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D (\<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i))) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D (false \<turnstile>\<^sub>n true)"
+    by (simp add: AlternateD_def ndesign_form abort_ndes_def assms)
+  also have "... = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+    by (simp add: ndes_simp False, rel_auto)
+  finally show ?thesis by simp
+next
+  case True
+  thus ?thesis
+    by (simp add: AlternateD_def, rel_auto)
+qed
+     
+definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des  \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
+[upred_defs]:
+"AlternateD_list xs P = 
+  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i)) P"
 
 adhoc_overloading
   ualtern AlternateD and
@@ -1966,36 +2003,61 @@ adhoc_overloading
 nonterminal gcomm and gcomms
   
 syntax
-  "_altind"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
-  "_gcomm"      :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [65, 66] 65)
-  "_gcomm_nil"  :: "gcomm \<Rightarrow> gcomms" ("_")
-  "_gcomm_cons" :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ | _" [60, 61] 60)
-  "_gcomm_show" :: "logic \<Rightarrow> logic"
-  "_altgcomm"   :: "gcomms \<Rightarrow> logic" ("if _ fi")
+  "_altind_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_gcomm"        :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [65, 66] 65)
+  "_gcomm_nil"    :: "gcomm \<Rightarrow> gcomms" ("_")
+  "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ | _" [60, 61] 60)
+  "_gcomm_show"   :: "logic \<Rightarrow> logic"
+  "_altgcomm_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if _ else _ fi")
+  "_altgcomm"     :: "gcomms \<Rightarrow> logic" ("if _ fi")
     
 translations
-  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P)"
-  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P)"
-  "_altgcomm cs" => "CONST ualtern_list cs"
-  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs"
+  "_altind_els x A g P Q" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) Q"
+  "_altind_els x A g P Q" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) Q"
+  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) true"
+  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) true"
+  "_altgcomm cs" => "CONST ualtern_list cs true"
+  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs true"
+  "_altgcomm_els cs P" => "CONST ualtern_list cs P"
+  "_altgcomm_els (_gcomm_show cs) P" <= "CONST ualtern_list cs P"
+
   "_gcomm g P" => "(g, P)"
   "_gcomm g P" <= "_gcomm_show (g, P)"
   "_gcomm_cons c cs" => "c # cs"
   "_gcomm_cons (_gcomm_show c) (_gcomm_show (d # cs))" <= "_gcomm_show (c # d # cs)"
   "_gcomm_nil c" => "[c]"
   "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
-
-lemma AlternateD_H1_H3_closed [closure]: 
-  "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi is \<^bold>N"
-  by (simp add: AlternateD_def closure)
   
+lemma AlternateD_H1_H3_closed [closure]: 
+  assumes "\<And> i. P i is \<^bold>N" "Q is \<^bold>N"
+  shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi is \<^bold>N"
+proof (cases "A = {}")
+  case True
+  then show ?thesis
+    by (simp add: AlternateD_def closure false_upred_def assms)
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateD_def closure assms)
+qed
+
 lemma AltD_ndes_simp [ndes_simp]: 
-  "if i\<in>A \<bullet> g(i) \<rightarrow> (P(i) \<turnstile>\<^sub>n Q(i)) fi 
-   = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> P i)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> Q i)"
-  by (simp add: AlternateD_def, rel_auto)
-    
+  "if i\<in>A \<bullet> g(i) \<rightarrow> (P\<^sub>1(i) \<turnstile>\<^sub>n P\<^sub>2(i)) else Q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2 fi 
+   = ((\<And> i \<in> A \<bullet> g i \<Rightarrow> P\<^sub>1 i) \<and> ((\<And> i \<in> A \<bullet> \<not> g i) \<Rightarrow> Q\<^sub>1)) \<turnstile>\<^sub>n
+     ((\<Or> i \<in> A \<bullet> \<lceil>g i\<rceil>\<^sub>< \<and> P\<^sub>2 i) \<or> (\<And> i \<in> A \<bullet> \<not> \<lceil>g i\<rceil>\<^sub><) \<and> Q\<^sub>2)"
+proof (cases "A = {}")
+  case True
+  then show ?thesis by (simp add: AlternateD_def, rel_auto)
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateD_def ndes_simp, rel_auto)
+qed
+
+  (*
 lemma AlternateD_list_alt_def [ndes_simp]:
-  "AlternateD_list xs =
+  "AlternateD_list xs \<bottom>\<^sub>D =
     (((foldr (op \<or>) (map fst xs) false) \<and> (foldr (op \<and>) (map (\<lambda> (g, P). g \<Rightarrow> \<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub><) xs) true))
     \<turnstile>\<^sub>n foldr (op \<or>) (map (\<lambda> (g, P). \<lceil>g\<rceil>\<^sub>< \<and> post\<^sub>D(P)) xs) false)"
 proof -
@@ -2010,11 +2072,13 @@ proof -
     apply (simp add: 1 2)
   done
 qed 
+*)
 
 lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
   by (rel_auto)
   
+(*
 lemma AlternateD_singleton:
   assumes "P is \<^bold>N"
   shows "if true \<rightarrow> P fi = P"
@@ -2024,6 +2088,6 @@ lemma AlternateD_commute:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "if g\<^sub>1 \<rightarrow> P | g\<^sub>2 \<rightarrow> Q fi = if g\<^sub>2 \<rightarrow> Q | g\<^sub>1 \<rightarrow> P fi"
   by (ndes_simp cls:assms, rel_auto)
-    
+*)  
   
 end
