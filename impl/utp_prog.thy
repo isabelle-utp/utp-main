@@ -39,8 +39,27 @@ method ptransfer = (simp add: prog_rep_eq)
     
 subsection {* Operators *}
   
-lift_definition abort    :: "'\<alpha> prog" is "true" by (simp add: closure)
-lift_definition magic    :: "'\<alpha> prog" is "\<top>\<^sub>D" by (simp add: closure)
+instantiation prog :: (type) lattice
+begin
+  lift_definition inf_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "op \<squnion>" by (simp add: closure)
+  lift_definition sup_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "op \<sqinter>" by (simp add: closure)
+instance by (intro_classes; (transfer, rel_simp))
+end
+
+instantiation prog :: (type) bounded_lattice
+begin
+  lift_definition top_prog :: "'\<alpha> prog" is "\<bottom>\<^sub>D" by (simp add: closure)
+  lift_definition bot_prog :: "'\<alpha> prog" is "\<top>\<^sub>D" by (simp add: closure)
+instance 
+  apply (intro_classes; transfer)
+  apply (metis H1_below_top Healthy_def)
+  apply simp
+  done
+end
+  
+abbreviation abort :: "'\<alpha> prog" where "abort \<equiv> \<bottom>"
+abbreviation magic :: "'\<alpha> prog" where "magic \<equiv> \<top>"
+
 lift_definition skip     :: "'\<alpha> prog" is "II\<^sub>D" by (simp add: closure)
 lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infix ";" 71) is "op ;;" by (simp add: closure)
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
@@ -49,9 +68,11 @@ lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> up
 lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow>  '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
   by (simp add: AlternateD_list_def list_all_def pred_prod_beta closure)
      (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)
-    
-declare abort.rep_eq [prog_rep_eq]
-declare magic.rep_eq [prog_rep_eq]
+
+declare inf_prog.rep_eq [prog_rep_eq]
+declare sup_prog.rep_eq [prog_rep_eq]
+declare top_prog.rep_eq [prog_rep_eq]
+declare bot_prog.rep_eq [prog_rep_eq]
 declare skip.rep_eq [prog_rep_eq]
 declare pseq.rep_eq [prog_rep_eq]
 declare passigns.rep_eq [prog_rep_eq]

@@ -1429,6 +1429,11 @@ lemma inf_H1_H2_closed [closure]:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "(P \<sqinter> Q) is \<^bold>N"
   by (metis assms ndesign_H1_H3 ndesign_choice ndesign_form)
+
+lemma sup_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<squnion> Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_inf ndesign_form)
     
 lemma ndes_seqr_miracle:
   assumes "P is \<^bold>N"

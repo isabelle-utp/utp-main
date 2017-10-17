@@ -3650,7 +3650,7 @@ lemma power_rdes_def [rdes_def]:
 proof (induct n)
   case 0
   then show ?case
-    by (simp add: wp assms closure, rel_auto)
+    by (simp add: wp assms closure)
 next
   case (Suc n)
 
