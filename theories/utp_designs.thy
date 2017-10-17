@@ -2047,7 +2047,7 @@ translations
   "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
   
 lemma AlternateD_H1_H3_closed [closure]: 
-  assumes "\<And> i. P i is \<^bold>N" "Q is \<^bold>N"
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is \<^bold>N" "Q is \<^bold>N"
   shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi is \<^bold>N"
 proof (cases "A = {}")
   case True

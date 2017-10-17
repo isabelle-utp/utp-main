@@ -45,9 +45,10 @@ lift_definition skip     :: "'\<alpha> prog" is "II\<^sub>D" by (simp add: closu
 lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infix ";" 71) is "op ;;" by (simp add: closure)
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
 lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "\<lambda> \<sigma> P. ((\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D) \<oplus>\<^sub>s in\<alpha>) \<dagger> P" by (simp add: closure)
-lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
-lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog" is AlternateD_list
-  by (simp add: AlternateD_list_def list_all_def closure)
+lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
+lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow>  '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
+  by (simp add: AlternateD_list_def list_all_def pred_prod_beta closure)
+     (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)
     
 declare abort.rep_eq [prog_rep_eq]
 declare magic.rep_eq [prog_rep_eq]
