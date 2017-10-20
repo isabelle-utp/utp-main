@@ -7,7 +7,7 @@ begin
 subsection {* Program Type *}
   
 typedef '\<alpha> prog = "{P :: '\<alpha> hrel_des. P is \<^bold>N}"
-  by (rule_tac x="true" in exI, simp add: closure)
+  by (rule_tac x="\<bottom>\<^sub>D" in exI, simp add: closure)
     
 named_theorems prog_rep_eq
     
@@ -15,6 +15,9 @@ notation Rep_prog ("\<lbrakk>_\<rbrakk>\<^sub>p")
 
 lemma Rep_prog_H1_H3_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>p is \<^bold>N"
   using Rep_prog by auto
+    
+lemma Rep_prog_split: "\<lbrakk> \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(\<lbrakk>P\<rbrakk>\<^sub>p)"
+  by (simp add: Rep_prog_H1_H3_closed ndes_split)
     
 setup_lifting type_definition_prog
     
@@ -53,7 +56,7 @@ begin
 instance 
   apply (intro_classes; transfer)
   apply (metis H1_below_top Healthy_def)
-  apply simp
+  apply (simp add: bot_d_true)
   done
 end
   
@@ -91,13 +94,17 @@ adhoc_overloading
 translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST abort)"
   
 subsection {* Proof Tactics *}
   
 method pauto   = (ptransfer, rel_auto)
 method prefine = (ptransfer, ndes_refine)
 method peq     = (ptransfer, ndes_eq)
-  
+
+method prefine' = (transfer, ndes_refine)
+method peq'     = (transfer, ndes_eq)
+
 subsection {* Substitution Laws *}
   
 lemma psubst_seq [usubst]:
@@ -108,18 +115,18 @@ subsection {* Laws of Programming *}
   
 theorem skip_left_unit [simp]:
   "skip ; P = P"
-  by (transfer, metis H1_idem H1_left_unit Healthy_def')
+  by (peq')
   
 theorem skip_right_unit [simp]:
   "P ; skip = P"
-  by (transfer, metis H1_H3_commute H1_idem H3_def Healthy_if)
-
+  by (peq')
+       
 theorem abort_left_zero [simp]:
   "abort ; P = abort"
-  by (transfer, metis H1_idem H1_left_zero Healthy_def')
+  by (peq')
 
 theorem magic_left_zero [simp]:
   "magic ; P = magic"
-  by (transfer, metis H1_idem H1_nok_left_zero Healthy_def')
+  by (peq')
     
 end
