@@ -243,9 +243,15 @@ text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P
 definition cont_st_post :: "'c::topological_space upred \<Rightarrow> ('d, 'c) hyrel" ("[_]\<^sub>C\<^sub>>") where
 [upred_defs]: "cont_st_post b = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>>)"
 
+definition cont_st_rel :: "'c::topological_space hrel \<Rightarrow> ('d, 'c) hyrel" ("[_]\<^sub>C") where
+[upred_defs]: "cont_st_rel b = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>b\<rceil>\<^sub>C)"
+
 lemma cont_st_post_RR [closure]: "[b]\<^sub>C\<^sub>> is RR"
   using minus_zero_eq by (rel_auto)
 
+lemma cont_st_rel_RR [closure]: "[b]\<^sub>C is RR"
+  using minus_zero_eq by (rel_auto)
+    
 lemma cont_st_post_false [rpred]: 
   "[false]\<^sub>C\<^sub>> = false"
   by rel_auto
@@ -1128,7 +1134,7 @@ lemma HyStep_hEvolveAt:
   assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
   shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
   oops
- 
+    
 subsection {* Pertubation *}
     
 abbreviation (input) "lens_upd s k v \<equiv> lens_put k s v"

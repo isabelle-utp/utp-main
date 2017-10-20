@@ -7,11 +7,15 @@ definition sample\<^sub>m :: "real \<Rightarrow> real \<Rightarrow> real \<Right
   
 definition Sampler :: 
   "real \<Rightarrow> real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
-[upred_defs, mo_defs]:
+[upred_defs, mo_defs]: 
   "Sampler samplePeriod startTime u y =
-    \<lparr> minit = &y =\<^sub>u &u
-    , mceqs = y \<leftarrow>\<^sub>h $y
-    , mgrds = [(TimeEvent (sample\<^sub>m startTime samplePeriod), \<^bold>c:y :=\<^sub>R &\<^bold>c:u)]
+    \<lparr> mieqs = &y =\<^sub>u &u
+    , mdeqs = true\<^sub>r
+    , maeqs = true
+    , mqeqs = (\<guillemotleft>sample\<^sub>m startTime samplePeriod\<guillemotright>(&time)\<^sub>a \<Rightarrow> &y =\<^sub>u &u)
+    , mreqs = {}
+    , mzcfs = {}
+    , mtevs = sample\<^sub>m startTime samplePeriod
     \<rparr>"
   
 end
