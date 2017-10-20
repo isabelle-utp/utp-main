@@ -140,14 +140,15 @@ syntax
   "_ok_f"  :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)
   "_ok_t"  :: "logic \<Rightarrow> logic" ("_\<^sup>t" [1000] 1000)
   "_top_d" :: "logic" ("\<top>\<^sub>D")
-  "_bot_d" :: "logic" ("\<bottom>\<^sub>D")
 
 translations
   "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
   "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
   "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
-  "\<bottom>\<^sub>D" => "true"
 
+definition bot_d :: "('\<alpha>, '\<beta>) rel_des" ("\<bottom>\<^sub>D") where
+[upred_defs]: "\<bottom>\<^sub>D = (false \<turnstile> false)"
+  
 definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("pre\<^sub>D") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
@@ -223,8 +224,12 @@ lemma true_is_rdesign:
   "(false \<turnstile>\<^sub>r true) = true"
   by (rel_auto)
     
-lemma abort_ndes_def:
-  "true = (false \<turnstile>\<^sub>n true)"
+lemma bot_d_true:
+  "\<bottom>\<^sub>D = true"
+  by (rel_auto)  
+  
+lemma bot_d_ndes_def [ndes_simp]:
+  "\<bottom>\<^sub>D = (false \<turnstile>\<^sub>n true)"
   by (rel_auto)
 
 lemma design_false_pre:
@@ -397,7 +402,7 @@ lemma design_top:
 
 lemma design_bottom:
   "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
-  by simp
+  by (rel_auto)
 
 lemma design_UINF_mem:
   assumes "A \<noteq> {}"
@@ -1404,7 +1409,7 @@ lemma ndesign_form: "P is \<^bold>N \<Longrightarrow> (\<lfloor>pre\<^sub>D(P)\<
   by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
 
 lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
-  by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
+  by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def bot_d_def)
 
 lemma assigns_d_H1_H3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>N"
   by (metis H1_rdesign H3_ndesign Healthy_def' aext_true assigns_d_def ndesign_def)
@@ -1451,7 +1456,7 @@ lemma ndes_seqr_abort:
   shows "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
 proof -
   have "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (false \<turnstile>\<^sub>n false)"
-    by (simp add: assms ndesign_false_pre ndesign_form)
+    by (simp add: assms bot_d_true ndesign_false_pre ndesign_form)
   also have "... = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
     by (simp add: ndesign_composition_wp alpha)
   finally show ?thesis .
@@ -1947,20 +1952,22 @@ subsection {* Normal Designs Proof Tactics *}
   
 named_theorems ND_elim
   
-lemma ndes_elim [ND_elim]: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
+lemma ndes_elim: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: ndesign_form)
+    
+lemma ndes_split [ND_elim]: "\<lbrakk> P is \<^bold>N; \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
     
 method ndes_expand uses cls = (insert cls, (erule ND_elim)+)
   
 method ndes_simp uses cls =
-  ((ndes_expand cls: cls)?, (simp add: ndes_simp cls closure alpha usubst unrest wp prod.case_eq_if))
+  ((ndes_expand cls: cls)?, (simp add: ndes_simp closure alpha usubst unrest wp prod.case_eq_if))
 
 method ndes_refine uses cls =
   (ndes_simp cls: cls; rule_tac ndesign_refine_intro; (insert cls; rel_simp; auto?))
 
 method ndes_eq uses cls =
-  (rule_tac antisym; (ndes_refine cls: cls))
-  
+  (ndes_simp cls: cls; rule_tac antisym; rule_tac ndesign_refine_intro; (insert cls; rel_simp; auto?))
 
 subsection {* Alternation *}
   
@@ -1984,8 +1991,8 @@ lemma GrdCommD_abort [simp]: "b \<rightarrow>\<^sub>D true = ((\<not> b) \<turns
   by (rel_auto)
     
 consts
-  ualtern      :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r \<Rightarrow> 'r"
-  ualtern_list :: "('a \<times> 'r) list \<Rightarrow> 'r \<Rightarrow> 'r"
+  ualtern       :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r \<Rightarrow> 'r"
+  ualtern_list  :: "('a \<times> 'r) list \<Rightarrow> 'r \<Rightarrow> 'r"
   
 definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs, ndes_simp]:
@@ -2003,7 +2010,7 @@ proof (cases "A = {}")
   case False
   have "AlternateD A g P \<bottom>\<^sub>D = 
         (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D (\<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i))) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D (false \<turnstile>\<^sub>n true)"
-    by (simp add: AlternateD_def ndesign_form abort_ndes_def assms)
+    by (simp add: AlternateD_def ndesign_form bot_d_ndes_def assms)
   also have "... = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
     by (simp add: ndes_simp False, rel_auto)
   finally show ?thesis by simp
@@ -2033,14 +2040,14 @@ syntax
   "_gcomm_show"   :: "logic \<Rightarrow> logic"
   "_altgcomm_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if _ else _ fi")
   "_altgcomm"     :: "gcomms \<Rightarrow> logic" ("if _ fi")
-    
+  
 translations
   "_altind_els x A g P Q" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) Q"
   "_altind_els x A g P Q" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) Q"
-  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) true"
-  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) true"
-  "_altgcomm cs" => "CONST ualtern_list cs true"
-  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs true"
+  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) (CONST Orderings.top)"
+  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) (CONST Orderings.top)"
+  "_altgcomm cs" => "CONST ualtern_list cs (CONST Orderings.top)"
+  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST Orderings.top)"
   "_altgcomm_els cs P" => "CONST ualtern_list cs P"
   "_altgcomm_els (_gcomm_show cs) P" <= "CONST ualtern_list cs P"
 
@@ -2091,7 +2098,8 @@ declare UINF_upto_expand_first [ndes_simp]
 declare UINF_Suc_shift [ndes_simp]
 declare USUP_upto_expand_first [ndes_simp]
 declare USUP_Suc_shift [ndes_simp]
-
+declare true_upred_def [THEN sym, ndes_simp]
+  
 lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
   by (rel_auto)
