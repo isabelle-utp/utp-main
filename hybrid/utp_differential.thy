@@ -161,7 +161,7 @@ lemma ode_solution_refine:
      \<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV;
      \<forall> x. \<F>(x)(0) = x \<rbrakk>
    \<Longrightarrow> \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h \<sqsubseteq> x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
-  apply (rel_simp)    
+  apply (rel_auto)    
   apply (rename_tac tr b tr')    
   apply (rule_tac x="\<F> (get\<^bsub>x\<^esub>b)" in exI)
   apply (auto simp add: usolves_ode_from_def solves_ode_def has_vderiv_on_def)[1]
