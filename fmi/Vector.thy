@@ -228,6 +228,14 @@ apply (transfer)
 apply (clarsimp)
 done
 
+text {* TODO: Add similar variants for all other laws too. *}
+
+theorem vector_from_list_at' [simp]:
+"1 \<le> i \<Longrightarrow> i \<le> size l \<Longrightarrow> (vector_from_list l)\<^bold>[i\<^bold>] = l ! (i - 1)"
+apply (transfer)
+apply (clarsimp)
+done
+
 theorem vector_upd_at [simp]:
 "i \<in> {1..size v} \<Longrightarrow> (v\<^bold>[i\<^bold>] \<hookleftarrow> x)\<^bold>[j\<^bold>] = (if i = j then x else v\<^bold>[j\<^bold>])"
 apply (transfer)
