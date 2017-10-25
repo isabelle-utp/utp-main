@@ -11,6 +11,7 @@ section {* Positive Subtypes *}
 theory Positive
 imports 
   Infinity 
+  "Library_extra/Monoid_extra"
   "~~/src/HOL/Library/Countable"
 begin
 
@@ -79,7 +80,7 @@ begin
            apply (simp add: add.commute)
           apply (safe; clarsimp?) [1]
              apply (simp add: diff_diff_add)
-            apply (metis add_left_mono le_add_diff_inverse)
+            apply (metis add_le_cancel_left le_add_diff_inverse)
            apply (simp add: add.commute add_le_imp_le_diff)
           apply (metis add_increasing2 antisym linear)
          apply (simp add: mult.assoc)
@@ -103,88 +104,35 @@ begin
      apply (simp_all)
   done
 end
-  
+
 lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,linorder} pos)"
   by (transfer, simp)
+
+text {* Positives form a trace algebra *}
+    
+instance pos :: (linordered_semidom) trace
+proof (intro_classes, simp_all)
+  fix a b c d :: "'a pos"
+  show "a + b = 0 \<Longrightarrow> a = 0"
+    by (transfer, simp add: add_nonneg_eq_0_iff)
+  show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    apply (cases "c \<le> a")
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq less_imp_le linordered_semidom_class.add_diff_inverse semiring_normalization_rules(21))
+  done
+  show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
+    by auto    
+  show le_def: "\<And> a b :: 'a pos. (a \<le> b) = (a \<le>\<^sub>m b)"    
+    by (auto simp add: monoid_le_def, metis le_add_diff_inverse)  
+  show "a - b = a -\<^sub>m b"
+    apply (auto simp add: monoid_subtract_def le_def[THEN sym])
+     apply (rule sym)
+     apply (rule the_equality)
+      apply (simp_all)
+      apply (transfer, simp)
+  done
+qed
     
 type_synonym preal = "real pos"
-
-(*
-subsection {* Continuum Closure *}
-
-lemma ge_num_infinite_if_no_top:
-  "infinite {x::'a::{linorder, no_top}. n \<le> x}"
-  apply (clarsimp)
-    -- {* From the assumption that the set is finite. *}
-  apply (subgoal_tac "\<exists>y::'a. Max {x. n \<le> x} < y")
-   apply (clarsimp)
-   apply (metis Max_ge leD mem_Collect_eq order.strict_implies_order order_refl order_trans)
-  using gt_ex apply (blast)
-done
-
-lemma less_zero_ordLeq_ge_zero:
-  "|{x::'a::{ordered_ab_group_add}. x < 0}| \<le>o |{x::'a. 0 \<le> x}|"
-apply (rule_tac f = "uminus" in surj_imp_ordLeq)
-apply (simp add: image_def)
-apply (clarsimp)
-apply (rule_tac x = "- x" in exI)
-apply (simp)
-done
-
-instance pos :: ("{zero, linorder, no_top}") two ..
-
-text {* The next theorem is not entirely trivial to prove! *}
-
-instance pos :: ("{linordered_ab_group_add, no_top, continuum}") continuum
-apply (intro_classes)
-apply (case_tac "countable (UNIV :: 'a set)")
--- {* Subgoal 1 (Easy Case) *}
-apply (rule disjI1)
-apply (subgoal_tac "\<exists>to_nat::'a \<Rightarrow> nat. inj to_nat")
--- {* Subgoal 1.1 *}
-apply (clarsimp)
-apply (thin_tac "countable UNIV")
-apply (rule_tac x = "to_nat o Rep_pos" in exI)
-apply (rule inj_comp)
-apply (assumption)
-apply (meson Positive_New.pos.Rep_pos_inject injI)
--- {* Subgoal 1.2 *}
-apply (blast)
--- {* Subgoal 2 (Difficult Case) *}
-apply (rule disjI2)
-apply (subst sym [OF equal_card_bij_betw])
-apply (rule equal_card_intro)
-apply (subgoal_tac "|UNIV::'a pos set| =o |{x::'a. 0 \<le> x}|")
--- {* Subgoal 2.1 *}
-apply (erule ordIso_transitive)
-apply (rule ordIso_symmetric)
-apply (subgoal_tac "|UNIV::nat set set| =o |UNIV::'a set|")
--- {* Subgoal 2.1.1 *}
-apply (erule ordIso_transitive)
-apply (subgoal_tac "(UNIV::'a set) = {x.0 \<le> x} \<union> {x. x < 0}")
--- {* Subgoal 2.1.1.1 *}
-apply (erule ssubst)
-apply (rule card_of_Un_infinite_simps(1))
-apply (rule ge_num_infinite_if_no_top)
-apply (rule less_zero_ordLeq_ge_zero)
--- {* Subgoal 2.1.1.2 *}
-apply (auto)
--- {* Subgoal 2.1.2 *}
-apply (rule_tac f = "from_nat_set" in card_of_ordIsoI)
-apply (rule_tac bij_betwI'; clarsimp?)
--- {* This is the only place where @{term "countable UNIV"} is needed. *}
-apply (metis bij_betw_imp_surj from_nat_set_def surj_f_inv_f to_nat_set_bij)
-apply (rule_tac x = "to_nat_set y" in exI)
-apply (clarsimp)
--- {* Subgoal 2.2 *}
-apply (rule_tac f = "Rep_pos" in card_of_ordIsoI)
-apply (rule_tac bij_betwI'; clarsimp?)
-apply (simp add: Positive_New.pos.Rep_pos_inject)
-using Positive_New.pos.Rep_pos apply (blast)
-apply (rule_tac x = "Abs_pos y" in exI)
-apply (simp add: Positive_New.pos.Abs_pos_inverse)
-done
-end
-*)
 
 end
