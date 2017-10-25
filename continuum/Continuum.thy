@@ -7,6 +7,7 @@ theory Continuum
     Transcendental
     Real_Bit
     "../utils/Library_extra/Countable_Set_extra"
+    "../utils/Positive"
 begin
 
 subsection {* Cardinality $\mathfrak{c}$ *}
@@ -339,4 +340,80 @@ proof
   thus "(\<exists>to_nat :: 'a cset \<Rightarrow> nat. inj to_nat) \<or> (\<exists>to_nat_set :: 'a cset \<Rightarrow> nat set. bij to_nat_set)"
     by (simp add: continuum_def)
 qed
+
+text {* A positive number over a continuum type is within the continuum *}
+
+lemma ge_num_infinite_if_no_top:
+  "infinite {x::'a::{linorder, no_top}. n \<le> x}"
+  apply (clarsimp)
+    -- {* From the assumption that the set is finite. *}
+  apply (subgoal_tac "\<exists>y::'a. Max {x. n \<le> x} < y")
+   apply (clarsimp)
+   apply (metis Max_ge leD mem_Collect_eq order.strict_implies_order order_refl order_trans)
+  using gt_ex apply (blast)
+done
+
+lemma less_zero_ordLeq_ge_zero:
+  "|{x::'a::{ordered_ab_group_add}. x < 0}| \<le>o |{x::'a. 0 \<le> x}|"
+  apply (rule_tac f = "uminus" in surj_imp_ordLeq)
+  apply (simp add: image_def)
+  apply (clarsimp)
+  apply (rule_tac x = "- x" in exI)
+  apply (simp)
+done
+
+instance pos :: ("{zero, linorder, no_top}") two ..
+
+text {* The next theorem is not entirely trivial to prove! *}
+
+instance pos :: ("{linordered_ab_group_add, no_top, continuum}") continuum
+  apply (intro_classes)
+  apply (case_tac "countable (UNIV :: 'a set)")
+    -- {* Subgoal 1 (Easy Case) *}
+   apply (rule disjI1)
+   apply (subgoal_tac "\<exists>to_nat::'a \<Rightarrow> nat. inj to_nat")
+    -- {* Subgoal 1.1 *}
+    apply (clarsimp)
+    apply (thin_tac "countable UNIV")
+    apply (rule_tac x = "to_nat o Rep_pos" in exI)
+    apply (rule inj_comp)
+     apply (assumption)
+    apply (meson Rep_pos_inject injI)
+    -- {* Subgoal 1.2 *}
+   apply (blast)
+    -- {* Subgoal 2 (Difficult Case) *}
+  apply (rule disjI2)
+  apply (subst sym [OF equal_card_bij_betw])
+  apply (rule equal_card_intro)
+  apply (subgoal_tac "|UNIV::'a pos set| =o |{x::'a. 0 \<le> x}|")
+    -- {* Subgoal 2.1 *}
+   apply (erule ordIso_transitive)
+   apply (rule ordIso_symmetric)
+   apply (subgoal_tac "|UNIV::nat set set| =o |UNIV::'a set|")
+    -- {* Subgoal 2.1.1 *}
+    apply (erule ordIso_transitive)
+    apply (subgoal_tac "(UNIV::'a set) = {x.0 \<le> x} \<union> {x. x < 0}")
+    -- {* Subgoal 2.1.1.1 *}
+     apply (erule ssubst)
+     apply (rule card_of_Un_infinite_simps(1))
+      apply (rule ge_num_infinite_if_no_top)
+     apply (rule less_zero_ordLeq_ge_zero)
+    -- {* Subgoal 2.1.1.2 *}
+    apply (auto)
+    -- {* Subgoal 2.1.2 *}
+   apply (rule_tac f = "from_nat_set" in card_of_ordIsoI)
+   apply (rule_tac bij_betwI'; clarsimp?)
+    -- {* This is the only place where @{term "countable UNIV"} is needed. *}
+    apply (metis bij_betw_imp_surj from_nat_set_def surj_f_inv_f to_nat_set_bij)
+   apply (rule_tac x = "to_nat_set y" in exI)
+   apply (clarsimp)
+    -- {* Subgoal 2.2 *}
+  apply (rule_tac f = "Rep_pos" in card_of_ordIsoI)
+  apply (rule_tac bij_betwI'; clarsimp?)
+    apply (simp add: Rep_pos_inject)
+  using Rep_pos apply (blast)
+  apply (rule_tac x = "Abs_pos y" in exI)
+  apply (simp add: Abs_pos_inverse)
+done
+
 end

@@ -46,5 +46,5 @@ instance real :: two
 
 instance list :: (type) two
   by (intro_classes, auto simp add: infinite_UNIV_listI)
-
+    
 end

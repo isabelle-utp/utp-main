@@ -33,6 +33,8 @@ theory utp_imports
   "Library_extra/Pfun"
   "Library_extra/Ffun"
   "Library_extra/Set_extra"
+  Infinity
+  Positive
   Profiling
   TotalRecall
 begin end
