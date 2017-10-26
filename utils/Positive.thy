@@ -15,9 +15,6 @@ imports
   "~~/src/HOL/Library/Countable"
 begin
 
-text {* Move this instantiation to a more suitable place in the hierarchy. *}
-
-
 subsection {* Type Definition *}
 
 typedef (overloaded) 'a::"{zero, linorder}" pos = "{x::'a. x \<ge> 0}"
@@ -27,6 +24,17 @@ done
 
 setup_lifting type_definition_pos
 
+type_synonym preal = "real pos"
+  
+subsection {* Operators *}
+  
+lift_definition mk_pos :: "'a::{zero, linorder} \<Rightarrow> 'a pos" is
+"\<lambda> n. if (n \<ge> 0) then n else 0" by auto
+
+lift_definition real_of_pos :: "real pos \<Rightarrow> real" is id .
+
+declare [[coercion real_of_pos]]
+  
 subsection {* Instantiations *}
 
 instantiation pos :: ("{zero, linorder}") zero
@@ -104,6 +112,13 @@ begin
      apply (simp_all)
   done
 end
+  
+instantiation pos :: (linordered_field) inverse
+begin
+  lift_definition inverse_pos :: "'a pos \<Rightarrow> 'a pos"
+    is "inverse" by (simp)
+  instance ..
+end
 
 lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,linorder} pos)"
   by (transfer, simp)
@@ -132,7 +147,27 @@ proof (intro_classes, simp_all)
       apply (transfer, simp)
   done
 qed
-    
-type_synonym preal = "real pos"
+ 
+subsection {* Theorems *}
+  
+lemma mk_pos_zero [simp]: "mk_pos 0 = 0"
+  by (transfer, simp)
 
+lemma mk_pos_one [simp]: "mk_pos 1 = 1"
+  by (transfer, simp)
+
+lemma mk_pos_leq: 
+  "\<lbrakk> 0 \<le> x; x \<le> y \<rbrakk> \<Longrightarrow> mk_pos x \<le> mk_pos y"
+  by (transfer, auto)
+    
+lemma mk_pos_less: 
+  "\<lbrakk> 0 \<le> x; x < y \<rbrakk> \<Longrightarrow> mk_pos x < mk_pos y"
+  by (transfer, auto)
+     
+lemma real_of_pos [simp]: "x \<ge> 0 \<Longrightarrow> real_of_pos (mk_pos x) = x"
+  by (transfer, simp) 
+    
+lemma mk_pos_real_of_pos [simp]: "mk_pos (real_of_pos x) = x"
+  by (transfer, simp)
+  
 end
