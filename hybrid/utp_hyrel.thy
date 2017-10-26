@@ -5,6 +5,7 @@ imports
   "../utp/utp"
   "../theories/utp_csp"
   "../theories/utp_rea_designs"
+  "../theories/utp_time_rel"
   "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
   "../dynamics/Derivative_extra"
   "../dynamics/Timed_Traces"
@@ -392,7 +393,7 @@ text {* Take the continuous state space at the limit. If the duration is 0 then 
   value of the continuous state instead. *}
 
 definition tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
-[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c"
+[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c\<acute>"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $st:\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
@@ -797,7 +798,12 @@ proof -
     using Limit_continuous assms(1) assms(2) by blast  
   finally show ?thesis .
 qed
-  
+
+lemma Limit_solve_at_left:
+  assumes "x > 0" "continuous_on {0..x::real} g" "\<forall> x\<in>{0..<x}. f x = g x"
+  shows "Lim (at_left x) f = g(x)"
+  by (simp add: Limit_solve assms(1) assms(2) assms(3) at_left_from_zero)
+
 lemma Lim_continuous_lens:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "T > 0" "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>" 
@@ -1092,7 +1098,76 @@ lemma hUntil_solve:
   shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright>"
   using assms
   by (rule_tac hUntil_inv_solve, simp_all, (rel_auto)+)
+    
+definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
+[upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
 
+lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
+  apply (rel_auto)
+  using minus_zero_eq apply blast
+  using minus_zero_eq apply blast
+  apply fastforce
+done
+
+definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
+[upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
+ 
+lemma hyrel2trel_assigns: "H2T(\<langle>\<sigma>\<rangle>\<^sub>h) = \<langle>\<sigma>\<rangle>\<^sub>r"
+  apply (rel_auto)
+  using minus_zero_eq apply blast
+  using minus_zero_eq apply blast
+  apply fastforce
+done
+
+lemma hyrel2trel_hEvolve:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "continuous_on {0..} f"
+  shows "H2T(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: (unit,'c) hyrel) = 
+         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; \<^bold>v :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
+proof -
+  from assms(1) 
+  have "?lhs = R1(\<^bold>\<exists> l \<bullet> (&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel) \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+    by (simp add: hyrel2trel_def)
+  also have "... = R1(\<^bold>\<exists> l \<bullet> (&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: (unit,'c) hyrel) \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+    by (rel_auto, blast)
+  also have "... = R1(\<^bold>\<exists> l \<bullet> ((\<^bold>v := \<guillemotleft>f(l)\<guillemotright>) \<oplus>\<^sub>r st) \<and> \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)" (is "?P = ?Q")
+  proof (rule antisym)
+    show "?P \<sqsubseteq> ?Q"
+      apply (rel_simp)
+      apply (rename_tac tr tr' n)
+      apply (rule_tac x="n" in exI)
+      apply (auto)
+      apply (rule_tac x="0" in exI)
+      apply (rule_tac x="tt_mk n f" in exI)
+      apply (subgoal_tac "continuous_on {0..n} f")
+       apply (auto simp add: assms Limit_solve at_left_from_zero)
+      apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+    done
+    show "?Q \<sqsubseteq> ?P"
+      apply (rel_simp)
+      apply (rename_tac tr tr' tr'' tr''')
+      apply (rule_tac x="end\<^sub>t (tr''' - tr'')" in exI)
+      apply (auto)
+      apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} f")
+       apply (subst Limit_solve_at_left)
+          apply (auto)
+      apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+    done
+  qed
+  also have "... = ?rhs"
+    apply (rel_auto)
+     apply (rename_tac tr tr' x)
+     apply (rule_tac x="mk_pos x" in exI)
+     apply (simp)
+     apply (subgoal_tac "mk_pos x > 0")
+    apply (metis le_add_diff_inverse)
+    using mk_pos_less apply force
+    apply (rule_tac x="(real_of_pos x)" in exI)
+    apply (simp add: Rep_pos_inverse less_pos.rep_eq mk_pos.abs_eq real_of_pos.rep_eq zero_pos.rep_eq)
+  done
+  finally show ?thesis .
+qed
+  
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
