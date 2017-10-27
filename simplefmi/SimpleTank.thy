@@ -230,10 +230,7 @@ proof -
   finally show ?thesis .
 qed
   
-  
-declare [[show_types]]
-  
-lemma hyrel2trel_hEvolve:
+lemma hyrel2trel_hEvolves:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "continuous_lens x" "continuous_on {0..} f"
   shows "H2T({[x \<mapsto>\<^sub>s \<guillemotleft>f(ti)\<guillemotright>]}\<^sub>h) = 
@@ -255,30 +252,26 @@ proof -
        apply (auto simp add: assms Limit_solve at_left_from_zero)[1]
        apply (rule continuous_on_compose)
        apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
-        using continuous_lens.put_continuous[OF assms(1)]
-       apply (rule continuous_lens.put_continuous[OF assms(1)])
+        apply (rule continuous_lens.put_continuous_v[OF assms(1)])
     done
     show "?Q \<sqsubseteq> ?P"
       apply (rel_simp)
       apply (rename_tac tr tr' tr'' tr''')
       apply (rule_tac x="end\<^sub>t (tr''' - tr'')" in exI)
       apply (auto)
-      apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} f")
        apply (subst Limit_solve_at_left)
           apply (auto)
-      apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+       apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} (put\<^bsub>x\<^esub> tr \<circ> f)")
+        apply (simp)
+       apply (rule continuous_on_compose)
+       apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+       apply (rule continuous_lens.put_continuous_v[OF assms(1)])
     done
   qed
   also have "... = ?rhs"
     apply (rel_auto)
-     apply (rename_tac tr tr' x)
-     apply (rule_tac x="mk_pos x" in exI)
-     apply (simp)
-     apply (subgoal_tac "mk_pos x > 0")
-    apply (metis le_add_diff_inverse)
-    using mk_pos_less apply force
-    apply (rule_tac x="(real_of_pos x)" in exI)
-    apply (simp add: Rep_pos_inverse less_pos.rep_eq mk_pos.abs_eq real_of_pos.rep_eq zero_pos.rep_eq)
+    apply (metis le_add_diff_inverse less_eq_real_def mk_pos_less mk_pos_zero real_of_pos)
+    apply (metis (full_types) approximation_preproc_push_neg(3) least_zero mk_pos.abs_eq mk_pos_real_of_pos not_le zero_pos.abs_eq)
   done
   finally show ?thesis .
 qed

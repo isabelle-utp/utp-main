@@ -101,7 +101,6 @@ lemma continuous_on_plus_lens [continuous_intros]:
 
 declare plus_vwb_lens [simp]
    
-(*
 lemma lens_plus_continuous [closure]:
   assumes "continuous_lens x" "continuous_lens y" "x \<bowtie> y"
   shows "continuous_lens (x +\<^sub>L y)"
@@ -111,30 +110,33 @@ proof (rule continuous_lens_intro)
   show "\<And>A. continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
     by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)  
   show "\<And>B. continuous_on B (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
-    term "uncurry put\<^bsub>x +\<^sub>L y\<^esub>"
-    term x
-    apply (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)
   proof -
     fix A v
-    from continuous_on_compose[where f="(\<lambda> (s, v1, v2). (put\<^bsub>x\<^esub> s v1, v2))" and g="uncurry put\<^bsub>y\<^esub>", simplified]
-    show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
-      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
-  qed
-  show "\<And>A s. continuous_on A (put\<^bsub>x +\<^sub>L y\<^esub> s)"
-    
-    apply (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
-  proof -
-    fix A s
-      thm continuous_on_pairwise[where g="put\<^bsub>y\<^esub> s \<circ> snd"]
-    
-    from continuous_on_compose[where s=A and g="(\<lambda> v. put\<^bsub>x\<^esub> s (fst v))" and f="(\<lambda> v. put\<^bsub>y\<^esub> s (snd v))"]
-    show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
-      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
-  qed
+    have "continuous_on A (uncurry put\<^bsub>x\<^esub> \<circ> (\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2)))"
+    proof (rule continuous_on_compose[where s="A" and f="(\<lambda> (s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2))" and g="uncurry put\<^bsub>x\<^esub>"])
+      have "continuous_on A (uncurry put\<^bsub>y\<^esub> \<circ> (\<lambda>(x, y). (x, snd y)))"
+        
+        apply (rule continuous_on_compose[where s="A" and f="\<lambda> (x, y). (x, snd y)" and g="uncurry put\<^bsub>y\<^esub>"])
+         apply (simp add: prod.case_eq_if)
+          apply (rule continuous_on_Pair)
+        apply (simp add: ODE_Auxiliarities.continuous_on_fst)
+        apply (simp add: ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_snd)
+        using assms(2) continuous_lens.put_continuous apply blast
+      done
+      thus "continuous_on A (\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2))"
+       apply (simp add: prod.case_eq_if)
+        apply (rule continuous_on_Pair)
+        apply (auto)
+        using ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_fst by blast
+    next
+      show "continuous_on ((\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2)) ` A) (uncurry put\<^bsub>x\<^esub>)"
+        using assms(1) continuous_lens.put_continuous by auto
+    qed
 
-
+    thus "continuous_on A (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
+      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms prod.case_eq_if)
+  qed
 qed
-*)
 
 no_notation inner (infix "\<bullet>" 70)
 
@@ -1411,3 +1413,4 @@ lemma nearly_conj:
   by (rel_auto)
     
 end
+  
