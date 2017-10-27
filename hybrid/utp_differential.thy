@@ -221,6 +221,14 @@ theorem ode_solution:
   using ode_solution_refine[of x \<F> \<F>'] ode_uniq_solution_refine[of x \<F> \<F>']
   by (auto intro: antisym simp add: assms)
 
+theorem ode_solution':
+  assumes 
+    "vwb_lens x" 
+    "\<And> x l. l > 0 \<Longrightarrow> (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" 
+    "\<And> x. \<F>(x)(0) = x"
+  shows "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  by (simp add: assms(1) assms(2) assms(3) ode_solution)
+    
 lemma uos_impl_uniq_sol:
   assumes "unique_on_strip t0 T f' L" "is_interval T"
   and "(f solves_ode f') T UNIV"

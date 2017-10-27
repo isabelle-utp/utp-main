@@ -9,33 +9,82 @@ imports
   "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
   "../dynamics/Derivative_extra"
   "../dynamics/Timed_Traces"
+  Topology_Euclidean_Space
 begin recall_syntax
   
 subsection {* Continuous Lenses and Preliminaries *}
 
+lemma continuous_on_Pair_first:
+  "\<lbrakk> continuous_on (A \<times> B) f; y \<in> B \<rbrakk> \<Longrightarrow> continuous_on A (\<lambda> x. f (x, y))"
+  apply (rule continuous_on_compose[of _ "\<lambda> x. (x, y)" f, simplified])
+   apply (rule continuous_on_Pair)
+   apply (simp_all add: continuous_on_const continuous_on_id)
+  apply (subgoal_tac "(\<lambda>x. (x, y)) ` A = A \<times> {y}")
+   apply (auto intro: continuous_on_subset)
+done
+
+lemma continuous_on_Pair_second:
+  "\<lbrakk> continuous_on (A \<times> B) f; x \<in> A \<rbrakk> \<Longrightarrow> continuous_on B (\<lambda> y. f (x, y))"
+  apply (rule continuous_on_compose[of _ "\<lambda> y. (x, y)" f, simplified])
+   apply (rule continuous_on_Pair)
+   apply (simp_all add: continuous_on_const continuous_on_id)
+  apply (subgoal_tac "(\<lambda>y. (x, y)) ` B = {x} \<times> B")
+   apply (auto intro: continuous_on_subset)
+done
+  
+lemma continuous_on_pairwise:
+  "\<lbrakk> continuous_on A f; continuous_on B g \<rbrakk> \<Longrightarrow> continuous_on (A \<times> B) (\<lambda> (x, y). (f x, g y))"
+  apply (simp add: prod.case_eq_if)
+  apply (rule continuous_on_Pair)
+  apply (rule continuous_on_compose[of "A \<times> B" fst f, simplified])
+  apply (simp_all add: ODE_Auxiliarities.continuous_on_fst)
+  apply (rule continuous_on_compose[of "A \<times> B" snd g, simplified])
+  apply (simp_all add: ODE_Auxiliarities.continuous_on_snd)
+done
+  
 locale continuous_lens = 
   vwb_lens x for x :: "'a::topological_space \<Longrightarrow> 'b::topological_space" (structure) +
   assumes get_continuous: "continuous_on A get"
-  and put_continuous: "continuous_on A (\<lambda> s. put s v)"
- 
+  and put_continuous: "continuous_on B (uncurry put)"
+begin
+  
+  lemma put_continuous_s: "continuous_on A (\<lambda> s. put s v)"
+    apply (rule continuous_on_Pair_first[of _ UNIV "uncurry put", simplified])
+    using put_continuous[of "A \<times> UNIV"]
+    apply (simp add: prod.case_eq_if)
+  done
+  
+  lemma put_continuous_v: "continuous_on B (\<lambda> v. put s v)"
+    apply (rule continuous_on_Pair_second[of UNIV _ "uncurry put", simplified])
+    using put_continuous[of "UNIV \<times> B"]
+    apply (simp add: prod.case_eq_if)
+  done
+
+end
+      
 declare continuous_lens.get_continuous [simp]
-declare continuous_lens.put_continuous [simp]
+declare continuous_lens.put_continuous_s [simp]
+declare continuous_lens.put_continuous_v [simp]  
   
 lemma continuous_lens_vwb [simp]: 
   "continuous_lens x \<Longrightarrow> vwb_lens x"
   by (simp_all add: continuous_lens_def)
   
 lemma continuous_lens_intro:
-  assumes "vwb_lens x" "\<And> A. continuous_on A get\<^bsub>x\<^esub>" "\<And> A v. continuous_on A (\<lambda> s. put\<^bsub>x\<^esub> s v)"
+  assumes 
+    "vwb_lens x" 
+    "\<And> A. continuous_on A get\<^bsub>x\<^esub>" 
+    "\<And> B. continuous_on B (uncurry put\<^bsub>x\<^esub>)"
   shows "continuous_lens x"
-  by (simp add: continuous_lens_def continuous_lens_axioms_def assms)
-    
+  using assms
+  by (auto simp add: continuous_lens_def continuous_lens_axioms_def assms)
+        
 lemma fst_continuous_lens [closure]: 
   "continuous_lens fst\<^sub>L"
   apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)
   apply (rule continuous_on_Pair)
-  apply (simp add: continuous_on_const)
   using ODE_Auxiliarities.continuous_on_snd apply blast
+  apply (simp add: ODE_Auxiliarities.continuous_on_fst Topological_Spaces.continuous_on_snd)
 done
   
 text {* The one lens is continuous *}
@@ -51,7 +100,8 @@ lemma continuous_on_plus_lens [continuous_intros]:
   by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair)
 
 declare plus_vwb_lens [simp]
-    
+   
+(*
 lemma lens_plus_continuous [closure]:
   assumes "continuous_lens x" "continuous_lens y" "x \<bowtie> y"
   shows "continuous_lens (x +\<^sub>L y)"
@@ -60,14 +110,31 @@ proof (rule continuous_lens_intro)
     by (simp add: assms)
   show "\<And>A. continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
     by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)  
-  show "\<And>A v. continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
+  show "\<And>B. continuous_on B (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
+    term "uncurry put\<^bsub>x +\<^sub>L y\<^esub>"
+    term x
+    apply (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)
   proof -
     fix A v
-    from continuous_on_compose[where s=A and g="(\<lambda> s. put\<^bsub>x\<^esub> s (fst v))" and f="(\<lambda> s. put\<^bsub>y\<^esub> s (snd v))"]
+    from continuous_on_compose[where f="(\<lambda> (s, v1, v2). (put\<^bsub>x\<^esub> s v1, v2))" and g="uncurry put\<^bsub>y\<^esub>", simplified]
     show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
       by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
   qed
+  show "\<And>A s. continuous_on A (put\<^bsub>x +\<^sub>L y\<^esub> s)"
+    
+    apply (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
+  proof -
+    fix A s
+      thm continuous_on_pairwise[where g="put\<^bsub>y\<^esub> s \<circ> snd"]
+    
+    from continuous_on_compose[where s=A and g="(\<lambda> v. put\<^bsub>x\<^esub> s (fst v))" and f="(\<lambda> v. put\<^bsub>y\<^esub> s (snd v))"]
+    show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
+      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
+  qed
+
+
 qed
+*)
 
 no_notation inner (infix "\<bullet>" 70)
 
@@ -1112,6 +1179,13 @@ done
 definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
 [upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
  
+abbreviation hyrel_cond :: 
+  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>h/ _)" [52,0,53] 52) where
+"hyrel_cond P b Q \<equiv> (P \<triangleleft> b \<oplus>\<^sub>p \<^bold>c \<triangleright>\<^sub>R Q)"
+
+lemma hyrel2trl_cond: "H2T(P \<triangleleft> b \<triangleright>\<^sub>h Q) = H2T(P) \<triangleleft> b \<triangleright>\<^sub>R H2T(Q)"
+  by (rel_auto)
+
 lemma hyrel2trel_assigns: "H2T(\<langle>\<sigma>\<rangle>\<^sub>h) = \<langle>\<sigma>\<rangle>\<^sub>r"
   apply (rel_auto)
   using minus_zero_eq apply blast
