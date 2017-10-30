@@ -18,6 +18,14 @@ lemma filter_upto_contract:
   "\<lbrakk> (x::real) \<le> y; y < z \<rbrakk> \<Longrightarrow> (at z within {x..<z}) = (at z within {y..<z})"
   by (rule at_within_nhd[of _ "{y<..<z+1}"], auto)
 
+subsection {* Topological Spaces *}
+  
+instantiation unit :: t2_space
+begin
+  definition open_unit :: "unit set \<Rightarrow> bool" where "open_unit = (\<lambda> _. True)"
+  instance by (intro_classes, simp_all add: open_unit_def)
+end
+ 
 subsection {* Extra derivative rules *}
 
 lemma has_vector_derivative_Pair [derivative_intros]:
@@ -50,8 +58,102 @@ lemma has_vector_derivative_divide[simp, derivative_intros]:
   apply (auto simp add: divide_inverse real_vector.scale_right_diff_distrib)
 done
 
-text {* vderiv\_tac is a simple tactic for certifying solutions to systems of differential equations *}
+lemma Pair_has_vector_derivative:
+  assumes "(f has_vector_derivative f') (at x within s)"
+    "(g has_vector_derivative g') (at x within s)"
+  shows "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros)
+  
+lemma has_vector_derivative_fst:
+  assumes "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  shows "(f has_vector_derivative f') (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros dest: has_derivative_fst)
 
-method vderiv_tac = (safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
+lemma has_vector_derivative_fst' [derivative_intros]:
+  assumes "(f has_vector_derivative (f', g')) (at x within s)"
+  shows "(fst \<circ> f has_vector_derivative f') (at x within s)"
+proof -
+  have "(\<lambda> x. (fst (f x), snd (f x))) = f"
+    by (simp)
+  with assms have "((\<lambda> x. (fst (f x), snd (f x))) has_vector_derivative (f', g')) (at x within s)"
+    by (simp)
+  thus ?thesis
+    by (drule_tac has_vector_derivative_fst, simp add: comp_def)
+qed
+    
+lemma has_vector_derivative_snd:
+  assumes "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s)"
+  shows "(g has_vector_derivative g') (at x within s)"
+  using assms
+  by (auto simp: has_vector_derivative_def intro!: derivative_eq_intros dest: has_derivative_snd)
+
+lemma has_vector_derivative_snd'' [derivative_intros]:
+  assumes "(f has_vector_derivative (f', g')) (at x within s)"
+  shows "(snd \<circ> f has_vector_derivative g') (at x within s)"
+proof -
+  have "(\<lambda> x. (fst (f x), snd (f x))) = f"
+    by (simp)
+  with assms have "((\<lambda> x. (fst (f x), snd (f x))) has_vector_derivative (f', g')) (at x within s)"
+    by (simp)
+  thus ?thesis
+    by (drule_tac has_vector_derivative_snd, simp add: comp_def)
+qed
+
+lemma Pair_has_vector_derivative_iff:
+  "((\<lambda>x. (f x, g x)) has_vector_derivative (f', g')) (at x within s) \<longleftrightarrow>
+   (f has_vector_derivative f') (at x within s) \<and> (g has_vector_derivative g') (at x within s)"
+  using Pair_has_vector_derivative has_vector_derivative_fst has_vector_derivative_snd by blast
+  
+text {* The next four rules allow us to prove derivatives when the function is equivalent to
+  another a function when approach from the left or right. *}
+ 
+lemma has_derivative_left_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_derivative f') (at x within s)" "x \<in> s" "x < y" "\<forall>x'<y. f x' = g x'"
+  shows "(g has_derivative f') (at x within s)"
+  apply (rule has_derivative_transform_within[of f f' x s "y-x" g])
+  apply (simp_all add: assms dist_real_def)
+done
+  
+lemma has_derivative_right_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_derivative f') (at x within s)" "x \<in> s" "x > y" "\<forall>x'>y. f x' = g x'"
+  shows "(g has_derivative f') (at x within s)"
+  apply (rule has_derivative_transform_within[of f f' x s "x-y" g])
+  apply (simp_all add: assms dist_real_def)
+done
+  
+lemma has_vector_derivative_left_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_vector_derivative f') (at x within s)" "x \<in> s" "x < y" "\<forall>x'<y. f x' = g x'"
+  shows "(g has_vector_derivative f') (at x within s)"
+  using assms
+  apply (simp add: has_vector_derivative_def)
+  apply (rule_tac y="y" and f="f" in has_derivative_left_point)
+  apply (auto simp add: assms)
+done
+
+lemma has_vector_derivative_right_point:
+  fixes f g :: "real \<Rightarrow> real"
+  assumes "(f has_vector_derivative f') (at x within s)" "x \<in> s" "x > y" "\<forall>x'>y. f x' = g x'"
+  shows "(g has_vector_derivative f') (at x within s)"
+  using assms
+  apply (simp add: has_vector_derivative_def)
+  apply (rule_tac y="y" and f="f" in has_derivative_right_point)
+  apply (auto simp add: assms)
+done
+  
+lemma max_simps [simp]: 
+  "(y::real) < max x y \<longleftrightarrow> y < x" 
+  "x < max x y \<longleftrightarrow> x < y"
+  "max x y = y \<longleftrightarrow> x \<le> y"
+  by auto
+    
+lemma min_simps [simp]:
+  "min (x::real) y < x \<longleftrightarrow> y < x"
+  "min x y < y \<longleftrightarrow> x < y"
+  by auto
 
 end

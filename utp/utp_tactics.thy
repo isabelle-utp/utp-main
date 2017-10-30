@@ -11,7 +11,7 @@ text_raw {* \newpage *}
 section {* UTP Tactics *}
 
 theory utp_tactics
-imports Eisbach Lenses Interp utp_expr utp_unrest
+imports Eisbach Lenses Interp utp_expr utp_unrest utp_usedby
 keywords "update_uexpr_rep_eq_thms" :: thy_decl
 begin
 
@@ -140,7 +140,7 @@ ML {*
 *}
 
 update_uexpr_rep_eq_thms -- {* Read @{thm [source] uexpr_rep_eq_thms} here. *}
-
+  
 text {*
   Lastly, we require several named-theorem attributes to record the manual
   transfer laws and extra simplifications, so that the user can dynamically
@@ -155,11 +155,12 @@ declare uexpr_eq_iff [uexpr_transfer_laws]
 named_theorems uexpr_transfer_extra "extra simplifications for uexpr transfer"
 
 declare unrest_uexpr.rep_eq [uexpr_transfer_extra]
+  usedBy_uexpr.rep_eq [uexpr_transfer_extra]
   utp_expr.numeral_uexpr_rep_eq [uexpr_transfer_extra]
   utp_expr.less_eq_uexpr.rep_eq [uexpr_transfer_extra]
   Abs_uexpr_inverse [simplified, uexpr_transfer_extra]
   Rep_uexpr_inverse [uexpr_transfer_extra]
-
+  
 paragraph {* Tactic Definition *}
 
 text {*
@@ -169,7 +170,7 @@ text {*
 
 method fast_uexpr_transfer =
   (simp add: uexpr_transfer_laws uexpr_rep_eq_thms uexpr_transfer_extra)
-
+  
 subsection {* Interpretation *}
 
 text {*

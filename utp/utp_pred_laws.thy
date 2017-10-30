@@ -20,7 +20,7 @@ lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
 
 lemma upred_eval_taut:
-  "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<Sigma>\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
+  "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<^bold>v\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
   by (pred_auto)
     
 lemma refBy_order: "P \<sqsubseteq> Q = `Q \<Rightarrow> P`"
@@ -317,6 +317,11 @@ lemma UINF_cong:
   shows "(\<Sqinter> P\<in>A \<bullet> F(P)) = (\<Sqinter> P\<in>A \<bullet> G(P))"
   by (simp add: UINF_as_Sup_collect assms)
 
+lemma USUP_all_cong:
+  assumes "\<And> P. F(P) = G(P)"
+  shows "(\<Squnion> P \<bullet> F(P)) = (\<Squnion> P \<bullet> G(P))"
+  by (simp add: assms)
+    
 lemma USUP_cong:
   assumes "\<And> P. P \<in> A \<Longrightarrow> F(P) = G(P)"
   shows "(\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> G(P))"
@@ -336,6 +341,51 @@ lemma UINF_all_nats [simp]:
   shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
   by (pred_auto)
 
+lemma UINF_upto_expand_first:
+  "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = (P(0) \<or> (\<Sqinter> i \<in> {1..<Suc(n)} \<bullet> P(i)))"
+  apply (rel_auto)
+  using not_less by auto
+
+lemma UINF_upto_expand_last:
+  "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = ((\<Sqinter> i \<in> {0..<n} \<bullet> P(i)) \<or> P(n))"
+  apply (rel_auto)
+  using less_SucE by blast
+    
+lemma UINF_Suc_shift: "(\<Sqinter> i \<in> {Suc 0..<Suc n} \<bullet> P(i)) = (\<Sqinter> i \<in> {0..<n} \<bullet> P(Suc i))"
+  apply (rel_simp)
+  apply (rule cong[of Sup], auto)
+  using less_Suc_eq_0_disj by auto
+
+lemma USUP_upto_expand_first:
+  "(\<Squnion> i \<in> {0..<Suc(n)} \<bullet> P(i)) = (P(0) \<and> (\<Squnion> i \<in> {1..<Suc(n)} \<bullet> P(i)))"
+  apply (rel_auto)
+  using not_less by auto
+
+lemma USUP_Suc_shift: "(\<Squnion> i \<in> {Suc 0..<Suc n} \<bullet> P(i)) = (\<Squnion> i \<in> {0..<n} \<bullet> P(Suc i))"
+  apply (rel_simp)
+  apply (rule cong[of Inf], auto)
+  using less_Suc_eq_0_disj by auto
+    
+lemma UINF_list_conv:
+  "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<or> (map f xs) false"    
+  apply (induct xs)
+   apply (rel_auto)
+  apply (simp_all add: UINF_upto_expand_first UINF_Suc_shift)
+done
+
+lemma USUP_list_conv:
+  "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<and> (map f xs) true"    
+  apply (induct xs)
+   apply (rel_auto)
+  apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)
+done
+    
+lemma UINF_refines':
+  assumes "\<And> i. P \<sqsubseteq> Q(i)" 
+  shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
+  using assms
+  apply (rel_auto) using Sup_le_iff by fastforce
+    
 subsection {* Equality laws *}
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
@@ -393,11 +443,6 @@ lemma conj_var_subst:
   shows "(P \<and> var x =\<^sub>u v) = (P\<lbrakk>v/x\<rbrakk> \<and> var x =\<^sub>u v)"
   using assms
   by (pred_simp, (metis (full_types) vwb_lens_def wb_lens.get_put)+)
-    
-lemma le_pred_refl [simp]:
-  fixes x :: "('a::preorder, '\<alpha>) uexpr"
-  shows "(x \<le>\<^sub>u x) = true"
-  by (pred_auto)
 
 subsection {* HOL Variable Quantifiers *}
     
@@ -421,7 +466,7 @@ lemma shAll_bool [simp]: "shAll P = (P True \<and> P False)"
 
 lemma shAll_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shAll P = shAll Q"
   by (pred_auto)
-
+    
 text {* Quantifier lifting *}
 
 named_theorems uquant_lift
@@ -531,11 +576,11 @@ lemma all_equiv:
   by (pred_simp, metis (no_types, lifting) lens.select_convs(2))
 
 lemma ex_zero:
-  "(\<exists> &\<emptyset> \<bullet> P) = P"
+  "(\<exists> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
 lemma all_zero:
-  "(\<forall> &\<emptyset> \<bullet> P) = P"
+  "(\<forall> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
 lemma ex_plus:
@@ -547,7 +592,7 @@ lemma all_plus:
   by (pred_auto)
 
 lemma closure_all:
-  "[P]\<^sub>u = (\<forall> &\<Sigma> \<bullet> P)"
+  "[P]\<^sub>u = (\<forall> \<Sigma> \<bullet> P)"
   by (pred_auto)
 
 lemma unrest_as_exists:
@@ -578,6 +623,16 @@ lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bull
 lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+subsection {* Variable Restriction *}    
+  
+lemma var_res_all: 
+  "P \<restriction>\<^sub>v \<Sigma> = P"
+  by (rel_auto)
+  
+lemma var_res_twice: 
+  "mwb_lens x \<Longrightarrow> P \<restriction>\<^sub>v x \<restriction>\<^sub>v x = P \<restriction>\<^sub>v x"
+  by (pred_auto)
+    
 subsection {* Conditional laws *}
 
 lemma cond_def:
@@ -652,7 +707,69 @@ lemma cond_var_split:
 lemma cond_assign_subst:
   "vwb_lens x \<Longrightarrow> (P \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q) = (P\<lbrakk>v/x\<rbrakk> \<triangleleft> utp_expr.var x =\<^sub>u v \<triangleright> Q)"
   apply (rel_simp) using vwb_lens.put_eq by force
+    
+lemma conj_conds: 
+  "(P1 \<triangleleft> b \<triangleright> Q1 \<and> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<and> P2) \<triangleleft> b \<triangleright> (Q1 \<and> Q2)"
+  by pred_auto
 
+lemma disj_conds:
+  "(P1 \<triangleleft> b \<triangleright> Q1 \<or> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<or> P2) \<triangleleft> b \<triangleright> (Q1 \<or> Q2)"
+  by pred_auto
+
+subsection {* Additional Expression Laws *}
+
+lemma le_pred_refl [simp]:
+  fixes x :: "('a::preorder, '\<alpha>) uexpr"
+  shows "(x \<le>\<^sub>u x) = true"
+  by (pred_auto)
+
+lemma uzero_le_laws [simp]:
+  "(0 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u numeral x = true"
+  "(1 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u numeral x = true"
+  "(0 :: ('a::{linordered_semidom}, '\<alpha>) uexpr) \<le>\<^sub>u 1 = true"
+  by (pred_simp)+
+  
+lemma unumeral_le_1 [simp]:
+  assumes "(numeral i :: 'a::{numeral,ord}) \<le> numeral j"
+  shows "(numeral i :: ('a, '\<alpha>) uexpr) \<le>\<^sub>u numeral j = true"
+  using assms by (pred_auto)
+
+lemma unumeral_le_2 [simp]:
+  assumes "(numeral i :: 'a::{numeral,linorder}) > numeral j"
+  shows "(numeral i :: ('a, '\<alpha>) uexpr) \<le>\<^sub>u numeral j = false"
+  using assms by (pred_auto)
+    
+lemma uset_laws [simp]:
+  "x \<in>\<^sub>u {}\<^sub>u = false"
+  "x \<in>\<^sub>u {m..n}\<^sub>u = (m \<le>\<^sub>u x \<and> x \<le>\<^sub>u n)"
+  by (pred_auto)+
+  
+lemma pfun_entries_apply [simp]:
+  "(entr\<^sub>u(d,f) :: (('k, 'v) pfun, '\<alpha>) uexpr)(i)\<^sub>a = ((\<guillemotleft>f\<guillemotright>(i)\<^sub>a) \<triangleleft> i \<in>\<^sub>u d \<triangleright> \<bottom>\<^sub>u)"
+  by (pred_auto)
+    
+lemma udom_uupdate_pfun [simp]:
+  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
+  shows "dom\<^sub>u(m(k \<mapsto> v)\<^sub>u) = {k}\<^sub>u \<union>\<^sub>u dom\<^sub>u(m)"
+  by (rel_auto)
+
+lemma uapply_uupdate_pfun [simp]:
+  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
+  shows "(m(k \<mapsto> v)\<^sub>u)(i)\<^sub>a = v \<triangleleft> i =\<^sub>u k \<triangleright> m(i)\<^sub>a"
+  by (rel_auto)
+
+lemma ulit_eq [simp]: "x = y \<Longrightarrow> (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>) = true"
+  by (rel_auto)
+    
+lemma ulit_neq [simp]: "x \<noteq> y \<Longrightarrow> (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>) = false"
+  by (rel_auto)
+    
+lemma uset_mems [simp]:
+  "x \<in>\<^sub>u {y}\<^sub>u = (x =\<^sub>u y)"
+  "x \<in>\<^sub>u A \<union>\<^sub>u B = (x \<in>\<^sub>u A \<or> x \<in>\<^sub>u B)"
+  "x \<in>\<^sub>u A \<inter>\<^sub>u B = (x \<in>\<^sub>u A \<and> x \<in>\<^sub>u B)"
+  by (rel_auto)+
+    
 subsection {* Refinement By Observation *}
     
 text {* Function to obtain the set of observations of a predicate *}

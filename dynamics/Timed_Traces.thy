@@ -392,6 +392,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma Lim_shift_cgf_plus_shift':
+  assumes "0 < end\<^sub>C g"
+  shows "(\<langle>f + g\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C (f + g))) = (\<langle>g\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C g))"
+proof -
+  thm Lim_cgf_plus_shift
+  have 1:"(at_left (end\<^sub>C f + end\<^sub>C g)) = (at (end\<^sub>C f + end\<^sub>C g) within {end\<^sub>C f..<end\<^sub>C g + end\<^sub>C f})"
+    by (rule at_within_nhd[of _ "{end\<^sub>C f<..<end\<^sub>C g + end\<^sub>C f + 1}"], auto simp add: assms)
+  have 2: "(at_left (end\<^sub>C g)) = (at (end\<^sub>C g) within {0..<end\<^sub>C g})"
+    by (rule at_within_nhd[of _ "{0<..<end\<^sub>C g + 1}"], auto simp add: assms)
+  show ?thesis
+    by (simp add: cgf_end_cat assms 1 2)
+       (metis Lim_cgf_plus_shift add.commute add.left_neutral assms order_refl)  
+qed
+  
 text {* Theorem @{thm [source] Lim_cgf_plus_shift} shows that a composed function converges to a point beyond
   the end of the first (left) function if and only if the second function also conveges to this
   point, but with shifted indices. We then use this properties to show that the a piecewise
@@ -918,18 +932,13 @@ end
 text {* Similarly, we can define the minus operator for timed traces by definition from the
   summation operator. *}
 
-instance ttrace :: (topological_space) pre_trace
+instance ttrace :: (topological_space) trace
   apply (intro_classes)
   apply (transfer, metis add_monoid_diff_cancel_left)
   apply (transfer, metis cgf_zero_sum_left)
-  apply (transfer, metis cgf_cat_right_imp_eq)
-  apply (simp_all add: less_eq_ttrace_def less_ttrace_def minus_ttrace_def)
-done
-
-instance ttrace :: (topological_space) trace
-  apply (intro_classes)
-  apply (simp add: less_eq_ttrace_def monoid_le_def, transfer)
-  apply (metis mem_Collect_eq piecewise_convergent_cat_right sum_eq_sum_conv)
+  apply (transfer)
+  apply (metis cgf_sum_eq_sum_conv mem_Collect_eq piecewise_convergent_cat_right)
+  apply (simp_all add: less_eq_ttrace_def less_ttrace_def monoid_le_def minus_ttrace_def)
 done
   
 text {* We can then show that time traces also form a cancellative monoid, and thus fulfil the
@@ -944,9 +953,32 @@ lemma tt_end_ge_0 [simp]: "end\<^sub>t(f) \<ge> 0" by (transfer, simp)
 
 lemma tt_end_empty [simp]: "end\<^sub>t([]\<^sub>t) = 0" by (transfer, simp)
 
-lemma tt_end_0_iff: "end\<^sub>t(f) = 0 \<longleftrightarrow> f = []\<^sub>t"
+lemma tt_end_0_iff [simp]: "end\<^sub>t(f) = 0 \<longleftrightarrow> f = []\<^sub>t"
   by (transfer, simp add: cgf_end_0_iff)
 
+lemma tt_end_gr_zero_iff [simp]:
+  "0 < end\<^sub>t (x - y) \<longleftrightarrow> y < x"
+proof
+  assume "0 < end\<^sub>t (x - y)"
+  hence "x - y \<noteq> 0"
+    by auto
+  thus "y < x"
+    using less_le not_le_minus by fastforce
+next
+  assume "y < x"
+  hence "x - y \<noteq> 0"
+    by (metis dual_order.strict_iff_order minus_zero_eq)
+  thus "0 < end\<^sub>t (x - y)"
+    by (simp add: order.not_eq_order_implies_strict)
+qed
+
+lemma tt_end_ge_0_iff [simp]:
+  "end\<^sub>t(x - y) \<le> 0 \<longleftrightarrow> end\<^sub>t(x - y) = 0"
+  using dual_order.antisym by fastforce
+    
+lemma tt_end_zero_dest [dest]: "\<lbrakk> end\<^sub>t(x - y) = 0; y < x \<rbrakk> \<Longrightarrow> False"
+  by (simp add: dual_order.strict_implies_not_eq)
+    
 lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
   by (transfer, simp add: cgf_end_cat)
 
@@ -979,6 +1011,10 @@ proof -
     by (simp add: assms(1))
 qed
 
+lemma ttrace_eqI:
+  "\<lbrakk> end\<^sub>t f = end\<^sub>t g; \<And> t. \<lbrakk> 0 \<le> t; t < end\<^sub>t g \<rbrakk> \<Longrightarrow> \<langle>f\<rangle>\<^sub>t t = \<langle>g\<rangle>\<^sub>t t \<rbrakk> \<Longrightarrow> f = g"
+  by (transfer, simp add: cgf_eqI)
+  
 lift_definition tt_restrict :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a ttrace" (infix "\<restriction>\<^sub>t" 85)
 is "\<lambda> f n. f \<restriction>\<^sub>C n"
 proof -
@@ -998,7 +1034,7 @@ text {* Lifting the @{term tt_restrict} operator is a little more complicated si
 
 lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
   by (simp add: less_eq_ttrace_def monoid_le_def, transfer)
-     (metis cgf_restrict_le mem_Collect_eq pre_trace_class.le_iff_add
+     (metis cgf_restrict_le mem_Collect_eq trace_class.le_iff_add
             piecewise_convergent_cat_iff)
 
 lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>t"
@@ -1058,6 +1094,117 @@ lemma ttrace_convergent_end:
   obtains l where "(\<langle>t\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t t))"
   using assms
   by (transfer, blast intro: piecewise_convergent_end)
+  
+text {* We next construct a function to build an atomic timed trace from a continuous function,
+  this requires that be prove a number of continuity lemmas first. *}
+    
+lemma continuous_on_mk_cgf:
+  assumes "continuous_on {0..l} f" 
+  shows "continuous_on {0..<l} \<langle>mk\<^sub>C l f\<rangle>\<^sub>C"
+proof -
+  have "\<And>x. x \<in> {0..<l} \<Longrightarrow> \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x = f x"
+    by (simp)
+  thus ?thesis
+    by (metis (full_types) assms atLeastLessThan_subseteq_atLeastAtMost_iff continuous_on_eq continuous_on_subset order_refl)
+qed
+  
+lemma cgf_mk_tendto:
+  assumes "l > 0" "continuous_on {0..l} f"
+  shows "(\<langle>mk\<^sub>C l f\<rangle>\<^sub>C \<longlongrightarrow> f l) (at l within {0..l})"
+proof -
+  have 1:"\<forall>\<^sub>F x in at l within {0..l}. f x = \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x"
+    by (simp add: eventually_at_filter)
+  have "(f \<longlongrightarrow> f l) (at l within {0..l})"
+    using assms(2) continuous_on by force
+  thus ?thesis
+    using "1" filterlim_cong by blast
+qed
+      
+lemma piecewise_convergent_cgf_mk:
+  "\<lbrakk> l > 0; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> piecewise_convergent (mk\<^sub>C l f)"
+  apply (simp add: piecewise_convergent_def)
+  apply (rule_tac x="[0,l]" in exI)
+  apply (unfold_locales)
+  apply (simp_all add: continuous_on_mk_cgf)
+  apply (rule_tac x="f l" in exI)
+  apply (meson atLeastLessThan_subseteq_atLeastAtMost_iff cgf_mk_tendto order_refl tendsto_within_subset)
+done
+
+text {* The function $mk_t$ builds a timed trace from a function, provided it is continuous on
+  the given domain. If it isn't, then an empty timed trace is produced. *}
+  
+lift_definition tt_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a ttrace" ("mk\<^sub>t")
+is "\<lambda> t f. if (continuous_on {0..t} f) 
+           then mk\<^sub>C t f 
+           else mk\<^sub>C t (\<lambda> x. undefined)"
+  apply (auto)
+  apply (rename_tac t f)
+  apply (case_tac "t \<le> 0")
+  apply (simp)
+  apply (simp add: piecewise_convergent_cgf_mk)
+  apply (metis (full_types) cgf_mk_le_0 continuous_on_const less_eq_real_def linear piecewise_convergent_cgf_mk piecewise_convergent_empty) 
+done
+    
+lemma tt_end_mk [simp]:
+  "l \<ge> 0 \<Longrightarrow> end\<^sub>t(mk\<^sub>t l f) = l"
+  by (transfer, simp)
+  
+lemma tt_apply_mk [simp]: 
+  "\<lbrakk> 0 \<le> t; t < l; continuous_on {0..l} f \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>t l f\<rangle>\<^sub>t t = f t"
+  by (transfer, simp)
+    
+lemma tt_mk_nempty [simp]:
+  "0 < n \<Longrightarrow> 0 < mk\<^sub>t n f" 
+  by (metis dual_order.strict_implies_not_eq dual_order.strict_implies_order neq_zero_impl_greater tt_end_empty tt_end_mk)
+   
+text {* Limit of a timed trace *}
+   
+abbreviation lim_ttrace :: "'a::t2_space ttrace \<Rightarrow> 'a" ("lim\<^sub>t") where
+"lim_ttrace t \<equiv> Lim (at_left (end\<^sub>t t)) \<langle>t\<rangle>\<^sub>t"
+
+lemma Lim_ttrace_plus_shift:
+  assumes "0 \<le> m" "m < n"
+  shows "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> L) (at (n+end\<^sub>t(f)) within {m+end\<^sub>t(f)..<n+end\<^sub>t(f)})
+         \<longleftrightarrow>
+         (\<langle>g\<rangle>\<^sub>t \<longlongrightarrow> L) (at n within {m..<n})"
+  (is "?L1 \<longleftrightarrow> ?L2")
+  using assms by (transfer, simp add: Lim_cgf_plus_shift)
+    
+theorem ttrace_lim_exists:
+  fixes f :: "'a::topological_space ttrace"
+  assumes "0 < end\<^sub>t f"
+  shows "\<exists> l. (\<langle>f\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t f))"
+using assms proof (transfer, clarsimp simp add: piecewise_convergent_def)
+  fix f :: "'a cgf" and I :: "real list"
+  assume a: "0 < end\<^sub>C f" "pc_cvg_interval I f"
+  then interpret I: pc_cvg_interval I f
+    by (simp)
+  from a(1) show "\<exists>l. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> l) (at_left (end\<^sub>C f))"
+    using I.pc_cvg_interval_axioms piecewise_convergent_def piecewise_convergent_end by blast
+qed
+    
+lemma lim_tt_cat:
+  assumes "end\<^sub>t g > 0"
+  shows "lim\<^sub>t(f + g) = lim\<^sub>t g"
+proof -
+  obtain l where l:"(\<langle>g\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t g))"
+    using assms ttrace_convergent_end by blast
+  hence 1: "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> l) (at (end\<^sub>t f + end\<^sub>t g) within {end\<^sub>t f..<end\<^sub>t f + end\<^sub>t g})"
+    using Lim_ttrace_plus_shift[of 0 "end\<^sub>t g" f g l, simplified]
+    by (metis add.commute assms atLeastLessThan_iff lessThan_iff subsetI tendsto_within_subset)
+  hence "(\<langle>f + g\<rangle>\<^sub>t \<longlongrightarrow> l) (at_left (end\<^sub>t f + end\<^sub>t g))"
+  proof -
+    from assms have "at_left (end\<^sub>t f + end\<^sub>t g) = (at (end\<^sub>t f + end\<^sub>t g) within {0..<end\<^sub>t f + end\<^sub>t g})"
+      by (rule_tac at_within_nhd[of _ "{0<..<(end\<^sub>t f + end\<^sub>t g)+1}"], auto)
+         (metis (full_types) less_eq_real_def tt_end_0_iff tt_end_cat tt_end_ge_0 zero_sum_right)
+    also have "... = (at (end\<^sub>t f + end\<^sub>t g) within {end\<^sub>t f..<end\<^sub>t f + end\<^sub>t g})"
+      by (rule filter_upto_contract, simp_all add: assms)
+    finally show ?thesis
+      by (simp add: 1)
+  qed
+  thus ?thesis
+    by (metis l tendsto_Lim trivial_limit_at_left_real tt_end_cat)
+qed
 
 text {* Finally, we hide the implementation details for contiguous functions and timed traces. *}
 

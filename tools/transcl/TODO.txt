@@ -1,0 +1,9 @@
+(1) The rangecl(-) function seems not very useful after all - its corresponding witness theorem is too strong. Remove it from the C++ and ML code!
+
+(2) Implement an automatic tactic to prove acyclicity of a relation using the transcl(-) command.
+
+(3) There are some issues with simplifying the provisos of the witness lemma - this, by default, does not work as swiftly as I hoped. Perhaps configure some evaluation method to do this more efficiently, competing with plain (eval) on the initial goal "acyclic R".
+
+(4) There may be potential issues with using echo in transcl.ML due to special characters. It may thus be better to write the result into a file. This will also save time not having to escape double quotes.
+
+(5) Do a final review of the entire C++ and ML code.

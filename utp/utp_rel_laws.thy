@@ -1,7 +1,9 @@
 section {* Relational Calculus Laws *}
 
 theory utp_rel_laws
-  imports utp_rel
+  imports 
+    utp_rel
+    utp_recursion
 begin
 
 subsection {* Conditional Laws *}
@@ -53,7 +55,7 @@ theorem feasibile_iff_true_right_zero:
     
 subsection {* Sequential Composition Laws *}
     
-lemma seqr_assoc: "P ;; (Q ;; R) = (P ;; Q) ;; R"
+lemma seqr_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
 
 lemma seqr_left_unit [simp]:
@@ -108,7 +110,7 @@ lemma seqr_and_distl_uinj:
   by (rel_auto)
 
 lemma seqr_unfold:
-  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<Sigma>\<rbrakk>)"
+  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<rbrakk>)"
   by (rel_auto)
 
 lemma seqr_middle:
@@ -232,6 +234,14 @@ lemma shEx_lift_seq_2 [uquant_lift]:
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
   by pred_auto
   
+subsection {* Iterated Sequential Composition Laws *}
+  
+lemma iter_seqr_nil [simp]: "(;; i : [] \<bullet> P(i)) = II"
+  by (simp add: seqr_iter_def)
+    
+lemma iter_seqr_cons [simp]: "(;; i : (x # xs) \<bullet> P(i)) = P(x) ;; (;; i : xs \<bullet> P(i))"
+  by (simp add: seqr_iter_def)
+
 subsection {* Quantale Laws *}
 
 lemma seq_Sup_distl: "P ;; (\<Sqinter> A) = (\<Sqinter> Q\<in>A. P ;; Q)"
@@ -276,7 +286,7 @@ lemma skip_r_unfold:
   by (rel_simp, metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
 
 lemma skip_r_alpha_eq:
-  "II = ($\<Sigma>\<acute> =\<^sub>u $\<Sigma>)"
+  "II = ($\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
   by (rel_auto)
 
 lemma skip_ra_unfold:
@@ -306,7 +316,7 @@ lemma assigns_r_feasible:
 lemma assign_subst [usubst]:
   "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by (rel_auto)
-
+    
 lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
   by (simp add: usubst)
 
@@ -322,16 +332,16 @@ lemma assign_pred_transfer:
   assumes "$x \<sharp> b" "out\<alpha> \<sharp> b"
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_blast)
-
+    
 lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
-  by (simp add: assigns_r_comp usubst)
-
+  by (simp add: assigns_r_comp usubst alpha)
+    
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
-  by (simp add: assigns_comp subst_upd_comp subst_lit usubst_upd_idem)
-
-lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
   by (simp add: assigns_comp usubst)
-
+    
+lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
+  by (simp add: assigns_comp usubst unrest)
+ 
 lemma assign_commute:
   assumes "x \<bowtie> y" "x \<sharp> f" "y \<sharp> e"
   shows "(x := e ;; y := f) = (y := f ;; x := e)"
@@ -359,10 +369,10 @@ lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
 
 lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
   by (rel_simp, simp add: inj_eq)
-
+    
 lemma assigns_r_swap_uinj:
-  "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj (x,y := &y,&x)"
-  using assigns_r_uinj swap_usubst_inj by auto
+  "\<lbrakk> vwb_lens x; vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> uinj ((x,y) := (&y,&x))"
+  by (metis assigns_r_uinj pr_var_def swap_usubst_inj)
 
 lemma assign_unfold:
   "vwb_lens x \<Longrightarrow> (x := v) = ($x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub>< \<and> II\<restriction>\<^sub>\<alpha>x)"
@@ -416,26 +426,53 @@ lemma post_convr [simp]: "\<lceil>p\<rceil>\<^sub>>\<^sup>- = \<lceil>p\<rceil>\
 
 subsection {* Assertion and Assumption Laws *}
 
-lemma assume_twice: "(b\<^sup>\<top> ;; c\<^sup>\<top>) = (b \<and> c)\<^sup>\<top>"
+declare sublens_def [lens_defs del]
+  
+lemma assume_false: "[false]\<^sup>\<top> = false"
+  by (rel_auto)
+  
+lemma assume_true: "[true]\<^sup>\<top> = II"
+  by (rel_auto)
+    
+lemma assume_seq: "[b]\<^sup>\<top> ;; [c]\<^sup>\<top> = [b \<and> c]\<^sup>\<top>"
   by (rel_auto)
 
-lemma assert_twice: "(b\<^sub>\<bottom> ;; c\<^sub>\<bottom>) = (b \<and> c)\<^sub>\<bottom>"
+lemma assert_false: "{false}\<^sub>\<bottom> = true"
+  by (rel_auto)
+
+lemma assert_true: "{true}\<^sub>\<bottom> = II"
+  by (rel_auto)
+    
+lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
   by (rel_auto)
 
 lemma frame_disj: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)
 
-lemma frame_conj: "(x:\<lbrakk>P\<rbrakk> \<and> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<and> Q\<rbrakk>"
-  by (rel_auto)
-
 lemma frame_seq:
   "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
   by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
-
+    
 lemma antiframe_to_frame:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
+    
+lemma antiframe_skip [simp]:
+  "vwb_lens x \<Longrightarrow> x:[II] = II"
+  by (rel_auto)
+    
+lemma antiframe_assign_in:
+  "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> a:[x := v] = x := v"
+  by (rel_auto, simp_all add: lens_get_put_quasi_commute lens_put_of_quotient)
 
+lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
+  by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
+    
+lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
+  by (rel_auto)
+
+declare sublens_def [lens_defs]
+    
 subsection {* While Loop Laws *}
 
 theorem while_unfold:
@@ -510,22 +547,24 @@ translations
 
 text {* Set up transfer tactic for powers *}
 
-lemma upower_rep_eq [uexpr_transfer_laws]:
-  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
-proof (induct i arbitrary: P b)
+lemma upower_rep_eq:
+  "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>e = (\<lambda> b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+proof (induct i arbitrary: P)
   case 0
   then show ?case
-    by (simp, rel_auto, simp add: Id_fstsnd_eq)
+    by (auto, rel_auto)
 next
   case (Suc i)
   show ?case
     by (simp add: Suc seqr.rep_eq relpow_commute)
 qed
 
-lemma upower_rep_eq_alt [uexpr_transfer_laws]:
-  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e b = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+lemma upower_rep_eq_alt:
+  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
   by (metis skip_r_def upower_rep_eq)
 
+update_uexpr_rep_eq_thms
+  
 lemma Sup_power_expand:
   fixes P :: "nat \<Rightarrow> 'a::complete_lattice"
   shows "P(0) \<sqinter> (\<Sqinter>i. P(i+1)) = (\<Sqinter>i. P(i))"
@@ -577,7 +616,7 @@ next
   have "R ;; P \<^bold>^ Suc n = (R ;; P \<^bold>^ n) ;; P"
     by (metis seqr_assoc upred_semiring.power_Suc2)
   also have "Q ;; P \<sqsubseteq> ..."
-    using Suc.hyps assms seqr_mono by auto
+    by (meson Suc.hyps assms eq_iff seqr_mono)
   also have "Q \<sqsubseteq> ..."
     using assms by auto
   finally show ?case .
@@ -588,16 +627,21 @@ lemma SUP_atLeastAtMost_first:
   assumes "m \<le> n"
   shows "(\<Sqinter>i\<in>{m..n}. P(i)) = P(m) \<sqinter> (\<Sqinter>i\<in>{Suc m..n}. P(i))"
   by (metis SUP_insert assms atLeastAtMost_insertL)
-
+    
+lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
+  by (induct n, simp_all)
+    
 subsubsection {* Kleene Star *}
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
 "P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"
 
-lemma ustar_rep_eq [uexpr_transfer_laws]:
-  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>eb = (b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
+lemma ustar_rep_eq:
+  "\<lbrakk>P\<^sup>\<star>\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p}\<^sup>*))"
   by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
 
+update_uexpr_rep_eq_thms
+  
 subsubsection {* Omega *}
 
 definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where
@@ -606,7 +650,7 @@ definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<o
 subsection {* Relation Algebra Laws *}
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
-  using seqr_assoc by auto
+  by (simp add: seqr_assoc)
 
 theorem RA2: "(P ;; II) = P" "(II ;; P) = P"
   by simp_all
@@ -632,31 +676,74 @@ theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
 
 theorem ustar_inductl:
-  assumes "Q \<sqsubseteq> (R \<sqinter> P ;; Q)"
+  assumes "Q \<sqsubseteq> R" "Q \<sqsubseteq> P ;; Q"
   shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
 proof -
   have "P\<^sup>\<star> ;; R = (\<Sqinter> i. P \<^bold>^ i ;; R)"
     by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distr)
   also have "Q \<sqsubseteq> ..."
-    by (metis (no_types, lifting) SUP_least assms semilattice_sup_class.sup_commute upower_inductl)
+    by (simp add: SUP_least assms upower_inductl)
   finally show ?thesis .
 qed
 
 theorem ustar_inductr:
-  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  assumes "Q \<sqsubseteq> R" "Q \<sqsubseteq> Q ;; P"
   shows "Q \<sqsubseteq> R ;; P\<^sup>\<star>"
 proof -
   have "R ;; P\<^sup>\<star> = (\<Sqinter> i. R ;; P \<^bold>^ i)"
     by (simp add: ustar_def UINF_as_Sup_collect' seq_SUP_distl)
   also have "Q \<sqsubseteq> ..."
-    by (meson SUP_least assms upower_inductr)
+    by (simp add: SUP_least assms upower_inductr)
   finally show ?thesis .
 qed
 
+lemma ustar_refines_nu: "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+  by (metis (no_types, lifting) lfp_greatest semilattice_sup_class.le_sup_iff 
+      semilattice_sup_class.sup_idem upred_semiring.mult_2_right 
+      upred_semiring.one_add_one ustar_inductl)
+
+lemma ustar_as_nu: "P\<^sup>\<star> = (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+proof (rule antisym)
+  show "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+    by (simp add: ustar_refines_nu)
+  show "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+    by (metis lfp_lowerbound upred_semiring.add_commute ustar_unfoldl)
+qed
+  
 subsection {* Omega Algebra Laws *}
 
 lemma uomega_induct:
   "P ;; P\<^sup>\<omega> \<sqsubseteq> P\<^sup>\<omega>"
   by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
+subsection {* Refinement Laws *}
+
+lemma conj_refine_left:
+  "(Q \<Rightarrow> P) \<sqsubseteq> R \<Longrightarrow> P \<sqsubseteq> (Q \<and> R)"
+  by (rel_auto)
+  
+lemma pre_weak_rel:
+  assumes "`Pre \<Rightarrow> I`"
+  and     "(I \<Rightarrow> Post) \<sqsubseteq> P"
+  shows "(Pre \<Rightarrow> Post) \<sqsubseteq> P"
+  using assms by(rel_auto)
+    
+lemma cond_refine_rel: 
+  assumes "S \<sqsubseteq> (\<lceil>b\<rceil>\<^sub>< \<and> P)" "S \<sqsubseteq> (\<lceil>\<not>b\<rceil>\<^sub>< \<and> Q)"
+  shows "S \<sqsubseteq> P \<triangleleft> b \<triangleright>\<^sub>r Q"
+  by (metis aext_not assms cond_def utp_pred_laws.le_sup_iff)
+
+lemma seq_refine_pred:
+  assumes "(\<lceil>b\<rceil>\<^sub>< \<Rightarrow> \<lceil>s\<rceil>\<^sub>>) \<sqsubseteq> P" and "(\<lceil>s\<rceil>\<^sub>< \<Rightarrow> \<lceil>c\<rceil>\<^sub>>) \<sqsubseteq> Q"
+  shows "(\<lceil>b\<rceil>\<^sub>< \<Rightarrow> \<lceil>c\<rceil>\<^sub>>) \<sqsubseteq> (P ;; Q)"
+  using assms by rel_auto
+    
+lemma seq_refine_unrest:
+  assumes "out\<alpha> \<sharp> b" "in\<alpha> \<sharp> c"
+  assumes "(b \<Rightarrow> \<lceil>s\<rceil>\<^sub>>) \<sqsubseteq> P" and "(\<lceil>s\<rceil>\<^sub>< \<Rightarrow> c) \<sqsubseteq> Q"
+  shows "(b \<Rightarrow> c) \<sqsubseteq> (P ;; Q)"
+  using assms by rel_blast 
+    
+    
+    
 end

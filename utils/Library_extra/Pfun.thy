@@ -14,7 +14,8 @@ typedef ('a, 'b) pfun = "UNIV :: ('a \<rightharpoonup> 'b) set" ..
 
 setup_lifting type_definition_pfun
 
-lift_definition pfun_app :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>p" [999,0] 999) is "\<lambda> f x. the (f x)" .
+lift_definition pfun_app :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>p" [999,0] 999) is 
+"\<lambda> f x. if (x \<in> dom f) then the (f x) else undefined" .
 
 lift_definition pfun_upd :: "('a, 'b) pfun \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a, 'b) pfun"
 is "\<lambda> f k v. f(k := Some v)" .
@@ -42,6 +43,9 @@ lift_definition pfun_graph :: "('a, 'b) pfun \<Rightarrow> ('a \<times> 'b) set"
 
 lift_definition graph_pfun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) pfun" is graph_map .
 
+lift_definition pfun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> ('k, 'v) pfun" is
+"\<lambda> d f x. if (x \<in> d) then Some (f x) else None" .
+    
 definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
 where "pcard f = card (pdom f)"
 
@@ -212,6 +216,13 @@ lemma pfun_upd_comm_linorder [simp]:
 lemma pfun_app_minus [simp]: "x \<notin> pdom g \<Longrightarrow> (f - g)(x)\<^sub>p = f(x)\<^sub>p"
   by (transfer, auto simp add: map_minus_def)
 
+lemma pfun_app_empty [simp]: "{}\<^sub>p(x)\<^sub>p = undefined"
+  by (transfer, simp)
+
+lemma pfun_app_not_in_dom: 
+  "x \<notin> pdom(f) \<Longrightarrow> f(x)\<^sub>p = undefined"
+  by (transfer, simp)
+
 lemma pfun_upd_minus [simp]:
   "x \<notin> pdom g \<Longrightarrow> (f - g)(x \<mapsto> v)\<^sub>p = (f(x \<mapsto> v)\<^sub>p - g)"
   by (transfer, auto simp add: map_minus_def)
@@ -299,6 +310,13 @@ subsection {* Domain restriction laws *}
 lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
   by (transfer, auto)
 
+lemma pdom_res_empty [simp]:
+  "({} \<lhd>\<^sub>p f) = {}\<^sub>p"
+  by (transfer, auto)
+      
+lemma pdom_res_UNIV [simp]: "UNIV \<lhd>\<^sub>p f = f"
+  by (transfer, auto)
+    
 lemma pdom_res_alt_def: "A \<lhd>\<^sub>p f =  f \<circ>\<^sub>p pId_on A"
   by (transfer, rule ext, auto simp add: restrict_map_def)
 
@@ -309,7 +327,15 @@ lemma pdom_res_upd_in [simp]:
 lemma pdom_res_upd_out [simp]:
   "k \<notin> A \<Longrightarrow> A \<lhd>\<^sub>p f(k \<mapsto> v)\<^sub>p = A \<lhd>\<^sub>p f"
   by (transfer, auto)
+    
+lemma pfun_pdom_antires_upd [simp]:
+  "k \<in> A \<Longrightarrow> ((- A) \<lhd>\<^sub>p m)(k \<mapsto> v)\<^sub>p =  ((- (A - {k})) \<lhd>\<^sub>p m)(k \<mapsto> v)\<^sub>p"
+  by (transfer, simp)
 
+lemma pdom_antires_insert_notin [simp]:
+  "k \<notin> pdom(f) \<Longrightarrow> (- insert k A) \<lhd>\<^sub>p f = (- A) \<lhd>\<^sub>p f"
+  by (transfer, auto simp add: restrict_map_def)
+ 
 lemma pdom_res_override [simp]: "A \<lhd>\<^sub>p (f + g) = (A \<lhd>\<^sub>p f) + (A \<lhd>\<^sub>p g)"
   by (simp add: pdom_res_alt_def pfun_override_dist_comp)
 
@@ -325,6 +351,10 @@ lemma pdom_res_twice [simp]: "A \<lhd>\<^sub>p (B \<lhd>\<^sub>p f) = (A \<inter
 lemma pdom_res_comp [simp]: "A \<lhd>\<^sub>p (g \<circ>\<^sub>p f) =  g \<circ>\<^sub>p (A \<lhd>\<^sub>p f)"
   by (simp add: pdom_res_alt_def pfun_comp_assoc)
 
+lemma pdom_res_apply [simp]:
+  "x \<in> A \<Longrightarrow> (A \<lhd>\<^sub>p f)(x)\<^sub>p = f(x)\<^sub>p"
+  by (transfer, auto)
+    
 subsection {* Range restriction laws *}
 
 lemma pran_res_zero [simp]: "{}\<^sub>p \<rhd>\<^sub>p A = {}\<^sub>p"
@@ -365,6 +395,72 @@ lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inte
   apply (metis option.discI)+
 done
 
+subsection {* Entries *}
+  
+lemma pfun_entries_empty [simp]: "pfun_entries {} f = {}\<^sub>p"
+  by (transfer, simp)
+
+lemma pfun_entries_apply_1 [simp]: 
+  "x \<in> d \<Longrightarrow> (pfun_entries d f)(x)\<^sub>p = f x"
+  by (transfer, auto)
+
+lemma pfun_entries_apply_2 [simp]: 
+  "x \<notin> d \<Longrightarrow> (pfun_entries d f)(x)\<^sub>p = undefined"
+  by (transfer, auto)
+
+subsection {* Summation *}
+    
+definition pfun_sum :: "('k, 'v::comm_monoid_add) pfun \<Rightarrow> 'v" where
+"pfun_sum f = sum (pfun_app f) (pdom f)"
+    
+lemma pfun_sum_empty [simp]: "pfun_sum {}\<^sub>p = 0"
+  by (simp add: pfun_sum_def)
+
+lemma pfun_sum_upd_1:
+  assumes "finite(pdom(m))" "k \<notin> pdom(m)"
+  shows "pfun_sum (m(k \<mapsto> v)\<^sub>p) = pfun_sum m + v"
+  by (simp_all add: pfun_sum_def assms, metis add.commute assms(2) pfun_app_upd_2 sum.cong)
+
+lemma pfun_sums_upd_2:
+  assumes "finite(pdom(m))"
+  shows "pfun_sum (m(k \<mapsto> v)\<^sub>p) = pfun_sum ((- {k}) \<lhd>\<^sub>p m) + v"
+proof (cases "k \<notin> pdom(m)")
+  case True
+  then show ?thesis 
+    by (simp add: pfun_sum_upd_1 assms)
+next
+  case False
+  then show ?thesis
+    using assms pfun_sum_upd_1[of "((- {k}) \<lhd>\<^sub>p m)" k v]
+    by (simp add: pfun_sum_upd_1)
+qed
+
+lemma pfun_sum_dom_res_insert [simp]: 
+  assumes "x \<in> pdom f" "x \<notin> A" "finite A" 
+  shows "pfun_sum ((insert x A) \<lhd>\<^sub>p f) = f(x)\<^sub>p + pfun_sum (A \<lhd>\<^sub>p f)"
+  using assms by (simp add: pfun_sum_def)
+  
+lemma pfun_sum_pdom_res:
+  fixes f :: "('a,'b::ab_group_add) pfun"
+  assumes "finite(pdom f)"
+  shows "pfun_sum (A \<lhd>\<^sub>p f) = pfun_sum f - (pfun_sum ((- A) \<lhd>\<^sub>p f))"
+proof -
+  have 1:"A \<inter> pdom(f) = pdom(f) - (pdom(f) - A)"
+    by (auto)
+  show ?thesis
+    apply (simp add: pfun_sum_def)
+    apply (subst 1)
+    apply (subst sum_diff)
+    apply (auto simp add: sum_diff Diff_subset Int_commute boolean_algebra_class.diff_eq assms)
+  done
+qed
+  
+lemma pfun_sum_pdom_antires [simp]:
+  fixes f :: "('a,'b::ab_group_add) pfun"
+  assumes "finite(pdom f)"
+  shows "pfun_sum ((- A) \<lhd>\<^sub>p f) = pfun_sum f - pfun_sum (A \<lhd>\<^sub>p f)"
+  by (subst pfun_sum_pdom_res, simp_all add: assms)
+  
 text {* Hide implementation details for partial functions *}
 
 lifting_update pfun.lifting

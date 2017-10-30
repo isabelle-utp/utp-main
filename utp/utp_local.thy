@@ -17,7 +17,7 @@ text {* Different UTP theories have different assignment operators; consequently
   of a UTP theory. *}
 
 consts
-  pvar         :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>v\<index>")
+  pvar         :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>s\<index>")
   pvar_assigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrel" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
 
 text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
@@ -27,7 +27,7 @@ text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to th
   state. We now set up some syntax translations for these operators. *}
 
 syntax
-  "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>v\<index>")
+  "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>s\<index>")
   "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
 
 translations
@@ -109,7 +109,7 @@ text {* In order to substantiate standard variable block laws, we need some unde
 
 locale utp_prog_var = utp_theory \<T> for \<T> :: "('\<T>, '\<alpha>) uthy" (structure) +
   fixes \<V>\<T> :: "'\<beta> itself"
-  assumes pvar_uvar: "vwb_lens (\<^bold>v :: '\<beta> \<Longrightarrow> '\<alpha>)"
+  assumes pvar_uvar: "vwb_lens (\<^bold>s :: '\<beta> \<Longrightarrow> '\<alpha>)"
   and Healthy_pvar_assigns [closure]: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
   and pvar_assigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
 
@@ -144,7 +144,7 @@ lemma var_open_close:
   by (simp add: var_begin_def var_end_def shEx_lift_seq_1 Healthy_pvar_assigns pvar_assigns_comp pvar_assign_unit usubst assms)
 
 text {* Opening and then immediately closing a variable blocks yields a skip. *}
-
+    
 lemma var_open_close_commute:
   fixes x :: "('a, '\<beta>) lvar" and y :: "('b, '\<beta>) lvar"
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"

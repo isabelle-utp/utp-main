@@ -52,7 +52,7 @@ text {*
 *}
 
 definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
-"\<delta>\<^sub>u c = UNIV"
+[upred_defs]: "\<delta>\<^sub>u c = UNIV"
 
 text {*
   The next lifted function creates an expression that yields a channel event,
@@ -61,5 +61,12 @@ text {*
 
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
-[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>\<lparr>e\<rparr>\<^sub>u"
+[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>(e)\<^sub>a"
+
+lemma unrest_chan_apply [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> (c\<cdot>e)\<^sub>u"
+  by (rel_auto)
+
+lemma usubst_chan_apply [usubst]: "\<sigma> \<dagger> (c\<cdot>v)\<^sub>u = (c\<cdot>\<sigma> \<dagger> v)\<^sub>u"
+  by (rel_auto)
+
 end

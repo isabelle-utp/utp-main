@@ -62,7 +62,7 @@ translations
 subsection {* Signature *}
 
 abbreviation time_length :: "(nat,'\<sigma>,'\<theta>) expr_cml" ("\<^bold>l")
-where "\<^bold>l \<equiv> #\<^sub>u(tocks\<^sub>u(tt))"
+where "\<^bold>l \<equiv> #\<^sub>u(tocks\<^sub>u(&tt))"
 
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
 where "CML \<equiv> SRD"
@@ -74,18 +74,18 @@ abbreviation Assigns :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>,'\<theta>) cm
 "Assigns \<sigma> \<equiv> \<langle>\<sigma>\<rangle>\<^sub>R"
 
 definition Stop :: "('\<sigma>,'\<theta>) cmlact" where
-[upred_defs]: "Stop = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+[upred_defs]: "Stop = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
 
 definition DoCML :: "('\<theta>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
   [upred_defs]:
-  "DoCML a = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(tt))
-                      \<diamondop> (tt =\<^sub>u idleprefix\<^sub>u(tt) ^\<^sub>u \<langle>ev\<^sub>u(\<lceil>a\<rceil>\<^sub>S\<^sub><)\<rangle>
-                         \<and> $st\<acute> =\<^sub>u $st \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(tt)))"
+  "DoCML a = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(&tt))
+                      \<diamondop> (&tt =\<^sub>u idleprefix\<^sub>u(&tt) ^\<^sub>u \<langle>ev\<^sub>u(\<lceil>a\<rceil>\<^sub>S\<^sub><)\<rangle>
+                         \<and> $st\<acute> =\<^sub>u $st \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(&tt)))"
 
 definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
   [upred_defs]:
-  "Wait n = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><)
-                    \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><
+  "Wait n = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) <\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><)
+                    \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><
                        \<and> $st\<acute> =\<^sub>u $st))"
 
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
@@ -116,7 +116,7 @@ subsection {* Laws *}
 
 lemma Wait_0: "Wait 0 = Skip"
 proof -
-  have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
+  have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(&tt)) \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
     (is "?lhs = \<^bold>R\<^sub>s(?P \<turnstile> ?Q \<diamondop> ?R)")
     by (simp add: Wait_def alpha)
   also have "... = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
@@ -124,7 +124,7 @@ proof -
     have 1:"?Q = false"
       by (pred_auto)
     have 2:"R1(?R) = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-      by (rel_auto, simp_all add: minus_zero_eq zero_list_def)
+      by (rel_auto)
     show ?thesis
       by (metis (no_types, lifting) "1" "2" RHS_design_post_R1)
   qed
@@ -140,11 +140,11 @@ lemma Stop_left_zero:
   assumes "P is CML"
   shows "Stop ;; P = Stop"
 proof -
-  have "Stop ;; P = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+  have "Stop ;; P = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: SRD_reactive_tri_design Stop_def assms)
-  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (\<exists> $st\<acute> \<bullet> events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (\<exists> $st\<acute> \<bullet> events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
     by (subst RHS_tri_design_composition, simp_all add: unrest R2s_true R1_false R2s_false)
-  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
     by (simp add: ex_unrest unrest)
   finally show ?thesis
     by (simp add: Stop_def)
@@ -152,12 +152,12 @@ qed
 
 lemma Wait_m_plus_n: "(Wait m ;; Wait n) = (Wait (m + n))"
 proof -
-  have 1: "(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt))) =
-         R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u #\<^sub>u(tt) \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub><)" (is "?lhs = ?rhs")
+  have 1: "(R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt))) =
+         R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u #\<^sub>u(&tt) \<and> #\<^sub>u(&tt) <\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub><)" (is "?lhs = ?rhs")
   proof -
     have "?lhs = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (((events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h
                                    (events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-      by (simp add: R2_seqr_form usubst unrest)
+      by (simp add: R2_seqr_form usubst unrest, rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> (#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h
                                        (\<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (simp add: seqr_pre_out unrest conj_assoc, simp add: conj_comm)
@@ -189,17 +189,17 @@ proof -
       by ((rule shEx_cong)+, rel_auto, simp_all add: min_absorb2)
     also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub><)"
       by (rel_auto)
-    also have "... = R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u #\<^sub>u(tt) \<and> #\<^sub>u(tt) <\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub><)"
+    also have "... = R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u #\<^sub>u(&tt) \<and> #\<^sub>u(&tt) <\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub><)"
       by (simp add: R2_form usubst unrest, rel_auto)
     finally show ?thesis .
   qed
-  have 2:"(R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)) =
-                 R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)" (is "?lhs = ?rhs")
+  have 2:"(R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)) =
+                 R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)" (is "?lhs = ?rhs")
   proof -
     have "?lhs = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h
                                    (events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))
                          \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (simp add: R2_seqr_form usubst unrest)
+      by (simp add: R2_seqr_form usubst unrest, rel_auto)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h (#\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)) \<and>
                             events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (rel_auto)
@@ -235,28 +235,28 @@ proof -
   show ?thesis
   proof -
     have "(Wait m ;; Wait n) =
-          \<^bold>R\<^sub>s (true \<turnstile> ((\<exists> $st\<acute> \<bullet> events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)) \<or> R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)))
-                   \<diamondop> R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))"
-      by (simp add: Wait_def RHS_tri_design_composition unrest R2s_true R1_false R2_def[THEN sym] 1 2)
+          \<^bold>R\<^sub>s (true \<turnstile> ((\<exists> $st\<acute> \<bullet> events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)) \<or> R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)))
+                   \<diamondop> R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))"
+      by (simp add: Wait_def RHS_tri_design_composition unrest R2s_true R1_false R2_def[THEN sym] 1[simplified] 2[simplified])
     also have "... =
-          \<^bold>R\<^sub>s (true \<turnstile> R2(((\<exists> $st\<acute> \<bullet> events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)) \<or> R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)))
-                   \<diamondop> R2(events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
+          \<^bold>R\<^sub>s (true \<turnstile> R2(((\<exists> $st\<acute> \<bullet> events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)) \<or> R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)))
+                   \<diamondop> R2(events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
       using RHS_design_export_R2 by blast
     also have "... =
-          \<^bold>R\<^sub>s (true \<turnstile> R2((events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt) \<or> R2 (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)))
-                   \<diamondop> R2(events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
+          \<^bold>R\<^sub>s (true \<turnstile> R2((events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt) \<or> R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)))
+                   \<diamondop> R2(events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
       by (simp add: ex_unrest unrest)
     also have "... =
-          \<^bold>R\<^sub>s (true \<turnstile> R2((events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt) \<or> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)))
-                   \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
+          \<^bold>R\<^sub>s (true \<turnstile> R2((events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt) \<or> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)))
+                   \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st)))"
       by (simp add: R2_wait'_cond R2_idem R2_disj)
     also have "... =
-          \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt) \<or> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)))
-                   \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))" (is "?lhs = \<^bold>R\<^sub>s(?P \<turnstile> ?Q \<diamondop> ?R)")
+          \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt) \<or> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) \<ge>\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)))
+                   \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))" (is "?lhs = \<^bold>R\<^sub>s(?P \<turnstile> ?Q \<diamondop> ?R)")
       by (metis (mono_tags, hide_lams) R2_def RHS_design_export_R1 RHS_design_export_R2s)
-    also have "... = \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt)) \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))"
+    also have "... = \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt)) \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m + n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))"
     proof -
-      have 1:"?Q = (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(tt))"
+      have 1:"?Q = (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>m + n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt))"
         by (pred_auto)
       show ?thesis
         by (simp add: 1)

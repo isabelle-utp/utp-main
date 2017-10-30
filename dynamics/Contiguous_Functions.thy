@@ -76,6 +76,9 @@ lemma Sup'_empty [simp]: "Sup' {} = 0"
 lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
   by (simp add: Sup'_def)
 
+lemma Sup'_interval': "Sup' {t. 0 \<le> t \<and> t < l} = (if (l > 0) then l else 0)"
+  by (metis (no_types, lifting) Sup'_interval atLeastLessThan_iff equalityI mem_Collect_eq subsetI)
+    
 text {* The first property tells us that the supremum of an empty set is zero, and the second
   tells us that the supremum of a right open interval is the limit of the interval. *}
 
@@ -194,9 +197,9 @@ lemma cgf_cat_right_unit [simp]: "t @\<^sub>C []\<^sub>C = t"
 text {* We can then show that the concatenation operator has @{term "[]\<^sub>C"} as its left and right
   zeros. *}
 
-lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<forall> x<end\<^sub>C g. \<langle>f\<rangle>\<^sub>C x = \<langle>g\<rangle>\<^sub>C x \<rbrakk> \<Longrightarrow> f = g"
+lemma cgf_eqI: "\<lbrakk> end\<^sub>C f = end\<^sub>C g; \<And> t. \<lbrakk> 0 \<le> t; t <end\<^sub>C g \<rbrakk> \<Longrightarrow> \<langle>f\<rangle>\<^sub>C t = \<langle>g\<rangle>\<^sub>C t \<rbrakk> \<Longrightarrow> f = g"
   apply (transfer)
-  apply (auto)[1]
+  apply (auto)
   apply (rename_tac f g i j)
   apply (case_tac "i = 0")
   apply (simp_all)
@@ -323,7 +326,7 @@ qed
 text {* Similarly, we show that concatenation is cancellative in its second argument. *}
 
 lemma cgf_cat_assoc: "(f @\<^sub>C g) @\<^sub>C h = f @\<^sub>C (g @\<^sub>C h)"
-proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc, clarify)
+proof (rule cgf_eqI, simp_all add: cgf_end_cat add.assoc)
   fix x
   assume x: "x < end\<^sub>C f + (end\<^sub>C g + end\<^sub>C h)"
   show "\<langle>f @\<^sub>C g @\<^sub>C h\<rangle>\<^sub>C x = \<langle>f @\<^sub>C (g @\<^sub>C h)\<rangle>\<^sub>C x"
@@ -371,6 +374,12 @@ text {* We can also construct a suitably order relation on contiguous functions 
   corresponding order on partial functions, @{term "op \<subseteq>\<^sub>m"}, which corresponds to the subset
   operator when considering the function as a relation. *}
 
+abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
+where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
+
+text {* We give the alternative notation of @{term "f \<subseteq>\<^sub>C g"} to the function order to highlight
+  its role as a subset-like operator. *}
+  
 lemma monoid_le_ttrace:
   "(f :: 'a cgf) \<le>\<^sub>m g \<longleftrightarrow> f \<le> g"
   apply (simp add: monoid_le_def, transfer, auto)
@@ -388,34 +397,21 @@ lemma monoid_le_ttrace:
   apply (simp add: map_le_via_restrict)
 done
 
-text {* At this point we also need to show that the order relation corresponds to the monoidal order
-  relation which is constructed as $(x \le_m y) \iff (\exists z. y = x \cat z)$. This will allow us
-  to link to the proofs about this order relation. *}
-
-instantiation cgf :: (type) pre_trace
-begin
-  definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
-  "minus_cgf x y = x -\<^sub>m y"
-instance
-  apply (intro_classes)
-  using cgf_cat_left_imp_eq apply blast
-  using cgf_zero_sum_left apply blast
-  using cgf_cat_right_imp_eq apply blast
-  apply (simp add: monoid_le_ttrace)
-  apply (simp add: less_cgf_def)
-  apply (simp add: minus_cgf_def)
-done
-end
-
-text {* Thus we can show that our operators form a pre-trace algebra. In order to show this we 
-  also have to construct the subtraction operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
-
-abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
-where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
-
-text {* We give the alternative notation of @{term "f \<subseteq>\<^sub>C g"} to the function order to highlight
-  its role as a subset-like operator. *}
-
+lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
+  apply (transfer, auto)
+   apply (rename_tac f g i j)
+   apply (rule_tac x="i \<lless> (g |` {i..<j})" in exI)
+   apply (auto simp add: dom_shift_plus)
+   apply (rule_tac x="j-i" in exI)
+   apply (auto)
+  using map_le_implies_dom_le apply fastforce
+   apply (metis (no_types, hide_lams) Groups.add_ac(2) add.right_neutral add_diff_cancel_right' add_mono_thms_linordered_field(1) diff_add_cancel diff_left_mono dual_order.trans le_less_linear order.asym)
+  apply (case_tac "i < j")
+   apply (auto)
+   apply (metis atLeastLessThan_union_disj less_eq_real_def map_add_split map_le_iff_map_add_commute map_le_via_restrict)
+  apply (metis (full_types) dual_order.trans ivl_subset less_eq_real_def map_le_implies_dom_le map_le_refl map_le_via_restrict)  
+done  
+  
 lemma cgf_sub_cat_cases: "f \<subseteq>\<^sub>C g @\<^sub>C h \<Longrightarrow> f \<subseteq>\<^sub>C g \<or> g \<subseteq>\<^sub>C f"
   apply (transfer, auto)
   apply (rename_tac f g h i j k)
@@ -424,12 +420,28 @@ lemma cgf_sub_cat_cases: "f \<subseteq>\<^sub>C g @\<^sub>C h \<Longrightarrow> 
   apply (case_tac "i \<le> j")
   apply (auto simp add: map_le_def)
 done
-
-text {* We also show the previous important property that allows us to split a prefix statement
-  with an append on the RHS into two cases. We can then finally show that we have a trace algebra. *}
   
-instance cgf :: (type) trace
-  by (intro_classes, simp add: cgf_sub_cat_cases)
+lemma cgf_sum_eq_sum_conv:
+  "a @\<^sub>C b = c @\<^sub>C d \<Longrightarrow> \<exists>e. a = c @\<^sub>C e \<and> e @\<^sub>C b = d \<or> a @\<^sub>C e = c \<and> b = e @\<^sub>C d"
+  by (metis cgf_cat_assoc cgf_cat_left_imp_eq cgf_prefix_iff cgf_sub_cat_cases)
+  
+instantiation cgf :: (type) trace
+begin
+  definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
+  "minus_cgf x y = x -\<^sub>m y"
+instance
+  apply (intro_classes)
+  using cgf_cat_left_imp_eq apply blast
+  using cgf_zero_sum_left apply blast
+  apply (simp add: cgf_sum_eq_sum_conv)
+  apply (simp add: monoid_le_ttrace)
+  apply (simp add: less_cgf_def)
+  apply (simp add: minus_cgf_def)
+done
+end
+
+text {* Thus we can show that our operators form a trace algebra. In order to show this we 
+  also have to construct the subtraction operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
   
 lemma cgf_sub_end:
   assumes "f \<le> g"
@@ -477,9 +489,6 @@ lemma cgf_restrict_less: "\<lbrakk> 0 \<le> n ; n < end\<^sub>C(t) \<rbrakk> \<L
 text {* Restriction yields a function which is guaranteed to be no longer than the original,
   and is strictly less than the original provided that $n$ is positive and is less than the original
   length. *}
-
-lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
-  by (simp add: pre_trace_class.le_iff_add)
 
 lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
   using add_le_imp_le_left add_left_mono by blast
@@ -577,7 +586,32 @@ lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
-  using pre_trace_class.add_diff_cancel_left' by blast
+  using trace_class.add_diff_cancel_left' by blast
+
+text {* The following function constructs a contiguous function from a given end point and total
+  function. *}
+    
+lift_definition cgf_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a) \<Rightarrow> 'a cgf" ("mk\<^sub>C") is
+"\<lambda> l f. [t \<mapsto> f t | t. 0 \<le> t \<and> t < l]"
+  apply (auto simp add: graph_map_dom)
+  apply (rename_tac l f)
+  apply (case_tac "l < 0")
+  apply (rule_tac x="0" in exI)
+  apply (simp) 
+  apply (rule_tac x="l" in exI)  
+  apply (auto simp add: image_iff)
+done
+    
+lemma cgf_mk_apply [simp]: "\<lbrakk> 0 \<le> x; x < l \<rbrakk> \<Longrightarrow> \<langle>mk\<^sub>C l f\<rangle>\<^sub>C x = f x"
+  by (transfer, simp)
+    
+lemma cgf_mk_end [simp]: 
+  "0 \<le> l \<Longrightarrow> end\<^sub>C(mk\<^sub>C l f) = l"
+  by (transfer, simp add: Sup'_interval')
+
+lemma cgf_mk_le_0 [simp]: "l \<le> 0 \<Longrightarrow> mk\<^sub>C l f = []\<^sub>C"
+  by (transfer, auto)
+    
 (*<*)
 end
 (*>*)

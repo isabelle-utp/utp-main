@@ -1,0 +1,406 @@
+\documentclass[11pt]{article}
+
+
+\usepackage{a4wide}%
+\usepackage{amsmath}%
+\usepackage{amssymb}%
+\usepackage[greek,english]{babel}%
+\usepackage{bm}%
+\usepackage[zed]{csp}%
+\usepackage[a4paper, margin=1.6cm]{geometry}%
+\usepackage{hyperref}%
+\usepackage{relsize}%
+\usepackage{stmaryrd}%
+\usepackage[nottoc,numbib]{tocbibind}%
+\usepackage{xspace}%
+\usepackage{helvet}% (added at suggestion of reviewer)
+
+\newcommand{\II}{{\hbox{\texttt{\slshape I \kern -8.5pt I}}}}%
+\newcommand{\Chaos}{\ckey{Chaos}}
+\newcommand{\Circus}{\hbox{\textsf{\textsl{Circus}}}\xspace}
+\newcommand{\ckey}[1]{\hbox{\textbf{\textsf{\textsl{#1}}}}}%
+\newcommand{\conditional}[3]{#1 \infixIf #2 \infixElse #3}%
+\newcommand{\infixElse}{\mathop{\hbox{\raisebox{0ex}{\larger$\rightslice$}}}}%
+\newcommand{\infixIf}{\mathop{\hbox{\raisebox{0ex}{\larger$\leftslice$}}}}%
+\newcommand{\Miracle}{\ckey{Miracle}}%
+\newcommand{\rc}[3]{\left[~#1 ~~\middle|\hspace{-.4ex}\hbox{-}~~ #2 ~~\middle|~~ #3~\right]}%
+\newcommand{\relsemi}{\mathrel{\hbox{\rm;}}}%
+\newcommand{\Skip}{\ckey{Skip}}
+\newcommand{\Stop}{\ckey{Stop}}
+
+\def\arraystretch{1.45}%
+
+\title{Isabelle/UTP Syntax Reference}
+\author{Simon Foster \and Frank Zeyda}
+
+\begin{document}
+\maketitle
+
+\vspace{-8ex}
+
+\tableofcontents
+
+\newpage
+
+\section{Syntax Overview}
+
+This document describes the syntax used for expressions, predicates, and relations in Isabelle/UTP~\cite{Foster16a}. On
+the whole the principle in creating the syntax is to be as faithful as possible to mathematical
+UTP~\cite{Hoare&98,Cavalcanti&06}, and where necessary Z~\cite{Z}, whilst remaining conservative to Isabelle/HOL's
+existing syntax. This, of course, means we often need to compromise on both fronts. Where possible we reuse HOL syntax
+in UTP expressions and predicates, primarily using overloading, but sometimes this cannot be done without undermining
+fundamental operator of HOL. Thus sometimes we need to add subscripts to our UTP operators. Conservation is essential so
+that we can use HOL as a meta-language to manipulate UTP predicates.
+
+On the whole, we present tables that show the mathematical UTP (or Z) syntax, the Isabelle/UTP version, and the codes
+that must be typed into Isabelle. These tables are neither functional nor injective, because one mathematical operator
+can become several different operators in the mechanisation. This is partly because UTP often has implicit handling of
+alphabets which is made explicit in Isabelle/UTP. Moreover, the UTP often overloads operator definitions and this
+sometimes must also be made explicit.
+
+With respect to expressions, on the whole we adopt the syntax for operators described in the Z reference
+manual\footnote{\url{http://spivey.oriel.ox.ac.uk/mike/zrm/zrm.pdf}}, whilst making necessary adaptations to suit the
+type system of HOL. For example, a Z relation can become a function, relation, or finite map when mapped to HOL, and
+thus we present various overloaded versions of the Z relational operators, such as $\dom(f)$ and $A \rres f$.
+
+The Isabelle jEdit interface support a form of autocompletion. When typing mathematical syntax it will often present a
+list of suggested symbols. When this appears and the right symbol is in scope press the TAB key to insert it. This
+process will be necessary during most editing in Isabelle. On the whole, Isabelle provides \LaTeX-like symbols for the
+majority of its operators. For more information, please also see the Isabelle/HOL
+documentation\footnote{\url{http://isabelle.in.tum.de/documentation.html}}.
+
+\newpage
+
+\section{UTP Types}
+
+\begin{center}
+\begin{tabular}{|c|c|} \hline
+  \textbf{Type}                   & \textbf{Description} \\ \hline
+  $'a \Longrightarrow {}'\alpha$    & UTP variable / lens of type $'a$ and alphabet type $'\alpha$ \\
+  $('a, {}'\alpha)~\textit{uexpr}$  & expression with return type $'a$ and alphabet type $'\alpha$ \\
+  $'\alpha~\textit{usubst}$       & substitution on alphabet $'\alpha$ \\
+  $'\alpha~\textit{upred}$        & alphabetised predicate with alphabet type $'\alpha$ \\
+  $('\alpha,{}'\beta)~\textit{rel}$ & alphabetised relation with input alphabet $'\alpha$ and output alphabet $'\beta$ \\
+  $'\alpha~\textit{hrel}$         & homogeneous alphabetised relation over $'\alpha$ \\
+  $('s, {}'e)~\textit{action}$      & \Circus action with state-space type $'s$ and event alphabet type $'e$ \\
+  $('d, {}'c)~\textit{hyrel}$       & hybrid relation with discrete state-space $'d$ and continuous state-space $'c$ \\
+  \hline
+\end{tabular}
+\end{center}
+
+\section{Expression Operators}
+
+\subsection{Variables and Alphabets}
+
+Variables in Isabelle/UTP are modelled using lenses~\cite{Foster16a,Foster17a,Foster17b} which are parametrised by the
+variable type $\tau$ and state-space $\sigma$.  We use the Isabelle type-system to distinguish variables of a predicate,
+whose state-space is $\alpha$, from variable of a relation, whose state-space is a product $\alpha \times \alpha$. This
+is why there is two ways of writing $x$, depending on the context. Moreover, this particularly surfaces when dealing
+with programs expressed as relations or in \Circus~\cite{Oliveira&09} as operators frequently use the type system to
+employ well-formedness of expressions. For instance, in an assignment $x := v$, $v$ has state-space $\alpha$ not
+$\alpha \times \alpha$ and thus the predicate variable syntax should be used.
+
+We can also use lenses to express alphabets~\cite{Foster17a} and, to some extent, collect variables in a set using lens
+operators~\cite{Foster16a}, as illustrated.
+
+\vspace{4ex}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Isabelle/UTP}    & \textbf{Math}      & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  $\&x$                    & $x$                & predicate variable                    & \verb|&x| \\
+  $\mathdollar x$          & $x$                & relational before variable            & \verb|$x| \\
+  $\mathdollar x \acute{}$ & $x'$               & relational after variable             & \verb|$x\acute| \\
+  $x\!:\!y$                & --                 & name qualification (lens composition) & \verb|x:y| \\
+  $\textbf{v}$             & $v$                & whole state-space variable (``one'' lens) & \verb|\bold v| \\
+  $\{\mathdollar x,\mathdollar y, \mathdollar z \acute{}\}$  
+                           & $\{x,y,z'\}$       & variable set (lens summation)         & \verb|{$x,$y,$z\acute}| \\
+  $\Sigma$                 & --                 & all variables (``one'' lens)          & \verb|\Sigma| \\
+  $\emptyset$              & $\emptyset$        & no variables (``zero'' lens)          & \verb|\emptyset| \\
+  in$\alpha$               & in$\alpha$         & relational input variables            & \verb|in\alpha| \\
+  out$\alpha$              & out$\alpha$        & relational output variables           & \verb|out\alpha| \\
+  $x \mathop{\bowtie} y$   & $x \neq y$         & variables different (lens independence) & \verb|x \bowtie y| \\
+  $x \approx_L y$          & $x = y$            & variables equal (lens equivalence)     & \verb|x \approx \sub L y| \\
+  $x \subseteq_L a$        & $x \in a$          & alphabet membership (sublens)         & \verb|x \subseteq \sub L a| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\subsection{Arithmetic Operators}
+
+The arithmetic operators employ the Isabelle/HOL type class hierarchy for groups, rings, fields, and
+orders. Consequently, UTP enjoys direct syntax for many of these operators. Sometimes the arithmetic operators can also
+be used for non-arithmetic types; for example $0$ can be used to represent an empty sequence.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}               & \textbf{Description}        & \textbf{Isabelle/UTP}       & \textbf{Isabelle code(s)} \\ \hline
+  $0, 1, 17, 3.147$           & numerals                    & $0, 1, 17, 3.147$           & \verb|0, 1, 17, 3.147| \\
+  $x + y$                     & addition                    & $x + y$                     & \verb|x + y| \\
+  $x - y$                     & subtraction                 & $x - y$                     & \verb|x - y| \\
+  $x \cdot y$                 & multiplication              & $x * y$                     & \verb|x * y| \\  
+  $x / y$                     & division                    & $x / y$                     & \verb|x / y| \\
+  $x \mathop{\textbf{div}} y$ & integer division            & $x \mathop{\textbf{div}} y$ & \verb|x div y| \\
+  $x \mathop{\textbf{mod}} y$ & integer modulo              & $x \mathop{\textbf{mod}} y$ & \verb|x mod y| \\
+%  $|x|$                       & absolute value              & $|x|$                       & \texttt{¦x¦} \\
+  $\lceil x \rceil$           & numeric ceiling             & $\lceil x \rceil_u$         & \verb|\lceil x \rceil \sub u| \\
+  $\lfloor x \rfloor$         & numeric floor               & $\lfloor x \rfloor_u$       & \verb|\lfloor x \rfloor \sub u| \\
+  $x \le y$                   & less-than-or-equal          & $x \le_u y$                 & \verb|x \le \sub u y| \\
+  $x < y$                     & less-than                   & $x <_u y$                   & \verb|x < \sub u y| \\
+  $\textrm{min}(x, y)$        & minimum value               & $\textrm{min}_u(x, y)$      & \verb|min \sub u (x, y)| \\ 
+  $\textrm{max}(x, y)$        & maximum value               & $\textrm{max}_u(x, y)$      & \verb|max \sub u (x, y)| \\ 
+  \hline
+\end{tabular}
+\end{center}
+
+\subsection{Polymorphic Operators}
+
+The following operators are overloaded to various different expression types. Notably the functional operators, such as
+application, update, and domain, can be applied to a variety of HOL types including, functions, finite maps, and
+relations.
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}             & \textbf{Description}        & \textbf{Isabelle/UTP}   & \textbf{Isabelle code(s)} \\ \hline
+  $P = Q$                   & equals                      & $P =_u Q$               & \verb|P =\sub u Q| \\ 
+  $P \neq Q$                & not equals                  & $P \neq_u Q$            & \verb|P \noteq\sub u Q| \\ 
+  $\lambda x @ P(x)$        & $\lambda$-abstraction       & $\lambda x @ P(x)$      & \verb|\lambda x \bullet P(x)| \\
+  $(x,y,\cdots,z)$          & tuple                       & $(x, y, \cdots, z)_u$   & \verb|(x, y, ..., z)\sub u| \\
+  $\pi_1(x)$                & tuple project first         & $\pi_1(x)$              & \verb|\pi \sub 1 (x)| \\
+  $\pi_2(x)$                & tuple project second        & $\pi_2(x)$              & \verb|\pi \sub 2 (x)| \\
+  $f(x)$                    & functional application      & $f(x)_a$                & \verb|f(x) \sub a| \\
+  $f \oplus \{k_1 \mapsto v_1, \cdots\}$ 
+                            & functional update           & $f(k_1 \mapsto v_1, \cdots)_u$ & \verb|f(k1 \mapsto v1, ...)\sub u| \\
+  $\{k_1 \mapsto v_1, \cdots\}$ & enumerated map           & $[k_1 \mapsto v_1, \cdots]_u$ & \verb|[k1 \mapsto v1, ...]\sub u| \\
+  $\emptyset$               & empty collection            & $[]_u$                  & \verb|[] \sub u| \\
+  $\#x$                     & size of collection          & $\#_u(x)$               & \verb|# \sub u (x)| \\ 
+  $\dom(x)$                 & domain                      & $\dom_u(x)$             & \verb|dom \sub u (x)| \\
+  $\ran(x)$                 & range                       & $\dom_u(x)$             & \verb|ran \sub u (x)| \\
+  $f \dres A$               & domain restriction          & $f \dres_u A$           & \verb|f \lhd \sub u A| \\
+  $A \rres f$               & range restriction           & $A \rres_u f$           & \verb|A \rhd \sub u f| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\subsection{Sequence Operators}
+
+Sequences are modelled as HOL lists, and we lift several operators.
+
+\vspace{2ex}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}                  & \textbf{Description}        & \textbf{Isabelle/UTP}          & \textbf{Isabelle code(s)} \\ \hline
+  $\langle\rangle$               & empty sequence              & $\langle\rangle$               & \verb|\langle\rangle| \\
+  $\langle x, y, z \rangle$      & enumerated sequence         & $\langle x, y, z \rangle$ & \verb|\langle x, y, z \rangle| \\
+  $\langle m .. n \rangle$       & sequence interval $[m,n]$   & $\langle m .. n \rangle$       & \verb|\langle m .. n \rangle| \\
+  $xs \cat ys$                   & concatenation               & $xs \cat_u ys$                 & \verb|xs ^ \sub u y| \\
+  $\textrm{head}(xs)$            & head of sequence            & $\textrm{head}_u(xs)$          & \verb|head \sub u (xs)| \\
+  $\textrm{tail}(xs)$            & tail of sequence            & $\textrm{tail}_u(xs)$          & \verb|tail \sub u (xs)| \\
+  $\textrm{last}(xs)$            & last element                & $\textrm{last}_u(xs)$          & \verb|last \sub u (xs)| \\
+  $\textrm{front}(xs)$           & all but last element        & $\textrm{front}_u(xs)$         & \verb|front \sub u (xs)| \\
+  $\ran(xs)$                     & elements of a sequence      & $\textrm{elems}_u(xs)$         & \verb|elems \sub u (xs)| \\
+  $\textrm{map}~f~xs$            & map function over sequence  & $\textrm{map}_u~f~xs$          & \verb|map \sub u f xs| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\subsection{Set Operators}
+
+Sets are modelled as HOL sets, and we lift several operators.
+
+\vspace{2ex}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}                  & \textbf{Description}        & \textbf{Isabelle/UTP}          & \textbf{Isabelle code(s)} \\ \hline
+  $\emptyset$                    & empty set                   & $\{\}_u$                       & \verb|{} \sub u| \\
+  $\{ x, y, z \}$                & enumerated set              & $\{ x, y, z \}_u$              & \verb|{x, y, z} \sub u| \\  
+  $[m, n]$                       & closed set interval         & $\{ m \mathop{..} n \}_u$               & \verb|{ m .. n } \sub u| \\
+  $[m, n)$                       & open set interval           & $\{ m \mathop{..\!\!<} n \}_u$              & \verb|{ m ..< n } \sub u| \\
+  $x \in A$                      & set membership              & $x \in_u A$                    & \verb|x \in \sub u A| \\
+  $x \notin A$                   & set non-membership          & $x \notin_u A$                 & \verb|x \notin \sub u A| \\
+  $A \cup B$                     & set union                   & $A \cup_u B$                   & \verb|A \cup \sub u B| \\  
+  $A \cap B$                     & set intersection            & $A \cap_u B$                   & \verb|A \cap \sub u B| \\  
+  $A \setminus B$                & set difference              & $A - B$                        & \verb|A - B| \\
+  $A \subseteq B$                & subset                      & $A \subseteq_u B$              & \verb|A \subseteq \sub u B| \\
+  $A \subset B$                  & proper subset               & $A \subset_u B$                & \verb|A \subset \sub u B| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section{Meta-logical Operators}
+
+The meta-logic of Isabelle/UTP is simply HOL. Thus, we can use HOL to query and manipulate UTP predicates as objects
+through application of predicate transformation. In particular we can express that an expression does not depend on a
+particular variable (unrestriction), and apply variable substitutions. We also support various alphabet manipulations
+which effectively allow the addition and deletion of variables for which we again employ the HOL type
+system~\cite{Foster17a}. Our meta-logical operators are entirely idiosyncratic to Isabelle/UTP and the only mathematical
+analogues are statements of the form ``$x$ is not mentioned in $P$'', for example.
+
+\vspace{4ex}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Isabelle/UTP}         & \textbf{Description}                             & \textbf{Isabelle code(s)} \\ \hline
+  $x \mathop{\sharp} P$         & $P$ does not depend on variable (alphabet) $x$   & \verb|x \sharp P| \\
+  $x \mathop{\natural} P$       & $P$ can only depend on variables within $x$      & \verb|x \natural P| \\
+  $x \mathop{\bowtie} y$        & variables different (lens independence)          & \verb|x \bowtie y| \\
+  $[x_1 \mapsto v_1, \cdots]_s$  & 
+  \begin{tabular}{c}                                                                 
+    construct substitution function with variable  \\[-6pt]
+    $x_i$ being mapped to expression $v_i$
+  \end{tabular}
+                                & \verb|[x1 \mapsto v1,...] \sub s| \\
+  $s -_s x$                     & remove variable $x$ from substitution $s$        & \verb|s - \sub s x| \\
+  $s \mathop{\dagger} P$        & apply substitution function $s$ to $P$           & \verb|s \dagger P| \\
+  $\langle s \rangle_s\, x$     & lookup expression associated with $x$ in $s$     & \verb|\langle s \rangle \sub s| \\
+  $P \llbracket v/x \rrbracket$ & apply singleton substitution                     & \texttt{P[|v/x|]} \\
+  $P \llbracket v_1,\cdots/x_1,\cdots \rrbracket$ & apply multiple substitutions   & \texttt{P[|v1,.../x1,...|]} \\
+  $P \oplus_p a$                & alphabet extrusion / extension (by lens $a$)     & \verb|P \oplus \sub p a| \\
+  $P \upharpoonleft_p a$        & alphabet restriction (by lens $a$)               & \verb|P \restrict \sub p a| \\
+  $\lceil P \rceil_<$           & lift predicate $P$ to a precondition relation    & \verb|\lceil P \rceil \sub <| \\
+  $\lfloor P \rfloor_<$         & drop precondition relation $P$ to predicate      & \verb|\lfloor P \rfloor \sub <| \\
+  $\lceil P \rceil_>$           & lift predicate $P$ to a postcondition relation   & \verb|\lceil P \rceil \sub >| \\
+  $\lfloor P \rfloor_>$         & drop postcondition relation $P$ to predicate     & \verb|\lfloor P \rfloor \sub >| \\
+  \hline
+\end{tabular}  
+\end{center}
+
+\newpage
+
+\section{Predicate Operators}
+
+The Isabelle/UTP predicate operators closely mimick the mathematical UTP syntax, and so we do not include a separate
+math column for space reasons. Operators on variables have two variants, one for HOL variables and one for UTP
+variables. Therefore, a translation from mathematical UTP to Isabelle/UTP must make a decision about the best option.
+
+\begin{center}
+\begin{tabular}{|c|c|c|} \hline
+  \textbf{Isabelle/UTP}       & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  \textbf{true}               & logical true / universal relation     & \verb|true| \\
+  \textbf{false}              & logical false / empty relation        & \verb|false| \\
+  $\neg P$                    & negation / complement                 & \verb|~| or \verb|\not| \\
+  $P \land Q$                 & conjunction                           & \verb|/\| or \verb|\and| \\
+  $P \lor Q$                  & disjunction                           & \verb|\/| or \verb|\or| \\
+  $P \implies Q$              & implication                           & \verb|=>| or \verb|\Rightarrow| \\
+  $\conditional{P}{b}{Q}$     & infix if-then-else conditional        & \verb|P \triangleleft b \triangleright Q| \\
+  $P \refinedby Q$            & refinement                            & \verb|[=| or \verb|\sqsubseteq| \\
+  $x$                         & predicate variable                    & \verb|&x| \\
+  $\flqq v \frqq$             & HOL term / variable quotation         & \verb|<<x>>| \\
+  $\forall x @ P$             & universal quantifier (UTP variable)   & \verb|! x \bullet P| \\
+  $\exists x @ P$             & existential quantifier (UTP variable) & \verb|? x \bullet P| \\
+  $\bm{\forall} x @ P$        & universal quantifier (HOL variable)   & \verb|\bold ! x \bullet P| \\
+  $\bm{\exists} x @ P$        & existential quantifier (HOL variable) & \verb|\bold ? x \bullet P| \\
+  $P \sqcap Q$                & binary infimum / internal choice      & \verb|P \sqcap Q| \\
+  $P \sqcup Q$                & binary supremum                       & \verb|P \sqcup Q| \\
+  $\bigsqcap i \in I @ P(i)$  & indexed infimum / internal choice     & \verb|\Sqcap i \in I \bullet P(i)| \\
+  $\bigsqcup i \in I @ P(i)$  & indexed supremum                      & \verb|\Sqcup i \in I \bullet P(i)| \\
+  $\mu X @ P(X)$              & weakest fixed-point                   & \verb|\mu X \bullet P(X)| \\
+  $\nu X @ P(X)$              & strongest fixed-point                 & \verb|\nu X \bullet P(X)| \\
+  $P$                         & UTP predicate tautology               & \verb|`P`| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section{Relational Operators}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}              & \textbf{Isabelle/UTP}         & \textbf{Description}                  & \textbf{Isabelle code(s)} \\ \hline
+  $x$                        & $\mathdollar x$               & relational before variable            & \verb|$x| \\
+  $x'$                       & $\mathdollar x \acute{}$      & relational after variable             & \verb|$x\acute| \\
+  $P \relsemi Q$             & $P \relsemi\relsemi Q$        & sequential composition                & \verb|P ;; Q| \\
+  $P \relsemi Q$             & $P \relsemi\relsemi_h Q$      & homogeneous sequential composition    & \verb|P ;; \sub s Q| \\
+  $P^n$                      & $P ~~\bm{\hat{}}~~ n$         & repeated sequential composition       & \verb|P \bold ^ n | \\
+  $\relsemi i:xs @ P(i)$     & $\relsemi\relsemi i : xs @ P(i)$ & replicated sequential composition  & \verb|;; i : xs \bullet P(i)| \\
+  $P^{\star}$                  & $P^{\star}$                      & Kleene star                           & \verb|P \sup \star n | \\
+  $\II$                      & II                            & relational identity / skip            & \verb|II| \\ 
+  $\textbf{true}$            & $\textbf{true}_h$             & homogeneous universal relation        & \verb|true \sub h| \\
+  $\textbf{false}$           & $\textbf{false}_h$            & homogeneous empty relation            & \verb|false \sub h| \\
+  $P^{-1}$                    & $P^-$                         & relational converse / inverse         & \verb|P \sup -| \\
+  $\conditional{P}{b}{Q}$    & $P \triangleleft b \triangleright Q$ & infix if-then-else             & 
+   \begin{tabular}{c}
+     \verb|P \triangleleft b| \\[-5pt]
+     \verb|\triangleright Q|
+   \end{tabular} \\
+  $\conditional{P}{b}{Q}$    & $P \triangleleft b \triangleright_r Q$ & 
+   \begin{tabular}{c}
+   if-then-else where $b$ is a condition: \\[-5pt]
+   a predicate with no after variables 
+   \end{tabular} &
+   \begin{tabular}{c}
+     \verb|P \triangleleft b| \\[-5pt]
+     \verb|\triangleright \sub r Q|
+   \end{tabular} \\
+  --                         & $\langle s \rangle_a$         & assignment of substitution $s$        & \verb|\langle s \rangle \sub a| \\
+  $x := v$                   & $x := v$                      & 
+   \begin{tabular}{c}
+   singleton assignment; $v$ is an \\[-5pt]
+   expression with no after variables 
+   \end{tabular}
+         & \verb|x := v| \\
+  $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=\!(e_1, e_2)$        & multiple assignment                   & \verb|(x1,x2) := (e1,e2)| \\
+  $b^{\top}$                  & $[b]^{\top}$                     & relational assumption                 & \verb|[b] \sup \top| \\
+  $b_{\bot}$                  & $\{b\}_{\bot}$                     & relational assertion                  & \verb|{b} \sub \bottom| \\
+  $\{\,b\,\}\,P\,\{\,c\,\}$  & $\{\!| b |\!\} \,P\, \{\!| c |\!\}_u$ & Hoare logic triple                 & \texttt{\{|b|\} P \{|c|\}} \verb|\sub u| \\
+  $x\!:\![P]$                    & $x\!:\![P]$                               & frame $P$ by lens $x$              & \verb|x:[P]| \\
+  $b \star P$                & $\textbf{while}~b~\textbf{do}~P~\textbf{od}$ & while loop (strongest fixed-point)            & \verb|while b do P od| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\section{CSP and \Circus Operators}
+
+\begin{center}
+\begin{tabular}{|c|c|c|c|} \hline
+  \textbf{Math}              & \textbf{Isabelle/UTP}         & \textbf{Description}                   & \textbf{Isabelle code(s)} \\ \hline
+  \Chaos                     & \textbf{Chaos}                & chaotic / aborting process             & \verb|Chaos| \\
+  \Miracle                   & \textbf{Miracle}              & most deterministic process             & \verb|Miracle| \\
+  \Skip                      & \textbf{Skip}                 & do nothing and terminate               & \verb|Skip| \\
+  \Stop                      & \textbf{Stop}                 & deadlocked process                     & \verb|Stop| \\
+  $\conditional{P}{b}{Q}$    & $P \triangleleft b \triangleright_R Q$ &  reactive if-then-else &
+   \begin{tabular}{c}
+     \verb|P \triangleleft b| \\[-5pt]
+     \verb|\triangleright \sub R Q|
+   \end{tabular} \\
+  $x := v$                   & $x :=_C v$                    & \Circus assignment                    & \verb|x := \sub C v| \\
+  $x_1,x_2 := e_1, e_2$       &$(x_1,x_2)\!:=_C\!(e_1, e_2)$      & \Circus multiple assignment            & \verb|(x1,x2) := \sub C (e1,e2)| \\
+  $\mu X @ P(X)$             & $\mu_C X @ P(X)$              & recursive fixed-point                  & \verb|\mu \sub C X \bullet P(X)| \\
+  $a \then P$                & $a \bm{\then} P$              & simple event prefix                    & \verb|a \bold\rightarrow P| \\
+  $a?x \then P(x)$           & $a?x \bm{\then} P(x)$         & input event prefix                     & \verb|a?x \bold\rightarrow P(x)| \\
+  $a!v \then P$              & $a!v \bm{\then} P$            & output event prefix                    & \verb|a!x \bold\rightarrow P| \\
+  $a?x!v \then P(x)$         & $a?x!v \bm{\then} P(x)$       & mixed event prefix                     & \verb|a?x!v \bold\rightarrow P(x)| \\
+  $b \guard P$               & $b \guard_u P$                & process guarded by condition $b$       & \verb|b & \sub u P| \\
+  $P \extchoice Q$           & $P ~ \Box ~ Q$                & binary external choice                 & \verb|P \box Q| \\
+  $\Extchoice i : I @ P(i)$  & $\Box ~ i \in I @ P(i)$       & indexed external choice                & \verb|\box i \in I \bullet P(i)| \\
+  $P \parallel[ns_1\!|\!A\!|\!ns_2]$ & $P \llbracket ns_1 \!\parallel\! A \!\parallel\! ns_2 \rrbracket Q$
+                                                             & nameset (lens) parallel composition    & \texttt{P [|ns1|A|ns2|] Q} \\
+  $P \parallel[A] Q$         & $P ~\llbracket A \rrbracket_C~ Q$             
+                                                             & parallel composition                   & \texttt{P [|A|]} \verb|\sub| \texttt{C Q} \\
+  $P \parallel[ns_1\!|\!ns_2]$ & $P \llbracket ns_1 \!\parallel\! A \!\parallel\! ns_2 \rrbracket Q$
+                                                             & nameset (lens) interleaving    & \texttt{P [|ns1|ns2|] Q} \\
+
+  $P \interleave Q$          & $P ||| Q$                     & interleaving                           & \texttt{P ||| Q} \\
+  $\rc{P}{Q}{R}$             & $[ P \vdash Q | R ]_C$        & reactive contract / specification      & \texttt{[ P |- Q | R ]}\verb|\sub C| \\
+  --                         & $\lceil P \rceil_S$           & lift relation on state to process      & \verb|\lceil P \rceil \sub s| \\
+  --                         & $\lceil P \rceil_{S<}$         & lift predicate on state to process     & \verb|\lceil P \rceil \sub s| \\
+  --                         & $(c\cdot v)_u$                & construct event over channel $c$       & \verb|(c \cdot v) \sub u| \\
+  \hline
+\end{tabular}
+\end{center}
+
+\newpage
+
+\bibliographystyle{abbrv}
+\bibliography{utp-syntax}
+
+\end{document}

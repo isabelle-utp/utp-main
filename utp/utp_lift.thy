@@ -60,6 +60,12 @@ lemma lift_cond_post_var [simp]:
   "\<lceil>$x\<acute>\<rceil>\<^sub>\<rightarrow> = $x\<acute>"
   by (pred_auto)
 
+subsection {* Substitution Laws *}
+    
+lemma pre_var_subst [usubst]:
+  "\<sigma>($x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P\<rceil>\<^sub>< = \<sigma> \<dagger> \<lceil>P\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>\<rceil>\<^sub><"
+  by (pred_simp)
+    
 subsection {* Unrestriction laws *}
 
 text {* Crucially, the lifting operators allow us to demonstrate unrestriction properties. For

@@ -1,4 +1,4 @@
-section {* Types of cardinality 2 or greater *}
+section {* Types of Cardinality 2 or Greater *}
 
 theory Two
 imports Real

@@ -57,6 +57,9 @@ session "Optics" in "optics"
     "root.tex"
     "document.sty"
     "figures/Lens.pdf"
+    "figures/Independence.pdf"
+    "figures/Sum.pdf"
+    "figures/Composition.pdf"
 
 (* Continuum Universe *)
 
@@ -66,7 +69,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
     Continuum
     Dyadic
     Finite_Bijection
-    Infinity
+    (* Infinity *)
     Lightweight_Cardinals
     Real_Bit
     UNIV_TYPE
@@ -170,6 +173,42 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
     "zed.sty"
     "csp.sty"
 
+(* Hybrid UTP with deep model *)
+
+session "UTP-HYBRID-DEEP" in "theories" = "UTP-HYBRID" +
+  options [browser_info = true, document = false]
+  theories utp_theories_deep
+
+(* Hybrid UTP examples *)
+
+session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
+  options [document = false]
+  theories
+    utp_bouncing_ball
+    utp_thermostat
+    utp_trains
+
+(* Modelica Mechanisation: Limited Compositional Semantics *)
+
+session "Modelica" in "modelica" = "UTP-HYBRID" +
+  options [document = false]
+  theories
+    Modelica
+
+(* Modelica Mechanisation: Non-Compositional Semantics *)
+
+session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
+  options [document = false]
+  theories
+    Modelica_NonComp
+
+(* Imperative Programs based on Designs *)
+    
+session "UTP-IMPL" in "impl" = "UTP-THY-DEEP" +
+  options [document = false]
+  theories
+    utp_impl
+  
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
@@ -184,6 +223,10 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial
+    utp_boyle
+    utp
+    utp_csp_buffer
+    utp_csp_mini_mondex
   document_files
     "root.bib"
     "root.tex"
@@ -195,6 +238,12 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi
+    Time
+    Topology
+    Architecture
+    Railways_Spec
+    Railways_Impl
+    Interlocking
   document_files
     (* "root.bib" *)
     "root.tex"

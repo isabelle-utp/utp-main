@@ -1,7 +1,9 @@
 section {* Fixed-points and Recursion *}
 
 theory utp_recursion
-  imports utp_pred_laws
+  imports 
+    utp_pred_laws
+    utp_rel
 begin
 
 subsection {* Fixed-point Laws *}
@@ -19,7 +21,7 @@ lemma nu_const: "(\<nu> X \<bullet> P) = P"
   by (simp add: lfp_const)
 
 lemma mu_refine_intro:
-  assumes "(C \<Rightarrow> S) \<sqsubseteq> F(C \<Rightarrow> S)" "`C \<Rightarrow> (\<mu> F \<Leftrightarrow> \<nu> F)`"
+  assumes "(C \<Rightarrow> S) \<sqsubseteq> F(C \<Rightarrow> S)" "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
   shows "(C \<Rightarrow> S) \<sqsubseteq> \<mu> F"
 proof -
   from assms have "(C \<Rightarrow> S) \<sqsubseteq> \<nu> F"
@@ -62,6 +64,11 @@ definition constr ::
   "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
 "constr F E \<longleftrightarrow> chain E \<and> (\<forall> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1))))"
 
+lemma constrI:
+  assumes "chain E" "\<And> X n. ((F(X) \<and> E(n + 1)) = (F(X \<and> E(n)) \<and> E (n + 1)))"
+  shows "constr F E"
+  using assms by (auto simp add: constr_def)
+
 text {* This lemma gives a way of showing that there is a unique fixed-point when
         the predicate function can be built using a constructive function F
         over an approximation chain E *}
@@ -102,5 +109,73 @@ theorem constr_fp_uniq:
   assumes "constr F E" "mono F" "\<Sqinter> (range E) = C"
   shows "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
   using assms(1) assms(2) assms(3) chain_pred_terminates by blast
+    
+subsection {* Noetherian Induction Instantiation*}
+      
+text {* The following generalization was used by Tobias Nipkow in .. and Peter Lammich  in \emph{Refine\_Monadic} *}
+
+lemma  wf_fixp_uinduct_pure_ueq_gen:     
+  assumes fixp_unfold: "fp B = B (fp B)"
+  and              WF: "wf R"
+  and     induct_step:
+          "\<And>f st. \<lbrakk>\<And>st'. (st',st) \<in> R  \<Longrightarrow> (((Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st'\<guillemotright>) \<Rightarrow> Post) \<sqsubseteq> f)\<rbrakk>
+               \<Longrightarrow> fp B = f \<Longrightarrow>((Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<Rightarrow> Post) \<sqsubseteq> (B f)"
+        shows "((Pre \<Rightarrow> Post) \<sqsubseteq> fp B)"  
+proof -  
+  { fix st
+    have "((Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<Rightarrow> Post) \<sqsubseteq> (fp B)" 
+    using WF proof (induction rule: wf_induct_rule)
+      case (less x)
+      hence "(Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>x\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B (fp B)"
+        by (rule induct_step, rel_blast, simp)
+      then show ?case
+        using fixp_unfold by auto
+    qed
+  }
+  thus ?thesis 
+  by pred_simp  
+qed
+  
+text {* The next lemma shows that using substitution also work. However it is not that generic
+        nor practical for proof automation ... *}
+
+lemma refine_usubst_to_ueq:
+  "vwb_lens E \<Longrightarrow> (Pre \<Rightarrow> Post)\<lbrakk>\<guillemotleft>st'\<guillemotright>/$E\<rbrakk> \<sqsubseteq> f\<lbrakk>\<guillemotleft>st'\<guillemotright>/$E\<rbrakk> = (((Pre \<and> $E =\<^sub>u \<guillemotleft>st'\<guillemotright>) \<Rightarrow> Post) \<sqsubseteq> f)"
+  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)  
+
+text {* By instantiation of @{thm wf_fixp_uinduct_pure_ueq_gen} with @{term \<mu>} and lifting of the 
+        well-founded relation we have ... *}
+  
+lemma rec_total_pure_rule: 
+  assumes WF: "wf R"
+  and     M: "mono B"  
+  and     induct_step:
+          "\<And> f st.  \<lbrakk>(Pre \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f\<rbrakk>
+               \<Longrightarrow> \<mu> B = f \<Longrightarrow>(Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> (B f)"
+        shows "(Pre \<Rightarrow> Post) \<sqsubseteq> \<mu> B"  
+proof (rule wf_fixp_uinduct_pure_ueq_gen[where fp=\<mu> and Pre=Pre and B=B and R=R and e=e])
+  show "\<mu> B = B (\<mu> B)"
+    by (simp add: M def_gfp_unfold)
+  show "wf R"
+    by (fact WF)
+  show "\<And>f st. (\<And>st'. (st', st) \<in> R \<Longrightarrow> (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st'\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f) \<Longrightarrow> 
+                \<mu> B = f \<Longrightarrow> 
+                (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B f"
+    by (rule induct_step, rel_simp, simp)
+qed
+
+text {*Since @{term "B ((Pre \<and> (\<lceil>E\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright> \<Rightarrow> Post)) \<sqsubseteq> B (\<mu> B)"} and 
+      @{term "mono B"}, thus,  @{thm rec_total_pure_rule} can be expressed as follows*}
+  
+lemma rec_total_utp_rule: 
+  assumes WF: "wf R"
+    and     M: "mono B"  
+    and     induct_step:
+    "\<And>st. (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> (B ((Pre \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post)))"
+  shows "(Pre \<Rightarrow> Post) \<sqsubseteq> \<mu> B"  
+proof (rule rec_total_pure_rule[where R=R and e=e], simp_all add: assms)
+  show "\<And>f st. (Pre \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f \<Longrightarrow> \<mu> B = f \<Longrightarrow> (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B f"
+    by (simp add: M induct_step monoD order_subst2)
+qed
 
 end

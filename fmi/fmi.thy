@@ -1,75 +1,96 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: fmi.thy                                                              *)
-(* Authors: Simon Foster and Frank Zeyda                                      *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 8 Feb 2017 *)
+(* LAST REVIEWED: 20 Sep 2017 *)
 
 section {* FMI {\Circus} Model *}
 
 theory fmi
-imports
+imports Positive_New Time
+  "../utp/models/utp_axm"
   "../theories/utp_circus"
-  "../utils/Positive_New"
 begin recall_syntax
-
-type_synonym 'a relation = "'a Relation.rel"
-
-translations (type) "'a relation" \<rightleftharpoons> (type)"'a Relation.rel"
-
-hide_type Relation.rel -- {* TODO: Let the recall package hide types too! *}
-
-text {* The following adjustment is needed... *}
-
-syntax
-  "_csp_sync" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>u _" [81, 80] 80)
 
 declare [[typedef_overloaded]]
 declare [[quick_and_dirty]]
-
-declare [[syntax_ambiguity_warning=false]]
 
 default_sort type
 
 subsection {* Preliminaries *}
 
-lemma card_gt_two_exists:
+subsubsection {* Syntax Extensions *}
+
+paragraph \<open>Application and update of HOL partial functions.\<close>
+
+definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" where
+"map_apply f = the o f"
+
+adhoc_overloading uapply map_apply
+
+definition map_upd :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<rightharpoonup> 'b)" where
+"map_upd m x y = m(x \<mapsto> y)"
+
+text \<open>The commented-out overloading causes parsing ambiguities.\<close>
+
+adhoc_overloading (* uupd fun_upd and *) uupd map_upd
+
+paragraph {* Positive Subtype *}
+
+text \<open>Lifted coercion operator from @{typ "'a pos"} to @{typ "'a"}.\<close>
+
+syntax "_uRep_pos" :: "('a pos, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<section>'(_')")
+
+translations "_uRep_pos p" \<rightleftharpoons> "(CONST uop) (CONST Rep_pos) p"
+
+subsubsection {* Class Instantiations *}
+
+lemma card_gt_two_witness:
 "finite S \<Longrightarrow> 2 \<le> card S \<Longrightarrow> (\<exists>a\<in>S. \<exists>b\<in>S. a \<noteq> b)"
 apply (atomize (full))
 apply (rule impI)
 apply (erule finite.induct)
-apply (simp_all)
-apply (safe; clarsimp)
-apply (metis
-  One_nat_def Suc_1 card_Suc_eq card_insert_if le_SucE nat.inject singletonI)
-apply (auto)
+-- {* Subgoal 1 *}
+apply (simp)
+-- {* Subgoal 2 *}
+apply (clarify)
+apply (case_tac "a \<in> A")
+-- {* Subgoal 2.1 *}
+apply (simp add: insert_absorb)
+-- {* Subgoal 2.2 *}
+apply (rule_tac x = "a" in bexI)
+apply (clarsimp)
+using card_le_Suc_iff apply (blast)
+apply (simp)
 done
 
-text {* By default, the product type did not instantiate class @{class two}. *}
-
-theorem card_ge_two_witness:
+theorem card_ge_two_unfold:
 "finite S \<Longrightarrow> 2 \<le> card S = (\<exists>x y. x \<in> S \<and> y \<in> S \<and> x \<noteq> y)"
 apply (rule iffI)
 -- {* Subgoal 1 *}
-using card_gt_two_exists apply (blast)
+using card_gt_two_witness apply (blast)
 -- {* Subgoal 2 *}
 apply (case_tac "card S = 0")
 apply (clarsimp)
 apply (case_tac "card S = 1")
 apply (clarsimp)
-apply (metis card_Suc_eq singletonD)
+using card_eq_SucD apply (blast)
 apply (clarsimp)
-apply (meson Finite_Set.card_0_eq less_2_cases not_le)
+apply (meson card_eq_0_iff less_2_cases not_less)
 done
 
-lemma instance_twoI:
-"(\<exists>(x::'a) (y::'a). x \<noteq> y) \<Longrightarrow> \<not> finite (UNIV::'a set) \<or> 2 \<le> card (UNIV::'a set)"
-apply (case_tac "finite (UNIV::'a set)")
+theorem instance_twoI:
+"\<exists>x y. x \<in> S \<and> y \<in> S \<and> x \<noteq> y \<Longrightarrow> \<not> finite S \<or> 2 \<le> card S"
+apply (case_tac "finite S")
 apply (simp_all)
-apply (subst card_ge_two_witness)
-apply (simp_all)
+apply (subst card_ge_two_unfold)
+apply (assumption)
+apply (clarsimp)
 done
+
+text {* By default, the product type did not instantiate class @{class two}. *}
 
 instance prod :: (two, two) two
 apply (intro_classes)
@@ -81,269 +102,32 @@ apply (rule two_diff)
 apply (rule two_diff)
 done
 
-text {* TODO: Find a better place to carry out the instantiation below. *}
+text {* By default, the product type did not instantiate @{class vst}. *}
 
-subclass (in infinite) two
-apply (intro_classes)
-apply (rule disjI1)
-apply (auto)
-done
-
-subsection {* Well-defined Values *}
-
-text {*
-  We declare a type class that introduces a notion of well-definedness of
-  values for some HOL type @{typ 'a} for which it is instantiated. With this,
-  we can carry out the generic construction of subtypes that include defined
-  values only. We may use this later to obtain types for well-formed events.
-*}
-
-class wf =
-fixes wf :: "'a \<Rightarrow> bool"
-assumes wf_value_exists: "\<exists>x. wf x"
+instantiation prod :: (vst, vst) vst
 begin
-definition WF_UNIV :: "'a itself \<Rightarrow> 'a set" where
-"WF_UNIV t = (Collect wf)"
-end
-
-text {* Generic construction of a subtype comprising of defined values only. *}
-
-typedef (overloaded) 'a::wf wf = "WF_UNIV TYPE('a)"
-apply (unfold WF_UNIV_def)
-apply (clarsimp)
-apply (rule wf_value_exists)
-done
-
-setup_lifting type_definition_wf
-
-subsection {* Lists as Tables *}
-
-type_synonym ('a, 'b) table = "('a \<times> 'b) list"
-
-fun lookup :: "('a \<times> 'b) list \<Rightarrow> 'a \<Rightarrow> 'b" where
-"lookup ((x, y) # t) v = (if v = x then y else (lookup t x))" |
-"lookup [] x = undefined"
-
-syntax "_ulookup" ::
-  "('a \<times> 'b, '\<sigma>) uexpr \<Rightarrow> ('a, '\<sigma>) uexpr \<Rightarrow> ('b, '\<sigma>) uexpr" ("lookup\<^sub>u")
-
-translations "lookup\<^sub>u t x" \<rightleftharpoons> "(CONST bop) (CONST lookup) t x"
-
-subsection {* Positive Subtype (Laws) *}
-
-text {* \todo{Move the following to the theory @{theory utp_expr}.} *}
-
-syntax "_uRep_pos" :: "('a pos, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<section>'(_')")
-
-translations "_uRep_pos p" \<rightleftharpoons> "(CONST uop) (CONST Rep_pos) p"
-
-text {* \todo{Move the following to the theory @{theory Positive_New}.} *}
-
-lemma ge_num_infinite_if_no_top:
-"infinite {x::'a::{zero, linorder, no_top}. n \<le> x}"
-apply (clarsimp)
--- {* From the assumption that the set is finite. *}
-apply (subgoal_tac "\<exists>y::'a. Max {x. n \<le> x} < y")
-apply (clarsimp)
-apply (metis Max_ge leD mem_Collect_eq order.strict_implies_order order_refl order_trans)
-using gt_ex apply (blast)
-done
-
-lemma less_zero_ordLeq_ge_zero:
-"|{x::'a::{ordered_ab_group_add}. x < 0}| \<le>o |{x::'a. 0 \<le> x}|"
-apply (rule_tac f = "uminus" in surj_imp_ordLeq)
-apply (simp add: image_def)
-apply (clarsimp)
-apply (rule_tac x = "- x" in exI)
+definition vstore_lens_prod :: "vstore \<Longrightarrow> 'a \<times> 'b" where
+"vstore_lens_prod = vstore_lens ;\<^sub>L fst\<^sub>L"
+instance
+apply (intro_classes)
+apply (unfold vstore_lens_prod_def)
 apply (simp)
 done
-
-text {* The next theorem is not totally trivial to prove! *}
-
-instance pos :: ("{linordered_ab_group_add, no_top, continuum}") continuum
-apply (intro_classes)
-apply (case_tac "countable (UNIV :: 'a set)")
--- {* Subgoal 1 (Easy Case) *}
-apply (rule disjI1)
-apply (subgoal_tac "\<exists>to_nat::'a \<Rightarrow> nat. inj to_nat")
--- {* Subgoal 1.1 *}
-apply (clarsimp)
-apply (thin_tac "countable UNIV")
-apply (rule_tac x = "to_nat o Rep_pos" in exI)
-apply (rule inj_comp)
-apply (assumption)
-apply (meson Positive_New.pos.Rep_pos_inject injI)
--- {* Subgoal 1.2 *}
-apply (blast)
--- {* Subgoal 2 (Difficult Case) *}
-apply (rule disjI2)
-apply (subst sym [OF equal_card_bij_betw])
-apply (rule equal_card_intro)
-apply (subgoal_tac "|UNIV::'a pos set| =o |{x::'a. 0 \<le> x}|")
--- {* Subgoal 2.1 *}
-apply (erule ordIso_transitive)
-apply (rule ordIso_symmetric)
-apply (subgoal_tac "|UNIV::nat set set| =o |UNIV::'a set|")
--- {* Subgoal 2.1.1 *}
-apply (erule ordIso_transitive)
-apply (subgoal_tac "(UNIV::'a set) = {x.0 \<le> x} \<union> {x. x < 0}")
--- {* Subgoal 2.1.1.1 *}
-apply (erule ssubst)
-apply (rule card_of_Un_infinite_simps(1))
-apply (rule ge_num_infinite_if_no_top)
-apply (rule less_zero_ordLeq_ge_zero)
--- {* Subgoal 2.1.1.2 *}
-apply (auto)
--- {* Subgoal 2.1.2 *}
-apply (rule_tac f = "from_nat_set" in card_of_ordIsoI)
-apply (rule_tac bij_betwI'; clarsimp?)
--- {* This is the only place where @{term "countable UNIV"} is needed. *}
-apply (metis bij_betw_imp_surj from_nat_set_def surj_f_inv_f to_nat_set_bij)
-apply (rule_tac x = "to_nat_set y" in exI)
-apply (clarsimp)
--- {* Subgoal 2.2 *}
-apply (rule_tac f = "Rep_pos" in card_of_ordIsoI)
-apply (rule_tac bij_betwI'; clarsimp?)
-apply (simp add: Positive_New.pos.Rep_pos_inject)
-using Positive_New.pos.Rep_pos apply (blast)
-apply (rule_tac x = "Abs_pos y" in exI)
-apply (simp add: Positive_New.pos.Abs_pos_inverse)
-done
-
-subsection {* Time Model *}
-
-text {*
-  The rationale in this section is to define an abstract model of time that
-  identifies reasonable assumptions that are sufficient for reasoning about
-  model without having to specify in detail whether we are dealing with, for
-  instance, discrete, continuous or super-dense time.
-*}
-
-subsubsection {* Abstract Time *}
-
-text {*
-  We introduce permissible time domains abstractly as a type class. Clearly,
-  the elements of the type have to be linearly ordered, and membership to
-  the class @{class semidom_divide} entails many key properties of addition,
-  subtraction, multiplication and division. Note that we cannot require time
-  to form a field as there may not be an additive inverse i.e.~if we confine
-  ourselves to positive time instants. Lastly, we also assume that time does
-  not stop, meaning that the order must have no top (class @{class no_top});
-  it might have a bottom though which, if so, must be the same as @{term 0}.
-*}
-
-class time = linorder + semidom_divide + no_top
-
-class pos_time = time + zero + order_bot +
-assumes zero_is_bot: "0 = bot"
-
-text {*
-  I wonder if we can get away with weaker assumptions below. That would mean
-  that we could also instantiate type @{typ "int pos"} as @{class time} and
-  @{class pos_time}. If not, this is not an issue since we would typically
-  use type @{typ nat} here in any case.
-*}
-
-instance pos :: (linordered_field) time
-apply (intro_classes)
-done
-
-instantiation pos :: (linordered_field) pos_time
-begin
-lift_definition bot_pos :: "'a pos"
-is "0" ..
-instance
-apply (intro_classes)
-apply (transfer; simp)
-apply (transfer; simp)
-done
 end
-
-subsubsection {* Discrete Time *}
-
-text {* Naturals, integers and rationals are used to model discrete time. *}
-
-instance nat :: time
-apply (intro_classes)
-done
-
-instance int :: time
-apply (intro_classes)
-done
-
-instance rat :: time
-apply (intro_classes)
-done
-
-instantiation nat :: pos_time
-begin
-instance
-apply (intro_classes)
-apply (unfold bot_nat_def)
-apply (rule refl)
-done
-end
-
-subsubsection {* Continuous Time *}
-
-text {* Reals and positive reals are used to model continuous time. *}
-
-type_notation real ("\<real>")
-
-type_synonym pos_real = "real pos" ("\<real>\<^sup>+")
-
-translations (type) "\<real>\<^sup>+" \<leftharpoondown> (type) "real pos"
-
-instance real :: time
-apply (intro_classes)
-done
-
-text {*
-  Membership of @{typ "pos_real"} to the sort @{class time} follows from the
-  earlier-on instantiation of @{typ "'a pos"} as @{class time}m provided the
-  type parameter @{typ "'a"} constitutes a @{class linordered_field} instance.
-*}
-
-subsubsection {* Verifying Instantiations *}
-
-text {* Instantiation of class @{class time}. *}
-
-theorem "OFCLASS(nat, time_class)" ..
-theorem "OFCLASS(int, time_class)" ..
-theorem "OFCLASS(rat, time_class)" ..
-theorem "OFCLASS(real, time_class)" ..
-theorem "OFCLASS(rat pos, time_class)" ..
-theorem "OFCLASS(real pos, time_class)" ..
-
-text {* Instantiation of class @{class pos_time}. *}
-
-theorem "OFCLASS(nat, pos_time_class)" ..
-theorem "OFCLASS(rat pos, pos_time_class)" ..
-theorem "OFCLASS(real pos, pos_time_class)" ..
-
-text {* Instantiation of class @{class continuum}. *}
-
-theorem "OFCLASS(nat, continuum_class)" ..
-theorem "OFCLASS(int, continuum_class)" ..
-theorem "OFCLASS(rat, continuum_class)" ..
-theorem "OFCLASS(real, continuum_class)" ..
-theorem "OFCLASS(int pos, continuum_class)" ..
-theorem "OFCLASS(rat pos, continuum_class)" ..
-theorem "OFCLASS(real pos, continuum_class)" ..
 
 subsection {* FMI Types  *}
 
 text {* In this section, we encode the various FMI types in HOL. *}
 
-subsubsection {* TIME and NZTIME *}
+subsubsection {* \<open>TIME\<close> and \<open>NZTIME\<close> *}
 
 text {*
   Our aim is to treat time abstractly in the FMI model via some arbitrary type
-  @{typ "'\<tau>"} that is a member of class @{class time} or @{class pos_time}. We
-  thus introduce some additional syntax here to facilitate obtaining the value
-  universe of a time domain provided through a type @{typ "'\<tau>"}. This is just a
-  syntactic sugar allowing us to write @{text "TIME('\<tau>)"} and @{text "NZTIME('\<tau>)"}
-  while imposing the appropriate sort constraints on the free type @{typ "'\<tau>"}.
+  @{typ "'\<tau>"} that must be a member of class @{class time}. We thus introduce
+  additional syntax below to impose the respective sort constraint(s). We also
+  require that time can be injected into deep variable stores. In particular,
+  membership to @{class linordered_ab_group_add} ensures @{class continuum}
+  closure under the @{typ "'a pos"} type.
 *}
 
 class ctime = time + linordered_ab_group_add + continuum + two (* + injectable *)
@@ -354,23 +138,36 @@ syntax "_NZTIME" :: "type \<Rightarrow> type" ("NZTIME'(_')")
 translations (type) "TIME('\<tau>)" \<rightleftharpoons> (type) "'\<tau>::ctime"
 translations (type) "NZTIME('\<tau>)" \<rightleftharpoons> (type) "'\<tau>::ctime pos"
 
-subsubsection {* FMI2COMP *}
+subsubsection {* \<open>FMI2COMP\<close> *}
 
 text {*
   The type @{text FMI2COMP} of FMI component identifiers is introduced as a
-  given (deferred) type. We can later change this i.e.~to give an explicit
-  model that encodes FMI component identifiers as strings or natural numbers,
-  for instance.
+  given (deferred) type. Concrete co-simulation models have to introduced an
+  axiomatisation in order to determine the elements of this type, along with
+  the additional property that they are distinct and partition the type.
 *}
 
 typedecl FMI2COMP
 
--- {* Syntactic sugar for @{term "UNIV::FMI2COMP set"}. *}
+text {* Syntactic sugar for \<open>UNIV::FMI2COMP set\<close>. *}
 
 abbreviation FMI2COMP :: "FMI2COMP set" where
 "FMI2COMP \<equiv> UNIV"
 
-text {* Instantiation the relevant classes for the axiomatic value model. *}
+text {*
+  We require the type @{type FMI2COMP} to be finite and containing at least two
+  elements. This is important so that we can later on instantiate it as members
+  of @{class two} and @{class continuum} for injection into the deep variable
+  model. We observe that FMI {\Circus} processes use state and local variables
+  involving the type @{type FMI2COMP}. To avoid the need for axioms, locales
+  could perhaps be used.
+*}
+
+axiomatization where
+  FMI2COMP_finite: "finite FMI2COMP" and
+  FMI2COMP_gt_two: "card FMI2COMP \<ge> 2"
+
+text {* Instantiation of relevant classes for the axiomatic value model. *}
 
 instantiation FMI2COMP :: typerep
 begin
@@ -386,34 +183,50 @@ definition typedep_FMI2COMP :: "FMI2COMP itself \<Rightarrow> utype set" where
 instance ..
 end
 
+text {* Injection into the axiomatic value model. *}
+
 inject_type FMI2COMP
 
-text {* Instantiation the relevant classes for the deep value model. *}
+text {* The below facilitates evaluation of the transitive closure of PDGs. *}
 
-text {*
-  Clearly, this is not possible unless we endow the type with a concrete model
-  using a @{text typedef} instead of a @{text typedecl}. On the other hand, the
-  axiom introduced by the @{text sorry} below ought not lead to unsoundness.
-*}
+instantiation FMI2COMP :: equal
+begin
+definition equal_FMI2COMP ::"FMI2COMP \<Rightarrow> FMI2COMP \<Rightarrow> bool" where
+"equal_FMI2COMP x y = (x = y)"
+instance
+apply (intro_classes)
+apply (unfold equal_FMI2COMP_def)
+apply (rule refl)
+done
+end
 
--- {* \todo{Introduce a concrete model for FMI components in order to be able
-  to prove the instantiations below and remove the @{text sorry}.} *}
+text {* Instantiation of relevant classes for the deep value model. *}
+
+instance FMI2COMP :: finite
+apply (intro_classes)
+apply (rule FMI2COMP_finite)
+done
+
+-- {* The above already guarantees membership to class @{class continuum}. *}
 
 instance FMI2COMP :: "{continuum, two}"
-sorry
+apply (intro_classes)
+apply (rule disjI2)
+apply (rule FMI2COMP_gt_two)
+done
 
-subsubsection {* FMUSTATE *}
+subsubsection {* \<open>FMUSTATE\<close> *}
 
 text {*
   Likewise, @{text FMUSTATE} is introduced as a given type for now. We may
-  need to reviewing this in the future; for instance, the universal value
-  model could be used to encode a generic (monomorphic) state type that can
-  encode the state of arbitrary FMUs.
+  need to review this in the future; for instance, the universal value model
+  could be used to encode a generic (monomorphic) state type able to encode
+  the state of any concrete FMU.
 *}
 
 typedecl FMUSTATE
 
-text {* Instantiation the relevant classes for the axiomatic value model. *}
+text {* Instantiation of relevant classes for the axiomatic value model. *}
 
 instantiation FMUSTATE :: typerep
 begin
@@ -429,44 +242,60 @@ definition typedep_FMUSTATE :: "FMUSTATE itself \<Rightarrow> utype set" where
 instance ..
 end
 
+text {* Injection into the axiomatic value model. *}
+
 inject_type FMUSTATE
 
-text {* Instantiation the relevant classes for the deep value model. *}
+text {* Instantiation of relevant classes for the deep value model. *}
 
 text {*
-  Clearly, this is not possible unless we endow the type with a concrete model
-  using a @{text typedef} instead of a @{text typedecl}. On the other hand, the
-  axiom introduced by the @{text sorry} below ought not lead to unsoundness.
+  Clearly, it is not possible to prove that @{type FMUSTATE} is an instance of
+  either class @{class two} or @{class continuum} due to its abstract nature.
+  The only solution is once again to encapsulate the instantiation axioms as
+  global axiomatic properties of the @{type FMUSTATE} type. Likewise, it may
+  be safer to use a @{command locale} instead of an @{command axiomatization}.
 *}
 
--- {* \todo{Introduce a concrete model for FMI states in order to be able to
-  prove the instantiations below and remove the @{text sorry}.} *}
+axiomatization where
+   FMUSTATE_continuum: "OFCLASS(FMUSTATE, continuum_class)" and
+   FMUSTATE_two:       "OFCLASS(FMUSTATE, two_class)"
+
+text {* The instantiation below is proved by virtue of the axioms above. *}
 
 instance FMUSTATE :: "{continuum, two}"
-sorry
+apply (rule FMUSTATE_continuum)
+apply (rule FMUSTATE_two)
+done
 
-subsubsection {* VAR and VAL *}
+subsubsection {* \<open>VAR\<close> and \<open>VAL\<close> *}
+
+text {* Type synonyms for permissible FMI 2.0 port types. *}
+
+type_synonym fmi2Real = "real"
+type_synonym fmi2Integer = "int"
+type_synonym fmi2String = "string"
+type_synonym fmi2Boolean = "bool"
 
 text {*
-  The types of @{text VAR} and @{text VAL} are next equated with the unified
-  variable and value types of the axiomatic value model. While we could have
-  alternatively used deep variables here, an approach via axiomatic variables
-  implies that there are no restrictions on modelling FMI types. An issue is
-  that @{text VAL} is clearly not injectable, at least in the original model.
-  The ranked axiomatic model, however, solves that problem.
+  The FMI types of \<open>VAR\<close> and \<open>VAL\<close> are equated with the unified variable and
+  value types of the axiomatic value model. While we could have alternatively
+  used deep variables here, an approach via axiomatic variables means that we
+  are not restricted to the standard FMI types. An issue is thought that \<open>VAL\<close>
+  itself is clearly not injectable. The ranked axiomatic model may provide a
+  solution to this problem, but this is work in progress for now.
 *}
 
 type_synonym VAR = "uvar.uvar" ("VAR")
 type_synonym VAL = "uval.uval" ("VAL")
 
-text {* Hack: there are still issues with supporting axiomatic variables. *}
+text {* Translations for pretty-printing. *}
 
-instance uval     ::        "{continuum, two}" sorry
-instance uvar_ext :: (type) "{continuum, two}" sorry
+translations (type) "VAR" \<leftharpoondown> (type) "uvar.uvar"
+translations (type) "VAL" \<leftharpoondown> (type) "uval.uval"
 
-subsubsection {* FMIST and FMISTF *}
+subsubsection {* \<open>FMIST\<close> and \<open>FMISTF\<close> *}
 
-text {* We here declare datatypes for @{text fmi2Status} of the FMI API. *}
+text {* We declare a datatype for \<open>fmi2Status\<close> flags the FMI API. *}
 
 datatype FMI2ST =
   fmi2OK |
@@ -475,11 +304,11 @@ datatype FMI2ST =
   (*fmi2Warning *)
   (*fmi2Penidng *)
 
-text {* Instantiation the relevant classes for the axiomatic value model. *}
+text {* Instantiation of relevant classes for the axiomatic value model. *}
 
 inject_type FMI2ST
 
-text {* Instantiation the relevant classes for the deep value model. *}
+text {* Instantiation of relevant classes for the deep value model. *}
 
 text {* We note that countability implies membership to @{class continuum} *}
 
@@ -499,17 +328,17 @@ apply (rule_tac x = "fmi2Error" in exI)
 apply (clarsimp)
 done
 
-subsubsection {* FMUSTF *}
+subsubsection {* \<open>FMUSTF\<close> *}
 
 datatype FMI2STF =
-  fmi2Status "FMI2ST" |
+  fmi2Status (fmi2StatusOf: "FMI2ST") |
   fmi2Discard
 
-text {* Instantiation the relevant classes for the axiomatic value model. *}
+text {* Instantiation of relevant classes for the axiomatic value model. *}
 
 inject_type FMI2STF
 
-text {* Instantiation the relevant classes for the deep value model. *}
+text {* Instantiation of relevant classes for the deep value model. *}
 
 text {* We note that countability implies membership to @{class continuum} *}
 
@@ -529,41 +358,66 @@ apply (rule_tac x = "fmi2Discard" in exI)
 apply (clarsimp)
 done
 
-subsubsection {* ErrorFlags *}
+subsubsection {* Error Flags *}
 
-typedef ErrorFlags = "{fmi2Error, fmi2Fatal}"
+typedef ErrorFlag = "{fmi2Error, fmi2Fatal}"
 apply (rule_tac x = "fmi2Error" in exI)
 apply (clarsimp)
 done
 
-text {* TODO: Complete the proof below, should not be too difficult. *}
+text {* Instantiation of relevant classes for the axiomatic value model. *}
 
-instance ErrorFlags :: "{continuum, two}" sorry
+inject_type ErrorFlag
+
+text {* Instantiation of relevant classes for the deep value model. *}
+
+text {* We note that countability implies membership to @{class continuum} *}
+
+instance ErrorFlag :: countable
+apply (intro_classes)
+apply (rule_tac x = "to_nat o Rep_ErrorFlag" in exI)
+apply (rule inj_comp)
+-- {* Subgoal 1 *}
+apply (simp)
+-- {* Subgoal 2 *}
+apply (rule inj_onI; clarsimp)
+apply (simp add: Rep_ErrorFlag_inject)
+done
+
+instance ErrorFlag :: continuum
+apply (intro_classes)
+done
+
+instance ErrorFlag :: two
+apply (intro_classes)
+apply (rule instance_twoI)
+apply (rule_tac x = "Abs_ErrorFlag fmi2Error" in exI)
+apply (rule_tac x = "Abs_ErrorFlag fmi2Fatal" in exI)
+apply (simp add: Abs_ErrorFlag_inject)
+done
 
 subsection {* FMI Events *}
 
 text {*
   While the trace type for CSP is fixed to @{typ "'a list"}, we still have to
   define the event type @{typ "'a"}. Generally, we can think of events as sum
-  types. Since events may be parametric, there is once again the issue of how
+  types. Since events may be parametric, as with states there is an issue how
   to model events with different (HOL) types as a single unified type. A deep
   model may encode them as pairs consisting of a name \& type. Below, we adopt
-  a shallow model that uses a datatype construction. Similar to the more field
-  of extensible records, we endow the datatype with an extension field. It is
-  still an open issue how we conveniently support compositional declarations
-  of new channels; Simon mentioned \emph{prisms} as an analogue of lenses for
-  sum types. As somewhat \textit{ad hoc} solution is presented below.
+  a shallow model that uses a datatype construction wrapped into a @{type sum}
+  type as to make the datatype extensible. As an alternative, Simon mentioned
+  \emph{prisms} as an analogue of lenses for sum types.
 *}
 
 subsubsection {* FMI API Channels *}
 
 text {*
   We note that all constructor functions are of type @{type chan}. To obtain
-  extensible events types, we introduce a prefixing (scoping) operator for each
+  extensible event types, we introduce a prefixing (scoping) operator for each
   channel type that lifts the underlying datatype into a @{type sum} type with
   an open slot for later extension. Eventually, those prefix operators will be
   introduced automatically by the tool, namely through a custom @{text events}
-  command for defining channel events.
+  command for defining channel events (future work).
 *}
 
 datatype '\<tau>::ctime fmi_event =
@@ -588,7 +442,7 @@ abbreviation fmi_prefix ::
 
 notation fmi_prefix ("fmi:_" [1000] 1000)
 
-abbreviation "fmi_events \<equiv>
+abbreviation "FMIAPI \<equiv>
   \<epsilon>(fmi:fmi2Get) \<union>
   \<epsilon>(fmi:fmi2Set) \<union>
   \<epsilon>(fmi:fmi2DoStep) \<union>
@@ -603,7 +457,7 @@ abbreviation "fmi_events \<equiv>
   \<epsilon>(fmi:fmi2GetFMUState) \<union>
   \<epsilon>(fmi:fmi2SetFMUState)"
 
-subsubsection {* Timer Process Channels *}
+subsubsection {* Timer Channels *}
 
 datatype '\<tau>::ctime timer_event =
   setT "TIME('\<tau>)" |
@@ -621,43 +475,59 @@ notation timer_prefix ("tm:_" [1000] 1000)
 abbreviation "tm_events \<equiv>
   \<epsilon>(tm:step) \<union> \<epsilon>(tm:endc) \<union> \<epsilon>(tm:setT) \<union> \<epsilon>(tm:updateSS)"
 
-subsubsection {* Interaction Process Channels *}
+subsubsection {* Control Channels *}
 
-datatype control_event =
+type_synonym error = (* "ErrorFlag" *) "FMI2ST"
+
+datatype ctrl_event =
   stepToComplete "unit" |
   stepAnalysed "unit" |
   stepComplete "unit" |
   endsimulation "unit" |
-  error (* "ErrorFlags" *) "FMI2ST"
+  error "error"
 
-abbreviation control_prefix ::
-  "('a, control_event) chan \<Rightarrow>
-    ('a, ('\<tau>::ctime fmi_event) + ('\<tau>::ctime timer_event) + (control_event)
-      + 'ext) chan" where
-"control_prefix c \<equiv> Inr o Inr o Inl o c"
+abbreviation ctrl_prefix ::
+  "('a, ctrl_event) chan \<Rightarrow>
+   ('a, ('\<tau>::ctime fmi_event) + ('\<tau>::ctime timer_event) + (ctrl_event) + 'ext) chan" where
+"ctrl_prefix c \<equiv> Inr o Inr o Inl o c"
 
-notation control_prefix ("ctr:_" [1000] 1000)
+notation ctrl_prefix ("ctr:_" [1000] 1000)
 
-abbreviation "ctr_events \<equiv>
+abbreviation "ctrl_events \<equiv>
   \<epsilon>(ctr:stepToComplete) \<union>
   \<epsilon>(ctr:stepAnalysed) \<union>
   \<epsilon>(ctr:stepComplete) \<union>
-  \<epsilon>(ctr:endsimulation)"
+  \<epsilon>(ctr:endsimulation) \<union>
+  \<epsilon>(ctr:error)"
+
+subsubsection {* FMI Process Type *}
+
+type_synonym ('\<sigma>, '\<tau>, 'ext) fmi_action =
+  "('\<sigma>, '\<tau> fmi_event + '\<tau> timer_event + ctrl_event + 'ext) action"
+
+type_synonym ('\<tau>, 'ext) fmi_process = "(unit, '\<tau>, 'ext) fmi_action"
 
 subsection {* FMI Ports *}
 
 text {*
-  For readability, we introduce a @{command type_synonym} for ports. A port is
-  encoded by a pair consisting of an FMI component (type @{type FMI2COMP}) and
-  a variable (type @{type VAR}). We do not distinguish input and output ports.
+  For readability, we introduce a @{command type_synonym} for FMI ports. A port
+  is encoded by a pair consisting of an FMI component (of type @{type FMI2COMP})
+  and a variable (of type @{type VAR}). We do not distinguish input and output
+  ports at the level of the encoding.
 *}
 
-type_synonym port = "FMI2COMP \<times> VAR"
+type_synonym port = "FMI2COMP \<times> VAR" ("PORT")
 
-abbreviation FMU :: "port \<Rightarrow> FMI2COMP" where
+text {* Shall we pretty-print the @{typ PORT} type too? *}
+
+(* translations (type) "PORT" \<leftharpoondown> (type) "FMI2COMP \<times> VAR" *)
+
+text \<open>Getter function to obtain the FMU and name of a port object.\<close>
+
+abbreviation FMU :: "PORT \<Rightarrow> FMI2COMP" where
 "FMU port \<equiv> (fst port)"
 
-abbreviation name :: "port \<Rightarrow> VAR" where
+abbreviation name :: "PORT \<Rightarrow> VAR" where
 "name port \<equiv> (snd port)"
 
 subsection {* FMI Configuration *}
@@ -667,290 +537,215 @@ text {*
   HOL constants. A concrete model can provide overloaded definitions to give
   concrete meanings to them; this may allow us to potentially prove additional
   properties. An open question is whether some additional caveats need to be
-  specified already here e.g.~that the port dependency graph is acyclic. This
-  could possibly be done through a type definitions. We note that we encode
-  the Z type @{text "seq"} by HOL's list type @{typ "'a list"}.
+  specified already here (e.g.~acyclicity  of the port dependency graph). This
+  could possibly be done through a type definition. We note that we encode the
+  Z type @{text "seq"} by HOL's list type @{typ "'a list"}.
 *}
 
 text {*
-  In line with the example in the deliverable D2.2d, I introduced a function
-  @{text initialValues} rather than using the @{text inputs} sequence in order
-  to provide initial values. This also proves to be slightly more convenient
-  in terms of mechanisation. Also, I changed the type of the port-dependency
-  graph to become a function rather than a relation, associating a list of
-  inputs with each outputs. The advantage of this is that it facilitates the
+  In line with the CSP model of Deliverable D2.2d, I added a separate list
+  \<open>initialValues\<close> rather than using the \<open>inputs\<close> sequence to provide initial
+  values for inputs. This also proves to be slightly more convenient in terms
+  of the mechanised model. Further, I changed the type of the port dependency
+  graph to bee a function rather than a relation, mapping each outputs to a
+  list of connected inputs. The advantage of this is that it facilitates the
   definition of the @{text DistributeInputs} action since currently, iterated
-  sequence of actions is only define by lists but not for (finite) sets.
+  sequence e.g.~of actions is only define for lists but not for (finite) sets.
+  Lastly, I included another relation \<open>idd\<close> to record the internal direct
+  dependencies of the FMI system. Conceptually, it turns out that it is not
+  the \<open>pdg\<close> that has to be acyclic but the union of the \<open>pdg\<close> and \<open>idd\<close> to
+  guarantee the absence of algebraic loops.
 *}
 
-consts FMUs :: "FMI2COMP list"
-consts parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list"
-consts initialValues :: "(FMI2COMP \<times> VAR \<times> VAL) list"
--- {* Before: @{text "consts inputs :: \"(FMI2COMP \<times> VAR \<times> VAL) list\""} *}
-consts inputs :: "port list"
-consts outputs :: "port list"
--- {* Before: @{text "consts pdg :: \"port relation\""}. *}
-consts pdg :: "port \<Rightarrow> (port list)"
+-- \<open>In D2.2d: \<open>inputs :: FMI2COMP \<times> VAR \<times> VAL\<close> and \<open>pdg :: PORT relation\<close>.\<close>
 
-subsubsection {* Instantiation with the Example in D2.2d *}
-
-text {*
-  Instead of using natural numbers to name variables, I am using actual names
-  @{text x}, @{text y} and @{text z} below. Perhaps more meaningful names can
-  be chosen, for this I would need to understand in more details that nature
-  of the example.
-*}
-
-paragraph {* FMU Components *}
-
-axiomatization
-  pdsgfmu1 :: "FMI2COMP" and
-  pdsgfmu2 :: "FMI2COMP" and
-  samplerfmu :: "FMI2COMP" and
-  checkequalityfmu :: "FMI2COMP" where
-  fmus_distinct : "distinct [pdsgfmu1, pdsgfmu2, samplerfmu, checkequalityfmu]" and
-  FMI2COMP_def : "FMI2COMP = {pdsgfmu1, pdsgfmu2, samplerfmu, checkequalityfmu}"
-
-paragraph {* Parameters *}
-
-text {* I am not sure about the below. Perhaps ask Ana and/or Jim. *}
-
-overloading
-  D2_2d_parameters \<equiv> "parameters :: (FMI2COMP \<times> VAR \<times> VAL) list"
-begin
-  definition D2_2d_parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list" where
-  "D2_2d_parameters = [
-    (pdsgfmu1, $x:{nat}\<^sub>u, InjU (1::nat)),
-    (pdsgfmu1, $y:{nat}\<^sub>u, InjU (1::nat)),
-    (pdsgfmu2, $x:{nat}\<^sub>u, InjU (1::nat)),
-    (pdsgfmu2, $y:{nat}\<^sub>u, InjU (1::nat))]"
-end
-
-paragraph {* Inputs *}
-
-overloading
-  D2_2d_inputs \<equiv> "inputs :: (FMI2COMP \<times> VAR) list"
-begin
-  definition D2_2d_inputs :: "(FMI2COMP \<times> VAR) list" where
-  "D2_2d_inputs = [
-    (samplerfmu, $x:{nat}\<^sub>u),
-    (samplerfmu, $y:{nat}\<^sub>u),
-    (checkequalityfmu, $y:{nat}\<^sub>u),
-    (checkequalityfmu, $z:{nat}\<^sub>u)]"
-end
-
-overloading
-  D2_2d_initialValues \<equiv> "initialValues :: (FMI2COMP \<times> VAR \<times> VAL) list"
-begin
-  definition D2_2d_initialValues :: "(FMI2COMP \<times> VAR \<times> VAL) list" where
-  "D2_2d_initialValues = [
-    (samplerfmu, $x:{nat}\<^sub>u, InjU (1::nat)),
-    (samplerfmu, $y:{nat}\<^sub>u, InjU (1::nat)),
-    (checkequalityfmu, $y:{nat}\<^sub>u, InjU (1::nat)),
-    (checkequalityfmu, $z:{nat}\<^sub>u, InjU (1::nat))]"
-end
-
-paragraph {* Outputs *}
-
-overloading
-  D2_2d_outputs \<equiv> "outputs :: (FMI2COMP \<times> VAR) list"
-begin
-  definition D2_2d_outputs :: "(FMI2COMP \<times> VAR) list" where
-  "D2_2d_outputs = [
-    (pdsgfmu1, $x:{nat}\<^sub>u),
-    (pdsgfmu2, $y:{nat}\<^sub>u),
-    (samplerfmu, $z:{nat}\<^sub>u)]"
-end
+consts
+  FMUs :: "FMI2COMP list"
+  parameters :: "(FMI2COMP \<times> VAR \<times> VAL) list"
+  initialValues :: "(PORT \<times> VAL) list"
+  inputs :: "PORT list"
+  outputs :: "PORT list"
+  pdg :: "PORT \<Rightarrow> (PORT list)" -- \<open>Port Dependency Graph\<close>
+  idd :: "PORT \<Rightarrow> (PORT list)" -- \<open>Internal Direct Dependencies\<close>
 
 subsection {* Simulation Parameters *}
 
-text {* For now, I added the following as global constants too. *}
+-- {* In line with the D2.2d example, I added these as global constants, too. *}
 
 consts startTime :: "TIME('\<tau>)"
 consts stopTimeDefined :: "bool"
 consts stopTime :: "TIME('\<tau>)"
 
-text {* We can instantiate them as in the example of the  D2.2d deliverable. *}
-
-overloading D2_2d_startTime \<equiv> "startTime :: TIME('\<tau>)"
-begin
-  definition D2_2d_startTime :: "TIME('\<tau>)" where
-  "D2_2d_startTime = 0"
-end
-
-overloading D2_2d_stopTimeDefined \<equiv> "stopTimeDefined :: bool"
-begin
-  definition D2_2d_stopTimeDefined :: "bool" where
-  "D2_2d_stopTimeDefined = True"
-end
-
-overloading D2_2d_stopTime \<equiv> "stopTime :: TIME('\<tau>)"
-begin
-  definition D2_2d_stopTime :: "TIME('\<tau>)" where
-  "D2_2d_stopTime = 5"
-end
-
 subsection {* FMI Processes *}
 
-text {*
-  A problem with the {\Circus} process encoding below is that, currently, it
-  is not possible to write prefixes that mix inputs and outputs. Hence, I had
-  to adopt a trick which converts everything into a single input prefix. That
-  input imposes constraints so that some parts of the communication effectively
-  behave like outputs. A second issue is that, referring to page 16 of D2.2d,
-  we see that the @{text AllowGetsAndSets} action is actually parametric. My
-  translation currently does not support parametric actions; hence I adopted
-  a solution that encodes procedure parameters by local variables. Due to the
-  proper treatment of scope by Isabelle/UTP, we generally get away with this.
-  Both issues can thus be overcome; an integration of syntax translations that
-  conceals the manual rewrites and adjustments done below is pending work.
-*}
+subsubsection {* \<open>Timer\<close> Process *}
 
-subsubsection {* General Timer *}
+alphabet '\<tau>::ctime timer_state =
+  currentTime :: "TIME('\<tau>)"
+  stepSize :: "NZTIME('\<tau>)"
 
-text {* \todo{Write the same process as below with axiomatic variables.} *}
+type_synonym '\<tau> timer_action =
+  "('\<tau> timer_state, '\<tau> timer_event) action"
 
 definition
 "process Timer(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
-  Step =
-    (tm:setT?\<^sub>u(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow> (<currentTime> := &t) ;; Step) \<box>
-    (tm:updateSS?\<^sub>u(ss : true) \<rightarrow> (<stepSize> := &ss) ;; Step) \<box>
-    (tm:step!\<^sub>u((&<currentTime>, &<stepsize>)\<^sub>u) \<rightarrow>
-      (<currentTime::'\<tau>> :=
-        min\<^sub>u(&<currentTime> + \<section>(&<stepSize::'\<tau> pos>), \<guillemotleft>tN\<guillemotright>)) ;; Step) \<box>
-    ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>u Stop)
-  \<bullet> (<currentTime>, <stepSize> := \<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
+  state('\<tau> timer_state)
+  Step = (
+    (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<^bold>\<rightarrow> currentTime :=\<^sub>C \<guillemotleft>t\<guillemotright>) \<box>
+    (tm:updateSS?(ss) \<^bold>\<rightarrow> stepSize :=\<^sub>C \<guillemotleft>ss\<guillemotright>) \<box>
+    (tm:step!(&currentTime)!(&stepSize) \<^bold>\<rightarrow>
+      currentTime :=\<^sub>C min\<^sub>u(&currentTime + \<section>(&stepSize), \<guillemotleft>tN\<guillemotright>)) \<box>
+    (&currentTime =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<^bold>\<rightarrow> Stop) ;; Step
+  \<bullet> (currentTime, stepSize) :=\<^sub>C (\<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
 end"
+
+text \<open>The same process definition using deep variables.\<close>
 
 definition
-"process TimerNew(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
-  Step =
-    (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<rightarrow>\<^sub>\<C> (<currentTime> := \<guillemotleft>t\<guillemotright>) ;; Step) \<box>
-    (tm:updateSS?(ss) \<rightarrow>\<^sub>\<C> (<stepSize> := \<guillemotleft>ss\<guillemotright>) ;; Step) \<box>
-    (tm:step![out\<^sub>1]($<currentTime>)![out\<^sub>2]($<stepsize>) \<rightarrow>\<^sub>\<C>
-      (<currentTime::'\<tau>> :=
-        min\<^sub>u(&<currentTime> + \<section>(&<stepSize::'\<tau> pos>), \<guillemotleft>tN\<guillemotright>)) ;; Step) \<box>
-    ((&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<rightarrow>\<^sub>\<C> Stop)
-  \<bullet> (<currentTime>, <stepSize> := \<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
+"process DvarTimer(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
+  state(vstore)
+  Step = (
+    (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<^bold>\<rightarrow> <currentTime> :=\<^sub>C \<guillemotleft>t\<guillemotright>) \<box>
+    (tm:updateSS?(ss) \<^bold>\<rightarrow> <stepSize> :=\<^sub>C \<guillemotleft>ss\<guillemotright>) \<box>
+    (tm:step!(&<currentTime>)!(&<stepSize>) \<^bold>\<rightarrow>
+      <currentTime> :=\<^sub>C min\<^sub>u(&<currentTime> + \<section>(&<stepSize>), \<guillemotleft>tN\<guillemotright>)) \<box>
+    (&<currentTime> =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<^bold>\<rightarrow> Stop) ;; Step
+  \<bullet> (<currentTime>, <stepSize>) :=\<^sub>C (\<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
 end"
 
-subsubsection {* Interaction *}
+(*<*)
+(*
+text \<open>The same process definition using axiomatic variables. FIX!\<close>
 
-text {*
-  Note that I changed the type of @{text rinps} with respect to the tentative
-  model given in the deliverable D2.2d. That is, instead of using the partial
-  function type @{typ "FMI2COMP \<rightharpoonup> (VAR \<rightharpoonup> VAL)"} for @{text rinps}, I decided
-  to use the list @{typ "((FMI2COMP \<times> VAR) \<times> VAL) list"}. This is (currently)
-  a technicality since there are issues with using function types in prefixes,
-  to do with Simon's embedding of shallow variables. Using lists circumvents
-  the issue for and ought not limit generality since we may reasonably assume
-  that the port-dependency graph is a finite relation.
-*}
+definition
+"process AvarTimer(ct::TIME('\<tau>), hc::NZTIME('\<tau>), tN::TIME('\<tau>)) \<triangleq> begin
+  state(ust_store)
+  Step = (
+    (tm:setT?(t : \<guillemotleft>t \<le> tN\<guillemotright>) \<^bold>\<rightarrow> {currentTime} :=\<^sub>C \<guillemotleft>t\<guillemotright>) \<box>
+    (tm:updateSS?(ss) \<^bold>\<rightarrow> {stepSize} :=\<^sub>C \<guillemotleft>ss\<guillemotright>) \<box>
+    (tm:step!(&{currentTime})!(&{stepSize}) \<^bold>\<rightarrow>
+      {currentTime} :=\<^sub>C min\<^sub>u(&{currentTime} + \<section>(&{stepSize}), \<guillemotleft>tN\<guillemotright>)) \<box>
+    (&{currentTime} =\<^sub>u \<guillemotleft>tN\<guillemotright>) &\<^sub>u tm:endc \<^bold>\<rightarrow> Stop) ;; Step
+  \<bullet> ({currentTime}, {stepSize}) :=\<^sub>C (\<guillemotleft>ct\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;; Step
+end"
+*)
+(*>*)
 
-text {* Process State: @{term "rinps :: (port \<times> VAL) list"}. *}
+text \<open>Prove that @{const Timer} and @{const DvarTimer} do not diverge.\<close>
+
+lemma "pre\<^sub>R(Timer(ct, hc, tN)) = true\<^sub>r"
+apply (unfold Timer_def)
+apply (rdes_calc)
+apply (rel_simp)
+done
+
+lemma "pre\<^sub>R(DvarTimer(ct, hc, tN)) = true\<^sub>r"
+apply (unfold DvarTimer_def)
+apply (rdes_calc)
+apply (rel_simp)
+done
+
+subsubsection {* \<open>Interaction\<close> Process *}
+
+text \<open>
+  We here use the type @{typ "PORT \<rightharpoonup> VAL"} for \<open>rinps\<close>, rather than the type
+  @{typ "FMI2COMP \<rightharpoonup> (VAR \<rightharpoonup> VAL)"} as in Figure 4 of D2.2d. Simon developed a
+  separate embedding of partial maps in theory @{theory Pfun}); it may be worth
+  considering using it here too. Importantly, the state space also includes a
+  store for local (deep) variables. I wonder if there is another solution for
+  integrating deep variables into alphabets. We could have, of course, also
+  encoded \<open>rinps\<close> as a deep variable, but this would then constrain its type
+  to be a member of the classes @{class "continuum"} and @{class "two"}.
+\<close>
+
+alphabet ia_state =
+  rinps :: "PORT \<rightharpoonup> VAL"
+  ia_locals :: "vstore"
+
+instantiation ia_state_ext :: (type) vst
+begin
+definition vstore_lens_ia_state_ext :: "vstore \<Longrightarrow> 'a ia_state_scheme" where
+"\<V> = ia_locals"
+instance
+apply (intro_classes)
+apply (simp add: vstore_lens_ia_state_ext_def)
+done
+end
 
 definition
 "process Interaction \<triangleq> begin
-  Instantiation = (;; i : FMUs \<bullet>
-    fmi:fmi2Instantiate?\<^sub>u(i_sc : \<pi>\<^sub>1(\<guillemotleft>i_sc\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
+  state(ia_state)
+
+  Instantiation = (;;\<^sub>C i : FMUs \<bullet>
+    fmi:fmi2Instantiate.(\<guillemotleft>i\<guillemotright>)?(sc) \<^bold>\<rightarrow> Skip) and
 
   InstantiationMode =
-    (if\<^sub>\<C> \<guillemotleft>parameters = []\<guillemotright> then\<^sub>\<C>
-      (;; i : FMUs \<bullet>
-        fmi:fmi2SetUpExperiment?\<^sub>u(i_startTime_stopTimeDefined_stopTime_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)) =\<^sub>u \<guillemotleft>startTime\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>))) =\<^sub>u \<guillemotleft>stopTimeDefined\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)))) =\<^sub>u \<guillemotleft>stopTime\<guillemotright>)
-            \<rightarrow> Skip) ;;
-      (;; i : FMUs \<bullet>
-        fmi:fmi2EnterInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip)
-    else\<^sub>\<C>
-      (;; i_x_v : parameters \<bullet>
-        fmi:fmi2Set?\<^sub>u(i_x_v_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<pi>\<^sub>1(\<guillemotleft>i_x_v\<guillemotright>) \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>)) \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u \<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>))) \<rightarrow> Skip) ;;
-      (;; i : FMUs \<bullet>
-        fmi:fmi2SetUpExperiment?\<^sub>u(i_startTime_stopTimeDefined_stopTime_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)) =\<^sub>u \<guillemotleft>startTime\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>))) =\<^sub>u \<guillemotleft>stopTimeDefined\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)))) =\<^sub>u \<guillemotleft>stopTime\<guillemotright>)
-            \<rightarrow> Skip) ;;
-      (;; i : FMUs \<bullet>
-        fmi:fmi2EnterInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip)) and
+    (;;\<^sub>C (i, x, v) : parameters \<bullet>
+      fmi:fmi2Set!(\<guillemotleft>i\<guillemotright>)!(\<guillemotleft>x\<guillemotright>)!(\<guillemotleft>v\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) ;;
+    (;;\<^sub>C i : FMUs \<bullet>
+      fmi:fmi2SetUpExperiment!(\<guillemotleft>i\<guillemotright>)!(\<guillemotleft>startTime\<guillemotright>)
+        !(\<guillemotleft>stopTimeDefined\<guillemotright>)!(\<guillemotleft>stopTime\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) ;;
+    (;;\<^sub>C i : FMUs \<bullet>
+      fmi:fmi2EnterInitializationMode.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) and
 
   InitializationMode =
-    (if\<^sub>\<C> \<guillemotleft>initialValues = []\<guillemotright> then\<^sub>\<C>
-      (;; i : FMUs \<bullet>
-        fmi:fmi2ExitInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip)
-    else\<^sub>\<C>
-      (;; i_x_v : initialValues \<bullet>
-        fmi:fmi2Set?\<^sub>u(i_x_v_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<pi>\<^sub>1(\<guillemotleft>i_x_v\<guillemotright>) \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>)) \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u \<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>))) \<rightarrow> Skip) ;;
-      (;; i : FMUs \<bullet>
-        fmi:fmi2ExitInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip)) and
+    (;;\<^sub>C ((i, x), v) : initialValues \<bullet>
+      fmi:fmi2Set!(\<guillemotleft>i\<guillemotright>)!(\<guillemotleft>x\<guillemotright>)!(\<guillemotleft>v\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) ;;
+    (;;\<^sub>C i : FMUs \<bullet>
+      fmi:fmi2ExitInitializationMode!(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) and
 
-  Terminated = (;; i : FMUs \<bullet>
-    fmi:fmi2Terminate?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
-    fmi:fmi2FreeInstance?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) ;;
-    ctr:endsimulation \<rightarrow>\<^sub>u Skip and
+  TakeOutputs = rinps :=\<^sub>C \<guillemotleft>empty\<guillemotright> ;;
+    (;;\<^sub>C out : outputs \<bullet>
+      fmi:fmi2Get.(\<guillemotleft>FMU out\<guillemotright>).(\<guillemotleft>name out\<guillemotright>)?(v)?(st) \<^bold>\<rightarrow>
+        (;;\<^sub>C inp : pdg out \<bullet> rinps :=\<^sub>C &rinps(\<guillemotleft>inp\<guillemotright> \<mapsto> \<guillemotleft>v\<guillemotright>)\<^sub>u)) and
 
-  TakeOutputs = <rinp::(port \<times> VAL) list> := \<langle>\<rangle> ;;
-    (;; out : outputs \<bullet> fmi:fmi2Get?\<^sub>u(i_x_v_st :
-      \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<guillemotleft>FMU out\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<guillemotleft>name out\<guillemotright>) \<rightarrow>
-        (;; inp : pdg out \<bullet>
-          <rinp> := &<rinp> ^\<^sub>u \<langle>(\<guillemotleft>inp\<guillemotright>, \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(&i_x_v_st))))\<^sub>u\<rangle>)) and
+  DistributeInputs = (;;\<^sub>C inp : inputs \<bullet>
+    fmi:fmi2Set.(\<guillemotleft>FMU inp\<guillemotright>).(\<guillemotleft>name inp\<guillemotright>)!(&rinps(\<guillemotleft>inp\<guillemotright>)\<^sub>a)?(st) \<^bold>\<rightarrow> Skip) and
 
-  DistributeInputs = (;; inp : inputs \<bullet>
-    fmi:fmi2Set?\<^sub>u(i_x_v_st :
-      \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<guillemotleft>FMU inp\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<guillemotleft>name inp\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u (lookup\<^sub>u $<rinp> \<guillemotleft>inp\<guillemotright>)) \<rightarrow> Skip) and
+  (* Review the function below, Casper hinted some possible issues. I recall
+   * this has to do with the use of fmi2GetMaxStepSize(_). Such ought to be
+   * called before the simulation step is performed via fmi2DoStep(_). Also,
+   * master algorithms may want to enquire the maximum predicted step size of
+   * all FMUs first, before performing any simulation steps. Lastly, it is
+   * not part of the FMI 2.0 Standard, hence should be model it here at all? *)
 
-  Step = (;; i : [0..(length FMUs)] \<bullet>
-    (if (i::int) = 0 then
-      ctr:stepToComplete \<rightarrow>\<^sub>u
-        (fmi:fmi2DoStep?\<^sub>u(i_t_hc_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_hc_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs 1\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
-    else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
-        (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X)) \<box>
-        (fmi:fmi2DoStep?\<^sub>u(i_t_hc_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_hc_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat (i+1))\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
+  Step = (;;\<^sub>C i : [0..(length FMUs)] \<bullet>
+    (if i = 0 then
+      ctr:stepToComplete \<^bold>\<rightarrow>
+        (fmi:fmi2DoStep.(\<guillemotleft>FMUs!0\<guillemotright>).(&<t>).(&<hc>)?(st) \<^bold>\<rightarrow> Skip)
+    else if i < (length FMUs) then
+      (\<mu>\<^sub>C X \<bullet>
+        (fmi:fmi2GetBooleanStatusfmi2Terminated.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(b)?(st) \<^bold>\<rightarrow> X) \<box>
+        (fmi:fmi2GetMaxStepSize.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(t)?(st) \<^bold>\<rightarrow> X)) \<box>
+        (fmi:fmi2DoStep.(\<guillemotleft>FMUs!nat i\<guillemotright>).(&<t>).(&<hc>)?(st) \<^bold>\<rightarrow> Skip)
     else
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
-        (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X)) \<box>
-        (ctr:stepAnalysed \<rightarrow>\<^sub>u Skip))) and
+      (\<mu>\<^sub>C X \<bullet>
+        (fmi:fmi2GetBooleanStatusfmi2Terminated.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(b)?(st) \<^bold>\<rightarrow> X) \<box>
+        (fmi:fmi2GetMaxStepSize.(\<guillemotleft>FMUs!nat (i-1)\<guillemotright>)?(t)?(st) \<^bold>\<rightarrow> X)) \<box>
+        (ctr:stepAnalysed \<^bold>\<rightarrow> Skip)))
+    (* ;; NextStep *) and
+
+  Terminated =
+    (;;\<^sub>C i : FMUs \<bullet>
+      fmi:fmi2Terminate.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> fmi:fmi2FreeInstance.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) ;;
+    ctr:endsimulation \<^bold>\<rightarrow> Skip and
 
   slaveInitialized =
-    (tm:endc \<rightarrow>\<^sub>u Terminated) \<box>
-    (tm:step?\<^sub>u(t_hc : true) \<rightarrow>
-      (* Used local variables to pass action parameters! *)
-      (<t>, <hc> := \<pi>\<^sub>1(&t_hc), \<pi>\<^sub>2(&t_hc)) ;;
-      TakeOutputs ;; DistributeInputs ;; Step) and
+    (tm:endc \<^bold>\<rightarrow> Terminated) \<box>
+    (tm:step?(t)?(hc) \<^bold>\<rightarrow> (
+      (<t>, <hc>) :=\<^sub>C (\<guillemotleft>t::TIME('\<tau>)\<guillemotright>, \<guillemotleft>hc::NZTIME('\<tau>)\<guillemotright>));;
+    TakeOutputs ;; DistributeInputs ;; Step) and
+
+  (* I had to add the sequence ... ;; NextStep below to get around the issue of
+   * mutual recursion in the original CSP model of the Interaction process. *)
 
   NextStep =
-    (tm:updateSS?\<^sub>u(d : true) \<rightarrow> NextStep) \<box>
-    (tm:setT?\<^sub>u(t : true) \<rightarrow> NextStep) \<box>
+    (tm:updateSS?(d) \<^bold>\<rightarrow> NextStep) \<box>
+    (tm:setT?(t) \<^bold>\<rightarrow> NextStep) \<box>
     (slaveInitialized ;; NextStep) \<box>
     (Terminated)
 
-  \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
+  \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized ;; NextStep
 end"
 
 theorem "P Interaction"
@@ -958,242 +753,187 @@ apply (unfold Interaction_def)
 apply (simp add: circus_syntax Let_def)
 oops
 
-text {* A simplified definition of the same (?) process is given below. *}
-
-definition
-"process InteractionSimplified \<triangleq> begin
-  Instantiation = (;; i : FMUs \<bullet>
-    fmi:fmi2Instantiate?\<^sub>u(i_sc : \<pi>\<^sub>1(\<guillemotleft>i_sc\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
-
-  InstantiationMode =
-    (;; i_x_v : parameters \<bullet>
-      fmi:fmi2Set?\<^sub>u(i_x_v_st :
-        \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<pi>\<^sub>1(\<guillemotleft>i_x_v\<guillemotright>) \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>)) \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u \<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>))) \<rightarrow> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2SetUpExperiment?\<^sub>u(i_startTime_stopTimeDefined_stopTime_st :
-        \<pi>\<^sub>1(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright> \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)) =\<^sub>u \<guillemotleft>startTime\<guillemotright> \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>))) =\<^sub>u \<guillemotleft>stopTimeDefined\<guillemotright> \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_startTime_stopTimeDefined_stopTime_st\<guillemotright>)))) =\<^sub>u \<guillemotleft>stopTime\<guillemotright>)
-          \<rightarrow> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2EnterInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
-
-  InitializationMode =
-    (;; i_x_v : initialValues \<bullet>
-      fmi:fmi2Set?\<^sub>u(i_x_v_st :
-        \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<pi>\<^sub>1(\<guillemotleft>i_x_v\<guillemotright>) \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>)) \<and>
-        \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u \<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v\<guillemotright>))) \<rightarrow> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2ExitInitializationMode?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) and
-
-  Terminated = (;; i : FMUs \<bullet>
-    fmi:fmi2Terminate?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
-    fmi:fmi2FreeInstance?\<^sub>u(i_st : \<pi>\<^sub>1(\<guillemotleft>i_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Skip) ;;
-    ctr:endsimulation \<rightarrow>\<^sub>u Skip and
-
-  TakeOutputs = <rinp::(port \<times> VAL) list> := \<langle>\<rangle> ;;
-    (;; out : outputs \<bullet> fmi:fmi2Get?\<^sub>u(i_x_v_st :
-      \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<guillemotleft>FMU out\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<guillemotleft>name out\<guillemotright>) \<rightarrow>
-        (;; inp : pdg out \<bullet>
-          <rinp> := &<rinp> ^\<^sub>u \<langle>(\<guillemotleft>inp\<guillemotright>, \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(&i_x_v_st))))\<^sub>u\<rangle>)) and
-
-  DistributeInputs = (;; inp : inputs \<bullet>
-    fmi:fmi2Set?\<^sub>u(i_x_v_st :
-      \<pi>\<^sub>1(\<guillemotleft>i_x_v_st\<guillemotright>) =\<^sub>u \<guillemotleft>FMU inp\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>)) =\<^sub>u \<guillemotleft>name inp\<guillemotright> \<and>
-      \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_x_v_st\<guillemotright>))) =\<^sub>u (lookup\<^sub>u $<rinp> \<guillemotleft>inp\<guillemotright>)) \<rightarrow> Skip) and
-
-  Step = (;; i : [0..(length FMUs)] \<bullet>
-    (if (i::int) = 0 then
-      ctr:stepToComplete \<rightarrow>\<^sub>u
-        (fmi:fmi2DoStep?\<^sub>u(i_t_hc_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_hc_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs 1\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
-    else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
-        (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X)) \<box>
-        (fmi:fmi2DoStep?\<^sub>u(i_t_hc_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_hc_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat (i+1))\<guillemotright> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>)) =\<^sub>u $<t> \<and>
-          \<pi>\<^sub>1(\<pi>\<^sub>2(\<pi>\<^sub>2(\<guillemotleft>i_t_hc_st\<guillemotright>))) =\<^sub>u $<hc>) \<rightarrow> Skip)
-    else
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated?\<^sub>u(i_b_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_b_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X) \<box>
-        (fmi:fmi2GetMaxStepSize?\<^sub>u(i_t_st :
-          \<pi>\<^sub>1(\<guillemotleft>i_t_st\<guillemotright>) =\<^sub>u \<guillemotleft>nth FMUs (nat i)\<guillemotright>) \<rightarrow> X)) \<box>
-        (ctr:stepAnalysed \<rightarrow>\<^sub>u Skip))) and
-
-  slaveInitialized =
-    (tm:endc \<rightarrow>\<^sub>u Terminated) \<box>
-    (tm:step?\<^sub>u(t_hc : true) \<rightarrow>
-      (* Used local variables to pass action parameters! *)
-      (<t>, <hc> := \<pi>\<^sub>1(&t_hc), \<pi>\<^sub>2(&t_hc)) ;;
-      TakeOutputs ;; DistributeInputs ;; Step) and
-
-  NextStep =
-    (tm:updateSS?\<^sub>u(d : true) \<rightarrow> NextStep) \<box>
-    (tm:setT?\<^sub>u(t : true) \<rightarrow> NextStep) \<box>
-    (slaveInitialized ;; NextStep) \<box>
-    (Terminated)
-
-  \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
-end"
-
-definition
-"process InteractionNew \<triangleq> begin
-  Instantiation = (;; i : FMUs \<bullet>
-    fmi:fmi2Instantiate.[out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C> Skip) and
-
-  InstantiationMode =
-    (;; (i, x, v) : parameters \<bullet>
-      fmi:fmi2Set![out\<^sub>1](\<guillemotleft>i\<guillemotright>)![out\<^sub>2](\<guillemotleft>x\<guillemotright>)![out\<^sub>3](\<guillemotleft>v\<guillemotright>)?(st) \<rightarrow>\<^sub>\<C> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2SetUpExperiment![out\<^sub>1](\<guillemotleft>i\<guillemotright>)![out\<^sub>2](\<guillemotleft>startTime\<guillemotright>)
-        ![out\<^sub>3](\<guillemotleft>stopTimeDefined\<guillemotright>)![out\<^sub>4](\<guillemotleft>stopTime\<guillemotright>)?(st) \<rightarrow>\<^sub>\<C> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2EnterInitializationMode.[out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C> Skip) and
-
-  InitializationMode =
-    (;; (i, x, v) : initialValues \<bullet>
-      fmi:fmi2Set![out\<^sub>1](\<guillemotleft>i\<guillemotright>)![out\<^sub>2](\<guillemotleft>x\<guillemotright>)![out\<^sub>3](\<guillemotleft>v\<guillemotright>)?(st) \<rightarrow>\<^sub>\<C> Skip) ;;
-    (;; i : FMUs \<bullet>
-      fmi:fmi2ExitInitializationMode![out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C> Skip) and
-
-  Terminated =
-    (;; i : FMUs \<bullet>
-      fmi:fmi2Terminate.[out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C>
-      fmi:fmi2FreeInstance.[out\<^sub>1](\<guillemotleft>i\<guillemotright>)?(sc) \<rightarrow>\<^sub>\<C> Skip) ;;
-    ctr:endsimulation \<rightarrow>\<^sub>\<C> Skip and
-
-  TakeOutputs = <rinp::(port \<times> VAL) list> := \<langle>\<rangle> ;;
-    (;; out : outputs \<bullet>
-      fmi:fmi2Get.[out\<^sub>1](\<guillemotleft>FMU out\<guillemotright>).[out\<^sub>2](\<guillemotleft>name out\<guillemotright>)?(v)?(st) \<rightarrow>\<^sub>\<C>
-        (;; inp : pdg out \<bullet> <rinp> := &<rinp> ^\<^sub>u \<langle>(\<guillemotleft>inp\<guillemotright>, \<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>)) and
-
-  DistributeInputs = (;; inp : inputs \<bullet>
-    fmi:fmi2Set.[out\<^sub>1](\<guillemotleft>FMU inp\<guillemotright>).[out\<^sub>2](\<guillemotleft>name inp\<guillemotright>)
-      ![out\<^sub>3](lookup\<^sub>u $<rinp> \<guillemotleft>inp\<guillemotright>)?(st) \<rightarrow>\<^sub>\<C> Skip) and
-
-  Step = (;; i : [0..(length FMUs)] \<bullet>
-    (if (i::int) = 0 then
-      ctr:stepToComplete \<rightarrow>\<^sub>\<C>
-        (fmi:fmi2DoStep.[out\<^sub>1](\<guillemotleft>FMUs!0\<guillemotright>).[out\<^sub>2]($<t>).[out\<^sub>3]($<hc>)?(st) \<rightarrow>\<^sub>\<C> Skip)
-    else if (i::int) < (length FMUs) then
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(b)?(st) \<rightarrow>\<^sub>\<C> X) \<box>
-        (fmi:fmi2GetMaxStepSize.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(t)?(st) \<rightarrow>\<^sub>\<C> X)) \<box>
-        (fmi:fmi2DoStep.[out\<^sub>1](\<guillemotleft>FMUs!(nat i)\<guillemotright>).[out\<^sub>2]($<t>).[out\<^sub>3]($<hc>)?(st) \<rightarrow>\<^sub>\<C> Skip)
-    else
-      (\<Sqinter>X.
-        (fmi:fmi2GetBooleanStatusfmi2Terminated.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(b)?(st) \<rightarrow>\<^sub>\<C> X) \<box>
-        (fmi:fmi2GetMaxStepSize.[out\<^sub>1](\<guillemotleft>FMUs!(nat (i-1))\<guillemotright>)?(t)?(st) \<rightarrow>\<^sub>\<C> X)) \<box>
-        (ctr:stepAnalysed \<rightarrow>\<^sub>\<C> Skip))) and
-
-  slaveInitialized =
-    (tm:endc \<rightarrow>\<^sub>\<C> Terminated) \<box>
-    (tm:step?(t)?(hc) \<rightarrow>\<^sub>\<C>
-      (* We use local variables to pass action parameters! *)
-      (<t>, <hc> := \<guillemotleft>t\<guillemotright>, \<guillemotleft>hc\<guillemotright>) ;;
-      TakeOutputs ;; DistributeInputs ;; Step) and
-
-  NextStep =
-    (tm:updateSS?(d) \<rightarrow>\<^sub>\<C> NextStep) \<box>
-    (tm:setT?(t) \<rightarrow>\<^sub>\<C> NextStep) \<box>
-    (slaveInitialized ;; NextStep) \<box>
-    (Terminated)
-
-  \<bullet> Instantiation ;; InstantiationMode ;; InitializationMode ;; slaveInitialized
-end"
-
-print_theorems
-
-subsubsection {* End Simulation *}
-
-definition
-"endSimulation = ctr:endsimulation \<rightarrow>\<^sub>u Skip"
-
-subsubsection {* States Managers *}
-
-text {* \todo{Write the same process as below with axiomatic variables.} *}
-
-definition
-"process FMUStatesManager(i::FMI2COMP) \<triangleq> begin
-  AllowsGetsAndSets =
-    (fmi:fmi2GetFMUState?\<^sub>u(i_s_st : \<pi>\<^sub>1(\<guillemotleft>i_s_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
-      (<s> := \<pi>\<^sub>1(\<pi>\<^sub>2(&i_s_st)) ;; AllowsGetsAndSets)) \<box>
-    (fmi:fmi2SetFMUState?\<^sub>u(i_s_st : \<pi>\<^sub>1(\<guillemotleft>i_s_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright> \<and> \<pi>\<^sub>1(\<pi>\<^sub>2(\<guillemotleft>i_s_st\<guillemotright>)) =\<^sub>u $<s>) \<rightarrow>
-      (<s> := \<pi>\<^sub>1(\<pi>\<^sub>2(&i_s_st)) ;; AllowsGetsAndSets)) and
-  AllowAGet =
-    (fmi:fmi2GetFMUState?\<^sub>u(i_s_st : \<pi>\<^sub>1(\<guillemotleft>i_s_st\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow>
-      (<s> := \<pi>\<^sub>1(\<pi>\<^sub>2(&i_s_st)) ;; AllowsGetsAndSets))
-  \<bullet> fmi:fmi2Instantiate?\<^sub>u(i_b : \<pi>\<^sub>1(\<guillemotleft>i_b\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> AllowAGet
-end"
-
-definition
-"process NoStatesManager \<triangleq>
-  ( ||| i : FMUs \<bullet> fmi:fmi2Instantiate?\<^sub>u(i_b : \<pi>\<^sub>1(\<guillemotleft>i_b\<guillemotright>) =\<^sub>u \<guillemotleft>i\<guillemotright>) \<rightarrow> Stop) \<triangle>
-    endSimulation"
-
-theorem "FMUStatesManager i = ABC"
-apply (unfold FMUStatesManager_def)
-apply (simp add: circus_syntax)
+lemma "pre\<^sub>R(Interaction) = true\<^sub>r"
+apply (unfold Interaction_def)
+apply (simp add: circus_syntax Let_def)
+apply (rdes_calc)
 oops
+
+subsubsection {* End Simulation Process *}
+
+definition
+"process endSimulation \<triangleq> ctr:endsimulation \<^bold>\<rightarrow> Skip"
+
+subsubsection {* \<open>FMUStatesManager\<close> Process *}
+
+text {* Since we only have a single state component. *}
+
+abbreviation fmu_state :: "FMUSTATE \<Longrightarrow> FMUSTATE" where
+"fmu_state \<equiv> 1\<^sub>L"
+
+definition
+"process FMUStateManager(i::FMI2COMP) \<triangleq> begin
+  state(FMUSTATE)
+
+  AllowsGetsAndSets =
+    (fmi:fmi2GetFMUState!(\<guillemotleft>i\<guillemotright>)?(s)?(st) \<^bold>\<rightarrow>
+      (fmu_state :=\<^sub>C \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets) \<box>
+    (fmi:fmi2SetFMUState!(\<guillemotleft>i\<guillemotright>)!(&fmu_state)?(st) \<^bold>\<rightarrow> AllowsGetsAndSets) and
+
+  AllowAGet =
+    (fmi:fmi2GetFMUState!(\<guillemotleft>i\<guillemotright>)?(s)?(st) \<^bold>\<rightarrow>
+      (fmu_state :=\<^sub>C \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets)
+
+  \<bullet> fmi:fmi2Instantiate!(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> AllowAGet
+end"
+
+text \<open>The same process definition using deep variables.\<close>
+
+definition
+"process DVarFMUStateManager(i::FMI2COMP) \<triangleq> begin
+  state(vstore)
+
+  AllowsGetsAndSets =
+    (fmi:fmi2GetFMUState!(\<guillemotleft>i\<guillemotright>)?(s)?(st) \<^bold>\<rightarrow>
+      (<fmu_state> :=\<^sub>C \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets) \<box>
+    (fmi:fmi2SetFMUState!(\<guillemotleft>i\<guillemotright>)!(&<fmu_state>)?(st) \<^bold>\<rightarrow> AllowsGetsAndSets) and
+
+  AllowAGet =
+    (fmi:fmi2GetFMUState!(\<guillemotleft>i\<guillemotright>)?(s)?(st) \<^bold>\<rightarrow>
+      (<fmu_state> :=\<^sub>C \<guillemotleft>s\<guillemotright>) ;; AllowsGetsAndSets)
+
+  \<bullet> fmi:fmi2Instantiate!(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> AllowAGet
+end"
+
+text {* \todo{Write the same process using the axiomatic model.} *}
+
+definition
+"process FMUStatesManager \<triangleq>
+  (||| i : FMUs \<bullet> FMUStateManager(i)) \<triangle> endSimulation"
 
 subsubsection {* Error Handling *}
 
+text {*
+  The encoding of the \<open>ErrorMonitor\<close> is a bit more tricky due to the presence
+  of mutual recursion and parametrised actions. Parameters of actions are dealt
+  with through a state component \<open>st_arg\<close> to pass the argument. This works as
+  all calls are tail recursive. Mutual recursion is dealt with by defining one
+  of the mutually-recursive actions i.e.~\<open>StopError\<close> as a higher-order function
+  \emph{outside} the scope of the process. Effectively, this mirrors expanding
+  \<open>StopError\<close> within the process definition, turning the mutual recursion into
+  a single-recursive action.
+*}
+
+hide_const (open) utp_rea_designs.st -- \<open>Conflicts with the use of \<open>st\<close> below.\<close>
+
+text {* Since we only have a single state component. *}
+
+abbreviation st_arg :: "error \<Longrightarrow> error" where
+"st_arg \<equiv> 1\<^sub>L"
+
+text {*
+  To break the mutual recursion in the process definition, we encode the local
+  action \<open>StopError\<close> as a higher-order action. State component @{const st_arg}
+  is used to pass an argument back to the \<open>Monitor\<close> action.
+*}
+
 definition
-"process ErrorMonitor(mst::FMI2ST) \<triangleq>
-begin
-  StopError =
-    ((&<st> =\<^sub>u \<guillemotleft>mst\<guillemotright>) &\<^sub>u ctr:error!\<^sub>u(\<guillemotleft>mst\<guillemotright>) \<rightarrow> (*Monitor*) Skip) \<box>
-    ((&<st> \<noteq>\<^sub>u \<guillemotleft>mst\<guillemotright>) &\<^sub>u ctr:error!\<^sub>u(\<guillemotleft>mst\<guillemotright>) \<rightarrow> (*Monitor*) Skip) and
+"process StopError(Monitor, st, mst) \<triangleq>
+  (let MonitorCall = (\<lambda>st. st_arg :=\<^sub>C \<guillemotleft>st\<guillemotright> ;; Monitor) in
+    (\<guillemotleft>st = mst\<guillemotright> &\<^sub>u ctr:error!(\<guillemotleft>mst\<guillemotright>) \<^bold>\<rightarrow> MonitorCall(st)) \<box>
+    (\<guillemotleft>st \<noteq> mst\<guillemotright> &\<^sub>u MonitorCall(st)))"
 
-  Monitor =
-    (fmi:fmi2Get?\<^sub>u(i_n_v_st : true) \<rightarrow>
-      (<st> := \<pi>\<^sub>2(\<pi>\<^sub>2(\<pi>\<^sub>2(&i_n_v_st))) ;; StopError))
+definition
+"process ErrorMonitor(mst) \<triangleq> begin
+  Monitor = (
+    (fmi:fmi2Get?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2Set?(i)?(n)?(v)?(st) \<^bold>\<rightarrow> StopError(Monitor, (fmi2StatusOf st), mst)) \<box>
+    (fmi:fmi2GetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2SetFMUState?(i)?(s)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2SetUpExperiment?(i)?(t)?(b)?(hc)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2EnterInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2ExitInitializationMode?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2GetBooleanStatusfmi2Terminated?(i)?(b)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2DoStep?(i)?(t)?(hc)?(st) \<^bold>\<rightarrow> StopError(Monitor, (fmi2StatusOf st), mst)) \<box>
+    (fmi:fmi2Terminate?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2GetMaxStepSize?(i)?(t)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)) \<box>
+    (fmi:fmi2Instantiate?(i)?(b) \<^bold>\<rightarrow>
+      (if b then StopError(Monitor, fmi2OK, mst)
+            else StopError(Monitor, fmi2Fatal, mst))) \<box>
+    (fmi:fmi2FreeInstance?(i)?(st) \<^bold>\<rightarrow> StopError(Monitor, st, mst)))
 
-  \<bullet> Monitor \<triangle> (ctr:endsimulation \<rightarrow>\<^sub>u Skip)
+  \<bullet> Monitor \<triangle> (ctr:endsimulation \<^bold>\<rightarrow> Skip)
 end"
+
+definition
+"process ErrorHandler \<triangleq>
+  ErrorMonitor(fmi2Error)
+    \<lbrakk>(FMIAPI \<union> \<epsilon>(ctr:endsimulation))\<rbrakk>\<^sub>C
+  ErrorMonitor(fmi2Fatal)"
+
+definition
+"process FatalError \<triangleq>
+  ctr:error.(\<guillemotleft>fmi2Fatal\<guillemotright>) \<^bold>\<rightarrow> ctr:endsimulation \<^bold>\<rightarrow> Skip"
+
+definition
+"process ShutdownCreated(i) \<triangleq>
+  (ctr:error.(\<guillemotleft>fmi2Error\<guillemotright>) \<^bold>\<rightarrow> fmi:fmi2FreeInstance.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip) \<box>
+  (fmi:fmi2FreeInstance.(\<guillemotleft>i\<guillemotright>)?(st) \<^bold>\<rightarrow> Skip)"
+
+definition
+"process Shutdown(i) \<triangleq>
+  (fmi:fmi2Instantiate.(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> ShutdownCreated(i) ;; ctr:endsimulation \<^bold>\<rightarrow> Skip) \<box>
+  (ctr:error.(\<guillemotleft>fmi2Error\<guillemotright>) \<^bold>\<rightarrow> ctr:endsimulation \<^bold>\<rightarrow> Skip)"
+
+definition
+"process ErrorManagement \<triangleq>
+  (|| i : FMUs \<bullet> [\<epsilon>(ctr:error) \<union> \<epsilon>(ctr:endsimulation)] Shutdown(i))"
+
+definition
+"process ErrorManager \<triangleq> FatalError \<box> ErrorManagement"
 
 subsubsection {* Master Algorithm *}
 
-definition
-"process FMUStatesManagers \<triangleq>
-  ||| i : FMUs \<bullet> FMUStatesManager(i) \<triangle> endSimulation"
+-- {* \todo{Check why the below does not pretty-print correctly.} *}
 
 definition
-"process TimedInteraction(t0, tN) \<triangleq>
-  ((Timer(t0, Abs_pos 2, tN) \<triangle> endSimulation)
-    [| tm_events \<union> \<epsilon>(ctr:endsimulation) |]
-  Interaction) \\ (\<epsilon>(ctr:stepAnalysed) \<union> \<epsilon>(ctr:stepComplete)) \\ tm_events"
+"process TimedInteraction(t0, hc, tN) \<triangleq>
+  (Timer(t0, hc, tN) \<triangle> endSimulation
+    \<lbrakk>(tm_events \<union> \<epsilon>(ctr:endsimulation))\<rbrakk>\<^sub>C Interaction) \\
+  tm_events \<union> \<epsilon>(ctr:stepAnalysed) \<union> \<epsilon>(ctr:stepComplete)"
+
+(* print_theorems *)
 
 definition
-"process MAlgorithm(t0, tN) \<triangleq>
-  (TimedInteraction(t0, tN)
-    [| \<epsilon>(ctr:endsimulation) \<union> \<epsilon>(fmi:fmi2Instantiate) |]
-  FMUStatesManagers)"
+"process MAlgorithm(t0, hc, tN) \<triangleq>
+  (((TimedInteraction(t0, hc, tN)
+    \<lbrakk>(\<epsilon>(ctr:endsimulation) \<union> \<epsilon>(fmi:fmi2Instantiate))\<rbrakk>\<^sub>C
+      FMUStatesManager) \<triangle> ErrorManager)
+    \<lbrakk>(FMIAPI \<union> \<epsilon>(ctr:endsimulation) \<union> \<epsilon>(ctr:error))\<rbrakk>\<^sub>C ErrorHandler)
+  \\ \<epsilon>(ctr:error)"
 
-subsubsection {* General Bejaviour of an FMU *}
+subsection {* Concrete MAs *}
+
+definition
+"process NoStatesManager \<triangleq>
+  (||| i : FMUs \<bullet> fmi:fmi2Instantiate!(\<guillemotleft>i\<guillemotright>)?(b) \<^bold>\<rightarrow> Stop) \<triangle> endSimulation"
+
+theorem "FMUStatesManager \<sqsubseteq> NoStatesManager"
+apply (simp add: FMUStatesManager_def NoStatesManager_def)
+-- {* Need monotonicity of interrupt and iterated interleaving to continue. *}
+oops
+
+(*<*)
+(*
+subsection {* FMU Wrapping (TODO) *}
 
 definition RUN :: "'\<epsilon> set \<Rightarrow> ('\<sigma>, '\<epsilon>) action" where
 "RUN evts = undefined"
 
 (* I think the problem below is that the state space of i_b includes the whole
    of the reactive alphabet whereas the guard operator only expects a predicate
-   on the state variables...
-*)
+   on the state variables... *)
 
-(*
 definition
 "process FMUInterface(i::FMI2COMP) \<triangleq>
 begin
@@ -1205,13 +945,5 @@ begin
   \<bullet> Instantiation \<triangle> endSimulation
 end"
 *)
-
-subsection {* Proof Experiments *}
-
-term "setT!\<^sub>u(\<guillemotleft>0\<guillemotright>) \<rightarrow> SKIP"
-term "InputCSP setT x"
-term "\<lceil>''x''\<rceil>\<^sub>d"
-term "(dvar_lens \<lceil>''x''\<rceil>\<^sub>d)"
-term "\<lceil>''x''\<rceil>\<^sub>d\<up>"
-term "InputCircus setT (\<lceil>''x''\<rceil>\<^sub>d\<up>)"
+(*>*)
 end

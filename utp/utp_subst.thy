@@ -73,6 +73,14 @@ where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^
 adhoc_overloading
   unrest unrest_usubst
 
+text {* Parallel substitutions allow us to divide the state space into three segments using two
+  lens, A and B. They correspond to the part of the state that should be updated by the 
+  respective substitution. The two lenses should be independent. If any part of the state
+  is not covered by either lenses then this area is left unchanged (framed). *}
+  
+definition par_subst :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> usubst" where
+"par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2 = (\<lambda> s. (s \<oplus>\<^sub>L (\<sigma>\<^sub>1 s) on A) \<oplus>\<^sub>L (\<sigma>\<^sub>2 s) on B)"
+  
 subsection {* Syntax translations *}
 
 text {* We support two kinds of syntax for substitutions, one where we construct a substitution
@@ -100,7 +108,8 @@ syntax
   ""         :: "logic => uexprs" ("_")
   "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")
   ""         :: "salpha => salphas" ("_")
-  
+  "_par_subst" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>s _" [100,0,0,101] 101)
+    
 translations
   "_SubstUpd m (_SMaplets xy ms)"     == "_SubstUpd (_SubstUpd m xy) ms"
   "_SubstUpd m (_smaplet x y)"        == "CONST subst_upd m x y"
@@ -112,7 +121,9 @@ translations
   "_psubst m x v"  => "CONST subst_upd m x v"
   "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
   "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
+  "P\<lbrakk>v/&x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST svar x) v) P"
   "P\<lbrakk>v/x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
+  "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
   
 text {* Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} to update a variable $x$ in $\sigma$ with
   expression $v$, @{term "[x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f]"} to construct a substitution with two variables,
@@ -136,6 +147,9 @@ text {* Evaluation of a substitution expression involves application of the subs
 lemma usubst_lookup_id [usubst]: "\<langle>id\<rangle>\<^sub>s x = var x"
   by (transfer, simp)
 
+lemma subst_upd_id_lam [usubst]: "subst_upd (\<lambda> x. x) x v = subst_upd id x v"
+  by (simp add: id_def)
+    
 text {* A substitution update naturally yields the given expression. *}
     
 lemma usubst_lookup_upd [usubst]:
@@ -144,6 +158,12 @@ lemma usubst_lookup_upd [usubst]:
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
 
+lemma usubst_lookup_upd_pr_var [usubst]:
+  assumes "mwb_lens x"
+  shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s (pr_var x) = v"
+  using assms
+  by (simp add: subst_upd_uvar_def pr_var_def, transfer) (simp)
+    
 text {* Substitution update is idempotent. *}
     
 lemma usubst_upd_idem [usubst]:
@@ -165,6 +185,9 @@ lemma usubst_upd_comm2:
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
+lemma subst_upd_pr_var [usubst]:  "s(&x \<mapsto>\<^sub>s v) = s(x \<mapsto>\<^sub>s v)"
+  by (simp add: pr_var_def) 
+  
 text {* A substitution which swaps two independent variables is an injective function. *}
     
 lemma swap_usubst_inj:
@@ -191,17 +214,37 @@ lemma usubst_upd_var_id [usubst]:
   apply (auto)
 done
 
+lemma usubst_upd_pr_var_id [usubst]:
+  "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var (pr_var x)] = id"
+  apply (simp add: subst_upd_uvar_def pr_var_def)
+  apply (transfer)
+  apply (rule ext)
+  apply (auto)
+done
+  
 lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
   using out_in_indep usubst_upd_comm by blast
 
+lemma subst_upd_lens_plus [usubst]: 
+  "subst_upd \<sigma> (x +\<^sub>L y) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>(y \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, x \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
+  by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto)
+
+lemma subst_upd_in_lens_plus [usubst]: 
+  "subst_upd \<sigma> (ivar (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
+  by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto simp add: prod.case_eq_if)
+
+lemma subst_upd_out_lens_plus [usubst]: 
+  "subst_upd \<sigma> (ovar (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x\<acute> \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
+  by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto simp add: prod.case_eq_if)
+    
 lemma usubst_lookup_upd_indep [usubst]:
   assumes "mwb_lens x" "x \<bowtie> y"
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
-
+    
 text {* If a variable is unrestricted in a substitution then it's application has no effect. *}
     
 lemma usubst_apply_unrest [usubst]:
@@ -212,7 +255,7 @@ text {* There follows various laws about deleting variables from a substitution.
     
 lemma subst_del_id [usubst]:
   "vwb_lens x \<Longrightarrow> id -\<^sub>s x = id"
-  by (simp add: subst_del_def subst_upd_uvar_def, transfer, auto)
+  by (simp add: subst_del_def subst_upd_uvar_def pr_var_def, transfer, auto)
 
 lemma subst_del_upd_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
@@ -374,7 +417,42 @@ lemma unrest_usubst_upd [unrest]:
 lemma unrest_subst [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
   by (transfer, simp add: unrest_usubst_def)
+    
+subsection {* Parallel Substitution Laws *}
+    
+lemma par_subst_id [usubst]:
+  "\<lbrakk> vwb_lens A; vwb_lens B \<rbrakk> \<Longrightarrow> id [A|B]\<^sub>s id = id"
+  by (simp add: par_subst_def lens_override_idem id_def)
 
+lemma par_subst_left_empty [usubst]:
+  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [\<emptyset>|A]\<^sub>s \<rho> = id [\<emptyset>|A]\<^sub>s \<rho>"
+  by (simp add: par_subst_def pr_var_def)
+
+lemma par_subst_right_empty [usubst]:
+  "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [A|\<emptyset>]\<^sub>s \<rho> = \<sigma> [A|\<emptyset>]\<^sub>s id"
+  by (simp add: par_subst_def pr_var_def)
+    
+lemma par_subst_comm:
+  "\<lbrakk> A \<bowtie> B \<rbrakk> \<Longrightarrow> \<sigma> [A|B]\<^sub>s \<rho> = \<rho> [B|A]\<^sub>s \<sigma>"
+  by (simp add: par_subst_def lens_override_def lens_indep_comm)
+      
+lemma par_subst_upd_left_in [usubst]:
+  "\<lbrakk> vwb_lens A; A \<bowtie> B; x \<subseteq>\<^sub>L A \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) [A|B]\<^sub>s \<rho> = (\<sigma> [A|B]\<^sub>s \<rho>)(x \<mapsto>\<^sub>s v)"
+  by (simp add: par_subst_def subst_upd_uvar_def lens_override_put_right_in)
+     (simp add: lens_indep_comm lens_override_def sublens_pres_indep)
+
+lemma par_subst_upd_left_out [usubst]:
+  "\<lbrakk> vwb_lens A; x \<bowtie> A \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) [A|B]\<^sub>s \<rho> = (\<sigma> [A|B]\<^sub>s \<rho>)"
+  by (simp add: par_subst_def subst_upd_uvar_def lens_override_put_right_out)
+     
+lemma par_subst_upd_right_in [usubst]:
+  "\<lbrakk> vwb_lens B; A \<bowtie> B; x \<subseteq>\<^sub>L B \<rbrakk> \<Longrightarrow> \<sigma> [A|B]\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> [A|B]\<^sub>s \<rho>)(x \<mapsto>\<^sub>s v)"
+  using lens_indep_sym par_subst_comm par_subst_upd_left_in by fastforce
+
+lemma par_subst_upd_right_out [usubst]:
+  "\<lbrakk> vwb_lens B; A \<bowtie> B; x \<bowtie> B \<rbrakk> \<Longrightarrow> \<sigma> [A|B]\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> [A|B]\<^sub>s \<rho>)"
+  by (simp add: par_subst_comm par_subst_upd_left_out)
+    
 end
 
 

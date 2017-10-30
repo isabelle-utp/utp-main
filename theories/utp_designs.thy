@@ -12,6 +12,8 @@ It is used to record the start and termination of a program. *}
 
 subsection {* Definitions *}
 
+named_theorems ndes and ndes_simp
+  
 text {* In the following, the definitions of designs alphabets, designs and
 healthiness (well-formedness) conditions are given. The healthiness conditions of
 designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
@@ -54,26 +56,26 @@ translations
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_scheme"
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_ext"
   (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) rel"
-
+  (type) "'\<alpha> hrel_des" <= (type) "'\<alpha> des hrel"
+  
 notation des_vars_child_lens ("\<Sigma>\<^sub>D")
 
 lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
   by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
 
 text {* Define the lens functor for designs *}
-
+  
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
-  where "lmap_des_vars f = \<lparr> lens_get = \<lambda> v. extend (truncate v) (get\<^bsub>f\<^esub> (more v))
-                           , lens_put = \<lambda> s v. extend (truncate v) (put\<^bsub>f\<^esub> (more s) (more v)) \<rparr>"
+where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
 
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
-  by (unfold_locales, simp_all add: lmap_des_vars_def extend_def truncate_def)
+  by (unfold_locales, auto simp add: lens_defs des_vars.defs)
 
 lemma lmap_id: "lmap\<^sub>D 1\<^sub>L = 1\<^sub>L"
-  by (simp add: lmap_des_vars_def id_lens_def extend_def truncate_def fun_eq_iff)
+  by (simp add: lens_defs des_vars.defs fun_eq_iff)
 
 lemma lmap_comp: "lmap\<^sub>D (f ;\<^sub>L g) = lmap\<^sub>D f ;\<^sub>L lmap\<^sub>D g"
-  by (simp add: lmap_des_vars_def id_lens_def lens_comp_def extend_def truncate_def fun_eq_iff)
+  by (simp add: lens_defs des_vars.defs fun_eq_iff)
 
 text {* The following notations define liftings from non-design predicates into design
   predicates using alphabet extensions. *}
@@ -90,6 +92,10 @@ where "\<lceil>p\<rceil>\<^sub>D\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^su
 abbreviation drop_desr ("\<lfloor>_\<rfloor>\<^sub>D")
 where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
+abbreviation dcond :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" 
+  ("(3_ \<triangleleft> _ \<triangleright>\<^sub>D/ _)" [52,0,53] 52)
+where "P \<triangleleft> b \<triangleright>\<^sub>D Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>D\<^sub>< \<triangleright> Q"
+  
 definition design::"('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>" 60)
 where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 
@@ -98,7 +104,7 @@ text {* An rdesign is a design that uses the Isabelle type system to prevent ref
 
 definition rdesign::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 60)
 where "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D"
-
+  
 text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
 
 definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 60)
@@ -134,14 +140,15 @@ syntax
   "_ok_f"  :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)
   "_ok_t"  :: "logic \<Rightarrow> logic" ("_\<^sup>t" [1000] 1000)
   "_top_d" :: "logic" ("\<top>\<^sub>D")
-  "_bot_d" :: "logic" ("\<bottom>\<^sub>D")
 
 translations
   "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
   "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
   "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
-  "\<bottom>\<^sub>D" => "true"
 
+definition bot_d :: "('\<alpha>, '\<beta>) rel_des" ("\<bottom>\<^sub>D") where
+[upred_defs]: "\<bottom>\<^sub>D = (false \<turnstile> false)"
+  
 definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("pre\<^sub>D") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
@@ -208,13 +215,21 @@ lemma lift_dist_seq [simp]:
 
 lemma lift_des_skip_dr_unit_unrest: "$ok\<acute> \<sharp> P \<Longrightarrow> (P ;; \<lceil>II\<rceil>\<^sub>D) = P"
   by (rel_auto)
-
+    
 lemma true_is_design:
   "(false \<turnstile> true) = true"
   by (rel_auto)
 
 lemma true_is_rdesign:
   "(false \<turnstile>\<^sub>r true) = true"
+  by (rel_auto)
+    
+lemma bot_d_true:
+  "\<bottom>\<^sub>D = true"
+  by (rel_auto)  
+  
+lemma bot_d_ndes_def [ndes_simp]:
+  "\<bottom>\<^sub>D = (false \<turnstile>\<^sub>n true)"
   by (rel_auto)
 
 lemma design_false_pre:
@@ -229,6 +244,19 @@ lemma ndesign_false_pre:
   "(false \<turnstile>\<^sub>n P) = true"
   by (rel_auto)
 
+lemma ndesign_miracle:
+  "(true \<turnstile>\<^sub>n false) = \<top>\<^sub>D"
+  by (rel_auto)
+    
+lemma state_subst_design [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> (P \<turnstile>\<^sub>r Q) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P) \<turnstile>\<^sub>r (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> Q)"
+  by (rel_auto)
+    
+lemma ndesign_eq_intro:
+  assumes "p\<^sub>1 = q\<^sub>1" "P\<^sub>2 = Q\<^sub>2"
+  shows "p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2 = q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2"
+  by (simp add: assms)
+    
 theorem design_refinement:
   assumes
     "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
@@ -327,40 +355,82 @@ qed
 
 theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
   by (rel_auto)
+    
+theorem des_top_ndes_def [ndes_simp]: 
+  "\<top>\<^sub>D = true \<turnstile>\<^sub>n false"
+  by (rel_auto)
 
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
-  by (rel_auto)
-
-theorem design_inf:
-  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
   by (rel_auto)
 
 theorem rdesign_choice:
   "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile>\<^sub>r (P\<^sub>2 \<or> Q\<^sub>2))"
   by (rel_auto)
 
+theorem ndesign_choice [ndes_simp]:
+  "(p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<sqinter> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = ((p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<or> Q\<^sub>2))"
+  by (rel_auto)
+
+theorem ndesign_choice' [ndes_simp]:
+  "((p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<or> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2)) = ((p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<or> Q\<^sub>2))"
+  by (rel_auto)
+
+theorem design_inf:
+  "(P\<^sub>1 \<turnstile> P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+
+theorem rdesign_inf:
+  "(P\<^sub>1 \<turnstile>\<^sub>r P\<^sub>2) \<squnion> (Q\<^sub>1 \<turnstile>\<^sub>r Q\<^sub>2) = ((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile>\<^sub>r ((P\<^sub>1 \<Rightarrow> P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+
+theorem ndesign_inf [ndes_simp]:
+  "(p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<squnion> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = ((p\<^sub>1 \<or> q\<^sub>1) \<turnstile>\<^sub>n ((\<lceil>p\<^sub>1\<rceil>\<^sub>< \<Rightarrow> P\<^sub>2) \<and> (\<lceil>q\<^sub>1\<rceil>\<^sub>< \<Rightarrow> Q\<^sub>2)))"
+  by (rel_auto)
+    
 theorem design_condr:
   "((P\<^sub>1 \<turnstile> P\<^sub>2) \<triangleleft> b \<triangleright> (Q\<^sub>1 \<turnstile> Q\<^sub>2)) = ((P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2))"
   by (rel_auto)
 
+theorem ndesign_dcond [ndes_simp]:
+  "((p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>D (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2)) = ((p\<^sub>1 \<triangleleft> b \<triangleright> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<triangleleft> b \<triangleright>\<^sub>r Q\<^sub>2))"
+  by (rel_auto)
+    
 lemma design_top:
   "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
   by (rel_auto)
 
 lemma design_bottom:
   "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
-  by simp
+  by (rel_auto)
 
-lemma design_USUP:
+lemma design_UINF_mem:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i))"
   using assms by (rel_auto)
 
-lemma design_UINF:
+lemma ndesign_UINF_mem [ndes_simp]:
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<in> A \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<in> A \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<in> A \<bullet> Q(i))"
+  using assms by (rel_auto)
+
+lemma ndesign_UINF_ind [ndes_simp]:
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<bullet> Q(i))"
+  using assms by (rel_auto)
+    
+lemma design_USUP_mem:
   "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
   by (rel_auto)
 
+lemma ndesign_USUP_mem [ndes_simp]:
+  "(\<Squnion> i \<in> A \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<in> A \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<in> A \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
+  by (rel_auto)
+
+lemma ndesign_USUP_ind [ndes_simp]:
+  "(\<Squnion> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
+  by (rel_auto)
+    
 theorem design_composition_subst:
   assumes
     "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2"
@@ -448,6 +518,9 @@ theorem rdesign_composition:
 lemma skip_d_alt_def: "II\<^sub>D = true \<turnstile> II"
   by (rel_auto)
 
+lemma skip_d_ndes_def [ndes_simp]: "II\<^sub>D = true \<turnstile>\<^sub>n II"
+  by (rel_auto)
+    
 theorem design_skip_idem [simp]:
   "(II\<^sub>D ;; II\<^sub>D) = II\<^sub>D"
   by (rel_auto)
@@ -476,10 +549,44 @@ theorem rdesign_composition_wp:
   "((\<lceil>p1\<rceil>\<^sub>< \<turnstile>\<^sub>r Q1) ;; (\<lceil>p2\<rceil>\<^sub>< \<turnstile>\<^sub>r Q2)) = ((\<lceil>p1 \<and> Q1 wp p2\<rceil>\<^sub><) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   by (rel_blast)
 
-theorem ndesign_composition_wp:
+theorem ndesign_composition_wp [ndes_simp]:
   "((p1 \<turnstile>\<^sub>n Q1) ;; (p2 \<turnstile>\<^sub>n Q2)) = ((p1 \<and> Q1 wp p2) \<turnstile>\<^sub>n (Q1 ;; Q2))"
   by (rel_blast)
 
+lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wp Q(i))"
+  by (rel_auto)
+
+lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
+  by (pred_auto)
+    
+theorem ndesign_iteration_wp [ndes_simp]:
+  "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+proof (induct n)
+  case 0
+  then show ?case by (simp add: wp true_upred_def)
+next
+  case (Suc n) note hyp = this
+  have "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ Suc n = (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n"
+    by (simp)
+  also have "... = (p \<turnstile>\<^sub>n Q) ;; ((\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+    by (simp add: hyp)
+  also have "... = (p \<and> Q wp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: ndesign_composition_wp seqr_assoc)
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: wp)
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: USUP_as_Inf_image)
+  also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (metis (no_types, lifting) One_nat_def image_Suc_atLeastAtMost image_cong image_image)  
+  also have "... = (Q \<^bold>^ 0 wp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: wp)
+  also have "... = ((\<Squnion> i \<in> {0..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+    by (simp add: Iic_Suc_eq_insert_0 atLeast0AtMost conj_upred_def image_Suc_atMost)      
+  also have "... = (\<Squnion> i \<in> {0..Suc n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc (Suc n)"
+    by (simp add: USUP_as_Inf_image upred_semiring.mult_assoc)
+  finally show ?case .
+qed
+    
 theorem rdesign_wp [wp]:
   "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
   by (rel_auto)
@@ -569,6 +676,10 @@ lemma lift_des_skip_dr_unit [simp]:
   "(\<lceil>II\<rceil>\<^sub>D ;; \<lceil>P\<rceil>\<^sub>D) = \<lceil>P\<rceil>\<^sub>D"
   by (rel_auto)+
 
+lemma assigns_d_ndes_def [ndes_simp]:
+  "\<langle>\<sigma>\<rangle>\<^sub>D = (true \<turnstile>\<^sub>n \<langle>\<sigma>\<rangle>\<^sub>a)"
+  by (rel_auto)
+    
 lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_auto)
 
@@ -734,7 +845,7 @@ lemma H1_inf_closed [closure]:
   "\<lbrakk> P is H1; Q is H1 \<rbrakk> \<Longrightarrow> P \<squnion> Q is H1"
   by (rel_blast)
 
-lemma H1_USUP:
+lemma H1_UINF:
   assumes "A \<noteq> {}"
   shows "H1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> H1(P(i)))"
   using assms by (rel_auto)
@@ -745,11 +856,11 @@ lemma H1_Sup:
 proof -
   from assms(2) have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
-  with H1_USUP[of A id, OF assms(1)] show ?thesis
+  with H1_UINF[of A id, OF assms(1)] show ?thesis
     by (simp add: UINF_as_Sup_image Healthy_def, presburger)
 qed
 
-lemma H1_UINF:
+lemma H1_USUP:
   shows "H1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> H1(P(i)))"
   by (rel_auto)
 
@@ -759,7 +870,7 @@ lemma H1_Inf [closure]:
 proof -
   from assms have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
-  with H1_UINF[of A id] show ?thesis
+  with H1_USUP[of A id] show ?thesis
     by (simp add: USUP_as_Inf_image Healthy_def, presburger)
 qed
 
@@ -989,6 +1100,10 @@ lemma assigns_d_is_H1_H2 [closure]:
   "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>H"
   by (simp add: assigns_d_def rdesign_is_H1_H2)
 
+lemma state_subst_H1_H2_closed [closure]: 
+  "P is \<^bold>H \<Longrightarrow> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P is \<^bold>H"
+  by (metis H1_H2_eq_rdesign Healthy_if rdesign_is_H1_H2 state_subst_design)
+    
 lemma seq_r_H1_H2_closed [closure]:
   assumes "P is \<^bold>H" "Q is \<^bold>H"
   shows "(P ;; Q) is \<^bold>H"
@@ -1018,7 +1133,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma USUP_H1_H2_closed [closure]:
+lemma UINF_H1_H2_closed [closure]:
   assumes "A \<noteq> {}" "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Sqinter> A) is H1_H2"
 proof -
@@ -1029,7 +1144,7 @@ proof -
   also have "... = (\<Sqinter> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
   also have "... = (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Sqinter> P \<in> A \<bullet> P\<^sup>t)"
-    by (simp add: design_USUP assms)
+    by (simp add: design_UINF_mem assms)
   also have "... is H1_H2"
     by (simp add: design_is_H1_H2 unrest)
   finally show ?thesis .
@@ -1038,12 +1153,12 @@ qed
 definition design_sup :: "('\<alpha>, '\<beta>) rel_des set \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("\<Sqinter>\<^sub>D_" [900] 900) where
 "\<Sqinter>\<^sub>D A = (if (A = {}) then \<top>\<^sub>D else \<Sqinter> A)"
 
-lemma design_sup_H1_H2_closed:
+lemma design_inf_H1_H2_closed:
   assumes "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Sqinter>\<^sub>D A) is \<^bold>H"
   apply (auto simp add: design_sup_def)
   apply (simp add: H1_def H2_not_okay Healthy_def impl_alt_def)
-  using USUP_H1_H2_closed assms apply blast
+  using UINF_H1_H2_closed assms apply blast
 done
 
 lemma design_sup_empty [simp]: "\<Sqinter>\<^sub>D {} = \<top>\<^sub>D"
@@ -1052,7 +1167,27 @@ lemma design_sup_empty [simp]: "\<Sqinter>\<^sub>D {} = \<top>\<^sub>D"
 lemma design_sup_non_empty [simp]: "A \<noteq> {} \<Longrightarrow> \<Sqinter>\<^sub>D A = \<Sqinter> A"
   by (simp add: design_sup_def)
 
-lemma UINF_H1_H2_closed:
+lemma USUP_mem_H1_H2_closed:
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is \<^bold>H"
+  shows "(\<Squnion> i\<in>A \<bullet> P i) is \<^bold>H"
+proof -
+  from assms have "(\<Squnion> i\<in>A \<bullet> P i) = (\<Squnion> i\<in>A \<bullet> \<^bold>H(P i))"
+    by (auto intro: USUP_cong simp add: Healthy_def)
+  also have "... = (\<Squnion> i\<in>A \<bullet> (\<not> (P i)\<^sup>f) \<turnstile> (P i)\<^sup>t)"
+    by (meson H1_H2_eq_design)
+  also have "... = (\<Sqinter> i\<in>A \<bullet> \<not> (P i)\<^sup>f) \<turnstile> (\<Squnion> i\<in>A \<bullet> \<not> (P i)\<^sup>f \<Rightarrow> (P i)\<^sup>t)"    
+    by (simp add: design_USUP_mem)  
+  also have "... is \<^bold>H"
+    by (simp add: design_is_H1_H2 unrest)
+  finally show ?thesis .
+qed
+
+lemma USUP_ind_H1_H2_closed:
+  assumes "\<And> i. P i is \<^bold>H"
+  shows "(\<Squnion> i \<bullet> P i) is \<^bold>H"
+  using assms USUP_mem_H1_H2_closed[of UNIV P] by simp
+  
+lemma Inf_H1_H2_closed:
   assumes "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Squnion> A) is \<^bold>H"
 proof -
@@ -1063,7 +1198,7 @@ proof -
   also have "... = (\<Squnion> P \<in> A \<bullet> (\<not> P\<^sup>f) \<turnstile> P\<^sup>t)"
     by (meson H1_H2_eq_design)
   also have "... = (\<Sqinter> P \<in> A \<bullet> \<not> P\<^sup>f) \<turnstile> (\<Squnion> P \<in> A \<bullet> \<not> P\<^sup>f \<Rightarrow> P\<^sup>t)"
-    by (simp add: design_UINF)
+    by (simp add: design_USUP_mem)
   also have "... is \<^bold>H"
     by (simp add: design_is_H1_H2 unrest)
   finally show ?thesis .
@@ -1226,16 +1361,21 @@ lemma H1_H3_comp: "H1_H3 = H1 \<circ> H3"
 lemma H1_H3_idempotent: "\<^bold>N (\<^bold>N P) = \<^bold>N P"
   by (simp add: H1_H3_commute H1_idem H3_idem)
 
-lemma H1_H3_Idempotent: "Idempotent \<^bold>N"
+lemma H1_H3_Idempotent [closure]: "Idempotent \<^bold>N"
   by (simp add: Idempotent_def H1_H3_idempotent)
 
-lemma H1_H3_monotonic: "Monotonic \<^bold>N"
+lemma H1_H3_monotonic [closure]: "Monotonic \<^bold>N"
   by (simp add: H1_monotone H3_mono mono_def)
 
-lemma H1_H3_Continuous: "Continuous \<^bold>N"
+lemma H1_H3_Continuous [closure]: "Continuous \<^bold>N"
   by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)
 
-lemma H1_H3_impl_H2: "P is H1_H3 \<Longrightarrow> P is H1_H2"
+lemma H1_H3_intro:
+  assumes "P is \<^bold>H" "out\<alpha> \<sharp> pre\<^sub>D(P)"
+  shows "P is \<^bold>N"
+  by (metis H1_H2_eq_rdesign H1_rdesign H3_rdesign_pre Healthy_def' assms)
+    
+lemma H1_H3_impl_H2 [closure]: "P is H1_H3 \<Longrightarrow> P is H1_H2"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 
 lemma H1_H3_eq_design_d_comp: "H1 (H3 P) = ((\<not> P\<^sup>f) \<turnstile> P\<^sup>t) ;; II\<^sub>D"
@@ -1269,16 +1409,59 @@ lemma ndesign_form: "P is \<^bold>N \<Longrightarrow> (\<lfloor>pre\<^sub>D(P)\<
   by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
 
 lemma des_bot_H1_H3 [closure]: "\<bottom>\<^sub>D is \<^bold>N"
-  by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def)
+  by (metis H1_design H3_def Healthy_def' design_false_pre design_true_left_zero skip_d_alt_def bot_d_def)
 
 lemma assigns_d_H1_H3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>N"
   by (metis H1_rdesign H3_ndesign Healthy_def' aext_true assigns_d_def ndesign_def)
 
+lemma des_top_is_H1_H3 [closure]: "\<top>\<^sub>D is \<^bold>N"
+  by (metis ndesign_H1_H3 ndesign_miracle) 
+    
+lemma skip_d_is_H1_H3 [closure]: "II\<^sub>D is \<^bold>N"
+  by (metis assigns_d_H1_H3 assigns_d_id)
+    
 lemma seq_r_H1_H3_closed [closure]:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "(P ;; Q) is \<^bold>N"
   by (metis (no_types) H1_H2_eq_design H1_H3_eq_design_d_comp H1_H3_impl_H2 Healthy_def assms(1) assms(2) seq_r_H1_H2_closed seqr_assoc)
+  
+lemma dcond_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<triangleleft> b \<triangleright>\<^sub>D Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_dcond ndesign_form)
 
+lemma inf_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<sqinter> Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_choice ndesign_form)
+
+lemma sup_H1_H2_closed [closure]:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "(P \<squnion> Q) is \<^bold>N"
+  by (metis assms ndesign_H1_H3 ndesign_inf ndesign_form)
+    
+lemma ndes_seqr_miracle:
+  assumes "P is \<^bold>N"
+  shows "P ;; \<top>\<^sub>D = \<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<turnstile>\<^sub>n false"
+proof -
+  have "P ;; \<top>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (true \<turnstile>\<^sub>n false)"
+    by (simp add: assms ndesign_form ndesign_miracle)
+  also have "... = \<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<turnstile>\<^sub>n false"
+    by (simp add: ndesign_composition_wp wp alpha)
+  finally show ?thesis .
+qed
+    
+lemma ndes_seqr_abort: 
+  assumes "P is \<^bold>N"
+  shows "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+proof -
+  have "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (false \<turnstile>\<^sub>n false)"
+    by (simp add: assms bot_d_true ndesign_false_pre ndesign_form)
+  also have "... = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+    by (simp add: ndesign_composition_wp alpha)
+  finally show ?thesis .
+qed
+      
 lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<sigma> \<dagger> r"
   by (rel_auto)
 
@@ -1288,6 +1471,20 @@ theorem wpd_seq_r_H1_H3 [wp]:
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
   by (metis H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def' assms(1) assms(2) wpnd_seq_r)
 
+lemma preD_USUP_mem: "pre\<^sub>D (\<Squnion> i\<in>A \<bullet> P i) = (\<Sqinter> i\<in>A \<bullet> pre\<^sub>D(P i))"
+  by (rel_auto)
+  
+lemma preD_USUP_ind: "pre\<^sub>D (\<Squnion> i \<bullet> P i) = (\<Sqinter> i \<bullet> pre\<^sub>D(P i))"
+  by (rel_auto)
+
+lemma USUP_ind_H1_H3_closed [closure]:
+  "\<lbrakk> \<And> i. P i is \<^bold>N \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is \<^bold>N"
+  by (rule H1_H3_intro, simp_all add: H1_H3_impl_H2 USUP_ind_H1_H2_closed preD_USUP_ind unrest)
+    
+lemma state_subst_H1_H3_closed [closure]: 
+  "P is \<^bold>N \<Longrightarrow> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P is \<^bold>N"
+  by (metis H1_H2_eq_rdesign H1_H3_impl_H2 Healthy_if assign_d_left_comp assigns_d_H1_H3 seq_r_H1_H3_closed state_subst_design)
+    
 text {* If two normal designs have the same weakest precondition for any given postcondition, then
   the two designs are equivalent. *}
 
@@ -1377,12 +1574,13 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   and "le (uthy_order DES) = op \<sqsubseteq>"
   and "eq (uthy_order DES) = op ="
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
-
-interpretation normal_design_theory_mono: utp_theory_continuous NDES
+                                                            
+interpretation normal_design_theory_continuous: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le (uthy_order NDES) = op \<sqsubseteq>"
-  and "eq (uthy_order NDES) = op ="
+  and "A \<subseteq> carrier (uthy_order NDES) \<longleftrightarrow> A \<subseteq> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"  
+  and "eq (uthy_order NDES) = op ="  
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 thm design_theory_continuous.healthy_top
@@ -1393,6 +1591,12 @@ lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
   by (simp add: design_theory_continuous.healthy_bottom, simp add: des_hcond_def)
 
+lemma ndesign_lat_top: "\<^bold>\<top>\<^bsub>NDES\<^esub> = \<^bold>N(false)"
+  by (metis ndes_hcond_def normal_design_theory_continuous.healthy_top)
+
+lemma ndesign_lat_bottom: "\<^bold>\<bottom>\<^bsub>NDES\<^esub> = \<^bold>N(true)"
+  by (metis ndes_hcond_def normal_design_theory_continuous.healthy_bottom)
+    
 abbreviation design_lfp :: "('\<alpha> hrel_des \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" ("\<mu>\<^sub>D") where
 "\<mu>\<^sub>D F \<equiv> \<^bold>\<mu>\<^bsub>DES\<^esub> F"
 
@@ -1457,12 +1661,12 @@ text {* Weakest precondition laws for design variable scopes *}
 lemma wpd_var_begin [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
   shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x/x\<rbrakk>"
-  by (simp add: var_begin_def ndes_assigns_def wp)
+  by (simp add: var_begin_def ndes_assigns_def wp usubst)
 
 lemma wpd_var_end [wp]:
   fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
   shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(&x)/x\<rbrakk>"
-  by (simp add: var_end_def ndes_assigns_def wp)
+  by (simp add: var_end_def ndes_assigns_def wp usubst)
 
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}
@@ -1700,5 +1904,224 @@ begin
   qed
 
 end
+  
+theorem rdesign_mu_wf_refine_intro: 
+  assumes   WF: "wf R"
+    and      M: "Monotonic F"
+    and      H: "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+    and  induct_step:
+    "\<And>st. (P \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> F ((P \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q)"
+  shows "(P \<turnstile>\<^sub>r Q) \<sqsubseteq> \<mu>\<^sub>D F"            
+proof -          
+  {
+  fix st
+  have "(P \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> \<mu>\<^sub>D F" 
+  using WF proof (induction rule: wf_induct_rule)
+    case (less st)
+    hence 0: "(P \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> \<mu>\<^sub>D F"
+      by rel_blast
+    from M H design_theory_continuous.LFP_lemma3 mono_Monotone_utp_order
+    have 1: "\<mu>\<^sub>D F \<sqsubseteq>  F (\<mu>\<^sub>D F)"
+      by blast
+    from 0 1 have 2:"(P \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> F (\<mu>\<^sub>D F)"
+      by simp
+    have 3: "F ((P \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q) \<sqsubseteq> F (\<mu>\<^sub>D F)"
+      by (simp add: 0 M monoD)
+    have 4:"(P \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> \<dots>" 
+      by (rule induct_step)
+    show ?case
+      using order_trans[OF 3 4] H M design_theory_continuous.LFP_lemma2 dual_order.trans mono_Monotone_utp_order 
+      by blast
+  qed
+  }
+  thus ?thesis
+    by (pred_simp)
+qed  
 
+theorem ndesign_mu_wf_refine_intro: 
+  assumes   WF: "wf R"
+    and      M: "Monotonic F"
+    and      H: "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
+    and  induct_step:
+    "\<And>st. ((p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>n Q) \<sqsubseteq> F ((p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>n Q)"
+  shows "(p \<turnstile>\<^sub>n Q) \<sqsubseteq> \<mu>\<^sub>D F"
+  using assms unfolding ndesign_def
+  by (rule_tac rdesign_mu_wf_refine_intro[of R F "\<lceil>p\<rceil>\<^sub><" e], simp_all add: alpha)
+  
+subsection {* Normal Designs Proof Tactics *}
+  
+named_theorems ND_elim
+  
+lemma ndes_elim: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (simp add: ndesign_form)
+    
+lemma ndes_split [ND_elim]: "\<lbrakk> P is \<^bold>N; \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
+    
+method ndes_expand uses cls = (insert cls, (erule ND_elim)+)
+  
+method ndes_simp uses cls =
+  ((ndes_expand cls: cls)?, (simp add: ndes_simp closure alpha usubst unrest wp prod.case_eq_if))
+
+method ndes_refine uses cls =
+  (ndes_simp cls: cls; rule_tac ndesign_refine_intro; (insert cls; rel_simp; auto?))
+
+method ndes_eq uses cls =
+  (ndes_simp cls: cls; rule_tac antisym; rule_tac ndesign_refine_intro; (insert cls; rel_simp; auto?))
+
+subsection {* Alternation *}
+  
+definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("_ \<rightarrow>\<^sub>D _" [85, 86] 85) where
+[upred_defs]: "b \<rightarrow>\<^sub>D P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
+  
+lemma GrdCommD_ndes_simp [ndes_simp]:
+  "b \<rightarrow>\<^sub>D (p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) = ((b \<Rightarrow> p\<^sub>1) \<turnstile>\<^sub>n (\<lceil>b\<rceil>\<^sub>< \<and> P\<^sub>2))"
+  by (rel_auto)
+
+lemma GrdCommD_H1_H3_closed [closure]: "P is \<^bold>N \<Longrightarrow> b \<rightarrow>\<^sub>D P is \<^bold>N"
+  by (simp add: GrdCommD_def closure)
+
+lemma GrdCommD_true [simp]: "true \<rightarrow>\<^sub>D P = P"
+  by (rel_auto)
+    
+lemma GrdCommD_false [simp]: "false \<rightarrow>\<^sub>D P = \<top>\<^sub>D"
+  by (rel_auto)
+  
+lemma GrdCommD_abort [simp]: "b \<rightarrow>\<^sub>D true = ((\<not> b) \<turnstile>\<^sub>n false)"
+  by (rel_auto)
+    
+consts
+  ualtern       :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r \<Rightarrow> 'r"
+  ualtern_list  :: "('a \<times> 'r) list \<Rightarrow> 'r \<Rightarrow> 'r"
+  
+definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
+[upred_defs, ndes_simp]:
+"AlternateD A g P Q = (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D P(i)) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D Q"
+
+text {* This lemma shows that our generalised alternation is the same operator as Marcel Oliveira's
+  definition of alternation when the else branch is abort. *}
+
+lemma AlternateD_abort_alternate:
+  assumes "\<And> i. P(i) is \<^bold>N"
+  shows
+  "AlternateD A g P \<bottom>\<^sub>D = 
+  ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+proof (cases "A = {}")
+  case False
+  have "AlternateD A g P \<bottom>\<^sub>D = 
+        (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D (\<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i))) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D (false \<turnstile>\<^sub>n true)"
+    by (simp add: AlternateD_def ndesign_form bot_d_ndes_def assms)
+  also have "... = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
+    by (simp add: ndes_simp False, rel_auto)
+  finally show ?thesis by simp
+next
+  case True
+  thus ?thesis
+    by (simp add: AlternateD_def, rel_auto)
+qed
+     
+definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des  \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
+[upred_defs, ndes_simp]:
+"AlternateD_list xs P = 
+  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i)) P"
+
+adhoc_overloading
+  ualtern AlternateD and
+  ualtern_list AlternateD_list
+
+nonterminal gcomm and gcomms
+  
+syntax
+  "_altind_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_gcomm"        :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [65, 66] 65)
+  "_gcomm_nil"    :: "gcomm \<Rightarrow> gcomms" ("_")
+  "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ | _" [60, 61] 61)
+  "_gcomm_show"   :: "logic \<Rightarrow> logic"
+  "_altgcomm_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if _ else _ fi")
+  "_altgcomm"     :: "gcomms \<Rightarrow> logic" ("if _ fi")
+  
+translations
+  "_altind_els x A g P Q" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) Q"
+  "_altind_els x A g P Q" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) Q"
+  "_altind x A g P" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) (CONST Orderings.top)"
+  "_altind x A g P" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) (CONST Orderings.top)"
+  "_altgcomm cs" => "CONST ualtern_list cs (CONST Orderings.top)"
+  "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST Orderings.top)"
+  "_altgcomm_els cs P" => "CONST ualtern_list cs P"
+  "_altgcomm_els (_gcomm_show cs) P" <= "CONST ualtern_list cs P"
+
+  "_gcomm g P" => "(g, P)"
+  "_gcomm g P" <= "_gcomm_show (g, P)"
+  "_gcomm_cons c cs" => "c # cs"
+  "_gcomm_cons (_gcomm_show c) (_gcomm_show (d # cs))" <= "_gcomm_show (c # d # cs)"
+  "_gcomm_nil c" => "[c]"
+  "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
+  
+lemma AlternateD_H1_H3_closed [closure]: 
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is \<^bold>N" "Q is \<^bold>N"
+  shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi is \<^bold>N"
+proof (cases "A = {}")
+  case True
+  then show ?thesis
+    by (simp add: AlternateD_def closure false_upred_def assms)
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateD_def closure assms)
+qed
+
+lemma false_sup [simp]: "false \<sqinter> P = P" "P \<sqinter> false = P"
+  by (rel_auto)+
+
+lemma true_inf [simp]: "true \<squnion> P = P" "P \<squnion> true = P"
+  by (rel_auto)+
+    
+lemma AltD_ndes_simp [ndes_simp]: 
+  "if i\<in>A \<bullet> g(i) \<rightarrow> (P\<^sub>1(i) \<turnstile>\<^sub>n P\<^sub>2(i)) else Q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2 fi 
+   = ((\<And> i \<in> A \<bullet> g i \<Rightarrow> P\<^sub>1 i) \<and> ((\<And> i \<in> A \<bullet> \<not> g i) \<Rightarrow> Q\<^sub>1)) \<turnstile>\<^sub>n
+     ((\<Or> i \<in> A \<bullet> \<lceil>g i\<rceil>\<^sub>< \<and> P\<^sub>2 i) \<or> (\<And> i \<in> A \<bullet> \<not> \<lceil>g i\<rceil>\<^sub><) \<and> Q\<^sub>2)"
+proof (cases "A = {}")
+  case True
+  then show ?thesis by (simp add: AlternateD_def)
+next
+  case False
+  then show ?thesis
+    by (simp add: ndes_simp, rel_auto)
+qed
+  
+lemma UINF_pred_false [simp]: 
+  "(\<Sqinter> i | false \<bullet> P(i)) = false"
+  by (rel_auto)
+
+declare UINF_upto_expand_first [ndes_simp]
+declare UINF_Suc_shift [ndes_simp]
+declare USUP_upto_expand_first [ndes_simp]
+declare USUP_Suc_shift [ndes_simp]
+declare true_upred_def [THEN sym, ndes_simp]
+  
+lemma AlternateD_empty:
+  "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
+  by (rel_auto)
+  
+lemma AlternateD_singleton:
+  assumes "P is \<^bold>N"
+  shows "if true \<rightarrow> P fi = P"
+  by (ndes_simp cls: assms)
+
+lemma AlternateD_commute:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "if g\<^sub>1 \<rightarrow> P | g\<^sub>2 \<rightarrow> Q fi = if g\<^sub>2 \<rightarrow> Q | g\<^sub>1 \<rightarrow> P fi"
+  by (ndes_eq cls:assms)
+
+lemma AlternateD_dcond:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "if g \<rightarrow> P else Q fi = P \<triangleleft> g \<triangleright>\<^sub>D Q"
+  by (ndes_eq cls:assms)
+
+lemma AlternateD_cover:
+  assumes "P is \<^bold>N" "Q is \<^bold>N"
+  shows "if g \<rightarrow> P else Q fi = if g \<rightarrow> P | (\<not> g) \<rightarrow> Q fi"
+  by (ndes_eq cls: assms)
+    
 end

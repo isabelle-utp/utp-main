@@ -70,7 +70,8 @@ syntax
   "_ushGAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
   "_ushGtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ > _ \<bullet> _" [0, 0, 10] 10)
   "_ushLtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ < _ \<bullet> _" [0, 0, 10] 10)
-
+  "_uvar_res" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>v" 90)
+  
 translations
   "_uex x P"                   == "CONST uex x P"
   "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"
@@ -113,10 +114,10 @@ notation Inf ("\<Squnion>_" [900] 900)
 purge_notation Sup ("\<Squnion>_" [900] 900)
 notation Sup ("\<Sqinter>_" [900] 900)
   
-purge_notation bot ("\<bottom>")
-notation bot ("\<top>")
-purge_notation top ("\<top>")
-notation top ("\<bottom>")
+purge_notation Orderings.bot ("\<bottom>")
+notation Orderings.bot ("\<top>")
+purge_notation Orderings.top ("\<top>")
+notation Orderings.top ("\<bottom>")
 
 purge_syntax
   "_INF1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
@@ -162,6 +163,14 @@ instance
   by (intro_classes) (transfer, auto)+
 end
 
+lemma top_uexpr_rep_eq [simp]: 
+  "\<lbrakk>Orderings.bot\<rbrakk>\<^sub>e b = False"
+  by (transfer, auto)
+
+lemma bot_uexpr_rep_eq [simp]: 
+  "\<lbrakk>Orderings.top\<rbrakk>\<^sub>e b = True"
+  by (transfer, auto)
+    
 instance uexpr :: (distrib_lattice, type) distrib_lattice
   by (intro_classes) (transfer, rule ext, auto simp add: sup_inf_distrib1)
 
@@ -290,6 +299,15 @@ lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha>
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
+    
+text {* We define the following operator which is dual of existential quantification. It hides the
+  valuation of variables other than $x$ through existential quantification. *}
+    
+lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred" is
+"\<lambda> P x b. \<exists> b'. P (b' \<oplus>\<^sub>L b on x)" .
+    
+translations
+  "_uvar_res P a" \<rightleftharpoons> "CONST var_res P a"
 
 text {* We have to add a u subscript to the closure operator as I don't want to override the syntax
         for HOL lists (we'll be using them later). *}
@@ -334,6 +352,7 @@ declare disj_upred_def [upred_defs]
 declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
+declare par_subst_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
 declare uexpr_defs [upred_defs]
 
@@ -357,7 +376,7 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
 subsection {* Unrestriction Laws *}
 
 lemma unrest_allE:
-  "\<lbrakk> &\<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
+  "\<lbrakk> \<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
   by (pred_auto)
   
 lemma unrest_true [unrest]: "x \<sharp> true"
@@ -417,7 +436,7 @@ lemma unrest_ex_diff [unrest]:
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
 done
-
+  
 lemma unrest_all_in [unrest]:
   "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
   by (pred_auto)
@@ -427,6 +446,20 @@ lemma unrest_all_diff [unrest]:
   shows "y \<sharp> (\<forall> x \<bullet> P)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
+
+lemma unrest_var_res_diff [unrest]:
+  assumes "x \<bowtie> y"
+  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
+  using assms by (pred_auto)
+
+lemma unrest_var_res_in [unrest]:
+  assumes "mwb_lens x" "y \<subseteq>\<^sub>L x" "y \<sharp> P"
+  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
+  using assms 
+  apply (pred_auto)
+  apply fastforce
+  apply (metis (no_types, lifting) mwb_lens_weak weak_lens.put_get)
+done
 
 lemma unrest_shEx [unrest]:
   assumes "\<And> y. x \<sharp> P(y)"
@@ -442,6 +475,28 @@ lemma unrest_closure [unrest]:
   "x \<sharp> [P]\<^sub>u"
   by (pred_auto)
 
+subsection {* Used-by laws *}
+
+lemma usedBy_not [unrest]:
+  "\<lbrakk> x \<natural> P \<rbrakk> \<Longrightarrow> x \<natural> (\<not> P)"
+  by (pred_simp)
+    
+lemma usedBy_conj [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<and> Q)"
+  by (pred_simp)
+
+lemma usedBy_disj [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<or> Q)"
+  by (pred_simp)
+
+lemma usedBy_impl [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Rightarrow> Q)"
+  by (pred_simp)
+
+lemma usedBy_iff [unrest]:
+  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Leftrightarrow> Q)"
+  by (pred_simp)
+    
 subsection {* Substitution Laws *}
 
 text {* Substitution is monotone *}
@@ -497,6 +552,10 @@ lemma subst_ex_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+lemma subst_ex_same' [usubst]:
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> &x \<bullet> P) = \<sigma> \<dagger> (\<exists> &x \<bullet> P)"
+  by (pred_auto)
+    
 lemma subst_ex_indep [usubst]:
   assumes "x \<bowtie> y" "y \<sharp> v"
   shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
@@ -518,5 +577,5 @@ lemma subst_all_indep [usubst]:
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
-
+    
 end

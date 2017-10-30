@@ -120,7 +120,7 @@ lemma prefix_drop:
    \<Longrightarrow> ys = xs @ zs"
   by (metis append_eq_conv_conj prefix_def)
 
-lemma list_append_prefixD: "x @ y \<le> z \<Longrightarrow> x \<le> z"
+lemma list_append_prefixD [dest]: "x @ y \<le> z \<Longrightarrow> x \<le> z"
   using append_prefixD less_eq_list_def by blast
 
 lemma listsum_update: 
@@ -837,6 +837,14 @@ qed
 
 definition seq_filter :: "'a list \<Rightarrow> 'a set \<Rightarrow> 'a list" (infix "\<restriction>\<^sub>l" 80) where
 "seq_filter xs A = filter (\<lambda> x. x \<in> A) xs"
+
+lemma seq_filter_Cons_in [simp]: 
+  "x \<in> cs \<Longrightarrow> (x # xs) \<restriction>\<^sub>l cs = x # (xs \<restriction>\<^sub>l cs)"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_Cons_out [simp]: 
+  "x \<notin> cs \<Longrightarrow> (x # xs) \<restriction>\<^sub>l cs = (xs \<restriction>\<^sub>l cs)"
+  by (simp add: seq_filter_def)
 
 lemma seq_filter_Nil [simp]: "[] \<restriction>\<^sub>l A = []"
   by (simp add: seq_filter_def)

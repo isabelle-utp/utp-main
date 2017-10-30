@@ -23,3 +23,6 @@ session "Optics" = "HOL-Eisbach" +
     "root.tex"
     "document.sty"
     "figures/Lens.pdf"
+    "figures/Composition.pdf"
+    "figures/Sum.pdf"
+    "figures/Independence.pdf"

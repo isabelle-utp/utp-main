@@ -43,8 +43,8 @@ subsection {* Calculations *}
 
 text {* The precondition of the main body is true because no divergence is possible. We calculate
   this using the reactive design calculation tactic, \textbf{rdes-calc}. *}
-
-lemma preR_DoBuff: "pre\<^sub>R(DoBuff) = true"
+  
+lemma preR_DoBuff: "pre\<^sub>R(DoBuff) = true\<^sub>r"
   by (rdes_calc)
 
 text {* The pericondition ensures that no input on channel $inp$ is being refused, the trace
@@ -63,13 +63,13 @@ text {* The postcondition has two possibilities. In the first option a particula
   is removed from the buffer. *}
 
 lemma postR_DoBuff:
-  "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle> \<and> \<lceil>buff := &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>\<rceil>\<^sub>S) \<or>
-                    #\<^sub>u($st:buff) >\<^sub>u 0 \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rceil>\<^sub>S\<^sub><\<rangle> \<and> \<lceil>buff := tail\<^sub>u(&buff)\<rceil>\<^sub>S)"
+  "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> \<Phi>(true,[buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>],\<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>)) \<or>
+                    [0 <\<^sub>u #\<^sub>u(&buff)]\<^sub>S\<^sub>< \<and> \<Phi>(true,[buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)],\<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))"
   by rdes_calc
 
 text {* The precondition of the overall buffer is again true as no divergence can occur. *}
 
-lemma preR_Buffer: "pre\<^sub>R(Buffer) = true"
+lemma preR_Buffer: "pre\<^sub>R(Buffer) = true\<^sub>r"
   by rdes_calc
 
 text {* The postcondition is false as it is a non-terminating process. *}
@@ -82,7 +82,7 @@ text {* The pericondition is where the main behaviour of the buffer appears. Ess
   not reproduce it as it is a little long, but the calculation can be seen in Isabelle. *}
 
 lemma periR_Buffer: "peri\<^sub>R(Buffer) = undefined"
-    apply (simp add: Buffer_def rdes closure wp unrest usubst alpha seq_UINF_distr)
+    apply (simp add: Buffer_def rdes closure wp unrest rpred usubst alpha seq_UINF_distr)
 oops
 
 

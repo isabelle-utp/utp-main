@@ -285,6 +285,11 @@ done
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
 
+text \<open> The next theorem lifts powers. \<close>
+
+lemma power_rep_eq: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
+  by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
+    
 text \<open> We can also lift a few arithmetic properties from the class instantiations above using
   \emph{transfer}. \<close>
     
@@ -325,7 +330,9 @@ consts
   ucard      :: "'f \<Rightarrow> nat"
   -- \<open> Collection summation \<close>
   usums      :: "'f \<Rightarrow> 'a"
-
+  -- \<open> Construct a collection from a list of entries \<close>
+  uentries   :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> 'f"
+  
 text \<open> We need a function corresponding to function application in order to overload. \<close>
   
 definition fun_apply :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'b)"
@@ -333,19 +340,23 @@ where "fun_apply f x = f x"
 
 declare fun_apply_def [simp]
 
+definition ffun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> ('k, 'v) ffun" where
+"ffun_entries d f = graph_ffun {(k, f k) | k. k \<in> d}"
+
 text \<open> We then set up the overloading for a number of useful constructs for various collections. \<close>
   
 adhoc_overloading
   uempty 0 and
   uapply fun_apply and uapply nth and uapply pfun_app and
   uapply ffun_app and
-  uupd pfun_upd and uupd ffun_upd and uupd list_update and
+  uupd pfun_upd and uupd ffun_upd and uupd list_augment and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
   udom Range and uran pran and uran fran and uran set and
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length and
-  usums list_sum and usums Sum
+  usums list_sum and usums Sum and usums pfun_sum and
+  uentries pfun_entries and uentries ffun_entries
   
 subsection \<open> Syntax translations \<close>
 
@@ -353,8 +364,11 @@ text \<open> The follows a large number of translations that lift HOL functions 
   using the various expression constructors defined above. Much of the time we try to keep
   the HOL syntax but add a "u" subscript. \<close>
   
-abbreviation "ulens_override x f g \<equiv> lens_override f g x"
-
+abbreviation (input) "ulens_override x f g \<equiv> lens_override f g x"
+  
+translations
+  "0" <= "CONST uempty" -- {* We have to do this so we don't see uempty. Is there a better way of printing? *}
+    
 text \<open> We add new non-terminals for UTP tuples and maplets. \<close>
   
 nonterminal utuple_args and umaplet and umaplets
@@ -362,13 +376,14 @@ nonterminal utuple_args and umaplet and umaplets
 syntax -- \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
   "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
-  "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> svar \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
+  "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
 
 translations
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
-  "_ulens_ovrd f g a" == "CONST bop (CONST ulens_override a) f g"
-  
+  "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
+  "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
+
 syntax -- \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
@@ -385,8 +400,9 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
     
 syntax -- \<open> Polymorphic constructs \<close>
+  "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
   "_umap_empty" :: "logic" ("[]\<^sub>u")
-  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_\<lparr>_\<rparr>\<^sub>u" [999,0] 999)
+  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -407,10 +423,11 @@ syntax -- \<open> Polymorphic constructs \<close>
   "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
   "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
   "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
+  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
   
 translations
   -- \<open> Pretty printing for adhoc-overloaded constructs \<close>
-  "f\<lparr>x\<rparr>\<^sub>u"    <= "CONST uapply f x"
+  "f(x)\<^sub>a"    <= "CONST uapply f x"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"  
   "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
@@ -419,15 +436,19 @@ translations
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
   -- \<open> Overloaded construct translations \<close>
-  "f\<lparr>x,y\<rparr>\<^sub>u"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
-  "f\<lparr>x\<rparr>\<^sub>u"    == "CONST bop CONST uapply f x"
+  "f(x,y,z,u)\<^sub>a" == "CONST bop CONST uapply f (x,y,z,u)\<^sub>u"
+  "f(x,y,z)\<^sub>a" == "CONST bop CONST uapply f (x,y,z)\<^sub>u"
+  "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
+  "f(x)\<^sub>a"    == "CONST bop CONST uapply f x"
   "#\<^sub>u(xs)"  == "CONST uop CONST ucard xs"
   "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "[]\<^sub>u"     == "\<guillemotleft>CONST uempty\<guillemotright>"
+  "\<bottom>\<^sub>u"     == "\<guillemotleft>CONST undefined\<guillemotright>"
   "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
   "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
+  "entr\<^sub>u(d,f)" == "CONST bop CONST uentries d \<guillemotleft>f\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
@@ -437,8 +458,8 @@ translations
   -- \<open> Type-class polymorphic constructs \<close>
   "x <\<^sub>u y"   == "CONST bop (op <) x y"
   "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y"
-  "x >\<^sub>u y"   == "y <\<^sub>u x"
-  "x \<ge>\<^sub>u y"   == "y \<le>\<^sub>u x"
+  "x >\<^sub>u y"   => "y <\<^sub>u x"
+  "x \<ge>\<^sub>u y"   => "y \<le>\<^sub>u x"
   "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y"
   "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
   "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"
@@ -460,7 +481,11 @@ syntax -- \<open> Lists / Sequences \<close>
   "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
   "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
   "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
-
+  "_uupto"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_.._\<rangle>")
+  "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
+  "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
+  "_uzip"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("zip\<^sub>u")
+  
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
@@ -477,6 +502,10 @@ translations
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
   "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
   "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
+  "\<langle>n..k\<rangle>" == "CONST bop CONST upto n k"
+  "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
+  "map\<^sub>u f xs" == "CONST bop CONST map f xs"
+  "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
   
 syntax -- \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
@@ -496,12 +525,10 @@ translations
   "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
-  "A \<subset>\<^sub>u B"   == "CONST bop (op <) A B"
-  "A \<subset>\<^sub>u B"   <= "CONST bop (op \<subset>) A B"
+  "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>f) f g"
-  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<le>) A B"
-  "A \<subseteq>\<^sub>u B"   <= "CONST bop (op \<subseteq>) A B"
+  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
   
@@ -649,6 +676,10 @@ lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
+lemma ufun_apply_lit [simp]: 
+  "\<guillemotleft>f\<guillemotright>(\<guillemotleft>x\<guillemotright>)\<^sub>a = \<guillemotleft>f(x)\<guillemotright>"
+  by (transfer, simp)
+    
 subsection \<open> Literalise tactics \<close>
 
 text \<open> The following tactic converts literal HOL expressions to UTP expressions and vice-versa

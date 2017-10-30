@@ -5,7 +5,8 @@ theory Prisms
 begin
   
 text \<open>Prisms are like lenses, but they act on sum types rather than product types. For now
-  we do not support many properties about them.\<close>
+  we do not support many properties about them. See \url{https://hackage.haskell.org/package/lens-4.15.2/docs/Control-Lens-Prism.html}
+  for more information.\<close>
 
 record ('v, 's) prism =
   prism_match :: "'s \<Rightarrow> 'v option" ("match\<index>")
@@ -29,7 +30,7 @@ definition prism_suml :: "('a, 'a + 'b) prism" where
 
 lemma wb_prim_suml: "wb_prism prism_suml"
   apply (unfold_locales)
-  apply (simp_all add: prism_suml_def sum.case_eq_if)
+   apply (simp_all add: prism_suml_def sum.case_eq_if)
   apply (metis option.inject option.simps(3) sum.collapse(1))
 done
 

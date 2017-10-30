@@ -20,20 +20,20 @@ lemma "(\<forall> x \<bullet> &x >\<^sub>u 1) = true"
   nitpick
 oops
 
-lemma "(x := 1 ;; x := &x + 1) = (x := 2)"
+lemma "x := 1 ;; x := (&x + 1) = x := 2"
   by (rel_auto)
 
-lemma "(x := 1 ;; x := &x + 2) = (x := 2)"
+lemma "x := 1 ;; x := (&x + 2) = x := 2"
   apply (rel_auto)
   oops
 
-lemma "(x := &x - 5) wp (&x >\<^sub>u 10) = (&x >\<^sub>u 15)"
+lemma "x := (&x - 5) wp (&x >\<^sub>u 10) = (&x >\<^sub>u 15)"
   apply (simp add: wp)
   apply (subst_tac)
   apply (pred_auto)
 done
 
-lemma "(true \<turnstile>\<^sub>n x := 1 ;; (&x >\<^sub>u 1) \<turnstile>\<^sub>n y := &y) = \<bottom>\<^sub>D"
+lemma "(true \<turnstile>\<^sub>n x := 1) ;; ((&x >\<^sub>u 1) \<turnstile>\<^sub>n y := &y) = \<bottom>\<^sub>D"
   apply (simp add: ndesign_composition_wp)
   apply (simp add: wp)
   apply (subst_tac)
@@ -46,14 +46,14 @@ lemma "x \<bowtie> y"
   by (simp)
 
 lemma "x +\<^sub>L y \<bowtie> z"
-  by (simp add: plus_pres_lens_indep)
+  by (simp)
 
 term "surname ;\<^sub>L y"
 
 term "y:surname := \<guillemotleft>''Foster''\<guillemotright> ;; y:dateOfBirth := (02, 02, &x)\<^sub>u"
 
 lemma "(surname ;\<^sub>L y) \<subseteq>\<^sub>L y"
-  by (simp add: lens_comp_lb)
+  by (simp)
 
 lemma "x +\<^sub>L y +\<^sub>L z \<approx>\<^sub>L 1\<^sub>L"
   oops

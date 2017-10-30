@@ -12,6 +12,7 @@ imports
   utp_var
   utp_expr
   utp_unrest
+  utp_usedby
   utp_subst
   utp_meta_subst
   utp_alphabet
