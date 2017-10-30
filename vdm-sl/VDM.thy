@@ -34,7 +34,7 @@ consts
   viuvar :: "'v \<Rightarrow> 'p" ("$\<^sub>v_" [999] 999)
   vouvar :: "'v \<Rightarrow> 'p" ("$\<^sub>v_\<acute>" [999] 999)
 
-lift_definition vvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr"
+lift_definition vvar :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) vexpr"
   is "\<lambda> x b. Some (get\<^bsub>x\<^esub> b)" .
 
 definition vvar_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr"
@@ -42,7 +42,7 @@ where "vvar_dvar x = vvar (x\<up>)"
 
 declare vvar_dvar_def [upred_defs]
 
-definition vivar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) vexpr"  where
+definition vivar :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) vexpr"  where
 "vivar x = vvar (in_var x)"
 
 definition vivar_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst \<times> '\<beta>) vexpr"
@@ -51,7 +51,7 @@ where "vivar_dvar x = vivar (x\<up>)"
 declare vivar_def [upred_defs]
 declare vivar_dvar_def [upred_defs]
 
-definition vovar :: "('a, '\<beta>) uvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) vexpr"  where
+definition vovar :: "('a \<Longrightarrow> '\<beta>) \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) vexpr"  where
 "vovar x = vvar (out_var x)"
 
 definition vovar_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>::vst) vexpr"
@@ -74,10 +74,10 @@ is "\<lambda> \<sigma> e b. e (\<sigma> b)" .
 adhoc_overloading
   usubst vsubst
 
-lift_definition vsubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr" ("\<langle>_\<rangle>\<^sub>v")
+lift_definition vsubst_lookup :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) vexpr" ("\<langle>_\<rangle>\<^sub>v")
 is "\<lambda> \<sigma> x b. Some (get\<^bsub>x\<^esub> (\<sigma> b))" .
 
-lift_definition unrest_vexpr :: "('a, '\<alpha>) uvar \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> bool"
+lift_definition unrest_vexpr :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> bool"
 is "\<lambda> x e. (\<forall>b v. e(put\<^bsub>x\<^esub> b v) = e b)" .
 
 adhoc_overloading
@@ -619,7 +619,7 @@ lemma vdefined_undef [simp]:
   by (pred_auto)
 
 lemma vdefined_vvar [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<D>\<^sub>v(&\<^sub>vx) = true\<^sub>v"
   by (transfer, simp)
 
@@ -657,7 +657,7 @@ subsection {* VDM-SL programs *}
 text {* Assignment requires that the expression assigned to the
         expression be defined, otherwise an abort will result. *}
 
-definition vassign_uvar :: "('a, '\<alpha>) uvar \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" where
+definition vassign_uvar :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" where
 [urel_defs]: "vassign_uvar x v = (\<lfloor> \<D>\<^sub>v(v) \<rfloor>\<^sub>v \<turnstile>\<^sub>n (x := \<lfloor>v\<rfloor>\<^sub>v))"
 
 definition vassign_dvar :: "'a::continuum dvar \<Rightarrow> ('a, '\<alpha>::vst) vexpr \<Rightarrow> '\<alpha> hrel_des" where
@@ -677,27 +677,27 @@ abbreviation "vassign_upd x f v \<equiv> vassign_uvar x (vbop (bpfun' (\<lambda>
 (* TODO: Implement pretty print rules for record update assignment *)
 
 syntax
-  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" (infix ":=\<^sub>v" 40)
-  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,40] 40)
-  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_'(_')/ :=\<^sub>v/ _" [999,999,40] 40)
+  "_vassign"     :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel_des" (infix ":=\<^sub>v" 72)
+  "_vassign_rec" :: "id \<Rightarrow> id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_.\<^sub>v_/ :=\<^sub>v/ _" [999,999,71] 72)
+  "_vassign_map" :: "id \<Rightarrow> ('a, '\<alpha>) vexpr \<Rightarrow> ('b, '\<alpha>) vexpr \<Rightarrow> '\<alpha> hrel" ("_'(_')/ :=\<^sub>v/ _" [999,999,71] 72)
 
 translations
   "x :=\<^sub>v v" == "CONST vassign x v"
   "x.\<^sub>vf :=\<^sub>v v" == "CONST vassign_upd x (_update_name f) v"
   "m(k) :=\<^sub>v v" => "CONST vassign m (CONST vtop CONST vupdate (&\<^sub>vm) k v)"
-
+  
 lemma vassign_undef:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(x :=\<^sub>v \<bottom>\<^sub>v) = \<bottom>\<^sub>D"
   by (rel_auto robust)
 
 lemma H1_H3_vdm_assign [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(x :=\<^sub>v v) is H1_H3"
   by (metis H1_rdesign H3_ndesign Healthy_def ndesign_def vassign_uvar_def)
 
 lemma hd_nil_abort:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(x :=\<^sub>v hd\<^sub>v([]\<^sub>v)) = true"
   by (rel_auto)
 
@@ -708,7 +708,7 @@ text {* Here we augment the set of design weakest precondition laws
         with the VDM assignment operator *}
 
 theorem wpd_vdm_assign [wp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "(x :=\<^sub>v v) wp\<^sub>D r = (\<lfloor>\<D>\<^sub>v(v)\<rfloor>\<^sub>v \<and> r\<lbrakk>\<lfloor>v\<rfloor>\<^sub>v/x\<rbrakk>)"
   by (simp add: vassign_uvar_def wp)
 
@@ -718,7 +718,7 @@ lemma wp_calc_test_1:
   by (simp add: wp usubst)
 
 lemma wp_calc_test_2:
-  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v 1 / hd\<^sub>v(&\<^sub>vx)) wp\<^sub>D true
+  "\<lbrakk> vwb_lens x; vwb_lens y \<rbrakk> \<Longrightarrow> (y :=\<^sub>v (1 / hd\<^sub>v(&\<^sub>vx))) wp\<^sub>D true
                                   = \<lfloor>len\<^sub>v(&\<^sub>vx) >\<^sub>v \<guillemotleft>0\<guillemotright>\<^sub>v \<and>\<^sub>v hd\<^sub>v(&\<^sub>vx) <>\<^sub>v 0\<rfloor>\<^sub>v"
   by (simp add: wp usubst)
 

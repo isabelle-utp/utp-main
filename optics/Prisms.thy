@@ -3,6 +3,9 @@ section \<open>Prisms\<close>
 theory Prisms
   imports Main
 begin
+  
+text \<open>Prisms are like lenses, but they act on sum types rather than product types. For now
+  we do not support many properties about them.\<close>
 
 record ('v, 's) prism =
   prism_match :: "'s \<Rightarrow> 'v option" ("match\<index>")

@@ -61,14 +61,8 @@ translations
 
 subsection {* Signature *}
 
-abbreviation trace :: "('\<theta> tevent list,'\<sigma>,'\<theta>) expr_cml" ("tt") where
-"tt \<equiv> $tr\<acute> - $tr"
-
 abbreviation time_length :: "(nat,'\<sigma>,'\<theta>) expr_cml" ("\<^bold>l")
 where "\<^bold>l \<equiv> #\<^sub>u(tocks\<^sub>u(tt))"
-
-translations
-  "tt" <= "CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))"
 
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
 where "CML \<equiv> SRD"
@@ -94,11 +88,31 @@ definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) c
                     \<diamondop> (events\<^sub>u(tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><
                        \<and> $st\<acute> =\<^sub>u $st))"
 
-lemma length_list_minus [simp]: "ys \<le> xs \<Longrightarrow> length(xs - ys) = length(xs) - length(ys)"
-  by (auto simp add: minus_list_def less_eq_list_def)
-
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
   by (simp add: srdes_skip_def, rel_auto)
+
+subsection {* Healthiness conditions *}
+
+abbreviation RT1 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT1 \<equiv> R1"
+abbreviation RT2 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT2 \<equiv> R2c"
+abbreviation RT3 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT3 \<equiv> R3h"
+abbreviation RT4 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT4 \<equiv> RD1"
+abbreviation RT5 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT5 \<equiv> RD2"
+abbreviation RT6 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT6(P) \<equiv> Skip ;; P"
+abbreviation RT7 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT7 \<equiv> RD3"
+
+abbreviation RT :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact"
+where "RT \<equiv> RT1 \<circ> RT2 \<circ> RT3 \<circ> RT4 \<circ> RT7"
+
+text {* For the time being we omit RT8. We also omit RT5 and RT6 as, as they are both tautologies of
+  the reduced theory, as we shall show. *}
+
+text {* The following definition is taken from (Canham and Woodcock, 2014) *}
+
+lemma Skip_CML_def: "Skip = (RT3 \<circ> RT4) (\<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st \<and> $ok\<acute>)"
+  by (rel_auto)
+
+subsection {* Laws *}
 
 lemma Wait_0: "Wait 0 = Skip"
 proof -
@@ -152,7 +166,7 @@ proof -
       by (simp add: seqr_post_out unrest conj_assoc)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h (\<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>))) \<and>
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-      by (meson shEx_cong utp_pred.inf.left_commute)
+      by (meson shEx_cong utp_pred_laws.inf.left_commute)
     also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (\<lceil>(\<lceil>#\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u m\<rceil>\<^sub>< \<and> II) ;;\<^sub>h (\<lceil>n\<rceil>\<^sub>< >\<^sub>u #\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>))\<rceil>\<^sub>S) \<and>
                                       events\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> events\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>) =\<^sub>u \<langle>\<rangle> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       by (simp add: alpha)

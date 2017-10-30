@@ -5,11 +5,11 @@ imports "../theories/utp_designs"
 begin
 
 text {* This theory is currently incomplete *}
-  
+
 alphabet my_state =
   s :: "int set"
   q :: "int list"
-  
+
 abbreviation Inv_A :: "my_state upred" where
 "Inv_A \<equiv> finite\<^sub>u(&s)"
 

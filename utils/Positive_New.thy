@@ -9,7 +9,8 @@
 section {* Positive Subtypes *}
 
 theory Positive_New
-imports Infinity Two "~~/src/HOL/Library/Countable"
+imports "../axiomatic/theories/utils/Infinity"
+  Two "~~/src/HOL/Library/Countable"
 begin
 
 subsection {* Type Definition *}

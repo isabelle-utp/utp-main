@@ -7,9 +7,9 @@ theory Galois_Connection
   imports Complete_Lattice
 begin
 
-section \<open> Galois connections \<close>
+section \<open>Galois connections\<close>
 
-subsection \<open> Definition and basic properties \<close>
+subsection \<open>Definition and basic properties\<close>
 
 record ('a, 'b, 'c, 'd) galcon =
   orderA :: "('a, 'c) gorder_scheme" ("\<X>\<index>")
@@ -22,12 +22,13 @@ type_synonym ('a, 'b) galois = "('a, 'b, unit, unit) galcon"
 abbreviation "inv_galcon G \<equiv> \<lparr> orderA = inv_gorder \<Y>\<^bsub>G\<^esub>, orderB = inv_gorder \<X>\<^bsub>G\<^esub>, lower = upper G, upper = lower G \<rparr>"
 
 definition comp_galcon :: "('b, 'c) galois \<Rightarrow> ('a, 'b) galois \<Rightarrow> ('a, 'c) galois" (infixr "\<circ>\<^sub>g" 85)
-where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lower = lower G \<circ> lower F, upper = upper F \<circ> upper G \<rparr>"
+  where "G \<circ>\<^sub>g F = \<lparr> orderA = orderA F, orderB = orderB G, lower = lower G \<circ> lower F, upper = upper F \<circ> upper G \<rparr>"
 
 definition id_galcon :: "'a gorder \<Rightarrow> ('a, 'a) galois" ("I\<^sub>g") where
 "I\<^sub>g(A) = \<lparr> orderA = A, orderB = A, lower = id, upper = id \<rparr>"
 
-subsection \<open> Well-typed connections \<close>
+
+subsection \<open>Well-typed connections\<close>
 
 locale connection =
   fixes G (structure)
@@ -45,7 +46,8 @@ begin
 
 end
 
-subsection \<open> Galois connections \<close>
+
+subsection \<open>Galois connections\<close>
   
 locale galois_connection = connection +
   assumes galois_property: "\<lbrakk>x \<in> carrier \<X>; y \<in> carrier \<Y>\<rbrakk> \<Longrightarrow> \<pi>\<^sup>* x \<sqsubseteq>\<^bsub>\<Y>\<^esub> y \<longleftrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* y"
@@ -72,10 +74,10 @@ begin
     by (metis galois_property)
 
   lemma deflation: "y \<in> carrier \<Y> \<Longrightarrow> \<pi>\<^sup>* (\<pi>\<^sub>* y) \<sqsubseteq>\<^bsub>\<Y>\<^esub> y"
-    by (metis Pi_iff is_weak_order_A left lower_closure upper_closure weak_partial_order.le_refl)
+    by (metis Pi_iff is_weak_order_A left upper_closure weak_partial_order.le_refl)
 
   lemma inflation: "x \<in> carrier \<X> \<Longrightarrow> x \<sqsubseteq>\<^bsub>\<X>\<^esub> \<pi>\<^sub>* (\<pi>\<^sup>* x)"
-    by (metis (no_types, lifting) PiE galois_connection.right galois_connection_axioms is_weak_order_B lower_closure upper_closure weak_partial_order.le_refl)
+    by (metis (no_types, lifting) PiE galois_connection.right galois_connection_axioms is_weak_order_B lower_closure weak_partial_order.le_refl)
 
   lemma lower_iso: "isotone \<X> \<Y> \<pi>\<^sup>*"
   proof (auto simp add:isotone_def)
@@ -214,11 +216,6 @@ begin
     qed
   qed
 
-  lemma 
-    assumes "complete_lattice \<X>" "complete_lattice \<Y>" "X \<subseteq> carrier \<X>"
-    shows "\<pi>\<^sup>*(\<Squnion>\<^bsub>\<X>\<^esub> X) = \<Squnion>\<^bsub>\<Y>\<^esub> {\<pi>\<^sup>*(x) | x. x \<in> X}"
-    oops (* TODO *)
-
 end
 
 lemma dual_galois [simp]: " galois_connection \<lparr> orderA = inv_gorder B, orderB = inv_gorder A, lower = f, upper = g \<rparr> 
@@ -243,8 +240,9 @@ lemma lower_type: "lower_adjoint A B f \<Longrightarrow> f \<in> carrier A \<rig
 lemma upper_type: "upper_adjoint A B g \<Longrightarrow> g \<in> carrier B \<rightarrow> carrier A"
   by (auto simp add:upper_adjoint_def galois_connection_def galois_connection_axioms_def connection_def)
 
-subsection \<open> Composition of Galois connections \<close>
-    
+
+subsection \<open>Composition of Galois connections\<close>
+
 lemma id_galois: "partial_order A \<Longrightarrow> galois_connection (I\<^sub>g(A))"
   by (simp add: id_galcon_def galois_connection_def galois_connection_axioms_def connection_def)
 
@@ -299,8 +297,9 @@ lemma galois_connectionI':
   using assms
   by (auto simp add: galois_connection_def connection_def galois_connection_axioms_def, (meson PiE isotone_def weak_partial_order.le_trans)+)
 
-subsection \<open> Retracts \<close>
-  
+
+subsection \<open>Retracts\<close>
+
 locale retract = galois_connection +
   assumes retract_property: "x \<in> carrier \<X> \<Longrightarrow> \<pi>\<^sub>* (\<pi>\<^sup>* x) \<sqsubseteq>\<^bsub>\<X>\<^esub> x"
 begin
@@ -329,8 +328,9 @@ proof -
       using assms(3) f.inflation f.lower_closed f.retract_inverse g.retract_inverse by (auto simp add: comp_galcon_def)
   qed
 qed
-  
-subsection \<open> Coretracts \<close>
+
+
+subsection \<open>Coretracts\<close>
   
 locale coretract = galois_connection +
   assumes coretract_property: "y \<in> carrier \<Y> \<Longrightarrow> y \<sqsubseteq>\<^bsub>\<Y>\<^esub> \<pi>\<^sup>* (\<pi>\<^sub>* y)"
@@ -360,8 +360,9 @@ proof -
       by (simp add: comp_galcon_def assms(3) f.coretract_inverse g.coretract_property g.upper_closed)
   qed
 qed
-  
-subsection \<open> Galois Bijections \<close>
+
+
+subsection \<open>Galois Bijections\<close>
   
 locale galois_bijection = connection +
   assumes lower_iso: "isotone \<X> \<Y> \<pi>\<^sup>*" 

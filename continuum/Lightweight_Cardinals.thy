@@ -8,7 +8,11 @@
 section {* Lightweight Cardinals *}
 
 theory Lightweight_Cardinals
-imports Main Real "~~/src/HOL/Library/Countable_Set" "~~/src/HOL/Cardinals/Cardinals" Infinity UNIV_TYPE
+imports
+  Main Real
+  "~~/src/HOL/Library/Countable_Set"
+  "~~/src/HOL/Cardinals/Cardinals"
+  "../axiomatic/theories/utils/Infinity" UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}

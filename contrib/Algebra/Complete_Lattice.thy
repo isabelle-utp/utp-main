@@ -2,15 +2,15 @@
     Author:     Clemens Ballarin, started 7 November 2003
     Copyright:  Clemens Ballarin
 
-Most congruence rules by Stephan Hohe. With additional contributions from Alasdair Armstrong
-and Simon Foster.
+Most congruence rules by Stephan Hohe.
+With additional contributions from Alasdair Armstrong and Simon Foster.
 *)
 
 theory Complete_Lattice
 imports Lattice
 begin
 
-section \<open> Complete Lattices \<close>
+section \<open>Complete Lattices\<close>
 
 locale weak_complete_lattice = weak_partial_order +
   assumes sup_exists:
@@ -28,7 +28,7 @@ proof
     by (rule_tac inf_exists[of "{x, y}"], auto)
 qed
 
-text \<open> Introduction rule: the usual definition of complete lattice \<close>
+text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in weak_partial_order) weak_complete_latticeI:
   assumes sup_exists:
@@ -53,7 +53,7 @@ qed
 lemma (in weak_complete_lattice) supI:
   "[| !!l. least L l (Upper L A) ==> P l; A \<subseteq> carrier L |]
   ==> P (\<Squnion>A)"
-proof (unfold asup_def)
+proof (unfold sup_def)
   assume L: "A \<subseteq> carrier L"
     and P: "!!l. least L l (Upper L A) ==> P l"
   with sup_exists obtain s where "least L s (Upper L A)" by blast
@@ -74,7 +74,7 @@ proof -
   moreover have "\<Squnion> B \<in> carrier L"
     by (simp add: assms(2))
   ultimately show ?thesis
-    by (simp add: asup_def)
+    by (simp add: sup_def)
 qed
 
 sublocale weak_complete_lattice \<subseteq> weak_bounded_lattice
@@ -86,7 +86,7 @@ done
 lemma (in weak_complete_lattice) infI:
   "[| !!i. greatest L i (Lower L A) ==> P i; A \<subseteq> carrier L |]
   ==> P (\<Sqinter>A)"
-proof (unfold ainf_def)
+proof (unfold inf_def)
   assume L: "A \<subseteq> carrier L"
     and P: "!!l. greatest L l (Lower L A) ==> P l"
   with inf_exists obtain s where "greatest L s (Lower L A)" by blast
@@ -107,7 +107,7 @@ proof -
   moreover have "\<Sqinter> B \<in> carrier L"
     by (simp add: assms(2))
   ultimately show ?thesis
-    by (simp add: ainf_def)
+    by (simp add: inf_def)
 qed
 
 theorem (in weak_partial_order) weak_complete_lattice_criterion1:
@@ -153,7 +153,8 @@ next
   qed
 qed
 
-text \<open> Supremum \<close>
+
+text \<open>Supremum\<close>
 
 declare (in partial_order) weak_sup_of_singleton [simp del]
 
@@ -164,14 +165,15 @@ lemma (in partial_order) sup_of_singleton [simp]:
 lemma (in upper_semilattice) join_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<squnion> (y \<squnion> z) = \<Squnion>{x, y, z}"
-  using weak.weak_join_assoc_lemma L unfolding eq_is_equal .
+  using weak_join_assoc_lemma L unfolding eq_is_equal .
 
 lemma (in upper_semilattice) join_assoc:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "(x \<squnion> y) \<squnion> z = x \<squnion> (y \<squnion> z)"
-  using weak.weak_join_assoc L unfolding eq_is_equal .
+  using weak_join_assoc L unfolding eq_is_equal .
 
-text \<open> Infimum \<close>
+
+text \<open>Infimum\<close>
 
 declare (in partial_order) weak_inf_of_singleton [simp del]
 
@@ -179,19 +181,20 @@ lemma (in partial_order) inf_of_singleton [simp]:
   "x \<in> carrier L ==> \<Sqinter>{x} = x"
   using weak_inf_of_singleton unfolding eq_is_equal .
 
-text \<open> Condition on @{text A}: infimum exists. \<close>
+text \<open>Condition on \<open>A\<close>: infimum exists.\<close>
 
 lemma (in lower_semilattice) meet_assoc_lemma:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "x \<sqinter> (y \<sqinter> z) = \<Sqinter>{x, y, z}"
-  using weak.weak_meet_assoc_lemma L unfolding eq_is_equal .
+  using weak_meet_assoc_lemma L unfolding eq_is_equal .
 
 lemma (in lower_semilattice) meet_assoc:
   assumes L: "x \<in> carrier L"  "y \<in> carrier L"  "z \<in> carrier L"
   shows "(x \<sqinter> y) \<sqinter> z = x \<sqinter> (y \<sqinter> z)"
-  using weak.weak_meet_assoc L unfolding eq_is_equal .
+  using weak_meet_assoc L unfolding eq_is_equal .
 
-subsection \<open> Infimum Laws \<close>
+
+subsection \<open>Infimum Laws\<close>
 
 context weak_complete_lattice
 begin
@@ -204,7 +207,7 @@ proof -
     by (metis assms inf_exists)
 
   thus ?thesis
-    apply (simp add:ainf_def)
+    apply (simp add: inf_def)
     apply (rule someI2[of _ "i"])
     apply (auto)
   done
@@ -230,7 +233,7 @@ lemma weak_inf_carrier [simp]: "\<Sqinter>carrier L .= \<bottom>"
 lemma weak_inf_insert [simp]: 
   "\<lbrakk> a \<in> carrier L; A \<subseteq> carrier L \<rbrakk> \<Longrightarrow> \<Sqinter>insert a A .= a \<sqinter> \<Sqinter>A"
   apply (rule weak_le_antisym)
-  apply (force intro: weak_le_antisym meet_le inf_lower inf_greatest inf_lower inf_closed)
+  apply (force intro: meet_le inf_greatest inf_lower inf_closed)
   apply (rule inf_greatest)
   apply (force)
   apply (force intro: inf_closed)
@@ -239,7 +242,8 @@ lemma weak_inf_insert [simp]:
   apply (force intro: le_trans inf_closed meet_right meet_left inf_lower)
 done
 
-subsection \<open> Supremum Laws \<close>
+
+subsection \<open>Supremum Laws\<close>
 
 lemma sup_lub: 
   assumes "A \<subseteq> carrier L"
@@ -277,8 +281,9 @@ lemma weak_sup_insert [simp]:
 done
 
 end
-  
-subsection \<open> Fixed points of a lattice \<close>
+
+
+subsection \<open>Fixed points of a lattice\<close>
 
 definition "fps L f = {x \<in> carrier L. f x .=\<^bsub>L\<^esub> x}"
 
@@ -366,7 +371,8 @@ proof (rule inf_greatest)
     by (meson AL assms(1) fA funcset_carrier le_cong_r subsetCE xA)
 qed
 
-subsubsection \<open> Least fixed points \<close>
+
+subsubsection \<open>Least fixed points\<close>
 
 lemma LFP_closed [intro, simp]:
   "\<mu> f \<in> carrier L"
@@ -412,7 +418,7 @@ proof -
   have "f (\<mu> f) \<in> carrier L"
     using assms(2) by blast
   with assms show ?thesis
-    by (simp add: LFP_weak_unfold fps_def local.sym mem_Collect_eq)
+    by (simp add: LFP_weak_unfold fps_def local.sym)
 qed
 
 lemma LFP_least_fixed_point:
@@ -425,13 +431,13 @@ lemma LFP_idem:
   shows "\<mu> f .= (f \<bottom>)"
 proof (rule weak_le_antisym)
   from assms(1) show fb: "f \<bottom> \<in> carrier L"
-    by (rule funcset_mem, simp add: bottom_closed)
+    by (rule funcset_mem, simp)
   from assms show mf: "\<mu> f \<in> carrier L"
     by blast
   show "\<mu> f \<sqsubseteq> f \<bottom>"
   proof -
     have "f (f \<bottom>) .= f \<bottom>"
-      by (auto simp add: fps_def fb assms(3) bottom_closed idempotent)
+      by (auto simp add: fps_def fb assms(3) idempotent)
     moreover have "f (f \<bottom>) \<in> carrier L"
       by (rule funcset_mem[of f "carrier L"], simp_all add: assms fb)
     ultimately show ?thesis
@@ -440,7 +446,7 @@ proof (rule weak_le_antisym)
   show "f \<bottom> \<sqsubseteq> \<mu> f"
   proof -
     have "f \<bottom> \<sqsubseteq> f (\<mu> f)"
-      by (auto intro: use_iso1[of _ f] simp add: assms bottom_closed bottom_lower)
+      by (auto intro: use_iso1[of _ f] simp add: assms)
     moreover have "... .= \<mu> f"
       using assms(1) assms(2) fps_def by force
     moreover from assms(1) have "f (\<mu> f) \<in> carrier L"
@@ -450,7 +456,8 @@ proof (rule weak_le_antisym)
   qed
 qed
 
-subsubsection \<open> Greatest fixed points \<close>
+
+subsubsection \<open>Greatest fixed points\<close>
   
 lemma GFP_closed [intro, simp]:
   "\<nu> f \<in> carrier L"
@@ -473,8 +480,8 @@ lemma GFP_lemma2:
   using assms
   apply (auto simp add:Pi_def)
   apply (rule GFP_least)
-  apply (metis GFP_closed assms(2))
-  apply (metis GFP_closed GFP_upperbound assms le_trans use_iso2)
+  apply (metis GFP_closed)
+  apply (metis GFP_closed GFP_upperbound le_trans use_iso2)
 done
 
 lemma GFP_lemma3:
@@ -484,7 +491,7 @@ lemma GFP_lemma3:
   
 lemma GFP_weak_unfold: 
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<nu> f .= f (\<nu> f)"
-  by (auto intro: GFP_closed GFP_lemma2 GFP_lemma3 weak_le_antisym funcset_mem)
+  by (auto intro: GFP_lemma2 GFP_lemma3 funcset_mem)
 
 lemma (in weak_complete_lattice) GFP_fixed_point [intro]:
   assumes "Mono f" "f \<in> carrier L \<rightarrow> carrier L"
@@ -494,7 +501,7 @@ proof -
   have "f (\<nu> f) \<in> carrier L"
     using assms(2) by blast
   with assms show ?thesis
-    by (simp add: GFP_closed GFP_weak_unfold fps_def local.sym mem_Collect_eq)
+    by (simp add: GFP_weak_unfold fps_def local.sym)
 qed
 
 lemma GFP_greatest_fixed_point:
@@ -535,7 +542,8 @@ qed
 
 end
 
-subsection \<open> Complete lattices where @{text eq} is the Equality \<close>
+
+subsection \<open>Complete lattices where @{text eq} is the Equality\<close>
 
 locale complete_lattice = partial_order +
   assumes sup_exists:
@@ -553,7 +561,7 @@ proof
     by (rule_tac inf_exists[of "{x, y}"], auto)
 qed
 
-sublocale complete_lattice < weak: weak_complete_lattice
+sublocale complete_lattice \<subseteq> weak?: weak_complete_lattice
   by standard (auto intro: sup_exists inf_exists)
 
 lemma complete_lattice_lattice [simp]: 
@@ -566,7 +574,7 @@ proof -
     by (unfold_locales)
 qed
 
-text \<open> Introduction rule: the usual definition of complete lattice \<close>
+text \<open>Introduction rule: the usual definition of complete lattice\<close>
 
 lemma (in partial_order) complete_latticeI:
   assumes sup_exists:
@@ -621,7 +629,7 @@ qed
 
 (* TODO: prove dual version *)
 
-subsection \<open> Fixed points \<close>
+subsection \<open>Fixed points\<close>
 
 context complete_lattice
 begin
@@ -636,7 +644,7 @@ lemma LFP_const:
 
 lemma LFP_id:
   "\<mu> id = \<bottom>"
-  by (simp add: local.le_antisym weak.LFP_lowerbound weak.bottom_closed weak.bottom_lower)
+  by (simp add: local.le_antisym weak.LFP_lowerbound)
 
 lemma GFP_unfold:
   "\<lbrakk> Mono f; f \<in> carrier L \<rightarrow> carrier L \<rbrakk> \<Longrightarrow> \<nu> f = f (\<nu> f)"
@@ -652,7 +660,8 @@ lemma GFP_id:
 
 end
 
-subsection \<open> Interval complete lattices \<close>
+
+subsection \<open>Interval complete lattices\<close>
   
 context weak_complete_lattice
 begin
@@ -748,9 +757,10 @@ proof -
   qed
 qed
 
-subsection \<open> Knaster-Tarski theorem and variants \<close>
+
+subsection \<open>Knaster-Tarski theorem and variants\<close>
   
-text \<open> The set of fixed points of a complete lattice is itself a complete lattice \<close>
+text \<open>The set of fixed points of a complete lattice is itself a complete lattice\<close>
 
 theorem Knaster_Tarski:
   assumes "weak_complete_lattice L" "f \<in> carrier L \<rightarrow> carrier L" "isotone L L f"
@@ -913,13 +923,13 @@ proof -
         qed
    
         show "\<bottom>\<^bsub>L\<^esub> \<sqsubseteq>\<^bsub>L\<^esub> f x"
-          by (simp add: L.bottom_lower fx)
+          by (simp add: fx)
       qed
   
       let ?L' = "L\<lparr> carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rparr>"
 
       interpret L': weak_complete_lattice ?L'
-        by (auto intro!: weak_complete_lattice_interval simp add: L.weak_complete_lattice_axioms AL L.bottom_closed L.bottom_lower)
+        by (auto intro!: weak_complete_lattice_interval simp add: L.weak_complete_lattice_axioms AL)
 
       let ?L'' = "L\<lparr> carrier := fps L f \<rparr>"
 
@@ -960,7 +970,7 @@ proof -
             show "f \<in> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub> \<rightarrow> \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>"
               apply (auto simp add: Pi_def at_least_at_most_def)
               using assms(2) apply blast
-              apply (simp add: L.bottom_lower funcset_carrier' assms(2))
+              apply (simp add: funcset_carrier' assms(2))
               apply (meson AL funcset_carrier L.inf_closed L.le_trans assms(2) assms(3) pf_w use_iso2)
             done
             from assms(3) show "Mono\<^bsub>L\<lparr>carrier := \<lbrace>\<bottom>\<^bsub>L\<^esub>..?w\<rbrace>\<^bsub>L\<^esub>\<rparr>\<^esub> f"
@@ -1104,7 +1114,7 @@ proof -
       by (simp_all add: assms)
   qed
 qed
-  
+
 theorem Knaster_Tarski_idem_inf_eq:
   assumes "weak_complete_lattice L" "isotone L L f" "idempotent L f" "f \<in> carrier L \<rightarrow> carrier L"
           "A \<subseteq> fps L f"
@@ -1154,14 +1164,14 @@ proof -
         using FA fA infA by (auto intro!: L.le_trans[OF 2 1] ic fc, metis FA PiE assms(4) subsetCE)
     qed
   qed
-qed
-  
-subsection \<open> Examples \<close>
+qed  
 
-subsubsection \<open> The Powerset of a Set is a Complete Lattice \<close>
+subsection \<open>Examples\<close>
+
+subsubsection \<open>The Powerset of a Set is a Complete Lattice\<close>
 
 theorem powerset_is_complete_lattice:
-  "complete_lattice (| carrier = Pow A, eq = op =, le = op \<subseteq> |)"
+  "complete_lattice \<lparr>carrier = Pow A, eq = op =, le = op \<subseteq>\<rparr>"
   (is "complete_lattice ?L")
 proof (rule partial_order.complete_latticeI)
   show "partial_order ?L"
@@ -1176,16 +1186,17 @@ next
   fix B
   assume "B \<subseteq> carrier ?L"
   then have "greatest ?L (\<Inter> B \<inter> A) (Lower ?L B)"
-    txt \<open> @{term "\<Inter> B"} is not the infimum of @{term B}:
+    txt \<open>@{term "\<Inter> B"} is not the infimum of @{term B}:
       @{term "\<Inter> {} = UNIV"} which is in general bigger than @{term "A"}! \<close>
     by (fastforce intro!: greatest_LowerI simp: Lower_def)
   then show "EX i. greatest ?L i (Lower ?L B)" ..
 qed
 
-text \<open> An other example, that of the lattice of subgroups of a group,
-  can be found in Group theory (Section~\ref{sec:subgroup-lattice}). \<close>
+text \<open>Another example, that of the lattice of subgroups of a group,
+  can be found in Group theory (Section~\ref{sec:subgroup-lattice}).\<close>
 
-subsection \<open> Limit preserving functions \<close>
+
+subsection \<open>Limit preserving functions\<close>
 
 definition weak_sup_pres :: "('a, 'c) gorder_scheme \<Rightarrow> ('b, 'd) gorder_scheme \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> bool" where
 "weak_sup_pres X Y f \<equiv> complete_lattice X \<and> complete_lattice Y \<and> (\<forall> A \<subseteq> carrier X. A \<noteq> {} \<longrightarrow> f (\<Squnion>\<^bsub>X\<^esub> A) = (\<Squnion>\<^bsub>Y\<^esub> (f ` A)))"

@@ -79,7 +79,7 @@ lemma Sup'_interval [simp]: "Sup' {0..<m} = (if (m > 0) then m else 0)"
 text {* The first property tells us that the supremum of an empty set is zero, and the second
   tells us that the supremum of a right open interval is the limit of the interval. *}
 
-subsection {* Contiguous functions *}
+subsection {* Contiguous Functions *}
 
 typedef 'a cgf =
   "{f :: real \<rightharpoonup> 'a. (\<exists> i. i \<ge> 0 \<and> dom(f) = {0..<i})}"
@@ -120,6 +120,10 @@ is "\<lambda> f i x. if (0 \<le> x \<and> x < i) then Some(the(f(x))) else None"
   apply (case_tac "n \<ge> 0")
   apply (auto simp add: dom_if)
 done
+
+lemma cgf_end_alt_def:
+  "end\<^sub>C(f) = Inf ({0..} - dom\<^sub>C(f))"
+  by (transfer, auto, metis Diff_iff atLeastLessThan_iff atLeast_iff cInf_eq_minimum le_less_linear not_less_iff_gr_or_eq)
 
 text {* We also create functions that allow various manipulations on contiguous functions by
   lifting functions on the underlying partial function type. Function @{term cgf_apply}, also
@@ -388,7 +392,7 @@ text {* At this point we also need to show that the order relation corresponds t
   relation which is constructed as $(x \le_m y) \iff (\exists z. y = x \cat z)$. This will allow us
   to link to the proofs about this order relation. *}
 
-instantiation cgf :: (type) ordered_cancel_monoid_diff
+instantiation cgf :: (type) pre_trace
 begin
   definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
   "minus_cgf x y = x -\<^sub>m y"
@@ -403,9 +407,8 @@ instance
 done
 end
 
-text {* Thus we can show that our operators do indeed form an ordered cancellative monoid, which
-  then gives the trace algebra. In order to show this we also have to construct the subtraction
-  operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
+text {* Thus we can show that our operators form a pre-trace algebra. In order to show this we 
+  also have to construct the subtraction operator which we obtain from the derived monoidal subtraction, $x -_m y$. *}
 
 abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
 where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
@@ -413,6 +416,21 @@ where "f \<subseteq>\<^sub>C g \<equiv> f \<le> g"
 text {* We give the alternative notation of @{term "f \<subseteq>\<^sub>C g"} to the function order to highlight
   its role as a subset-like operator. *}
 
+lemma cgf_sub_cat_cases: "f \<subseteq>\<^sub>C g @\<^sub>C h \<Longrightarrow> f \<subseteq>\<^sub>C g \<or> g \<subseteq>\<^sub>C f"
+  apply (transfer, auto)
+  apply (rename_tac f g h i j k)
+  apply (case_tac "0 < j")
+  apply (auto)
+  apply (case_tac "i \<le> j")
+  apply (auto simp add: map_le_def)
+done
+
+text {* We also show the previous important property that allows us to split a prefix statement
+  with an append on the RHS into two cases. We can then finally show that we have a trace algebra. *}
+  
+instance cgf :: (type) trace
+  by (intro_classes, simp add: cgf_sub_cat_cases)
+  
 lemma cgf_sub_end:
   assumes "f \<le> g"
   shows "end\<^sub>C f \<le> end\<^sub>C g"
@@ -461,7 +479,7 @@ text {* Restriction yields a function which is guaranteed to be no longer than t
   length. *}
 
 lemma cgf_prefix_iff: "f \<le> g \<longleftrightarrow> (\<exists> h. g = f @\<^sub>C h)"
-  by (simp add: ordered_cancel_monoid_diff_class.le_iff_add)
+  by (simp add: pre_trace_class.le_iff_add)
 
 lemma cgf_left_mono_iff: "f @\<^sub>C g \<le> f @\<^sub>C h \<longleftrightarrow> g \<le> h"
   using add_le_imp_le_left add_left_mono by blast
@@ -559,7 +577,7 @@ lemma cgf_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>C(f-g) = end\<^sub>C
   by (auto simp add: cgf_prefix_iff cgf_end_cat)
 
 lemma list_concat_minus_list_concat: "(f @\<^sub>C g) - (f @\<^sub>C h) = g - h"
-  using ordered_cancel_monoid_diff_class.add_diff_cancel_left' by blast
+  using pre_trace_class.add_diff_cancel_left' by blast
 (*<*)
 end
 (*>*)

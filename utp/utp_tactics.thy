@@ -154,7 +154,7 @@ declare uexpr_eq_iff [uexpr_transfer_laws]
 
 named_theorems uexpr_transfer_extra "extra simplifications for uexpr transfer"
 
-declare unrest_upred.rep_eq [uexpr_transfer_extra]
+declare unrest_uexpr.rep_eq [uexpr_transfer_extra]
   utp_expr.numeral_uexpr_rep_eq [uexpr_transfer_extra]
   utp_expr.less_eq_uexpr.rep_eq [uexpr_transfer_extra]
   Abs_uexpr_inverse [simplified, uexpr_transfer_extra]

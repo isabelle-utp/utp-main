@@ -83,6 +83,10 @@ AFP_FILE+="$AFP_VERSION"
 AFP_FILE+="$AFP_EXTENSION"
 AFP_LINK="$AFP_URL$AFP_FILE"
 
+# Create installation directory if it doesn't already exist
+
+mkdir -p $AFP_INSTALL
+
 # Perform download, file extraction and clean-up.
 
 if [ "$AFP_DELETE" = true ]; then

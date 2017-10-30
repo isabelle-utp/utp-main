@@ -13,11 +13,15 @@ imports
   utp_expr
   utp_unrest
   utp_subst
+  utp_meta_subst
   utp_alphabet
   utp_lift
   utp_pred
+  utp_pred_laws
+  utp_recursion
   utp_deduct
   utp_rel
+  utp_rel_laws
   utp_tactics
   utp_hoare
   utp_wp

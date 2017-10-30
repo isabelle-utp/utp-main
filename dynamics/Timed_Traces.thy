@@ -4,7 +4,7 @@ theory Timed_Traces
 imports Contiguous_Functions
 begin
 
-subsection {* Piecewise continuity *}
+subsection {* Piecewise Continuity *}
 
 text {* With the foundation of contiguous functions established, we can now proceed to define
   piecewise continuous and convergent functions. We begin with a locale that gives the necessary
@@ -113,7 +113,7 @@ lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
 
 text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
 
-subsection {* Concatenation of piecewise continuous functions *}
+subsection {* Concatenation of Piecewise Continuous Functions *}
 
 text {* A major result of this theory is to show that the a piecewise continuous function can always
   be decomposed into two piecewise continuous functions with the help of concatenation operator.
@@ -836,7 +836,7 @@ lemma piecewise_convergent_cat_iff:
 text {* Thus we have proved the key properties about composition of piecewise continuous functions,
   and so we now proceed to create the type. *}
 
-subsection {* Timed trace type *}
+subsection {* Timed Trace Type *}
 
 text {* Finally, having proved the important closure properties for piecewise continuous and convergent
   functions we can now create our type of timed traces, which are piecewise convergent functions. *}
@@ -918,7 +918,7 @@ end
 text {* Similarly, we can define the minus operator for timed traces by definition from the
   summation operator. *}
 
-instance ttrace :: (topological_space) ordered_cancel_monoid_diff
+instance ttrace :: (topological_space) pre_trace
   apply (intro_classes)
   apply (transfer, metis add_monoid_diff_cancel_left)
   apply (transfer, metis cgf_zero_sum_left)
@@ -926,6 +926,12 @@ instance ttrace :: (topological_space) ordered_cancel_monoid_diff
   apply (simp_all add: less_eq_ttrace_def less_ttrace_def minus_ttrace_def)
 done
 
+instance ttrace :: (topological_space) trace
+  apply (intro_classes)
+  apply (simp add: less_eq_ttrace_def monoid_le_def, transfer)
+  apply (metis mem_Collect_eq piecewise_convergent_cat_right sum_eq_sum_conv)
+done
+  
 text {* We can then show that time traces also form a cancellative monoid, and thus fulfil the
   obligations to our trace algebra. We next lift some of the other operators for contiguous functions. *}
 
@@ -947,6 +953,11 @@ lemma tt_end_cat: "end\<^sub>t(f @\<^sub>t g) = end\<^sub>t(f)+end\<^sub>t(g)"
 lemma tt_end_minus: "g \<le> f \<Longrightarrow> end\<^sub>t(f-g) = end\<^sub>t(f)-end\<^sub>t(g)"
   by (metis add.commute diff_add_cancel_left' diff_eq_eq tt_end_cat)
 
+lemma tt_sub_end:
+  assumes "f \<le> g"
+  shows "end\<^sub>t f \<le> end\<^sub>t g"
+  by (metis add.left_neutral assms le_less less_diff_eq minus_zero_eq tt_end_0_iff tt_end_ge_0 tt_end_minus)
+    
 lift_definition tt_apply :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>t") is cgf_apply .
 
 text {* @{term tt_apply} is function application for timed traces, likewise defined by lifting
@@ -987,7 +998,7 @@ text {* Lifting the @{term tt_restrict} operator is a little more complicated si
 
 lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
   by (simp add: less_eq_ttrace_def monoid_le_def, transfer)
-     (metis cgf_restrict_le mem_Collect_eq ordered_cancel_monoid_diff_class.le_iff_add
+     (metis cgf_restrict_le mem_Collect_eq pre_trace_class.le_iff_add
             piecewise_convergent_cat_iff)
 
 lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>t"

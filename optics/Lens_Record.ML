@@ -8,6 +8,10 @@ end;
 structure Lens_Utils : LENS_UTILS =
 struct
 
+(* We set up the following syntactic entities that correspond to various parts of Isabelle syntax
+  and names that we depend on. These code would need to be updated if the names of the Isabelle
+  and lens theories and/or theorems change. *)
+
 val FLDLENS = "FLDLENS"
 val child_lens_suffix = "_child_lens"
 val vwb_lens_suffix = "_vwb_lens"
@@ -28,6 +32,9 @@ val ext_suffix = "\<^sub>a"
 val lens_defs = (Binding.empty, [Token.make_src ("lens_defs", Position.none) []])
 val alpha_splits = [Token.make_src ("alpha_splits", Position.none) []]
 val splits_suffix = ".splits"
+
+(* The following code is adapted from the record package. We generate a record, but also create
+   lenses for each field and prove properties about them. *)
 
 fun read_parent NONE ctxt = (NONE, ctxt)
   | read_parent (SOME raw_T) ctxt =
@@ -52,6 +59,8 @@ fun add_record_cmd overloaded (raw_params, binding) raw_parent raw_fields thy =
     val params' = map (Proof_Context.check_tfree ctxt3) params;
   in thy |> Record.add_record overloaded (params', binding) parent fields end;
 
+(* Construct a theorem and proof that a given field lens is very well-behaved *)
+
 fun lens_proof x thy =
       Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
@@ -62,6 +71,9 @@ fun lens_proof x thy =
                            => EVERY [ Locale.intro_locales_tac true context []
                                     , PARALLEL_ALLGOALS (asm_simp_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
 
+(* Child lenses correspond to the field where a record extension may reside. This function constructs 
+  a theorem that a given child lens field is very well-behaved *)
+
 fun lens_child_proof thy x =
       Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
@@ -71,6 +83,12 @@ fun lens_child_proof thy x =
       (fn {context = context, prems = _} =>
           EVERY [ PARALLEL_ALLGOALS
                     (asm_simp_tac (Simplifier.add_simp @{thm comp_vwb_lens} (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context)))])
+
+(* Construct a theorem and proof that two lenses, x and y, are independent. Since some lenses exist
+   both with the source type as the record extension, and in the context of the extended record
+   we need two versions of this function. The first shows it for the lenses on the extension, and
+   thus uses an "intro_locales" as a means to discharge the individual lens laws of the vwb_lens
+   locale. *)
 
 fun indep_proof thy (x, y) =
   Goal.prove_global thy [] []
@@ -88,6 +106,11 @@ fun indep_proof thy (x, y) =
                                                       (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def"))
                                          context)))])
 
+(* The next function is similar, but does not unfold locales instead relying on existing independence
+   proofs. The reason for this is that we when invoking this we have already proved that the lenses
+   on the extension record are independent, here we just apply preservation of independence of 
+   the lenses through composition. *)
+
 fun pl_indep_proof thy (x, y) =
   Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
@@ -103,20 +126,9 @@ fun pl_indep_proof thy (x, y) =
                                                       (Simplifier.add_simp (Global_Theory.get_thm thy (y ^ "_def"))
                                          context)))])
 
-(*
-fun parent_indep_proof thy y x =
-  Goal.prove_global thy [] []
-      (hd (Type_Infer_Context.infer_types
-              (Proof_Context.init_global thy)
-              [ Const ("Pure.all", dummyT) $ (Abs ("x", dummyT, Const (Trueprop, dummyT) $ (Const ("HOL.eq", dummyT) $ Bound 0 $ Bound 0))) ]
-      ))
-      (fn {context, prems} =>
-          EVERY [ PARALLEL_ALLGOALS
-                    (asm_simp_tac
-                        (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def"))
-                        (Simplifier.add_simp @{thm lens_indep_left_ext}
-                        (Simplifier.add_simp @{thm lens_indep_right_ext} context))))])
-*)
+(* The following two functions construct contigent independence proofs for the child lenses: if
+  two lenses are independent, then the composition of the two lenses with the child lens from
+  their parent must also be independent. *)
 
 fun parent_indep_proof_1 thy y x =
   Goal.prove_global thy [] []
@@ -164,6 +176,8 @@ fun parent_indep_proof_2 thy y x =
       (fn {context, prems = _} =>
           EVERY [(auto_tac (Simplifier.add_simp (Global_Theory.get_thm thy (x ^ "_def")) context))])
 
+(* Prove a theorem that every child lens is a sublens of the parent. *)
+
 fun sublens_proof thy y x =
       Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
@@ -182,6 +196,9 @@ fun pairWith _ [] = []
 
 fun pairings [] = []
   | pairings (x :: xs) = pairWith x xs @ pairings xs;
+
+(* Finally we have the function that actually constructs the record, lenses for each field,
+   independence proofs, and also sublens proofs. *)
 
 fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
   let
@@ -216,8 +233,9 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
             (* Add definitions for each of the lenses corresponding to each record field augmented with the parent's child lens *)
          |> Named_Target.theory_map
               (fold (fn x => snd o Specification.definition_cmd NONE [] [] (lens_defs, x) true) pldefs)
-            (* Add a vwb lens proof for each in-situ lens *)
+            (* Add a vwb lens proof for each in-situ lens (i.e. on the record extension) *)
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof x thy), [Simplifier.simp_add]) thy)) ((map ldef_name lnames) @ [mldef_name])
+            (* Add independence proofs for each pairing of lenses *)
          |> (fn thy => snd (Global_Theory.add_thmss
               [((Binding.make (Binding.name_of binding ^ indeps_suffix, Position.none), map (indep_proof thy) (pairings ((map ldef_name lnames) @ [mldef_name])) @ map (parent_indep_proof_1 thy plchild) plnames @ map (parent_indep_proof_2 thy plchild) plnames), [Simplifier.simp_add])] thy))
          |> fold (fn x => fn thy => snd (Global_Theory.add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_child_proof thy x), [Simplifier.simp_add]) thy)) plnames

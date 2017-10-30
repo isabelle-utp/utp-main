@@ -9,8 +9,9 @@
 section {* String Literals *}
 
 theory Strings
-imports Countable Infinity Normalise
- "~~/src/HOL/Library/Char_ord"
+imports Infinity Normalise
+  "~~/src/HOL/Library/Countable"
+  "~~/src/HOL/Library/Char_ord"
 begin
 
 subsection {* Type Synonyms *}

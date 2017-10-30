@@ -174,8 +174,10 @@ instantiation uname_ext :: (ord) ord
 begin
 definition less_eq_uname_ext :: "'a uname_ext \<Rightarrow> 'a uname_ext \<Rightarrow> bool" where
 "(less_eq_uname_ext n1 n2) \<longleftrightarrow>
-   ((name_str n1), dashed n1, (subscript n1), more n1) \<le>
-   ((name_str n2), dashed n2, (subscript n2), more n2)"
+    name_str n1 < name_str n2 \<or>
+    name_str n1 \<le> name_str n2 \<and> dashed n1 < dashed n2 \<or>
+    name_str n1 \<le> name_str n2 \<and> dashed n1 \<le> dashed n2 \<and> subscript n1 < subscript n2 \<or>
+    name_str n1 \<le> name_str n2 \<and> dashed n1 \<le> dashed n2 \<and> subscript n1 \<le> subscript n2 \<and> more n1 \<le> more n2"
 
 definition less_uname_ext :: "'a uname_ext \<Rightarrow> 'a uname_ext \<Rightarrow> bool" where
 "(less_uname_ext n1 n2) \<longleftrightarrow> (n1 \<le> n2 \<and> \<not> n2 \<le> n1)"
@@ -183,26 +185,41 @@ instance ..
 end
 
 instance uname_ext :: (order) order
-apply (intro_classes)
-apply (unfold less_eq_uname_ext_def less_uname_ext_def)
--- {* Subgoal 1 *}
-apply (rule refl)
--- {* Subgoal 2 *}
-using order.antisym
-apply (blast)
--- {* Subgoal 3 *}
-using order_trans
-apply (blast)
--- {* Subgoal 4 *}
-using equality order_class.order.antisym
-apply (blast)
-done
+proof
+  show "\<And>x y :: 'a uname_ext. (x < y) = (x \<le> y \<and> \<not> y \<le> x)"
+    by (unfold less_eq_uname_ext_def less_uname_ext_def, rule refl)
+  show "\<And>x :: 'a uname_ext. x \<le> x"
+    by (simp add: less_eq_uname_ext_def)
+  show "\<And>x y z :: 'a uname_ext. x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
+  proof (unfold less_eq_uname_ext_def)
+    fix x :: "'a uname_scheme" and y :: "'a uname_scheme" and z :: "'a uname_scheme"
+    assume a1: "name_str x < name_str y \<or> name_str x \<le> name_str y \<and> dashed x < dashed y \<or> name_str x \<le> name_str y \<and> dashed x \<le> dashed y \<and> subscript x < subscript y \<or> name_str x \<le> name_str y \<and> dashed x \<le> dashed y \<and> subscript x \<le> subscript y \<and> uname.more x \<le> uname.more y"
+    assume a2: "name_str y < name_str z \<or> name_str y \<le> name_str z \<and> dashed y < dashed z \<or> name_str y \<le> name_str z \<and> dashed y \<le> dashed z \<and> subscript y < subscript z \<or> name_str y \<le> name_str z \<and> dashed y \<le> dashed z \<and> subscript y \<le> subscript z \<and> uname.more y \<le> uname.more z"
+    then have f3: "name_str z = name_str y \<or> name_str y < name_str z"
+      by fastforce
+    then have f4: "name_str z = name_str y \<or> name_str x \<le> name_str z \<or> name_str x = name_str y"
+      using a1 by fastforce
+    { assume "dashed z \<le> dashed y"
+      { assume "\<not> dashed y < dashed z \<and> dashed y \<le> dashed x"
+        have "name_str x = name_str y \<and> name_str z = name_str y \<and> name_str y \<le> name_str y \<and> dashed x \<le> dashed z \<and> dashed y \<le> dashed x \<and> dashed z \<le> dashed y \<longrightarrow> (name_str x < name_str z \<or> name_str x \<le> name_str z \<and> dashed x < dashed z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x < subscript z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x \<le> subscript z \<and> uname.more x \<le> uname.more z) \<or> name_str y < name_str z \<or> name_str y < name_str y"
+          using a2 a1 by (metis dual_order.trans less_le not_le)
+        then have "name_str x = name_str y \<and> name_str z = name_str y \<and> dashed y \<le> dashed z \<and> name_str y \<le> name_str y \<and> dashed x \<le> dashed y \<and> dashed y \<le> dashed x \<and> dashed z \<le> dashed y \<longrightarrow> (name_str x < name_str z \<or> name_str x \<le> name_str z \<and> dashed x < dashed z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x < subscript z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x \<le> subscript z \<and> uname.more x \<le> uname.more z) \<or> name_str y < name_str z \<or> name_str y < name_str y"
+          using dual_order.trans by blast }
+      then have "name_str x = name_str y \<and> name_str z = name_str y \<and> name_str y \<le> name_str y \<and> dashed z \<le> dashed x \<and> dashed x \<le> dashed y \<and> dashed z \<le> dashed y \<longrightarrow> (name_str x < name_str z \<or> name_str x \<le> name_str z \<and> dashed x < dashed z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x < subscript z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x \<le> subscript z \<and> uname.more x \<le> uname.more z) \<or> name_str y < name_str z \<or> name_str y < name_str y"
+        using a2 by (metis less_le not_le) }
+    then have "name_str x = name_str y \<longrightarrow> name_str x < name_str z \<or> name_str x \<le> name_str z \<and> dashed x < dashed z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x < subscript z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x \<le> subscript z \<and> uname.more x \<le> uname.more z"
+      using a2 a1 by force
+    then show "name_str x < name_str z \<or> name_str x \<le> name_str z \<and> dashed x < dashed z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x < subscript z \<or> name_str x \<le> name_str z \<and> dashed x \<le> dashed z \<and> subscript x \<le> subscript z \<and> uname.more x \<le> uname.more z"
+      using f4 f3 a1 by (metis (no_types) less_le not_le)
+  qed
+  show "\<And>x y :: 'a uname_ext. x \<le> y \<Longrightarrow> y \<le> x \<Longrightarrow> x = y"
+    by (metis dual_order.strict_iff_order less_eq_uname_ext_def less_le_not_le uname.equality)
+qed
 
 instance uname_ext :: (linorder) linorder
 apply (intro_classes)
 apply (unfold less_eq_uname_ext_def less_uname_ext_def)
-using linear
-apply (blast)
+apply force
 done
 
 instance uname_ext :: (linorder) normalise

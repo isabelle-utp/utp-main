@@ -1,4 +1,4 @@
-section {* Hybrid relational calculus *}
+section {* Hybrid Relational Calculus *}
 
 theory utp_hyrel
 imports
@@ -99,10 +99,7 @@ lemma cont_alpha_uvar [simp]: "vwb_lens \<^bold>c"
   by (simp add: comp_vwb_lens cont_alpha_def snd_vwb_lens)
 
 lemma cont_indep_disc [simp]: "\<^bold>c \<bowtie> \<^bold>d" "\<^bold>d \<bowtie> \<^bold>c"
-   apply (simp_all add: disc_alpha_def cont_alpha_def)
-   apply (rule lens_indep_sym)
-   apply (auto intro: lens_indep_sym split_prod_lens_indep)
-done
+   by (simp_all add: disc_alpha_def cont_alpha_def)
 
 text {* Both lenses are very well-behaved, effectively meaning they are valid variables. Moreover
   they are also independent, @{term "\<^bold>c \<bowtie> \<^bold>d"}, meaning they refer to disjoint parts of the
@@ -136,12 +133,12 @@ translations
   "_disc_alpha" == "CONST disc_alpha"
 
 lemma var_in_var_prod [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "utp_expr.var ((in_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $X:(x)"
   by (pred_auto)
 
 lemma var_out_var_prod [simp]:
-  fixes x :: "('a, '\<alpha>) uvar"
+  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "utp_expr.var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
 
@@ -183,7 +180,7 @@ text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P
   refer to unprimed continuous variables. *}
 
 lemma zero_least_uexpr [simp]:
-  "0 \<le>\<^sub>u (x::('a::ordered_cancel_monoid_diff, '\<alpha>) uexpr) = true"
+  "0 \<le>\<^sub>u (x::('a::trace, '\<alpha>) uexpr) = true"
   by (rel_auto)
 
 text {* We also set up some useful syntax to refer to the end of a continuous trace. *}
@@ -199,7 +196,7 @@ text {* The next properties states that the end point of an empty timed trace is
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
   by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
 
-subsection {* Instant predicates *}
+subsection {* Instant Predicates *}
 
 definition at ::
   "('a, 'c::topological_space) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
@@ -275,7 +272,7 @@ lemma at_bop [simp]:
   by (simp add: at_def usubst alpha)
 
 lemma at_var [simp]:
-  fixes x :: "('a, 'c::topological_space) uvar"
+  fixes x :: "('a \<Longrightarrow> 'c::topological_space)"
   shows "utp_expr.var x @\<^sub>u t = \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u:(x)"
   by (pred_auto)
 
@@ -286,10 +283,10 @@ text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat con
 lemma subst_cvar_traj [usubst]: "\<langle>[$\<^bold>c \<mapsto>\<^sub>s \<^bold>t\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u]\<rangle>\<^sub>s (x ;\<^sub>L in_var \<^bold>c) = x~(\<guillemotleft>t\<guillemotright>)"
   by (pred_auto)
 
-subsection {* The interval operator *}
+subsection {* The Interval Operator *}
 
 definition hInt :: "(real \<Rightarrow> 'c::topological_space upred) \<Rightarrow> ('d,'c) hyrel" where
-[urel_defs]: "hInt P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
+[urel_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
 text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
   is satisfied at every instant between the beginning and end of the evolution, that is on the
@@ -309,7 +306,7 @@ lemma hInt_unrest_dis [unrest]: "$\<^bold>d \<sharp> hInt P" "$\<^bold>d\<acute>
   by (simp_all add: hInt_def unrest)
 
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space upred) \<Rightarrow> ('d, 'c) hyrel" where
-[urel_defs]: "hDisInt P = (hInt P \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
+[urel_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> $\<^bold>c =\<^sub>u \<^bold>t\<lparr>0\<rparr>\<^sub>u \<and> $\<^bold>c\<acute> =\<^sub>u lim\<^sub>u(x \<rightarrow> \<^bold>l\<^sup>-)(\<^bold>t\<lparr>\<guillemotleft>x\<guillemotright>\<rparr>\<^sub>u) \<and> $\<^bold>d\<acute> =\<^sub>u $\<^bold>d)"
 
 text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
@@ -328,8 +325,8 @@ text {* We also set up the adapted version of the interval operator, @{term "hDi
 
 syntax
   "_time_var" :: "logic"
-  "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>H")
-  "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<^bold>\<lceil>_\<^bold>\<rceil>\<^sub>H")
+  "_hInt"     :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>h")
+  "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<^bold>\<lceil>_\<^bold>\<rceil>\<^sub>h")
 
 parse_translation {*
 let
@@ -341,24 +338,26 @@ end
 *}
 
 translations
-  "\<lceil>P\<rceil>\<^sub>H"   == "CONST hInt (\<lambda> _time_var. P)"
-  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>H" == "CONST hDisInt (\<lambda> _time_var. P)"
-
-text {* A regular interval can be written using the notation @{term "\<lceil>P(\<tau>)\<rceil>\<^sub>H"}, where $\tau$ is
+  "\<lceil>P\<rceil>\<^sub>h" => "CONST hInt (\<lambda> _time_var. P)"
+  "\<lceil>P\<rceil>\<^sub>h" <= "CONST hInt (\<lambda> x. P)"
+  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h" => "CONST hDisInt (\<lambda> _time_var. P)"
+  "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h" <= "CONST hDisInt (\<lambda> x. P)"
+  
+text {* A regular interval can be written using the notation @{term "\<lceil>P(\<tau>)\<rceil>\<^sub>h"}, where $\tau$ is
   a free variable denoting the present time. Having the present time as a free variable means
-  we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>H"} for
-  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>H"}. *}
+  we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>\<tau>\<guillemotright>\<rceil>\<^sub>h"} for
+  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(\<tau>)\<^bold>\<rceil>\<^sub>h"}. *}
 
-lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+lemma hInt_unrest_cont [unrest]: "$\<^bold>c \<sharp> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
 
-lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
-  by (simp add: hInt_def R1_extend_conj R1_tr_less_tr')
+lemma R1_hInt: "R1(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+  by (rel_auto)
 
-lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
-  by (simp add: hInt_def R2c_and R2c_tr_less_tr' R2c_shAll R2c_impl R2c_time_length R2c_at)
+lemma R2s_hInt: "R2c(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
+  by (rel_auto)
 
-lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>H) = \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+lemma R2_hInt: "R2(\<lceil>P(\<tau>)\<rceil>\<^sub>h) = \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (metis R1_R2c_is_R2 R1_hInt R2s_hInt)
 
 text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
@@ -369,21 +368,34 @@ text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous bef
 
   We also prove some laws about intervals. *}
 
-lemma hInt_false: "\<lceil>false\<rceil>\<^sub>H = false"
-  by (simp add: hInt_def, rel_simp, metis dual_order.strict_iff_order minus_zero_eq tt_end_0_iff tt_end_ge_0)
+lemma hInt_false: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
+  by (rel_auto, meson eq_iff leI minus_zero_eq tt_end_0_iff tt_end_ge_0)
 
-lemma hInt_true: "\<lceil>true\<rceil>\<^sub>H = ($tr <\<^sub>u $tr\<acute>)"
+lemma hInt_true: "\<lceil>true\<rceil>\<^sub>h = R1(true)"
   by (rel_auto)
 
-lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>H = (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+lemma hInt_conj: "\<lceil>P(\<tau>) \<and> Q(\<tau>)\<rceil>\<^sub>h = (\<lceil>P(\<tau>)\<rceil>\<^sub>h \<and> \<lceil>Q(\<tau>)\<rceil>\<^sub>h)"
   by (rel_auto)
 
-lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> (\<lceil>P(\<tau>)\<rceil>\<^sub>H \<or> \<lceil>Q(\<tau>)\<rceil>\<^sub>H)"
+lemma hInt_disj: "\<lceil>P(\<tau>) \<or> Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> (\<lceil>P(\<tau>)\<rceil>\<^sub>h \<or> \<lceil>Q(\<tau>)\<rceil>\<^sub>h)"
   by (rel_auto)
 
-lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>H \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>H"
+lemma hInt_refine: "`\<^bold>\<forall> \<tau> \<bullet> P(\<tau>) \<Rightarrow> Q(\<tau>)` \<Longrightarrow> \<lceil>Q(\<tau>)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(\<tau>)\<rceil>\<^sub>h"
   by (rel_auto)
-
+  
+lemma neg_hInt_R1_true: "R1(\<not> \<lceil>P\<rceil>\<^sub>h) ;; R1(true) = R1(\<not> \<lceil>P\<rceil>\<^sub>h)"
+proof (rel_auto)
+  fix tr tr' tr'' :: "'a ttrace" and t :: real
+  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P\<rbrakk>\<^sub>e (\<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
+  hence "tr'' - tr \<le> tr' - tr"
+    by (simp add: minus_cancel_le)
+  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P\<rbrakk>\<^sub>e (\<langle>tr' - tr\<rangle>\<^sub>t x)"
+    apply (rule_tac x="t" in exI, auto)
+    using tt_sub_end apply fastforce
+    apply (metis dual_order.trans pre_trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
+    done
+qed
+        
 text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
   about intervals over false and true. Theorem @{thm [source] hInt_conj} allows us to rewrite
   and interval conjunction as a conjunction of intervals. The same is not true of disjunction,
@@ -393,21 +405,21 @@ text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us
   predicates. Additionally we prove the following law about sequential composition of
   time-independent intervals. *}
 
-lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>H ;; \<lceil>P\<rceil>\<^sub>H) = \<lceil>P\<rceil>\<^sub>H"
+lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = \<lceil>P\<rceil>\<^sub>h"
 proof -
-  have "(\<lceil>P\<rceil>\<^sub>H ;; \<lceil>P\<rceil>\<^sub>H) = (R2(\<lceil>P\<rceil>\<^sub>H) ;; R2(\<lceil>P\<rceil>\<^sub>H))"
+  have "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = (R2(\<lceil>P\<rceil>\<^sub>h) ;; R2(\<lceil>P\<rceil>\<^sub>h))"
     by (simp add: R2_hInt)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<lceil>P\<rceil>\<^sub>H)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<lceil>P\<rceil>\<^sub>H)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<lceil>P\<rceil>\<^sub>h)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<lceil>P\<rceil>\<^sub>h)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     by (simp add: R2_seqr_form)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) ;;
-                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) ;;
+                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
                          $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     by (simp add: hInt_def at_def usubst unrest)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) \<and>
-                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) \<and>
+                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
                          $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     by (simp add: seqr_to_conj unrest)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright>+\<guillemotleft>tt\<^sub>2\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright>+\<guillemotleft>tt\<^sub>2\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
                          $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     apply (rule shEx_cong)
     apply (rule shEx_cong)
@@ -421,28 +433,13 @@ proof -
     apply (drule_tac x="end\<^sub>t x + xb" in spec)
     apply (simp)
   done
-  also have "... = (\<^bold>\<exists> tt \<bullet> ((\<guillemotleft>tt\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<guillemotright>)"
-  proof (rel_auto)
-    fix P tr and tt\<^sub>1 tt\<^sub>2 :: "'a ttrace"
-    assume  "0 < tt\<^sub>1" "0 < tt\<^sub>2" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)"
-    thus "\<exists> tt. 0 < tt \<and> (\<forall> i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>ti)) \<and> tr + tt\<^sub>1 + tt\<^sub>2 = tr + tt"
-      using add.assoc le_add less_le_trans by blast
-  next
-    fix P tr and tt :: "'a ttrace"
-    assume "0 < tt" "\<forall>i. 0 \<le> i \<and> i < end\<^sub>t tt \<longrightarrow> P (\<langle>tt\<rangle>\<^sub>t i)"
-    moreover then obtain tt\<^sub>1 tt\<^sub>2 where "tt = tt\<^sub>1 + tt\<^sub>2" "end\<^sub>t tt\<^sub>1 > 0" "end\<^sub>t tt\<^sub>2 > 0"
-      by (metis dual_order.strict_iff_order tt_end_0_iff tt_end_ge_0 ttrace_divisible)
-    moreover hence "tt\<^sub>1 > 0" "tt\<^sub>2 > 0"
-      by (simp_all add: least_zero less_le tt_end_0_iff)
-    ultimately show
-      "\<exists>tt\<^sub>1. 0 < tt\<^sub>1 \<and>
-            (\<exists>tt\<^sub>2. 0 < tt\<^sub>2 \<and>
-                  (\<forall>i. 0 \<le> i \<and> i < end\<^sub>t (tt\<^sub>1 + tt\<^sub>2) \<longrightarrow> P (\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t i)) \<and> tr + tt = tr + tt\<^sub>1 + tt\<^sub>2)"
-      by (metis add.assoc)
-  qed
-  also have "... = R2(\<lceil>P\<rceil>\<^sub>H)"
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> ((\<guillemotleft>tt\<^sub>0\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>0\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
+    apply (rel_auto)
+    using add.assoc apply blast
+    by (metis add.assoc add.left_neutral)
+  also have "... = R2(\<lceil>P\<rceil>\<^sub>h)"
     by (simp add: R2_form hInt_def at_def usubst unrest)
-  also have "... = \<lceil>P\<rceil>\<^sub>H"
+  also have "... = \<lceil>P\<rceil>\<^sub>h"
     by (simp add: R2_hInt)
   finally show ?thesis .
 qed
@@ -487,19 +484,14 @@ subsection {* Pre-emption *}
 
 definition hPreempt ::
   "('d, 'c::topological_space) hyrel \<Rightarrow> 'c upred \<Rightarrow>
-    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>H _" [64,0,65] 64)
-where "P [b]\<^sub>H Q = (((Q \<triangleleft> \<lceil>b\<rceil>\<^sub>C\<^sub>< \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>H)) \<sqinter> ((\<lceil>\<not> b\<rceil>\<^sub>H \<and> P) ;; (\<lceil>b\<rceil>\<^sub>C\<^sub>< \<and> Q))))"
+    ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
+where "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<rceil>\<^sub>C\<^sub>< \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((\<lceil>\<not> b\<rceil>\<^sub>h \<and> P) ;; (\<lceil>b\<rceil>\<^sub>C\<^sub>< \<and> Q))))"
 
-text {* The pre-emption operator @{term "P [b]\<^sub>H Q"} states that $P$ is active until $b$ is satisfied
+text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
   of the continuous variables, and $b$ some kind of barrier condition. The operator can be used
   to write hybrid systems where an evolution occurs until some condition is satisfied, e.g. a
   particular temperature or other quantity is reached, and then some discrete activity is executed.
   We prove a few simple properties about this operator. *}
 
-lemma hPreempt_true: "P [true]\<^sub>H Q = Q"
-  by (simp add: hPreempt_def alpha hInt_false, simp add: false_upred_def)
-
-lemma hPreempt_false: "P [false]\<^sub>H Q = (P \<and> $tr <\<^sub>u $tr\<acute>)"
-  by (simp add: hPreempt_def alpha hInt_true, simp add: false_upred_def)
 end
