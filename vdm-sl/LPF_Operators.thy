@@ -308,6 +308,14 @@ definition set_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a 
   then set_sequence_lpf {y | x y . y = f x \<and> x\<in>(lpf_the xs) \<and> (pred x = true\<^sub>L)}
   else \<bottom>\<^sub>L)"
 
+value "List.coset [1..100]"
+
+definition seq_comprehension_lpf :: "('a \<Rightarrow> 'b lpf) \<Rightarrow> 'a::linorder set lpf \<Rightarrow> 'b list lpf" where
+[lpf_defs]: "seq_comprehension_lpf f xs = (
+  if \<D>(xs) 
+  then seq_sequence_lpf (map f (List.linorder_class.sorted_list_of_set.F (lpf_the xs))) 
+  else \<bottom>\<^sub>L)"
+
 text {* It is a design decision that lpf types should not be nested to avoid types such as:
   'a list lpf set lpf. This will instead be sequenced into 'a list set lpf. 
   When an element is then extracted from the set, then it will be coerced into the lpf type.
