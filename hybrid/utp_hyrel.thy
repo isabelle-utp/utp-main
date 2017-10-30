@@ -78,7 +78,23 @@ lemma continuous_lens_intro:
   shows "continuous_lens x"
   using assms
   by (auto simp add: continuous_lens_def continuous_lens_axioms_def assms)
-        
+
+lemma continuous_lens_intro':
+  assumes 
+    "vwb_lens x" 
+    "continuous_on UNIV get\<^bsub>x\<^esub>" 
+    "continuous_on UNIV (uncurry put\<^bsub>x\<^esub>)"
+  shows "continuous_lens x"
+proof -
+  have 1:"\<And> A. continuous_on A get\<^bsub>x\<^esub>"
+    by (rule continuous_on_subset[OF assms(2)], simp)
+  have 2:"\<And> B. continuous_on B (uncurry put\<^bsub>x\<^esub>)"
+    by (rule continuous_on_subset[OF assms(3)], simp)
+  from 1 2 show ?thesis
+    using "2" assms(1) continuous_lens_intro by blast
+qed
+
+    
 lemma fst_continuous_lens [closure]: 
   "continuous_lens fst\<^sub>L"
   apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)

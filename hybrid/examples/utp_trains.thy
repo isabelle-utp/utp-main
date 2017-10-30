@@ -20,7 +20,9 @@ alphabet cst_train =
   accel :: real -- {* Acceleration *}
   vel   :: real -- {* Velocity *}
   pos   :: real -- {* Position *}
-    
+
+print_theorems
+  
 setup_lifting type_definition_cst_train_ext
   
 text {* Proof that the state-space is a T2 topological space. *}
@@ -34,8 +36,15 @@ end
 lemma continuous_Rep_cst_train_ext [continuous_intros]:
   "continuous_on UNIV Rep_cst_train_ext"
   by (metis continuous_on_open_vimage image_vimage_eq open_Int open_UNIV open_cst_train_ext.rep_eq)
-
-text {* All three variable lenses are continuous *}
+  
+lemma continuous_Abs_cst_train_ext  [continuous_intros]:
+  "continuous_on UNIV (Abs_cst_train_ext :: _ \<Rightarrow> 'a::t2_space cst_train_scheme)"
+  apply (subst continuous_on_open_vimage)
+  apply (auto simp add: open_cst_train_ext.rep_eq)
+  apply (metis Rep_cst_train_ext_inverse UNIV_I UNIV_eq_I image_eqI open_cst_train_ext.abs_eq open_cst_train_ext.rep_eq surj_image_vimage_eq)
+done  
+  
+text {* All three variable lenses are continuous *}    
     
 lemma continuous_get_accel [continuous_intros]: "continuous_on UNIV get\<^bsub>accel\<^esub>"
   by (simp add: lens_defs cst_train.select_defs iso_tuple_fst_def tuple_iso_tuple_def 

@@ -247,11 +247,13 @@ theorem ode_solution':
     
 theorem ode_frame_solution:
   assumes 
-    "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"
+    "vwb_lens x" 
+    "\<And> x l. l > 0 \<Longrightarrow> (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV"
+    "\<And> x. \<F>(x)(0) = x"
   shows "\<langle>x : \<F>'(ti)\<rangle>\<^sub>h = {[x \<mapsto>\<^sub>s \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
 proof -
   have "\<langle>x : \<F>'(ti)\<rangle>\<^sub>h = x:[x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]\<^sub>h"
-    by (simp add: ode_solution[where \<F>=\<F>] assms)
+    by (simp add: ode_solution'[where \<F>=\<F>] assms)
   also from assms(1) have "... = (\<lceil>$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<and> x:[true]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"
     by (rel_auto)
   also from assms(1) have "... = (\<lceil>x:[$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"      
@@ -298,6 +300,12 @@ text {* \emph{ode\_solve} tries to rewrite an ODE to a solution. The solution mu
 method ode_solve
   for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
   = ((subst ode_solution'[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
+  
+text {* Version of above with frame *}
+  
+method ode_fsolve
+  for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
+  = ((subst ode_frame_solution[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
   
 text {* Example illustrating the relationship between derivative constrains and ordinary differential
   equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. *}
