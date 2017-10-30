@@ -603,7 +603,7 @@ definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> 
 where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
 
 definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
-  where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>v (a \<times> a)) \<restriction>\<^sub>p (a \<times>\<^sub>L a)"
+  where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
     
 syntax
   "_rel_aext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)

@@ -465,6 +465,14 @@ lemma antiframe_assign_in:
   "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> a:[x := v] = x := v"
   by (rel_auto, simp_all add: lens_get_put_quasi_commute lens_put_of_quotient)
 
+lemma antiframe_conj_true:
+  "\<lbrakk> {$x,$x\<acute>} \<natural> P; vwb_lens x \<rbrakk> \<Longrightarrow> (P \<and> x:[true]) = x:[P]"
+  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
+    
+lemma antiframe_assign:
+  "vwb_lens x \<Longrightarrow> x:[$x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub><] = x := v"
+  by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+    
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
     
