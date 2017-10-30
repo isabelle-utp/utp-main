@@ -88,7 +88,12 @@ lemma train_sol:
     apply (simp)
     apply (rel_auto)
 done
-            
+
+lemma train_sol': 
+  "\<langle>{&accel,&vel,&pos} \<bullet> train_ode(ti)\<rangle>\<^sub>h = 
+    {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>(($accel,$vel,$pos)\<^sub>u)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  by (ode_solve train_sol) (rel_auto)
+  
 subsection {* Braking train scenario *}
   
 definition 
