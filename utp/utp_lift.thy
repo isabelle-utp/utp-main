@@ -20,7 +20,7 @@ abbreviation lift_pre :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha> \<t
 where "\<lceil>P\<rceil>\<^sub>< \<equiv> P \<oplus>\<^sub>p fst\<^sub>L"
 
 abbreviation drop_pre :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub><")
-where "\<lfloor>P\<rfloor>\<^sub>< \<equiv> P \<restriction>\<^sub>p fst\<^sub>L"
+where "\<lfloor>P\<rfloor>\<^sub>< \<equiv> P \<restriction>\<^sub>e fst\<^sub>L"
 
 text {* The following two functions lift and drop an expression, respectively, whose alphabet is 
   @{typ "'\<beta>"}, into a product alphabet @{typ "'\<alpha> \<times> '\<beta>"}. This allows us to deal with expressions
@@ -30,13 +30,13 @@ abbreviation lift_post :: "('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha> \<t
 where "\<lceil>P\<rceil>\<^sub>> \<equiv> P \<oplus>\<^sub>p snd\<^sub>L"
 
 abbreviation drop_post :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>>")
-where "\<lfloor>P\<rfloor>\<^sub>> \<equiv> P \<restriction>\<^sub>p snd\<^sub>L"
+where "\<lfloor>P\<rfloor>\<^sub>> \<equiv> P \<restriction>\<^sub>e snd\<^sub>L"
   
 abbreviation lift_cond_pre ("\<lceil>_\<rceil>\<^sub>\<leftarrow>") where "\<lceil>P\<rceil>\<^sub>\<leftarrow> \<equiv> P \<oplus>\<^sub>p (1\<^sub>L \<times>\<^sub>L 0\<^sub>L)"
 abbreviation lift_cond_post ("\<lceil>_\<rceil>\<^sub>\<rightarrow>") where "\<lceil>P\<rceil>\<^sub>\<rightarrow> \<equiv> P \<oplus>\<^sub>p (0\<^sub>L \<times>\<^sub>L 1\<^sub>L)"
 
-abbreviation drop_cond_pre ("\<lfloor>_\<rfloor>\<^sub>\<leftarrow>") where "\<lfloor>P\<rfloor>\<^sub>\<leftarrow> \<equiv> P \<restriction>\<^sub>p (1\<^sub>L \<times>\<^sub>L 0\<^sub>L)"
-abbreviation drop_cond_post ("\<lfloor>_\<rfloor>\<^sub>\<rightarrow>") where "\<lfloor>P\<rfloor>\<^sub>\<rightarrow> \<equiv> P \<restriction>\<^sub>p (0\<^sub>L \<times>\<^sub>L 1\<^sub>L)"
+abbreviation drop_cond_pre ("\<lfloor>_\<rfloor>\<^sub>\<leftarrow>") where "\<lfloor>P\<rfloor>\<^sub>\<leftarrow> \<equiv> P \<restriction>\<^sub>e (1\<^sub>L \<times>\<^sub>L 0\<^sub>L)"
+abbreviation drop_cond_post ("\<lfloor>_\<rfloor>\<^sub>\<rightarrow>") where "\<lfloor>P\<rfloor>\<^sub>\<rightarrow> \<equiv> P \<restriction>\<^sub>e (0\<^sub>L \<times>\<^sub>L 1\<^sub>L)"
 
 subsection {* Lifting Laws *}
 
