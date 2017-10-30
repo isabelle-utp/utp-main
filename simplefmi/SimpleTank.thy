@@ -74,41 +74,6 @@ definition
   "WaterTank minLevel maxLevel area = 
      FMI Init [FMU[ctr, Ctr minLevel maxLevel], FMU[tank, Tank area]] ArbStep Wiring"
 
-definition rea_st_post :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub>>") where
-[upred_defs]: "rea_st_post b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub>>)"
-
-definition hoare_rp :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, real pos) rdes \<Rightarrow> '\<alpha> upred \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>r") where
-[upred_defs]: "hoare_rp p Q r = ((\<lceil>p\<rceil>\<^sub>S\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>S\<^sub>>) \<sqsubseteq> Q)"
-  
-lemma assigns_hoare_rp [hoare_safe]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrightarrow> \<lbrace>p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>r\<lbrace>q\<rbrace>\<^sub>r"
-  by rel_auto
-
-lemma skip_hoare_rp [hoare_safe]: "\<lbrace>p\<rbrace>II\<^sub>r\<lbrace>p\<rbrace>\<^sub>r"
-  by rel_auto
-    
-lemma seq_hoare_rp: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rbrace>\<^sub>r ; \<lbrace>s\<rbrace>Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>r"
-  by (rel_auto)
-
-lemma seq_est_hoare_rp [hoare_safe]: 
-  "\<lbrakk> \<lbrace>true\<rbrace>Q\<^sub>1\<lbrace>p\<rbrace>\<^sub>r ; \<lbrace>p\<rbrace>Q\<^sub>2\<lbrace>p\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>true\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>p\<rbrace>\<^sub>r"
-  by (rel_auto)
-
-lemma seq_inv_hoare_rp [hoare_safe]: 
-  "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>p\<rbrace>\<^sub>r ; \<lbrace>p\<rbrace>Q\<^sub>2\<lbrace>p\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>p\<rbrace>\<^sub>r"
-  by (rel_auto)
-
-lemma repeat_hoare_rp [hoare_safe]: 
-  "\<lbrace>p\<rbrace>Q\<lbrace>p\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>p\<rbrace>Q \<^bold>^ n\<lbrace>p\<rbrace>\<^sub>r"
-  by (induct n, rel_auto+)
-    
-lemma UINF_ind_hoare_rp [hoare_safe]: 
-  "\<lbrakk> \<And> i. \<lbrace>p\<rbrace>Q(i)\<lbrace>r\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>\<Sqinter> i \<bullet> Q(i)\<lbrace>r\<rbrace>\<^sub>r"
-  by (rel_auto)
-    
-lemma iter_hoare_rp [hoare_safe]: 
-  "\<lbrace>p\<rbrace>Q\<lbrace>p\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sup>\<star>\<lbrace>p\<rbrace>\<^sub>r"
-  by (simp add: ustar_def hoare_safe)    
-
 lift_definition var_all_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P x b. \<forall> b'. P (b' \<oplus>\<^sub>L b on x)" .
 
@@ -146,15 +111,7 @@ lemma fmu_hoare_rp [hoare_safe]:
   apply (drule_tac x="get\<^bsub>x\<^esub> st'" in spec)
   apply (auto)
 done
-    
-lemma par_hoare_rp [hoare_safe]:
-  "\<lbrakk> \<lbrace>p\<^sub>1\<rbrace>Q\<^sub>1\<lbrace>r\<^sub>1\<rbrace>\<^sub>r; \<lbrace>p\<^sub>2\<rbrace>Q\<^sub>2\<lbrace>r\<^sub>2\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1 \<and> p\<^sub>2\<rbrace>Q\<^sub>1 \<parallel> Q\<^sub>2\<lbrace>r\<^sub>1 \<and> r\<^sub>2\<rbrace>\<^sub>r"
-  by (rel_auto)
-
-lemma unrest_var_sep [unrest]:
-  "vwb_lens x \<Longrightarrow> x \<natural> &x:y"
-  by (pred_simp)
-    
+        
 method ode_solve 
   for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
   = (rule_tac trans, rule_tac ode_solution'[where \<F> = "sol"], simp_all, linear_ode, rel_auto)
@@ -203,15 +160,7 @@ lemma hEvolves_id:
   by (rel_auto)
 
 thm ode_solution
-  
-lemma antiframe_conj_true:
-  "\<lbrakk> {$x,$x\<acute>} \<natural> P; vwb_lens x \<rbrakk> \<Longrightarrow> (P \<and> x:[true]) = x:[P]"
-  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
-    
-lemma antiframe_assign:
-  "vwb_lens x \<Longrightarrow> x:[$x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub><] = x := v"
-  by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
-    
+      
 theorem ode_frame_solution:
   assumes 
     "vwb_lens x" "\<forall> x. \<forall> l > 0. (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" "\<forall> x. \<F>(x)(0) = x"

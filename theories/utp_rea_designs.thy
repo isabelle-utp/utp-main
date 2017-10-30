@@ -37,7 +37,7 @@ abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S")
 where "\<lceil>P\<rceil>\<^sub>S \<equiv> P \<oplus>\<^sub>p (st \<times>\<^sub>L st)"
 
 abbreviation drop_state_rel ("\<lfloor>_\<rfloor>\<^sub>S")
-where "\<lfloor>P\<rfloor>\<^sub>S \<equiv> P \<restriction>\<^sub>p (st \<times>\<^sub>L st)"
+where "\<lfloor>P\<rfloor>\<^sub>S \<equiv> P \<restriction>\<^sub>e (st \<times>\<^sub>L st)"
 
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
@@ -2114,7 +2114,7 @@ done
 abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
   
 abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
-"abs_st P \<equiv> P \<restriction>\<^sub>p abs_st\<^sub>L"
+"abs_st P \<equiv> P \<restriction>\<^sub>e abs_st\<^sub>L"
   
 definition state_srea ::
   "'s itself \<Rightarrow> ('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> (unit,'t,'\<alpha>,'\<beta>) rel_rsp" where
@@ -2481,6 +2481,9 @@ definition rea_st_rel :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<be
 
 definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub><") where
 [upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
+
+definition rea_st_post :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub>>") where
+[upred_defs]: "rea_st_post b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub>>)"
 
 lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
   by (rel_simp, simp add: lens_indep_def)
