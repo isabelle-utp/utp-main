@@ -14,7 +14,7 @@ definition fmu_comp :: "'\<alpha> fmu \<Rightarrow> '\<alpha> fmu \<Rightarrow> 
 [upred_defs]: "fmu_comp P Q = (P \<and> Q)"
   
 definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> '\<alpha> trel \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
-[upred_defs]: "FMI Init FMUs MA Wiring = \<langle>Init\<rangle>\<^sub>r ;; (((foldr fmu_comp FMUs true) \<and> MA) ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>"
+[upred_defs]: "FMI Init FMUs MA Wiring = \<langle>Init\<rangle>\<^sub>r ;; (((foldr fmu_comp FMUs true) \<parallel> MA) ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>"
 
 definition ArbStep :: "'\<alpha> ma" where
 [upred_defs]: "ArbStep = true"
