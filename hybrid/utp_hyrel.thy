@@ -5,36 +5,102 @@ imports
   "../utp/utp"
   "../theories/utp_csp"
   "../theories/utp_rea_designs"
+  "../theories/utp_time_rel"
   "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
   "../dynamics/Derivative_extra"
   "../dynamics/Timed_Traces"
+  Topology_Euclidean_Space
 begin recall_syntax
   
 subsection {* Continuous Lenses and Preliminaries *}
 
+lemma continuous_on_Pair_first:
+  "\<lbrakk> continuous_on (A \<times> B) f; y \<in> B \<rbrakk> \<Longrightarrow> continuous_on A (\<lambda> x. f (x, y))"
+  apply (rule continuous_on_compose[of _ "\<lambda> x. (x, y)" f, simplified])
+   apply (rule continuous_on_Pair)
+   apply (simp_all add: continuous_on_const continuous_on_id)
+  apply (subgoal_tac "(\<lambda>x. (x, y)) ` A = A \<times> {y}")
+   apply (auto intro: continuous_on_subset)
+done
+
+lemma continuous_on_Pair_second:
+  "\<lbrakk> continuous_on (A \<times> B) f; x \<in> A \<rbrakk> \<Longrightarrow> continuous_on B (\<lambda> y. f (x, y))"
+  apply (rule continuous_on_compose[of _ "\<lambda> y. (x, y)" f, simplified])
+   apply (rule continuous_on_Pair)
+   apply (simp_all add: continuous_on_const continuous_on_id)
+  apply (subgoal_tac "(\<lambda>y. (x, y)) ` B = {x} \<times> B")
+   apply (auto intro: continuous_on_subset)
+done
+  
+lemma continuous_on_pairwise:
+  "\<lbrakk> continuous_on A f; continuous_on B g \<rbrakk> \<Longrightarrow> continuous_on (A \<times> B) (\<lambda> (x, y). (f x, g y))"
+  apply (simp add: prod.case_eq_if)
+  apply (rule continuous_on_Pair)
+  apply (rule continuous_on_compose[of "A \<times> B" fst f, simplified])
+  apply (simp_all add: ODE_Auxiliarities.continuous_on_fst)
+  apply (rule continuous_on_compose[of "A \<times> B" snd g, simplified])
+  apply (simp_all add: ODE_Auxiliarities.continuous_on_snd)
+done
+  
 locale continuous_lens = 
   vwb_lens x for x :: "'a::topological_space \<Longrightarrow> 'b::topological_space" (structure) +
   assumes get_continuous: "continuous_on A get"
-  and put_continuous: "continuous_on A (\<lambda> s. put s v)"
- 
+  and put_continuous: "continuous_on B (uncurry put)"
+begin
+  
+  lemma put_continuous_s: "continuous_on A (\<lambda> s. put s v)"
+    apply (rule continuous_on_Pair_first[of _ UNIV "uncurry put", simplified])
+    using put_continuous[of "A \<times> UNIV"]
+    apply (simp add: prod.case_eq_if)
+  done
+  
+  lemma put_continuous_v: "continuous_on B (\<lambda> v. put s v)"
+    apply (rule continuous_on_Pair_second[of UNIV _ "uncurry put", simplified])
+    using put_continuous[of "UNIV \<times> B"]
+    apply (simp add: prod.case_eq_if)
+  done
+
+end
+      
 declare continuous_lens.get_continuous [simp]
-declare continuous_lens.put_continuous [simp]
+declare continuous_lens.put_continuous_s [simp]
+declare continuous_lens.put_continuous_v [simp]  
   
 lemma continuous_lens_vwb [simp]: 
   "continuous_lens x \<Longrightarrow> vwb_lens x"
   by (simp_all add: continuous_lens_def)
   
 lemma continuous_lens_intro:
-  assumes "vwb_lens x" "\<And> A. continuous_on A get\<^bsub>x\<^esub>" "\<And> A v. continuous_on A (\<lambda> s. put\<^bsub>x\<^esub> s v)"
+  assumes 
+    "vwb_lens x" 
+    "\<And> A. continuous_on A get\<^bsub>x\<^esub>" 
+    "\<And> B. continuous_on B (uncurry put\<^bsub>x\<^esub>)"
   shows "continuous_lens x"
-  by (simp add: continuous_lens_def continuous_lens_axioms_def assms)
+  using assms
+  by (auto simp add: continuous_lens_def continuous_lens_axioms_def assms)
+
+lemma continuous_lens_intro':
+  assumes 
+    "vwb_lens x" 
+    "continuous_on UNIV get\<^bsub>x\<^esub>" 
+    "continuous_on UNIV (uncurry put\<^bsub>x\<^esub>)"
+  shows "continuous_lens x"
+proof -
+  have 1:"\<And> A. continuous_on A get\<^bsub>x\<^esub>"
+    by (rule continuous_on_subset[OF assms(2)], simp)
+  have 2:"\<And> B. continuous_on B (uncurry put\<^bsub>x\<^esub>)"
+    by (rule continuous_on_subset[OF assms(3)], simp)
+  from 1 2 show ?thesis
+    using "2" assms(1) continuous_lens_intro by blast
+qed
+
     
 lemma fst_continuous_lens [closure]: 
   "continuous_lens fst\<^sub>L"
   apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)
   apply (rule continuous_on_Pair)
-  apply (simp add: continuous_on_const)
   using ODE_Auxiliarities.continuous_on_snd apply blast
+  apply (simp add: ODE_Auxiliarities.continuous_on_fst Topological_Spaces.continuous_on_snd)
 done
   
 text {* The one lens is continuous *}
@@ -50,7 +116,7 @@ lemma continuous_on_plus_lens [continuous_intros]:
   by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair)
 
 declare plus_vwb_lens [simp]
-    
+   
 lemma lens_plus_continuous [closure]:
   assumes "continuous_lens x" "continuous_lens y" "x \<bowtie> y"
   shows "continuous_lens (x +\<^sub>L y)"
@@ -59,12 +125,32 @@ proof (rule continuous_lens_intro)
     by (simp add: assms)
   show "\<And>A. continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
     by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)  
-  show "\<And>A v. continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
+  show "\<And>B. continuous_on B (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
   proof -
     fix A v
-    from continuous_on_compose[where s=A and g="(\<lambda> s. put\<^bsub>x\<^esub> s (fst v))" and f="(\<lambda> s. put\<^bsub>y\<^esub> s (snd v))"]
-    show "continuous_on A (\<lambda>s. put\<^bsub>x +\<^sub>L y\<^esub> s v)"
-      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair prod.case_eq_if assms)
+    have "continuous_on A (uncurry put\<^bsub>x\<^esub> \<circ> (\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2)))"
+    proof (rule continuous_on_compose[where s="A" and f="(\<lambda> (s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2))" and g="uncurry put\<^bsub>x\<^esub>"])
+      have "continuous_on A (uncurry put\<^bsub>y\<^esub> \<circ> (\<lambda>(x, y). (x, snd y)))"
+        
+        apply (rule continuous_on_compose[where s="A" and f="\<lambda> (x, y). (x, snd y)" and g="uncurry put\<^bsub>y\<^esub>"])
+         apply (simp add: prod.case_eq_if)
+          apply (rule continuous_on_Pair)
+        apply (simp add: ODE_Auxiliarities.continuous_on_fst)
+        apply (simp add: ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_snd)
+        using assms(2) continuous_lens.put_continuous apply blast
+      done
+      thus "continuous_on A (\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2))"
+       apply (simp add: prod.case_eq_if)
+        apply (rule continuous_on_Pair)
+        apply (auto)
+        using ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_fst by blast
+    next
+      show "continuous_on ((\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2)) ` A) (uncurry put\<^bsub>x\<^esub>)"
+        using assms(1) continuous_lens.put_continuous by auto
+    qed
+
+    thus "continuous_on A (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
+      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms prod.case_eq_if)
   qed
 qed
 
@@ -199,7 +285,7 @@ abbreviation cont_lift :: "('a, 'c \<times> 'c) uexpr \<Rightarrow> ('a, 'd, 'c:
 "\<lceil>P\<rceil>\<^sub>C \<equiv> \<lceil>P \<oplus>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)\<rceil>\<^sub>S"
 
 abbreviation cont_drop :: "('a, 'd, 'c::topological_space) hyexpr \<Rightarrow> ('a, 'c \<times> 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C") where
-"\<lfloor>P\<rfloor>\<^sub>C \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (\<^bold>c \<times>\<^sub>L \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (\<^bold>c \<times>\<^sub>L \<^bold>c)"
 
 abbreviation cont_pre_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>C\<^sub><") where
 "\<lceil>P\<rceil>\<^sub>C\<^sub>< \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub><"
@@ -208,10 +294,10 @@ abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topologi
 "\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub>>"
 
 abbreviation cont_pre_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub><") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (ivar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (ivar \<^bold>c)"
 
 abbreviation cont_post_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub>>") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>p (ovar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (ovar \<^bold>c)"
 
 translations
   "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
@@ -392,7 +478,7 @@ text {* Take the continuous state space at the limit. If the duration is 0 then 
   value of the continuous state instead. *}
 
 definition tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
-[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c"
+[upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c\<acute>"
 
 definition final_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "final_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $st:\<^bold>c:x\<acute> =\<^sub>u \<^bold>t\<^sup>\<rightarrow>:(x))"
@@ -643,7 +729,23 @@ lemma rea_not_hInt [rpred]:
 lemma rea_not_hSomewhere [rpred]:
   "(\<not>\<^sub>r \<lfloor>P(ti)\<rfloor>\<^sub>h) = \<lceil>\<not> P(ti)\<rceil>\<^sub>h"
   apply (rel_auto) using tt_end_gr_zero_iff by fastforce
-    
+  
+subsection {* Continuous Frames *}
+
+text {* A continuous variable frame states that all variables other than those enumerated are
+  held constant during evolution. This is implemented essentially by lifting the regular
+  relational frame operator to an interval specification. It is useful for implementing
+  discrete variables. *}
+  
+definition hFrame :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" where
+[upred_defs]: "hFrame x P = (P \<and> \<lceil>x:[true]\<rceil>\<^sub>h)"
+  
+syntax
+  "_hFrame" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>h" [99,0] 100)
+
+translations
+  "_hFrame a P" == "CONST hFrame a P"
+
 subsection {* At Limit *}
 
 text {* Predicate evaluated at the limit of the trajectory. *}
@@ -730,6 +832,27 @@ lemma hEvolve_spec_refine:
   apply (metis vwb_lens.put_eq)
 done
 
+subsection {* Evolve by Assignment *}
+
+text {* The following alternative operator for specifying an evolution used a variable assignment
+  substitution to specify the value of each variable at each interval in terms of time and
+  the initial value of the variables. They are quite useful for expressing solutions to ODEs
+  though are less general than the above operator. *}
+  
+definition hEvolves :: "(real \<Rightarrow> 'c::t2_space usubst) \<Rightarrow> ('d, 'c) hyrel" where
+[upred_defs]: "hEvolves s = (\<lceil>\<langle>s(ti)\<rangle>\<^sub>a\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
+    
+syntax
+  "_hEvolves" :: "logic \<Rightarrow> logic" ("{_}\<^sub>h")
+
+translations
+  "_hEvolves s" => "CONST hEvolves (\<lambda> _time_var. s)"
+  "_hEvolves s" <= "CONST hEvolves (\<lambda> t. s)"
+  
+lemma hEvolves_id: 
+  "{id}\<^sub>h = \<^bold>v \<leftarrow>\<^sub>h $\<^bold>v"
+  by (rel_auto)
+  
 subsection {* Pre-emption *}
 
 definition hUntil ::
@@ -797,7 +920,12 @@ proof -
     using Limit_continuous assms(1) assms(2) by blast  
   finally show ?thesis .
 qed
-  
+
+lemma Limit_solve_at_left:
+  assumes "x > 0" "continuous_on {0..x::real} g" "\<forall> x\<in>{0..<x}. f x = g x"
+  shows "Lim (at_left x) f = g(x)"
+  by (simp add: Limit_solve assms(1) assms(2) assms(3) at_left_from_zero)
+
 lemma Lim_continuous_lens:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "T > 0" "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>" 
@@ -1092,11 +1220,135 @@ lemma hUntil_solve:
   shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright>"
   using assms
   by (rule_tac hUntil_inv_solve, simp_all, (rel_auto)+)
+    
+subsection {* Linking Hybrid and Timed Relations *}
+    
+definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
+[upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
+
+lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
+  apply (rel_auto)
+  using minus_zero_eq apply blast
+  using minus_zero_eq apply blast
+  apply fastforce
+done
+
+definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
+[upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
+ 
+abbreviation hyrel_cond :: 
+  "('d, 'c::t2_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>h/ _)" [52,0,53] 52) where
+"hyrel_cond P b Q \<equiv> (P \<triangleleft> b \<oplus>\<^sub>p \<^bold>c \<triangleright>\<^sub>R Q)"
+
+lemma hyrel2trl_cond: "H2T(P \<triangleleft> b \<triangleright>\<^sub>h Q) = H2T(P) \<triangleleft> b \<triangleright>\<^sub>R H2T(Q)"
+  by (rel_auto)
+
+lemma hyrel2trel_assigns: "H2T(\<langle>\<sigma>\<rangle>\<^sub>h) = \<langle>\<sigma>\<rangle>\<^sub>r"
+  apply (rel_auto)
+  using minus_zero_eq apply blast
+  using minus_zero_eq apply blast
+  apply fastforce
+done
+
+lemma hyrel2trel_hEvolve:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "continuous_on {0..} f"
+  shows "H2T(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: (unit,'c) hyrel) = 
+         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; \<^bold>v :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
+proof -
+  from assms(1) 
+  have "?lhs = R1(\<^bold>\<exists> l \<bullet> (&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel) \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+    by (simp add: hyrel2trel_def)
+  also have "... = R1(\<^bold>\<exists> l \<bullet> (&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>l\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: (unit,'c) hyrel) \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+    by (rel_auto, blast)
+  also have "... = R1(\<^bold>\<exists> l \<bullet> ((\<^bold>v := \<guillemotleft>f(l)\<guillemotright>) \<oplus>\<^sub>r st) \<and> \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)" (is "?P = ?Q")
+  proof (rule antisym)
+    show "?P \<sqsubseteq> ?Q"
+      apply (rel_simp)
+      apply (rename_tac tr tr' n)
+      apply (rule_tac x="n" in exI)
+      apply (auto)
+      apply (rule_tac x="0" in exI)
+      apply (rule_tac x="tt_mk n f" in exI)
+      apply (subgoal_tac "continuous_on {0..n} f")
+       apply (auto simp add: assms Limit_solve at_left_from_zero)
+      apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+    done
+    show "?Q \<sqsubseteq> ?P"
+      apply (rel_simp)
+      apply (rename_tac tr tr' tr'' tr''')
+      apply (rule_tac x="end\<^sub>t (tr''' - tr'')" in exI)
+      apply (auto)
+      apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} f")
+       apply (subst Limit_solve_at_left)
+          apply (auto)
+      apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+    done
+  qed
+  also have "... = ?rhs"
+    apply (rel_auto)
+     apply (rename_tac tr tr' x)
+     apply (rule_tac x="mk_pos x" in exI)
+     apply (simp)
+     apply (subgoal_tac "mk_pos x > 0")
+    apply (metis le_add_diff_inverse)
+    using mk_pos_less apply force
+    apply (rule_tac x="(real_of_pos x)" in exI)
+    apply (simp add: Rep_pos_inverse less_pos.rep_eq mk_pos.abs_eq real_of_pos.rep_eq zero_pos.rep_eq)
+  done
+  finally show ?thesis .
+qed
+  
+lemma hyrel2trel_hEvolves:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "continuous_lens x" "continuous_on {0..} f"
+  shows "H2T({[x \<mapsto>\<^sub>s \<guillemotleft>f(ti)\<guillemotright>]}\<^sub>h) = 
+         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; x :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
+proof -
+  from assms(1) 
+  have "?lhs = R1 (\<^bold>\<exists> l \<bullet> ({[x \<mapsto>\<^sub>s \<guillemotleft>f ti\<guillemotright>]}\<^sub>h \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel)  \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+    by (simp add: hyrel2trel_def)
+  also have "... = R1(\<^bold>\<exists> l \<bullet> ((x := \<guillemotleft>f(l)\<guillemotright>) \<oplus>\<^sub>r st) \<and> \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)" (is "?P = ?Q")
+  proof (rule antisym)
+    show "?P \<sqsubseteq> ?Q"
+      apply (rel_simp)
+      apply (rename_tac tr st tr' n)
+      apply (rule_tac x="n" in exI)
+      apply (auto)
+      apply (rule_tac x="0" in exI)
+      apply (rule_tac x="tt_mk n (\<lambda> t. put\<^bsub>x\<^esub> st (f t))" in exI)
+      apply (subgoal_tac "continuous_on {0..n} (put\<^bsub>x\<^esub> st \<circ> f)")
+       apply (auto simp add: assms Limit_solve at_left_from_zero)[1]
+       apply (rule continuous_on_compose)
+       apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+        apply (rule continuous_lens.put_continuous_v[OF assms(1)])
+    done
+    show "?Q \<sqsubseteq> ?P"
+      apply (rel_simp)
+      apply (rename_tac tr tr' tr'' tr''')
+      apply (rule_tac x="end\<^sub>t (tr''' - tr'')" in exI)
+      apply (auto)
+       apply (subst Limit_solve_at_left)
+          apply (auto)
+       apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} (put\<^bsub>x\<^esub> tr \<circ> f)")
+        apply (simp)
+       apply (rule continuous_on_compose)
+       apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+       apply (rule continuous_lens.put_continuous_v[OF assms(1)])
+    done
+  qed
+  also have "... = ?rhs"
+    apply (rel_auto)
+    apply (metis le_add_diff_inverse less_eq_real_def mk_pos_less mk_pos_zero real_of_pos)
+    apply (metis (full_types) approximation_preproc_push_neg(3) least_zero mk_pos.abs_eq mk_pos_real_of_pos not_le zero_pos.abs_eq)
+  done
+  finally show ?thesis .
+qed
 
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>p ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>e ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
   
 lemma HyStep_hEvolve:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
@@ -1262,3 +1514,4 @@ lemma nearly_conj:
   by (rel_auto)
     
 end
+  

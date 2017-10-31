@@ -109,6 +109,22 @@ text {* We also set up notation that explicitly sets up the initial value for th
   @{term "\<F>'"} takes its value from @{term "x\<^sub>0"}. We next prove some important theorems about
   solutions to ODEs. *}
 
+abbreviation hODE_frame ::
+  "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
+   'a ODE \<Rightarrow> ('d, 'c) hyrel" where
+"hODE_frame x \<F>' \<equiv> hFrame x (hODE x \<F>')"
+        
+syntax
+  "_hODE_frame" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ : _\<rangle>\<^sub>h")
+
+translations
+  "_hODE_frame a P" => "CONST hODE_frame a (\<lambda> _time_var. P)"
+  "_hODE_frame a P" <= "CONST hODE_frame a (\<lambda> t. P)"    
+
+text {* ODEs can also have a frame attached, which the above operator provides. It implicitly
+  contains the assumption that all variables not mentioned in the ODE are held constant
+  during evolution. *}  
+  
 lemma at_has_deriv [simp]:
   "(f has-ode-deriv f' at ti < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (ti @\<^sub>u t) < (l @\<^sub>u t)"
   by (simp add: at_def usubst alpha)
@@ -221,6 +237,34 @@ theorem ode_solution:
   using ode_solution_refine[of x \<F> \<F>'] ode_uniq_solution_refine[of x \<F> \<F>']
   by (auto intro: antisym simp add: assms)
 
+theorem ode_solution':
+  assumes 
+    "vwb_lens x" 
+    "\<And> x l. l > 0 \<Longrightarrow> (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV" 
+    "\<And> x. \<F>(x)(0) = x"
+  shows "\<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h = x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
+  by (simp add: assms(1) assms(2) assms(3) ode_solution)
+    
+theorem ode_frame_solution:
+  assumes 
+    "vwb_lens x" 
+    "\<And> x l. l > 0 \<Longrightarrow> (\<F>(x) usolves_ode \<F>' from 0) {0..l} UNIV"
+    "\<And> x. \<F>(x)(0) = x"
+  shows "\<langle>x : \<F>'(ti)\<rangle>\<^sub>h = {[x \<mapsto>\<^sub>s \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
+proof -
+  have "\<langle>x : \<F>'(ti)\<rangle>\<^sub>h = x:[x \<leftarrow>\<^sub>h \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]\<^sub>h"
+    by (simp add: ode_solution'[where \<F>=\<F>] assms)
+  also from assms(1) have "... = (\<lceil>$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<and> x:[true]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"
+    by (rel_auto)
+  also from assms(1) have "... = (\<lceil>x:[$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"      
+    by (simp add: antiframe_conj_true unrest)
+  also have "... = (\<lceil>x:[$x\<acute> =\<^sub>u \<lceil>\<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a\<rceil>\<^sub><]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"
+    by (rel_auto)
+  also from assms(1) have "... = {[x \<mapsto>\<^sub>s \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
+    by (simp add: antiframe_assign hEvolves_def, rel_auto)
+  finally show ?thesis .
+qed
+    
 lemma uos_impl_uniq_sol:
   assumes "unique_on_strip t0 T f' L" "is_interval T"
   and "(f solves_ode f') T UNIV"
@@ -245,6 +289,24 @@ text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems 
 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
+text {* \emph{linear\_ode} certifies unique solutions for linears ODEs. *}
+  
+method linear_ode = 
+  (rule_tac uos_impl_uniq_sol[where L=1], (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)[1], (auto)[1], ode_cert)  
+
+text {* \emph{ode\_solve} tries to rewrite an ODE to a solution. The solution must be passed
+  as a mandatory term parameter. *}
+
+method ode_solve
+  for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
+  = ((subst ode_solution'[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
+  
+text {* Version of above with frame *}
+  
+method ode_fsolve
+  for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
+  = ((subst ode_frame_solution[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
+  
 text {* Example illustrating the relationship between derivative constrains and ordinary differential
   equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. *}
     

@@ -159,21 +159,21 @@ lemma unrest_aext_indep [unrest]:
   "a \<bowtie> b \<Longrightarrow> b \<sharp> (p \<oplus>\<^sub>p a)"
   by pred_auto
     
-subsection {* Alphabet Restriction *}
+subsection {* Expression Alphabet Restriction *}
 
 text {* Restrict an alphabet by application of a lens that demonstrates how the smaller alphabet
   ($\beta$) injects into the larger alphabet ($\alpha$). Unlike extension, this operation
   can lose information if the expressions refers to variables in the larger alphabet. *}
 
-lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>p" 90)
+lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>e" 90)
 is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms
 
-lemma arestr_id [alpha]: "P \<restriction>\<^sub>p 1\<^sub>L = P"
+lemma arestr_id [alpha]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
   by (pred_auto)
 
-lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>p a = P"
+lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>e a = P"
   by (pred_auto)
 
 text {* If an expression's alphabet can be divided into two disjoint sections and the expression
@@ -182,7 +182,7 @@ text {* If an expression's alphabet can be divided into two disjoint sections an
 
 lemma aext_arestr [alpha]:
   assumes "mwb_lens a" "bij_lens (a +\<^sub>L b)" "a \<bowtie> b" "b \<sharp> P"
-  shows "(P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
+  shows "(P \<restriction>\<^sub>e a) \<oplus>\<^sub>p a = P"
 proof -
   from assms(2) have "1\<^sub>L \<subseteq>\<^sub>L a +\<^sub>L b"
     by (simp add: bij_lens_equiv_id lens_equiv_def)
@@ -193,40 +193,77 @@ proof -
   done
 qed
 
-lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
+lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
 
-lemma arestr_zero [alpha]: "0 \<restriction>\<^sub>p a = 0"
+lemma arestr_zero [alpha]: "0 \<restriction>\<^sub>e a = 0"
   by (pred_auto)
 
-lemma arestr_one [alpha]: "1 \<restriction>\<^sub>p a = 1"
+lemma arestr_one [alpha]: "1 \<restriction>\<^sub>e a = 1"
   by (pred_auto)
 
-lemma arestr_numeral [alpha]: "numeral n \<restriction>\<^sub>p a = numeral n"
+lemma arestr_numeral [alpha]: "numeral n \<restriction>\<^sub>e a = numeral n"
   by (pred_auto)
 
 lemma arestr_var [alpha]:
-  "var x \<restriction>\<^sub>p a = var (x /\<^sub>L a)"
+  "var x \<restriction>\<^sub>e a = var (x /\<^sub>L a)"
   by (pred_auto)
 
-lemma arestr_true [alpha]: "true \<restriction>\<^sub>p a = true"
+lemma arestr_true [alpha]: "true \<restriction>\<^sub>e a = true"
   by (pred_auto)
 
-lemma arestr_false [alpha]: "false \<restriction>\<^sub>p a = false"
+lemma arestr_false [alpha]: "false \<restriction>\<^sub>e a = false"
   by (pred_auto)
 
-lemma arestr_not [alpha]: "(\<not> P)\<restriction>\<^sub>pa = (\<not> (P\<restriction>\<^sub>pa))"
+lemma arestr_not [alpha]: "(\<not> P)\<restriction>\<^sub>ea = (\<not> (P\<restriction>\<^sub>ea))"
   by (pred_auto)
 
-lemma arestr_and [alpha]: "(P \<and> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<and> Q\<restriction>\<^sub>px)"
+lemma arestr_and [alpha]: "(P \<and> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<and> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
 
-lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<or> Q\<restriction>\<^sub>px)"
+lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<or> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
 
-lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<Rightarrow> Q\<restriction>\<^sub>px)"
+lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<Rightarrow> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
 
+subsection {* Predicate Alphabet Restriction *}
+  
+text {* In order to restrict the variables of a predicate, we also need to existentially quantify
+  away the other variables. We can't do this at the level of expressions, as quantifiers are not
+  applicable here. Consequently, we need a specialised version of alphabet restriction for
+  predicates. It both restricts the variables using quantification and then removes them
+  from the alphabet type using expression restriction. *}
+
+definition upred_ares :: "'\<alpha> upred \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> upred" 
+where [upred_defs]: "upred_ares P a = (P \<restriction>\<^sub>v a) \<restriction>\<^sub>e a"
+    
+syntax
+  "_upred_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>p" 90)
+
+translations
+  "_upred_ares P a" == "CONST upred_ares P a"
+  
+lemma upred_aext_ares [alpha]: 
+  "vwb_lens a \<Longrightarrow> P \<oplus>\<^sub>p a \<restriction>\<^sub>p a = P"
+  by (pred_auto)
+    
+lemma upred_ares_aext [alpha]:
+  "a \<natural> P \<Longrightarrow> (P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
+  by (pred_auto)
+
+lemma upred_arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
+  by (pred_auto)
+
+lemma upred_arestr_true [alpha]: "true \<restriction>\<^sub>p a = true"
+  by (pred_auto)
+
+lemma upred_arestr_false [alpha]: "false \<restriction>\<^sub>p a = false"
+  by (pred_auto)
+
+lemma upred_arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<or> Q\<restriction>\<^sub>px)"
+  by (pred_auto)
+    
 subsection {* Alphabet Lens Laws *}
 
 lemma alpha_in_var [alpha]: "x ;\<^sub>L fst\<^sub>L = in_var x"
@@ -283,7 +320,7 @@ lemma id_subst_res [usubst]:
   by pred_auto
 
 lemma upd_subst_res [alpha]:
-  "mwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>p x)"
+  "mwb_lens x \<Longrightarrow> \<sigma>(&x:y \<mapsto>\<^sub>s v) \<restriction>\<^sub>s x = (\<sigma> \<restriction>\<^sub>s x)(&y \<mapsto>\<^sub>s v \<restriction>\<^sub>e x)"
   by (pred_auto)
 
 lemma subst_ext_res [usubst]:

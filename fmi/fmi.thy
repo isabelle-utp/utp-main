@@ -9,7 +9,7 @@
 section {* FMI {\Circus} Model *}
 
 theory fmi
-imports Positive_New Time
+imports "../utils/Positive" Time
   "../utp/models/utp_axm"
   "../theories/utp_circus"
 begin recall_syntax

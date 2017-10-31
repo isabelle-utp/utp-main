@@ -9,7 +9,10 @@
 section {* Time Model *}
 
 theory Time
-imports Positive_New Continuum Two
+  imports
+    "../optics/Two"
+    "../continuum/Continuum"
+    "../utils/Positive" 
 begin
 
 text {*

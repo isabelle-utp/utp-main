@@ -12,7 +12,6 @@ theory ucommon
 imports uimports document
   "core/uattrib"
   "utils/flat_orders"
-  "utils/Infinity"
   (* "utils/Interpret" *)
   "utils/Normalise"
   "utils/Sum_Order"
@@ -21,7 +20,8 @@ imports uimports document
   (* "utils/Typedep" *)
   "utils/Typerep_ind"
   (* Provided by the UTP-IMPORTS heap. *)
-  Lenses
+  "../optics/Lenses"
+  "../utils/Infinity"
 begin
 
 text {* ML Utility Functions *}

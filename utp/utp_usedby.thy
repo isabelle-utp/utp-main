@@ -111,4 +111,8 @@ lemma usedBy_ulambda [unrest]:
   "\<lbrakk> \<And> x. v \<natural> F x \<rbrakk> \<Longrightarrow> v \<natural> (\<lambda> x \<bullet> F x)"
   by (transfer, simp)      
 
+lemma unrest_var_sep [unrest]:
+  "vwb_lens x \<Longrightarrow> x \<natural> &x:y"
+  by (transfer, simp add: lens_defs)
+    
 end

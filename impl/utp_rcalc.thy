@@ -39,6 +39,9 @@ end
    
 abbreviation "chose x \<equiv> {&x}:[true,true]"
   
+abbreviation passume :: "'\<alpha> upred \<Rightarrow> '\<alpha> prog" ("{_}\<^sub>p") where
+"{b}\<^sub>p \<equiv> \<emptyset>:[b, true]"
+
 subsection {* Refinement Laws *}
   
 lemma spec_abort:

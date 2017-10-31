@@ -11,6 +11,7 @@ section {* Infinity Supplement *}
 theory Infinity
 imports Main Real
   "~~/src/HOL/Library/Infinite_Set"
+  "../optics/Two"
 begin
 
 text {*
@@ -138,4 +139,7 @@ instance prod :: (infinite, infinite) infinite by (intro_classes, simp)
 instance sum :: (infinite, infinite) infinite by (intro_classes, simp)
 instance list :: (type) infinite by (intro_classes, simp)
 instance option :: (infinite) infinite by (intro_classes, simp)
+
+subclass (in infinite) two  by (intro_classes, auto)
+    
 end

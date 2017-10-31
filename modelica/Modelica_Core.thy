@@ -7,7 +7,7 @@ begin
 named_theorems mo_defs
   
 alphabet 'l mst =
-  time    :: real
+  mtime   :: real
   mintern :: "'l" -- {* Internal continuous variables *}
   
 setup_lifting type_definition_mst_ext
@@ -31,7 +31,7 @@ end
 definition map_mst ::
   "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
    ('\<sigma>, 'c) mst_scheme \<Rightarrow> ('\<tau>, 'c) mst_scheme" where
-[lens_defs]: "map_mst f = (\<lambda>r. \<lparr>time\<^sub>v = time\<^sub>v r, mintern\<^sub>v = f (mintern\<^sub>v r), \<dots> = more r\<rparr>)"
+[lens_defs]: "map_mst f = (\<lambda>r. \<lparr>mtime\<^sub>v = mtime\<^sub>v r, mintern\<^sub>v = f (mintern\<^sub>v r), \<dots> = more r\<rparr>)"
 
 definition map_mst_lens ::
   "('\<sigma> \<Longrightarrow> '\<tau>) \<Rightarrow> 

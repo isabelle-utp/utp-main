@@ -597,18 +597,32 @@ lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sha
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
   by (simp add: RID_disj unrest_relation_def)
 
-subsection {* Relational alphabet extension *}
+subsection {* Relational Alphabet Extension and Restriction *}
 
-lift_definition rel_alpha_ext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<oplus>\<^sub>R" 65)
-is "\<lambda> P x (b1, b2). P (get\<^bsub>x\<^esub> b1, get\<^bsub>x\<^esub> b2) \<and> (\<forall> b. b1 \<oplus>\<^sub>L b on x = b2 \<oplus>\<^sub>L b on x)" .
+definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" 
+where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
 
-lemma rel_alpha_ext_alt_def:
-  assumes "vwb_lens y" "x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L" "x \<bowtie> y"
-  shows "P \<oplus>\<^sub>R x = (P \<oplus>\<^sub>p (x \<times>\<^sub>L x) \<and> $y\<acute> =\<^sub>u $y)"
-  using assms
-  apply (rel_auto robust, simp_all add: lens_override_def)
-  apply (metis lens_indep_get lens_indep_sym)
-  apply (metis vwb_lens_def wb_lens.get_put wb_lens_def weak_lens.put_get)
-done
+definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
+  where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
+    
+syntax
+  "_rel_aext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
+  "_rel_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
+    
+translations
+  "_rel_aext P a" == "CONST rel_aext P a"
+  "_rel_ares P a" == "CONST rel_ares P a"
   
+lemma rel_ares_aext [alpha]: 
+  "vwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>r a) \<restriction>\<^sub>r a = P"
+  by (rel_auto)
+
+lemma rel_aext_ares [alpha]:
+  "{$a, $a\<acute>} \<natural> P \<Longrightarrow> P \<restriction>\<^sub>r a \<oplus>\<^sub>r a = P"
+  by (rel_auto)
+
+lemma rel_aext_uses [unrest]:
+  "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
+  by (rel_auto)    
+    
 end

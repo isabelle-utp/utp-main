@@ -1,96 +1,173 @@
-section {* Positive numbers *}
+  (******************************************************************************)
+(* Project: The Isabelle/UTP Proof System                                     *)
+(* File: Positive_New.thy                                                     *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+(* LAST REVIEWED: 14 Sept 2017 *)
+
+section {* Positive Subtypes *}
 
 theory Positive
-imports Real
+imports 
+  Infinity 
+  "Library_extra/Monoid_extra"
+  "~~/src/HOL/Library/Countable"
 begin
 
-typedef (overloaded) 'a::"{zero,order}" pos = "{x::'a. x \<ge> 0}"
-  by (auto)
+subsection {* Type Definition *}
+
+typedef (overloaded) 'a::"{zero, linorder}" pos = "{x::'a. x \<ge> 0}"
+  apply (rule_tac x = "0" in exI)
+  apply (clarsimp)
+done
 
 setup_lifting type_definition_pos
 
-instantiation pos :: ("{zero,order}") zero
+type_synonym preal = "real pos"
+  
+subsection {* Operators *}
+  
+lift_definition mk_pos :: "'a::{zero, linorder} \<Rightarrow> 'a pos" is
+"\<lambda> n. if (n \<ge> 0) then n else 0" by auto
+
+lift_definition real_of_pos :: "real pos \<Rightarrow> real" is id .
+
+declare [[coercion real_of_pos]]
+  
+subsection {* Instantiations *}
+
+instantiation pos :: ("{zero, linorder}") zero
 begin
-
-lift_definition zero_pos :: "'a pos" is 0 by auto
-
-instance ..
+  lift_definition zero_pos :: "'a pos"
+    is "0 :: 'a" ..
+  instance ..
 end
 
-instantiation pos :: ("{zero,order}") order
+instantiation pos :: ("{zero, linorder}") linorder
 begin
-
-lift_definition less_eq_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool" is "op \<le> :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
-lift_definition less_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool" is "op < :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
-
-instance
-  by (intro_classes, (transfer, auto)+)
+  lift_definition less_eq_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool"
+    is "op \<le> :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
+  lift_definition less_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool"
+    is "op < :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
+  instance
+    apply (intro_classes; transfer)
+        apply (auto)
+  done
 end
 
-lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,order} pos)"
-  by (transfer, simp)
-
-instantiation pos :: ("{ordered_ab_semigroup_add,monoid_add}") ordered_ab_semigroup_add
-begin
-
-lift_definition plus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos" is plus
-  by (metis add.right_neutral add_mono)
-
-instance
+instance pos :: ("{zero, linorder, no_top}") no_top
   apply (intro_classes)
-  apply (transfer, simp add: add.assoc)
-  apply (transfer, metis add.commute)
-  apply (transfer, metis add_left_mono)
+  apply (transfer)
+  apply (clarsimp)
+  apply (meson gt_ex less_imp_le order.strict_trans1)
 done
 
-end
-
-instance pos :: ("{ordered_ab_semigroup_add,monoid_add}") monoid_add
-  by (intro_classes, transfer, metis add.left_neutral, transfer, metis add.right_neutral)
-
-instance pos :: ("{ordered_ab_semigroup_add,comm_monoid_add}") comm_monoid_add
-  by (intro_classes, metis add.left_neutral)
-
-instance real :: ordered_ab_semigroup_add ..
+instance pos :: ("{zero, linorder, no_top}") infinite
+  apply (intro_classes)
+  apply (rule notI)
+  apply (subgoal_tac "\<forall>x::'a pos. x \<le> Max UNIV")
+  using gt_ex leD apply (blast)
+  apply (simp)
+done
 
 instantiation pos :: (linordered_semidom) linordered_semidom
 begin
-
-lift_definition one_pos :: "'a pos" is 1
-  by (metis zero_le_one)
-
-lift_definition times_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos" is times
-  by (metis mult_nonneg_nonneg)
-
-lift_definition minus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
-is "\<lambda> x y. if (y \<le> x) then x - y else 0"
-  by (auto, metis add.left_neutral add_le_imp_le_diff)
-
-instance
-  apply (intro_classes)
-  apply (transfer, auto, metis add_increasing2 dual_order.refl)
-  apply (transfer, auto)
-  apply (metis diff_diff_add)
-  apply (metis add_mono_thms_linordered_semiring(2) le_add_diff_inverse)
-  apply (metis add.commute add_le_imp_le_diff)
-  apply (metis add.right_neutral add_le_cancel_left dual_order.trans)
-  apply (transfer, auto)
-  apply (transfer, metis mult.assoc)
-  apply (transfer, metis mult.commute)
-  apply (transfer, metis distrib_left mult.commute)
-  apply (transfer, metis mult_zero_left)
-  apply (transfer, metis mult_zero_right)
-  apply (transfer, metis mult_strict_left_mono)
-  apply (transfer, metis mult.left_neutral)
-  apply (transfer, metis zero_neq_one)
-  apply (transfer, metis (mono_tags, lifting) antisym_conv2 mult_left_le_imp_le mult_not_zero ordered_comm_semiring_class.comm_mult_left_mono right_diff_distrib')
-  apply (transfer, metis distrib_left)
-  apply (transfer, metis divisors_zero)
-  apply (transfer, metis zero_less_one)
-  apply (transfer, metis (full_types) le_add_diff_inverse2)
-done
+  lift_definition one_pos :: "'a pos"
+    is "1 :: 'a" by (simp)
+  lift_definition plus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
+    is "op +" by (simp)
+  lift_definition minus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
+    is "\<lambda>x y. if y \<le> x then x - y else 0"
+    by (simp add: add_le_imp_le_diff)
+  lift_definition times_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
+    is "op *" by (simp)
+  instance
+    apply (intro_classes; transfer; simp?)
+            apply (simp add: add.assoc)
+           apply (simp add: add.commute)
+          apply (safe; clarsimp?) [1]
+             apply (simp add: diff_diff_add)
+            apply (metis add_le_cancel_left le_add_diff_inverse)
+           apply (simp add: add.commute add_le_imp_le_diff)
+          apply (metis add_increasing2 antisym linear)
+         apply (simp add: mult.assoc)
+        apply (simp add: mult.commute)
+       apply (simp add: comm_semiring_class.distrib)
+      apply (simp add: mult_strict_left_mono)
+     apply (safe; clarsimp?) [1]
+       apply (simp add: right_diff_distrib')
+      apply (simp add: mult_left_mono)
+    using mult_left_le_imp_le apply (fastforce)
+    apply (simp add: distrib_left)
+  done
 end
 
-type_synonym preal = "real pos"
+instantiation pos :: ("linordered_field") semidom_divide
+begin
+  lift_definition divide_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
+    is "op div" by (simp)
+  instance
+    apply (intro_classes; transfer)
+     apply (simp_all)
+  done
+end
+  
+instantiation pos :: (linordered_field) inverse
+begin
+  lift_definition inverse_pos :: "'a pos \<Rightarrow> 'a pos"
+    is "inverse" by (simp)
+  instance ..
+end
 
+lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,linorder} pos)"
+  by (transfer, simp)
+
+text {* Positives form a trace algebra *}
+    
+instance pos :: (linordered_semidom) trace
+proof (intro_classes, simp_all)
+  fix a b c d :: "'a pos"
+  show "a + b = 0 \<Longrightarrow> a = 0"
+    by (transfer, simp add: add_nonneg_eq_0_iff)
+  show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    apply (cases "c \<le> a")
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq less_imp_le linordered_semidom_class.add_diff_inverse semiring_normalization_rules(21))
+  done
+  show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
+    by auto    
+  show le_def: "\<And> a b :: 'a pos. (a \<le> b) = (a \<le>\<^sub>m b)"    
+    by (auto simp add: monoid_le_def, metis le_add_diff_inverse)  
+  show "a - b = a -\<^sub>m b"
+    apply (auto simp add: monoid_subtract_def le_def[THEN sym])
+     apply (rule sym)
+     apply (rule the_equality)
+      apply (simp_all)
+      apply (transfer, simp)
+  done
+qed
+ 
+subsection {* Theorems *}
+  
+lemma mk_pos_zero [simp]: "mk_pos 0 = 0"
+  by (transfer, simp)
+
+lemma mk_pos_one [simp]: "mk_pos 1 = 1"
+  by (transfer, simp)
+
+lemma mk_pos_leq: 
+  "\<lbrakk> 0 \<le> x; x \<le> y \<rbrakk> \<Longrightarrow> mk_pos x \<le> mk_pos y"
+  by (transfer, auto)
+    
+lemma mk_pos_less: 
+  "\<lbrakk> 0 \<le> x; x < y \<rbrakk> \<Longrightarrow> mk_pos x < mk_pos y"
+  by (transfer, auto)
+     
+lemma real_of_pos [simp]: "x \<ge> 0 \<Longrightarrow> real_of_pos (mk_pos x) = x"
+  by (transfer, simp) 
+    
+lemma mk_pos_real_of_pos [simp]: "mk_pos (real_of_pos x) = x"
+  by (transfer, simp)
+  
 end
