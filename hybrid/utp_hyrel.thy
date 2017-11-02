@@ -1232,7 +1232,7 @@ lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
   using minus_zero_eq apply blast
   apply fastforce
 done
-
+  
 definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
 [upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
  
@@ -1298,17 +1298,17 @@ proof -
   done
   finally show ?thesis .
 qed
-  
+
 lemma hyrel2trel_hEvolves:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
-  assumes "continuous_lens x" "continuous_on {0..} f"
-  shows "H2T({[x \<mapsto>\<^sub>s \<guillemotleft>f(ti)\<guillemotright>]}\<^sub>h) = 
-         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; x :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
+  assumes "continuous_lens x" "vwb_lens y" "\<And> v\<^sub>0. continuous_on {0..} (f v\<^sub>0)"
+  shows "H2T({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = 
+         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; x :=\<^sub>r \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>real_of_pos t\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
 proof -
   from assms(1) 
-  have "?lhs = R1 (\<^bold>\<exists> l \<bullet> ({[x \<mapsto>\<^sub>s \<guillemotleft>f ti\<guillemotright>]}\<^sub>h \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel)  \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
+  have "?lhs = R1 (\<^bold>\<exists> l \<bullet> ({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel)  \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
     by (simp add: hyrel2trel_def)
-  also have "... = R1(\<^bold>\<exists> l \<bullet> ((x := \<guillemotleft>f(l)\<guillemotright>) \<oplus>\<^sub>r st) \<and> \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)" (is "?P = ?Q")
+  also have "... = R1(\<^bold>\<exists> l \<bullet> ((x := \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>l\<guillemotright>)\<^sub>a) \<oplus>\<^sub>r st) \<and> \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)" (is "?P = ?Q")
   proof (rule antisym)
     show "?P \<sqsubseteq> ?Q"
       apply (rel_simp)
@@ -1316,8 +1316,8 @@ proof -
       apply (rule_tac x="n" in exI)
       apply (auto)
       apply (rule_tac x="0" in exI)
-      apply (rule_tac x="tt_mk n (\<lambda> t. put\<^bsub>x\<^esub> st (f t))" in exI)
-      apply (subgoal_tac "continuous_on {0..n} (put\<^bsub>x\<^esub> st \<circ> f)")
+      apply (rule_tac x="tt_mk n (\<lambda> t. put\<^bsub>x\<^esub> st (f (get\<^bsub>y\<^esub> st) t))" in exI)
+      apply (subgoal_tac "continuous_on {0..n} (put\<^bsub>x\<^esub> st \<circ> f (get\<^bsub>y\<^esub> st))")
        apply (auto simp add: assms Limit_solve at_left_from_zero)[1]
        apply (rule continuous_on_compose)
        apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
@@ -1330,7 +1330,7 @@ proof -
       apply (auto)
        apply (subst Limit_solve_at_left)
           apply (auto)
-       apply (subgoal_tac "continuous_on {0..end\<^sub>t (tr''' - tr'')} (put\<^bsub>x\<^esub> tr \<circ> f)")
+       apply (subgoal_tac "\<And> st. continuous_on {0..end\<^sub>t (tr''' - tr'')} (put\<^bsub>x\<^esub> tr \<circ> f st)")
         apply (simp)
        apply (rule continuous_on_compose)
        apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
@@ -1344,7 +1344,7 @@ proof -
   done
   finally show ?thesis .
 qed
-
+  
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
