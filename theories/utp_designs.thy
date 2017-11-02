@@ -2123,5 +2123,76 @@ lemma AlternateD_cover:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "if g \<rightarrow> P else Q fi = if g \<rightarrow> P | (\<not> g) \<rightarrow> Q fi"
   by (ndes_eq cls: assms)
+   
+subsection {* Let and Local Variables *}
+  
+definition LetD :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" where
+[upred_defs]: "LetD v P = (P x)\<lbrakk>x \<rightarrow> \<lceil>v\<rceil>\<^sub>D\<^sub><\<rbrakk>"
+
+syntax
+  "_LetD"       :: "[letbinds, 'a] \<Rightarrow> 'a"                ("(let\<^sub>D (_)/ in (_))" [0, 10] 10)
+
+translations
+  "_LetD (_binds b bs) e"  \<rightleftharpoons> "_LetD b (_LetD bs e)"
+  "let\<^sub>D x = a in e"        \<rightleftharpoons> "CONST LetD a (\<lambda>x. e)"
+
+lemma LetD_ndes_simp [ndes_simp]: 
+  "LetD v (\<lambda> x. p(x) \<turnstile>\<^sub>n Q(x)) = (p(x)\<lbrakk>x \<rightarrow> v\<rbrakk>) \<turnstile>\<^sub>n (Q(x)\<lbrakk>x \<rightarrow> \<lceil>v\<rceil>\<^sub><\<rbrakk>)"
+  by (rel_auto)
+    
+lemma LetD_H1_H3_closed [closure]:
+  "\<lbrakk> \<And> x. P(x) is \<^bold>N \<rbrakk> \<Longrightarrow> LetD v P is \<^bold>N"
+  by (rel_auto)
+  
+alphabet 'l dlocal =
+  dlocal :: "'l"
+  
+definition map_dlocal ::
+  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
+   ('\<sigma>, '\<alpha>) dlocal_scheme \<Rightarrow> ('\<tau>, '\<alpha>) dlocal_scheme" where
+[lens_defs]: "map_dlocal f = (\<lambda>r. \<lparr>dlocal\<^sub>v = f (dlocal\<^sub>v r), \<dots> = more r\<rparr>)"
+
+definition map_dlocal_lens ::
+  "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
+   ('\<sigma>, '\<alpha>) dlocal_scheme des \<Longrightarrow> ('\<psi>, '\<alpha>) dlocal_scheme des" ("map'_dlocal\<^sub>L") where
+[lens_defs]:
+"map_dlocal_lens l = lmap\<^sub>D \<lparr>
+  lens_get = map_dlocal (get\<^bsub>l\<^esub>),
+  lens_put = map_dlocal o (put\<^bsub>l\<^esub>) o dlocal\<^sub>v\<rparr>"
+    
+definition vlocal_d :: "(('l \<Longrightarrow> ('l, 's) dlocal_ext) \<Rightarrow> ('l, 's) dlocal_ext hrel_des) \<Rightarrow> (unit, 's) dlocal_ext hrel_des" where
+[upred_defs]: "vlocal_d f = rel_ares (f dlocal) (map_dlocal\<^sub>L 0\<^sub>L)"
+  
+definition case_prod_lens :: "(('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> 'c) \<Rightarrow> (('a \<times> 'b \<Longrightarrow> '\<alpha>) \<Rightarrow> 'c)" where
+"case_prod_lens P x = P (fst\<^sub>L ;\<^sub>L x) (snd\<^sub>L ;\<^sub>L x)"
+
+nonterminal lpttrn and lpttrns
+
+syntax
+  (* This is an abstraction binder for functions that take lenses as arguments. *)
+  "_Labs"      :: "lpttrn \<Rightarrow> logic \<Rightarrow> logic"        ("L _ . _" [0, 10] 10)
+  "_lid"        :: "id \<Rightarrow> lpttrn"                    ("_")
+  "_lcoerce"    :: "id \<Rightarrow> type \<Rightarrow> lpttrn"             ("_ :: _")
+  "_lpattern"   :: "lpttrn \<Rightarrow> lpttrns \<Rightarrow> lpttrn"    ("'(_,/ _')")
+  "_lpatnil"    :: "lpttrn \<Rightarrow> lpttrns"              ("_")
+  "_lpatterns"  :: "lpttrn \<Rightarrow> lpttrns \<Rightarrow> lpttrns"  ("_,/ _")
+  
+translations
+  "_abs (_lid x) P" => "_abs x P"
+  "_abs (_lcoerce x t) P" => "_abs (_constrain x (_uvar_ty t)) P"
+  "_Labs (_lpatnil x) P" \<rightleftharpoons> "_abs x P"
+  "_Labs (_lpattern x y) P" \<rightleftharpoons> "CONST case_prod_lens (_abs x (_Labs y P))"
+  "_Labs (_lpatterns x y) P" => "_Labs (_lpattern x y) P"
+  "_Labs x P" => "_abs x P"
+  "L (x, y) . P" <= "CONST case_prod_lens (_Labs x (_Labs y P))"
+  "L (x, y) . P" <= "L x . L y . P" 
+    
+syntax
+  "_dcl_d"       :: "lpttrns \<Rightarrow> logic \<Rightarrow> logic" ("dcl\<^sub>D _ \<bullet> _" [0, 10] 10)
+  
+translations
+  "_dcl_d ds P" \<rightleftharpoons> "CONST vlocal_d (_Labs ds P)"
+  
+term "dcl\<^sub>D x :: int \<bullet> x :=\<^sub>D 1"
     
 end
