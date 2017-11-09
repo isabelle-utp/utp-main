@@ -479,16 +479,30 @@ lemma aext_seq [alpha]:
 
 subsection {* Relational unrestriction *}
 
-text {* Relational unrestriction states that a variable is unchanged by a relation. Eventually
-  I'd also like to have it state that the relation also does not depend on the variable's
-  initial value, but I'm not sure how to state that yet. For now we represent this by
-  the parametric healthiness condition RID. *}
+text {* Relational unrestriction states that a variable is both unchanged by a relation, and is
+  not "read" by the relation. *}
 
 definition RID :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"
 where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x)"
-
+  
 declare RID_def [urel_defs]
 
+lemma RID1: "vwb_lens x \<Longrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>) \<Longrightarrow> RID(x)(P) = P"
+  apply (rel_auto)
+  apply (metis vwb_lens.put_eq)
+  apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+done
+    
+lemma RID2: "vwb_lens x \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; RID(x)(P) = RID(x)(P) ;; x := \<guillemotleft>v\<guillemotright>"
+  apply (rel_auto)
+  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
+  apply blast
+done
+    
+lemma RID_assign_commute:
+  "vwb_lens x \<Longrightarrow> P = RID(x)(P) \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
+  by (metis RID1 RID2)
+  
 lemma RID_idem:
   "mwb_lens x \<Longrightarrow> RID(x)(RID(x)(P)) = RID(x)(P)"
   by (rel_auto)
@@ -575,6 +589,10 @@ where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
 
 declare unrest_relation_def [urel_defs]
 
+lemma runrest_assign_commute:
+  "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
+  by (metis RID2 unrest_relation_def)
+  
 lemma skip_r_runrest [unrest]:
   "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
   by (simp add: RID_skip_r unrest_relation_def)
