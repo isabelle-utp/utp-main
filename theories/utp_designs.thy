@@ -2180,7 +2180,7 @@ syntax
 translations
   "_abs (_lid x) P" => "_abs x P"
   "_abs (_lcoerce x t) P" => "_abs (_constrain x (_uvar_ty t)) P"
-  "_Labs (_lpatnil x) P" \<rightleftharpoons> "_abs x P"
+  "_Labs (_lpatnil x) P" => "_abs x P"
   "_Labs (_lpattern x y) P" \<rightleftharpoons> "CONST case_prod_lens (_abs x (_Labs y P))"
   "_Labs (_lpatterns x y) P" => "_Labs (_lpattern x y) P"
   "_Labs x P" => "_abs x P"

@@ -903,7 +903,7 @@ proof -
     by (simp add: design_def)
   finally show ?thesis .
 qed
-
+  
 definition [upred_defs]: "R3c_pre(P) = (true \<triangleleft> $wait \<triangleright> P)"
 
 definition [upred_defs]: "R3c_post(P) = (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> P)"
@@ -1499,6 +1499,21 @@ lemma wpR_UINF [wp]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>R Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>R Q)"
   by (simp add: wpR_def rea_not_def seq_UINF_distr not_UINF R1_UINF assms)
+  
+theorem R1_design_composition_RR:
+  assumes "P is RR" "Q is RR" "R is RR" "S is RR"
+  shows
+  "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = R1(((\<not>\<^sub>r P) wp\<^sub>R false \<and> Q wp\<^sub>R R) \<turnstile> (Q ;; S))"
+  apply (subst R1_design_composition)
+  apply (simp_all add: assms unrest wpR_def Healthy_if closure)
+  apply (rel_auto)
+done
+
+theorem R1_design_composition_RC:
+  assumes "P is RC" "Q is RR" "R is RR" "S is RR"
+  shows
+  "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = R1((P \<and> Q wp\<^sub>R R) \<turnstile> (Q ;; S))"
+  by (simp add: R1_design_composition_RR assms unrest Healthy_if closure wp)
   
 theorem RHS_tri_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
