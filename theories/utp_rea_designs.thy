@@ -2082,6 +2082,9 @@ abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 abbreviation Miracle :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 "Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
 
+definition choose_srd :: "('s,'t::trace,'\<alpha>) hrel_rsp" ("choose\<^sub>R") where
+[upred_defs, rdes_def]: "choose\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> true\<^sub>r)"
+
 text {* We guard the reactive conditional condition so that it can't be simplified by alphabet
   laws unless explicitly simplified. *}
 
@@ -2282,6 +2285,18 @@ lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
   by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
 
+lemma preR_choose [rdes]: "pre\<^sub>R(choose\<^sub>R) = true\<^sub>r"
+  by (rel_auto)
+
+lemma periR_choose [rdes]: "peri\<^sub>R(choose\<^sub>R) = false"
+  by (rel_auto)
+
+lemma postR_choose [rdes]: "post\<^sub>R(choose\<^sub>R) = true\<^sub>r"
+  by (rel_auto)
+    
+lemma choose_srd_SRD [closure]: "choose\<^sub>R is SRD"
+  by (simp add: choose_srd_def closure unrest)
+    
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
     
@@ -3127,6 +3142,9 @@ proof (rule NSRD_RC_intro)
    by (simp add: rdes assms closure unrest)
 qed
 
+lemma NSRD_choose_srd [closure]: "choose\<^sub>R is NSRD"
+  by (rule NSRD_intro, simp_all add: closure unrest rdes)
+  
 text {* Stateful reactive designs are left unital *}
 
 overloading
@@ -4635,6 +4653,16 @@ lemma RHS_tri_design_par:
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
   by (simp add: RHS_design_par assms unrest wait'_cond_conj_exchange)
 
+lemma RHS_tri_design_par_RR [rdes_def]:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<parallel>\<^sub>R \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (R\<^sub>1 \<and> R\<^sub>2))"
+  by (simp add: RHS_tri_design_par unrest assms)
+  
+lemma RHS_comp_assoc: 
+  assumes "P is NSRD" "Q is NSRD" "R is NSRD"
+  shows "(P \<parallel>\<^sub>R Q) \<parallel>\<^sub>R R = P \<parallel>\<^sub>R Q \<parallel>\<^sub>R R"
+  by (rdes_eq cls: assms)
+    
 subsection {* Iteration Construction *}
   
 definition IterateR
@@ -4676,5 +4704,45 @@ lemma assigns_srd_left_seq:
   assumes "P is NSRD"
   shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)"
   by (rdes_simp cls: assms)  
+   
+subsection {* Instantaneous Reactive Designs *}
+  
+definition ISRD1 :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+[upred_defs]: "ISRD1(P) = P \<parallel>\<^sub>R choose\<^sub>R"
+
+definition ISRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+[upred_defs, rdes_def]: "ISRD = ISRD1 \<circ> NSRD"
+
+lemma choose_srd_par: 
+  "choose\<^sub>R \<parallel>\<^sub>R choose\<^sub>R = choose\<^sub>R"
+  by (rdes_eq)
+
+lemma ISRD_idem: "ISRD1(ISRD1(P)) = ISRD1(P)"
+  by (rel_auto)
+    
+lemma ISRD_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> ISRD1(P) \<sqsubseteq> ISRD1(Q)"
+  by (rel_auto)
+
+lemma ISRD1_rdes_def [rdes_def]: 
+  "\<lbrakk> P is RR; R is RR \<rbrakk> \<Longrightarrow> ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> R)"
+  by (simp add: ISRD1_def rdes_def closure rpred)
+    
+lemma ISRD_intro: 
+  assumes "P is NSRD" "peri\<^sub>R(P) = (\<not>\<^sub>r pre\<^sub>R(P))"
+  shows "P is ISRD"
+proof -
+  have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) is ISRD1"
+    by (simp add: Healthy_def rdes_def closure assms, rel_auto)
+  hence "P is ISRD1"
+    by (simp add: SRD_reactive_tri_design closure assms(1))
+  thus ?thesis
+    by (simp add: ISRD_def Healthy_comp assms(1))
+qed
+      
+lemma skip_srd_ISRD [closure]: "II\<^sub>R is ISRD"
+  by (rule ISRD_intro, simp_all add: rdes closure)
+    
+lemma assigns_srd_ISRD [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is ISRD"
+  by (rule ISRD_intro, simp_all add: rdes closure)
     
 end

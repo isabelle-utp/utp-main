@@ -76,6 +76,10 @@ lemma Healthy_func:
   "\<lbrakk> F \<in> \<lbrakk>\<H>\<^sub>1\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^sub>2\<rbrakk>\<^sub>H; P is \<H>\<^sub>1 \<rbrakk> \<Longrightarrow> \<H>\<^sub>2(F(P)) = F(P)"
   using Healthy_if by blast
 
+lemma Healthy_comp:
+  "\<lbrakk> P is \<H>\<^sub>1; P is \<H>\<^sub>2 \<rbrakk> \<Longrightarrow> P is \<H>\<^sub>1 \<circ> \<H>\<^sub>2"
+  by (simp add: Healthy_def)
+    
 lemma Healthy_apply_closed:
   assumes "F \<in> \<lbrakk>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>H\<rbrakk>\<^sub>H" "P is H"
   shows "F(P) is H"
