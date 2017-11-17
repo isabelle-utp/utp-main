@@ -586,6 +586,9 @@ lemma R2_seqr_closure [closure]:
   shows "(P ;; Q) is R2"
   by (metis Healthy_def' R2_seqr_distribute assms(1) assms(2))
 
+lemma false_R2 [closure]: "false is R2"
+  by (rel_auto)
+    
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
   by pred_auto
@@ -1392,7 +1395,7 @@ lemma conj_RC_closed [closure]:
     
 lemma rea_true_RC [closure]: "true\<^sub>r is RC"
   by (rel_auto)
-
+    
 lemma false_RC [closure]: "false is RC"
   by (rel_auto)
    
