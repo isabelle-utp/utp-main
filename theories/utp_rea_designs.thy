@@ -186,7 +186,7 @@ lemma RD1_wait_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wai
 
 lemma RD1_wait'_false [closure]: "P is RD1 \<Longrightarrow> P\<lbrakk>false/$wait\<acute>\<rbrakk> is RD1"
   by (rel_auto)
-
+    
 lemma RD1_seq: "RD1(RD1(P) ;; RD1(Q)) = RD1(P) ;; RD1(Q)"
   by (rel_auto)
 
@@ -1438,6 +1438,12 @@ lemma in_var_unrest_wpR [unrest]: "\<lbrakk> $x \<sharp> P; tr \<bowtie> x \<rbr
 lemma out_var_unrest_wpR [unrest]: "\<lbrakk> $x\<acute> \<sharp> Q; tr \<bowtie> x \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> (P wp\<^sub>R Q)"
   by (simp add: wpR_def unrest R1_def rea_not_def)
   
+lemma wpR_R1 [closure]: "P wp\<^sub>R Q is R1"
+  by (rel_auto)
+    
+lemma wpR_RR_closed [closure]: "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RR"
+  by (simp add: wpR_def closure)    
+   
 lemma wpR_true [wp]: "P wp\<^sub>R true = true\<^sub>r"
   by (rel_auto)
     
@@ -1473,11 +1479,15 @@ proof -
   finally show ?thesis
     by (simp add: wpR_def rea_not_def)
 qed
-
+  
 lemma wpR_skip [wp]:
   assumes "Q is R1"
   shows "II wp\<^sub>R Q = Q"
   by (simp add: wpR_def rpred assms Healthy_if)
+
+lemma power_wpR_RR_closed [closure]: 
+  "\<lbrakk> R is RR; P is RR \<rbrakk> \<Longrightarrow> R \<^bold>^ i wp\<^sub>R P is RR"
+  by (induct i, simp_all add: wp closure)
     
 lemma wpR_rea_assigns [wp]:
   assumes "P is RR"
@@ -1499,7 +1509,31 @@ lemma wpR_UINF [wp]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>R Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>R Q)"
   by (simp add: wpR_def rea_not_def seq_UINF_distr not_UINF R1_UINF assms)
+
+lemma wpR_R2_closed [closure]:
+  "\<lbrakk> P is R2; Q is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is R2"
+  by (simp add: wpR_def closure)
+
+lemma wpR_false_RC1': "P is R2 \<Longrightarrow> RC1(P wp\<^sub>R false) = P wp\<^sub>R false"
+  by (simp add: wpR_def RC1_def closure rpred seqr_assoc)
+    
+lemma wpR_false_RC1: "P is R2 \<Longrightarrow> P wp\<^sub>R false is RC1"
+  by (simp add :Healthy_def wpR_false_RC1')
   
+lemma wpR_false_RR:
+  "\<lbrakk> $ok \<sharp> P; $wait \<sharp> P; P is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R false is RR"
+  by (rule RR_R2_intro, simp_all add: unrest closure)
+
+lemma wpR_false_RC:
+  "\<lbrakk> $ok \<sharp> P; $wait \<sharp> P; P is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R false is RC"
+  by (rule RC_intro', simp_all add:  wpR_false_RC1 wpR_false_RR)
+ 
+lemma wpR_RC1: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RC1"
+  by (rule Healthy_intro, simp add: wpR_def RC1_def rpred closure seqr_assoc RC1_prop RC_implies_RC1)
+    
+lemma wpR_RC [closure]: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RC"
+  by (rule RC_intro', simp_all add: wpR_RC1 closure)
+    
 theorem R1_design_composition_RR:
   assumes "P is RR" "Q is RR" "R is RR" "S is RR"
   shows
@@ -2424,9 +2458,6 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if SRD_healths(3) assms)
 qed
-  
-lemma wpR_R1 [closure]: "P wp\<^sub>R Q is R1"
-  by (rel_auto)
     
 lemma wpR_trace_ident_pre [wp]:
   "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R) wp\<^sub>R pre\<^sub>R P = pre\<^sub>R P"
@@ -3637,48 +3668,7 @@ qed
   
 lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
   by (rel_auto)
-
-lemma UINF_ind_RR_closed [closure]:
-  assumes "\<And> i. P i is RR"
-  shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is RR"
-proof -
-  have 1:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R1"
-    by (unfold Healthy_def, subst R1_USUP, simp_all add: Healthy_if assms closure)
-  have 2:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R2c"
-    by (unfold Healthy_def, subst R2c_USUP, simp_all add: Healthy_if assms RR_implies_R2c closure)
-  show ?thesis
-    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
-qed
-    
-lemma USUP_elem_RR [closure]: 
-  assumes "\<And> i. P i is RR" "A \<noteq> {}"
-  shows "(\<Squnion> i \<in> A \<bullet> P i) is RR"
-proof -
-  have 1:"(\<Squnion> i\<in>A \<bullet> P(i)) is R1"
-    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
-  have 2:"(\<Squnion> i\<in>A \<bullet> P(i)) is R2c"
-    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
-  show ?thesis
-    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
-qed
-
-lemma seq_RR_closed [closure]: 
-  assumes "P is RR" "Q is RR"
-  shows "P ;; Q is RR"
-  unfolding Healthy_def
-  by (simp add: RR_def  Healthy_if assms closure RR_implies_R2 ex_unrest unrest)
-  
-lemma wpR_RR_closed [closure]: "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RR"
-  by (simp add: wpR_def closure)    
-    
-lemma power_Suc_RR_closed [closure]:
-  "P is RR \<Longrightarrow> P ;; P \<^bold>^ i is RR"
-  by (induct i, simp_all add: closure)
-    
-lemma power_wpR_RR_closed [closure]: 
-  "\<lbrakk> R is RR; P is RR \<rbrakk> \<Longrightarrow> R \<^bold>^ i wp\<^sub>R P is RR"
-  by (induct i, simp_all add: wp closure)
-    
+      
 lemma power_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^bold>^(Suc n) 
@@ -4485,9 +4475,6 @@ proof -
   thus ?thesis
     by (simp add: wrR_def wrR_R2_lemma par_by_merge_seq_add closure) 
 qed
-     
-lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
-  by (rel_blast)
  
 lemma wrR_RR [closure]: 
   assumes "P is RR" "Q is RR" "M is RDM"
@@ -4768,36 +4755,6 @@ proof -
     by (simp add: Healthy_def)
 qed
     
-lemma RC1_RR_closed: "P is RR \<Longrightarrow> RC1(P) is RR"
-  by (simp add: RC1_def closure)
-
-lemma wpR_R2_closed [closure]:
-  "\<lbrakk> P is R2; Q is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is R2"
-  by (simp add: wpR_def closure)
-
-lemma wpR_false_RC1': "P is R2 \<Longrightarrow> RC1(P wp\<^sub>R false) = P wp\<^sub>R false"
-  by (simp add: wpR_def RC1_def closure rpred seqr_assoc)
-    
-lemma wpR_false_RC1: "P is R2 \<Longrightarrow> P wp\<^sub>R false is RC1"
-  by (simp add :Healthy_def wpR_false_RC1')
-  
-lemma wpR_false_RR:
-  "\<lbrakk> $ok \<sharp> P; $wait \<sharp> P; P is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R false is RR"
-  by (rule RR_R2_intro, simp_all add: unrest closure)
-
-lemma wpR_false_RC:
-  "\<lbrakk> $ok \<sharp> P; $wait \<sharp> P; P is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>R false is RC"
-  by (rule RC_intro', simp_all add:  wpR_false_RC1 wpR_false_RR)
- 
-lemma wpR_RC1: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RC1"
-  by (rule Healthy_intro, simp add: wpR_def RC1_def rpred closure seqr_assoc RC1_prop RC_implies_RC1)
-    
-lemma wpR_RC [closure]: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>R Q is RC"
-  by (rule RC_intro', simp_all add: wpR_RC1 closure)
-    
-lemma R2_comp_def: "R2 = R1 \<circ> R2c"
-  by (auto simp add: R2_R2c_def)
-    
 lemma preR_R2_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2"
   by (simp add: R2_comp_def Healthy_comp closure)
     
@@ -4843,20 +4800,6 @@ lemma skip_srd_ISRD [closure]: "II\<^sub>R is ISRD"
     
 lemma assigns_srd_ISRD [closure]: "\<langle>\<sigma>\<rangle>\<^sub>R is ISRD"
   by (rule ISRD_intro, simp_all add: rdes closure)
-    
-lemma Healthy_intro: "H(P) = P \<Longrightarrow> P is H"
-  by (simp add: Healthy_def)
-  
-lemma RC1_prop: 
-  assumes "P is RC1"
-  shows "(\<not>\<^sub>r P) ;; R1 true = (\<not>\<^sub>r P)"
-proof -
-  have "(\<not>\<^sub>r P) = (\<not>\<^sub>r (RC1 P))"
-    by (simp add: Healthy_if assms)
-  also have "... = (\<not>\<^sub>r P) ;; R1 true"
-    by (simp add: RC1_def rpred closure)
-  finally show ?thesis ..
-qed
      
 lemma seq_ISRD_closed:
   assumes "P is ISRD" "Q is ISRD"

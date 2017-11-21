@@ -336,6 +336,9 @@ lemma R2_idem: "R2(R2(P)) = R2(P)"
 lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
   by (pred_auto)
 
+lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
+  by (rel_blast)
+    
 lemma R2c_Continuous: "Continuous R2c"
   by (rel_simp)
 
@@ -626,6 +629,9 @@ lemma R2c_seq: "R2c(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
 lemma R2_R2c_def: "R2(P) = R1(R2c(P))"
   by (rel_auto)
 
+lemma R2_comp_def: "R2 = R1 \<circ> R2c"
+  by (auto simp add: R2_R2c_def)
+    
 lemma R2c_R1_seq: "R2c(R1(R2c(P)) ;; R1(R2c(Q))) = (R1(R2c(P)) ;; R1(R2c(Q)))"
   using R2c_seq[of P Q] by (simp add: R2_R2c_def)
 
@@ -1156,7 +1162,7 @@ lemma USUP_ind_RR_closed [closure]:
   using USUP_mem_RR_closed[of P UNIV] by (simp add: assms)
 
 lemma UINF_mem_RR_closed [closure]:
-  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  assumes "\<And> i. P i is RR"
   shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is RR"
 proof -
   have 1:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R1"
@@ -1166,12 +1172,34 @@ proof -
   show ?thesis
     using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
 qed
-
+    
 lemma UINF_ind_RR_closed [closure]:
   assumes "\<And> i. P i is RR"
   shows "(\<Sqinter> i \<bullet> P(i)) is RR"
   using UINF_mem_RR_closed[of P UNIV] by (simp add: assms)
+    
+lemma USUP_elem_RR [closure]: 
+  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  shows "(\<Squnion> i \<in> A \<bullet> P i) is RR"
+proof -
+  have 1:"(\<Squnion> i\<in>A \<bullet> P(i)) is R1"
+    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
+  have 2:"(\<Squnion> i\<in>A \<bullet> P(i)) is R2c"
+    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
+  show ?thesis
+    using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
+qed
 
+lemma seq_RR_closed [closure]: 
+  assumes "P is RR" "Q is RR"
+  shows "P ;; Q is RR"
+  unfolding Healthy_def
+  by (simp add: RR_def  Healthy_if assms closure RR_implies_R2 ex_unrest unrest)
+    
+lemma power_Suc_RR_closed [closure]:
+  "P is RR \<Longrightarrow> P ;; P \<^bold>^ i is RR"
+  by (induct i, simp_all add: closure)
+    
 lemma cond_tt_RR_closed [closure]: 
   assumes "P is RR" "Q is RR"
   shows "P \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> Q is RR"
@@ -1342,6 +1370,17 @@ lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
 lemma RC1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RC1(P) \<sqsubseteq> RC1(Q)"
   by (rel_blast)
       
+lemma RC1_prop: 
+  assumes "P is RC1"
+  shows "(\<not>\<^sub>r P) ;; R1 true = (\<not>\<^sub>r P)"
+proof -
+  have "(\<not>\<^sub>r P) = (\<not>\<^sub>r (RC1 P))"
+    by (simp add: Healthy_if assms)
+  also have "... = (\<not>\<^sub>r P) ;; R1 true"
+    by (simp add: RC1_def rpred closure)
+  finally show ?thesis ..
+qed
+    
 lemma R2_RC: "R2 (RC P) = RC P"
 proof -
   have "\<not>\<^sub>r RR P is RR"
@@ -1472,6 +1511,9 @@ lemma RC1_unrest:
 lemma RC_unrest_dashed [unrest]:
   "\<lbrakk> P is RC; mwb_lens x; x \<bowtie> tr \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
   by (metis Healthy_if RC1_unrest RC_implies_RC1)
+
+lemma RC1_RR_closed: "P is RR \<Longrightarrow> RC1(P) is RR"
+  by (simp add: RC1_def closure)
     
 subsection {* Trace Contribution Lens *}
   

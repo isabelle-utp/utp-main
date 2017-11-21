@@ -60,6 +60,9 @@ lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
 lemma Healthy_if: "P is H \<Longrightarrow> (H P = P)"
   unfolding Healthy_def by auto
 
+lemma Healthy_intro: "H(P) = P \<Longrightarrow> P is H"
+  by (simp add: Healthy_def)
+    
 declare Healthy_def' [upred_defs]
 
 abbreviation Healthy_carrier :: "'\<alpha> health \<Rightarrow> '\<alpha> upred set" ("\<lbrakk>_\<rbrakk>\<^sub>H")
