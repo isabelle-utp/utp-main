@@ -1485,6 +1485,11 @@ lemma wpR_skip [wp]:
   shows "II wp\<^sub>R Q = Q"
   by (simp add: wpR_def rpred assms Healthy_if)
 
+lemma wpR_rea_skip [wp]:
+  assumes "Q is RR"
+  shows "II\<^sub>r wp\<^sub>R Q = Q"
+  by (simp add: wpR_def rpred closure assms Healthy_if)
+    
 lemma power_wpR_RR_closed [closure]: 
   "\<lbrakk> R is RR; P is RR \<rbrakk> \<Longrightarrow> R \<^bold>^ i wp\<^sub>R P is RR"
   by (induct i, simp_all add: wp closure)
