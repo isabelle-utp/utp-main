@@ -817,6 +817,47 @@ sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
 sublocale utp_theory_unital \<subseteq> utp_theory_right_unital
   by (simp add: Healthy_Unit Unit_Right Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
 
+text {* UTP theories with program state and assignment. We first create two polymorphic constants 
+  that characterise the underlying program state model of a UTP theory. *}
+    
+consts
+  pstate   :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>s\<index>")
+  passigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrel" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
+
+text {* @{const pstate} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
+  @{typ "'\<alpha>"}, which also contains none user-space information, such as observational variables.
+  @{const passigns} takes as parameter a UTP theory and returns an assignment operator
+  which maps a substitution over the program state to a homogeneous relation on the global
+  state. We now set up some syntax translations for these operators. *}
+
+syntax
+  "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>s\<index>")
+  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
+
+translations
+  "_svid_pvar T" => "CONST pstate T"
+  "_thy_asgn T xs vs" => "CONST passigns T (_mk_usubst (CONST id) xs vs)"
+
+text {* We also formalise underlying laws about assignments in the following locales. *}
+  
+locale utp_theory_state = utp_theory_left_unital \<T> for \<T> :: "('\<T>, '\<alpha>) uthy" (structure) +
+  fixes \<V>\<T> :: "'\<beta> itself"
+  assumes pstate_vwb [closure]: "vwb_lens (\<^bold>s :: '\<beta> \<Longrightarrow> '\<alpha>)"
+  and Healthy_passigns [closure]: "\<^bold>\<langle>\<sigma> :: '\<beta> usubst\<^bold>\<rangle> is \<H>"
+  and passigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
+  and passign_unit: "\<^bold>\<langle>id:: '\<beta> usubst\<^bold>\<rangle> = \<I>\<I>"
+begin  
+  
+text {* The following is an example of the proofs that can be done in this abstract setting. *}
+  
+lemma passign_twice:
+  fixes x :: "'a \<Longrightarrow> '\<beta>"
+  assumes "vwb_lens x"
+  shows "x ::= \<guillemotleft>u\<guillemotright> ;; x ::= \<guillemotleft>v\<guillemotright> = x ::= \<guillemotleft>v\<guillemotright>"
+  by (simp add: passigns_comp usubst assms)
+  
+end
+    
 subsection {* Theory of relations *}
 
 text {* We can exemplify the creation of a UTP theory with the theory of relations, a trivial theory. *}
@@ -832,18 +873,31 @@ text {* We declare the type @{type REL} to be the tag for this theory. We need k
 overloading
   rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
   rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel"
+  rel_state == "pstate :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<alpha>)"
+  rel_assigns == "passigns :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
 begin
 
   text {* The healthiness condition of a relation is simply identity, since every alphabetised
     relation is healthy. *}
 
   definition rel_hcond :: "(REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred" where
-  "rel_hcond T = id"
+  [upred_defs]: "rel_hcond T = id"
 
   text {* The unit of the theory is simply the relational unit. *}
 
   definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" where
-  "rel_unit T = II"
+  [upred_defs]: "rel_unit T = II"
+
+  text {* The program state of a relation is simply the entire state-space *}
+  
+  definition rel_state :: "(REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<alpha>)" where
+  [upred_defs]: "rel_state T = 1\<^sub>L"
+  
+  text {* The state assignment operator is relational assignment. *}
+
+  definition rel_assigns :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel" where
+  [upred_defs]: "rel_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>a"
+    
 end
 
 text {* Finally we can show that relations are a monotone and unital theory using a locale interpretation,
@@ -855,6 +909,21 @@ interpretation rel_theory: utp_theory_mono_unital REL
   rewrites "carrier (uthy_order REL) = \<lbrakk>id\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
 
+interpretation rel_theory_state: utp_theory_state "UTHY(REL, '\<alpha>)" "TYPE('\<alpha>)"
+proof -
+  interpret vw: vwb_lens "pstate REL :: '\<alpha> \<Longrightarrow> '\<alpha>"
+    by (simp add: rel_state_def)
+  show "utp_theory_state TYPE('\<alpha>) UTHY(REL, '\<alpha>)"
+  proof
+    show "\<And>\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub> is \<H>\<^bsub>REL\<^esub>"
+      by (simp add: rel_assigns_def rel_hcond_def Healthy_def)
+    show "\<And>(\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>REL\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub>"
+      by (simp add: rel_assigns_def assigns_comp)
+    show "\<^bold>\<langle>id::'\<alpha> \<Rightarrow> '\<alpha>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> = \<I>\<I>\<^bsub>REL\<^esub>"
+      by (simp add: rel_assigns_def rel_unit_def skip_r_def)
+  qed
+qed
+    
 text {* We can then, for instance, determine what the top and bottom of our new theory is. *}
 
 lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"

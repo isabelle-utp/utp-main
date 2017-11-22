@@ -11,29 +11,6 @@ text {* Local variables are represented as lenses whose view type is a list of v
 
 type_synonym ('a, '\<alpha>) lvar = "('a list \<Longrightarrow> '\<alpha>)"
 
-text {* Different UTP theories have different assignment operators; consequently in order to
-  generically characterise variable blocks we need to abstractly characterise assignments.
-  We first create two polymorphic constants that characterise the underlying program state model
-  of a UTP theory. *}
-
-consts
-  pvar         :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> \<Longrightarrow> '\<alpha>" ("\<^bold>s\<index>")
-  pvar_assigns :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<beta> usubst \<Rightarrow> '\<alpha> hrel" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
-
-text {* @{const pvar} is a lens from the program state, @{typ "'\<beta>"}, to the overall global state
-  @{typ "'\<alpha>"}, which also contains none user-space information, such as observational variables.
-  @{const pvar_assigns} takes as parameter a UTP theory and returns an assignment operator
-  which maps a substitution over the program state to a homogeneous relation on the global
-  state. We now set up some syntax translations for these operators. *}
-
-syntax
-  "_svid_pvar" :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svid" ("\<^bold>s\<index>")
-  "_thy_asgn"  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr "::=\<index>" 72)
-
-translations
-  "_svid_pvar T" => "CONST pvar T"
-  "_thy_asgn T xs vs" => "CONST pvar_assigns T (_mk_usubst (CONST id) xs vs)"
-
 text {* Next, we define constants to represent the top most variable on the local variable stack,
   and the remainder after this. We define these in terms of the list lens, and so for each
   another lens is produced. *}
@@ -164,30 +141,4 @@ lemma var_block_vacuous:
 text {* A variable block with a skip inside results in a skip. *}
 end
 
-text {* Example instantiation for the theory of relations *}
-
-overloading
-  rel_pvar == "pvar :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha>"
-  rel_pvar_assigns == "pvar_assigns :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
-begin
-  definition rel_pvar :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha>" where
-  [upred_defs]: "rel_pvar T = 1\<^sub>L"
-  definition rel_pvar_assigns :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel" where
-  [upred_defs]: "rel_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>a"
-end
-
-interpretation rel_local_var: utp_local_var "UTHY(REL, '\<alpha>)" "TYPE('\<alpha>)"
-proof -
-  interpret vw: vwb_lens "pvar REL :: '\<alpha> \<Longrightarrow> '\<alpha>"
-    by (simp add: rel_pvar_def id_vwb_lens)
-  show "utp_local_var TYPE('\<alpha>) UTHY(REL, '\<alpha>)"
-  proof
-    show "\<And>\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub> is \<H>\<^bsub>REL\<^esub>"
-      by (simp add: rel_pvar_assigns_def rel_hcond_def Healthy_def)
-    show "\<And>(\<sigma>::'\<alpha> \<Rightarrow> '\<alpha>) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>REL\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>REL\<^esub>"
-      by (simp add: rel_pvar_assigns_def assigns_comp)
-    show "\<^bold>\<langle>id::'\<alpha> \<Rightarrow> '\<alpha>\<^bold>\<rangle>\<^bsub>UTHY(REL, '\<alpha>)\<^esub> = \<I>\<I>\<^bsub>REL\<^esub>"
-      by (simp add: rel_pvar_assigns_def rel_unit_def skip_r_def)
-  qed
-qed
 end

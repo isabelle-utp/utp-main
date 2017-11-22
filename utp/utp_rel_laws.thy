@@ -752,6 +752,46 @@ lemma seq_refine_unrest:
   shows "(b \<Rightarrow> c) \<sqsubseteq> (P ;; Q)"
   using assms by rel_blast 
     
+ subsection {* Domain and Range Laws *}
+  
+lemma Dom_conv_Ran:
+  "Dom(P\<^sup>-) = Ran(P)"
+  by (rel_auto)
+
+lemma Ran_conv_Dom:
+  "Ran(P\<^sup>-) = Dom(P)"
+  by (rel_auto)  
+
+lemma Dom_skip:
+  "Dom(II) = true"
+  by (rel_auto)
+
+lemma Dom_assigns:
+  "Dom(\<langle>\<sigma>\<rangle>\<^sub>a) = true"
+  by (rel_auto)
+   
+lemma Dom_miracle:
+  "Dom(false) = false"
+  by (rel_auto)
+
+lemma Dom_assume:
+  "Dom([b]\<^sup>\<top>) = b"
+  by (rel_auto)
     
+lemma Dom_seq:
+  "Dom(P ;; Q) = Dom(P ;; [Dom(Q)]\<^sup>\<top>)"
+  by (rel_auto)
     
+lemma Dom_disj:
+  "Dom(P \<or> Q) = (Dom(P) \<or> Dom(Q))"
+  by (rel_auto)
+
+lemma Dom_inf:
+  "Dom(P \<sqinter> Q) = (Dom(P) \<or> Dom(Q))"
+  by (rel_auto)
+    
+lemma assume_Dom:
+  "[Dom(P)]\<^sup>\<top> ;; P = P"
+  by (rel_auto)
+     
 end

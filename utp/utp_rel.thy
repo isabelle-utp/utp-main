@@ -308,14 +308,21 @@ translations
   
 subsection {* Relation Properties *}
   
-text {* We describe some properties of relations, including functional and injective relations. *}
+text {* We describe some properties of relations, including functional and injective relations. We
+  also provide operators for extracting the domain and range of a UTP relation. *}
 
 definition ufunctional :: "('a, 'b) rel \<Rightarrow> bool"
 where [urel_defs]: "ufunctional R \<longleftrightarrow> II \<sqsubseteq> R\<^sup>- ;; R"
 
 definition uinj :: "('a, 'b) rel \<Rightarrow> bool"
 where [urel_defs]: "uinj R \<longleftrightarrow> II \<sqsubseteq> R ;; R\<^sup>-"
+  
+definition Dom :: "'\<alpha> hrel \<Rightarrow> '\<alpha> upred" 
+where [upred_defs]: "Dom P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<rfloor>\<^sub><"
 
+definition Ran :: "'\<alpha> hrel \<Rightarrow> '\<alpha> upred" 
+where [upred_defs]: "Ran P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
+  
 -- {* Configuration for UTP tactics (see @{theory utp_tactics}). *}
 
 update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
