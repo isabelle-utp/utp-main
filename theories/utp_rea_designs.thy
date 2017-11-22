@@ -2007,6 +2007,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma R1_design_refine:
+  assumes 
+    "P\<^sub>1 is R1" "P\<^sub>2 is R1" "Q\<^sub>1 is R1" "Q\<^sub>2 is R1"
+    "$ok \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>1" "$ok \<sharp> P\<^sub>2" "$ok\<acute> \<sharp> P\<^sub>2"
+    "$ok \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok \<sharp> Q\<^sub>2" "$ok\<acute> \<sharp> Q\<^sub>2"    
+  shows "R1(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+proof -
+  have "R1((\<exists> $ok;$ok\<acute> \<bullet> P\<^sub>1) \<turnstile> (\<exists> $ok;$ok\<acute> \<bullet> P\<^sub>2)) \<sqsubseteq> R1((\<exists> $ok;$ok\<acute> \<bullet> Q\<^sub>1) \<turnstile> (\<exists> $ok;$ok\<acute> \<bullet> Q\<^sub>2)) 
+       \<longleftrightarrow> `R1(\<exists> $ok;$ok\<acute> \<bullet> P\<^sub>1) \<Rightarrow> R1(\<exists> $ok;$ok\<acute> \<bullet> Q\<^sub>1)` \<and> `R1(\<exists> $ok;$ok\<acute> \<bullet> P\<^sub>1) \<and> R1(\<exists> $ok;$ok\<acute> \<bullet> Q\<^sub>2) \<Rightarrow> R1(\<exists> $ok;$ok\<acute> \<bullet> P\<^sub>2)`"
+    by (rel_auto, meson+)
+  thus ?thesis
+    by (simp_all add: ex_unrest ex_plus Healthy_if assms)
+qed
+  
 lemma srdes_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2)"
