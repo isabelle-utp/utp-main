@@ -3196,8 +3196,8 @@ interpretation srdes_left_unital: utp_theory_left_unital SRDES
 text {* Stateful reactive designs and assignment *}
 
 overloading
-  srdes_pvar == "pvar :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
-  srdes_pvar_assigns == "pvar_assigns :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+  srdes_pvar == "pstate :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
+  srdes_pvar_assigns == "passigns :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 begin
   definition srdes_pvar ::
     "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
@@ -3209,7 +3209,7 @@ end
 
 interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)" "TYPE('s)"
 proof -
-  interpret vw: vwb_lens "pvar SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
+  interpret vw: vwb_lens "pstate SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
     by (simp add: srdes_pvar_def)
   show "utp_local_var TYPE('s) UTHY(SRDES, ('s,'t,'\<alpha>) rsp)"
   proof

@@ -1617,10 +1617,10 @@ thm design_theory_continuous.LFP_unfold
 text {* We also set up local variables for designs. *}
 
 overloading
-  des_pvar == "pvar :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
-  des_assigns == "pvar_assigns :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
-  ndes_pvar == "pvar :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
-  ndes_assigns == "pvar_assigns :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
+  des_pvar == "pstate :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
+  des_assigns == "passigns :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
+  ndes_pvar == "pstate :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
+  ndes_assigns == "passigns :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
 begin
   definition des_pvar :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des" where
   [upred_defs]: "des_pvar T = \<Sigma>\<^sub>D"
