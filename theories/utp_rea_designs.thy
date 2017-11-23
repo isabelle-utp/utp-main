@@ -1317,7 +1317,14 @@ lemma R2s_wait'_cond: "R2s(P \<diamondop> Q) = R2s(P) \<diamondop> R2s(Q)"
 
 lemma R2_wait'_cond: "R2(P \<diamondop> Q) = R2(P) \<diamondop> R2(Q)"
   by (simp add: R2_def R2s_wait'_cond R1_wait'_cond)
+    
+lemma wait'_cond_R1_closed [closure]: 
+  "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> P \<diamondop> Q is R1"
+  by (simp add: Healthy_def R1_wait'_cond)
 
+lemma wait'_cond_R2c_closed [closure]: "\<lbrakk> P is R2c; Q is R2c \<rbrakk> \<Longrightarrow> P \<diamondop> Q is R2c"
+  by (simp add: R2c_condr wait'_cond_def Healthy_def, rel_auto)
+    
 lemma RH_design_peri_R1: "\<^bold>R(P \<turnstile> R1(Q) \<diamondop> R) = \<^bold>R(P \<turnstile> Q \<diamondop> R)"
   by (metis (no_types, lifting) R1_idem R1_wait'_cond RH_design_export_R1)
 
@@ -2020,6 +2027,51 @@ proof -
   thus ?thesis
     by (simp_all add: ex_unrest ex_plus Healthy_if assms)
 qed
+
+lemma R1_design_refine_RR:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR"
+  shows "R1(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+  by (simp add: R1_design_refine assms unrest closure)
+    
+lemma RHS_design_refine:
+  assumes 
+    "P\<^sub>1 is R1" "P\<^sub>2 is R1" "Q\<^sub>1 is R1" "Q\<^sub>2 is R1"
+    "P\<^sub>1 is R2c" "P\<^sub>2 is R2c" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R2c"
+    "$ok \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>1" "$ok \<sharp> P\<^sub>2" "$ok\<acute> \<sharp> P\<^sub>2"
+    "$ok \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok \<sharp> Q\<^sub>2" "$ok\<acute> \<sharp> Q\<^sub>2"    
+    "$wait \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>2" "$wait \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>2"    
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+proof -
+  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> R1(R3h(R2c(P\<^sub>1 \<turnstile> P\<^sub>2))) \<sqsubseteq> R1(R3h(R2c(Q\<^sub>1 \<turnstile> Q\<^sub>2)))"
+    by (simp add: R2c_R3h_commute RHS_def)
+  also have "... \<longleftrightarrow> R1(R3h(P\<^sub>1 \<turnstile> P\<^sub>2)) \<sqsubseteq> R1(R3h(Q\<^sub>1 \<turnstile> Q\<^sub>2))"
+    by (simp add: Healthy_if R2c_design assms)
+  also have "... \<longleftrightarrow> R1(R3h(P\<^sub>1 \<turnstile> P\<^sub>2))\<lbrakk>false/$wait\<rbrakk> \<sqsubseteq> R1(R3h(Q\<^sub>1 \<turnstile> Q\<^sub>2))\<lbrakk>false/$wait\<rbrakk>"
+    by (rel_auto, metis+)
+  also have "... \<longleftrightarrow> R1(P\<^sub>1 \<turnstile> P\<^sub>2)\<lbrakk>false/$wait\<rbrakk> \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2)\<lbrakk>false/$wait\<rbrakk>"      
+    by (rel_auto)
+  also have "... \<longleftrightarrow> R1(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2)"      
+    by (simp add: usubst assms closure unrest)
+  also have "... \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+    by (simp add: R1_design_refine assms)
+  finally show ?thesis .
+qed 
+ 
+lemma RHS_tri_design_refine:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2` \<and> `P\<^sub>1 \<and> Q\<^sub>3 \<Rightarrow> P\<^sub>3`"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<diamondop> Q\<^sub>3 \<Rightarrow> P\<^sub>2 \<diamondop> P\<^sub>3`"
+    by (simp add: RHS_design_refine assms closure RR_implies_R2c unrest ex_unrest)
+  also have "... \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `(P\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (P\<^sub>1 \<and> Q\<^sub>3) \<Rightarrow> P\<^sub>2 \<diamondop> P\<^sub>3`"
+    by (rel_auto)
+  also have "... \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `((P\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (P\<^sub>1 \<and> Q\<^sub>3) \<Rightarrow> P\<^sub>2 \<diamondop> P\<^sub>3)\<lbrakk>true/$wait\<acute>\<rbrakk>` \<and> `((P\<^sub>1 \<and> Q\<^sub>2) \<diamondop> (P\<^sub>1 \<and> Q\<^sub>3) \<Rightarrow> P\<^sub>2 \<diamondop> P\<^sub>3)\<lbrakk>false/$wait\<acute>\<rbrakk>`"
+    by (rel_auto, metis)
+  also have "... \<longleftrightarrow> ?rhs"
+    by (simp add: usubst unrest assms)
+  finally show ?thesis .
+qed
   
 lemma srdes_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
@@ -2030,8 +2082,8 @@ lemma srdes_tri_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`" "`P\<^sub>1 \<and> R\<^sub>2 \<Rightarrow> R\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"
   using assms
-  by (rule_tac srdes_refine_intro, simp_all, rel_auto)
-
+  by (rule_tac srdes_refine_intro, simp_all, rel_auto)  
+    
 lemma srdes_tri_eq_intro:
   assumes "P\<^sub>1 = Q\<^sub>1" "P\<^sub>2 = Q\<^sub>2" "P\<^sub>3 = Q\<^sub>3"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
@@ -2096,7 +2148,7 @@ proof -
   thus ?thesis
     by (simp add: SRD_reactive_tri_design assms)
 qed
-
+ 
 lemma SRD_eq_intro:
   assumes
     "P is SRD" "Q is SRD" "pre\<^sub>R(P) = pre\<^sub>R(Q)" "peri\<^sub>R(P) = peri\<^sub>R(Q)" "post\<^sub>R(P) = post\<^sub>R(Q)"
@@ -2936,6 +2988,7 @@ lemma NSRD_is_RD3 [closure]:
   assumes "P is NSRD"
   shows "P is RD3"
   by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms)    
+
 lemma NSRD_refine_intro:
   assumes
     "P is NSRD" "Q is NSRD"
@@ -2949,7 +3002,21 @@ proof -
   show ?thesis
     by (rule SRD_refine_intro', simp_all add: closure assms 1 2 SRD_post_under_pre SRD_peri_under_pre unrest)
 qed
-    
+
+lemma NSRD_refine_elim:
+  assumes
+    "P \<sqsubseteq> Q" "P is NSRD" "Q is NSRD"
+    "\<lbrakk> `pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`; `pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow> peri\<^sub>R(P)`; `pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow> post\<^sub>R(P)` \<rbrakk> \<Longrightarrow> R"
+  shows "R"
+proof -
+  have "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: NSRD_is_SRD SRD_reactive_tri_design assms(1) assms(2) assms(3))
+  hence 1:"`pre\<^sub>R P \<Rightarrow> pre\<^sub>R Q`" and 2:"`pre\<^sub>R P \<and> peri\<^sub>R Q \<Rightarrow> peri\<^sub>R P`" and 3:"`pre\<^sub>R P \<and> post\<^sub>R Q \<Rightarrow> post\<^sub>R P`"
+    by (simp_all add: RHS_tri_design_refine assms closure)
+  with assms(4) show ?thesis
+    by simp
+qed
+  
 lemma NSRD_right_unit: "P is NSRD \<Longrightarrow> P ;; II\<^sub>R = P"
   by (metis Healthy_if NSRD_is_RD3 RD3_def)
   
