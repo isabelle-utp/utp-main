@@ -25,4 +25,10 @@ lemma wait_zero: "wait\<^sub>r(0) = II\<^sub>r"
 lemma wait_plus: "wait\<^sub>r(m) ;; wait\<^sub>r(n) = wait\<^sub>r(m + n)"
   by (rel_auto, simp_all add: add.commute add.left_commute)
     
+lemma wait_cond: "wait\<^sub>r(m) ;; (P \<triangleleft> b \<triangleright>\<^sub>R Q) = (wait\<^sub>r(m) ;; P \<triangleleft> b \<triangleright>\<^sub>R wait\<^sub>r(m) ;; Q)"
+  by (rel_auto)
+
+lemma wait_assign: "x \<sharp> m \<Longrightarrow> wait\<^sub>r(m) ;; x :=\<^sub>r v = x :=\<^sub>r v ;; wait\<^sub>r(m)"
+  by (rel_auto)
+    
 end

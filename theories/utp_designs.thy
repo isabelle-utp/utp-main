@@ -2116,7 +2116,7 @@ nonterminal lpttrn and lpttrns
 
 syntax
   (* This is an abstraction binder for functions that take lenses as arguments. *)
-  "_Labs"      :: "lpttrn \<Rightarrow> logic \<Rightarrow> logic"        ("L _ . _" [0, 10] 10)
+  "_Labs"      :: "lpttrn \<Rightarrow> logic \<Rightarrow> logic"        ("\<L> _ . _" [0, 10] 10)
   "_lid"        :: "id \<Rightarrow> lpttrn"                    ("_")
   "_lcoerce"    :: "id \<Rightarrow> type \<Rightarrow> lpttrn"             ("_ :: _")
   "_lpattern"   :: "lpttrn \<Rightarrow> lpttrns \<Rightarrow> lpttrn"    ("'(_,/ _')")
@@ -2130,8 +2130,8 @@ translations
   "_Labs (_lpattern x y) P" \<rightleftharpoons> "CONST case_prod_lens (_abs x (_Labs y P))"
   "_Labs (_lpatterns x y) P" => "_Labs (_lpattern x y) P"
   "_Labs x P" => "_abs x P"
-  "L (x, y) . P" <= "CONST case_prod_lens (_Labs x (_Labs y P))"
-  "L (x, y) . P" <= "L x . L y . P" 
+  "\<L> (x, y) . P" <= "CONST case_prod_lens (_Labs x (_Labs y P))"
+  "\<L> (x, y) . P" <= "\<L> x . \<L> y . P" 
     
 syntax
   "_dcl_d"       :: "lpttrns \<Rightarrow> logic \<Rightarrow> logic" ("dcl\<^sub>D _ \<bullet> _" [0, 10] 10)
