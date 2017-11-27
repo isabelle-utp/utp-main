@@ -29,6 +29,7 @@ theory utp_imports
   "Library_extra/FSet_extra"
   "Library_extra/List_extra"
   "Library_extra/List_lexord_alt"
+  "Library_extra/Terminated_lists" 
   "Library_extra/Monoid_extra"
   "Library_extra/Pfun"
   "Library_extra/Ffun"
