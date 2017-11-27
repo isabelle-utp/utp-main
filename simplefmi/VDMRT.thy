@@ -1,5 +1,5 @@
 theory VDMRT
-  imports "../theories/utp_time_rel"
+  imports SimpleFMI
 begin
 
 alphabet vrt_st =
@@ -42,5 +42,10 @@ lemma Periodic_RR_closed [closure]:
   apply (induct_tac i)
    apply (simp_all add: usubst seqr_assoc closure)
 done
+  
+definition VDMRT_FMU :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrt_st_scheme fmu" where
+[upred_defs]:
+"VDMRT_FMU n P = \<lparr> fmi2Instantiate = (ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>)
+                 , fmi2DoStep = Periodic n P \<rparr>"
   
 end
