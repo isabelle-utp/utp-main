@@ -37,4 +37,5 @@ theory utp_imports
   Positive
   Profiling
   TotalRecall
+  InjUniv
 begin end

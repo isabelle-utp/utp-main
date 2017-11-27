@@ -110,6 +110,10 @@ lemma list_augment_twice:
   apply (auto simp add: list_augment_def list_pad_out_def list_update_append_lemma1 replicate_add[THEN sym] max_def)
   apply (metis Suc_le_mono add.commute diff_diff_add diff_le_mono le_add_diff_inverse2)
 done
+    
+lemma list_augment_last [simp]:
+  "list_augment (xs @ [y]) (length xs) z = xs @ [z]"
+  by (induct xs, simp_all)
 
 text \<open>We can now prove that @{term list_augment} is commutative for different (arbitrary) indices.\<close>
   

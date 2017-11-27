@@ -3274,35 +3274,6 @@ end
 interpretation srdes_left_unital: utp_theory_left_unital SRDES
   by (unfold_locales, simp_all add: srdes_hcond_def srdes_unit_def SRD_seqr_closure SRD_srdes_skip SRD_left_unit)
 
-text {* Stateful reactive designs and assignment *}
-
-overloading
-  srdes_pvar == "pstate :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
-  srdes_pvar_assigns == "passigns :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
-begin
-  definition srdes_pvar ::
-    "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp" where
-  [upred_defs]: "srdes_pvar T = st"
-  definition srdes_pvar_assigns ::
-    "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> 's usubst \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
-  [upred_defs]: "srdes_pvar_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>R"
-end
-
-interpretation srdes_local_var: utp_local_var "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)" "TYPE('s)"
-proof -
-  interpret vw: vwb_lens "pstate SRDES :: 's \<Longrightarrow> ('s,'t,'\<alpha>) rsp"
-    by (simp add: srdes_pvar_def)
-  show "utp_local_var TYPE('s) UTHY(SRDES, ('s,'t,'\<alpha>) rsp)"
-  proof
-    show "\<And>\<sigma>::'s \<Rightarrow> 's. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> is \<H>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def srdes_hcond_def SRD_assigns_srd)
-    show "\<And>(\<sigma>::'s \<Rightarrow> 's) \<rho>. \<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>\<^bsub>SRDES\<^esub> = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def assigns_srd_comp)
-    show "\<^bold>\<langle>id::'s \<Rightarrow> 's\<^bold>\<rangle>\<^bsub>UTHY(SRDES, ('s,'t,'\<alpha>) rsp)\<^esub> = \<I>\<I>\<^bsub>SRDES\<^esub>"
-      by (simp add: srdes_pvar_assigns_def srdes_unit_def assigns_srd_id)
-  qed
-qed
-
 subsection {* Lifting designs on state to reactive designs *}
 
 definition des_rea_lift :: "'s hrel_des \<Rightarrow> ('s,'t::trace,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>D") where

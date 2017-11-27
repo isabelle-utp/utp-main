@@ -194,6 +194,10 @@ lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
 lemma UINF_true [simp]: "(\<Sqinter> i \<bullet> true) = true"
   by (pred_simp)
 
+lemma UINF_ind_const [simp]: 
+  "(\<Sqinter> i \<bullet> P) = P"
+  by (rel_auto)
+    
 lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> true) = true"
   by (pred_auto)
 
@@ -239,7 +243,6 @@ lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
 done
 
 lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
 done

@@ -1614,60 +1614,6 @@ translations
 thm design_theory_continuous.GFP_unfold
 thm design_theory_continuous.LFP_unfold
 
-text {* We also set up local variables for designs. *}
-
-overloading
-  des_pvar == "pstate :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
-  des_assigns == "passigns :: (DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
-  ndes_pvar == "pstate :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des"
-  ndes_assigns == "passigns :: (NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des"
-begin
-  definition des_pvar :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des" where
-  [upred_defs]: "des_pvar T = \<Sigma>\<^sub>D"
-  definition des_assigns :: "(DES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" where
-  [upred_defs]: "des_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
-  definition ndes_pvar :: "(NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> \<Longrightarrow> '\<alpha> des" where
-  [upred_defs]: "ndes_pvar T = \<Sigma>\<^sub>D"
-  definition ndes_assigns :: "(NDES, '\<alpha> des) uthy \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" where
-  [upred_defs]: "ndes_assigns T \<sigma> = \<langle>\<sigma>\<rangle>\<^sub>D"
-
-end
-
-interpretation des_prog_var: utp_prog_var "UTHY(DES, '\<alpha> des)" "TYPE('\<alpha>)"
-  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
-  apply (unfold_locales, simp_all add: des_pvar_def des_assigns_def des_hcond_def)
-  apply (simp add: assigns_d_def rdesign_is_H1_H2)
-  apply (simp add: assigns_d_comp_ext assigns_d_is_H1_H2)
-  apply (rel_auto)
-done
-
-interpretation ndes_prog_var: utp_prog_var "UTHY(NDES, '\<alpha> des)" "TYPE('\<alpha>)"
-  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
-  apply (unfold_locales, simp_all add: ndes_pvar_def ndes_assigns_def ndes_hcond_def)
-  apply (simp add: assigns_d_H1_H3)
-  apply (rel_auto)
-done
-
-interpretation des_local_var: utp_local_var "UTHY(DES, '\<alpha> des)" "TYPE('\<alpha>)"
-  rewrites "\<H>\<^bsub>DES\<^esub> = \<^bold>H"
-  by (unfold_locales, simp_all add: des_unit_def des_assigns_def des_hcond_def)
-
-interpretation ndes_local_var: utp_local_var "UTHY(NDES, '\<alpha> des)" "TYPE('\<alpha>)"
-  rewrites "\<H>\<^bsub>NDES\<^esub> = \<^bold>N"
-  by (unfold_locales, simp_all add: ndes_unit_def ndes_assigns_def ndes_hcond_def)
-
-text {* Weakest precondition laws for design variable scopes *}
-
-lemma wpd_var_begin [wp]:
-  fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
-  shows "(var_begin NDES x) wp\<^sub>D r = r\<lbrakk>\<langle>\<guillemotleft>undefined\<guillemotright>\<rangle> ^\<^sub>u &x/x\<rbrakk>"
-  by (simp add: var_begin_def ndes_assigns_def wp usubst)
-
-lemma wpd_var_end [wp]:
-  fixes x :: "'a list \<Longrightarrow> '\<alpha>" and r :: "'\<alpha> upred"
-  shows "(var_end NDES x) wp\<^sub>D r = r\<lbrakk>tail\<^sub>u(&x)/x\<rbrakk>"
-  by (simp add: var_end_def ndes_assigns_def wp usubst)
-
 text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
         deliverable D23.5. *}
 

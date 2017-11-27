@@ -27,6 +27,9 @@ lemma msubst_false [usubst]: "false\<lbrakk>x\<rightarrow>v\<rbrakk> = false"
 lemma msubst_lit [usubst]: "\<guillemotleft>x\<guillemotright>\<lbrakk>x\<rightarrow>v\<rbrakk> = v"
   by (pred_auto)
 
+lemma msubst_const [usubst]: "P\<lbrakk>x\<rightarrow>v\<rbrakk> = P"
+  by (pred_auto) 
+    
 lemma msubst_lit_2_1 [usubst]: "\<guillemotleft>x\<guillemotright>\<lbrakk>(x,y)\<rightarrow>(u,v)\<^sub>u\<rbrakk> = u"
   by (pred_auto)
 

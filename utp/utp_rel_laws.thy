@@ -117,12 +117,7 @@ lemma seqr_middle:
   assumes "vwb_lens x"
   shows "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
   using assms
-  apply (rel_auto robust)
-  apply (rename_tac xa P Q a b y)
-  apply (rule_tac x="get\<^bsub>xa\<^esub> y" in exI)
-  apply (rule_tac x="y" in exI)
-  apply (simp)
-done
+  by (rel_auto', metis vwb_lens_wb wb_lens.source_stability)
 
 lemma seqr_left_one_point:
   assumes "vwb_lens x"
@@ -171,8 +166,7 @@ lemma seqr_insert_ident_right:
 lemma seq_var_ident_lift:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(($x\<acute> =\<^sub>u $x \<and> P) ;; ($x\<acute> =\<^sub>u $x \<and> Q)) = ($x\<acute> =\<^sub>u $x \<and> (P ;; Q))"
-  using assms apply (rel_auto)
-  by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
+  using assms by (rel_auto', metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
 lemma seqr_bool_split:
   assumes "vwb_lens x"

@@ -157,7 +157,7 @@ declare uexpr_eq_iff [uexpr_transfer_laws]
 (*<*)(* declare uexpr_ref_iff [uexpr_transfer_laws] *)(*>*)
 
 named_theorems uexpr_transfer_extra "extra simplifications for uexpr transfer"
-
+  
 declare unrest_uexpr.rep_eq [uexpr_transfer_extra]
   usedBy_uexpr.rep_eq [uexpr_transfer_extra]
   utp_expr.numeral_uexpr_rep_eq [uexpr_transfer_extra]
@@ -261,6 +261,20 @@ method_setup rel_blast = {*
         (UTP_Tactics.inst_gen_rel_tac args prove_tac ctx)
       end);
 *}
+  
+text {* Simpler, one-shot versions of the above tactics, but without the possibility of dynamic arguments. *}
+  
+method rel_simp' 
+  uses simp 
+  = (simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
+method rel_auto' 
+  uses simp intro elim dest
+  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+
+method rel_blast' 
+  uses simp intro elim dest
+  = (rel_simp' simp: simp, blast intro: intro elim: elim dest: dest)
+  
 text_raw {* \newpage *}
 end

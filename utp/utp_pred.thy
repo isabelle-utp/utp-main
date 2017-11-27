@@ -247,9 +247,11 @@ is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbra
 
 lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
-
+    
+(*
 declare UINF_def [upred_defs]
 declare USUP_def [upred_defs]
+*)
   
 syntax
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
@@ -432,10 +434,8 @@ declare plus_mwb_lens [simp]
 lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
-  using assms
-  apply (pred_auto)
-  using lens_indep_comm apply fastforce+
-done
+  using assms lens_indep_comm 
+  by (rel_simp', fastforce)
   
 lemma unrest_all_in [unrest]:
   "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
