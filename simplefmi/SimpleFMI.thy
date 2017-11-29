@@ -4,41 +4,83 @@ theory SimpleFMI
     "../theories/utp_reactive_hoare"
     "../hybrid/utp_hybrid"    
 begin
-
+  
 purge_notation Sublist.parallel (infixl "\<parallel>" 50)
     
 record '\<alpha> fmu =
-  fmi2Instantiate :: "'\<alpha> trel"
-  fmi2DoStep      :: "'\<alpha> trel"
+  fmiInstantiate :: "'\<alpha> hrel"
+  fmiDoStep      :: "'\<alpha> trel"
 
-type_synonym '\<alpha> ma = "'\<alpha> trel"
+text {* A Master Algorithm is a set of possible time steps the FMI network can make at a given
+  instant. *}
+  
+type_synonym master_algorithm = "real pos set"
   
 definition fmu_single ("FMU[_, _]") where
 [upred_defs]: "fmu_single a fmu = 
-  \<lparr> fmi2Instantiate = rel_aext (fmi2Instantiate fmu) (map_st\<^sub>L a)
-  , fmi2DoStep = rel_aext (fmi2Instantiate fmu) (map_st\<^sub>L a) \<rparr>"
+  \<lparr> fmiInstantiate = (fmiInstantiate fmu) \<oplus>\<^sub>f a
+  , fmiDoStep      = a:[rel_aext (fmiDoStep fmu) (map_st\<^sub>L a)]\<^sub>r \<rparr>"
 
 definition fmu_comp :: "'\<alpha> trel \<Rightarrow> '\<alpha> trel \<Rightarrow> '\<alpha> trel" (infixr "\<parallel>" 85) where
 [upred_defs]: "fmu_comp P Q = (P \<and> Q)"
   
-definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> '\<alpha> trel \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
+definition TimeConstraint :: "(real pos) set \<Rightarrow> (real pos, 'a) hrel_rp" where
+[upred_defs]: "TimeConstraint T = R1(&tt \<in>\<^sub>u \<guillemotleft>T\<guillemotright>)"
+
+lemma TimeConstraint_RR [closure]: "TimeConstraint(T) is RR"
+  by (rel_auto)
+
+abbreviation Instantiate_FMUs :: "'\<alpha> fmu list \<Rightarrow> '\<alpha> trel" 
+where "Instantiate_FMUs FMUs \<equiv> [foldr (op ;;) (map fmiInstantiate FMUs) II]\<^sub>S"
+
+lemma st_rel_seq:
+  "[P ;; Q]\<^sub>S = [P]\<^sub>S ;; [Q]\<^sub>S"
+  by (rel_auto)
+  
+lemma st_rel_conj:
+  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
+   by (rel_auto)
+  
+text {* We make the assumption that the FMUs operate on separate state spaces and thus the order
+  of execution is irrelevant. *}
+    
+definition Step :: "real pos \<Rightarrow> '\<alpha> fmu \<Rightarrow> '\<alpha> trel" where
+[upred_defs]: "Step t FMU = ((fmiDoStep FMU)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr)"
+  
+lemma Step_RR [closure]: "fmiDoStep FMU is RR \<Longrightarrow> Step t FMU is RR"
+  apply (cases FMU)
+  
+  apply (simp add: Step_def)
+  apply (rule RR_intro)
+       apply (simp_all add: unrest)
+   apply (rule closure) back
+   apply (rel_auto)
+oops
+
+definition Step_FMUs :: "'\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> '\<alpha> trel"
+  where "Step_FMUs FMUs MA = (\<Sqinter> t\<in>MA \<bullet> foldr (op ;;) (map (Step t) FMUs) II\<^sub>r ;; wait\<^sub>r(\<guillemotleft>t\<guillemotright>))"
+    
+(*
+lemma "\<lbrakk> \<And> f. f\<in>fmiDoStep`set(FMUs) \<Longrightarrow> f is RR \<rbrakk> \<Longrightarrow> Step_FMUs FMUs MA is RR"
+  apply (rule RR_intro)
+  apply (simp add: Step_FMUs_def)
+  apply (rel_auto)
+*)  
+
+definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
 [upred_defs]: "FMI Init FMUs MA Wiring = 
-                 (foldr fmu_comp (map fmi2Instantiate FMUs) true) ;;  
+                 Instantiate_FMUs FMUs ;;  
                  \<langle>Init\<rangle>\<^sub>r ;; 
-                 (((foldr fmu_comp (map fmi2DoStep FMUs) true) \<parallel> MA) ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>"
+                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>"
 
-definition ArbStep :: "'\<alpha> ma" where
-[upred_defs]: "ArbStep = true"
+definition ArbStep :: "master_algorithm" where
+[upred_defs]: "ArbStep = UNIV"
 
-definition FixedStep :: "real pos \<Rightarrow> '\<alpha> ma" where
-[upred_defs]: "FixedStep t = (($time\<acute> - $time) =\<^sub>u \<guillemotleft>t\<guillemotright>)"
+definition FixedStep :: "real pos \<Rightarrow> master_algorithm" where
+[upred_defs]: "FixedStep t = {t}"
   
 lemma fmu_comp_true [simp]: 
   "P \<parallel> true = P"
-  by (rel_auto)
-
-lemma fmu_comp_ArbStep [simp]: 
-  "P \<parallel> ArbStep = P"
   by (rel_auto)
     
 (*
@@ -64,6 +106,6 @@ oops
 *)  
     
 definition Modelica_FMU :: "(unit, '\<alpha>::t2_space) hyrel \<Rightarrow> '\<alpha> fmu" where
-[upred_defs]: "Modelica_FMU P = \<lparr> fmi2Instantiate = II\<^sub>r, fmi2DoStep = H2T(P) \<rparr>"
+[upred_defs]: "Modelica_FMU P = \<lparr> fmiInstantiate = II, fmiDoStep = H2T(P) \<rparr>"
     
 end

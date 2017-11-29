@@ -62,35 +62,29 @@ lemma tank_ode_usol_2:
   "l > 0 \<Longrightarrow> (tank_sol_2 l\<^sub>0 usolves_ode tank_ode_2 from 0) {0..l} UNIV"
   by (linear_ode)
     
-definition Tank  :: "real \<Rightarrow> tank_st trel" where 
-  "Tank area = H2T((\<langle>{&level} : tank_ode_1(ti)\<rangle>\<^sub>h \<and> level \<leftarrow>\<^sub>h $level) 
-                     \<triangleleft> &valve \<triangleright>\<^sub>h 
-                   (\<langle>{&level} : tank_ode_2(ti)\<rangle>\<^sub>h \<and> level \<leftarrow>\<^sub>h $level))"
+definition Tank  :: "real \<Rightarrow> tank_st fmu" where 
+  "Tank area = 
+    Modelica_FMU 
+      ((\<langle>{&level} : tank_ode_1(ti)\<rangle>\<^sub>h \<and> level \<leftarrow>\<^sub>h $level) 
+         \<triangleleft> &valve \<triangleright>\<^sub>h 
+       (\<langle>{&level} : tank_ode_2(ti)\<rangle>\<^sub>h \<and> level \<leftarrow>\<^sub>h $level))"
 
-definition Ctr :: "real \<Rightarrow> real \<Rightarrow> ctr_st vrel" where
+definition Ctr :: "real \<Rightarrow> real \<Rightarrow> ctr_st vrt_st_ext fmu" where
 "Ctr minLevel maxLevel = 
-  Periodic 0.001 (valveOn := true \<triangleleft> &levelSensor \<le>\<^sub>u \<guillemotleft>minLevel\<guillemotright> \<triangleright>\<^sub>r 
-                  valveOn := false \<triangleleft> &levelSensor \<ge>\<^sub>u \<guillemotleft>maxLevel\<guillemotright> \<triangleright>\<^sub>r II)"
-  
-definition
+  VDMRT_FMU 0.001 (valveOn := true \<triangleleft> &levelSensor \<le>\<^sub>u \<guillemotleft>minLevel + 0.2\<guillemotright> \<triangleright>\<^sub>r 
+                   valveOn := false \<triangleleft> &levelSensor \<ge>\<^sub>u \<guillemotleft>maxLevel - 0.2\<guillemotright> \<triangleright>\<^sub>r II)"
+
+lemma rel_frext_skip [alpha]: 
+  "vwb_lens a \<Longrightarrow> II \<oplus>\<^sub>f a = II"
+  by (rel_auto)
+
+definition 
   "WaterTank minLevel maxLevel area = 
      FMI Init [FMU[ctr, Ctr minLevel maxLevel], FMU[tank, Tank area]] ArbStep Wiring"
-
-        
-lemma fmu_hoare_rp [hoare_safe]:
-  "\<lbrakk> x \<natural> p; \<lbrace>p\<restriction>\<^sub>px\<rbrace>Q\<lbrace>p\<restriction>\<^sub>px\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>FMU[x, Q]\<lbrace>p\<rbrace>\<^sub>r"
-  apply (rel_simp, auto simp add: des_vars.defs rp_vars.defs)
-  apply (rename_tac ok wait tr st ok' wait' tr' st')
-  apply (drule_tac x="ok" in spec)
-  apply (drule_tac x="wait" in spec)
-  apply (drule_tac x="tr" in spec)
-  apply (drule_tac x="get\<^bsub>x\<^esub> st" in spec)
-  apply (drule_tac x="ok'" in spec)
-  apply (drule_tac x="wait'" in spec)
-  apply (drule_tac x="tr'" in spec)
-  apply (drule_tac x="get\<^bsub>x\<^esub> st'" in spec)
-  apply (auto)
-done
+      
+lemma "FMI Init [FMU[ctr, Ctr minLevel maxLevel], FMU[tank, Tank area]] (FixedStep 1) Wiring = false"
+  apply (simp add: FMI_def Step_FMUs_def fmu_single_def Ctr_def VDMRT_FMU_def Modelica_FMU_def alpha usubst Tank_def)
+    
   
 lemma tank_ode_1_evolve:
   "\<langle>{&level} : tank_ode_1(ti)\<rangle>\<^sub>h = {[&level \<mapsto>\<^sub>s \<guillemotleft>op +\<guillemotright>(&level)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
@@ -100,6 +94,9 @@ lemma tank_ode_2_evolve:
   "\<langle>{&level} : tank_ode_2(ti)\<rangle>\<^sub>h = {[&level \<mapsto>\<^sub>s \<guillemotleft>op -\<guillemotright>(&level)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
   by (ode_fsolve tank_sol_2) 
     
+lemma continuous_lens_pr_var [closure]: "continuous_lens x \<Longrightarrow> continuous_lens (pr_var x)"
+  by (simp add: pr_var_def)
+    
 lemma continuous_lens_level [closure]: "continuous_lens level"
   apply (unfold_locales, simp_all add: lens_defs prod.case_eq_if)
   apply (simp add: tank_st.select_defs iso_tuple_fst_def tuple_iso_tuple_def 
@@ -107,11 +104,9 @@ lemma continuous_lens_level [closure]: "continuous_lens level"
   sorry
     
     
-lemma "H2T(\<langle>&level : \<lambda>lev. 1\<rangle>\<^sub>h \<triangleleft> &valve \<triangleright>\<^sub>h \<langle>&level : \<lambda>lev. - 1\<rangle>\<^sub>h) = undefined"
-  apply (simp add: hyrel2trl_cond hyrel2trel_hEvolves tank_ode_1_evolve tank_ode_2_evolve closure)
-  thm hyrel2trel_hEvolves
-    thm hyrel2trel_hEvolves
-  apply (subst hyrel2trel_hEvolves)
+lemma "H2T(\<langle>&level : \<lambda>lev. 1\<rangle>\<^sub>h \<triangleleft> &valve \<triangleright>\<^sub>h \<langle>&level : \<lambda>lev. - 1\<rangle>\<^sub>h) = 
+       (\<Sqinter> t | 0 <\<^sub>u \<guillemotleft>t\<guillemotright> \<bullet> wait\<^sub>r \<guillemotleft>t\<guillemotright> ;; (level :=\<^sub>r (&level + \<guillemotleft>real_of_pos t\<guillemotright>) \<triangleleft> &valve \<triangleright>\<^sub>R level :=\<^sub>r (&level - \<guillemotleft>real_of_pos t\<guillemotright>)))"
+  by (simp add: hyrel2trl_cond hyrel2trel_hEvolves tank_ode_1_evolve tank_ode_2_evolve closure continuous_intros, rel_auto)
     
 lemma "\<lbrace>true\<rbrace>WaterTank 0 10 10\<lbrace>&tank:level <\<^sub>u 10 \<and> &ctr:levelSensor <\<^sub>u 10\<rbrace>\<^sub>r"
   apply (simp add: conj_comm conj_assoc)

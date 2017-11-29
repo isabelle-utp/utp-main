@@ -19,12 +19,21 @@ text {* A periodic thread takes a positive real $n$ denoting the period and a re
   countdown amount and decrements this. It also updates the global clock to reflect this. The
   behaviour is then iterated. *}
 
+(*
 definition PeriodicBody :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrel" where
 [upred_defs]:
   "PeriodicBody n P = 
     ([P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) 
       \<triangleleft> &ctdown =\<^sub>u 0 \<triangleright>\<^sub>R 
     (\<Sqinter> t | 0 <\<^sub>u \<guillemotleft>t\<guillemotright> \<and> \<guillemotleft>t\<guillemotright> \<le>\<^sub>u $st:ctdown \<bullet> ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>) ;; wait\<^sub>r(\<guillemotleft>t\<guillemotright>))"
+*)
+  
+definition PeriodicBody :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrel" where
+[upred_defs]:
+  "PeriodicBody n P = 
+    (wait\<^sub>r(&ctdown) ;; [P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) 
+     \<sqinter>
+    (\<Sqinter> t | 0 <\<^sub>u \<guillemotleft>t\<guillemotright> \<and> \<guillemotleft>t\<guillemotright> <\<^sub>u $st:ctdown \<bullet> ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>) ;; wait\<^sub>r(\<guillemotleft>t\<guillemotright>))"
 
 definition Periodic :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrel" where
 [upred_defs]: 
@@ -41,11 +50,17 @@ lemma Periodic_RR_closed [closure]:
    apply (simp_all add: closure)
   apply (induct_tac i)
    apply (simp_all add: usubst seqr_assoc closure)
-done
-  
+  done
+      
 definition VDMRT_FMU :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrt_st_scheme fmu" where
 [upred_defs]:
-"VDMRT_FMU n P = \<lparr> fmi2Instantiate = (ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>)
-                 , fmi2DoStep = Periodic n P \<rparr>"
+"VDMRT_FMU n P = \<lparr> fmiInstantiate = (ctdown := \<guillemotleft>n\<guillemotright>)
+                 , fmiDoStep = PeriodicBody n P \<rparr>"
   
+lemma Step_VDMRT:
+      "t > 0 \<Longrightarrow> 
+       Step t (VDMRT_FMU n P) = 
+       ([P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) \<triangleleft> &ctdown =\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R (ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>) \<triangleleft> &ctdown >\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R false)"
+  by (rel_auto)
+
 end
