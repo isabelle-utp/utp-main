@@ -1556,7 +1556,7 @@ lemma tt_indeps [simp]:
   shows "x \<bowtie> tt" "tt \<bowtie> x"
   using assms
   by (unfold lens_indep_def, safe, simp_all add: tcontr_def, (metis lens_indep_get var_update_out)+)
-   
+    
 text {* Trace Contribution Substitution *}
   
 definition rea_subst :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, ('t, '\<alpha>) rp) hexpr \<Rightarrow> ('t, '\<alpha>) hrel_rp" ("_\<lbrakk>_\<rbrakk>\<^sub>r" [999,0] 999) 

@@ -150,7 +150,29 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
-    
+
+text {* Reactive Frames *}
+  
+definition rea_frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<alpha>, 't) rdes" where
+[upred_defs]: "rea_frame x P = antiframe (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st)) P"
+
+syntax
+  "_rea_frame" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>r" [99,0] 100)
+
+translations
+  "_rea_frame x P" => "CONST rea_frame x P"
+  "_rea_frame (_salphaset (_salphamk x)) P" <= "CONST rea_frame x P"
+  
+lemma rea_frame_RR_closed [closure]: 
+  assumes "P is RR"
+  shows "x:[P]\<^sub>r is RR"
+proof -
+  have "RR(x:[RR P]\<^sub>r) = x:[RR P]\<^sub>r"
+    by (rel_auto, blast+)
+  thus ?thesis
+    by (metis Healthy_if Healthy_intro assms)
+qed
+  
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -2609,7 +2631,10 @@ qed
 text {* State relation and condition lifting *}
 
 definition rea_st_rel :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
-[upred_defs]: "rea_st_rel b = R1(\<lceil>b\<rceil>\<^sub>S)"
+[upred_defs]: "rea_st_rel b = (\<lceil>b\<rceil>\<^sub>S \<and> $tr\<acute> =\<^sub>u $tr)"
+
+definition rea_st_rel' :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S'") where
+[upred_defs]: "rea_st_rel' b = R1(\<lceil>b\<rceil>\<^sub>S)"
 
 definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub><") where
 [upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
@@ -2638,8 +2663,11 @@ lemma rea_st_cond_R2c [closure]: "[b]\<^sub>S\<^sub>< is R2c"
   by (rel_auto)
 
 lemma rea_st_rel_RR [closure]: "[P]\<^sub>S is RR"
+  using minus_zero_eq by (rel_auto)
+
+lemma rea_st_rel'_RR [closure]: "[P]\<^sub>S' is RR"
   by (rel_auto)
- 
+  
 lemma rea_st_cond_RR [closure]: "[b]\<^sub>S\<^sub>< is RR"
   by (rule RR_intro, simp_all add: unrest closure)
 

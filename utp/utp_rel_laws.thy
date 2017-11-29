@@ -492,14 +492,14 @@ proof -
 qed
 
 theorem while_false: "while false do P od = II"
-  by (subst while_unfold, simp add: aext_false)
+  by (subst while_unfold, rel_auto)
 
 theorem while_true: "while true do P od = false"
   apply (simp add: while_def alpha)
   apply (rule antisym)
   apply (simp_all)
   apply (rule lfp_lowerbound)
-  apply (simp)
+  apply (rel_auto)
 done
 
 theorem while_bot_unfold:
@@ -733,7 +733,7 @@ lemma pre_weak_rel:
 lemma cond_refine_rel: 
   assumes "S \<sqsubseteq> (\<lceil>b\<rceil>\<^sub>< \<and> P)" "S \<sqsubseteq> (\<lceil>\<not>b\<rceil>\<^sub>< \<and> Q)"
   shows "S \<sqsubseteq> P \<triangleleft> b \<triangleright>\<^sub>r Q"
-  by (metis aext_not assms cond_def utp_pred_laws.le_sup_iff)
+  by (metis aext_not assms(1) assms(2) cond_def lift_rcond_def utp_pred_laws.le_sup_iff)
 
 lemma seq_refine_pred:
   assumes "(\<lceil>b\<rceil>\<^sub>< \<Rightarrow> \<lceil>s\<rceil>\<^sub>>) \<sqsubseteq> P" and "(\<lceil>s\<rceil>\<^sub>< \<Rightarrow> \<lceil>c\<rceil>\<^sub>>) \<sqsubseteq> Q"

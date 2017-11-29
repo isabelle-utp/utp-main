@@ -47,13 +47,13 @@ lemma rcond_true_trel:
   assumes "\<sigma> \<dagger> b = true"
   shows "(\<sigma>, P \<triangleleft> b \<triangleright>\<^sub>r Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
   using assms
-  by (simp add: assigns_r_comp usubst aext_true cond_unit_T)
+  by (simp add: assigns_r_comp usubst alpha cond_unit_T)
 
 lemma rcond_false_trel:
   assumes "\<sigma> \<dagger> b = false"
   shows "(\<sigma>, P \<triangleleft> b \<triangleright>\<^sub>r Q) \<rightarrow>\<^sub>u (\<sigma>, Q)"
   using assms
-  by (simp add: assigns_r_comp usubst aext_false cond_unit_F)
+  by (simp add: assigns_r_comp usubst alpha cond_unit_F)
 
 lemma while_true_trel:
   assumes "\<sigma> \<dagger> b = true"

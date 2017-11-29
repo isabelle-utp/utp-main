@@ -95,10 +95,13 @@ text {* We define a specialised version of the conditional where the condition c
   We implement this by lifting the condition predicate into the relational state-space with
   construction @{term "\<lceil>b\<rceil>\<^sub><"}. *}
   
+definition lift_rcond ("\<lceil>_\<rceil>\<^sub>\<leftarrow>") where
+[upred_defs]: "\<lceil>b\<rceil>\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub><"
+    
 abbreviation 
   rcond :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel"
   ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
-  where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>< \<triangleright> Q)"
+  where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>\<leftarrow> \<triangleright> Q)"
     
 text {* Sequential composition is heterogeneous, and simply requires that the output alphabet
   of the first matches then input alphabet of the second. We define it by lifting HOL's 
@@ -351,6 +354,10 @@ lemma unrest_cond [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> b; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<triangleleft> b \<triangleright> Q"
   by (rel_auto)
 
+lemma unrest_lift_rcond [unrest]:
+  "x \<sharp> \<lceil>b\<rceil>\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>\<leftarrow>"
+  by (simp add: lift_rcond_def)
+    
 lemma unrest_in\<alpha>_var [unrest]:
   "\<lbrakk> mwb_lens x; in\<alpha> \<sharp> (P :: ('a, ('\<alpha> \<times> '\<beta>)) uexpr) \<rbrakk> \<Longrightarrow> $x \<sharp> P"
   by (rel_auto)
@@ -474,6 +481,9 @@ lemma unrest_usubst_lift_out [unrest]:
   shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>s"
   by pred_simp
 
+lemma subst_lift_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>s\<rceil>\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>\<leftarrow>"
+  by (rel_auto)
+    
 subsection {* Alphabet laws *}
 
 lemma aext_cond [alpha]:
@@ -484,6 +494,14 @@ lemma aext_seq [alpha]:
   "wb_lens a \<Longrightarrow> ((P ;; Q) \<oplus>\<^sub>p (a \<times>\<^sub>L a)) = ((P \<oplus>\<^sub>p (a \<times>\<^sub>L a)) ;; (Q \<oplus>\<^sub>p (a \<times>\<^sub>L a)))"
   by (rel_simp, metis wb_lens_weak weak_lens.put_get)
 
+lemma rcond_lift_true [alpha]:
+  "\<lceil>true\<rceil>\<^sub>\<leftarrow> = true"
+  by rel_auto
+
+lemma rcond_lift_false [alpha]:
+  "\<lceil>false\<rceil>\<^sub>\<leftarrow> = false"
+  by rel_auto
+    
 subsection {* Relational unrestriction *}
 
 text {* Relational unrestriction states that a variable is both unchanged by a relation, and is
@@ -622,7 +640,7 @@ lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sha
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
   by (simp add: RID_disj unrest_relation_def)
 
-subsection {* Relational Alphabet Extension and Restriction *}
+subsection {* Relational Alphabet Extension, Restriction, and Frame Extension *}
 
 definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" 
 where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
@@ -630,13 +648,18 @@ where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
 definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
   where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
     
+definition rel_frext :: "'b hrel \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a hrel"  where
+[upred_defs]: "rel_frext P a = a:[rel_aext P a]"
+     
 syntax
   "_rel_aext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
   "_rel_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
-    
+  "_rel_frext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>f" 90)
+  
 translations
   "_rel_aext P a" == "CONST rel_aext P a"
   "_rel_ares P a" == "CONST rel_ares P a"
+  "_rel_frext P a" == "CONST rel_frext P a"
   
 lemma rel_ares_aext [alpha]: 
   "vwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>r a) \<restriction>\<^sub>r a = P"
@@ -649,5 +672,34 @@ lemma rel_aext_ares [alpha]:
 lemma rel_aext_uses [unrest]:
   "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
   by (rel_auto)    
+    
+lemma rel_aext_seq [alpha]:
+  "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
+  apply (rel_auto)
+  apply (rename_tac aa b y)
+  apply (rule_tac x="create\<^bsub>a\<^esub> y" in exI)
+  apply (simp)
+done
+
+lemma rel_aext_cond [alpha]:
+  "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
+  by (rel_auto)
+
+lemma rel_frext_seq [alpha]:
+  "vwb_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>f a = (P \<oplus>\<^sub>f a ;; Q \<oplus>\<^sub>f a)"
+  apply (rel_auto)
+  apply (rename_tac s s' s\<^sub>0)
+  apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
+  apply (auto)
+  apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+done
+
+lemma rel_frext_assigns [alpha]:
+  "vwb_lens a \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a \<oplus>\<^sub>f a = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
+  by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
+
+lemma rel_frext_rcond [alpha]:
+  "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>f a = (P \<oplus>\<^sub>f a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>f a)"
+  by (rel_auto)
     
 end
