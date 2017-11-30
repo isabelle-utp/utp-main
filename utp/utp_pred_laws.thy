@@ -284,6 +284,15 @@ lemma UINF_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (rule_tac cong[of Sup Sup])
   apply (auto)
 done
+    
+lemma UINF_atLeast_first:
+  "P(n) \<sqinter> (\<Sqinter> i \<in> {Suc n..} \<bullet> P(i)) = (\<Sqinter> i \<in> {n..} \<bullet> P(i))"
+proof -
+  have "insert n {Suc n..} = {n..}"
+    by (auto)
+  thus ?thesis
+    by (metis UINF_insert)
+qed  
 
 lemma USUP_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
   by (pred_auto)
@@ -310,7 +319,7 @@ lemma conj_USUP_dist:
 lemma USUP_conj_USUP: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
-lemma UINF_all_cong:
+lemma UINF_all_cong [cong]:
   assumes "\<And> P. F(P) = G(P)"
   shows "(\<Sqinter> P \<bullet> F(P)) = (\<Sqinter> P \<bullet> G(P))"
   by (simp add: UINF_as_Sup_collect assms)
@@ -373,7 +382,9 @@ lemma UINF_list_conv:
   "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<or> (map f xs) false"    
   apply (induct xs)
    apply (rel_auto)
-  apply (simp_all add: UINF_upto_expand_first UINF_Suc_shift)
+  apply (simp add: UINF_upto_expand_first UINF_Suc_shift)
+    
+    thm UINF_upto_expand_first
 done
 
 lemma USUP_list_conv:
@@ -388,7 +399,7 @@ lemma UINF_refines':
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
   using assms
   apply (rel_auto) using Sup_le_iff by fastforce
-    
+  
 subsection {* Equality laws *}
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"

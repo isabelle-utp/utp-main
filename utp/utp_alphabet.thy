@@ -284,7 +284,7 @@ lemma out_var_prod_lens [alpha]:
   apply (simp add: alpha_in_var alpha_out_var)
   apply (simp)
 done
-
+  
 subsection {* Substitution Alphabet Extension *}
 
 text {* This allows us to extend the alphabet of a substitution, in a similar way to expressions. *}
@@ -308,6 +308,10 @@ lemma aext_upred_eq [alpha]:
   "((e =\<^sub>u f) \<oplus>\<^sub>p a) = ((e \<oplus>\<^sub>p a) =\<^sub>u (f \<oplus>\<^sub>p a))"
   by (pred_auto)
 
+lemma subst_aext_comp [usubst]:
+  "vwb_lens a \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s a) \<circ> (\<rho> \<oplus>\<^sub>s a) = (\<sigma> \<circ> \<rho>) \<oplus>\<^sub>s a"
+  by pred_auto
+    
 subsection {* Substitution Alphabet Restriction *}
 
 text {* This allows us to reduce the alphabet of a substitution, in a similar way to expressions. *}

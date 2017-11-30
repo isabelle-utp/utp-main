@@ -440,14 +440,18 @@ lemma assert_true: "{true}\<^sub>\<bottom> = II"
 lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
   by (rel_auto)
 
-lemma frame_disj: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
+subsection {* Frame Laws *}
+  
+named_theorems frame
+    
+lemma frame_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)
 
-lemma frame_seq:
+lemma frame_seq [frame]:
   "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
   by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
     
-lemma antiframe_to_frame:
+lemma antiframe_to_frame [frame]:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
     
@@ -455,17 +459,24 @@ lemma antiframe_skip [simp]:
   "vwb_lens x \<Longrightarrow> x:[II] = II"
   by (rel_auto)
     
-lemma antiframe_assign_in:
+lemma antiframe_assign_in [frame]:
   "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> a:[x := v] = x := v"
   by (rel_auto, simp_all add: lens_get_put_quasi_commute lens_put_of_quotient)
 
-lemma antiframe_conj_true:
+lemma antiframe_conj_true [frame]:
   "\<lbrakk> {$x,$x\<acute>} \<natural> P; vwb_lens x \<rbrakk> \<Longrightarrow> (P \<and> x:[true]) = x:[P]"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
     
-lemma antiframe_assign:
+lemma antiframe_assign [frame]:
   "vwb_lens x \<Longrightarrow> x:[$x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub><] = x := v"
   by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+    
+lemma antiframe_seq [frame]:
+  "\<lbrakk> vwb_lens x; {$x,$x\<acute>} \<natural> P; {$x,$x\<acute>} \<natural> Q \<rbrakk> \<Longrightarrow> x:[P ;; Q] = x:[P] ;; x:[Q]"
+  apply (rel_auto)
+  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_def weak_lens.put_get)
+  apply (metis vwb_lens_wb wb_lens.get_put)
+done
     
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
@@ -674,9 +685,9 @@ theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
 
 subsection {* Kleene Algebra Laws *}
 
-theorem ustar_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
+theorem ustar_sub_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
-
+    
 theorem ustar_inductl:
   assumes "Q \<sqsubseteq> R" "Q \<sqsubseteq> P ;; Q"
   shows "Q \<sqsubseteq> P\<^sup>\<star> ;; R"
@@ -709,8 +720,15 @@ proof (rule antisym)
   show "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
     by (simp add: ustar_refines_nu)
   show "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> P ;; X \<sqinter> II)"
-    by (metis lfp_lowerbound upred_semiring.add_commute ustar_unfoldl)
+    by (metis lfp_lowerbound upred_semiring.add_commute ustar_sub_unfoldl)
 qed
+
+lemma ustar_unfoldl: "P\<^sup>\<star> = II \<sqinter> (P ;; P\<^sup>\<star>)"
+  apply (simp add: ustar_as_nu)
+  apply (subst lfp_unfold)
+  apply (rule monoI)
+  apply (rel_auto)+
+done
   
 subsection {* Omega Algebra Laws *}
 

@@ -182,6 +182,11 @@ lemma Monotonic_seqr_tail [closure]:
   shows "Monotonic (\<lambda> X. P ;; F(X))"
   by (simp add: assms monoD monoI seqr_mono)
 
+lemma Monotonic_inf [closure]:
+  assumes "Monotonic P" "Monotonic Q"
+  shows "Monotonic (\<lambda> X. P(X) \<sqinter> Q(X))"
+  using assms by (simp add: mono_def, rel_auto)
+
 lemma Monotonic_cond [closure]:
   assumes "Monotonic P" "Monotonic Q"
   shows "Monotonic (\<lambda> X. P(X) \<triangleleft> b \<triangleright> Q(X))"

@@ -451,6 +451,14 @@ lemma subst_skip_r [usubst]:
 lemma subst_pre_skip [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II = \<langle>\<sigma>\<rangle>\<^sub>a"
   by (rel_auto)
     
+lemma subst_rel_lift_seq [usubst]:
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> (P ;; Q) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P) ;; Q"
+  by (rel_auto)
+  
+lemma subst_rel_lift_comp [usubst]:
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<circ> \<lceil>\<rho>\<rceil>\<^sub>s = \<lceil>\<sigma> \<circ> \<rho>\<rceil>\<^sub>s"
+  by (rel_auto)
+    
 lemma usubst_upd_in_comp [usubst]:
   "\<sigma>(&in\<alpha>:x \<mapsto>\<^sub>s v) = \<sigma>($x \<mapsto>\<^sub>s v)"
   by (simp add: pr_var_def fst_lens_def in\<alpha>_def in_var_def)
@@ -642,24 +650,28 @@ lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q
 
 subsection {* Relational Alphabet Extension, Restriction, and Frame Extension *}
 
+text {* Alphabet extension and restriction add additional variables by the given lens in both
+  their primed and unprimed versions. Frame extension combines alphabet extension with the frame
+  operator to both add additional variables and then frame those. *}
+  
 definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" 
 where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
 
 definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
   where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
     
-definition rel_frext :: "'b hrel \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a hrel"  where
-[upred_defs]: "rel_frext P a = a:[rel_aext P a]"
+definition rel_frext :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel \<Rightarrow> '\<alpha> hrel"  where
+[upred_defs]: "rel_frext a P = a:[rel_aext P a]"
      
 syntax
-  "_rel_aext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
-  "_rel_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
-  "_rel_frext" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>f" 90)
+  "_rel_aext"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
+  "_rel_ares"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
+  "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
   
 translations
   "_rel_aext P a" == "CONST rel_aext P a"
   "_rel_ares P a" == "CONST rel_ares P a"
-  "_rel_frext P a" == "CONST rel_frext P a"
+  "_rel_frext a P" == "CONST rel_frext a P"
   
 lemma rel_ares_aext [alpha]: 
   "vwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>r a) \<restriction>\<^sub>r a = P"
@@ -673,6 +685,10 @@ lemma rel_aext_uses [unrest]:
   "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
   by (rel_auto)    
     
+lemma rel_frext_skip [alpha]: 
+  "vwb_lens a \<Longrightarrow> a:[II]\<^sup>+ = II"
+  by (rel_auto)
+   
 lemma rel_aext_seq [alpha]:
   "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
   apply (rel_auto)
@@ -686,7 +702,7 @@ lemma rel_aext_cond [alpha]:
   by (rel_auto)
 
 lemma rel_frext_seq [alpha]:
-  "vwb_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>f a = (P \<oplus>\<^sub>f a ;; Q \<oplus>\<^sub>f a)"
+  "vwb_lens a \<Longrightarrow> a:[P ;; Q]\<^sup>+ = (a:[P]\<^sup>+ ;; a:[Q]\<^sup>+)"
   apply (rel_auto)
   apply (rename_tac s s' s\<^sub>0)
   apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
@@ -695,11 +711,11 @@ lemma rel_frext_seq [alpha]:
 done
 
 lemma rel_frext_assigns [alpha]:
-  "vwb_lens a \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a \<oplus>\<^sub>f a = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
+  "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
   by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
 
 lemma rel_frext_rcond [alpha]:
-  "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>f a = (P \<oplus>\<^sub>f a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>f a)"
+  "a:[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sup>+ = (a:[P]\<^sup>+ \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r a:[Q]\<^sup>+)"
   by (rel_auto)
     
 end

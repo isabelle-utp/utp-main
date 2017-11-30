@@ -355,6 +355,7 @@ declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
 declare par_subst_def [upred_defs]
+declare subst_del_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
 declare uexpr_defs [upred_defs]
 
