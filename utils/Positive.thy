@@ -169,5 +169,49 @@ lemma real_of_pos [simp]: "x \<ge> 0 \<Longrightarrow> real_of_pos (mk_pos x) = 
     
 lemma mk_pos_real_of_pos [simp]: "mk_pos (real_of_pos x) = x"
   by (transfer, simp)
+    
+subsection {* Transfer to Reals *}
+  
+named_theorems pos_transfer
+    
+lemma real_of_pos_0 [pos_transfer]: 
+  "real_of_pos 0 = 0"
+  by (transfer, auto)
+
+lemma real_of_pos_1 [pos_transfer]: 
+  "real_of_pos 1 = 1"
+  by (transfer, auto)
+    
+lemma real_op_pos_plus [pos_transfer]:
+  "real_of_pos (x + y) = real_of_pos x + real_of_pos y"
+  by (transfer, simp)
+
+lemma real_op_pos_minus [pos_transfer]:
+  "x \<ge> y \<Longrightarrow> real_of_pos (x - y) = real_of_pos x - real_of_pos y"
+  by (transfer, simp)
+
+lemma real_op_pos_mult [pos_transfer]:
+  "real_of_pos (x * y) = real_of_pos x * real_of_pos y"
+  by (transfer, simp)
+   
+lemma real_op_pos_div [pos_transfer]:
+  "real_of_pos (x / y) = real_of_pos x / real_of_pos y"
+  by (transfer, simp)
+
+lemma real_of_pos_numeral [pos_transfer]:
+  "real_of_pos (numeral n) = numeral n"
+  by (induct n, simp_all only: numeral.simps pos_transfer)
+
+lemma real_of_pos_eq_transfer [pos_transfer]:
+  "x = y \<longleftrightarrow> real_of_pos x = real_of_pos y"
+  by (transfer, auto)
+
+lemma real_of_pos_less_eq_transfer [pos_transfer]:
+  "x \<le> y \<longleftrightarrow> real_of_pos x \<le> real_of_pos y"
+  by (transfer, auto)
+    
+lemma real_of_pos_less_transfer [pos_transfer]:
+  "x < y \<longleftrightarrow> real_of_pos x < real_of_pos y"
+  by (transfer, auto)
   
 end
