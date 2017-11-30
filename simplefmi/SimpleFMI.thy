@@ -4,7 +4,7 @@ theory SimpleFMI
     "../theories/utp_reactive_hoare"
     "../hybrid/utp_hybrid"    
 begin
-  
+    
 purge_notation Sublist.parallel (infixl "\<parallel>" 50)
     
 record '\<alpha> fmu =
@@ -19,7 +19,7 @@ type_synonym master_algorithm = "real pos set"
 definition fmu_single ("FMU[_, _]") where
 [upred_defs]: "fmu_single a fmu = 
   \<lparr> fmiInstantiate = (fmiInstantiate fmu) \<oplus>\<^sub>f a
-  , fmiDoStep      = a:[rel_aext (fmiDoStep fmu) (map_st\<^sub>L a)]\<^sub>r \<rparr>"
+  , fmiDoStep      = a:[fmiDoStep fmu]\<^sub>r\<^sup>+ \<rparr>"
 
 definition fmu_comp :: "'\<alpha> trel \<Rightarrow> '\<alpha> trel \<Rightarrow> '\<alpha> trel" (infixr "\<parallel>" 85) where
 [upred_defs]: "fmu_comp P Q = (P \<and> Q)"
@@ -47,31 +47,35 @@ text {* We make the assumption that the FMUs operate on separate state spaces an
 definition Step :: "real pos \<Rightarrow> '\<alpha> fmu \<Rightarrow> '\<alpha> trel" where
 [upred_defs]: "Step t FMU = ((fmiDoStep FMU)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr)"
   
-lemma Step_RR [closure]: "fmiDoStep FMU is RR \<Longrightarrow> Step t FMU is RR"
-  apply (cases FMU)
-  
-  apply (simp add: Step_def)
-  apply (rule RR_intro)
-       apply (simp_all add: unrest)
-   apply (rule closure) back
-   apply (rel_auto)
-oops
+lemma Step_RR_lemma: 
+  assumes "P is RR"
+  shows "(P\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
+proof -
+  have "((RR P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
 
-definition Step_FMUs :: "'\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> '\<alpha> trel"
-  where "Step_FMUs FMUs MA = (\<Sqinter> t\<in>MA \<bullet> foldr (op ;;) (map (Step t) FMUs) II\<^sub>r ;; wait\<^sub>r(\<guillemotleft>t\<guillemotright>))"
+lemma Step_RR [closure]: "fmiDoStep FMU is RR \<Longrightarrow> Step t FMU is RR"
+  by (simp add: Step_def Step_RR_lemma)
+
+lemma Step_fmu_single [simp]: "Step t (FMU[a, P]) = a:[Step t P]\<^sub>r\<^sup>+"
+  by (simp add: Step_def fmu_single_def, rel_auto)
     
-(*
-lemma "\<lbrakk> \<And> f. f\<in>fmiDoStep`set(FMUs) \<Longrightarrow> f is RR \<rbrakk> \<Longrightarrow> Step_FMUs FMUs MA is RR"
-  apply (rule RR_intro)
-  apply (simp add: Step_FMUs_def)
-  apply (rel_auto)
-*)  
+definition Step_FMUs :: "'\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> '\<alpha> trel"
+  where "Step_FMUs FMUs MA = (\<Sqinter> t\<in>MA \<bullet> (;; f : FMUs \<bullet> Step t f) ;; wait\<^sub>r(\<guillemotleft>t\<guillemotright>))"
+
+lemma Step_FMUs_RR_closed [closure]:
+  assumes "MA \<noteq> {}" "FMUs \<noteq> []" "\<And> f. f\<in>set(map fmiDoStep FMUs) \<Longrightarrow> f is RR"
+  shows "Step_FMUs FMUs MA is RR"
+  by (simp add: Step_FMUs_def closure assms)
 
 definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
 [upred_defs]: "FMI Init FMUs MA Wiring = 
                  Instantiate_FMUs FMUs ;;  
                  \<langle>Init\<rangle>\<^sub>r ;; 
-                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>"
+                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star> ;; II\<^sub>r"
 
 definition ArbStep :: "master_algorithm" where
 [upred_defs]: "ArbStep = UNIV"
@@ -83,6 +87,10 @@ lemma fmu_comp_true [simp]:
   "P \<parallel> true = P"
   by (rel_auto)
     
+lemma fmi_instantiatiate_FMU [simp]:
+  "fmiInstantiate(FMU[a, P]) = (fmiInstantiate P) \<oplus>\<^sub>f a"
+  by (simp add: fmu_single_def)
+        
 (*
 lemma fmu_hoare_rp [hoare_safe]:
   "\<lbrakk> x \<natural> p; \<lbrace>p\<restriction>\<^sub>px\<rbrace>Q\<lbrace>p\<restriction>\<^sub>px\<rbrace>\<^sub>r \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>FMU[x, Q]\<lbrace>p\<rbrace>\<^sub>r"
@@ -108,4 +116,10 @@ oops
 definition Modelica_FMU :: "(unit, '\<alpha>::t2_space) hyrel \<Rightarrow> '\<alpha> fmu" where
 [upred_defs]: "Modelica_FMU P = \<lparr> fmiInstantiate = II, fmiDoStep = H2T(P) \<rparr>"
     
+lemma fmiInstantiate_Modelica_FMU [simp]: "fmiInstantiate (Modelica_FMU hr) = II"
+  by (simp add: Modelica_FMU_def)
+    
+lemma fmiDoStep_Modelica_FMU [simp]: "fmiDoStep (Modelica_FMU hr) = H2T(hr)"
+  by (simp add: Modelica_FMU_def)
+
 end

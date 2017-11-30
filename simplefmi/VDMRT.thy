@@ -57,6 +57,14 @@ definition VDMRT_FMU :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<R
 "VDMRT_FMU n P = \<lparr> fmiInstantiate = (ctdown := \<guillemotleft>n\<guillemotright>)
                  , fmiDoStep = PeriodicBody n P \<rparr>"
   
+lemma fmiInstantiate_VDMRT_FMU [simp]:
+  "fmiInstantiate (VDMRT_FMU n P) = ctdown := \<guillemotleft>n\<guillemotright>"
+  by (simp add: VDMRT_FMU_def)
+
+lemma fmiDoStep_VDMRT_FMU [simp]:
+  "fmiDoStep (VDMRT_FMU n P) = PeriodicBody n P"
+  by (simp add: VDMRT_FMU_def)
+    
 lemma Step_VDMRT:
       "t > 0 \<Longrightarrow> 
        Step t (VDMRT_FMU n P) = 
