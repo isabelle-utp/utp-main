@@ -53,9 +53,16 @@ where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>> \<equiv> \<lfloor>\<lfloor>p\<rfloor>
 
 text {* Lifting substitutions on the reactive state *}
 
-abbreviation usubst_st_lift  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
-"\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<equiv> \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"
+abbreviation usubst_st_lift :: "'s usubst \<Rightarrow> _"  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
+"\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<equiv> \<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s"
 
+abbreviation st_subst :: "'s usubst \<Rightarrow> ('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<dagger>\<^sub>S" 80) where
+"\<sigma> \<dagger>\<^sub>S P \<equiv> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
+
+translations
+  "\<sigma> \<dagger>\<^sub>S P" <= "\<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s \<dagger> P"
+  "\<sigma> \<dagger>\<^sub>S P" <= "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
+  
 syntax
   "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
 
@@ -83,11 +90,20 @@ lemma st'_unrest_st_lift_pred [unrest]:
 lemma out_alpha_unrest_st_lift_pre [unrest]:
   "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
+
+declare [[show_types]]
     
-lemma unrest_st_list [unrest]:
-  "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
-  by (metis in_var_def in_var_prod_lens lens_comp_left_id st_vwb_lens unrest_subst_alpha_ext vwb_lens_wb)
-           
+lemma st_lift_lemma:
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"
+  by (auto simp add: upred_defs lens_defs prod.case_eq_if)
+    
+lemma unrest_st_lift [unrest]:
+  fixes x :: "'a \<Longrightarrow> ('s, 't::trace, '\<alpha>) rsp \<times> ('s, 't, '\<alpha>) rsp"
+  assumes "x \<bowtie> ($st)\<^sub>v"
+  shows "x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>" (is "?P")
+  by (simp add: st_lift_lemma)
+     (metis assms in_var_def in_var_prod_lens lens_comp_left_id st_vwb_lens unrest_subst_alpha_ext vwb_lens_wb)
+  
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
@@ -119,9 +135,6 @@ qed
 lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^sub>L st = ($st:x)\<^sub>v"
   by (metis (no_types, hide_lams) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
   
-lemma unrest_st_indep [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>"
-  by (metis lens_comp_left_id st_qual_alpha unrest_subst_alpha_ext)
-
 text {* Reactive state assignment *}
     
 definition rea_assigns :: "('s \<Rightarrow> 's) \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>r") where
@@ -150,19 +163,84 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
+  
+lemma st_subst_RR [closure]:
+  assumes "P is RR"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is RR"
+proof -
+  have "(\<sigma> \<dagger>\<^sub>S RR(P)) is RR"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
+text {* We guard the reactive conditional condition so that it can't be simplified by alphabet
+  laws unless explicitly simplified. *}
 
-text {* Reactive Frames *}
+definition lift_cond_srea ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<leftarrow>") where
+[upred_defs]: "\<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+
+lemma unrest_lift_cond_srea [unrest]:
+  "x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow>"
+  by (simp add: lift_cond_srea_def)
+
+lemma subst_lift_cond_srea [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<lceil>s\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>S\<^sub>\<leftarrow>"
+  by (rel_auto)
+    
+abbreviation cond_srea ::
+  "('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
+  's upred \<Rightarrow>
+  ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
+  ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
+"cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
+
+text {* We introduce state abstraction by creating some lens functors that allow us to lift
+  a lens on the state-space to one on the whole stateful reactive alphabet. *}
+
+definition lmap\<^sub>R :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('t::trace, 'a) rp \<Longrightarrow> ('t, 'b) rp" where
+[lens_defs]: "lmap\<^sub>R = lmap\<^sub>D \<circ> lmap[rp_vars]"
+
+definition map_rsp_st ::
+  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
+   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<tau>, '\<alpha>) rsp_vars_scheme" where
+[lens_defs]: "map_rsp_st f = (\<lambda>r. \<lparr>st\<^sub>v = f (st\<^sub>v r), \<dots> = rsp_vars.more r\<rparr>)"
+
+definition map_st_lens ::
+  "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
+   (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_st\<^sub>L") where
+[lens_defs]:
+"map_st_lens l = lmap\<^sub>R \<lparr>
+  lens_get = map_rsp_st (get\<^bsub>l\<^esub>),
+  lens_put = map_rsp_st o (put\<^bsub>l\<^esub>) o rsp_vars.st\<^sub>v\<rparr>"
+
+lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
+  apply (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
+  apply (metis des_vars.surjective rp_vars.surjective rsp_vars.surjective)+
+done
+
+abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
+  
+abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
+"abs_st P \<equiv> P \<restriction>\<^sub>e abs_st\<^sub>L"
+  
+text {* Reactive Frames and Extensions *}
   
 definition rea_frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<alpha>, 't) rdes" where
 [upred_defs]: "rea_frame x P = antiframe (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st)) P"
 
+definition rea_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<beta>, 't) rdes" where
+[upred_defs]: "rea_frame_ext a P = rea_frame a (rel_aext P (map_st\<^sub>L a))"
+
 syntax
-  "_rea_frame" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>r" [99,0] 100)
+  "_rea_frame"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>r" [99,0] 100)
+  "_rea_frame_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>r\<^sup>+" [99,0] 100)
 
 translations
   "_rea_frame x P" => "CONST rea_frame x P"
   "_rea_frame (_salphaset (_salphamk x)) P" <= "CONST rea_frame x P"
-  
+  "_rea_frame_ext x P" => "CONST rea_frame_ext x P"
+  "_rea_frame_ext (_salphaset (_salphamk x)) P" <= "CONST rea_frame_ext x P"
+
 lemma rea_frame_RR_closed [closure]: 
   assumes "P is RR"
   shows "x:[P]\<^sub>r is RR"
@@ -173,6 +251,44 @@ proof -
     by (metis Healthy_if Healthy_intro assms)
 qed
   
+lemma rea_aext_RR [closure]:
+  assumes "P is RR"
+  shows "rel_aext P (map_st\<^sub>L x) is RR"
+proof -
+  have "rel_aext (RR P) (map_st\<^sub>L x) is RR"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
+lemma rea_frame_ext_RR_closed [closure]:
+  "P is RR \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is RR"
+  by (simp add: rea_frame_ext_def closure)
+  
+lemma rea_frame_ext_false [frame]:
+  "x:[false]\<^sub>r\<^sup>+ = false"
+  by (rel_auto)
+  
+lemma rea_frame_ext_skip [frame]:
+  "vwb_lens x \<Longrightarrow> x:[II\<^sub>r]\<^sub>r\<^sup>+ = II\<^sub>r"
+  by (rel_auto)
+
+lemma rea_frame_ext_assigns [frame]:
+  "vwb_lens x \<Longrightarrow> x:[\<langle>\<sigma>\<rangle>\<^sub>r]\<^sub>r\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s x\<rangle>\<^sub>r"
+  by (rel_auto, metis mwb_lens_def vwb_lens_def weak_lens.put_get)
+
+lemma rea_frame_ext_cond [frame]:
+  "x:[P \<triangleleft> b \<triangleright>\<^sub>R Q]\<^sub>r\<^sup>+ = x:[P]\<^sub>r\<^sup>+ \<triangleleft> (b \<oplus>\<^sub>p x) \<triangleright>\<^sub>R x:[Q]\<^sub>r\<^sup>+"
+  by (rel_auto)
+    
+lemma rea_frame_ext_seq [frame]:
+  "vwb_lens x \<Longrightarrow> x:[P ;; Q]\<^sub>r\<^sup>+ = x:[P]\<^sub>r\<^sup>+ ;; x:[Q]\<^sub>r\<^sup>+"
+  apply (simp add: rea_frame_ext_def rea_frame_def alpha)
+  apply (subst antiframe_seq)
+  apply (simp_all add: plus_vwb_lens closure)
+  apply (rel_auto)+
+done
+    
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which
@@ -2211,55 +2327,6 @@ abbreviation Miracle :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 
 definition choose_srd :: "('s,'t::trace,'\<alpha>) hrel_rsp" ("choose\<^sub>R") where
 [upred_defs, rdes_def]: "choose\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> true\<^sub>r)"
-
-text {* We guard the reactive conditional condition so that it can't be simplified by alphabet
-  laws unless explicitly simplified. *}
-
-definition lift_cond_srea ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<leftarrow>") where
-[upred_defs]: "\<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub>S\<^sub><"
-
-lemma unrest_lift_cond_srea [unrest]:
-  "x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow>"
-  by (simp add: lift_cond_srea_def)
-
-lemma subst_lift_cond_srea [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<lceil>s\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>S\<^sub>\<leftarrow>"
-  by (rel_auto)
-    
-abbreviation cond_srea ::
-  "('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
-  's upred \<Rightarrow>
-  ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
-  ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
-"cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
-
-text {* We introduce state abstraction by creating some lens functors that allow us to lift
-  a lens on the state-space to one on the whole stateful reactive alphabet. *}
-
-definition lmap\<^sub>R :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('t::trace, 'a) rp \<Longrightarrow> ('t, 'b) rp" where
-[lens_defs]: "lmap\<^sub>R = lmap\<^sub>D \<circ> lmap[rp_vars]"
-
-definition map_rsp_st ::
-  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
-   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<tau>, '\<alpha>) rsp_vars_scheme" where
-[lens_defs]: "map_rsp_st f = (\<lambda>r. \<lparr>st\<^sub>v = f (st\<^sub>v r), \<dots> = rsp_vars.more r\<rparr>)"
-
-definition map_st_lens ::
-  "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
-   (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_st\<^sub>L") where
-[lens_defs]:
-"map_st_lens l = lmap\<^sub>R \<lparr>
-  lens_get = map_rsp_st (get\<^bsub>l\<^esub>),
-  lens_put = map_rsp_st o (put\<^bsub>l\<^esub>) o rsp_vars.st\<^sub>v\<rparr>"
-
-lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
-  apply (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
-  apply (metis des_vars.surjective rp_vars.surjective rsp_vars.surjective)+
-done
-
-abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
-  
-abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
-"abs_st P \<equiv> P \<restriction>\<^sub>e abs_st\<^sub>L"
   
 definition state_srea ::
   "'s itself \<Rightarrow> ('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> (unit,'t,'\<alpha>,'\<beta>) rel_rsp" where
@@ -2383,34 +2450,34 @@ lemma postR_assigns_srd [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
   apply (rel_auto) using minus_zero_eq by blast
 
 lemma R1_state_srea: "R1(state 'a \<bullet> P) = (state 'a \<bullet> R1(P))"
-  by (rel_auto, simp_all add: des_vars.defs rp_vars.defs)
+  by (rel_auto)
 
 lemma R2c_state_srea: "R2c(state 'a \<bullet> P) = (state 'a \<bullet> R2c(P))"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+  by (rel_auto)
 
 lemma R3h_state_srea: "R3h(state 'a \<bullet> P) = (state 'a \<bullet> R3h(P))"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+  by (rel_auto)
    
 lemma RD1_state_srea: "RD1(state 'a \<bullet> P) = (state 'a \<bullet> RD1(P))"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)    
+  by (rel_auto)    
 
 lemma RD2_state_srea: "RD2(state 'a \<bullet> P) = (state 'a \<bullet> RD2(P))"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)    
+  by (rel_auto)    
 
 lemma RD3_state_srea: "RD3(state 'a \<bullet> P) = (state 'a \<bullet> RD3(P))"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs, blast+)    
+  by (rel_auto, blast+)    
  
 lemma SRD_state_srea [closure]: "P is SRD \<Longrightarrow> state 'a \<bullet> P is SRD"
   by (simp add: Healthy_def R1_state_srea R2c_state_srea R3h_state_srea RD1_state_srea RD2_state_srea RHS_def SRD_def)
     
 lemma preR_state_srea [rdes]: "pre\<^sub>R(state 'a \<bullet> P) = \<langle>\<forall> {$st,$st\<acute>} \<bullet> pre\<^sub>R(P)\<rangle>\<^sub>S"
-  by (simp add: state_srea_def, rel_auto, simp_all add: des_vars.defs rp_vars.defs)
+  by (simp add: state_srea_def, rel_auto)
 
 lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> peri\<^sub>R(P)"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+  by (rel_auto)
 
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
-  by (rel_auto, auto simp add: des_vars.defs rp_vars.defs)
+  by (rel_auto)
 
 lemma preR_choose [rdes]: "pre\<^sub>R(choose\<^sub>R) = true\<^sub>r"
   by (rel_auto)
@@ -2685,6 +2752,11 @@ lemma st_cond_not [rpred]: "(\<not>\<^sub>r [P]\<^sub>S\<^sub><) = [\<not> P]\<^
 
 lemma st_cond_conj [rpred]: "([P]\<^sub>S\<^sub>< \<and> [Q]\<^sub>S\<^sub><) = [P \<and> Q]\<^sub>S\<^sub><"
   by (rel_auto)
+    
+lemma st_rel_assigns [rpred]:
+  "[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>S = (\<langle>\<sigma>\<rangle>\<^sub>r :: ('\<alpha>, 't::trace) rdes)"
+  by (rel_auto)
+
         
 lemma cond_st_distr [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
   by (rel_auto)

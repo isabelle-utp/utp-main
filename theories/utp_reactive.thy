@@ -11,6 +11,7 @@ alphabet 't::trace rp_vars = des_vars +
   tr   :: "'t"
 
 declare rp_vars.splits [alpha_splits]
+declare rp_vars.defs [lens_defs]
 declare zero_list_def [upred_defs]
 declare prefixE [elim]
   
@@ -1199,6 +1200,14 @@ lemma seq_RR_closed [closure]:
 lemma power_Suc_RR_closed [closure]:
   "P is RR \<Longrightarrow> P ;; P \<^bold>^ i is RR"
   by (induct i, simp_all add: closure)
+    
+lemma seqr_iter_RR_closed [closure]:
+  "\<lbrakk> I \<noteq> []; \<And> i. i \<in> set(I) \<Longrightarrow> P(i) is RR \<rbrakk> \<Longrightarrow> (;; i : I \<bullet> P(i)) is RR"
+  apply (induct I, simp_all)
+  apply (rename_tac i I)
+  apply (case_tac I)
+  apply (simp_all add: seq_RR_closed)
+done
     
 lemma cond_tt_RR_closed [closure]: 
   assumes "P is RR" "Q is RR"

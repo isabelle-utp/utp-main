@@ -21,6 +21,8 @@ designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
 alphabet des_vars =
   ok :: bool
 
+declare des_vars.defs [lens_defs]
+  
 text {*
   The two locale interpretations below are a technicality to improve automatic
   proof support via the predicate and relational tactics. This is to enable the
@@ -563,7 +565,7 @@ theorem ndesign_iteration_wp [ndes_simp]:
   "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
 proof (induct n)
   case 0
-  then show ?case by (simp add: wp true_upred_def)
+  then show ?case by (rel_auto)
 next
   case (Suc n) note hyp = this
   have "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ Suc n = (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n"
