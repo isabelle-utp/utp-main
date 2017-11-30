@@ -1226,6 +1226,9 @@ subsection {* Linking Hybrid and Timed Relations *}
 definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
 [upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
 
+lemma hyrel2trel_RR_closed [closure]: "H2T(P) is RR"
+  by (rel_auto)
+
 lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
   apply (rel_auto)
   using minus_zero_eq apply blast
