@@ -90,8 +90,6 @@ lemma st'_unrest_st_lift_pred [unrest]:
 lemma out_alpha_unrest_st_lift_pre [unrest]:
   "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
-
-declare [[show_types]]
     
 lemma st_lift_lemma:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"

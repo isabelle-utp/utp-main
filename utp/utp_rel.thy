@@ -276,8 +276,8 @@ translations
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
   "_assignment xs vs" => "CONST uassigns (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST uassigns (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x := v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
+  "_assignment x v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
+  "_assignment x v" <= "_assignment (_spvar x) v"
   "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
   -- {* Indexed assignment uses the overloaded collection update function \emph{uupd}. *}
   "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
@@ -502,11 +502,11 @@ lemma aext_seq [alpha]:
   "wb_lens a \<Longrightarrow> ((P ;; Q) \<oplus>\<^sub>p (a \<times>\<^sub>L a)) = ((P \<oplus>\<^sub>p (a \<times>\<^sub>L a)) ;; (Q \<oplus>\<^sub>p (a \<times>\<^sub>L a)))"
   by (rel_simp, metis wb_lens_weak weak_lens.put_get)
 
-lemma rcond_lift_true [alpha]:
+lemma rcond_lift_true [simp]:
   "\<lceil>true\<rceil>\<^sub>\<leftarrow> = true"
   by rel_auto
 
-lemma rcond_lift_false [alpha]:
+lemma rcond_lift_false [simp]:
   "\<lceil>false\<rceil>\<^sub>\<leftarrow> = false"
   by rel_auto
     

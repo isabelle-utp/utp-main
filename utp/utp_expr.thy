@@ -688,16 +688,16 @@ text \<open> The following tactic converts literal HOL expressions to UTP expres
         and unliteralise that reverses this. We collect the equations in a theorem attribute
         called "lit\_simps". \<close>
 
-lemma lit_num_simps [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" "\<guillemotleft>1\<guillemotright> = 1" "\<guillemotleft>numeral n\<guillemotright> = numeral n" "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
-  by (simp_all add: ueval, transfer, simp)
-
-lemma lit_arith_simps [lit_simps]:
-  "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>"
-  "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>"
-  "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>"
-  "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>"
-  by (simp add: uexpr_defs, transfer, simp)+
-
+lemma lit_zero [lit_simps]: "\<guillemotleft>0\<guillemotright> = 0" by (simp add: ueval)
+lemma lit_one [lit_simps]: "\<guillemotleft>1\<guillemotright> = 1" by (simp add: ueval)
+lemma lit_numeral [lit_simps]: "\<guillemotleft>numeral n\<guillemotright> = numeral n" by (simp add: ueval)
+lemma lit_uminus [lit_simps]: "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>" by (simp add: ueval, transfer, simp)
+lemma lit_plus [lit_simps]: "\<guillemotleft>x + y\<guillemotright> = \<guillemotleft>x\<guillemotright> + \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
+lemma lit_minus [lit_simps]: "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
+lemma lit_times [lit_simps]: "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
+lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
+lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
+   
 lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
   "\<guillemotleft>h x y z\<guillemotright> = trop h \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright>"
@@ -715,9 +715,21 @@ lemma lit_numeral_1: "uop numeral x = Abs_uexpr (\<lambda>b. numeral (\<lbrakk>x
   by (simp add: uop_def)
 
 lemma lit_numeral_2: "Abs_uexpr (\<lambda> b. numeral v) = numeral v"
-  by (metis lit.abs_eq lit_num_simps(3))
-
+  by (metis lit.abs_eq lit_numeral)
+  
 method literalise = (unfold lit_simps[THEN sym])
 method unliteralise = (unfold lit_simps uexpr_defs[THEN sym];
                      (unfold lit_numeral_1 ; (unfold ueval); (unfold lit_numeral_2))?)+
+                   
+text {* The following tactic can be used to evaluate literal expressions. It first literalises UTP 
+  expressions, that is pushes as many operators into literals as possible. Then it tries to simplify,
+  and final unliteralises at the end. *}
+
+method uexpr_simp uses simps = (literalise, simp add: simps, (unliteralise)?)
+
+(* Example *)
+  
+lemma "(1::(int, '\<alpha>) uexpr) + \<guillemotleft>2\<guillemotright> = 4 \<longleftrightarrow> \<guillemotleft>3\<guillemotright> = 4"
+  apply (uexpr_simp) oops
+  
 end

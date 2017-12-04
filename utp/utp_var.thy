@@ -24,7 +24,8 @@ purge_notation
   GFP ("\<nu>\<index>") and
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50) and
-  disj  (infixr "|" 30)
+  disj  (infixr "|" 30) and
+  conj  (infixr "&" 35)
   
 text \<open> We hide HOL's built-in relation type since we will replace it with our own \<close>
 
@@ -147,6 +148,10 @@ lemma pr_var_lens_plus [simp]:
   "pr_var (x +\<^sub>L y) = (x +\<^sub>L y)"
   by (simp add: pr_var_def)
     
+lemma pr_var_lens_comp_1 [simp]: 
+  "pr_var x ;\<^sub>L y = pr_var (x ;\<^sub>L y)"
+  by (simp add: pr_var_def)    
+  
 text \<open> Similar properties follow for sublens \<close>
   
 lemma in_var_sublens [simp]:
