@@ -23,7 +23,7 @@ lemma assigns_trel: "(\<sigma>, \<langle>\<rho>\<rangle>\<^sub>a) \<rightarrow>\
   by (simp add: assigns_comp)
 
 lemma assign_trel:
-  "(\<sigma>, x := v) \<rightarrow>\<^sub>u (\<sigma>(x \<mapsto>\<^sub>s \<sigma> \<dagger> v), II)"
+  "(\<sigma>, x := v) \<rightarrow>\<^sub>u (\<sigma>(&x \<mapsto>\<^sub>s \<sigma> \<dagger> v), II)"
   by (simp add: assigns_comp usubst)
 
 lemma seq_trel:

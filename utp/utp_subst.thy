@@ -119,10 +119,8 @@ translations
   "_subst P es vs" => "CONST subst (_psubst (CONST id) vs es) P"
   "_psubst m (_salphas x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
   "_psubst m x v"  => "CONST subst_upd m x v"
-  "P\<lbrakk>v/$x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ivar x) v) P"
-  "P\<lbrakk>v/$x\<acute>\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST ovar x) v) P"
-  "P\<lbrakk>v/&x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) (CONST svar x) v) P"
-  "P\<lbrakk>v/x\<rbrakk>" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
+  "_subst P v x" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
+  "_subst P v x" <= "_subst P (_spvar x) v"
   "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
   
 text {* Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} to update a variable $x$ in $\sigma$ with
@@ -185,7 +183,7 @@ lemma usubst_upd_comm2:
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
-lemma subst_upd_pr_var [usubst]:  "s(&x \<mapsto>\<^sub>s v) = s(x \<mapsto>\<^sub>s v)"
+lemma subst_upd_pr_var: "s(&x \<mapsto>\<^sub>s v) = s(x \<mapsto>\<^sub>s v)"
   by (simp add: pr_var_def) 
   
 text {* A substitution which swaps two independent variables is an injective function. *}

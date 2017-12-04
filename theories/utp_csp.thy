@@ -1114,10 +1114,10 @@ syntax
 
 translations
   "_assigns_csp xs vs" => "CONST AssignsCSP (_mk_usubst (CONST id) xs vs)"
-  "x :=\<^sub>C v" <= "CONST AssignsCSP (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x :=\<^sub>C v" <= "CONST AssignsCSP (CONST subst_upd (CONST id) x v)"
+  "_assigns_csp x v" <= "CONST AssignsCSP (CONST subst_upd (CONST id) x v)"
+  "_assigns_csp x v" <= "_assigns_csp (_spvar x) v"
   "x,y :=\<^sub>C u,v" <= "CONST AssignsCSP (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  
 text {* There are different collections that we would like to assign to, but they all have different
   types and perhaps more importantly different conditions on the update being well defined. For example,
   for a list well-definedness equates to the index being less than the length etc. Thus we here set

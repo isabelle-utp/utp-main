@@ -144,10 +144,10 @@ syntax
 
 translations
   "_assign_rea xs vs" => "CONST rea_assigns (_mk_usubst (CONST id) xs vs)"
-  "x :=\<^sub>r v" <= "CONST rea_assigns (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x :=\<^sub>r v" <= "CONST rea_assigns (CONST subst_upd (CONST id) x v)"
+  "_assign_rea x v" <= "CONST rea_assigns (CONST subst_upd (CONST id) x v)"
+  "_assign_rea x v" <= "_assign_rea (_spvar x) v"
   "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  
 lemma rea_assigns_RR_closed [closure]: 
   "\<langle>\<sigma>\<rangle>\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by auto
@@ -2340,10 +2340,9 @@ syntax
 
 translations
   "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (CONST id) xs vs)"
-  "x :=\<^sub>R v" <= "CONST assigns_srd (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x :=\<^sub>R v" <= "CONST assigns_srd (CONST subst_upd (CONST id) x v)"
+  "_assign_srd x v" <= "CONST assigns_srd (CONST subst_upd (CONST id) x v)"
+  "_assign_srd x v" <= "_assign_srd (_spvar x) v"
   "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-  "_assign_srd (_svid_dot y x) v" <= "CONST assigns_srd (CONST subst_upd (CONST id) (CONST svar (x ;\<^sub>L y)) v)"
   
 abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
@@ -2782,7 +2781,6 @@ lemma st_cond_conj [rpred]: "([P]\<^sub>S\<^sub>< \<and> [Q]\<^sub>S\<^sub><) = 
 lemma st_rel_assigns [rpred]:
   "[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>S = (\<langle>\<sigma>\<rangle>\<^sub>r :: ('\<alpha>, 't::trace) rdes)"
   by (rel_auto)
-
         
 lemma cond_st_distr [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
   by (rel_auto)

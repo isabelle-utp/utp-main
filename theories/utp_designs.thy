@@ -123,10 +123,10 @@ syntax
 
 translations
   "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
-  "x :=\<^sub>D v" <= "CONST assigns_d (CONST subst_upd (CONST id) (CONST svar x) v)"
-  "x :=\<^sub>D v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
+  "_assignmentd x v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
+  "_assignmentd x v" <= "_assignmentd (_spvar x) v"
   "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-
+  
 definition J :: "'\<alpha> hrel_des"
 where "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
 
