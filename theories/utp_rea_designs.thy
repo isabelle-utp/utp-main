@@ -106,7 +106,7 @@ lemma unrest_st_lift [unrest]:
   
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
-
+    
 lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
   by (unfold_locales, auto simp add: lens_defs)
 
@@ -289,6 +289,34 @@ lemma rea_frame_ext_seq [frame]:
   apply (rel_auto)+
 done
     
+lemma rea_assigns_st_subst [usubst]:
+  "\<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>r"
+  by (rel_auto)
+    
+lemma rea_frame_ext_subst_indep [usubst]:
+  assumes "x \<bowtie> y" "\<Sigma> \<sharp> v" "P is RR"
+  shows "\<sigma>(y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[P]\<^sub>r\<^sup>+) ;; y :=\<^sub>r v"
+proof -
+  from assms(1-2) have "\<sigma>(y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[RR P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[RR P]\<^sub>r\<^sup>+) ;; y :=\<^sub>r v"
+    by (rel_auto, (metis lens_indep.lens_put_comm)+)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma rea_frame_ext_subst_within [usubst]:
+  assumes "vwb_lens x" "vwb_lens y" "\<Sigma> \<sharp> v" "P is RR"
+  shows "\<sigma>(x:y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[y :=\<^sub>r (v \<restriction>\<^sub>e x) ;; P]\<^sub>r\<^sup>+)"
+proof -
+  from assms(1,3) have "\<sigma>(x:y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[RR P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[y :=\<^sub>r (v \<restriction>\<^sub>e x) ;; RR(P)]\<^sub>r\<^sup>+)"
+    by (rel_auto, metis+)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+    
+lemma st_subst_lift_cond [usubst]:
+  "\<sigma> \<dagger>\<^sub>S \<lceil>P\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> P\<rceil>\<^sub>S\<^sub>\<leftarrow>"
+  by (rel_auto)
+  
 subsection {* Healthiness conditions *}
 
 text {* The fundamental healthiness conditions of reactive designs are $RD1$ and $RD2$ which

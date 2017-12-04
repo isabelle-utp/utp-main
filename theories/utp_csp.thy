@@ -443,7 +443,7 @@ lemma wpR_csp_do_skip [wp]:
 proof -
   have "\<Phi>(s,id,t) wp\<^sub>R P = \<Phi>(s,id,t) wp\<^sub>R P"
     by (simp add: skip_r_def)
-  thus ?thesis by (simp add: wp assms usubst alpha, rel_auto)
+  thus ?thesis by (simp add: wp assms usubst alpha)
 qed
   
 subsection {* CSP Trace Merge *}
@@ -1436,7 +1436,7 @@ qed
 lemma ref_unrest_abs_st [unrest]:
   "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> \<langle>P\<rangle>\<^sub>S"
   "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> \<langle>P\<rangle>\<^sub>S"
-  by (rel_simp, auto simp add: des_vars.defs rp_vars.defs)+
+  by (rel_simp)+
   
 lemma NCSP_state_srea [closure]: "P is NCSP \<Longrightarrow> state 'a \<bullet> P is NCSP"
   apply (rule NCSP_NSRD_intro)

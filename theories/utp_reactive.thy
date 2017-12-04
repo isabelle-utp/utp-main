@@ -1237,11 +1237,63 @@ proof -
     by (simp_all add: Healthy_if assms)
 qed
   
+lemma inf_RR_closed [closure]: 
+  "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P \<sqinter> Q is RR"
+  by (simp add: disj_RR uinf_or)
+  
 lemma rea_assert_RR_closed [closure]:
   assumes "b is RR"
   shows "{b}\<^sub>r is RR"
   by (simp add: closure assms rea_assert_def)
   
+lemma upower_RR_closed [closure]:
+  "\<lbrakk> i > 0; P is RR \<rbrakk> \<Longrightarrow> P \<^bold>^ i is RR"
+  apply (induct i, simp_all)
+  apply (rename_tac i)
+  apply (case_tac "i = 0")
+   apply (simp_all add: closure)
+done
+  
+lemma ustar_right_RR_closed [closure]:
+  assumes "P is RR" "Q is RR"
+  shows "P ;; Q\<^sup>\<star> is RR"
+proof -
+  have "P ;; Q\<^sup>\<star> = P ;; (\<Sqinter> i \<in> {0..} \<bullet> Q \<^bold>^ i)"
+    by (simp add: ustar_def)
+  also have "... = P ;; (II \<sqinter> (\<Sqinter> i \<in> {1..} \<bullet> Q \<^bold>^ i))"
+    by (metis One_nat_def UINF_atLeast_first upred_semiring.power_0)
+  also have "... = (P \<or> P ;; (\<Sqinter> i \<in> {1..} \<bullet> Q \<^bold>^ i))"
+    by (simp add: disj_upred_def[THEN sym] seqr_or_distr)
+  also have "... is RR"
+  proof -
+    have "(\<Sqinter> i \<in> {1..} \<bullet> Q \<^bold>^ i) is RR"
+      by (rule UINF_mem_Continuous_closed, simp_all add: assms closure)
+    thus ?thesis
+      by (simp add: assms closure)
+  qed
+  finally show ?thesis .
+qed
+
+lemma ustar_left_RR_closed [closure]:
+  assumes "P is RR" "Q is RR"
+  shows "P\<^sup>\<star> ;; Q is RR"
+proof -
+  have "P\<^sup>\<star> ;; Q = (\<Sqinter> i \<in> {0..} \<bullet> P \<^bold>^ i) ;; Q"
+    by (simp add: ustar_def)
+  also have "... = (II \<sqinter> (\<Sqinter> i \<in> {1..} \<bullet> P \<^bold>^ i)) ;; Q"
+    by (metis One_nat_def UINF_atLeast_first upred_semiring.power_0)
+  also have "... = (Q \<or> (\<Sqinter> i \<in> {1..} \<bullet> P \<^bold>^ i) ;; Q)"
+    by (simp add: disj_upred_def[THEN sym] seqr_or_distl)
+  also have "... is RR"
+  proof -
+    have "(\<Sqinter> i \<in> {1..} \<bullet> P \<^bold>^ i) is RR"
+      by (rule UINF_mem_Continuous_closed, simp_all add: assms closure)
+    thus ?thesis
+      by (simp add: assms closure)
+  qed
+  finally show ?thesis .
+qed
+    
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
   by (simp add: R1_def unrest lens_indep_sym)
