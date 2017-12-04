@@ -53,8 +53,8 @@ where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>> \<equiv> \<lfloor>\<lfloor>p\<rfloor>
 
 text {* Lifting substitutions on the reactive state *}
 
-abbreviation usubst_st_lift :: "'s usubst \<Rightarrow> _"  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
-"\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<equiv> \<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s"
+definition usubst_st_lift :: "'s usubst \<Rightarrow> _"  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
+[upred_defs]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s"
 
 abbreviation st_subst :: "'s usubst \<Rightarrow> ('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<dagger>\<^sub>S" 80) where
 "\<sigma> \<dagger>\<^sub>S P \<equiv> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
@@ -151,6 +151,10 @@ translations
 lemma rea_assigns_RR_closed [closure]: 
   "\<langle>\<sigma>\<rangle>\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by auto
+    
+lemma id_st_subst [usubst]: 
+  "\<lceil>id\<rceil>\<^sub>S\<^sub>\<sigma> = id"
+  by (pred_auto)
     
 lemma rea_assigns_comp [rpred]:
   assumes "P is RR"
@@ -281,7 +285,7 @@ lemma rea_frame_ext_cond [frame]:
     
 lemma rea_frame_ext_seq [frame]:
   "vwb_lens x \<Longrightarrow> x:[P ;; Q]\<^sub>r\<^sup>+ = x:[P]\<^sub>r\<^sup>+ ;; x:[Q]\<^sub>r\<^sup>+"
-  apply (simp add: rea_frame_ext_def rea_frame_def alpha)
+  apply (simp add: rea_frame_ext_def rea_frame_def alpha frame)
   apply (subst antiframe_seq)
   apply (simp_all add: plus_vwb_lens closure)
   apply (rel_auto)+
@@ -4851,19 +4855,19 @@ lemma IterateR_empty:
 subsection {* Reactive Design Substitution Laws *}
   
 lemma srd_subst_Chaos [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Chaos = Chaos"
+  "\<sigma> \<dagger>\<^sub>S Chaos = Chaos"
   by (rdes_simp)
 
 lemma srd_subst_Miracle [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> Miracle = Miracle"
+  "\<sigma> \<dagger>\<^sub>S Miracle = Miracle"
   by (rdes_simp)
 
 lemma srd_subst_skip [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> II\<^sub>R = \<langle>\<sigma>\<rangle>\<^sub>R"
+  "\<sigma> \<dagger>\<^sub>S II\<^sub>R = \<langle>\<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
     
 lemma srd_subst_assigns [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
        
 subsection {* Algebraic Laws *}

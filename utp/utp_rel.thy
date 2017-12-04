@@ -684,12 +684,14 @@ lemma rel_aext_ares [alpha]:
 lemma rel_aext_uses [unrest]:
   "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
   by (rel_auto)    
+
+named_theorems frame
     
-lemma rel_frext_skip [alpha]: 
+lemma rel_frext_skip [frame]: 
   "vwb_lens a \<Longrightarrow> a:[II]\<^sup>+ = II"
   by (rel_auto)
    
-lemma rel_aext_seq [alpha]:
+lemma rel_aext_seq [frame]:
   "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
   apply (rel_auto)
   apply (rename_tac aa b y)
@@ -697,11 +699,11 @@ lemma rel_aext_seq [alpha]:
   apply (simp)
 done
 
-lemma rel_aext_cond [alpha]:
+lemma rel_aext_cond [frame]:
   "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
   by (rel_auto)
 
-lemma rel_frext_seq [alpha]:
+lemma rel_frext_seq [frame]:
   "vwb_lens a \<Longrightarrow> a:[P ;; Q]\<^sup>+ = (a:[P]\<^sup>+ ;; a:[Q]\<^sup>+)"
   apply (rel_auto)
   apply (rename_tac s s' s\<^sub>0)
@@ -710,11 +712,11 @@ lemma rel_frext_seq [alpha]:
   apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 done
 
-lemma rel_frext_assigns [alpha]:
+lemma rel_frext_assigns [frame]:
   "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
   by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
 
-lemma rel_frext_rcond [alpha]:
+lemma rel_frext_rcond [frame]:
   "a:[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sup>+ = (a:[P]\<^sup>+ \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r a:[Q]\<^sup>+)"
   by (rel_auto)
     

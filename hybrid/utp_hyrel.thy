@@ -1220,22 +1220,12 @@ lemma hUntil_solve:
   shows "(x \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>) until\<^sub>h c = x \<leftarrow>\<^sub>h(\<guillemotleft>k\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright>"
   using assms
   by (rule_tac hUntil_inv_solve, simp_all, (rel_auto)+)
-    
-subsection {* Linking Hybrid and Timed Relations *}
-    
-definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
-[upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
-
-lemma hyrel2trel_RR_closed [closure]: "H2T(P) is RR"
-  by (rel_auto)
-
-lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
-  apply (rel_auto)
-  using minus_zero_eq apply blast
-  using minus_zero_eq apply blast
-  apply fastforce
-done
+      
+subsection {* Stepping a Hybrid Relation Forward *}
   
+definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
+[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>e ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))))"
+
 definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
 [upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
  
@@ -1243,6 +1233,109 @@ abbreviation hyrel_cond ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> 'c upred \<Rightarrow> ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>h/ _)" [52,0,53] 52) where
 "hyrel_cond P b Q \<equiv> (P \<triangleleft> b \<oplus>\<^sub>p \<^bold>c \<triangleright>\<^sub>R Q)"
 
+lemma HyStep_hEvolve:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "n > 0" "continuous_on {0..n} f"
+  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: ('d,'c) hyrel) = (\<^bold>v := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
+proof -
+  from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
+    by (simp add: hStepRel_def, rel_auto)
+  also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
+    by (rel_auto, blast)  
+  also have "... = ?rhs"
+  proof (rel_auto)
+    fix tr tr'
+    assume "n = end\<^sub>t (tr' - tr)" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t" "tr < tr'"
+    with assms have "get\<^bsub>\<Sigma>\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
+      by (rule_tac Lim_continuous_lens, simp_all, simp add: lens_defs)
+    thus "(Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
+      by (simp add: lens_defs)
+  next
+    from assms
+    show "(\<exists>tr tr'.
+           (tr < tr' \<longrightarrow>
+            tr \<le> tr' \<and>
+            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = f t) \<and>
+            n \<le> end\<^sub>t (tr' - tr) \<and> end\<^sub>t (tr' - tr) \<le> n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) \<and>
+           tr < tr')"
+      by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
+         (auto simp add: Limit_solve at_left_from_zero)
+  qed
+  finally show ?thesis .
+qed
+
+lemma HyStep_cond: "HyStep[n](P \<triangleleft> b \<triangleright>\<^sub>h Q) = HyStep[n](P) \<triangleleft> b \<triangleright>\<^sub>r HyStep[n](Q)"
+  by (rel_auto)
+
+lemma HyStep_hEvolves_0: 
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space" and f :: "'b \<Rightarrow> real \<Rightarrow> 'a"
+  assumes "n \<le> 0"
+  shows "HyStep[n]({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = false"
+  using assms by (rel_auto)
+    
+lemma HyStep_hEvolves:
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "n > 0" "continuous_lens x" "vwb_lens y" "\<And> v\<^sub>0. continuous_on {0..} (f v\<^sub>0)"
+  shows "HyStep[n]({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = (x := \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>n\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
+  apply (rel_auto)
+  (* Subgoal 1 *)
+  apply (rename_tac st tr tr')
+  apply (subst Limit_solve_at_left)
+  apply (simp_all)
+  apply (subgoal_tac "\<And> st. continuous_on {0..end\<^sub>t (tr' - tr)} (put\<^bsub>x\<^esub> st \<circ> f (get\<^bsub>y\<^esub> st))")
+  apply (simp)
+  apply (rule continuous_on_compose)
+  apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+  apply (rule continuous_lens.put_continuous_v[OF assms(2)])
+  (* Subgoal 2 *)
+  apply (rename_tac st)
+  apply (rule_tac x="0" in exI)
+  apply (rule_tac x="tt_mk n (\<lambda> t. put\<^bsub>x\<^esub> st (f (get\<^bsub>y\<^esub> st) t))" in exI)
+  apply (subgoal_tac "continuous_on {0..n} (put\<^bsub>x\<^esub> st \<circ> f (get\<^bsub>y\<^esub> st))")
+  apply (auto simp add: assms Limit_solve at_left_from_zero)[1]
+  apply (simp add: assms(1) less_eq_real_def)
+  using assms(1) apply auto[1]
+  using Limit_solve_at_left assms(1) apply fastforce
+  apply (rule continuous_on_compose)
+  apply (meson Icc_subset_Ici_iff assms continuous_on_subset order_refl)
+  apply (rule continuous_lens.put_continuous_v[OF assms(2)])
+done
+    
+lemma HyStep_hEvolves':
+  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
+  assumes "continuous_lens x" "vwb_lens y" "\<And> v\<^sub>0. continuous_on {0..} (f v\<^sub>0)"
+  shows "HyStep[n]({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = false \<triangleleft> \<guillemotleft>n \<le> 0\<guillemotright> \<triangleright>\<^sub>r (x := \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>n\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
+  apply (cases "n \<le> 0")
+  apply (uexpr_simp, simp add: HyStep_hEvolves_0)
+  apply (simp, unliteralise, simp add: HyStep_hEvolves assms)
+done
+  
+lemma HyStep_hEvolveAt:
+  fixes P :: "('d,'c :: t2_space) hyrel"
+  assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
+  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
+  oops
+    
+subsection {* Linking Hybrid and Timed Relations *}
+
+definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
+[upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
+  
+lemma hyrel2trel_alt_def:
+  "H2T(P) = (\<Sqinter> t \<bullet> wait\<^sub>r \<guillemotleft>t\<guillemotright> ;; [HyStep[real_of_pos t](P)]\<^sub>S)"
+  apply (rel_auto)
+  using le_add_diff_inverse apply fastforce
+  apply (metis le_add_diff_inverse real_of_pos tt_end_ge_0)
+  using le_add_diff_inverse apply fastforce+
+done
+
+lemma hyrel2trel_RR_closed [closure]: "H2T(P) is RR"
+  by (simp add: hyrel2trel_alt_def closure)
+
+lemma real_of_pos_0_dest [simp]:
+  "real_of_pos x = 0 \<Longrightarrow> x = 0"
+  by (metis mk_pos_real_of_pos mk_pos_zero)
+    
 lemma hyrel2trl_cond: "H2T(P \<triangleleft> b \<triangleright>\<^sub>h Q) = H2T(P) \<triangleleft> b \<triangleright>\<^sub>R H2T(Q)"
   by (rel_auto)
 
@@ -1347,48 +1440,14 @@ proof -
   done
   finally show ?thesis .
 qed
-  
-subsection {* Stepping a Hybrid Relation Forward *}
-  
-definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>e ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))) \<triangleleft> \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<triangleright>\<^sub>r II)"
-  
-lemma HyStep_hEvolve:
-  fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
-  assumes "n > 0" "continuous_on {0..n} f"
-  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: ('d,'c) hyrel) = (\<^bold>v := \<guillemotleft>f(n)\<guillemotright>)" (is "?lhs = ?rhs")
-proof -
-  from assms(1) have "?lhs = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> \<^bold>l =\<^sub>u \<guillemotleft>n\<guillemotright> \<and> rl(&\<^bold>v) :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
-    by (simp add: hStepRel_def, rel_auto)
-  also have "... = \<lfloor>(&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>n\<guillemotright>) \<guillemotleft>f ti\<guillemotright> :: ('d,'c) hyrel) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)\<rfloor>\<^sub>C"
-    by (rel_auto, blast)  
-  also have "... = ?rhs"
-  proof (rel_auto)
-    fix tr tr'
-    assume "n = end\<^sub>t (tr' - tr)" "\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t(t + end\<^sub>t tr)) = f t" "tr < tr'"
-    with assms have "get\<^bsub>\<Sigma>\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
-      by (rule_tac Lim_continuous_lens, simp_all, simp add: lens_defs)
-    thus "(Lim (at_left (end\<^sub>t (tr' - tr))) (\<langle>tr' - tr\<rangle>\<^sub>t)) = f (end\<^sub>t (tr' - tr))"
-      by (simp add: lens_defs)
-  next
-    from assms
-    show "(\<exists>tr tr'.
-           (tr < tr' \<longrightarrow>
-            tr \<le> tr' \<and>
-            (\<forall>t. 0 \<le> t \<and> t < end\<^sub>t (tr' - tr) \<longrightarrow> (\<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr)) = f t) \<and>
-            n \<le> end\<^sub>t (tr' - tr) \<and> end\<^sub>t (tr' - tr) \<le> n \<and> tr \<le> tr' \<and> f n = Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) \<and>
-           tr < tr')"
-      by (rule_tac x="[]\<^sub>t" in exI, rule_tac x="mk\<^sub>t n f" in exI)
-         (auto simp add: Limit_solve at_left_from_zero)
-  qed
-  finally show ?thesis .
-qed
-  
-lemma HyStep_hEvolveAt:
-  fixes P :: "('d,'c :: t2_space) hyrel"
-  assumes "0 < m" "m \<le> n" "continuous_on {0..n} f"
-  shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
-  oops
+    
+lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
+  apply (simp add: hyrel2trel_def)
+  apply (rel_auto)
+  using minus_zero_eq apply blast
+  using minus_zero_eq apply blast
+  apply force
+done
     
 subsection {* Pertubation *}
     

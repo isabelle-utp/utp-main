@@ -1,7 +1,7 @@
 theory VDMRT
   imports SimpleFMI
 begin
-
+  
 alphabet vrt_st =
   ctdown :: "real pos"
 
@@ -64,11 +64,16 @@ lemma fmiInstantiate_VDMRT_FMU [simp]:
 lemma fmiDoStep_VDMRT_FMU [simp]:
   "fmiDoStep (VDMRT_FMU n P) = PeriodicBody n P"
   by (simp add: VDMRT_FMU_def)
+   
+text {* If a larger time step than the current countdown time is requested, or the time step is 0
+  then the behaviour is miraculuous (it isn't possible). Otherwise, if the countdown timer is equal
+  to the step then the thread body is executed and then the timer is reset. Otherwise the 
+  timer is decremented. *}
     
 lemma Step_VDMRT:
-      "t > 0 \<Longrightarrow> 
-       Step t (VDMRT_FMU n P) = 
-       ([P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) \<triangleleft> &ctdown =\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R (ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>) \<triangleleft> &ctdown >\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R false)"
-  by (rel_auto)
+      "Step t (VDMRT_FMU n P) = 
+       false \<triangleleft> &ctdown <\<^sub>u \<guillemotleft>t\<guillemotright> \<or> \<guillemotleft>t\<guillemotright> =\<^sub>u 0 \<triangleright>\<^sub>R
+       (([P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) \<triangleleft> &ctdown =\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R (ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>)))"
+  by (rel_auto, simp_all add: neq_zero_impl_greater)
 
 end

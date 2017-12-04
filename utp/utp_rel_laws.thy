@@ -441,8 +441,6 @@ lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^s
   by (rel_auto)
 
 subsection {* Frame Laws *}
-  
-named_theorems frame
     
 lemma frame_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)

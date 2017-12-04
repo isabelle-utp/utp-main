@@ -4,7 +4,7 @@ theory SimpleFMI
     "../theories/utp_reactive_hoare"
     "../hybrid/utp_hybrid"    
 begin
-    
+  
 purge_notation Sublist.parallel (infixl "\<parallel>" 50)
     
 record '\<alpha> fmu =
@@ -18,7 +18,7 @@ type_synonym master_algorithm = "real pos set"
   
 definition fmu_single ("FMU[_, _]") where
 [upred_defs]: "fmu_single a fmu = 
-  \<lparr> fmiInstantiate = (fmiInstantiate fmu) \<oplus>\<^sub>f a
+  \<lparr> fmiInstantiate = a:[fmiInstantiate fmu]\<^sup>+
   , fmiDoStep      = a:[fmiDoStep fmu]\<^sub>r\<^sup>+ \<rparr>"
 
 definition fmu_comp :: "'\<alpha> trel \<Rightarrow> '\<alpha> trel \<Rightarrow> '\<alpha> trel" (infixr "\<parallel>" 85) where
@@ -45,13 +45,13 @@ text {* We make the assumption that the FMUs operate on separate state spaces an
   of execution is irrelevant. *}
     
 definition Step :: "real pos \<Rightarrow> '\<alpha> fmu \<Rightarrow> '\<alpha> trel" where
-[upred_defs]: "Step t FMU = ((fmiDoStep FMU)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr)"
-  
+[upred_defs]: "Step t FMU = ((fmiDoStep FMU \<and> $time\<acute> >\<^sub>u $time)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time)"
+
 lemma Step_RR_lemma: 
   assumes "P is RR"
-  shows "(P\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
+  shows "((P \<and> $time\<acute> >\<^sub>u $time)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
 proof -
-  have "((RR P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
+  have "((RR P \<and> $time\<acute> >\<^sub>u $time)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) is RR"
     by (rel_auto)
   thus ?thesis
     by (simp add: Healthy_if assms)
@@ -70,12 +70,58 @@ lemma Step_FMUs_RR_closed [closure]:
   assumes "MA \<noteq> {}" "FMUs \<noteq> []" "\<And> f. f\<in>set(map fmiDoStep FMUs) \<Longrightarrow> f is RR"
   shows "Step_FMUs FMUs MA is RR"
   by (simp add: Step_FMUs_def closure assms)
+         
+purge_notation trancl ("(_\<^sup>+)" [1000] 999)
+   
+definition rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
+[upred_defs]: "P\<^sup>\<star>\<^sup>r = P\<^sup>\<star> ;; II\<^sub>r"
+  
+lemma rea_star_RR_closed [closure]: 
+  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r is RR"
+  by (simp add: rea_skip_RR rea_star_def ustar_left_RR_closed)
 
+lemma rea_star_unfoldl:
+  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (P ;; P\<^sup>\<star>\<^sup>r)"
+  by (metis (no_types, lifting) rea_star_def seqr_assoc seqr_left_unit upred_semiring.distrib_right ustar_unfoldl)
+    
+definition uplus :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>+" [999] 999) where
+[upred_defs]: "P\<^sup>+ = P ;; P\<^sup>\<star>"
+
+lemma uplus_RR_closed [closure]: "P is RR \<Longrightarrow> P\<^sup>+ is RR"
+  by (simp add: uplus_def ustar_right_RR_closed)
+
+lemma rea_uplus_unfold: "P is RR \<Longrightarrow> P\<^sup>+ = P ;; P\<^sup>\<star>\<^sup>r"
+  by (simp add: RA1 rea_skip_unit(1) rea_star_def uplus_def ustar_right_RR_closed)
+    
 definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
 [upred_defs]: "FMI Init FMUs MA Wiring = 
                  Instantiate_FMUs FMUs ;;  
                  \<langle>Init\<rangle>\<^sub>r ;; 
-                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star> ;; II\<^sub>r"
+                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>+"
+
+lemma iter_hoare_rp [hoare_safe]: 
+  "\<lbrace>I\<rbrace> P \<lbrace>I\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>I\<rbrace> P\<^sup>\<star>\<^sup>r \<lbrace>I\<rbrace>\<^sub>r"
+  by (simp add: iter_hoare_rp rea_star_def seq_inv_hoare_rp skip_hoare_rp)
+
+lemma FMI_hoare_rp [hoare_safe]:
+  assumes 
+    "MA \<noteq> {}" "FMUs \<noteq> []" "\<And> f. f\<in>set(map fmiDoStep FMUs) \<Longrightarrow> f is RR"
+    "\<lbrace>true\<rbrace> Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r ;; Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r \<lbrace>I\<rbrace>\<^sub>r"
+    "\<lbrace>I\<rbrace> Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r \<lbrace>I\<rbrace>\<^sub>r"
+  shows "\<lbrace>true\<rbrace>FMI Init FMUs MA Wiring\<lbrace>I\<rbrace>\<^sub>r"
+proof -
+  have 1:"FMI Init FMUs MA Wiring = 
+          (Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r ;; Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r) ;;
+          (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>\<^sup>r"
+    apply (simp add: FMI_def)
+    apply (subst rea_uplus_unfold)
+    apply (rule seq_RR_closed)
+    apply (rule Step_FMUs_RR_closed)
+    apply (simp_all add: closure assms seqr_assoc)
+  done
+  show ?thesis
+    by (simp add: 1 hoare_safe assms)
+qed
 
 definition ArbStep :: "master_algorithm" where
 [upred_defs]: "ArbStep = UNIV"
@@ -88,7 +134,7 @@ lemma fmu_comp_true [simp]:
   by (rel_auto)
     
 lemma fmi_instantiatiate_FMU [simp]:
-  "fmiInstantiate(FMU[a, P]) = (fmiInstantiate P) \<oplus>\<^sub>f a"
+  "fmiInstantiate(FMU[a, P]) = a:[fmiInstantiate P]\<^sup>+"
   by (simp add: fmu_single_def)
         
 (*
@@ -122,4 +168,17 @@ lemma fmiInstantiate_Modelica_FMU [simp]: "fmiInstantiate (Modelica_FMU hr) = II
 lemma fmiDoStep_Modelica_FMU [simp]: "fmiDoStep (Modelica_FMU hr) = H2T(hr)"
   by (simp add: Modelica_FMU_def)
 
+lemma Step_Modelica_lemma:
+  "t > 0 \<Longrightarrow> (((\<Sqinter> t \<bullet> wait\<^sub>r \<guillemotleft>t\<guillemotright> ;; [P]\<^sub>S) \<and> $time <\<^sub>u $time\<acute>)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) = [P]\<^sub>S"
+  by (rel_auto)
+    
+lemma Step_Modelica_FMU: "Step t (Modelica_FMU P) = (false \<triangleleft> \<guillemotleft>t = 0\<guillemotright> \<triangleright>\<^sub>R [HyStep[t](P)]\<^sub>S)"
+  apply (cases "t > 0")
+  apply (simp add: Step_def hyrel2trel_alt_def)
+  apply (rel_auto)
+  apply (subgoal_tac "t = 0")
+  apply (simp, unliteralise, simp add: Step_def rpred, rel_auto)
+  using neq_zero_impl_greater apply blast
+done
+    
 end
