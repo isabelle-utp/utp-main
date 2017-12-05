@@ -97,7 +97,7 @@ definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> f
 [upred_defs]: "FMI Init FMUs MA Wiring = 
                  Instantiate_FMUs FMUs ;;  
                  \<langle>Init\<rangle>\<^sub>r ;; 
-                 (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>+"
+                 (\<langle>Wiring\<rangle>\<^sub>r ;; Step_FMUs FMUs MA)\<^sup>\<star>\<^sup>r"
 
 lemma iter_hoare_rp [hoare_safe]: 
   "\<lbrace>I\<rbrace> P \<lbrace>I\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>I\<rbrace> P\<^sup>\<star>\<^sup>r \<lbrace>I\<rbrace>\<^sub>r"
@@ -105,20 +105,14 @@ lemma iter_hoare_rp [hoare_safe]:
 
 lemma FMI_hoare_rp [hoare_safe]:
   assumes 
-    "MA \<noteq> {}" "FMUs \<noteq> []" "\<And> f. f\<in>set(map fmiDoStep FMUs) \<Longrightarrow> f is RR"
-    "\<lbrace>true\<rbrace> Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r ;; Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r \<lbrace>I\<rbrace>\<^sub>r"
-    "\<lbrace>I\<rbrace> Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r \<lbrace>I\<rbrace>\<^sub>r"
+    "\<lbrace>true\<rbrace> Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r \<lbrace>I\<rbrace>\<^sub>r"
+    "\<lbrace>I\<rbrace> \<langle>Wiring\<rangle>\<^sub>r ;; Step_FMUs FMUs MA \<lbrace>I\<rbrace>\<^sub>r"
   shows "\<lbrace>true\<rbrace>FMI Init FMUs MA Wiring\<lbrace>I\<rbrace>\<^sub>r"
 proof -
   have 1:"FMI Init FMUs MA Wiring = 
-          (Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r ;; Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r) ;;
-          (Step_FMUs FMUs MA ;; \<langle>Wiring\<rangle>\<^sub>r)\<^sup>\<star>\<^sup>r"
-    apply (simp add: FMI_def)
-    apply (subst rea_uplus_unfold)
-    apply (rule seq_RR_closed)
-    apply (rule Step_FMUs_RR_closed)
-    apply (simp_all add: closure assms seqr_assoc)
-  done
+          (Instantiate_FMUs FMUs ;; \<langle>Init\<rangle>\<^sub>r) ;;
+          (\<langle>Wiring\<rangle>\<^sub>r ;; Step_FMUs FMUs MA)\<^sup>\<star>\<^sup>r"
+    by (simp add: FMI_def, simp add: seqr_assoc)
   show ?thesis
     by (simp add: 1 hoare_safe assms)
 qed
