@@ -70,7 +70,7 @@ text {* If a larger time step than the current countdown time is requested, or t
   to the step then the thread body is executed and then the timer is reset. Otherwise the 
   timer is decremented. *}
     
-lemma Step_VDMRT:
+lemma Step_VDMRT [step_simps]:
       "Step t (VDMRT_FMU n P) = 
        false \<triangleleft> &ctdown <\<^sub>u \<guillemotleft>t\<guillemotright> \<or> \<guillemotleft>t\<guillemotright> =\<^sub>u 0 \<triangleright>\<^sub>R
        (([P]\<^sub>S ;; ctdown :=\<^sub>r \<guillemotleft>n\<guillemotright>) \<triangleleft> &ctdown =\<^sub>u \<guillemotleft>t\<guillemotright> \<triangleright>\<^sub>R (ctdown :=\<^sub>r (&ctdown - \<guillemotleft>t\<guillemotright>)))"

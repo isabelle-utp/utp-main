@@ -32,14 +32,6 @@ lemma TimeConstraint_RR [closure]: "TimeConstraint(T) is RR"
 
 abbreviation Instantiate_FMUs :: "'\<alpha> fmu list \<Rightarrow> '\<alpha> trel" 
 where "Instantiate_FMUs FMUs \<equiv> [foldr (op ;;) (map fmiInstantiate FMUs) II]\<^sub>S"
-
-lemma st_rel_seq:
-  "[P ;; Q]\<^sub>S = [P]\<^sub>S ;; [Q]\<^sub>S"
-  by (rel_auto)
-  
-lemma st_rel_conj:
-  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
-   by (rel_auto)
   
 text {* We make the assumption that the FMUs operate on separate state spaces and thus the order
   of execution is irrelevant. *}
@@ -70,38 +62,12 @@ lemma Step_FMUs_RR_closed [closure]:
   assumes "MA \<noteq> {}" "FMUs \<noteq> []" "\<And> f. f\<in>set(map fmiDoStep FMUs) \<Longrightarrow> f is RR"
   shows "Step_FMUs FMUs MA is RR"
   by (simp add: Step_FMUs_def closure assms)
-         
-purge_notation trancl ("(_\<^sup>+)" [1000] 999)
-   
-definition rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
-[upred_defs]: "P\<^sup>\<star>\<^sup>r = P\<^sup>\<star> ;; II\<^sub>r"
-  
-lemma rea_star_RR_closed [closure]: 
-  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r is RR"
-  by (simp add: rea_skip_RR rea_star_def ustar_left_RR_closed)
-
-lemma rea_star_unfoldl:
-  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (P ;; P\<^sup>\<star>\<^sup>r)"
-  by (metis (no_types, lifting) rea_star_def seqr_assoc seqr_left_unit upred_semiring.distrib_right ustar_unfoldl)
-    
-definition uplus :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>+" [999] 999) where
-[upred_defs]: "P\<^sup>+ = P ;; P\<^sup>\<star>"
-
-lemma uplus_RR_closed [closure]: "P is RR \<Longrightarrow> P\<^sup>+ is RR"
-  by (simp add: uplus_def ustar_right_RR_closed)
-
-lemma rea_uplus_unfold: "P is RR \<Longrightarrow> P\<^sup>+ = P ;; P\<^sup>\<star>\<^sup>r"
-  by (simp add: RA1 rea_skip_unit(1) rea_star_def uplus_def ustar_right_RR_closed)
     
 definition FMI :: "('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> fmu list \<Rightarrow> master_algorithm \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha>) \<Rightarrow> '\<alpha> trel" where
 [upred_defs]: "FMI Init FMUs MA Wiring = 
                  Instantiate_FMUs FMUs ;;  
                  \<langle>Init\<rangle>\<^sub>r ;; 
                  (\<langle>Wiring\<rangle>\<^sub>r ;; Step_FMUs FMUs MA)\<^sup>\<star>\<^sup>r"
-
-lemma iter_hoare_rp [hoare_safe]: 
-  "\<lbrace>I\<rbrace> P \<lbrace>I\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>I\<rbrace> P\<^sup>\<star>\<^sup>r \<lbrace>I\<rbrace>\<^sub>r"
-  by (simp add: iter_hoare_rp rea_star_def seq_inv_hoare_rp skip_hoare_rp)
 
 lemma FMI_hoare_rp [hoare_safe]:
   assumes 
@@ -122,10 +88,19 @@ definition ArbStep :: "master_algorithm" where
 
 definition FixedStep :: "real pos \<Rightarrow> master_algorithm" where
 [upred_defs]: "FixedStep t = {t}"
+
+  named_theorems step_simps
   
-lemma fmu_comp_true [simp]: 
-  "P \<parallel> true = P"
-  by (rel_auto)
+method fmi_hoare_split uses defs =
+  (rule FMI_hoare_rp, 
+   simp_all add:step_simps Step_FMUs_def FixedStep_def HyStep_cond HyStep_hEvolves' closure continuous_intros defs,
+   simp_all add: frame alpha usubst unrest rpred closure);
+   ((uexpr_simp simps:pos_transfer rpred));
+   (simp add: rpred closure unrest usubst cond_st_distr)?
+  
+method fmi_hoare uses defs =
+  fmi_hoare_split defs: defs ; hoare_auto
+  
     
 lemma fmi_instantiatiate_FMU [simp]:
   "fmiInstantiate(FMU[a, P]) = a:[fmiInstantiate P]\<^sup>+"
@@ -166,7 +141,8 @@ lemma Step_Modelica_lemma:
   "t > 0 \<Longrightarrow> (((\<Sqinter> t \<bullet> wait\<^sub>r \<guillemotleft>t\<guillemotright> ;; [P]\<^sub>S) \<and> $time <\<^sub>u $time\<acute>)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> $time\<acute> =\<^sub>u $time) = [P]\<^sub>S"
   by (rel_auto)
     
-lemma Step_Modelica_FMU: "Step t (Modelica_FMU P) = (false \<triangleleft> \<guillemotleft>t = 0\<guillemotright> \<triangleright>\<^sub>R [HyStep[t](P)]\<^sub>S)"
+lemma Step_Modelica_FMU [step_simps]: 
+  "Step t (Modelica_FMU P) = (false \<triangleleft> \<guillemotleft>t = 0\<guillemotright> \<triangleright>\<^sub>R [HyStep[t](P)]\<^sub>S)"
   apply (cases "t > 0")
   apply (simp add: Step_def hyrel2trel_alt_def)
   apply (rel_auto)
