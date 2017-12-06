@@ -31,7 +31,7 @@ text \<open> The term @{term "\<lbrakk>e\<rbrakk>\<^sub>e b"} effectively refers
   with the lifting package, to interpret UTP constructs to their HOL equivalents. We create some
   theorem sets to store such transfer theorems. \<close>
     
-named_theorems ueval and lit_simps
+named_theorems ueval and lit_simps and lit_norm
 
 subsection \<open> Core expression constructs \<close>
   
@@ -705,11 +705,12 @@ lemma lit_minus [lit_simps]: "\<guillemotleft>x - y\<guillemotright> = \<guillem
 lemma lit_times [lit_simps]: "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
 lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
 lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
-   
-lemma lit_plus_appl [simp]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
-lemma lit_minus_appl [simp]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
-lemma lit_mult_appl [simp]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
-lemma lit_divide_apply [simp]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
+lemma lit_power [lit_simps]: "\<guillemotleft>x ^ n\<guillemotright> = \<guillemotleft>x\<guillemotright> ^ n" by (simp add: lit.rep_eq power_rep_eq uexpr_eq_iff)
+    
+lemma lit_plus_appl [lit_norm]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
+lemma lit_minus_appl [lit_norm]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
+lemma lit_mult_appl [lit_norm]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
+lemma lit_divide_apply [lit_norm]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
     
 lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
@@ -738,7 +739,7 @@ text {* The following tactic can be used to evaluate literal expressions. It fir
   expressions, that is pushes as many operators into literals as possible. Then it tries to simplify,
   and final unliteralises at the end. *}
 
-method uexpr_simp uses simps = (literalise, simp add: simps, (unliteralise)?)
+method uexpr_simp uses simps = ((literalise)?, simp add: lit_norm simps, (unliteralise)?)
 
 (* Example *)
   
