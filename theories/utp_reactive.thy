@@ -1294,6 +1294,23 @@ proof -
   finally show ?thesis .
 qed
     
+definition rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
+[upred_defs]: "P\<^sup>\<star>\<^sup>r = P\<^sup>\<star> ;; II\<^sub>r"
+  
+lemma rea_star_RR_closed [closure]: 
+  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r is RR"
+  by (simp add: rea_skip_RR rea_star_def ustar_left_RR_closed)
+
+lemma rea_star_unfoldl:
+  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (P ;; P\<^sup>\<star>\<^sup>r)"
+  by (metis (no_types, lifting) rea_star_def seqr_assoc seqr_left_unit upred_semiring.distrib_right ustar_unfoldl)
+    
+lemma uplus_RR_closed [closure]: "P is RR \<Longrightarrow> P\<^sup>+ is RR"
+  by (simp add: uplus_def ustar_right_RR_closed)
+
+lemma rea_uplus_unfold: "P is RR \<Longrightarrow> P\<^sup>+ = P ;; P\<^sup>\<star>\<^sup>r"
+  by (simp add: RA1 rea_skip_unit(1) rea_star_def uplus_def ustar_right_RR_closed)
+  
 lemma rea_true_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> true\<^sub>r"
   by (simp add: R1_def unrest lens_indep_sym)

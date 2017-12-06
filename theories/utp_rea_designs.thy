@@ -156,6 +156,18 @@ lemma id_st_subst [usubst]:
   "\<lceil>id\<rceil>\<^sub>S\<^sub>\<sigma> = id"
   by (pred_auto)
     
+lemma st_subst_comp [usubst]:
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<circ> \<lceil>\<rho>\<rceil>\<^sub>S\<^sub>\<sigma> = \<lceil>\<sigma> \<circ> \<rho>\<rceil>\<^sub>S\<^sub>\<sigma>"
+  by (rel_auto)
+    
+lemma st_subst_assigns_rea [usubst]:
+  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>r"
+  by (rel_auto)
+    
+lemma st_subst_rea_skip [usubst]:
+  "\<sigma> \<dagger>\<^sub>S II\<^sub>r = \<langle>\<sigma>\<rangle>\<^sub>r"
+  by (rel_auto)
+    
 lemma rea_assigns_comp [rpred]:
   assumes "P is RR"
   shows "\<langle>\<sigma>\<rangle>\<^sub>r ;; P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
@@ -293,6 +305,10 @@ done
     
 lemma rea_assigns_st_subst [usubst]:
   "\<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>r"
+  by (rel_auto)
+    
+lemma st_cond_assigns [rpred]:
+  "\<langle>\<sigma>\<rangle>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>\<rangle>\<^sub>r"
   by (rel_auto)
     
 lemma rea_frame_ext_subst_indep [usubst]:
@@ -2763,7 +2779,30 @@ lemma rea_st_rel_RR [closure]: "[P]\<^sub>S is RR"
 
 lemma rea_st_rel'_RR [closure]: "[P]\<^sub>S' is RR"
   by (rel_auto)
+
+lemma st_subst_rel [usubst]:
+  "\<sigma> \<dagger>\<^sub>S [P]\<^sub>S = [\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P]\<^sub>S"
+  by (rel_auto)
+    
+lemma st_rel_cond [rpred]:
+  "[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sub>S = [P]\<^sub>S \<triangleleft> b \<triangleright>\<^sub>R [Q]\<^sub>S"
+  by (rel_auto)
+   
+lemma st_rel_false [rpred]: "[false]\<^sub>S = false"
+  by (rel_auto)
+    
+lemma st_rel_skip [rpred]: 
+  "[II]\<^sub>S = (II\<^sub>r :: ('s, 't::trace) rdes)"
+  by (rel_auto)
+    
+lemma st_rel_seq [rpred]:
+  "[P ;; Q]\<^sub>S = [P]\<^sub>S ;; [Q]\<^sub>S"
+  by (rel_auto)
   
+lemma st_rel_conj [rpred]:
+  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
+   by (rel_auto)
+     
 lemma rea_st_cond_RR [closure]: "[b]\<^sub>S\<^sub>< is RR"
   by (rule RR_intro, simp_all add: unrest closure)
 
@@ -2786,7 +2825,7 @@ lemma st_rel_assigns [rpred]:
   "[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>S = (\<langle>\<sigma>\<rangle>\<^sub>r :: ('\<alpha>, 't::trace) rdes)"
   by (rel_auto)
         
-lemma cond_st_distr [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
+lemma cond_st_distr: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
   by (rel_auto)
         
 lemma cond_st_miracle [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S\<^sub>< \<and> P)"

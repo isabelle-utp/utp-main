@@ -14,6 +14,7 @@ imports
   utp_refcalc
   utp_reactive
   utp_rea_designs
+  utp_reactive_hoare
   utp_time_rel
   utp_csp
   utp_cml
