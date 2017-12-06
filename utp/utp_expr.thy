@@ -706,10 +706,10 @@ lemma lit_times [lit_simps]: "\<guillemotleft>x * y\<guillemotright> = \<guillem
 lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
 lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
    
-lemma lit_plus_appl [lit_simps]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
-lemma lit_minus_appl [lit_simps]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
-lemma lit_mult_appl [lit_simps]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
-lemma lit_divide_apply [lit_simps]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
+lemma lit_plus_appl [simp]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
+lemma lit_minus_appl [simp]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
+lemma lit_mult_appl [simp]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
+lemma lit_divide_apply [simp]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
     
 lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
