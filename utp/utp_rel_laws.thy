@@ -652,6 +652,13 @@ lemma ustar_rep_eq:
   by (simp add: ustar_def, rel_auto, simp_all add: relpow_imp_rtrancl rtrancl_imp_relpow)
 
 update_uexpr_rep_eq_thms
+
+subsection {* Kleene Plus *}
+
+purge_notation trancl ("(_\<^sup>+)" [1000] 999)
+
+definition uplus :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>+" [999] 999) where
+[upred_defs]: "P\<^sup>+ = P ;; P\<^sup>\<star>"
   
 subsubsection {* Omega *}
 
