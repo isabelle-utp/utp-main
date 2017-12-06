@@ -73,6 +73,13 @@ where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^
 adhoc_overloading
   unrest unrest_usubst
 
+text {* A conditional substitution deterministically picks one of the two substitutions based on a
+  Booolean expression which is evaluated on the present state-space. It is analogous to a functional
+  if-then-else. *}
+  
+definition cond_subst :: "'\<alpha> usubst \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> usubst" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>s/ _)" [52,0,53] 52) where
+"cond_subst \<sigma> b \<rho> = (\<lambda> s. if \<lbrakk>b\<rbrakk>\<^sub>e s then \<sigma>(s) else \<rho>(s))"
+  
 text {* Parallel substitutions allow us to divide the state space into three segments using two
   lens, A and B. They correspond to the part of the state that should be updated by the 
   respective substitution. The two lenses should be independent. If any part of the state
@@ -132,7 +139,7 @@ text {* Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} 
 definition subst_del :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst" (infix "-\<^sub>s" 85) where
 "subst_del \<sigma> x = \<sigma>(x \<mapsto>\<^sub>s &x)"
 
-subsection {* Substitution application laws *}
+subsection {* Substitution Application Laws *}
 
 text {* We set up a simple substitution tactic that applies substitution and unrestriction laws *}
 
@@ -396,6 +403,18 @@ lemma usubst_upd_comm_ord [usubst]:
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
   by (simp add: assms(1) usubst_upd_comm)
   
+lemma var_name_order_comp_outer [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> x:a \<prec>\<^sub>v y:b"
+  by (simp add: var_name_ord_def)
+    
+lemma var_name_ord_comp_inner [usubst]: "a \<prec>\<^sub>v b \<Longrightarrow> x:a \<prec>\<^sub>v x:b"
+  by (simp add: var_name_ord_def)
+
+lemma var_name_ord_pr_var_1 [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> &x \<prec>\<^sub>v y"
+  by (simp add: var_name_ord_def)
+
+lemma var_name_ord_pr_var_2 [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> x \<prec>\<^sub>v &y"
+  by (simp add: var_name_ord_def)
+    
 subsection {* Unrestriction laws *}
 
 text {* These are the key unrestriction theorems for substitutions and expressions involving substitutions. *}
@@ -415,6 +434,26 @@ lemma unrest_usubst_upd [unrest]:
 lemma unrest_subst [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
   by (transfer, simp add: unrest_usubst_def)
+    
+subsection {* Conditional Substitution Laws *}
+  
+lemma usubst_cond_upd_1 [usubst]:
+  "\<sigma>(x \<mapsto>\<^sub>s u) \<triangleleft> b \<triangleright>\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>)(x \<mapsto>\<^sub>s u \<triangleleft> b \<triangleright> v)"
+  by (simp add: cond_subst_def subst_upd_uvar_def, transfer, auto)
+
+lemma usubst_cond_upd_2 [usubst]:
+  "\<lbrakk> vwb_lens x; x \<sharp> \<rho> \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s u) \<triangleleft> b \<triangleright>\<^sub>s \<rho> = (\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>)(x \<mapsto>\<^sub>s u \<triangleleft> b \<triangleright> &x)"
+  by (simp add: cond_subst_def subst_upd_uvar_def unrest_usubst_def, transfer)
+     (metis (full_types, hide_lams) id_apply pr_var_def subst_upd_uvar_def usubst_upd_pr_var_id var.rep_eq)
+ 
+lemma usubst_cond_upd_3 [usubst]:
+  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>)(x \<mapsto>\<^sub>s &x \<triangleleft> b \<triangleright> v)"
+  by (simp add: cond_subst_def subst_upd_uvar_def unrest_usubst_def, transfer)
+     (metis (full_types, hide_lams) id_apply pr_var_def subst_upd_uvar_def usubst_upd_pr_var_id var.rep_eq)
+    
+lemma usubst_cond_id [usubst]:
+  "id \<triangleleft> b \<triangleright>\<^sub>s id = id"
+  by (auto simp add: cond_subst_def)
     
 subsection {* Parallel Substitution Laws *}
     

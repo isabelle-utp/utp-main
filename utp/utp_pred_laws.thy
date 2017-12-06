@@ -653,8 +653,10 @@ lemma cond_def:
   "(P \<triangleleft> b \<triangleright> Q) = ((b \<and> P) \<or> ((\<not> b) \<and> Q))"
   by (pred_auto)
     
-lemma cond_idem:"(P \<triangleleft> b \<triangleright> P) = P" by (pred_auto)
+lemma cond_idem [simp]:"(P \<triangleleft> b \<triangleright> P) = P" by (pred_auto)
 
+lemma cond_true_false [simp]: "true \<triangleleft> b \<triangleright> false = b" by (pred_auto)
+    
 lemma cond_symm:"(P \<triangleleft> b \<triangleright> Q) = (Q \<triangleleft> \<not> b \<triangleright> P)" by (pred_auto)
 
 lemma cond_assoc: "((P \<triangleleft> b \<triangleright> Q) \<triangleleft> c \<triangleright> R) = (P \<triangleleft> b \<and> c \<triangleright> (Q \<triangleleft> c \<triangleright> R))" by (pred_auto)

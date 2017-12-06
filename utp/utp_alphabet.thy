@@ -47,28 +47,28 @@ lemma aext_twice: "(P \<oplus>\<^sub>p a) \<oplus>\<^sub>p b = P \<oplus>\<^sub>
 text {* The bijective @{term "1\<^sub>L"} lens identifies the source and view types. Thus an alphabet
   extension using this has no effect. *}
     
-lemma aext_id [alpha]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
+lemma aext_id [simp]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
 text {* Literals do not depend on any variables, and thus applying an alphabet extension only
   alters the predicate's type, and not its valuation .*}
     
-lemma aext_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<oplus>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
+lemma aext_lit [simp]: "\<guillemotleft>v\<guillemotright> \<oplus>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
 
-lemma aext_zero [alpha]: "0 \<oplus>\<^sub>p a = 0"
+lemma aext_zero [simp]: "0 \<oplus>\<^sub>p a = 0"
   by (pred_auto)
 
-lemma aext_one [alpha]: "1 \<oplus>\<^sub>p a = 1"
+lemma aext_one [simp]: "1 \<oplus>\<^sub>p a = 1"
   by (pred_auto)
 
-lemma aext_numeral [alpha]: "numeral n \<oplus>\<^sub>p a = numeral n"
+lemma aext_numeral [simp]: "numeral n \<oplus>\<^sub>p a = numeral n"
   by (pred_auto)
 
-lemma aext_true [alpha]: "true \<oplus>\<^sub>p a = true"
+lemma aext_true [simp]: "true \<oplus>\<^sub>p a = true"
   by (pred_auto)
 
-lemma aext_false [alpha]: "false \<oplus>\<^sub>p a = false"
+lemma aext_false [simp]: "false \<oplus>\<^sub>p a = false"
   by (pred_auto)
 
 lemma aext_not [alpha]: "(\<not> P) \<oplus>\<^sub>p x = (\<not> (P \<oplus>\<^sub>p x))"
@@ -170,7 +170,7 @@ is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms
 
-lemma arestr_id [alpha]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
+lemma arestr_id [simp]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
   by (pred_auto)
 
 lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>e a = P"
@@ -193,26 +193,26 @@ proof -
   done
 qed
 
-lemma arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
+lemma arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
 
-lemma arestr_zero [alpha]: "0 \<restriction>\<^sub>e a = 0"
+lemma arestr_zero [simp]: "0 \<restriction>\<^sub>e a = 0"
   by (pred_auto)
 
-lemma arestr_one [alpha]: "1 \<restriction>\<^sub>e a = 1"
+lemma arestr_one [simp]: "1 \<restriction>\<^sub>e a = 1"
   by (pred_auto)
 
-lemma arestr_numeral [alpha]: "numeral n \<restriction>\<^sub>e a = numeral n"
+lemma arestr_numeral [simp]: "numeral n \<restriction>\<^sub>e a = numeral n"
   by (pred_auto)
 
 lemma arestr_var [alpha]:
   "var x \<restriction>\<^sub>e a = var (x /\<^sub>L a)"
   by (pred_auto)
 
-lemma arestr_true [alpha]: "true \<restriction>\<^sub>e a = true"
+lemma arestr_true [simp]: "true \<restriction>\<^sub>e a = true"
   by (pred_auto)
 
-lemma arestr_false [alpha]: "false \<restriction>\<^sub>e a = false"
+lemma arestr_false [simp]: "false \<restriction>\<^sub>e a = false"
   by (pred_auto)
 
 lemma arestr_not [alpha]: "(\<not> P)\<restriction>\<^sub>ea = (\<not> (P\<restriction>\<^sub>ea))"
@@ -252,13 +252,13 @@ lemma upred_ares_aext [alpha]:
   "a \<natural> P \<Longrightarrow> (P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
   by (pred_auto)
 
-lemma upred_arestr_lit [alpha]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
+lemma upred_arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
 
-lemma upred_arestr_true [alpha]: "true \<restriction>\<^sub>p a = true"
+lemma upred_arestr_true [simp]: "true \<restriction>\<^sub>p a = true"
   by (pred_auto)
 
-lemma upred_arestr_false [alpha]: "false \<restriction>\<^sub>p a = false"
+lemma upred_arestr_false [simp]: "false \<restriction>\<^sub>p a = false"
   by (pred_auto)
 
 lemma upred_arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<or> Q\<restriction>\<^sub>px)"

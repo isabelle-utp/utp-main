@@ -354,6 +354,7 @@ declare disj_upred_def [upred_defs]
 declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
+declare cond_subst_def [upred_defs]
 declare par_subst_def [upred_defs]
 declare subst_del_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
@@ -367,14 +368,6 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 
 declare true_alt_def[THEN sym,lit_simps]
 declare false_alt_def[THEN sym,lit_simps]
-
-text {* We set up syntax for the conditional. This is effectively an infix version of
-  if-then-else where the condition is in the middle. *}
-  
-abbreviation cond ::
-  "('a,'\<alpha>) uexpr \<Rightarrow> '\<alpha> upred \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
-  ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
-where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
 
 subsection {* Unrestriction Laws *}
 

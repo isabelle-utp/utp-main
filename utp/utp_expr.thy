@@ -70,6 +70,14 @@ text \<open> We also define a UTP expression version of function ($\lambda$) abs
 lift_definition ulambda :: "('a \<Rightarrow> ('b, '\<alpha>) uexpr) \<Rightarrow> ('a \<Rightarrow> 'b, '\<alpha>) uexpr"
 is "\<lambda> f A x. f x A" .
 
+text \<open> We set up syntax for the conditional. This is effectively an infix version of
+  if-then-else where the condition is in the middle. \<close>
+  
+abbreviation cond ::
+  "('a,'\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
+  ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
+where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
+
 text \<open> UTP expression is equality is simply HOL equality lifted using the @{term bop} binary 
   expression constructor. \<close>
     
@@ -698,6 +706,11 @@ lemma lit_times [lit_simps]: "\<guillemotleft>x * y\<guillemotright> = \<guillem
 lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guillemotleft>x\<guillemotright> / \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
 lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
    
+lemma lit_plus_appl [lit_simps]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
+lemma lit_minus_appl [lit_simps]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
+lemma lit_mult_appl [lit_simps]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
+lemma lit_divide_apply [lit_simps]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
+    
 lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
   "\<guillemotleft>h x y z\<guillemotright> = trop h \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright>"
