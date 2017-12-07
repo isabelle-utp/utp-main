@@ -166,6 +166,6 @@ lemma wt_safe:
   apply (rule hoare_rp_strengthen[where q'="I"])
   apply (rel_auto)
   apply (rule wt_lemma_1)
-done
-
+done  
+  
 end

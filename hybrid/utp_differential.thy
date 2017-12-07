@@ -257,11 +257,11 @@ proof -
   also from assms(1) have "... = (\<lceil>$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a \<and> x:[true]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"
     by (rel_auto)
   also from assms(1) have "... = (\<lceil>x:[$x\<acute> =\<^sub>u \<guillemotleft>\<F>\<guillemotright>($x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"      
-    by (simp add: antiframe_conj_true unrest)
+    by (simp add: frame_conj_true unrest)
   also have "... = (\<lceil>x:[$x\<acute> =\<^sub>u \<lceil>\<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a\<rceil>\<^sub><]\<rceil>\<^sub>h \<and> 0 <\<^sub>u \<^bold>l)"
     by (rel_auto)
   also from assms(1) have "... = {[x \<mapsto>\<^sub>s \<guillemotleft>\<F>\<guillemotright>(&x)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h"
-    by (simp add: antiframe_assign hEvolves_def, rel_auto)
+    by (simp add: frame_is_assign hEvolves_def, rel_auto)
   finally show ?thesis .
 qed
     

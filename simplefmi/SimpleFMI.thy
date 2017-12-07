@@ -89,7 +89,7 @@ definition ArbStep :: "master_algorithm" where
 definition FixedStep :: "real pos \<Rightarrow> master_algorithm" where
 [upred_defs]: "FixedStep t = {t}"
 
-  named_theorems step_simps
+named_theorems step_simps
   
 method fmi_hoare_split uses defs =
   (rule FMI_hoare_rp, 
