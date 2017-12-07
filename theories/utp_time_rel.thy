@@ -44,4 +44,8 @@ lemma hoare_rp_wait_comp [hoare_safe]:
   "\<lbrace>p\<rbrace> Q \<lbrace>r\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>p\<rbrace> wait\<^sub>r n ;; Q \<lbrace>r\<rbrace>\<^sub>r"
   by (rel_auto)
     
+lemma rea_frame_wait [frame]:
+  "vwb_lens x \<Longrightarrow> x:[wait\<^sub>r(n)]\<^sub>r = wait\<^sub>r(n)"
+  by (rel_auto)
+    
 end

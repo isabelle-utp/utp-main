@@ -483,7 +483,7 @@ lemma runrest_ident_var:
   shows "($x \<and> P) = (P \<and> $x\<acute>)"
 proof -
   have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
-    by (metis RID_def assms unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
+    by (metis RID_def assms Healthy_def unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
   moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
     by (rel_auto)
   ultimately show ?thesis

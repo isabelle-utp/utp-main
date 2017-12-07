@@ -1663,4 +1663,12 @@ lemma rea_subst_USUP_set [usubst]:
   "A \<noteq> {} \<Longrightarrow> (\<Squnion> i\<in>A \<bullet> P(i))\<lbrakk>v\<rbrakk>\<^sub>r   = (\<Squnion> i\<in>A \<bullet> (P(i))\<lbrakk>v\<rbrakk>\<^sub>r)"
   by (rel_auto)+
     
+text {* Instantaneous Reactive Relations, where the trace stays the same. *}
+  
+abbreviation Instant :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
+"Instant(P) \<equiv> RID(tr)(P)"
+
+lemma skip_rea_Instant [closure]: "II\<^sub>r is Instant"
+  by (rel_auto)
+    
 end

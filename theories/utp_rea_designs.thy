@@ -240,7 +240,7 @@ abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
 text {* Reactive Frames and Extensions *}
   
 definition rea_frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<alpha>, 't) rdes" where
-[upred_defs]: "rea_frame x P = antiframe (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st)) P"
+[upred_defs]: "rea_frame x P = frame (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st)) P"
 
 definition rea_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<beta>, 't) rdes" where
 [upred_defs]: "rea_frame_ext a P = rea_frame a (rel_aext P (map_st\<^sub>L a))"
@@ -279,6 +279,44 @@ lemma rea_frame_ext_RR_closed [closure]:
   "P is RR \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is RR"
   by (simp add: rea_frame_ext_def closure)
   
+lemma rel_aext_st_Instant_closed [closure]:
+  "P is Instant \<Longrightarrow> rel_aext P (map_st\<^sub>L x) is Instant"
+  by (rel_auto)
+  
+lemma rea_frame_commute:
+  assumes "P is RR" "Q is RR" "vwb_lens x" "vwb_lens y"
+          "$st:y \<sharp> P" "$st:x \<sharp> Q" "P is Instant" "Q is Instant" "x \<bowtie> y"
+  shows "x:[P]\<^sub>r ;; y:[Q]\<^sub>r = y:[Q]\<^sub>r ;; x:[P]\<^sub>r"     
+proof -
+  have "x:[P]\<^sub>r ;; y:[Q]\<^sub>r = {&tr,&ok,&wait,&st:x}:[P] ;; {&tr,&ok,&wait,&st:y}:[Q]"
+    by (rel_auto)
+  also have "... = {&ok,&wait,&st:x}:[P] ;; {&ok,&wait,&st:y}:[Q]"
+    by (simp add: frame_contract_RID closure assms)
+  also have "... = {&ok,&wait,&st:x}:[RR(P)] ;; {&ok,&wait,&st:y}:[RR(Q)]"
+    by (simp add: assms Healthy_if)
+  also have "... = {&ok,&wait,&st:y}:[RR(Q)] ;; {&ok,&wait,&st:x}:[RR(P)]"      
+    using assms(3-6,9)
+    by (rel_auto, (metis (no_types, hide_lams) lens_indep.lens_put_comm)+)
+  also have "... = {&ok,&wait,&st:y}:[Q] ;; {&ok,&wait,&st:x}:[P]"      
+    by (simp add: assms Healthy_if)
+  also have "... = {&tr,&ok,&wait,&st:y}:[Q] ;; {&tr,&ok,&wait,&st:x}:[P]"
+    by (simp add: frame_contract_RID closure assms)
+  also have "... = y:[Q]\<^sub>r ;; x:[P]\<^sub>r"
+    by (rel_auto)
+  finally show ?thesis .
+qed
+  
+lemma rea_frame_ext_commute:
+  assumes "P is RR" "Q is RR" "vwb_lens x" "vwb_lens y"
+          "P is Instant" "Q is Instant" "x \<bowtie> y"
+  shows "x:[P]\<^sub>r\<^sup>+ ;; y:[Q]\<^sub>r\<^sup>+ = y:[Q]\<^sub>r\<^sup>+ ;; x:[P]\<^sub>r\<^sup>+"
+  apply (simp add: rea_frame_ext_def)
+  apply (rule rea_frame_commute)
+  apply (simp_all add: closure assms)
+  apply (rel_auto, simp_all add: assms)
+  apply (rel_auto, simp_all add: assms lens_indep_sym)
+done
+    
 lemma rea_frame_ext_false [frame]:
   "x:[false]\<^sub>r\<^sup>+ = false"
   by (rel_auto)
@@ -298,7 +336,7 @@ lemma rea_frame_ext_cond [frame]:
 lemma rea_frame_ext_seq [frame]:
   "vwb_lens x \<Longrightarrow> x:[P ;; Q]\<^sub>r\<^sup>+ = x:[P]\<^sub>r\<^sup>+ ;; x:[Q]\<^sub>r\<^sup>+"
   apply (simp add: rea_frame_ext_def rea_frame_def alpha frame)
-  apply (subst antiframe_seq)
+  apply (subst frame_seq)
   apply (simp_all add: plus_vwb_lens closure)
   apply (rel_auto)+
 done
