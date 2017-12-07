@@ -3,6 +3,7 @@ section {* Alphabetised Relations *}
 theory utp_rel
 imports
   utp_pred_laws
+  utp_healthy
   utp_lift
   utp_tactics
 begin
@@ -229,16 +230,31 @@ text {* We implement a poor man's version of alphabet restriction that hides a v
 definition rel_var_res :: "'\<alpha> hrel \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" (infix "\<restriction>\<^sub>\<alpha>" 80) where
 [urel_defs]: "P \<restriction>\<^sub>\<alpha> x = (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P)"
 
+text {* Alphabet extension and restriction add additional variables by the given lens in both
+  their primed and unprimed versions. *}
+  
+definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" 
+where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
+
+definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
+  where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
+
 text {* We next describe frames and antiframes with the help of lenses. A frame states that $P$
-  defines the behaviour of all variables not in $a$, and all those in $a$ remain the same. An
-  antiframe describes the converse: all variables in $a$ are specified by $P$, and all other
-  variables remain the same. For more information please see \cite{Morgan90a}.*}
+  defines how variables in $a$ changed, and all those outside of $a$ remain the same. An
+  antiframe describes the converse: all variables outside $a$ are specified by $P$, and all those in
+  remain the same. For more information please see \cite{Morgan90a}.*}
 
 definition frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "frame a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u \<guillemotleft>st\<guillemotright> \<oplus> $\<^bold>v on &a)"
-
+[urel_defs]: "frame a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> \<guillemotleft>st\<guillemotright> on &a)"
+  
 definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "antiframe a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> \<guillemotleft>st\<guillemotright> on &a)"
+[urel_defs]: "antiframe a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u \<guillemotleft>st\<guillemotright> \<oplus> $\<^bold>v on &a)"
+
+text {* Frame extension combines alphabet extension with the frame operator to both add additional 
+  variables and then frame those. *}
+
+definition rel_frext :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel \<Rightarrow> '\<alpha> hrel"  where
+[upred_defs]: "rel_frext a P = frame a (rel_aext P a)"
 
 text {* The nameset operator can be used to hide a portion of the after-state that lies outside
   the lens $a$. It can be useful to partition a relation's variables in order to conjoin it
@@ -264,9 +280,15 @@ syntax
   -- {* Alphabetised skip *}
   "_skip_ra"        :: "salpha \<Rightarrow> logic" ("II\<^bsub>_\<^esub>")
   -- {* Frame *}
-  "_frame"          :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:\<lbrakk>_\<rbrakk>" [79,0] 80)
+  "_frame"          :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [99,0] 100)
   -- {* Antiframe *}
-  "_antiframe"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]" [99,0] 100)
+  "_antiframe"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:\<lbrakk>_\<rbrakk>" [79,0] 80)
+  -- {* Relational Alphabet Extension *}
+  "_rel_aext"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
+  -- {* Relational Alphabet Restriction *}
+  "_rel_ares"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
+  -- {* Frame Extension *}
+  "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
   -- {* Nameset *}
   "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
   
@@ -287,6 +309,9 @@ translations
   "_antiframe x P" => "CONST antiframe x P"
   "_antiframe (_salphaset (_salphamk x)) P" <= "CONST antiframe x P"
   "_nameset x P" == "CONST nameset x P"
+  "_rel_aext P a" == "CONST rel_aext P a"
+  "_rel_ares P a" == "CONST rel_ares P a"
+  "_rel_frext a P" == "CONST rel_frext a P"
   
 text {* The following code sets up pretty-printing for homogeneous relational expressions. We cannot 
   do this via the ``translations'' command as we only want the rule to apply when the input and output
@@ -400,6 +425,24 @@ lemma unrest_out_alpha_usubst_rel_lift [unrest]:
   "out\<alpha> \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>s"
   by (rel_auto)
     
+lemma unrest_in_rel_aext [unrest]: "x \<bowtie> y \<Longrightarrow> $y \<sharp> P \<oplus>\<^sub>r x"
+  by (simp add: rel_aext_def unrest_aext_indep)
+
+lemma unrest_out_rel_aext [unrest]: "x \<bowtie> y \<Longrightarrow> $y\<acute> \<sharp> P \<oplus>\<^sub>r x"
+  by (simp add: rel_aext_def unrest_aext_indep)
+    
+lemma rel_aext_seq [alpha]:
+  "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
+  apply (rel_auto)
+  apply (rename_tac aa b y)
+  apply (rule_tac x="create\<^bsub>a\<^esub> y" in exI)
+  apply (simp)
+done
+
+lemma rel_aext_cond [alpha]:
+  "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
+  by (rel_auto)
+    
 subsection {* Substitution laws *}
 
 lemma subst_seq_left [usubst]:
@@ -509,6 +552,18 @@ lemma rcond_lift_true [simp]:
 lemma rcond_lift_false [simp]:
   "\<lceil>false\<rceil>\<^sub>\<leftarrow> = false"
   by rel_auto
+
+lemma rel_ares_aext [alpha]: 
+  "vwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>r a) \<restriction>\<^sub>r a = P"
+  by (rel_auto)
+
+lemma rel_aext_ares [alpha]:
+  "{$a, $a\<acute>} \<natural> P \<Longrightarrow> P \<restriction>\<^sub>r a \<oplus>\<^sub>r a = P"
+  by (rel_auto)
+
+lemma rel_aext_uses [unrest]:
+  "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
+  by (rel_auto)    
     
 subsection {* Relational unrestriction *}
 
@@ -544,18 +599,31 @@ lemma RID_mono:
   "P \<sqsubseteq> Q \<Longrightarrow> RID(x)(P) \<sqsubseteq> RID(x)(Q)"
   by (rel_auto)
 
+lemma RID_pr_var [simp]: 
+  "RID (pr_var x) = RID x"
+  by (simp add: pr_var_def)
+    
 lemma RID_skip_r:
   "vwb_lens x \<Longrightarrow> RID(x)(II) = II"
   apply (rel_auto) using vwb_lens.put_eq by fastforce
 
+lemma skip_r_RID [closure]: "vwb_lens x \<Longrightarrow> II is RID(x)"
+  by (simp add: Healthy_def RID_skip_r)
+    
 lemma RID_disj:
   "RID(x)(P \<or> Q) = (RID(x)(P) \<or> RID(x)(Q))"
   by (rel_auto)
+    
+lemma disj_RID [closure]: "\<lbrakk> P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> (P \<or> Q) is RID(x)"
+  by (simp add: Healthy_def RID_disj)
 
 lemma RID_conj:
   "vwb_lens x \<Longrightarrow> RID(x)(RID(x)(P) \<and> RID(x)(Q)) = (RID(x)(P) \<and> RID(x)(Q))"
   by (rel_auto)
 
+lemma conj_RID [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> (P \<and> Q) is RID(x)"
+  by (metis Healthy_if Healthy_intro RID_conj)
+    
 lemma RID_assigns_r_diff:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_auto)
@@ -563,6 +631,9 @@ lemma RID_assigns_r_diff:
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
 done
 
+lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
+  by (simp add: Healthy_def RID_assigns_r_diff)
+  
 lemma RID_assign_r_same:
   "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
   apply (rel_auto)
@@ -617,107 +688,38 @@ proof -
   finally show ?thesis .
 qed
 
+lemma seqr_RID_closed [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> P ;; Q is RID(x)"
+  by (metis Healthy_def RID_seq_right)
+  
 definition unrest_relation :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
-where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P = RID(x)(P))"
+where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P is RID(x))"
 
 declare unrest_relation_def [urel_defs]
 
 lemma runrest_assign_commute:
   "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
-  by (metis RID2 unrest_relation_def)
+  by (metis RID2 Healthy_def unrest_relation_def)
   
 lemma skip_r_runrest [unrest]:
   "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
-  by (simp add: RID_skip_r unrest_relation_def)
+  by (simp add: unrest_relation_def closure)
 
 lemma assigns_r_runrest:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
-  by (simp add: RID_assigns_r_diff unrest_relation_def)
+  by (simp add: unrest_relation_def closure)
 
 lemma seq_r_runrest [unrest]:
   assumes "vwb_lens x" "x \<sharp>\<sharp> P" "x \<sharp>\<sharp> Q"
   shows "x \<sharp>\<sharp> (P ;; Q)"
-  by (metis RID_seq_left assms unrest_relation_def)
+  using assms by (simp add: unrest_relation_def closure )
 
 lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
   by (rel_auto)
 
 lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
-  by (metis RID_conj unrest_relation_def)
+  by (metis RID_conj Healthy_def unrest_relation_def)
 
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
-  by (simp add: RID_disj unrest_relation_def)
-
-subsection {* Relational Alphabet Extension, Restriction, and Frame Extension *}
-
-text {* Alphabet extension and restriction add additional variables by the given lens in both
-  their primed and unprimed versions. Frame extension combines alphabet extension with the frame
-  operator to both add additional variables and then frame those. *}
-  
-definition rel_aext :: "'\<beta> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" 
-where [upred_defs]: "rel_aext P a = P \<oplus>\<^sub>p (a \<times>\<^sub>L a)"
-
-definition rel_ares :: "'\<alpha> hrel \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel" 
-  where [upred_defs]: "rel_ares P a = (P \<restriction>\<^sub>p (a \<times> a))"
-    
-definition rel_frext :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel \<Rightarrow> '\<alpha> hrel"  where
-[upred_defs]: "rel_frext a P = a:[rel_aext P a]"
-     
-syntax
-  "_rel_aext"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<oplus>\<^sub>r" 90)
-  "_rel_ares"  :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>r" 90)
-  "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
-  
-translations
-  "_rel_aext P a" == "CONST rel_aext P a"
-  "_rel_ares P a" == "CONST rel_ares P a"
-  "_rel_frext a P" == "CONST rel_frext a P"
-  
-lemma rel_ares_aext [alpha]: 
-  "vwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>r a) \<restriction>\<^sub>r a = P"
-  by (rel_auto)
-
-lemma rel_aext_ares [alpha]:
-  "{$a, $a\<acute>} \<natural> P \<Longrightarrow> P \<restriction>\<^sub>r a \<oplus>\<^sub>r a = P"
-  by (rel_auto)
-
-lemma rel_aext_uses [unrest]:
-  "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
-  by (rel_auto)    
-
-named_theorems frame
-    
-lemma rel_frext_skip [frame]: 
-  "vwb_lens a \<Longrightarrow> a:[II]\<^sup>+ = II"
-  by (rel_auto)
-   
-lemma rel_aext_seq [frame]:
-  "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
-  apply (rel_auto)
-  apply (rename_tac aa b y)
-  apply (rule_tac x="create\<^bsub>a\<^esub> y" in exI)
-  apply (simp)
-done
-
-lemma rel_aext_cond [frame]:
-  "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
-  by (rel_auto)
-
-lemma rel_frext_seq [frame]:
-  "vwb_lens a \<Longrightarrow> a:[P ;; Q]\<^sup>+ = (a:[P]\<^sup>+ ;; a:[Q]\<^sup>+)"
-  apply (rel_auto)
-  apply (rename_tac s s' s\<^sub>0)
-  apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
-  apply (auto)
-  apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
-done
-
-lemma rel_frext_assigns [frame]:
-  "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
-  by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
-
-lemma rel_frext_rcond [frame]:
-  "a:[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sup>+ = (a:[P]\<^sup>+ \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r a:[Q]\<^sup>+)"
-  by (rel_auto)
+  by (simp add: RID_disj Healthy_def unrest_relation_def)
     
 end

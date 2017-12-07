@@ -267,7 +267,9 @@ text {* The following implementation of parallel by merge is less general than t
   achieve this specifying lenses into the larger alphabet, but this would complicate the definition
   of programs. May reconsider later. *}
 
-definition par_by_merge  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
+definition 
+  par_by_merge :: "('\<alpha>, '\<beta>) rel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) rel \<Rightarrow> ('\<alpha>, '\<gamma>) rel \<Rightarrow> ('\<alpha>, '\<delta>) rel" 
+  ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
 lemma par_by_merge_alt_def: "P \<parallel>\<^bsub>M\<^esub> Q = (\<lceil>P\<rceil>\<^sub>0 \<and> \<lceil>Q\<rceil>\<^sub>1 \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v) ;; M"

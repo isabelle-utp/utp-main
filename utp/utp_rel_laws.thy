@@ -20,14 +20,6 @@ lemma cond_seq_right_distr:
   "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
   by (rel_auto)
 
-lemma cond_mono:
-  "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2)"
-  by (rel_auto)
-
-lemma cond_monotonic:
-  "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X \<triangleleft> b \<triangleright> Q X)"
-  by (simp add: mono_def, rel_blast)
-
 subsection {* Precondition and Postcondition Laws *}
   
 theorem precond_equiv:
@@ -80,11 +72,16 @@ lemma impl_seqr_mono: "\<lbrakk> `P \<Rightarrow> Q`; `R \<Rightarrow> S` \<rbra
 lemma seqr_mono:
   "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 ;; Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 ;; Q\<^sub>2)"
   by (rel_blast)
-
+    
 lemma seqr_monotonic:
   "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X ;; Q X)"
   by (simp add: mono_def, rel_blast)
-
+    
+lemma Monotonic_seqr_tail [closure]:
+  assumes "Monotonic F"
+  shows "Monotonic (\<lambda> X. P ;; F(X))"
+  by (simp add: assms monoD monoI seqr_mono)
+    
 lemma seqr_exists_left:
   "((\<exists> $x \<bullet> P) ;; Q) = (\<exists> $x \<bullet> (P ;; Q))"
   by (rel_auto)
@@ -440,48 +437,105 @@ lemma assert_true: "{true}\<^sub>\<bottom> = II"
 lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
   by (rel_auto)
 
-subsection {* Frame Laws *}
-    
-lemma frame_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
+subsection {* Frame and Antiframe Laws *}
+
+named_theorems frame
+
+lemma frame_all [frame]: "\<Sigma>:[P] = P"
   by (rel_auto)
 
-lemma frame_seq [frame]:
-  "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
-  by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
+lemma frame_none [frame]: 
+  "P ;; true = true \<Longrightarrow> \<emptyset>:[P] = II"
+  by (rel_auto)
     
-lemma antiframe_to_frame [frame]:
-  "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
-  by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
+lemma frame_commute:
+  "\<lbrakk> $y \<sharp> P; $x \<sharp> Q; x \<bowtie> y \<rbrakk> \<Longrightarrow> x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
+  by (rel_auto, (metis lens_indep_def)+)
     
-lemma antiframe_skip [simp]:
+lemma frame_contract_RID:
+  assumes "vwb_lens x" "P is RID(x)" "x \<bowtie> y"
+  shows "(x;y):[P] = y:[P]"
+proof -
+  from assms(1,3) have "(x;y):[RID(x)(P)] = y:[RID(x)(P)]"
+    using lens_indep_comm by (rel_auto; fastforce)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+ 
+lemma frame_miracle [simp]:
+  "x:[false] = false"
+  by (rel_auto)
+
+lemma frame_skip [simp]:
   "vwb_lens x \<Longrightarrow> x:[II] = II"
   by (rel_auto)
     
-lemma antiframe_assign_in [frame]:
+lemma frame_assign_in [frame]:
   "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> a:[x := v] = x := v"
   by (rel_auto, simp_all add: lens_get_put_quasi_commute lens_put_of_quotient)
 
-lemma antiframe_conj_true [frame]:
+lemma frame_conj_true [frame]:
   "\<lbrakk> {$x,$x\<acute>} \<natural> P; vwb_lens x \<rbrakk> \<Longrightarrow> (P \<and> x:[true]) = x:[P]"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
     
-lemma antiframe_assign [frame]:
+lemma frame_is_assign [frame]:
   "vwb_lens x \<Longrightarrow> x:[$x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub><] = x := v"
   by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
     
-lemma antiframe_seq [frame]:
+lemma frame_seq [frame]:
   "\<lbrakk> vwb_lens x; {$x,$x\<acute>} \<natural> P; {$x,$x\<acute>} \<natural> Q \<rbrakk> \<Longrightarrow> x:[P ;; Q] = x:[P] ;; x:[Q]"
   apply (rel_auto)
   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_def weak_lens.put_get)
   apply (metis vwb_lens_wb wb_lens.get_put)
 done
+
+lemma frame_to_antiframe [frame]:
+  "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
+  by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)
+
+lemma rel_frext_miracle [frame]: 
+  "a:[false]\<^sup>+ = false"
+  by (rel_auto)
     
+lemma rel_frext_skip [frame]: 
+  "vwb_lens a \<Longrightarrow> a:[II]\<^sup>+ = II"
+  by (rel_auto)
+
+lemma rel_frext_seq [frame]:
+  "vwb_lens a \<Longrightarrow> a:[P ;; Q]\<^sup>+ = (a:[P]\<^sup>+ ;; a:[Q]\<^sup>+)"
+  apply (rel_auto)
+  apply (rename_tac s s' s\<^sub>0)
+  apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
+  apply (auto)
+  apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+done
+
+lemma rel_frext_assigns [frame]:
+  "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
+  by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
+
+lemma rel_frext_rcond [frame]:
+  "a:[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sup>+ = (a:[P]\<^sup>+ \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r a:[Q]\<^sup>+)"
+  by (rel_auto)
+
+lemma rel_frext_commute: 
+  "x \<bowtie> y \<Longrightarrow> x:[P]\<^sup>+ ;; y:[Q]\<^sup>+ = y:[Q]\<^sup>+ ;; x:[P]\<^sup>+"
+  unfolding rel_frext_def
+  by (auto intro: frame_commute simp add: unrest lens_indep_sym)
+    
+lemma antiframe_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
+  by (rel_auto)
+
+lemma antiframe_seq [frame]:
+  "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
+  by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
+  
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
     
 lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
   by (rel_auto)
-
+    
 declare sublens_def [lens_defs]
     
 subsection {* While Loop Laws *}

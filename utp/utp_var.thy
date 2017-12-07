@@ -150,7 +150,13 @@ lemma pr_var_lens_plus [simp]:
     
 lemma pr_var_lens_comp_1 [simp]: 
   "pr_var x ;\<^sub>L y = pr_var (x ;\<^sub>L y)"
-  by (simp add: pr_var_def)    
+  by (simp add: pr_var_def)
+    
+lemma in_var_plus [simp]: "in_var (x +\<^sub>L y) = in_var x +\<^sub>L in_var y"
+  by (simp add: in_var_def plus_lens_distr)
+
+lemma out_var_plus [simp]: "out_var (x +\<^sub>L y) = out_var x +\<^sub>L out_var y"
+  by (simp add: out_var_def plus_lens_distr)
   
 text \<open> Similar properties follow for sublens \<close>
   

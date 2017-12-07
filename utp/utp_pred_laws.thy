@@ -732,6 +732,14 @@ lemma disj_conds:
   "(P1 \<triangleleft> b \<triangleright> Q1 \<or> P2 \<triangleleft> b \<triangleright> Q2) = (P1 \<or> P2) \<triangleleft> b \<triangleright> (Q1 \<or> Q2)"
   by pred_auto
 
+lemma cond_mono:
+  "\<lbrakk> P\<^sub>1 \<sqsubseteq> P\<^sub>2; Q\<^sub>1 \<sqsubseteq> Q\<^sub>2 \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<triangleleft> b \<triangleright> Q\<^sub>1) \<sqsubseteq> (P\<^sub>2 \<triangleleft> b \<triangleright> Q\<^sub>2)"
+  by (rel_auto)
+
+lemma cond_monotonic:
+  "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X \<triangleleft> b \<triangleright> Q X)"
+  by (simp add: mono_def, rel_blast)
+    
 subsection {* Additional Expression Laws *}
 
 lemma le_pred_refl [simp]:
