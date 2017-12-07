@@ -1224,7 +1224,7 @@ lemma hUntil_solve:
 subsection {* Stepping a Hybrid Relation Forward *}
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
-[upred_defs]: "hStepRel t P = ((((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>v (&st:\<^bold>c \<times> &st:\<^bold>c)) \<restriction>\<^sub>e ((\<^bold>c ;\<^sub>L st) \<times>\<^sub>L (\<^bold>c ;\<^sub>L st))))"
+[upred_defs]: "hStepRel t P = ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>p (&st:\<^bold>c \<times> &st:\<^bold>c))"
 
 definition hyrel_assign :: "'c::t2_space usubst \<Rightarrow> ('d, 'c) hyrel" ("\<langle>_\<rangle>\<^sub>h") where
 [upred_defs]: "hyrel_assign \<sigma> = rea_assigns (\<sigma> \<oplus>\<^sub>s \<^bold>c)"
