@@ -194,11 +194,11 @@ proof -
   -- {* Unfold definition of @{const ChPres} *}
   also have "... = ([(&p - 2) >\<^sub>u 0]\<^sup>\<top>\<lbrakk>10,4,40/$p,$V,$k\<rbrakk>
                         ;; p := (&p - 2) ;; V := (&k / &p))"
-    by (simp add: ChPres_def lit_num_simps usubst unrest)
+    by (simp add: ChPres_def lit_numeral lit_uminus usubst unrest)
   -- {* Unfold definition of assumption *}
   also have "... = ((p,V,k) := (10,4,40) \<triangleleft> (8 :\<^sub>u real) >\<^sub>u 0 \<triangleright> false)
                     ;; p := (&p - 2) ;; V := (&k / &p)"
-    by (simp add: rassume_def usubst alpha unrest)
+    by rel_auto
   -- {* @{term "8 > 0"} is true; simplify conditional  *}
   also have "... = (p,V,k) := (10,4,40) ;; p := (&p - 2) ;; V := (&k / &p)"
     by rel_auto

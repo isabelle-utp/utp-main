@@ -155,14 +155,34 @@ lemma "true\<lbrakk>1,2/&x,&y\<rbrakk> = true"
   by (subst_tac)
 
 text {* We can also, of course, combine substitution and predicate calculus to prove conjectures
-  containing substitutions. *}
+  containing substitutions. Below, we prove a theorem in two steps, first applying the substitution,
+  and then secondly utilising predicate calculus. Note the need to add the type coercion: 
+  @{term "1 :\<^sub>u int"} -- this is because both 1 and 2 are polymorphic (e.g. they can also have type 
+  @{typ real}), and thus explicit types must be added.  *}
 
-lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false"
-  apply (subst_tac)
-  apply (pred_auto)
-done
+lemma "(&x =\<^sub>u 1 \<and> &y =\<^sub>u &x)\<lbrakk>2/x\<rbrakk> = false" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (2 =\<^sub>u (1 :\<^sub>u int) \<and> &y =\<^sub>u 2)"
+    by (subst_tac)
+  also have "... = ?rhs"
+    by (pred_auto)
+  finally show ?thesis .
+qed
 
-text {* So far, we have considered UTP predicates which contain only UTP variables. However it is
+text {* Isabelle/UTP also supports a more general notation for substitutions, where-by variable
+  maplets can be considered as explicit objects that correspond to functions on the state-space. 
+  For example, @{term "[&x \<mapsto>\<^sub>s 1, &y \<mapsto>\<^sub>s 2]"} is a substitution that replaces $x$ with 1 and $y$
+  with 2. Such substitution functions ($\sigma$) can be applied to an expression or predicate using 
+  the dagger operator: @{term "\<sigma> \<dagger> P"}. Thus, we can perform the following simplification: *}
+  
+lemma "[&x \<mapsto>\<^sub>s 1, &y \<mapsto>\<^sub>s 2] \<dagger> (&x <\<^sub>u &y) = ((1 :\<^sub>u int) <\<^sub>u 2)"
+  by (subst_tac)
+  
+text {* This notation thus allows us to deal with state space much more flexibly. The more standard 
+  notation @{term "P\<lbrakk>v/x\<rbrakk>"} is in fact syntactic sugar to application of the singleton substitution
+  function @{term "[x \<mapsto>\<^sub>s v]"}.
+    
+  So far, we have considered UTP predicates which contain only UTP variables. However it is
   possible to have another kind of variable -- a logical HOL variable which is sometimes known
   as a ``logical constant''~\cite{Morgan90}. Such variables are not program or model variables,
   but they simply exist to assert logical properties of a predicate. The next two examples compare UTP and HOL
@@ -400,8 +420,10 @@ text {* Assignments can commute provided that the two variables are independent,
   being assigned do not depend on the variable of the other assignment. A sequence of assignments
   to the same variable is equal to the second assignment, provided that the two expressions are
   both literals, i.e. @{term "\<guillemotleft>e\<guillemotright>"}. Finally, in a multiple assignment, if one of the variables
-  is assigned to itself then this can be hidden, provided the two variables are independent.
+  is assigned to itself then this can be hidden, provided the two variables are independent. *}
 
+
+text {*
   Since alphabetised relations form a complete lattice, we can denote iterative constructions like
   the while loop which is defined as @{term "while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"}. We can
   then prove some common laws about iteration. *}

@@ -1322,7 +1322,7 @@ translations
 text {* Reactive design contracts for CSP/Circus with refusals *}
 
 definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rightarrow> 's upred) \<Rightarrow> ('e list \<Rightarrow> 's hrel) \<Rightarrow> ('s, 'e) action" where
-"mk_CRD P Q R = \<^bold>R\<^sub>s([P]\<^sub>S\<^sub>< \<turnstile> [Q x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> [R(x)]\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
+"mk_CRD P Q R = \<^bold>R\<^sub>s([P]\<^sub>S\<^sub>< \<turnstile> [Q x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> [R(x)]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
 
 syntax
   "_ref_var" :: "logic"
@@ -2545,7 +2545,7 @@ lemma periR_mk_CRD [rdes]: "peri\<^sub>R([P \<turnstile> Q trace refs | R(trace)
   by (simp add: mk_CRD_def rea_peri_RHS_design usubst unrest R2c_not R2c_lift_state_pre
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
 
-lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = ([P]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r ([R(trace)]\<^sub>S)\<lbrakk>trace\<rightarrow>&tt\<rbrakk>)"
+lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace) ]\<^sub>C) = ([P]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r ([R(trace)]\<^sub>S')\<lbrakk>trace\<rightarrow>&tt\<rbrakk>)"
   by (simp add: mk_CRD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
 
@@ -2559,7 +2559,7 @@ lemma CRD_contract_refine:
   shows "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> Q"
 proof -
   have "[P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3(trace)]\<^sub>C \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
-    using assms by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, rel_auto+, blast)
+    using assms by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, rel_auto+)
   thus ?thesis
     by (simp add: SRD_reactive_tri_design assms(1))
 qed
@@ -2585,7 +2585,7 @@ lemma CRD_refine_rdes:
   assumes 
     "`[P\<^sub>1]\<^sub>S\<^sub>< \<Rightarrow> Q\<^sub>1`"
     "([P\<^sub>2 x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>2)"
-    "[P\<^sub>3 x]\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>3)"
+    "[P\<^sub>3 x]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>3)"
   shows "([P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3 trace]\<^sub>C :: ('e,'s) action) \<sqsubseteq> 
           \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
   using assms
