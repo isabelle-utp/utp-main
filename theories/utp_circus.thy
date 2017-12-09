@@ -110,6 +110,54 @@ translations
   "_BasicDefn name      body" \<rightharpoonup> "name = body"
   "_ParamDefn name args body" \<rightharpoonup> "name = (\<lambda>args. body)"
 
+(*
+no_translations
+  (p_state) "state('type)" \<leftharpoondown> "TYPE('type)"
+-- \<open>Shift the type argument from ProcBodySt into (Basic/Param)ProcSt.\<close>
+  "_BasicProc name (_ProcBodySt type actions main)" \<leftharpoondown>
+  "_BasicProcSt name type (_ProcBody actions main)"
+  "_ParamProc name args (_ProcBodySt type actions main)" \<leftharpoondown>
+  "_ParamProcSt name args type (_ProcBody actions main)"
+  "_ProcBody (_Actions_tr' act acts) e" \<leftharpoondown> "_ProcBody act (_ProcBody acts e)"
+(*"_ProcBody (_Action name act) more" \<leftharpoondown> "(CONST LocalAction) act (\<lambda>name. more)"*)
+  "_ProcBody (_Action name act) more" \<leftharpoondown> "(CONST RecAction) (\<lambda>name. (act, more))"
+  "_BasicProc name      body" \<leftharpoondown> "name =         (CONST Process) body"
+  "_ParamProc name args body" \<leftharpoondown> "name = (\<lambda>args. (CONST Process) body)"
+  "_BasicProcSt name      type body" \<leftharpoondown> "name =         (CONST ProcessSt) type body"
+  "_ParamProcSt name args type body" \<leftharpoondown> "name = (\<lambda>args. (CONST ProcessSt) type body)"
+-- \<open>Making the below pretty-print can produce convoluted syntax.\<close>
+  "_BasicDefn name      body" \<leftharpoondown> "name = body"
+  "_ParamDefn name args body" \<leftharpoondown> "name = (\<lambda>args. body)"
+*)
+
+(* Examples used in Deliverable D2.3c. *)
+
+term
+"P = Process
+   (RecAction (\<lambda>A. (Act1 ;; A,
+    RecAction (\<lambda>B. (Act2 ;; A, Main (A, B))))))"
+
+term
+"process P \<triangleq>
+   begin
+     A = Act1 ;; A and
+     B = Act2 ;; A
+     \<bullet> Main(A, B)
+end"
+
+record my_state =
+  my_var1 :: "nat"
+  my_var2 :: "bool"
+
+term
+"process P(x::nat) \<triangleq>
+ begin
+   state(my_state)
+   A = Act1 x and
+   B = Act2 ;; A
+   \<bullet> Main(A, B)
+ end"
+
 print_translation {*
   [Syntax_Trans.preserve_binder_abs2_tr'
     @{const_syntax LocalAction} @{syntax_const "_Action"}]
