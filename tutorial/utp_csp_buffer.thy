@@ -65,7 +65,7 @@ text {* The postcondition has two possibilities. In the first option a particula
 lemma postR_DoBuff:
   "post\<^sub>R(DoBuff) = ((\<Sqinter> v \<bullet> \<Phi>(true,[buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>],\<langle>(inp\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>)) \<or>
                     [0 <\<^sub>u #\<^sub>u(&buff)]\<^sub>S\<^sub>< \<and> \<Phi>(true,[buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)],\<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))"
-  by rdes_calc
+  by (rdes_calc, rel_auto)
 
 text {* The precondition of the overall buffer is again true as no divergence can occur. *}
 
