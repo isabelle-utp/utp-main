@@ -1,9 +1,9 @@
 section {* Timed Designs *}
 
 theory utp_time_designs
-  imports utp_time_rel
+  imports utp_time_rel 
 begin
-
+      
 named_theorems td_simps and tdes
   
 text {* We define timed designs via an embedding into reactive designs, where the pericondition
@@ -59,11 +59,19 @@ lemma seq_time_design [td_simps]:
 
 lemma time_design_eq_intro: "\<lbrakk> P\<^sub>1 = Q\<^sub>1; (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) = (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<rbrakk> \<Longrightarrow> (P\<^sub>1 \<turnstile>\<^sub>t P\<^sub>2) = (Q\<^sub>1 \<turnstile>\<^sub>t Q\<^sub>2)"
   by (rel_auto, blast+)
-     
+    
+lemma time_design_refine_intro:
+  assumes "`P\<^sub>1 \<Rightarrow> Q\<^sub>1`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+  shows "(P\<^sub>1 \<turnstile>\<^sub>t P\<^sub>2) \<sqsubseteq> (Q\<^sub>1 \<turnstile>\<^sub>t Q\<^sub>2)"
+  by (simp add: time_design_def srdes_tri_refine_intro assms)
+    
 method td_expand uses cls = (insert cls, (erule TD_elim)+)
   
 method td_simp uses cls =
   ((td_expand cls: cls)?, (simp add: cls td_simps closure rpred alpha usubst unrest wp prod.case_eq_if))
+
+method td_refine uses cls =
+  (td_simp cls: cls; rule_tac time_design_refine_intro; (insert cls; rel_simp; auto?))
   
 method td_eq uses cls =
   (td_simp cls: cls; rule_tac time_design_eq_intro; (insert cls; rel_simp; auto?))
@@ -83,5 +91,51 @@ lemma time_wait_0 [simp]: "wait\<^sub>t(0) = II\<^sub>t"
     
 lemma time_wait_seq [simp]: "wait\<^sub>t(m) ;; wait\<^sub>t(n) = wait\<^sub>t(m + n)"
   by (td_simp, simp add: wait_plus)
+
+definition time_spec :: "('a \<Longrightarrow> 's) \<Rightarrow> 's upred \<Rightarrow> real pos \<Rightarrow> 's upred \<Rightarrow> real pos set \<Rightarrow> 's tdes" where
+[upred_defs]: "time_spec x p t\<^sub>0 r T = ([p]\<^sub>S\<^sub>< \<and> R1(&tt <\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>) \<triangleleft> \<guillemotleft>t\<^sub>0 = 0\<guillemotright> \<triangleright>\<^sub>R true\<^sub>r) \<turnstile>\<^sub>t ([x:[\<lceil>r\<rceil>\<^sub>>]]\<^sub>S \<and> R1(&tt \<in>\<^sub>u \<guillemotleft>T\<guillemotright>))"
+    
+syntax
+  "_time_spec" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_:[_, _ \<turnstile> _, _]\<^sub>t" [200,0,0,0,0] 200)
+  
+translations
+  "_time_spec x p t\<^sub>0 r T" == "CONST time_spec x p t\<^sub>0 r T"
+
+lemma srd_cond_true [simp]: "P \<triangleleft> true \<triangleright>\<^sub>R Q = P"
+  by (rel_auto)
+    
+lemma srd_cond_false [simp]: "P \<triangleleft> false \<triangleright>\<^sub>R Q = Q"
+  by (rel_auto)
+  
+lemma tt_strict_prefix_RR [closure]: "R1(&tt <\<^sub>u \<guillemotleft>v\<guillemotright>) is RC"
+  by (rel_auto, meson le_less_trans minus_cancel_le)
+    
+lemma tt_elem_RR [closure]: "R1(&tt \<in>\<^sub>u \<guillemotleft>T\<guillemotright>) is RR"
+  by (rel_auto)
+
+lemma time_spec_TD_closed: "x:[p,t\<^sub>0 \<turnstile> r,T]\<^sub>t is TD"
+  apply (simp add: TD_def time_spec_def time_design_def)
+  apply (case_tac "t\<^sub>0 = 0")
+  apply (simp_all add: true_alt_def[THEN sym] false_alt_def[THEN sym] closure unrest rdes)
+done
+
+definition hoare_time :: "'s upred \<Rightarrow> real pos \<Rightarrow> 's tdes \<Rightarrow> 's upred \<Rightarrow> real pos set \<Rightarrow> bool" where
+[td_simps]: "hoare_time p t\<^sub>0 Q r T = (\<Sigma>:[p,t\<^sub>0 \<turnstile> r,T]\<^sub>t \<sqsubseteq> Q)"
+
+syntax
+  "_time_var" :: "logic"
+  "_hoare_time" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>t")
+  
+parse_translation {*
+let
+  fun time_var_tr [] = Syntax.free "ti"
+    | time_var_tr _  = raise Match;
+in
+[(@{syntax_const "_time_var"}, K time_var_tr)]
+end
+*}
+  
+translations
+  "_hoare_time p Q r" => "CONST hoare_time p Q (\<lambda> _time_var. r)"    
     
 end
