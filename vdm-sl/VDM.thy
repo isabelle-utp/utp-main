@@ -694,7 +694,7 @@ text {* Here we augment the set of design weakest precondition laws
 
 theorem wpd_vdm_assign [wp]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  shows "(x :=\<^sub>v v) wp\<^sub>D r = (\<lfloor>\<D>\<^sub>v(v)\<rfloor>\<^sub>v \<and> r\<lbrakk>\<lfloor>v\<rfloor>\<^sub>v/x\<rbrakk>)"
+  shows "(x :=\<^sub>v v) wp\<^sub>D r = (\<lfloor>\<D>\<^sub>v(v)\<rfloor>\<^sub>v \<and> r\<lbrakk>\<lfloor>v\<rfloor>\<^sub>v/&x\<rbrakk>)"
   by (simp add: vassign_uvar_def wp usubst)
 
 lemma wp_calc_test_1:
