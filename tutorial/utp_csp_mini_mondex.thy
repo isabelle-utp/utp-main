@@ -126,8 +126,8 @@ lemma Pay_contract':
        \<diamondop> ((&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> $st\<acute> =\<^sub>u $st)
             \<triangleleft> \<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
           (&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and>
-             [\<langle>[&accts \<mapsto>\<^sub>s &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>
-                                , \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u]\<rangle>\<^sub>a]\<^sub>S'
+             [accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, 
+                              \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u]\<^sub>S'
           )))"
   using assms by (simp add: Pay_def closure, rdes_simp, rel_auto) 
     
