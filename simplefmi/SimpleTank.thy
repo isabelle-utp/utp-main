@@ -10,6 +10,24 @@ alphabet tank_st =
   valve   :: bool
   level   :: real
 
+alphabet ctr_st = vrt_st +
+  valveOn     :: bool
+  levelSensor :: real
+    
+alphabet wt_st =
+  tank  :: tank_st
+  ctr   :: "ctr_st vrt_st_scheme"
+    
+definition
+  "Init = [ &tank:valve      \<mapsto>\<^sub>s true
+          , &tank:level      \<mapsto>\<^sub>s 0
+          , &ctr:valveOn     \<mapsto>\<^sub>s true
+          , &ctr:levelSensor \<mapsto>\<^sub>s 0 ]"
+  
+definition 
+  "Wiring = [ &tank:valve      \<mapsto>\<^sub>s &ctr:valveOn
+            , &ctr:levelSensor \<mapsto>\<^sub>s &tank:level ]"
+  
 lemma tank_st_ords [usubst]: "level \<prec>\<^sub>v valve"
   by (simp add: var_name_ord_def)
   
@@ -27,32 +45,14 @@ lemma continuous_Rep_tank_st_ext [continuous_intros]:
   "continuous_on UNIV Rep_tank_st_ext"
   by (metis continuous_on_open_vimage image_vimage_eq open_Int open_UNIV open_tank_st_ext.rep_eq)
   
-alphabet ctr_st = vrt_st +
-  valveOn     :: bool
-  levelSensor :: real
-
 lemma ctr_st_ords [usubst]: 
   "ctdown \<prec>\<^sub>v levelSensor"
   "ctdown \<prec>\<^sub>v valveOn"
   "levelSensor \<prec>\<^sub>v valveOn"
   by (simp_all add: var_name_ord_def)  
 
-alphabet wt_st =
-  tank  :: tank_st
-  ctr   :: "ctr_st vrt_st_scheme"
-
 lemma wt_st_ords [usubst]: "ctr \<prec>\<^sub>v tank" 
   by (simp add: var_name_ord_def)
-  
-definition
-  "Init = [ &tank:valve      \<mapsto>\<^sub>s true
-          , &tank:level      \<mapsto>\<^sub>s -0.001
-          , &ctr:valveOn     \<mapsto>\<^sub>s true
-          , &ctr:levelSensor \<mapsto>\<^sub>s 0 ]"
-  
-definition 
-  "Wiring = [ &tank:valve      \<mapsto>\<^sub>s &ctr:valveOn
-            , &ctr:levelSensor \<mapsto>\<^sub>s &tank:level ]"
 
 abbreviation (input) tank_ode_1 :: "real \<Rightarrow> real \<Rightarrow> real" where
 "tank_ode_1 \<equiv> (\<lambda> t l. 1)"
@@ -82,10 +82,10 @@ definition Ctr :: "real \<Rightarrow> real \<Rightarrow> ctr_st vrt_st_ext fmu" 
   VDMRT_FMU 0.001 (valveOn := false \<triangleleft> &levelSensor \<le>\<^sub>u \<guillemotleft>minLevel + 0.1\<guillemotright> \<triangleright>\<^sub>r 
                    valveOn := true \<triangleleft> &levelSensor \<ge>\<^sub>u \<guillemotleft>maxLevel - 0.1\<guillemotright> \<triangleright>\<^sub>r II)"
 
-definition 
+definition WaterTank :: "real \<Rightarrow> real \<Rightarrow> wt_st trel" where
   "WaterTank minLevel maxLevel = 
-     FMI Init [FMU[ctr, Ctr minLevel maxLevel], FMU[tank, Tank]] ArbStep Wiring"
-           
+     FMI Init [FMU[ctr, Ctr minLevel maxLevel], FMU[tank, Tank]] (FixedStep 0.001) Wiring"
+
 lemma ArbStep_not_empty [simp]: "\<not> ArbStep = {}"
   by (simp add: ArbStep_def)
     
@@ -147,25 +147,20 @@ proof (rule FMI_hoare_rp, simp_all)
 qed
 *)
    
-abbreviation 
-     "I \<equiv> &ctr:ctdown =\<^sub>u 0.001 \<and>
-      ((&tank:level <\<^sub>u 9.9) \<or> 
-       (&tank:level \<ge>\<^sub>u 9.9 \<and> &tank:level <\<^sub>u 9.95 \<and> \<not> &ctr:valveOn) \<or>
-       (&tank:level \<ge>\<^sub>u 9.9 \<and> &tank:level <\<^sub>u 10 \<and> &ctr:valveOn))"
+abbreviation WTI :: "wt_st upred" where
+  "WTI \<equiv> &ctr:ctdown =\<^sub>u 0.001 \<and>
+         ((&tank:level <\<^sub>u 9.9) \<or> 
+          (&tank:level \<ge>\<^sub>u 9.9 \<and> &tank:level <\<^sub>u 9.95 \<and> \<not> &ctr:valveOn) \<or>
+          (&tank:level \<ge>\<^sub>u 9.9 \<and> &tank:level <\<^sub>u 10 \<and> &ctr:valveOn))"
                
 lemma wt_lemma_1:
-  "\<lbrace>true\<rbrace>
-     FMI Init [FMU[ctr, Ctr 0 10], FMU[tank, Tank]] (FixedStep 0.001) Wiring 
-   \<lbrace>I\<rbrace>\<^sub>r"  
+  "\<lbrace>true\<rbrace> WaterTank 0 10 \<lbrace>WTI\<rbrace>\<^sub>r"  
+  unfolding WaterTank_def
   by (fmi_hoare defs: Tank_def Ctr_def Init_def Wiring_def tank_ode_1_evolve tank_ode_2_evolve)
 
 lemma wt_safe:
-  "\<lbrace>true\<rbrace>
-     FMI Init [FMU[ctr, Ctr 0 10], FMU[tank, Tank]] (FixedStep 0.001) Wiring 
-   \<lbrace>&tank:level <\<^sub>u 10\<rbrace>\<^sub>r"  
-  apply (rule hoare_rp_strengthen[where q'="I"])
-  apply (rel_auto)
-  apply (rule wt_lemma_1)
-done  
+  "\<lbrace>true\<rbrace> WaterTank 0 10 \<lbrace>&tank:level <\<^sub>u 10\<rbrace>\<^sub>r"  
+  by (rule hoare_rp_strengthen[where q'="WTI"])
+     (rel_auto, rule wt_lemma_1)  
   
 end
