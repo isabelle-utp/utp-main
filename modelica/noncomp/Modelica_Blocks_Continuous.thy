@@ -19,7 +19,8 @@ definition Integrator ::
     \<rparr>"
 
 definition ResetIntegrator :: 
-  "real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> _ \<Rightarrow> ('l, 'c) mblock" where
+  "real \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> (real, 'l, 'c) mcon \<Rightarrow> 
+   (real, 'l, 'c) mcon \<Rightarrow> (bool, 'l, 'c) mcon \<Rightarrow> ('l, 'c) mblock" where
 [upred_defs, mo_defs]: 
   "ResetIntegrator k u y y_start r =
     \<lparr> mieqs = (&y =\<^sub>u &y_start)

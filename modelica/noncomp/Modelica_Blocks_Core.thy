@@ -55,11 +55,21 @@ lemma iterate_skip_lemma_1:
   by (rel_auto)
     
 definition iterate :: "'a hrel \<Rightarrow> 'a hrel" where
-"iterate P = (\<exists> $\<^bold>v\<^sub>1;$\<^bold>v\<^sub>1\<acute> \<bullet> (\<nu> X \<bullet> (P \<oplus>\<^sub>p (\<^bold>v\<^sub>0 \<times>\<^sub>L \<^bold>v\<^sub>0) \<and> $\<^bold>v\<^sub>1\<acute> =\<^sub>u $\<^bold>v\<^sub>0) ;; (II \<triangleleft> &\<^bold>v\<^sub>0 =\<^sub>u &\<^bold>v\<^sub>1 \<triangleright>\<^sub>r X))) \<restriction>\<^sub>p (\<^bold>v\<^sub>0 \<times>\<^sub>L \<^bold>v\<^sub>0)"
+"iterate P = (\<exists> $\<^bold>v\<^sub>1;$\<^bold>v\<^sub>1\<acute> \<bullet> (\<nu> X \<bullet> (P \<oplus>\<^sub>p (\<^bold>v\<^sub>0 \<times>\<^sub>L \<^bold>v\<^sub>0) \<and> $\<^bold>v\<^sub>1\<acute> =\<^sub>u $\<^bold>v\<^sub>0) ;; (II \<triangleleft> &\<^bold>v\<^sub>0 =\<^sub>u &\<^bold>v\<^sub>1 \<triangleright>\<^sub>r X))) \<restriction>\<^sub>e (\<^bold>v\<^sub>0 \<times>\<^sub>L \<^bold>v\<^sub>0)"
   
 lemma iterate_II: "iterate II = II"
   by (simp add: iterate_def skip_lens_ext_fst iterate_skip_lemma_1 lfp_const, rel_auto)
-      
+
+definition mblock_comp :: "('l,'c) mblock \<Rightarrow> ('l,'c) mblock \<Rightarrow> ('l,'c) mblock" (infixr "\<oplus>\<^sub>m" 85) where
+[upred_defs, mo_defs]:
+"A \<oplus>\<^sub>m B = \<lparr> mieqs = (mieqs A \<and> mieqs B)
+          , mdeqs = (mdeqs A \<and> mdeqs B)
+          , maeqs = (maeqs A \<and> maeqs B)
+          , mqeqs = (mqeqs A \<and> mqeqs B)
+          , mreqs = (mreqs A \<union> mreqs B)
+          , mzcfs = (mzcfs A \<union> mzcfs B)
+          , mtevs = (\<lambda> t. mtevs A t \<or> mtevs B t) \<rparr>"
+    
 (* FIXME: Take account of time events here too. *)
     
 definition mblock_sem :: 
@@ -69,8 +79,8 @@ definition mblock_sem ::
   (let I = mieqs M; D = mdeqs M; A = maeqs M; Q = mqeqs M; R = mreqs M; Z = mzcfs M; T = mtevs M in
    \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> [I \<and> Q \<and> A]\<^sub>C\<^sub>>) ;;
    (\<mu>\<^sub>R X \<bullet> ([D \<and> \<lceil>\<lceil>A\<rceil>\<^sub>>\<rceil>\<^sub>h \<and> q \<leftarrow>\<^sub>h $q]\<^sub>H 
-                 inv (\<not> \<guillemotleft>T\<guillemotright>($time\<acute>)\<^sub>a) \<and> (\<And> z\<in>Z \<bullet> EvInv \<epsilon> z) 
-                 until\<^sub>H ((\<guillemotleft>T\<guillemotright>($time\<acute>)\<^sub>a) \<or> (\<Or> z\<in>Z \<bullet> EvExit \<epsilon> z))) ;;
+                 inv (\<not> \<guillemotleft>T\<guillemotright>($mtime\<acute>)\<^sub>a) \<and> (\<And> z\<in>Z \<bullet> EvInv \<epsilon> z) 
+                 until\<^sub>H ((\<guillemotleft>T\<guillemotright>($mtime\<acute>)\<^sub>a) \<or> (\<Or> z\<in>Z \<bullet> EvExit \<epsilon> z))) ;;
             \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> [iterate($s\<acute> =\<^sub>u $s \<and> \<lceil>Q\<rceil>\<^sub>> \<and> \<lceil>A\<rceil>\<^sub>>) ;; |||\<^sub>r R]\<^sub>C) ;; X))"
 
 (*

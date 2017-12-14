@@ -12,7 +12,7 @@ definition Sampler ::
     \<lparr> mieqs = &y =\<^sub>u &u
     , mdeqs = true\<^sub>r
     , maeqs = true
-    , mqeqs = (\<guillemotleft>sample\<^sub>m startTime samplePeriod\<guillemotright>(&time)\<^sub>a \<Rightarrow> &y =\<^sub>u &u)
+    , mqeqs = (\<guillemotleft>sample\<^sub>m startTime samplePeriod\<guillemotright>(&mtime)\<^sub>a \<Rightarrow> &y =\<^sub>u &u)
     , mreqs = {}
     , mzcfs = {}
     , mtevs = sample\<^sub>m startTime samplePeriod
