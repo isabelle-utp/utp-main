@@ -24,6 +24,8 @@ definition front :: "'a list \<Rightarrow> 'a list" where
 abbreviation middle :: "'a list \<Rightarrow> 'a list" where
 "middle l \<equiv> front (tl l)"
 
+(* "x \<in> set l \<Longrightarrow> x \<noteq> *)
+
 subsection {* Isabelle/UTP Laws *}
 
 lemma uimp_uconjI:
@@ -169,8 +171,8 @@ subsection {* Relays Invariant *}
 
 text \<open>Ensures that at most one relay can be activated at a time.\<close>
 
-definition relays_excl_inv :: "railways_state upred" where [upred_defs]:
-"relays_excl_inv = (
+definition relays_excl_inv :: "railways_state upred" where
+[upred_defs]: "relays_excl_inv = (
   (#\<^sub>u(&relays) =\<^sub>u 5) \<and>
   (R1 \<Rightarrow> \<not> R2 \<and> \<not> R4) \<and>
   (R2 \<Rightarrow> \<not> R1 \<and> \<not> R3 \<and> \<not> R4 \<and> \<not> R5) \<and>
@@ -349,15 +351,17 @@ done
 
 subsection {* Train Model *}
 
-definition MustWait :: "bool vector \<Rightarrow> int \<Rightarrow> bool" where
-"MustWait sig track \<longleftrightarrow>
-  (track = 1 \<and> sig\<^bold>[1\<^bold>]) \<or> (track = 2 \<and> sig\<^bold>[2\<^bold>]) \<or> (track = 3 \<and> sig\<^bold>[3\<^bold>])"
+definition MustWait :: "bool vector \<Rightarrow> direction \<Rightarrow> int \<Rightarrow> bool" where
+"MustWait sig dir track \<longleftrightarrow>
+  (track = 1 \<and> dir = QtoV \<and> \<not> sig\<^bold>[1\<^bold>]) \<or>
+  (track = 2 \<and> dir = QtoV \<and> \<not> sig\<^bold>[2\<^bold>]) \<or>
+  (track = 3 \<and> dir = VtoQ \<and> \<not> sig\<^bold>[3\<^bold>])"
 
 fun MoveTrain :: "int \<times> direction \<times> (bool vector) \<times> (switch vector) \<Rightarrow> int" where
 "MoveTrain (track, dir, sig, sw) =
   (if track =  0 then  0 else
   (if track = -1 then -1 else
-  (if MustWait sig track then track
+  (if MustWait sig dir track then track
    else (case dir of
     QtoV \<Rightarrow> NextTrackQV sw track |
     VtoQ \<Rightarrow> NextTrackVQ sw track))))"
@@ -382,6 +386,8 @@ definition Train2 :: "TIME \<Rightarrow> railways_state hrel" where
 
 subsection {* Train Invariant *}
 
+(* Try the following as an invariant! *)
+
 definition train1_inv :: "railways_state upred" where
 [urel_defs]: "train1_inv = (
   &current_track\<^sub>1 =\<^sub>u \<guillemotleft>initial_track\<^sub>1\<guillemotright> \<or>
@@ -389,12 +395,22 @@ definition train1_inv :: "railways_state upred" where
   &current_track\<^sub>1 =\<^sub>u \<guillemotleft>final_track\<^sub>1\<guillemotright> \<or>
   &current_track\<^sub>1 =\<^sub>u 0)"
 
+definition train1_inv_new :: "railways_state upred" where
+[urel_defs]: "train1_inv_new = (
+  &current_track\<^sub>1 \<in>\<^sub>u \<guillemotleft>set (routes!route\<^sub>1) \<union> {0}\<guillemotright> \<and>
+  (&current_track\<^sub>1 \<in>\<^sub>u \<guillemotleft>set (middle (routes!route\<^sub>1))\<guillemotright> \<Rightarrow> &relays[route\<^sub>1]\<^sub>u))"
+
 definition train2_inv :: "railways_state upred" where
 [urel_defs]: "train2_inv = (
   &current_track\<^sub>2 =\<^sub>u \<guillemotleft>initial_track\<^sub>2\<guillemotright> \<or>
   (&relays[route\<^sub>2]\<^sub>u \<and> &current_track\<^sub>2 \<in>\<^sub>u \<guillemotleft>set (routes!route\<^sub>2)\<guillemotright>) \<or>
   &current_track\<^sub>2 =\<^sub>u \<guillemotleft>final_track\<^sub>2\<guillemotright> \<or>
   &current_track\<^sub>2 =\<^sub>u 0)"
+
+definition train2_inv_new :: "railways_state upred" where
+[urel_defs]: "train2_inv_new = (
+  &current_track\<^sub>2 \<in>\<^sub>u \<guillemotleft>set (routes!route\<^sub>2) \<union> {0}\<guillemotright> \<and>
+  (&current_track\<^sub>2 \<in>\<^sub>u \<guillemotleft>set (middle (routes!route\<^sub>2))\<guillemotright> \<Rightarrow> &relays[route\<^sub>2]\<^sub>u))"
 
 subsection {* Proof of Safety *}
 
@@ -544,6 +560,64 @@ apply (rule safety_req_lemma2)
 apply (rule safety_req_lemma3)
 done
 
+lemma new_safety_req_lemma1:
+"`train1_inv_new \<Rightarrow> \<not> derailed\<^sub>1`"
+apply (rel_simp)
+apply (atomize (full))
+apply (rule route1_cases)
+apply (safe; simp add: routes_def)
+done
+
+lemma new_safety_req_lemma2:
+"`train2_inv_new \<Rightarrow> \<not> derailed\<^sub>2`"
+apply (rel_simp)
+apply (atomize (full))
+apply (rule route2_cases)
+apply (safe; simp add: routes_def)
+done
+
+lemma new_safety_req_lemma3:
+"`relays_excl_inv \<and> train1_inv_new \<and> train2_inv_new \<Rightarrow>
+  (present\<^sub>1 \<and> present\<^sub>2 \<Rightarrow> &current_track\<^sub>1 \<noteq>\<^sub>u &current_track\<^sub>2)`"
+apply (subst relays_excl_inv_split_alt)
+apply (rel_simp)
+apply (rename_tac rs)
+apply (safe)
+-- {* Subgoal 1 *}
+defer
+-- {* Subgoal 2 *}
+defer
+-- {* Subgoal 3 *}
+defer
+-- {* Subgoal 4 *}
+apply (atomize (full))
+apply (rule route_cases)
+apply (safe; clarsimp simp add: routes_def)
+apply (auto) [1]
+apply (auto) [1]
+apply (auto) [1]
+apply (auto) [1]
+apply (auto) [1]
+apply (unfold valid_relay_states_def)
+apply (simp; safe; clarsimp)
+apply (simp; safe; clarsimp)
+sledgehammer
+oops
+
+lemma safety_req_holds_new:
+"`relays_excl_inv \<and> train1_inv_new \<and> train2_inv_new \<Rightarrow> safety_req`"
+apply (unfold safety_req_def)
+apply (ustrip_tac)
+-- {* Subgoal 1 *}
+apply (rule uconjD2; rule uconjD1)
+apply (rule new_safety_req_lemma1)
+-- {* Subgoal 2 *}
+apply (rule uconjD2; rule uconjD2)
+apply (rule new_safety_req_lemma2)
+-- {* Subgoal 3 *}
+(* apply (rule safety_req_lemma3) *)
+oops
+
 subsection {* Merger Model *}
 
 definition MergeCDV :: "int \<Rightarrow> (bool vector) \<Rightarrow> (bool vector)" where
@@ -593,6 +667,96 @@ apply (rel_simp)
 apply (safe; clarsimp; thin_tac "telecommand\<^sub>1\<^sub>v' = _")
 apply (meson in_set_list_split3 route1_non_empty)
 -- {* A few more days work to do here to prove this invariant! *}
+oops
+
+lemma MoveTrain_lemmas:
+"MoveTrain (0, dir, sig, sw) = 0"
+"MoveTrain (-1, dir, sig, sw) = -1"
+"MoveTrain (1, QtoV, sig, sw) = (if sig\<^bold>[1\<^bold>] then 10 else 1)"
+"MoveTrain (1, VtoQ, sig, sw) = 0"
+"MoveTrain (2, QtoV, sig, sw) = (if sig\<^bold>[2\<^bold>] then 11 else 2)"
+"MoveTrain (2, VtoQ, sig, sw) = 0"
+"MoveTrain (3, QtoV, sig, sw) = 0"
+"MoveTrain (3, VtoQ, sig, sw) =
+  (if sig\<^bold>[3\<^bold>] then (if sw\<^bold>[1\<^bold>] = STRAIGHT then 4 else -1) else 3)"
+"MoveTrain (4, QtoV, sig, sw) = (if sw\<^bold>[1\<^bold>] = STRAIGHT then 3 else 13)"
+"MoveTrain (4, VtoQ, sig, sw) = (if sw\<^bold>[3\<^bold>] = STRAIGHT then 5 else 12)"
+"MoveTrain (5, QtoV, sig, sw) = (if sw\<^bold>[3\<^bold>] = STRAIGHT then 4 else -1)"
+"MoveTrain (5, VtoQ, sig, sw) = 0"
+"MoveTrain (6, QtoV, sig, sw) = 0"
+"MoveTrain (6, VtoQ, sig, sw) = (if sw\<^bold>[4\<^bold>] = STRAIGHT then 7 else 13)"
+"MoveTrain (7, QtoV, sig, sw) = (if sw\<^bold>[4\<^bold>] = STRAIGHT then 6 else -1)"
+"MoveTrain (7, VtoQ, sig, sw) = (if sw\<^bold>[2\<^bold>] = STRAIGHT then 8 else -1)"
+"MoveTrain (8, QtoV, sig, sw) = (if sw\<^bold>[2\<^bold>] = STRAIGHT then 7 else 12)"
+"MoveTrain (8, VtoQ, sig, sw) = 9"
+"MoveTrain (9, QtoV, sig, sw) = 8"
+"MoveTrain (9, VtoQ, sig, sw) = (if sw\<^bold>[5\<^bold>] = STRAIGHT then 10 else 11)"
+"MoveTrain (10, QtoV, sig, sw) = (if sw\<^bold>[5\<^bold>] = STRAIGHT then 9 else -1)"
+"MoveTrain (10, VtoQ, sig, sw) = 1"
+"MoveTrain (11, QtoV, sig, sw) = (if sw\<^bold>[5\<^bold>] = DIVERGING then 9 else -1)"
+"MoveTrain (11, VtoQ, sig, sw) = 2"
+apply (simp_all add: MoveTrain.simps MustWait_def)
+apply (simp_all add: NextTrackQV_def NextTrackVQ_def)
+done
+
+lemma "\<lbrace>train1_inv_new\<rbrace>Train1 \<epsilon>\<lbrace>relays_set_inv \<Rightarrow> train1_inv_new\<rbrace>\<^sub>u"
+apply (unfold Train1_def)
+apply (unfold train1_inv_new_def)
+apply (rel_simp)
+(* apply (safe; clarsimp; thin_tac "telecommand\<^sub>1\<^sub>v' = _") *)
+apply (atomize (full))
+apply (rule route1_cases)
+apply (safe; clarsimp?)
+apply (simp_all add: MoveTrain_lemmas(1))
+apply (simp_all add: routes_def directions_def)
+-- {* Subgoal 1 *}
+apply (safe; clarsimp) [1]
+apply (simp_all add: MoveTrain_lemmas front_def) [3]
+apply (case_tac "signals\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (case_tac "switches\<^sub>v\<^bold>[1\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[1\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+-- {* Subgoal 2 *}
+apply (safe; clarsimp) [1]
+apply (simp_all add: MoveTrain_lemmas front_def) [3]
+apply (case_tac "signals\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (case_tac "switches\<^sub>v\<^bold>[1\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[1\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+-- {* Subgoal 3 *}
+apply (safe; clarsimp) [1]
+apply (simp_all add: MoveTrain_lemmas front_def) [3]
+apply (case_tac "signals\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (case_tac "switches\<^sub>v\<^bold>[1\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[1\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+apply (case_tac "switches\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[3\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+-- {* Subgoal 4 *}
+apply (safe; clarsimp) [1]
+apply (simp_all add: MoveTrain_lemmas front_def) [3]
+apply (case_tac "signals\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (case_tac "switches\<^sub>v\<^bold>[1\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[1\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+apply (case_tac "switches\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[3\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
+-- {* Subgoal 5 *}
+apply (safe; clarsimp) [1]
+apply (simp_all add: MoveTrain_lemmas front_def) [7]
+apply (case_tac "signals\<^sub>v\<^bold>[3\<^bold>]"; clarsimp)
+apply (case_tac "switches\<^sub>v\<^bold>[1\<^bold>]"; clarsimp)
+apply (subgoal_tac "switches\<^sub>v\<^bold>[1\<^bold>] = STRAIGHT")
+apply (auto) [1]
+defer
 oops
 
 (*

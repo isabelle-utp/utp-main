@@ -30,9 +30,15 @@ declare equal_literal.rep_eq [code del]
 
 subsection {* Function of a List *}
 
-fun fun_of_list :: "('a \<times> 'b) list \<Rightarrow> ('a \<Rightarrow> 'b)" where
-"fun_of_list []           x = undefined" |
-"fun_of_list ((a, b) # t) x = (if x = a then b else fun_of_list t x)"
+text {*
+  Casper Thule pointed out a fault with the original definition: we have to
+  consider all maplets associated with \<open>x\<close>, not just one. This is because the
+  the port dependency graphs maps outputs to their connected intputs.
+*}
+
+fun fun_of_rel :: "('a \<times> 'b) list \<Rightarrow> ('a \<Rightarrow> 'b set)" where
+"fun_of_rel []           x = {}" |
+"fun_of_rel ((a, b) # t) x = (if x = a then {b} else {}) \<union> (fun_of_rel t x)"
 
 subsubsection {* Supplementary Lemmas *}
 
@@ -484,6 +490,12 @@ inductive conformant :: "(PORT \<times> PORT) list \<Rightarrow> bool" where
 
 declare conformant.intros [intro!]
 
+definition pdg_conformant :: "bool" where
+"pdg_conformant \<longleftrightarrow> conformant pdg"
+
+definition idd_conformant :: "bool" where
+"idd_conformant \<longleftrightarrow> conformant idd"
+
 lemma pdg_conformant:
 "conformant pdg" unfolding pdg_def by (auto)
 
@@ -493,6 +505,9 @@ lemma idd_conformant:
 subsubsection {* Absence of Algebraic Loops *}
 
 text {* Proof using the @{method eval} tactic directly. *}
+
+definition wf_control_graph :: "bool" where
+"wf_control_graph \<longleftrightarrow> acyclic (set pdg \<union> set idd)"
 
 lemma "acyclic (set pdg \<union> set idd)"
 profile (eval)

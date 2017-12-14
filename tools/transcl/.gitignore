@@ -1,0 +1,4 @@
+# Tell git to ignore the following directories.
+build
+lib
+transcl
