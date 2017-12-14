@@ -11,5 +11,4 @@ section {* Meta-Theory for UTP with Deep Variables *}
 theory utp_deep
 imports utp
   utp_dvar
-  utp_procedure
 begin end

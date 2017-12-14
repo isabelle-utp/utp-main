@@ -43,18 +43,4 @@ instance
   by (intro_classes, simp add: vstore_lens_rsp_vars_ext_def)
 end
 
-subsection {* Procedure Declarations *}
-
-text {* We also set up procedures for the theory of designs. *}
-
-abbreviation "DAL \<equiv> TYPE(DES \<times> '\<alpha> des \<times> '\<alpha>)"
-abbreviation "NDAL \<equiv> TYPE(NDES \<times> '\<alpha> des \<times> '\<alpha>)"
-
-syntax
- "_dproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>D/ _" [0,10] 10)
- "_nproc_block"  :: "parm_list \<Rightarrow> logic \<Rightarrow> ('a, '\<alpha>) uproc" ("_ \<bullet>\<^sub>N/ _" [0,10] 10)
-
-translations
-  "_dproc_block ps P" => "_proc_block (CONST DAL) ps P"
-  "_nproc_block ps P" => "_proc_block (CONST NDAL) ps P"
 end

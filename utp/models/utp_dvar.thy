@@ -355,10 +355,4 @@ adhoc_overloading
 
 declare subst_upd_dvar_def [upred_defs]
 
-text {* Set up deep variable blocks *}
-
-translations
-  "var\<^bsub>T\<^esub> <x> \<bullet> P" => "var\<^bsub>T\<^esub> <x> ;; ((\<lambda> x. P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x>"
-  "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> P" => "var\<^bsub>T\<^esub> <x::'a list> ;; ((\<lambda> x :: ('a \<Longrightarrow> _). P) (CONST top_var (CONST MkDVar IDSTR(x)))) ;; end\<^bsub>T\<^esub> <x::'a list>"
-  "var\<^bsub>T\<^esub> <x>  :: 'a := v \<bullet> P" => "var\<^bsub>T\<^esub> <x> :: 'a \<bullet> x ::=\<^bsub>T\<^esub> v ;; P"
 end
