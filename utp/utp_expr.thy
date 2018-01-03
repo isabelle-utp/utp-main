@@ -385,12 +385,14 @@ syntax -- \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
   "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
+  "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
 
 translations
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
+  "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
 
 syntax -- \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
