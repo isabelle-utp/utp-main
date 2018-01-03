@@ -92,8 +92,8 @@ begin
     This is effectively a dynamic lens, since where it points to depends on the initial number
     of variables on the stack. *}
   
-  definition top_var :: "('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha> \<times> '\<alpha>) uexpr" ("top\<^sub>v") where
-  "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u($\<^bold>s:store) - 1)\<^sub>a"
+  definition top_var :: "('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("top\<^sub>v") where
+  "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1)\<^sub>a"
   
   text {* Finally, we combine the above operators to represent variable scope. This is a kind of
     binder which takes a homogeneous relation, parametric over a lens, and returns a relation. It
@@ -101,7 +101,7 @@ begin
     the scope afterwards. *}
   
   definition var_scope :: "(('a \<Longrightarrow> ('u, 's) local_scheme) \<Rightarrow> '\<alpha> hrel) \<Rightarrow> '\<alpha> hrel" where
-  "var_scope f = open\<^sub>v ;; f(x)\<lbrakk>x\<rightarrow>top\<^sub>v\<rbrakk> ;; close\<^sub>v" 
+  "var_scope f = open\<^sub>v ;; f(x)\<lbrakk>x\<rightarrow>\<lceil>top\<^sub>v\<rceil>\<^sub><\<rbrakk> ;; close\<^sub>v" 
 end
 
 notation utp_local_state.var_open ("open[_]")
@@ -154,10 +154,7 @@ declare utp_local_state.var_open_def [upred_defs]
 declare utp_local_state.var_close_def [upred_defs]  
 declare utp_local_state.top_var_def [upred_defs]
 declare utp_local_state.var_scope_def [upred_defs]  
-  
-lemma unrest_out_vtop [unrest]: "utp_local_state U \<Longrightarrow> out\<alpha> \<sharp> top[U]"
-  by (simp add: utp_local_state.top_var_def unrest)
-  
+    
 subsection {* Relational State Spaces *}
   
 text {* To illustrate the above technique, we instantiate it for relations with a @{typ nat} as

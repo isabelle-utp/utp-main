@@ -2155,9 +2155,12 @@ definition des_local_state ::
   
 syntax
   "_des_local_state_type" :: "type \<Rightarrow> logic" ("\<L>\<^sub>D[_]")
+  "_des_var_scope_type" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<^sub>D _ :: _ \<bullet> _" [0, 0, 10] 10)
   
 translations
   "\<L>\<^sub>D['a]" == "CONST des_local_state TYPE('a)"
+  "_des_var_scope_type x t P" => "_var_scope_type (_des_local_state_type t) x t P"
+  "var\<^sub>D x :: 'a \<bullet> P" <= "var[\<L>\<^sub>D['a]] x \<bullet> P"
   
 lemma get_rel_local [lens_defs]:
   "get\<^bsub>\<^bold>s\<^bsub>\<L>\<^sub>D['a::countable]\<^esub>\<^esub> = get\<^bsub>\<Sigma>\<^sub>D\<^esub>"
@@ -2178,7 +2181,7 @@ lemma des_var_close_H1_H3_closed [closure]:
   "close[\<L>\<^sub>D['a::countable]] is \<^bold>N"
   by (simp add: utp_local_state.var_close_def closure)  
    
-lemma unrest_ok_vtop_des [unrest]: "$ok \<sharp> top[\<L>\<^sub>D['a::countable]]"
+lemma unrest_ok_vtop_des [unrest]: "ok \<sharp> top[\<L>\<^sub>D['a::countable]]"
   by (simp add: utp_local_state.top_var_def, simp add: des_local_state_def  unrest)
     
 lemma msubst_H1_H3_closed [closure]:
@@ -2188,12 +2191,26 @@ lemma msubst_H1_H3_closed [closure]:
 lemma var_block_H1_H3_closed [closure]:
   "(\<And>x. P x is \<^bold>N) \<Longrightarrow> \<V>[\<L>\<^sub>D['a::countable], P] is \<^bold>N"
   by (simp add: utp_local_state.var_scope_def closure unrest)
+
+lemma inj_local_rel [simp]: "inj_local R\<^sub>l = \<U>\<^sub>\<nat>"
+  by (simp add: rel_local_state_def)
     
-syntax
-  "_des_var_scope_type" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<^sub>D _ :: _ \<bullet> _" [0, 0, 10] 10)
+lemma sstate_rel [simp]: "\<^bold>s\<^bsub>R\<^sub>l\<^esub> = 1\<^sub>L"
+  by (simp add: rel_local_state_def)
 
-translations
-  "_des_var_scope_type x t P" => "_var_scope_type (_des_local_state_type t) x t P"
-  "var\<^sub>D x :: 'a \<bullet> P" <= "var[\<L>\<^sub>D['a]] x \<bullet> P"
-
+lemma inj_local_des [simp]: 
+  "inj_local \<L>\<^sub>D['a::countable] = \<U>\<^sub>\<nat>"
+  by (simp add: des_local_state_def)
+  
+lemma sstate_des [simp]: "\<^bold>s\<^bsub>\<L>\<^sub>D['a::countable]\<^esub> = \<Sigma>\<^sub>D"
+  by (simp add: des_local_state_def)
+      
+lemma ndesign_msubst_top [usubst]:
+  "(p x \<turnstile>\<^sub>n Q x)\<lbrakk>x\<rightarrow>\<lceil>top[\<L>\<^sub>D['a::countable]]\<rceil>\<^sub><\<rbrakk> = ((p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l['a]]\<rbrakk> \<turnstile>\<^sub>n (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l['a]]\<rceil>\<^sub><\<rbrakk>)"
+  by (rel_auto')
+      
+lemma "(var\<^sub>D x :: 'a :: countable \<bullet> p(x) \<turnstile>\<^sub>n Q(x)) = undefined"
+  apply (simp add: utp_local_state.var_scope_def utp_local_state.var_open_def utp_local_state.var_close_def usubst)
+oops
+    
 end
