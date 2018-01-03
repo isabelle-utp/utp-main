@@ -2143,4 +2143,34 @@ translations
   
 term "dcl\<^sub>D x :: int \<bullet> x :=\<^sub>D 1"
     
+subsection {* Deep Local Variables *}
+
+definition des_local_state :: 
+  "'a::countable itself \<Rightarrow> ((nat, 's) local_scheme des, 's, nat, 'a::countable) local_prim" where
+  "des_local_state t = \<lparr> sstate = \<Sigma>\<^sub>D, sassigns = assigns_d, inj_local = nat_inj_univ \<rparr>"
+  
+syntax
+  "_des_local_state_type" :: "type \<Rightarrow> logic" ("\<L>\<^sub>D[_]")
+  
+translations
+  "\<L>\<^sub>D['a]" == "CONST des_local_state TYPE('a)"
+  
+lemma get_rel_local [lens_defs]:
+  "get\<^bsub>\<^bold>s\<^bsub>\<L>\<^sub>D['a::countable]\<^esub>\<^esub> = get\<^bsub>\<Sigma>\<^sub>D\<^esub>"
+  by (simp add: des_local_state_def)
+    
+lemma des_local_state [simp]: "utp_local_state \<L>\<^sub>D['a::countable]"
+  by (unfold_locales, simp_all add: upred_defs assigns_comp des_local_state_def, rel_auto)
+     (metis local.cases_scheme)
+
+lemma sassigns_des_state [simp]: "\<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>\<L>\<^sub>D['a::countable]\<^esub> = \<langle>\<sigma>\<rangle>\<^sub>D"
+  by (simp add: des_local_state_def)
+
+syntax
+  "_des_var_scope_type" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<^sub>D _ :: _ \<bullet> _" [0, 0, 10] 10)
+
+translations
+  "_des_var_scope_type x t P" => "_var_scope_type (_des_local_state_type t) x t P"
+  "var\<^sub>D x :: 'a \<bullet> P" <= "var[\<L>\<^sub>D['a]] x \<bullet> P"
+
 end
