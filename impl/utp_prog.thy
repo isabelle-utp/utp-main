@@ -70,8 +70,10 @@ lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rig
 lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
 lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow>  '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
   by (simp add: AlternateD_list_def list_all_def pred_prod_beta closure)
-     (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)
-
+     (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)  
+lift_definition plocal :: "'a::countable itself \<Rightarrow> (('a \<Longrightarrow> 'b clocal) \<Rightarrow> 'b clocal prog) \<Rightarrow> 'b clocal prog" is
+  "\<lambda> t. utp_local_state.var_scope \<L>\<^sub>D['a::countable]" by (simp add: closure)
+     
 declare inf_prog.rep_eq [prog_rep_eq]
 declare sup_prog.rep_eq [prog_rep_eq]
 declare top_prog.rep_eq [prog_rep_eq]
@@ -95,6 +97,13 @@ translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"
   "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST abort)"
+  
+no_translations
+  "_rel_var_scope x P" => "_var_scope R\<^sub>l x P"
+  "_rel_var_scope_type x t P" => "_var_scope_type (_rel_local_state_type t) x t P"
+
+translations
+  "var x :: 'a \<bullet> P" == "CONST plocal TYPE('a) (\<lambda> x. P)"
   
 subsection {* Proof Tactics *}
   

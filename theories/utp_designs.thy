@@ -313,6 +313,10 @@ lemma design_subst [usubst]:
   "\<lbrakk> $ok \<sharp> \<sigma>; $ok\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
   by (simp add: design_def usubst)
 
+lemma design_msubst [usubst]:
+  "(P(x) \<turnstile> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = (P(x)\<lbrakk>x\<rightarrow>v\<rbrakk> \<turnstile> Q(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+    
 theorem design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> = true"
   by (simp add: design_def usubst)
 
@@ -2162,10 +2166,29 @@ lemma get_rel_local [lens_defs]:
 lemma des_local_state [simp]: "utp_local_state \<L>\<^sub>D['a::countable]"
   by (unfold_locales, simp_all add: upred_defs assigns_comp des_local_state_def, rel_auto)
      (metis local.cases_scheme)
-
+     
 lemma sassigns_des_state [simp]: "\<^bold>\<langle>\<sigma>\<^bold>\<rangle>\<^bsub>\<L>\<^sub>D['a::countable]\<^esub> = \<langle>\<sigma>\<rangle>\<^sub>D"
   by (simp add: des_local_state_def)
 
+lemma des_var_open_H1_H3_closed [closure]:
+  "open[\<L>\<^sub>D['a::countable]] is \<^bold>N"
+  by (simp add: utp_local_state.var_open_def closure)
+
+lemma des_var_close_H1_H3_closed [closure]:
+  "close[\<L>\<^sub>D['a::countable]] is \<^bold>N"
+  by (simp add: utp_local_state.var_close_def closure)  
+   
+lemma unrest_ok_vtop_des [unrest]: "$ok \<sharp> top[\<L>\<^sub>D['a::countable]]"
+  by (simp add: utp_local_state.top_var_def, simp add: des_local_state_def  unrest)
+    
+lemma msubst_H1_H3_closed [closure]:
+  "\<lbrakk> $ok \<sharp> v; out\<alpha> \<sharp> v; (\<And>x. P x is \<^bold>N) \<rbrakk> \<Longrightarrow> (P(x)\<lbrakk>x\<rightarrow>v\<rbrakk>) is \<^bold>N"
+  by (rel_auto, metis+)
+  
+lemma var_block_H1_H3_closed [closure]:
+  "(\<And>x. P x is \<^bold>N) \<Longrightarrow> \<V>[\<L>\<^sub>D['a::countable], P] is \<^bold>N"
+  by (simp add: utp_local_state.var_scope_def closure unrest)
+    
 syntax
   "_des_var_scope_type" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("var\<^sub>D _ :: _ \<bullet> _" [0, 0, 10] 10)
 

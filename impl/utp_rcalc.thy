@@ -53,6 +53,10 @@ lemma spec_abort:
 lemma spec_skip:
   "\<emptyset>:[true,true] = skip"
   by (pauto)
+ 
+lemma rc_spec_expand:
+  "vwb_lens w \<Longrightarrow> w:[pre, post(iv :: '\<alpha>)] = (con s :: '\<alpha> \<bullet> w:[pre \<and> &\<^bold>v =\<^sub>u \<guillemotleft>s\<guillemotright>, post(s)])"
+  by (peq)
     
 lemma rc_strengthen_post:
   assumes "`post' \<Rightarrow> post`"
@@ -101,5 +105,5 @@ lemma rc_expand_frame:
   apply (rule_tac x="put\<^bsub>x\<^esub> c (get\<^bsub>x\<^esub> b)" in exI)
   apply (simp)
 done
-    
+  
 end

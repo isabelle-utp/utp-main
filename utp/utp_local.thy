@@ -17,6 +17,10 @@ text {* The following type is used to augment that state-space with a stack of l
 alphabet 'u local =
   store :: "'u list"
 
+text {* State-space with a countable universe for local variables. *}
+  
+type_synonym 'a clocal = "(nat, 'a) local_scheme"
+  
 text {* The following predicate wraps the relation with assumptions that the stack has a particular 
   size before and after execution. *}
   
@@ -102,6 +106,8 @@ end
 
 notation utp_local_state.var_open ("open[_]")
 notation utp_local_state.var_close ("close[_]")  
+notation utp_local_state.var_scope ("\<V>[_,/ _]")
+notation utp_local_state.top_var ("top[_]")
   
 syntax       
   "_var_scope"      :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("var[_] _ \<bullet> _" [0, 0, 10] 10)
@@ -148,6 +154,9 @@ declare utp_local_state.var_open_def [upred_defs]
 declare utp_local_state.var_close_def [upred_defs]  
 declare utp_local_state.top_var_def [upred_defs]
 declare utp_local_state.var_scope_def [upred_defs]  
+  
+lemma unrest_out_vtop [unrest]: "utp_local_state U \<Longrightarrow> out\<alpha> \<sharp> top[U]"
+  by (simp add: utp_local_state.top_var_def unrest)
   
 subsection {* Relational State Spaces *}
   
