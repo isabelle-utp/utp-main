@@ -120,7 +120,16 @@ subsection {* Substitution Laws *}
 lemma psubst_seq [usubst]:
   "\<sigma> \<dagger> (P ; Q) = (\<sigma> \<dagger> P) ; Q"
   by pauto
-  
+    
+lemma psubst_assigns [usubst]:
+  "\<sigma> \<dagger> \<langle>\<rho>\<rangle>\<^sub>p = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>p"
+  by pauto
+    
+lemma psubst_binary_altern [usubst]:
+  fixes P Q :: "'\<alpha> prog"
+  shows "\<sigma> \<dagger> (if b \<rightarrow> P else Q fi) = (if (\<sigma> \<dagger> b) \<rightarrow> (\<sigma> \<dagger> P) else (\<sigma> \<dagger> Q) fi)"
+  by (pauto)
+    
 subsection {* Laws of Programming *}
   
 theorem skip_left_unit [simp]:
@@ -138,5 +147,8 @@ theorem abort_left_zero [simp]:
 theorem magic_left_zero [simp]:
   "magic ; P = magic"
   by (peq')
+
+lemma passigns_comp: "\<langle>\<sigma>\<rangle>\<^sub>p ; P = \<sigma> \<dagger> P"
+  by (transfer, rel_blast)
     
 end
