@@ -421,9 +421,8 @@ lemma ndesign_UINF_mem [ndes_simp]:
   using assms by (rel_auto)
 
 lemma ndesign_UINF_ind [ndes_simp]:
-  assumes "A \<noteq> {}"
-  shows "(\<Sqinter> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<bullet> Q(i))"
-  using assms by (rel_auto)
+  "(\<Sqinter> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Squnion> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Sqinter> i \<bullet> Q(i))"
+  by (rel_auto)
     
 lemma design_USUP_mem:
   "(\<Squnion> i \<in> A \<bullet> P(i) \<turnstile> Q(i)) = (\<Sqinter> i \<in> A \<bullet> P(i)) \<turnstile> (\<Squnion> i \<in> A \<bullet> P(i) \<Rightarrow> Q(i))"
@@ -2208,9 +2207,17 @@ lemma sstate_des [simp]: "\<^bold>s\<^bsub>\<L>\<^sub>D['a::countable]\<^esub> =
 lemma ndesign_msubst_top [usubst]:
   "(p x \<turnstile>\<^sub>n Q x)\<lbrakk>x\<rightarrow>\<lceil>top[\<L>\<^sub>D['a::countable]]\<rceil>\<^sub><\<rbrakk> = ((p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l['a]]\<rbrakk> \<turnstile>\<^sub>n (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l['a]]\<rceil>\<^sub><\<rbrakk>)"
   by (rel_auto')
-      
-lemma "(var\<^sub>D x :: 'a :: countable \<bullet> p(x) \<turnstile>\<^sub>n Q(x)) = undefined"
-  apply (simp add: utp_local_state.var_scope_def utp_local_state.var_open_def utp_local_state.var_close_def usubst)
-oops
+          
+text {* First attempt at a law for expanding design variable blocks. Far from adequate at the
+  moment though. *}
+    
+lemma ndesign_local_expand_1 [ndes_simp]:
+  "(var\<^sub>D x :: 'a :: countable \<bullet> p(x) \<turnstile>\<^sub>n Q(x)) =
+       (\<Squnion> v \<bullet> (p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l]\<rbrakk>\<lbrakk>&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>/store\<rbrakk>) \<turnstile>\<^sub>n
+       (\<Sqinter> v \<bullet> store := &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle> ;; (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l]\<rceil>\<^sub><\<rbrakk> ;; store := (front\<^sub>u(&store) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store) \<triangleright> &store))"
+  apply (simp add: utp_local_state.var_scope_def utp_local_state.var_open_def utp_local_state.var_close_def seq_UINF_distr' usubst)
+  apply (simp add: ndes_simp wp unrest)
+  apply (rel_auto')
+done
     
 end

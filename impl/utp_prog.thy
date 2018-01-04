@@ -84,6 +84,7 @@ declare passigns.rep_eq [prog_rep_eq]
 declare psubst.rep_eq [prog_rep_eq]
 declare paltern.rep_eq [prog_rep_eq]
 declare paltern_list.rep_eq [prog_rep_eq]
+declare plocal.rep_eq [prog_rep_eq]
   
 subsection {* Syntax Translations *}
     
