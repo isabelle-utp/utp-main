@@ -2087,11 +2087,11 @@ declare true_upred_def [THEN sym, ndes_simp]
 lemma Monotonic_AlternateD [closure]:
   "\<lbrakk> \<And> i. Monotonic (F i); Monotonic G \<rbrakk> \<Longrightarrow> Monotonic (\<lambda> X. if i\<in>A \<bullet> g(i) \<rightarrow> F i X else G(X) fi)" 
   by (rel_auto, meson)
-  
+
 lemma AlternateD_empty:
-  "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
+  "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) else Q fi = Q"
   by (rel_auto)
-  
+    
 lemma AlternateD_singleton:
   assumes "P is \<^bold>N"
   shows "if true \<rightarrow> P fi = P"
@@ -2154,21 +2154,33 @@ next
   then show ?thesis
     by (simp add: IterateD_def closure assms)
 qed
+
+lemma IterateD_empty:
+  "do i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = II\<^sub>D"
+  by (simp add: IterateD_def AlternateD_empty normal_design_theory_continuous.LFP_const skip_d_is_H1_H3)
     
-lemma iterate_refine:
+lemma IterateD_refine:
   fixes V :: "(nat, 'a) uexpr"
-  assumes "vwb_lens w" "A \<noteq> {}"
+  assumes "vwb_lens w"
   shows
   "I \<turnstile>\<^sub>n (w:[\<lceil>I \<and> \<not> (\<Or> i\<in>A \<bullet> g(i))\<rceil>\<^sub>>]) \<sqsubseteq> 
-   do i\<in>A \<bullet> g(i) \<rightarrow> (I \<and> g(i)) \<turnstile>\<^sub>n (w:[\<lceil>I\<rceil>\<^sub>>] \<and> \<lceil>V\<rceil>\<^sub>< <\<^sub>u \<lceil>V\<rceil>\<^sub>>) od"
-  apply (simp add: IterateD_def)
-  apply (rule ndesign_mu_wf_refine_intro[where e=V and R="{(x, y). x < y}"])
-     apply (simp add: wf closure)
-    apply (simp add: wf closure)
-         apply (simp add: wf closure)
-  apply (auto simp add: ndes_simp unrest assms)
-  apply (rule ndesign_refine_intro)
-oops
+   do i\<in>A \<bullet> g(i) \<rightarrow> (I \<and> g(i)) \<turnstile>\<^sub>n (w:[II] \<and> \<lceil>I\<rceil>\<^sub>> \<and> \<lceil>V\<rceil>\<^sub>> <\<^sub>u \<lceil>V\<rceil>\<^sub><) od"
+proof (cases "A = {}")
+  case True
+  with assms show ?thesis
+    by (simp add: IterateD_empty, rel_auto)
+next
+  case False
+  then show ?thesis
+  using assms
+    apply (simp add: IterateD_def)
+    apply (rule ndesign_mu_wf_refine_intro[where e=V and R="{(x, y). x < y}"])
+    apply (simp_all add: wf closure)
+    apply (auto simp add: ndes_simp unrest)
+    apply (rel_simp)
+    using assms(1) apply auto
+  done
+qed
   
 subsection {* Let and Local Variables *}
   

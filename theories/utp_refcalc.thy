@@ -58,7 +58,7 @@ abbreviation spec_stat :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> 
 "spec_stat w pre post \<equiv> (pre \<turnstile>\<^sub>n w:[\<lceil>post\<rceil>\<^sub>>])"
 
 syntax
-  "_spec_stat" :: "salpha \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> hrel_des" ("_:[_,_]\<^sub>u" [90,0,0] 90)
+  "_spec_stat" :: "salpha \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> hrel_des" ("_:[_,/ _]\<^sub>u" [90,0,0] 90)
 
 translations
   "_spec_stat w pre post" \<rightleftharpoons> "CONST spec_stat w pre post"
@@ -83,5 +83,15 @@ lemma rc_seq:
   shows "w:[pre, post]\<^sub>u \<sqsubseteq> w:[pre, mid]\<^sub>u ;; w:[mid, post]\<^sub>u"
   using assms oops
   (* FIXME: Need to correct this law *)
+    
+lemma rc_iter:
+  fixes V :: "(nat, 'a) uexpr"
+  assumes "vwb_lens w"
+  shows "w:[ivr, ivr \<and> \<not> (\<Or> i\<in>A \<bullet> g(i))]\<^sub>u 
+        \<sqsubseteq> (\<Squnion> iv \<bullet> do i\<in>A \<bullet> g(i) \<rightarrow> w:[ivr \<and> g(i) \<and> \<guillemotleft>iv\<guillemotright> =\<^sub>u &\<^bold>v, ivr \<and> (V <\<^sub>u V\<lbrakk>\<guillemotleft>iv\<guillemotright>/\<^bold>v\<rbrakk>)]\<^sub>u od)" (is "?lhs \<sqsubseteq> ?rhs")
+  apply (rule order_trans)
+  defer
+  apply (rule IterateD_refine[of _ _ _ _ V])
+oops     
 
 end
