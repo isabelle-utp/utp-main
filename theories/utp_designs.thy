@@ -1889,7 +1889,7 @@ proof -
     by (pred_simp)
 qed  
 
-theorem ndesign_mu_wf_refine_intro: 
+theorem ndesign_mu_wf_refine_intro': 
   assumes   WF: "wf R"
     and      M: "Monotonic F"
     and      H: "F \<in> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
@@ -1898,7 +1898,40 @@ theorem ndesign_mu_wf_refine_intro:
   shows "(p \<turnstile>\<^sub>n Q) \<sqsubseteq> \<mu>\<^sub>D F"
   using assms unfolding ndesign_def
   by (rule_tac rdesign_mu_wf_refine_intro[of R F "\<lceil>p\<rceil>\<^sub><" e], simp_all add: alpha)
-  
+
+theorem ndesign_mu_wf_refine_intro: 
+  assumes   WF: "wf R"
+    and      M: "Monotonic F"
+    and      H: "F \<in> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
+    and  induct_step:
+    "\<And>st. ((p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>n Q) \<sqsubseteq> F ((p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>n Q)"
+  shows "(p \<turnstile>\<^sub>n Q) \<sqsubseteq> \<^bold>\<mu>\<^bsub>NDES\<^esub> F"
+proof -          
+  {
+  fix st
+  have "(p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>n Q \<sqsubseteq> \<^bold>\<mu>\<^bsub>NDES\<^esub> F" 
+  using WF proof (induction rule: wf_induct_rule)
+    case (less st)
+    hence 0: "(p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>n Q \<sqsubseteq> \<^bold>\<mu>\<^bsub>NDES\<^esub> F"
+      by rel_blast
+    from M H design_theory_continuous.LFP_lemma3 mono_Monotone_utp_order
+    have 1: "\<^bold>\<mu>\<^bsub>NDES\<^esub> F \<sqsubseteq>  F (\<^bold>\<mu>\<^bsub>NDES\<^esub> F)"
+      by (simp add: mono_Monotone_utp_order normal_design_theory_continuous.LFP_lemma3)
+    from 0 1 have 2:"(p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>n Q \<sqsubseteq> F (\<^bold>\<mu>\<^bsub>NDES\<^esub> F)"
+      by simp
+    have 3: "F ((p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>n Q) \<sqsubseteq> F (\<^bold>\<mu>\<^bsub>NDES\<^esub> F)"
+      by (simp add: 0 M monoD)
+    have 4:"(p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>n Q \<sqsubseteq> \<dots>" 
+      by (rule induct_step)
+    show ?case
+      using order_trans[OF 3 4] H M normal_design_theory_continuous.LFP_lemma2 dual_order.trans mono_Monotone_utp_order 
+      by blast
+  qed
+  }
+  thus ?thesis
+    by (pred_simp)
+qed  
+
 subsection {* Normal Designs Proof Tactics *}
   
 named_theorems ND_elim
@@ -2051,6 +2084,10 @@ declare USUP_upto_expand_first [ndes_simp]
 declare USUP_Suc_shift [ndes_simp]
 declare true_upred_def [THEN sym, ndes_simp]
   
+lemma Monotonic_AlternateD [closure]:
+  "\<lbrakk> \<And> i. Monotonic (F i); Monotonic G \<rbrakk> \<Longrightarrow> Monotonic (\<lambda> X. if i\<in>A \<bullet> g(i) \<rightarrow> F i X else G(X) fi)" 
+  by (rel_auto, meson)
+  
 lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = true"
   by (rel_auto)
@@ -2075,6 +2112,64 @@ lemma AlternateD_cover:
   shows "if g \<rightarrow> P else Q fi = if g \<rightarrow> P | (\<not> g) \<rightarrow> Q fi"
   by (ndes_eq cls: assms)
    
+subsection {* Iteration *}
+
+text {* Overloadable Syntax *}
+  
+consts
+  uiterate       :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r"
+  uiterate_list  :: "('a \<times> 'r) list \<Rightarrow> 'r"
+
+syntax
+  "_iterind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do _\<in>_ \<bullet> _ \<rightarrow> _ od")
+  "_itergcomm"     :: "gcomms \<Rightarrow> logic" ("do _ od")
+  
+translations
+  "_iterind x A g P" => "CONST uiterate A (\<lambda> x. g) (\<lambda> x. P)"
+  "_iterind x A g P" <= "CONST uiterate A (\<lambda> x. g) (\<lambda> x'. P)"
+  "_itergcomm cs" => "CONST uiterate_list cs"
+  "_itergcomm (_gcomm_show cs)" <= "CONST uiterate_list cs"
+  
+definition IterateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" where
+[upred_defs, ndes_simp]:
+"IterateD A g P = (\<^bold>\<mu>\<^bsub>NDES\<^esub> X \<bullet> if i\<in>A \<bullet> g(i) \<rightarrow> P(i) ;; X else II\<^sub>D fi)"
+
+definition IterateD_list :: "('\<alpha> upred \<times> '\<alpha> hrel_des) list \<Rightarrow> '\<alpha> hrel_des" where 
+[upred_defs, ndes_simp]:
+"IterateD_list xs = IterateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i))"
+
+adhoc_overloading
+  uiterate IterateD and
+  uiterate_list IterateD_list
+  
+lemma IterateD_H1_H3_closed [closure]: 
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is \<^bold>N"
+  shows "do i\<in>A \<bullet> g(i) \<rightarrow> P(i) od is \<^bold>N"
+proof (cases "A = {}")
+  case True
+  then show ?thesis
+    by (simp add: IterateD_def closure assms)
+next
+  case False
+  then show ?thesis
+    by (simp add: IterateD_def closure assms)
+qed
+    
+lemma iterate_refine:
+  fixes V :: "(nat, 'a) uexpr"
+  assumes "vwb_lens w" "A \<noteq> {}"
+  shows
+  "I \<turnstile>\<^sub>n (w:[\<lceil>I \<and> \<not> (\<Or> i\<in>A \<bullet> g(i))\<rceil>\<^sub>>]) \<sqsubseteq> 
+   do i\<in>A \<bullet> g(i) \<rightarrow> (I \<and> g(i)) \<turnstile>\<^sub>n (w:[\<lceil>I\<rceil>\<^sub>>] \<and> \<lceil>V\<rceil>\<^sub>< <\<^sub>u \<lceil>V\<rceil>\<^sub>>) od"
+  apply (simp add: IterateD_def)
+  apply (rule ndesign_mu_wf_refine_intro[where e=V and R="{(x, y). x < y}"])
+     apply (simp add: wf closure)
+    apply (simp add: wf closure)
+         apply (simp add: wf closure)
+  apply (auto simp add: ndes_simp unrest assms)
+  apply (rule ndesign_refine_intro)
+oops
+  
 subsection {* Let and Local Variables *}
   
 definition LetD :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" where

@@ -239,8 +239,8 @@ notation gfp ("\<mu>")
 notation lfp ("\<nu>")
 
 translations
-  "\<^bold>\<nu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_lfp T (\<lambda> X. P)"
-  "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
+  "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_lfp T (\<lambda> X. P)"  
+  "\<^bold>\<nu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
 
 lemma upred_lattice_inf:
   "Lattice.inf \<P> A = \<Sqinter> A"

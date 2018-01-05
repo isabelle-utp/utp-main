@@ -68,9 +68,14 @@ lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Right
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
 lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "\<lambda> \<sigma> P. ((\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D) \<oplus>\<^sub>s in\<alpha>) \<dagger> P" by (simp add: closure)
 lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
-lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow>  '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
+lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
   by (simp add: AlternateD_list_def list_all_def pred_prod_beta closure)
      (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)  
+lift_definition piterate :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog" is IterateD by (simp add: closure)
+lift_definition piterate_list :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog" is IterateD_list 
+  by (simp add: IterateD_list_def list_all_def pred_prod_beta closure)
+     (metis IterateD_H1_H3_closed atLeastLessThan_iff nth_mem)
+    
 lift_definition plocal :: "'a::countable itself \<Rightarrow> (('a \<Longrightarrow> 'b clocal) \<Rightarrow> 'b clocal prog) \<Rightarrow> 'b clocal prog" is
   "\<lambda> t. utp_local_state.var_scope \<L>\<^sub>D['a::countable]" by (simp add: closure)
      
@@ -84,6 +89,8 @@ declare passigns.rep_eq [prog_rep_eq]
 declare psubst.rep_eq [prog_rep_eq]
 declare paltern.rep_eq [prog_rep_eq]
 declare paltern_list.rep_eq [prog_rep_eq]
+declare piterate.rep_eq [prog_rep_eq]
+declare piterate_list.rep_eq [prog_rep_eq]
 declare plocal.rep_eq [prog_rep_eq]
   
 subsection {* Syntax Translations *}
@@ -92,8 +99,10 @@ adhoc_overloading
   usubst psubst and
   uassigns passigns and
   ualtern paltern and
-  ualtern_list paltern_list
-
+  ualtern_list paltern_list and
+  uiterate piterate and
+  uiterate_list piterate_list
+  
 translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"

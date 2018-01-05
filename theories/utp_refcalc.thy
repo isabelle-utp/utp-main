@@ -83,4 +83,5 @@ lemma rc_seq:
   shows "w:[pre, post]\<^sub>u \<sqsubseteq> w:[pre, mid]\<^sub>u ;; w:[mid, post]\<^sub>u"
   using assms oops
   (* FIXME: Need to correct this law *)
+
 end
