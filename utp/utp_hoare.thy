@@ -68,7 +68,7 @@ text {* Frame rule: If starting $S$ in a state satisfying $p establishes q$ in t
 lemma frame_hoare_r [hoare_safe]: 
   assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p \<and> r\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
   shows "\<lbrace>p \<and> r\<rbrace>a:[S]\<lbrace>q \<and> r\<rbrace>\<^sub>u"
-  using assms by (rel_simp)
+  using assms by (rel_auto, metis)
 
 lemma frame_hoare_r' [hoare_safe]: 
   assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>r \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"

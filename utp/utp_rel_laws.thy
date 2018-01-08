@@ -445,19 +445,23 @@ lemma frame_all [frame]: "\<Sigma>:[P] = P"
   by (rel_auto)
 
 lemma frame_none [frame]: 
-  "P ;; true = true \<Longrightarrow> \<emptyset>:[P] = II"
+  "\<emptyset>:[P] = (P \<and> II)"
   by (rel_auto)
     
 lemma frame_commute:
-  "\<lbrakk> $y \<sharp> P; $x \<sharp> Q; x \<bowtie> y \<rbrakk> \<Longrightarrow> x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
-  by (rel_auto, (metis lens_indep_def)+)
+  "\<lbrakk> {$x,$x\<acute>} \<natural> P; {$y,$y\<acute>} \<natural> Q; x \<bowtie> y \<rbrakk> \<Longrightarrow> x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
+  apply (rel_auto)
+oops
     
 lemma frame_contract_RID:
   assumes "vwb_lens x" "P is RID(x)" "x \<bowtie> y"
   shows "(x;y):[P] = y:[P]"
 proof -
   from assms(1,3) have "(x;y):[RID(x)(P)] = y:[RID(x)(P)]"
-    using lens_indep_comm by (rel_auto; fastforce)
+    apply (rel_auto)
+    apply (simp add: lens_indep.lens_put_comm)
+    apply (metis (no_types) vwb_lens_wb wb_lens.get_put)
+  done
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -476,17 +480,17 @@ lemma frame_assign_in [frame]:
 
 lemma frame_conj_true [frame]:
   "\<lbrakk> {$x,$x\<acute>} \<natural> P; vwb_lens x \<rbrakk> \<Longrightarrow> (P \<and> x:[true]) = x:[P]"
-  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
+  by (rel_auto)
     
 lemma frame_is_assign [frame]:
   "vwb_lens x \<Longrightarrow> x:[$x\<acute> =\<^sub>u \<lceil>v\<rceil>\<^sub><] = x := v"
-  by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+  by (rel_auto)
     
 lemma frame_seq [frame]:
   "\<lbrakk> vwb_lens x; {$x,$x\<acute>} \<natural> P; {$x,$x\<acute>} \<natural> Q \<rbrakk> \<Longrightarrow> x:[P ;; Q] = x:[P] ;; x:[Q]"
   apply (rel_auto)
   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_def weak_lens.put_get)
-  apply (metis vwb_lens_wb wb_lens.get_put)
+  apply (metis mwb_lens.put_put vwb_lens_mwb)
 done
 
 lemma frame_to_antiframe [frame]:
@@ -507,12 +511,12 @@ lemma rel_frext_seq [frame]:
   apply (rename_tac s s' s\<^sub>0)
   apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
   apply (auto)
-  apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+  apply (metis mwb_lens.put_put vwb_lens_mwb)
 done
 
 lemma rel_frext_assigns [frame]:
   "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
-  by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.get_update)
+  by (rel_auto)
 
 lemma rel_frext_rcond [frame]:
   "a:[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sup>+ = (a:[P]\<^sup>+ \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r a:[Q]\<^sup>+)"
@@ -520,15 +524,26 @@ lemma rel_frext_rcond [frame]:
 
 lemma rel_frext_commute: 
   "x \<bowtie> y \<Longrightarrow> x:[P]\<^sup>+ ;; y:[Q]\<^sup>+ = y:[Q]\<^sup>+ ;; x:[P]\<^sup>+"
-  unfolding rel_frext_def
-  by (auto intro: frame_commute simp add: unrest lens_indep_sym)
+  apply (rel_auto)
+  apply (rename_tac a c b)
+  apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
+  apply (metis (no_types, hide_lams) lens_indep_comm lens_indep_get)
+  apply (simp add: lens_indep.lens_put_irr2)
+  apply (subgoal_tac "\<And>b c. get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> b c) = get\<^bsub>x\<^esub> b")
+  apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
+  apply (metis (mono_tags, lifting) lens_indep_comm)
+  apply (simp_all add: lens_indep.lens_put_irr2)    
+done
     
 lemma antiframe_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)
 
 lemma antiframe_seq [frame]:
   "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
-  by (rel_simp, metis vwb_lens_def wb_lens_weak weak_lens.put_get)
+  apply (rel_auto)
+  apply (metis vwb_lens_wb wb_lens_def weak_lens.put_get)
+  apply (metis vwb_lens_wb wb_lens.put_twice wb_lens_def weak_lens.put_get)
+done
   
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)

@@ -19,6 +19,10 @@ lemma Rep_prog_H1_H3_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>p is \<^bold>N
 lemma Rep_prog_split: "\<lbrakk> \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(\<lbrakk>P\<rbrakk>\<^sub>p)"
   by (simp add: Rep_prog_H1_H3_closed ndes_split)
     
+lemma Rep_prog_comp [prog_rep_eq]: 
+  "(Rep_prog \<circ> (\<lambda> i. P(i))) = (\<lambda> i. \<lbrakk>P(i)\<rbrakk>\<^sub>p)"
+  by (auto)
+    
 setup_lifting type_definition_prog
     
 instantiation prog :: (type) refine

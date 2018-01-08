@@ -245,10 +245,10 @@ text {* We next describe frames and antiframes with the help of lenses. A frame 
   remain the same. For more information please see \cite{Morgan90a}.*}
 
 definition frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "frame a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> \<guillemotleft>st\<guillemotright> on &a)"
+[urel_defs]: "frame a P = (P \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> $\<^bold>v\<acute> on &a)"
   
 definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "antiframe a P = (\<^bold>\<exists> st \<bullet> P\<lbrakk>\<guillemotleft>st\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u \<guillemotleft>st\<guillemotright> \<oplus> $\<^bold>v on &a)"
+[urel_defs]: "antiframe a P = (P \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<acute> \<oplus> $\<^bold>v on &a)"
 
 text {* Frame extension combines alphabet extension with the frame operator to both add additional 
   variables and then frame those. *}

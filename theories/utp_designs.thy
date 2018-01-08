@@ -1958,7 +1958,7 @@ subsection {* Alternation *}
   
 definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("_ \<rightarrow>\<^sub>D _" [85, 86] 85) where
 [upred_defs]: "b \<rightarrow>\<^sub>D P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
-  
+
 lemma GrdCommD_ndes_simp [ndes_simp]:
   "b \<rightarrow>\<^sub>D (p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) = ((b \<Rightarrow> p\<^sub>1) \<turnstile>\<^sub>n (\<lceil>b\<rceil>\<^sub>< \<and> P\<^sub>2))"
   by (rel_auto)
@@ -2098,11 +2098,16 @@ lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) else Q fi = Q"
   by (rel_auto)
     
-lemma AlternateD_singleton:
+lemma AlternateD_true_singleton:
   assumes "P is \<^bold>N"
   shows "if true \<rightarrow> P fi = P"
   by (ndes_simp cls: assms)
 
+lemma AlernateD_singleton:
+  assumes "P is \<^bold>N"
+  shows "if b \<rightarrow> P fi = if i\<in>{0} \<bullet> b \<rightarrow> P fi"
+  by (ndes_simp cls: assms)
+    
 lemma AlternateD_commute:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "if g\<^sub>1 \<rightarrow> P | g\<^sub>2 \<rightarrow> Q fi = if g\<^sub>2 \<rightarrow> Q | g\<^sub>1 \<rightarrow> P fi"
@@ -2164,7 +2169,16 @@ qed
 lemma IterateD_empty:
   "do i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = II\<^sub>D"
   by (simp add: IterateD_def AlternateD_empty normal_design_theory_continuous.LFP_const skip_d_is_H1_H3)
+
+lemma IterateD_list_single_expand:
+  "do b \<rightarrow> P od = (\<^bold>\<mu>\<^bsub>NDES\<^esub> X \<bullet> if b \<rightarrow> P ;; X else II\<^sub>D fi)"
+oops
     
+lemma IterateD_singleton:
+  "do b \<rightarrow> P od = do i\<in>{0} \<bullet> b \<rightarrow> P od"
+  apply (simp add: IterateD_list_def IterateD_def)
+oops
+
 lemma IterateD_mono_refine:
   assumes 
     "\<And> i. P i is \<^bold>N" "\<And> i. Q i is \<^bold>N"
@@ -2180,13 +2194,19 @@ lemma IterateD_mono_refine:
   apply (rule AlternateD_mono_refine)
   apply (simp_all add: closure seqr_mono assms)
 done
-    
+
+lemma IterateD_single_refine:
+  assumes 
+    "P is \<^bold>N" "Q is \<^bold>N" "P \<sqsubseteq> Q"
+  shows "(do g \<rightarrow> P od) \<sqsubseteq> (do g \<rightarrow> Q od)"
+oops
+  
 lemma IterateD_refine_intro:
   fixes V :: "(nat, 'a) uexpr"
   assumes "vwb_lens w"
   shows
   "I \<turnstile>\<^sub>n (w:[\<lceil>I \<and> \<not> (\<Or> i\<in>A \<bullet> g(i))\<rceil>\<^sub>>]) \<sqsubseteq> 
-   do i\<in>A \<bullet> g(i) \<rightarrow> (I \<and> g(i)) \<turnstile>\<^sub>n (w:[II] \<and> \<lceil>I\<rceil>\<^sub>> \<and> \<lceil>V\<rceil>\<^sub>> <\<^sub>u \<lceil>V\<rceil>\<^sub><) od"
+   do i\<in>A \<bullet> g(i) \<rightarrow> (I \<and> g(i)) \<turnstile>\<^sub>n (w:[\<lceil>I\<rceil>\<^sub>> \<and> \<lceil>V\<rceil>\<^sub>> <\<^sub>u \<lceil>V\<rceil>\<^sub><]) od"
 proof (cases "A = {}")
   case True
   with assms show ?thesis
@@ -2198,11 +2218,25 @@ next
     apply (simp add: IterateD_def)
     apply (rule ndesign_mu_wf_refine_intro[where e=V and R="{(x, y). x < y}"])
     apply (simp_all add: wf closure)
-    apply (auto simp add: ndes_simp unrest)
-    apply (rel_simp)
-    using assms(1) apply auto
+    apply (simp add: ndes_simp unrest)
+    apply (rule ndesign_refine_intro)
+    apply (rel_auto)
+    apply (rel_auto)
+    apply (metis mwb_lens.put_put vwb_lens_mwb)
   done
 qed
+  
+lemma IterateD_single_refine_intro:
+  fixes V :: "(nat, 'a) uexpr"
+  assumes "vwb_lens w"
+  shows
+  "I \<turnstile>\<^sub>n (w:[\<lceil>I \<and> \<not> g\<rceil>\<^sub>>]) \<sqsubseteq> 
+   do g \<rightarrow> ((I \<and> g) \<turnstile>\<^sub>n (w:[\<lceil>I\<rceil>\<^sub>> \<and> \<lceil>V\<rceil>\<^sub>> <\<^sub>u \<lceil>V\<rceil>\<^sub><])) od"
+  apply (rule order_trans)
+  defer
+  apply (rule IterateD_refine_intro[of w "{0}" "\<lambda> i. g" I V, simplified, OF assms(1)])
+  apply (rel_auto)
+done
   
 subsection {* Let and Local Variables *}
   

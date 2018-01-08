@@ -36,7 +36,6 @@ abbreviation skip :: "'\<alpha> hrel_des" where
 "skip \<equiv> \<emptyset>:[true,true]"
   
 abbreviation "chose x \<equiv> {&x}:[true,true]"
-
   
 lemma spec_simple_def: 
   "x:[pre,post] = (\<lceil>pre\<rceil>\<^sub>< \<turnstile>\<^sub>r x:[\<lceil>post\<rceil>\<^sub>>])"
@@ -88,10 +87,17 @@ lemma rc_iter:
   fixes V :: "(nat, 'a) uexpr"
   assumes "vwb_lens w"
   shows "w:[ivr, ivr \<and> \<not> (\<Or> i\<in>A \<bullet> g(i))]\<^sub>u 
-        \<sqsubseteq> (\<Squnion> iv \<bullet> do i\<in>A \<bullet> g(i) \<rightarrow> w:[ivr \<and> g(i) \<and> \<guillemotleft>iv\<guillemotright> =\<^sub>u &\<^bold>v, ivr \<and> (V <\<^sub>u V\<lbrakk>\<guillemotleft>iv\<guillemotright>/\<^bold>v\<rbrakk>)]\<^sub>u od)" (is "?lhs \<sqsubseteq> ?rhs")
+        \<sqsubseteq> (do i\<in>A \<bullet> g(i) \<rightarrow> \<Squnion> iv \<bullet> w:[ivr \<and> g(i) \<and> \<guillemotleft>iv\<guillemotright> =\<^sub>u &\<^bold>v, ivr \<and> (V <\<^sub>u V\<lbrakk>\<guillemotleft>iv\<guillemotright>/\<^bold>v\<rbrakk>)]\<^sub>u od)" (is "?lhs \<sqsubseteq> ?rhs")
   apply (rule order_trans)
   defer
   apply (rule IterateD_refine_intro[of _ _ _ _ V])
-oops     
-
+  apply (simp add: assms)
+  apply (rule IterateD_mono_refine)
+  apply (simp_all add: ndes_simp closure)
+  apply (rule ndesign_refine_intro)
+  apply (rel_auto)
+  using assms
+  apply (rel_auto)
+done
+  
 end
