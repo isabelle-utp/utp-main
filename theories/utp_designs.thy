@@ -1583,6 +1583,7 @@ interpretation design_theory_continuous: utp_theory_continuous DES
 interpretation normal_design_theory_continuous: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le (uthy_order NDES) = op \<sqsubseteq>"
   and "A \<subseteq> carrier (uthy_order NDES) \<longleftrightarrow> A \<subseteq> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"  
   and "eq (uthy_order NDES) = op ="  
@@ -2084,10 +2085,15 @@ declare USUP_upto_expand_first [ndes_simp]
 declare USUP_Suc_shift [ndes_simp]
 declare true_upred_def [THEN sym, ndes_simp]
   
+lemma AlternateD_mono_refine:
+  assumes "\<And> i. P i \<sqsubseteq> Q i" "R \<sqsubseteq> S"
+  shows "(if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else R fi) \<sqsubseteq> (if i\<in>A \<bullet> g(i) \<rightarrow> Q(i) else S fi)"
+  using assms by (rel_auto, meson)
+  
 lemma Monotonic_AlternateD [closure]:
   "\<lbrakk> \<And> i. Monotonic (F i); Monotonic G \<rbrakk> \<Longrightarrow> Monotonic (\<lambda> X. if i\<in>A \<bullet> g(i) \<rightarrow> F i X else G(X) fi)" 
   by (rel_auto, meson)
-
+    
 lemma AlternateD_empty:
   "if i\<in>{} \<bullet> g(i) \<rightarrow> P(i) else Q fi = Q"
   by (rel_auto)
@@ -2159,7 +2165,23 @@ lemma IterateD_empty:
   "do i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = II\<^sub>D"
   by (simp add: IterateD_def AlternateD_empty normal_design_theory_continuous.LFP_const skip_d_is_H1_H3)
     
-lemma IterateD_refine:
+lemma IterateD_mono_refine:
+  assumes 
+    "\<And> i. P i is \<^bold>N" "\<And> i. Q i is \<^bold>N"
+    "\<And> i. P i \<sqsubseteq> Q i"
+  shows "(do i\<in>A \<bullet> g(i) \<rightarrow> P(i) od) \<sqsubseteq> (do i\<in>A \<bullet> g(i) \<rightarrow> Q(i) od)"
+  apply (simp add: IterateD_def normal_design_theory_continuous.utp_lfp_def)
+  apply (subst normal_design_theory_continuous.utp_lfp_def)
+  apply (simp_all add: closure assms)
+  apply (subst normal_design_theory_continuous.utp_lfp_def)
+  apply (simp_all add: closure assms)
+  apply (simp add: ndes_hcond_def)
+  apply (rule gfp_mono)
+  apply (rule AlternateD_mono_refine)
+  apply (simp_all add: closure seqr_mono assms)
+done
+    
+lemma IterateD_refine_intro:
   fixes V :: "(nat, 'a) uexpr"
   assumes "vwb_lens w"
   shows
