@@ -91,7 +91,7 @@ lemma rc_iter:
         \<sqsubseteq> (\<Squnion> iv \<bullet> do i\<in>A \<bullet> g(i) \<rightarrow> w:[ivr \<and> g(i) \<and> \<guillemotleft>iv\<guillemotright> =\<^sub>u &\<^bold>v, ivr \<and> (V <\<^sub>u V\<lbrakk>\<guillemotleft>iv\<guillemotright>/\<^bold>v\<rbrakk>)]\<^sub>u od)" (is "?lhs \<sqsubseteq> ?rhs")
   apply (rule order_trans)
   defer
-  apply (rule IterateD_refine[of _ _ _ _ V])
+  apply (rule IterateD_refine_intro[of _ _ _ _ V])
 oops     
 
 end
