@@ -43,9 +43,9 @@ text {* We set up syntax for the three variable classes using a subscript $<$, $
   respectively. *} 
 
 syntax
-  "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [999] 999)
-  "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [999] 999)
-  "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [999] 999)
+  "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [995] 995)
+  "_svarleft"  :: "svid \<Rightarrow> svid" ("0-_" [995] 995)
+  "_svarright" :: "svid \<Rightarrow> svid" ("1-_" [995] 995)
 
 translations
   "_svarpre x"   == "CONST pre_uvar x"
@@ -53,8 +53,8 @@ translations
   "_svarright x" == "CONST right_uvar x"
   "_svarpre \<Sigma>"   <= "CONST pre_uvar 1\<^sub>L"
   "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
-  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"
-
+  "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"  
+  
 text {* We proved behavedness closure properties about the lenses. *}
   
 lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"

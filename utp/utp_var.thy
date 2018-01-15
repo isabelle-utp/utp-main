@@ -214,9 +214,9 @@ text \<open> A variable identifier can either be a HOL identifier, the complete 
   corresponds to a sort of qualification. The final option is effectively a lens composition. \<close>
   
 syntax -- \<open> Decorations \<close>
-  "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [998] 998)
-  "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [998] 998)
-  "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [998] 998)
+  "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [990] 990)
+  "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [990] 990)
+  "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [990] 990)
 
 text \<open> A variable can be decorated with an ampersand, to indicate it is a predicate variable, with 
   a dollar to indicate its an unprimed relational variable, or a dollar and ``acute'' symbol to 
@@ -224,8 +224,8 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
   decorations can be and are added later. \<close>
   
 syntax -- \<open> Variable sets \<close>
-  "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [998] 998)
-  "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [998] 998)
+  "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [990] 990)
+  "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [990] 990)
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_salphaprod"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<times>" 85)
