@@ -260,7 +260,7 @@ lemma rea_frame_RR_closed [closure]:
   shows "x:[P]\<^sub>r is RR"
 proof -
   have "RR(x:[RR P]\<^sub>r) = x:[RR P]\<^sub>r"
-    by (rel_auto, blast+)
+    by (rel_auto)
   thus ?thesis
     by (metis Healthy_if Healthy_intro assms)
 qed
