@@ -449,8 +449,8 @@ lemma frame_none [frame]:
   by (rel_auto)
     
 lemma frame_commute:
-  "\<lbrakk> {$x,$x\<acute>} \<natural> P; {$y,$y\<acute>} \<natural> Q; x \<bowtie> y \<rbrakk> \<Longrightarrow> x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
-  apply (rel_auto)
+  assumes "$y \<sharp> P" "$y\<acute> \<sharp> P" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "x \<bowtie> y" 
+  shows "x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
 oops
     
 lemma frame_contract_RID:

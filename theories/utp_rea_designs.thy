@@ -282,10 +282,12 @@ lemma rea_frame_ext_RR_closed [closure]:
 lemma rel_aext_st_Instant_closed [closure]:
   "P is Instant \<Longrightarrow> rel_aext P (map_st\<^sub>L x) is Instant"
   by (rel_auto)
-  
+
+(*
 lemma rea_frame_commute:
   assumes "P is RR" "Q is RR" "vwb_lens x" "vwb_lens y"
-          "$st:y \<sharp> P" "$st:x \<sharp> Q" "P is Instant" "Q is Instant" "x \<bowtie> y"
+          "$st:y \<sharp> P" "$st:x \<sharp> Q" "$st:y\<acute> \<sharp> P" "$st:x\<acute> \<sharp> Q" 
+          "P is Instant" "Q is Instant" "x \<bowtie> y"
   shows "x:[P]\<^sub>r ;; y:[Q]\<^sub>r = y:[Q]\<^sub>r ;; x:[P]\<^sub>r"     
 proof -
   have "x:[P]\<^sub>r ;; y:[Q]\<^sub>r = {&tr,&ok,&wait,&st:x}:[P] ;; {&tr,&ok,&wait,&st:y}:[Q]"
@@ -294,9 +296,15 @@ proof -
     by (simp add: frame_contract_RID closure assms)
   also have "... = {&ok,&wait,&st:x}:[RR(P)] ;; {&ok,&wait,&st:y}:[RR(Q)]"
     by (simp add: assms Healthy_if)
+  also have "... = {&ok,&wait,&st:x}:[RR(P)] ;; {&ok,&wait,&st:y}:[RR(Q)]"
+    by (simp add: assms Healthy_if)    
+  also have "... = {&ok,&wait,&st:y}:[RR(Q)] ;; {&ok,&wait,&st:x}:[RR(P)]"
+    using assms(3-8,11) apply (rel_auto)
+
   also have "... = {&ok,&wait,&st:y}:[RR(Q)] ;; {&ok,&wait,&st:x}:[RR(P)]"      
-    using assms(3-6,9)
-    by (rel_auto, (metis (no_types, hide_lams) lens_indep.lens_put_comm)+)
+    using assms(3-8,11)
+    apply (rel_auto)
+    
   also have "... = {&ok,&wait,&st:y}:[Q] ;; {&ok,&wait,&st:x}:[P]"      
     by (simp add: assms Healthy_if)
   also have "... = {&tr,&ok,&wait,&st:y}:[Q] ;; {&tr,&ok,&wait,&st:x}:[P]"
@@ -316,7 +324,8 @@ lemma rea_frame_ext_commute:
   apply (rel_auto, simp_all add: assms)
   apply (rel_auto, simp_all add: assms lens_indep_sym)
 done
-    
+*)    
+  
 lemma rea_frame_ext_false [frame]:
   "x:[false]\<^sub>r\<^sup>+ = false"
   by (rel_auto)
@@ -327,7 +336,7 @@ lemma rea_frame_ext_skip [frame]:
 
 lemma rea_frame_ext_assigns [frame]:
   "vwb_lens x \<Longrightarrow> x:[\<langle>\<sigma>\<rangle>\<^sub>r]\<^sub>r\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s x\<rangle>\<^sub>r"
-  by (rel_auto, metis mwb_lens_def vwb_lens_def weak_lens.put_get)
+  by (rel_auto)
 
 lemma rea_frame_ext_cond [frame]:
   "x:[P \<triangleleft> b \<triangleright>\<^sub>R Q]\<^sub>r\<^sup>+ = x:[P]\<^sub>r\<^sup>+ \<triangleleft> (b \<oplus>\<^sub>p x) \<triangleright>\<^sub>R x:[Q]\<^sub>r\<^sup>+"
@@ -354,7 +363,7 @@ lemma rea_frame_ext_subst_indep [usubst]:
   shows "\<sigma>(y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[P]\<^sub>r\<^sup>+) ;; y :=\<^sub>r v"
 proof -
   from assms(1-2) have "\<sigma>(y \<mapsto>\<^sub>s v) \<dagger>\<^sub>S x:[RR P]\<^sub>r\<^sup>+ = (\<sigma> \<dagger>\<^sub>S x:[RR P]\<^sub>r\<^sup>+) ;; y :=\<^sub>r v"
-    by (rel_auto, (metis lens_indep.lens_put_comm)+)
+    by (rel_auto, (metis (no_types, lifting) lens_indep.lens_put_comm lens_indep_get)+)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
