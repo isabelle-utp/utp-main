@@ -656,7 +656,7 @@ proof -
   moreover have "\<Sqinter> (P ` insert 0 {1..}) = P(0) \<sqinter> SUPREMUM {1..} P"
     by (simp)
   moreover have "SUPREMUM {1..} P = (\<Sqinter>i. P(i+1))"
-    by (simp add: atLeast_Suc_greaterThan)
+    by (simp add: atLeast_Suc_greaterThan greaterThan_0)
   ultimately show ?thesis
     by (simp only:)
 qed

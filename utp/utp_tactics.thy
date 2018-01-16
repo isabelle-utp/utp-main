@@ -12,7 +12,7 @@ section {* UTP Tactics *}
 
 theory utp_tactics
   imports 
-    "~/src/HOL/Eisbach/Eisbach"
+    "~~/src/HOL/Eisbach/Eisbach"
     "../optics/Lenses" 
     "../optics/Interp" 
     utp_expr utp_unrest utp_usedby

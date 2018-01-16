@@ -76,7 +76,7 @@ lemma prefix_Cons_elim [elim]:
   assumes "prefix (x # xs) ys"
   obtains ys' where "ys = x # ys'" "prefix xs ys'"
   using assms
-  by (metis Sublist.Cons_prefix_Cons prefix_code(1) prefix_order.eq_iff prefixes.cases)
+  by (metis append_Cons prefix_def)
 
 lemma prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
@@ -718,21 +718,21 @@ abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
 
 definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "\<upharpoonleft>\<^sub>l" 80) where
-"seq_extract A xs = sublist xs A"
+"seq_extract A xs = nths xs A"
 
 lemma seq_extract_Nil [simp]: "A \<upharpoonleft>\<^sub>l [] = []"
   by (simp add: seq_extract_def)
 
 lemma seq_extract_Cons:
   "A \<upharpoonleft>\<^sub>l (x # xs) = (if 0 \<in> A then [x] else []) @ {j. Suc j \<in> A} \<upharpoonleft>\<^sub>l xs"
-  by (simp add: seq_extract_def sublist_Cons)
+  by (simp add: seq_extract_def nths_Cons)
 
 lemma seq_extract_empty [simp]: "{} \<upharpoonleft>\<^sub>l xs = []"
   by (simp add: seq_extract_def)
 
 lemma seq_extract_ident [simp]: "{0..<length xs} \<upharpoonleft>\<^sub>l xs = xs"
   unfolding list_eq_iff_nth_eq
-  by (auto simp add: seq_extract_def length_sublist atLeast0LessThan)
+  by (auto simp add: seq_extract_def length_nths atLeast0LessThan)
 
 lemma seq_extract_split:
   assumes "i \<le> length xs"
@@ -747,21 +747,21 @@ next
   moreover have "{j. i \<le> Suc j \<and> j < length xs} = {i - 1..<length xs}"
     by (auto)
   ultimately show ?case
-    using hyp by (force simp add: seq_extract_def sublist_Cons)
+    using hyp by (force simp add: seq_extract_def nths_Cons)
 qed
 
 lemma seq_extract_append:
   "A \<upharpoonleft>\<^sub>l (xs @ ys) = (A \<upharpoonleft>\<^sub>l xs) @ ({j. j + length xs \<in> A} \<upharpoonleft>\<^sub>l ys)"
-  by (simp add: seq_extract_def sublist_append)
+  by (simp add: seq_extract_def nths_append)
 
 lemma seq_extract_range: "A \<upharpoonleft>\<^sub>l xs = (A \<inter> dom\<^sub>l(xs)) \<upharpoonleft>\<^sub>l xs"
-  apply (auto simp add: seq_extract_def sublist_def)
+  apply (auto simp add: seq_extract_def nths_def)
   apply (metis (no_types, lifting) atLeastLessThan_iff filter_cong in_set_zip nth_mem set_upt)
 done
 
 lemma seq_extract_out_of_range:
   "A \<inter> dom\<^sub>l(xs) = {} \<Longrightarrow> A \<upharpoonleft>\<^sub>l xs = []"
-  by (metis seq_extract_def seq_extract_range sublist_empty)
+  by (metis seq_extract_def seq_extract_range nths_empty)
 
 lemma seq_extract_length [simp]:
   "length (A \<upharpoonleft>\<^sub>l xs) = card (A \<inter> dom\<^sub>l(xs))"
@@ -769,7 +769,7 @@ proof -
   have "{i. i < length(xs) \<and> i \<in> A} = (A \<inter> {0..<length(xs)})"
     by (auto)
   thus ?thesis
-    by (simp add: seq_extract_def length_sublist)
+    by (simp add: seq_extract_def length_nths)
 qed
 
 lemma seq_extract_Cons_atLeastLessThan:
