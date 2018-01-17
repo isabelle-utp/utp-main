@@ -226,10 +226,10 @@ abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
 "utp_inf \<T> \<equiv> Lattice.inf (uthy_order \<T>)"
 
 abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
-"utp_gfp \<T> \<equiv> GFP (uthy_order \<T>)"
+"utp_gfp \<T> \<equiv> GREATEST_FP (uthy_order \<T>)"
 
 abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
-"utp_lfp \<T> \<equiv> LFP (uthy_order \<T>)"
+"utp_lfp \<T> \<equiv> LEAST_FP (uthy_order \<T>)"
 
 syntax
   "_tmu" :: "logic \<Rightarrow> pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<mu>\<index> _ \<bullet> _" [0, 10] 10)
@@ -256,7 +256,7 @@ begin
     have "{P. (P is \<H>) \<and> F P \<sqsubseteq> P} = {P. (P is \<H>) \<and> F (\<H> P) \<sqsubseteq> P}"
       by (auto simp add: Healthy_def)
     thus ?thesis
-      by (simp add: LFP_def)
+      by (simp add: LEAST_FP_def)
   qed
 
   lemma GFP_healthy_comp: "\<^bold>\<nu> F = \<^bold>\<nu> (F \<circ> \<H>)"
@@ -264,7 +264,7 @@ begin
     have "{P. (P is \<H>) \<and> P \<sqsubseteq> F P} = {P. (P is \<H>) \<and> P \<sqsubseteq> F (\<H> P)}"
       by (auto simp add: Healthy_def)
     thus ?thesis
-      by (simp add: GFP_def)
+      by (simp add: GREATEST_FP_def)
   qed
 
   lemma top_healthy [closure]: "\<^bold>\<top> is \<H>"
@@ -449,10 +449,10 @@ begin
       qed
 
       with ne show ?thesis
-        by (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+        by (simp add: LEAST_FP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
     qed
     from ne show "(\<mu> X \<bullet> F (\<H> X)) \<sqsubseteq> \<^bold>\<mu> F"
-      apply (simp add: LFP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
+      apply (simp add: LEAST_FP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
       apply (rule Sup_least)
       apply (auto simp add: Healthy_def Sup_upper)
     done

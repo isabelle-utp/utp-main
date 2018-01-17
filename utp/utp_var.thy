@@ -20,8 +20,6 @@ purge_notation
   Lattice.inf ("\<Sqinter>\<index>_" [90] 90) and
   Lattice.join (infixl "\<squnion>\<index>" 65) and
   Lattice.meet (infixl "\<sqinter>\<index>" 70) and
-  LFP ("\<mu>\<index>") and
-  GFP ("\<nu>\<index>") and
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50) and
   disj  (infixr "|" 30) and
