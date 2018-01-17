@@ -5,44 +5,10 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-(* AFP Contributions *)
-
-session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
-  description {*
-    Author: Clemens Ballarin, started 24 September 1999
-
-    The Isabelle Algebraic Library.
-  *}
-  theories [document = false]
-    (* Preliminaries from set and number theory *)
-    "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Number_Theory/Primes"
-    "~~/src/HOL/Library/Permutation"
-  theories [document = pdf]
-    (*** New development, based on explicit structures ***)
-    (* Groups *)
-    FiniteProduct        (* Product operator for commutative groups *)
-    Sylow                (* Sylow's theorem *)
-    Bij                  (* Automorphism Groups *)
-
-    (* Orders and Lattices *)
-    Order
-    Lattice
-    Complete_Lattice
-    Galois_Connection
-
-    (* Rings *)
-    Divisibility         (* Rings *)
-    IntRing              (* Ideals and residue classes *)
-    UnivPoly             (* Polynomials *)
-  document_files
-    "root.bib"
-    "root.tex"
-
 (* Optics Library *)
 
 session "Optics" in "optics"
-  = (* "HOL-Algebra2" *) "HOL" +
+  = "HOL-Algebra" +
   options [document = pdf, document_output = "output", timeout = 300]
   theories
     Interp
@@ -92,7 +58,7 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
 
 (* Library Imports for UTP *)
 
-session "UTP-IMPORTS" in "utils" = "HOL-Algebra2" +
+session "UTP-IMPORTS" in "utils" = "Optics" +
   options [document = false, timeout = 1000]
   theories utp_imports
 
