@@ -447,12 +447,23 @@ lemma frame_all [frame]: "\<Sigma>:[P] = P"
 lemma frame_none [frame]: 
   "\<emptyset>:[P] = (P \<and> II)"
   by (rel_auto)
-    
+
 lemma frame_commute:
   assumes "$y \<sharp> P" "$y\<acute> \<sharp> P" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "x \<bowtie> y" 
   shows "x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
-oops
-    
+  apply (insert assms)
+  apply (rel_auto)
+   apply (rename_tac s s' s\<^sub>0)
+  apply (subgoal_tac "(s \<oplus>\<^sub>L s' on y) \<oplus>\<^sub>L s\<^sub>0 on x = s\<^sub>0 \<oplus>\<^sub>L s' on y")
+  apply (metis lens_indep_get lens_indep_sym lens_override_def)
+  apply (simp add: lens_indep.lens_put_comm lens_override_def)
+  apply (rename_tac s s' s\<^sub>0)
+  apply (subgoal_tac "put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> s (get\<^bsub>x\<^esub> (put\<^bsub>x\<^esub> s\<^sub>0 (get\<^bsub>x\<^esub> s')))) (get\<^bsub>y\<^esub> (put\<^bsub>y\<^esub> s (get\<^bsub>y\<^esub> s\<^sub>0))) 
+                      = put\<^bsub>x\<^esub> s\<^sub>0 (get\<^bsub>x\<^esub> s')")
+  apply (metis lens_indep_get lens_indep_sym)
+  apply (metis lens_indep.lens_put_comm)
+done
+
 lemma frame_contract_RID:
   assumes "vwb_lens x" "P is RID(x)" "x \<bowtie> y"
   shows "(x;y):[P] = y:[P]"
