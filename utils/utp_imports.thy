@@ -34,7 +34,6 @@ theory utp_imports
   "Library_extra/Ffun"
   Infinity
   Positive
-  Profiling
   TotalRecall
   InjUniv
 begin end

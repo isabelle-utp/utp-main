@@ -5,6 +5,14 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
+(* Profiling Library *)
+
+session "Profiling" in "profiling"
+  = "HOL" +
+  options [document = false, timeout = 1000]
+  theories
+    Profiling
+
 (* Optics Library *)
 
 session "Optics" in "optics"
