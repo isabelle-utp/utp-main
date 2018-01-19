@@ -22,17 +22,16 @@ theory utp_imports
   "~~/src/HOL/Library/Prefix_Order"
   "~~/src/HOL/Library/Product_Order"
   "~~/src/HOL/Library/Sublist"
-  "../contrib/Algebra/Complete_Lattice"
-  "../contrib/Algebra/Galois_Connection"
+  "~~/src/HOL/Algebra/Complete_Lattice"
+  "~~/src/HOL/Algebra/Galois_Connection"
   "../optics/Lenses"
   "Library_extra/Countable_Set_extra"
   "Library_extra/FSet_extra"
   "Library_extra/List_extra"
-  "Library_extra/List_lexord_alt"
   "Library_extra/Monoid_extra"
+  "Library_extra/Map_Extra"
   "Library_extra/Pfun"
   "Library_extra/Ffun"
-  "Library_extra/Set_extra"
   Infinity
   Positive
   Profiling

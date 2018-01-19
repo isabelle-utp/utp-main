@@ -62,7 +62,7 @@ done
 lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> x \<le> last xs"
   apply (induct xs)
   apply (auto)
-  apply (metis last_in_set sorted_Cons)+
+  apply (metis sorted_Cons)+
 done
 
 lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"

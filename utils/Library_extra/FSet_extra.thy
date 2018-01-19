@@ -131,7 +131,7 @@ lemma flist_set [simp]: "set (flist xs) = fset xs"
 
 lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightarrow> flist (finset xs) = xs"
   apply (simp add:finset_def flist_def fset_inverse)
-  apply (metis finset.abs_eq finset.rep_eq local.sorted_list_of_set_sort_remdups local.sorted_sort_id remdups_id_iff_distinct)
+  apply (metis local.sorted_list_of_set_sort_remdups local.sorted_sort_id remdups_id_iff_distinct)
 done
 
 lemma fcard_flist:
@@ -212,7 +212,7 @@ lemma finite_UN_subsets:
 lemma flub_rep_eq:
   "\<langle>flub A t\<rangle>\<^sub>f = (if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f)"
   apply (subgoal_tac "(if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f) \<in> {x. finite x}")
-  apply (auto simp add:flub_def Abs_fset_inverse)
+  apply (auto simp add:flub_def)
   apply (rule finite_UN_subsets[of _ _ "\<langle>t\<rangle>\<^sub>f"])
   apply (auto)
 done
@@ -231,28 +231,28 @@ done
 lemma FinPow_rep_eq [simp]:
   "fset (FinPow xs) = {ys. ys |\<subseteq>| xs}"
   apply (subgoal_tac "finite (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)")
-  apply (auto simp add:Abs_fset_inverse fmember_def FinPow_def)
+  apply (auto simp add: fmember_def FinPow_def)
   apply (subgoal_tac "finite xa")
-  apply (auto simp add:Abs_fset_inverse)
+  apply (auto)
   apply (metis finite_fset finite_subset)
   apply (metis (full_types) Pow_iff fset_inverse imageI less_eq_fset.rep_eq)
 done
 
 lemma FUnion_rep_eq [simp]:
   "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
-  by (simp add:FUnion_def Abs_fset_inverse)
+  by (simp add:FUnion_def)
 
 lemma FInter_rep_eq [simp]:
   "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   apply (simp add:FInter_def)
   apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
-  apply (simp add:Abs_fset_inverse)
+  apply (simp)
   apply (metis (poly_guards_query) bot_fset.rep_eq fglb_rep_eq finite_fset fset_inverse)
 done
 
 lemma FUnion_empty [simp]:
   "\<Union>\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"
-  by (auto simp add:FUnion_def fmember_def Abs_fset_inverse)
+  by (auto simp add:FUnion_def fmember_def)
 
 lemma FinPow_member [simp]:
   "xs |\<in>| FinPow xs"
