@@ -213,52 +213,52 @@ lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma UINF_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
-done
+  done
 
 lemma UINF_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
-done
+  done
 
 lemma UINF_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
-done
+  done
 
 lemma USUP_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
-done
+  done
 
 lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
   by (pred_simp, rule_tac cong[of Inf Inf], auto)
@@ -282,8 +282,8 @@ lemma UINF_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (pred_simp)
   apply (subst Sup_insert[THEN sym])
   apply (rule_tac cong[of Sup Sup])
-  apply (auto)
-done
+   apply (auto)
+  done
     
 lemma UINF_atLeast_first:
   "P(n) \<sqinter> (\<Sqinter> i \<in> {Suc n..} \<bullet> P(i)) = (\<Sqinter> i \<in> {n..} \<bullet> P(i))"
@@ -301,8 +301,8 @@ lemma USUP_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (pred_simp)
   apply (subst Inf_insert[THEN sym])
   apply (rule_tac cong[of Inf Inf])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
@@ -383,16 +383,14 @@ lemma UINF_list_conv:
   apply (induct xs)
    apply (rel_auto)
   apply (simp add: UINF_upto_expand_first UINF_Suc_shift)
-    
-    thm UINF_upto_expand_first
-done
+  done
 
 lemma USUP_list_conv:
   "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<and> (map f xs) true"    
   apply (induct xs)
    apply (rel_auto)
   apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)
-done
+  done
     
 lemma UINF_refines':
   assumes "\<And> i. P \<sqsubseteq> Q(i)" 
@@ -567,7 +565,7 @@ lemma ex_commute:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma all_commute:
   assumes "x \<bowtie> y"
@@ -575,7 +573,7 @@ lemma all_commute:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma ex_equiv:
   assumes "x \<approx>\<^sub>L y"
@@ -819,8 +817,8 @@ lemma refine_by_obs:
   apply (rename_tac b)
   apply (drule_tac x="get\<^bsub>x\<^esub>b" in spec)
   apply (auto simp add: assms)
-  apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
-done
+   apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
+  done
     
 subsection {* Cylindric Algebra *}
 

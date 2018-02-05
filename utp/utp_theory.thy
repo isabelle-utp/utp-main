@@ -18,13 +18,13 @@ proof (unfold_locales, simp_all add: upred_lattice_def)
   show "\<exists>s. is_lub \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> s A"
     apply (rule_tac x="\<Squnion> A" in exI)
     apply (rule least_UpperI)
-    apply (auto intro: Inf_greatest simp add: Inf_lower Upper_def)
-  done
+       apply (auto intro: Inf_greatest simp add: Inf_lower Upper_def)
+    done
   show "\<exists>i. is_glb \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> i A"
     apply (rule_tac x="\<Sqinter> A" in exI)
     apply (rule greatest_LowerI)
-    apply (auto intro: Sup_least simp add: Sup_upper Lower_def)
-  done
+       apply (auto intro: Sup_least simp add: Sup_upper Lower_def)
+    done
 qed
 
 lemma upred_weak_complete_lattice [simp]: "weak_complete_lattice \<P>"
@@ -116,9 +116,9 @@ lemma utp_weak_partial_order: "weak_partial_order (utp_order T)"
 lemma mono_Monotone_utp_order:
   "mono f \<Longrightarrow> Monotone (utp_order T) f"
   apply (auto simp add: isotone_def)
-  apply (metis partial_order_def utp_partial_order)
+   apply (metis partial_order_def utp_partial_order)
   apply (metis monoD)
-done
+  done
 
 lemma isotone_utp_orderI: "Monotonic H \<Longrightarrow> isotone (utp_order X) (utp_order Y) H"
   by (auto simp add: mono_def isotone_def utp_weak_partial_order)
@@ -455,7 +455,7 @@ begin
       apply (simp add: LEAST_FP_def gfp_def, subst healthy_inf_cont, auto simp add: lfp_def)
       apply (rule Sup_least)
       apply (auto simp add: Healthy_def Sup_upper)
-    done
+      done
   qed
 
 end
@@ -534,12 +534,12 @@ begin
   lemma star_unfold: "P is \<H> \<Longrightarrow> P\<^bold>\<star> = (P;;P\<^bold>\<star>) \<sqinter> \<I>\<I>"
     apply (simp add: utp_star_def healthy_meet_cont)
     apply (subst GFP_unfold)
-    apply (rule Mono_utp_orderI)
-    apply (simp add: healthy_meet_cont closure semilattice_sup_class.le_supI1 seqr_mono)
-    apply (auto intro: funcsetI)
-    apply (simp add: Healthy_Left_Unit Healthy_Sequence healthy_meet_cont meet_is_healthy)
+      apply (rule Mono_utp_orderI)
+      apply (simp add: healthy_meet_cont closure semilattice_sup_class.le_supI1 seqr_mono)
+     apply (auto intro: funcsetI)
+     apply (simp add: Healthy_Left_Unit Healthy_Sequence healthy_meet_cont meet_is_healthy)
     using Healthy_Left_Unit Healthy_Sequence healthy_meet_cont weak.GFP_closed apply auto
-  done
+    done
 
 end
 

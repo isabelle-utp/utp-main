@@ -468,11 +468,11 @@ lemma StateParallel_form':
   shows "P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<^bold>v,$b\<acute>})]"
   using assms
   apply (simp add: StateParallel_form, rel_auto)
-  apply (metis vwb_lens_wb wb_lens_axioms_def wb_lens_def)
-  apply (metis vwb_lens_wb wb_lens.get_put)
-  apply (simp add: lens_indep_comm)
+     apply (metis vwb_lens_wb wb_lens_axioms_def wb_lens_def)
+    apply (metis vwb_lens_wb wb_lens.get_put)
+   apply (simp add: lens_indep_comm)
   apply (metis (no_types, hide_lams) lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
-done  
+  done  
   
 text {* We can frame all the variables that the parallel operator refers to *}
     
@@ -482,7 +482,7 @@ lemma StateParallel_frame:
   using assms
   apply (simp add: StateParallel_form, rel_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 text {* Parallel Hoare logic rule. This employs something similar to separating conjunction in
   the postcondition, but we explicitly require that the two conjuncts only refer to variables

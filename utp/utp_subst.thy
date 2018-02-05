@@ -217,7 +217,7 @@ lemma usubst_upd_var_id [usubst]:
   apply (transfer)
   apply (rule ext)
   apply (auto)
-done
+  done
 
 lemma usubst_upd_pr_var_id [usubst]:
   "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var (pr_var x)] = id"
@@ -225,7 +225,7 @@ lemma usubst_upd_pr_var_id [usubst]:
   apply (transfer)
   apply (rule ext)
   apply (auto)
-done
+  done
   
 lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"

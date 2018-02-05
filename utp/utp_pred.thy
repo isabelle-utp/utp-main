@@ -139,9 +139,9 @@ instance uexpr :: (order, type) refine ..
 
 theorem upred_ref_iff [uexpr_transfer_laws]:
 "(P \<sqsubseteq> Q) = (\<forall>b. \<lbrakk>Q\<rbrakk>\<^sub>e b \<longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e b)"
-apply (transfer)
-apply (clarsimp)
-done
+  apply (transfer)
+  apply (clarsimp)
+  done
 
 text {* Next we introduce the lattice operators, which is again done by lifting. *}
 
@@ -179,9 +179,9 @@ text {* Finally we show that predicates form a Boolean algebra (under the lattic
   equip us with a very complete theory for basic logical propositions. *}
 
 instance uexpr :: (boolean_algebra, type) boolean_algebra
-apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
-apply (simp_all add: sup_inf_distrib1 diff_eq)
-done
+  apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
+    apply (simp_all add: sup_inf_distrib1 diff_eq)
+  done
 
 instantiation uexpr :: (complete_lattice, type) complete_lattice
 begin
@@ -196,11 +196,11 @@ end
   
 instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
   apply (intro_classes)
-  apply (transfer, rule ext, auto)
+   apply (transfer, rule ext, auto)
   using sup_INF apply fastforce
   apply (transfer, rule ext, auto)
   using inf_SUP apply fastforce
-done
+  done
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
   
@@ -451,9 +451,9 @@ lemma unrest_var_res_in [unrest]:
   shows "y \<sharp> (P \<restriction>\<^sub>v x)"
   using assms 
   apply (pred_auto)
-  apply fastforce
+   apply fastforce
   apply (metis (no_types, lifting) mwb_lens_weak weak_lens.put_get)
-done
+  done
 
 lemma unrest_shEx [unrest]:
   assumes "\<And> y. x \<sharp> P(y)"
@@ -556,7 +556,7 @@ lemma subst_ex_indep [usubst]:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma subst_ex_unrest [usubst]:
   "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"

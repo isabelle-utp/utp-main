@@ -74,7 +74,7 @@ theorem hoare_opsem_link:
   apply (rename_tac a b)
   apply (drule_tac x="\<lambda> _. a" in spec, simp)
   apply (drule_tac x="\<lambda> _. b" in spec, simp)
-done
+  done
     
 declare trel.simps [simp del]
 

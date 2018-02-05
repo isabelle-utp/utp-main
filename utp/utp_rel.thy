@@ -437,7 +437,7 @@ lemma rel_aext_seq [alpha]:
   apply (rename_tac aa b y)
   apply (rule_tac x="create\<^bsub>a\<^esub> y" in exI)
   apply (simp)
-done
+  done
 
 lemma rel_aext_cond [alpha]:
   "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
@@ -577,15 +577,15 @@ declare RID_def [urel_defs]
 
 lemma RID1: "vwb_lens x \<Longrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>) \<Longrightarrow> RID(x)(P) = P"
   apply (rel_auto)
-  apply (metis vwb_lens.put_eq)
+   apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-done
+  done
     
 lemma RID2: "vwb_lens x \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; RID(x)(P) = RID(x)(P) ;; x := \<guillemotleft>v\<guillemotright>"
   apply (rel_auto)
-  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
+   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
   apply blast
-done
+  done
     
 lemma RID_assign_commute:
   "vwb_lens x \<Longrightarrow> P = RID(x)(P) \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
@@ -627,9 +627,9 @@ lemma conj_RID [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbra
 lemma RID_assigns_r_diff:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_auto)
-  apply (metis vwb_lens.put_eq)
+   apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-done
+  done
 
 lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
   by (simp add: Healthy_def RID_assigns_r_diff)
@@ -638,7 +638,7 @@ lemma RID_assign_r_same:
   "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
   apply (rel_auto)
   using vwb_lens.put_eq apply fastforce
-done
+  done
 
 lemma RID_seq_left:
   assumes "vwb_lens x"
@@ -650,9 +650,9 @@ proof -
     by (rel_auto)
   also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     apply (rel_auto)
-    apply (metis vwb_lens.put_eq)
+     apply (metis vwb_lens.put_eq)
     apply (metis mwb_lens.put_put vwb_lens_mwb)
-  done
+    done
   also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_simp, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
   also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
@@ -674,9 +674,9 @@ proof -
     by (rel_auto)
   also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     apply (rel_auto)
-    apply (metis vwb_lens.put_eq)
+     apply (metis vwb_lens.put_eq)
     apply (metis mwb_lens.put_put vwb_lens_mwb)
-  done
+    done
   also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_simp robust, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
   also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"

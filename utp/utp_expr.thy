@@ -269,10 +269,9 @@ instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
 
 instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (intro_classes)
-  apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
+      apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
-done
-
+  done
 
 text \<open> The following instantiation sets up numerals. This will allow us to have Isabelle number
   representations (i.e. 3,7,42,198 etc.) to UTP expressions directly. \<close>
@@ -285,10 +284,10 @@ text \<open> The following two theorems also set up interpretation of numerals, 
     
 lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
   apply (induct x)
-  apply (simp add: lit.rep_eq one_uexpr_def)
-  apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
+    apply (simp add: lit.rep_eq one_uexpr_def)
+   apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
   apply (simp add: bop.rep_eq lit.rep_eq numeral_code(3) one_uexpr_def plus_uexpr_def)
-done
+  done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
