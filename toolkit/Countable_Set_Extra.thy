@@ -1,10 +1,10 @@
-section {* Countable sets: Extra functions and properties *}
+section {* Countable Sets: Extra functions and properties *}
 
-theory Countable_Set_extra
+theory Countable_Set_Extra
 imports
   "~~/src/HOL/Library/Countable_Set_Type"
   Sequence
-  FSet_extra
+  FSet_Extra
   "~~/src/HOL/Library/Bit"
 begin
 

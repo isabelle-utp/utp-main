@@ -25,11 +25,14 @@ theory utp_toolkit
   "~~/src/HOL/Algebra/Complete_Lattice"
   "~~/src/HOL/Algebra/Galois_Connection"
   "../optics/Lenses"
+  Countable_Set_Extra
   FSet_Extra
   Map_Extra
   List_Extra
   Pfun
   Ffun
+  Infinity
+  Positive
   TotalRecall
   InjUniv
 begin end

@@ -19,7 +19,7 @@ subsection {* Type Definition *}
 typedef (overloaded) 'a::"{zero, linorder}" pos = "{x::'a. x \<ge> 0}"
   apply (rule_tac x = "0" in exI)
   apply (clarsimp)
-done
+  done
 
 setup_lifting type_definition_pos
 
@@ -60,7 +60,7 @@ instance pos :: ("{zero, linorder, no_top}") no_top
   apply (transfer)
   apply (clarsimp)
   apply (meson gt_ex less_imp_le order.strict_trans1)
-done
+  done
 
 instance pos :: ("{zero, linorder, no_top}") infinite
   apply (intro_classes)
@@ -68,7 +68,7 @@ instance pos :: ("{zero, linorder, no_top}") infinite
   apply (subgoal_tac "\<forall>x::'a pos. x \<le> Max UNIV")
   using gt_ex leD apply (blast)
   apply (simp)
-done
+  done
 
 instantiation pos :: (linordered_semidom) linordered_semidom
 begin
@@ -99,7 +99,7 @@ begin
       apply (simp add: mult_left_mono)
     using mult_left_le_imp_le apply (fastforce)
     apply (simp add: distrib_left)
-  done
+    done
 end
 
 instantiation pos :: ("linordered_field") semidom_divide
@@ -109,7 +109,7 @@ begin
   instance
     apply (intro_classes; transfer)
      apply (simp_all)
-  done
+    done
 end
   
 instantiation pos :: (linordered_field) inverse

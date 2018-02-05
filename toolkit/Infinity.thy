@@ -49,75 +49,75 @@ theorem infinite_UNIV_fun1 [simp]:
 "infinite (UNIV :: 'a set) \<Longrightarrow>
  card (UNIV :: 'b set) \<noteq> Suc 0 \<Longrightarrow>
  infinite (UNIV :: ('a \<Rightarrow> 'b) set)"
-apply (erule contrapos_nn)
-apply (erule finite_fun_UNIVD1)
-apply (assumption)
-done
+  apply (erule contrapos_nn)
+  apply (erule finite_fun_UNIVD1)
+  apply (assumption)
+  done
 
 theorem infinite_UNIV_fun2 [simp]:
 "infinite (UNIV :: 'b set) \<Longrightarrow>
  infinite (UNIV :: ('a \<Rightarrow> 'b) set)"
-apply (erule contrapos_nn)
-apply (erule finite_fun_UNIVD2)
-done
+  apply (erule contrapos_nn)
+  apply (erule finite_fun_UNIVD2)
+  done
 
 theorem infinite_UNIV_set [simp]:
 "infinite (UNIV :: 'a set) \<Longrightarrow>
  infinite (UNIV :: 'a set set)"
-apply (erule contrapos_nn)
-apply (simp add: Finite_Set.finite_set)
-done
+  apply (erule contrapos_nn)
+  apply (simp add: Finite_Set.finite_set)
+  done
 
 theorem infinite_UNIV_prod1 [simp]:
 "infinite (UNIV :: 'a set) \<Longrightarrow>
  infinite (UNIV :: ('a \<times> 'b) set)"
-apply (erule contrapos_nn)
-apply (simp add: finite_prod)
-done
+  apply (erule contrapos_nn)
+  apply (simp add: finite_prod)
+  done
 
 theorem infinite_UNIV_prod2 [simp]:
 "infinite (UNIV :: 'b set) \<Longrightarrow>
  infinite (UNIV :: ('a \<times> 'b) set)"
-apply (erule contrapos_nn)
-apply (simp add: finite_prod)
-done
+  apply (erule contrapos_nn)
+  apply (simp add: finite_prod)
+  done
 
 theorem infinite_UNIV_sum1 [simp]:
 "infinite (UNIV :: 'a set) \<Longrightarrow>
  infinite (UNIV :: ('a + 'b) set)"
-apply (erule contrapos_nn)
-apply (simp)
-done
+  apply (erule contrapos_nn)
+  apply (simp)
+  done
 
 theorem infinite_UNIV_sum2 [simp]:
 "infinite (UNIV :: 'b set) \<Longrightarrow>
  infinite (UNIV :: ('a + 'b) set)"
-apply (erule contrapos_nn)
-apply (simp)
-done
+  apply (erule contrapos_nn)
+  apply (simp)
+  done
 
 theorem infinite_UNIV_list [simp]:
 "infinite (UNIV :: 'a list set)"
-apply (rule infinite_UNIV_listI)
-done
+  apply (rule infinite_UNIV_listI)
+  done
 
 theorem infinite_UNIV_option [simp]:
 "infinite (UNIV :: 'a set) \<Longrightarrow>
  infinite (UNIV :: 'a option set)"
-apply (erule contrapos_nn)
-apply (simp)
-done
+  apply (erule contrapos_nn)
+  apply (simp)
+  done
 
 theorem infinite_image [intro]:
 "infinite A \<Longrightarrow> inj_on f A \<Longrightarrow> infinite (f ` A)"
-apply (metis finite_imageD)
-done
+  apply (metis finite_imageD)
+  done
 
 theorem infinite_transfer (*[intro]*) :
 "infinite B \<Longrightarrow> B \<subseteq> f ` A \<Longrightarrow> infinite A"
-using infinite_super
-apply (blast)
-done
+  using infinite_super
+  apply (blast)
+  done
 
 subsection {* Instantiations *}
 
