@@ -8,7 +8,8 @@
 subsection {* Deep Variables *}
 
 theory utp_dvar
-imports utp_var utp_expr utp_pred utp_unrest utp_subst utp_local
+  imports 
+  "../utp"
   "../../continuum/Continuum"
 begin recall_syntax
 

@@ -21,7 +21,7 @@ imports uimports document
   "utils/Typerep_ind"
   (* Provided by the UTP-IMPORTS heap. *)
   "../optics/Lenses"
-  "../utils/Infinity"
+  "../../utils/Infinity"
 begin
 
 text {* ML Utility Functions *}

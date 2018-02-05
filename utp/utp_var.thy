@@ -2,7 +2,7 @@ section \<open> UTP variables \<close>
 
 theory utp_var
   imports
-  "../utils/utp_imports"
+  "../toolkit/utp_toolkit"
   utp_parser_utils
 begin
 

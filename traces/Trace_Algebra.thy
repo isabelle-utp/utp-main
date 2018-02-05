@@ -1,7 +1,10 @@
 section {* Trace Algebras *}
 
 theory Trace_Algebra
-  imports List_extra Positive
+  imports 
+    "../utils/Library_extra/List_extra"
+    "../utils/Positive"
+    List_Minus
 begin
 
 class ordered_semigroup = semigroup_add + order +

@@ -1,6 +1,6 @@
 section {* Lists: extra functions and properties *}
 
-theory List_extra
+theory List_Extra
 imports
   Main
   "~~/src/HOL/Library/Sublist"

@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
-(* File: utp.thy                                                              *)
+(* File: utp_toolkit.thy                                                      *)
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Meta-theory for Library Imports *}
+section {* Meta-theory for UTP Toolkit *}
 
-theory utp_imports
+theory utp_toolkit
   imports
   Deriv
   "~~/src/HOL/Library/Char_ord"  
@@ -25,11 +25,11 @@ theory utp_imports
   "~~/src/HOL/Algebra/Complete_Lattice"
   "~~/src/HOL/Algebra/Galois_Connection"
   "../optics/Lenses"
-  "Library_extra/FSet_extra"
-  "Library_extra/Map_Extra"
-  "Library_extra/List_extra"
-  "Library_extra/Pfun"
-  "Library_extra/Ffun"
+  FSet_Extra
+  Map_Extra
+  List_Extra
+  Pfun
+  Ffun
   TotalRecall
   InjUniv
 begin end

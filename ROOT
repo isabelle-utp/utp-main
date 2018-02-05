@@ -50,6 +50,8 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 
 (* Continuous System Dynamics *)
 
+(*
+
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
@@ -64,15 +66,20 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
     "zed.sty"
     "csp.sty"
 
-(* Library Imports for UTP *)
+*)
 
-session "UTP-IMPORTS" in "utils" = "Optics" +
-  options [document = false, timeout = 1000]
-  theories utp_imports
+(* UTP Mathematical Toolkit *)
+
+session "UTP-TOOLKIT" in "toolkit" = "Optics" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_toolkit
+  document_files
+    "root.tex"
+    "document.sty"
 
 (* Core UTP Framework *)
 
-session "UTP" in "utp" = "UTP-IMPORTS" +
+session "UTP" in "utp" = "UTP-TOOLKIT" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp
   document_files
@@ -80,6 +87,7 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.tex"
     "document.sty"
 
+(*
 (* Core UTP with Deep Variables *)
 
 session "UTP-DEEP" in "utp/models" = "UTP" +
@@ -128,8 +136,8 @@ session "UTP-HYBRID-IMPORTS" = "Dynamics" +
   theories
     "~~/src/HOL/Library/FuncSet"
     "~~/src/HOL/Library/Permutation"
-    "contrib/Algebra/Complete_Lattice"
-    "contrib/Algebra/Galois_Connection"
+    "~~/src/HOL/Algebra/Complete_Lattice"
+    "~~/src/HOL/Algebra/Galois_Connection"
     "utils/utp_imports"
     "utp/utp"
     "theories/utp_theories"
@@ -222,3 +230,4 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
     (* "root.bib" *)
     "root.tex"
     "document.sty"
+*)

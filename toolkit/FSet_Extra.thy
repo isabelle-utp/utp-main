@@ -1,6 +1,6 @@
 section {* Finite Sets: extra functions and properties *}
 
-theory FSet_extra
+theory FSet_Extra
 imports
   "~~/src/HOL/Library/FSet"
   "~~/src/HOL/Library/Countable_Set_Type"
