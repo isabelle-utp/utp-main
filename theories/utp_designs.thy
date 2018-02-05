@@ -1939,6 +1939,9 @@ named_theorems ND_elim
   
 lemma ndes_elim: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: ndesign_form)
+
+lemma ndes_ind_elim: "\<lbrakk> \<And> i. P i is \<^bold>N; Q(\<lambda> i. \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i)) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (simp add: ndesign_form)
     
 lemma ndes_split [ND_elim]: "\<lbrakk> P is \<^bold>N; \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(P)"
   by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
@@ -2008,7 +2011,7 @@ qed
 definition AlternateD_list :: "('\<alpha> upred \<times> ('\<alpha>, '\<beta>) rel_des) list \<Rightarrow> ('\<alpha>, '\<beta>) rel_des  \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where 
 [upred_defs, ndes_simp]:
 "AlternateD_list xs P = 
-  AlternateD {0..<length xs} (\<lambda> i. fst (nth xs i)) (\<lambda> i. snd (nth xs i)) P"
+  AlternateD {0..<length xs} (\<lambda> i. map fst xs ! i) (\<lambda> i. map snd xs ! i) P"
 
 adhoc_overloading
   ualtern AlternateD and
@@ -2122,7 +2125,73 @@ lemma AlternateD_cover:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "if g \<rightarrow> P else Q fi = if g \<rightarrow> P | (\<not> g) \<rightarrow> Q fi"
   by (ndes_eq cls: assms)
+
+lemma UINF_ndes_expand:
+  assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is \<^bold>N"
+  shows "(\<Sqinter> i \<in> A \<bullet> \<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) = (\<Sqinter> i \<in> A \<bullet> P(i))"
+  by (rule UINF_cong, simp add: assms ndesign_form)
+
+lemma USUP_ndes_expand:
+  assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is \<^bold>N"
+  shows "(\<Squnion> i \<in> A \<bullet> \<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) = (\<Squnion> i \<in> A \<bullet> P(i))"
+  by (rule USUP_cong, simp add: assms ndesign_form)
+    
+lemma AlternateD_ndes_expand:
+  assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is \<^bold>N" "Q is \<^bold>N"
+  shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi =
+         if i\<in>A \<bullet> g(i) \<rightarrow> (\<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) else \<lfloor>pre\<^sub>D(Q)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(Q) fi"
+  apply (simp add: AlternateD_def)
+  apply (subst UINF_ndes_expand[THEN sym])
+  apply (simp add: assms closure)
+  apply (ndes_simp cls: assms)
+  apply (rel_auto)
+done
+
+lemma AlternateD_ndes_expand':
+  assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is \<^bold>N"
+  shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi = if i\<in>A \<bullet> g(i) \<rightarrow> (\<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) fi"
+  apply (simp add: AlternateD_def)
+  apply (subst UINF_ndes_expand[THEN sym])
+  apply (simp add: assms closure)
+  apply (ndes_simp cls: assms)
+  apply (rel_auto)
+done
+
+  
+    
+lemma ndesign_ind_form:
+  assumes "\<And> i. P(i) is \<^bold>N"
+  shows "(\<lambda> i. \<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) = P"
+  by (simp add: assms ndesign_form)
+    
+lemma AlternateD_insert:
+  assumes "\<And> i. i\<in>(insert x A) \<Longrightarrow> P(i) is \<^bold>N" "Q is \<^bold>N"
+  shows "if i\<in>(insert x A) \<bullet> g(i) \<rightarrow> P(i) else Q fi = 
+         if g(x) \<rightarrow> P(x) | 
+            (\<Or> i\<in>A \<bullet> g(i)) \<rightarrow> if i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi 
+            else Q 
+         fi" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = if i\<in>(insert x A) \<bullet> g(i) \<rightarrow> (\<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i))) else (\<lfloor>pre\<^sub>D(Q)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(Q)) fi"
+    using AlternateD_ndes_expand assms(1) assms(2) by blast
+  also 
+  have "... =
+         if g(x) \<rightarrow> (\<lfloor>pre\<^sub>D(P(x))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(x))) | 
+            (\<Or> i\<in>A \<bullet> g(i)) \<rightarrow> if i\<in>A \<bullet> g(i) \<rightarrow> \<lfloor>pre\<^sub>D(P(i))\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P(i)) fi 
+            else \<lfloor>pre\<^sub>D(Q)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(Q)
+         fi"
+    by (ndes_simp cls:assms, rel_auto)
+  also have "... = ?rhs"
+    by (simp add: AlternateD_ndes_expand' ndesign_form assms)
+  finally show ?thesis .
+qed
    
+lemma "\<lbrakk> P\<^sub>1 is \<^bold>N; P\<^sub>2 is \<^bold>N \<rbrakk> \<Longrightarrow> if g\<^sub>1 \<rightarrow> P\<^sub>1 | g\<^sub>2 \<rightarrow> P\<^sub>2 fi = undefined"
+  apply (simp add: AlternateD_list_def atLeast0_lessThan_Suc)
+  apply (subst AlternateD_insert)
+    apply (auto simp add: AlternateD_insert closure)
+oops
+  
 subsection {* Iteration *}
 
 text {* Overloadable Syntax *}
