@@ -27,13 +27,9 @@ theory utp_imports
   "../optics/Lenses"
   "Library_extra/Countable_Set_extra"
   "Library_extra/FSet_extra"
-  "Library_extra/List_extra"
-  "Library_extra/Monoid_extra"
   "Library_extra/Map_Extra"
   "Library_extra/Pfun"
   "Library_extra/Ffun"
-  Infinity
-  Positive
   TotalRecall
   InjUniv
 begin end

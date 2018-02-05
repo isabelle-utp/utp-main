@@ -4,7 +4,8 @@ theory utp_reactive
 imports
   "../utp/utp_concurrency"
   utp_designs
-begin
+  "../traces/Trace_Algebra"
+begin recall_syntax
   
 alphabet 't::trace rp_vars = des_vars +
   wait :: bool

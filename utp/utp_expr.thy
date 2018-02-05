@@ -297,10 +297,11 @@ text \<open> The next theorem lifts powers. \<close>
 
 lemma power_rep_eq: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
   by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
-    
+
+(*
 text \<open> We can also lift a few arithmetic properties from the class instantiations above using
   \emph{transfer}. \<close>
-    
+
 lemma uexpr_diff_zero [simp]:
   fixes a :: "('\<alpha>::trace, 'a) uexpr"
   shows "a - 0 = a"
@@ -310,6 +311,7 @@ lemma uexpr_add_diff_cancel_left [simp]:
   fixes a b :: "('\<alpha>::trace, 'a) uexpr"
   shows "(a + b) - a = b"
   by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
+*)
 
 subsection \<open> Overloaded expression constructors \<close>
     
@@ -626,7 +628,7 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
-  plus_list_def
+(*  plus_list_def *)
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
   the above definitions are defined. Thus, using these theorems together, we can convert any UTP 
