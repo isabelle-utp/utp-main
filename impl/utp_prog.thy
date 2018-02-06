@@ -1,7 +1,7 @@
 section {* Imperative Programs *}
   
 theory utp_prog
-  imports "../theories/utp_designs"
+  imports "../theories/designs/utp_designs"
 begin
   
 subsection {* Program Type *}

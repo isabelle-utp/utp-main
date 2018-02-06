@@ -29,6 +29,7 @@ theory utp_toolkit
   FSet_Extra
   Map_Extra
   List_Extra
+  List_Lexord_Alt
   Pfun
   Ffun
   Infinity

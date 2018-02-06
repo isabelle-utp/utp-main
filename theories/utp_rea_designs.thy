@@ -3935,11 +3935,7 @@ next
     by (simp add: rdes closure assms)
   finally show ?case by (simp)
 qed
-    
-  
-lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
-  by (rel_auto)
-      
+
 lemma power_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^bold>^(Suc n) 

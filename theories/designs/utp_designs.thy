@@ -8,4 +8,6 @@ theory utp_designs
     utp_des_tactics
     utp_des_prog
     utp_des_wp
+    utp_des_refcalc
+    utp_des_invariants
 begin end

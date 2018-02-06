@@ -9,9 +9,8 @@ section {* Meta-theory for UTP Theories *}
 
 theory utp_theories
 imports
-  utp_designs
+  "designs/utp_designs"
   utp_invariants
-  utp_refcalc
   utp_reactive
   utp_rea_designs
   utp_reactive_hoare

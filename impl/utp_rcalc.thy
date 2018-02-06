@@ -19,7 +19,6 @@ declare log_const.rep_eq [prog_rep_eq]
 subsection {* Syntax Translations *}
   
 syntax
-  "_init_var"  :: "logic"
   "_spec"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_:[_,/ _]" [99,0,0] 100)
   "_log_const" :: "id \<Rightarrow> type \<Rightarrow> logic \<Rightarrow> logic" ("con _ :: _ \<bullet> _" [0, 10] 10)
   "_init_val"  :: "svid \<Rightarrow> logic" ("&\<^sub>0_" [998] 998)
@@ -31,15 +30,6 @@ translations
   "con x :: 'a \<bullet> P" == "CONST log_const TYPE('a) (\<lambda> x. P)"
   "_init_val x" => "CONST uop (CONST lens_get x) (CONST lit _init_var)"
   "_init_expr e" => "e\<lbrakk>\<guillemotleft>_init_var\<guillemotright>/&\<^bold>v\<rbrakk>"
-  
-parse_translation {*
-let
-  fun init_var_tr [] = Syntax.free "iv"
-    | init_var_tr _  = raise Match;
-in
-[(@{syntax_const "_init_var"}, K init_var_tr)]
-end
-*}
   
 abbreviation "chose x \<equiv> {&x}:[true,true]"
   

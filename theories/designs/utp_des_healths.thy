@@ -173,7 +173,7 @@ subsection {* H2: A specification cannot require non-termination *}
 definition J :: "'\<alpha> hrel_des" where 
 [upred_defs]: "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
 
-definition H2 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
+definition H2 where
 [upred_defs]: "H2 (P)  \<equiv>  P ;; J"
 
 lemma J_split:

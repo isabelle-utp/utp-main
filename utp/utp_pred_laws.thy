@@ -197,6 +197,9 @@ lemma USUP_mem_UNIV [simp]: "(\<Squnion> x\<in>UNIV \<bullet> P(x)) = (\<Squnion
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
   by (pred_simp)
 
+lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
+  by (rel_auto)
+
 lemma UINF_true [simp]: "(\<Sqinter> i \<bullet> true) = true"
   by (pred_simp)
 
@@ -210,7 +213,7 @@ lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A
 lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
   by (pred_auto)
 
-lemma UINF_pred_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
+lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
   by (rel_auto)
 
 lemma UINF_cong_eq:

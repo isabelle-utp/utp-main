@@ -87,6 +87,8 @@ session "UTP" in "utp" = "UTP-TOOLKIT" +
     "root.tex"
     "document.sty"
 
+(* UTP Designs *)
+
 session "UTP-DESIGNS" in "theories/designs" = "UTP" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_designs
@@ -95,8 +97,13 @@ session "UTP-DESIGNS" in "theories/designs" = "UTP" +
     "root.tex"
     "document.sty"
 
+(* Imperative Programs based on Designs *)
+    
+session "UTP-IMPL" in "impl" = "UTP-DESIGNS" +
+  options [document = false]
+  theories
+    utp_impl
 
-(*
 (* Core UTP with Deep Variables *)
 
 session "UTP-DEEP" in "utp/models" = "UTP" +
@@ -117,7 +124,7 @@ session "UTP-DEEP-AXM" in "utp/models" = "UTP-DEEP" +
 
 (* UTP Theory Base *)
 
-session "UTP-THY" in "theories" = "UTP" +
+session "UTP-THY" in "theories" = "UTP-DESIGNS" +
   options [browser_info = true, document = false]
   theories utp_theories
 
@@ -140,6 +147,7 @@ session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
+(*
 session "UTP-HYBRID-IMPORTS" = "Dynamics" +
   options [document = false]
   theories
@@ -192,13 +200,6 @@ session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
   options [document = false]
   theories
     Modelica_NonComp
-
-(* Imperative Programs based on Designs *)
-    
-session "UTP-IMPL" in "impl" = "UTP-THY-DEEP" +
-  options [document = false]
-  theories
-    utp_impl
   
 (* VDM-SL Mechanisation *)
 
