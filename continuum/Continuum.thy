@@ -6,8 +6,8 @@ theory Continuum
     Finite_Bijection
     Transcendental
     Real_Bit
-    "../utils/Library_extra/Countable_Set_extra"
-    "../utils/Positive"
+    "../toolkit/Countable_Set_Extra"
+    "../toolkit/Positive"
 begin
 
 subsection {* Cardinality $\mathfrak{c}$ *}

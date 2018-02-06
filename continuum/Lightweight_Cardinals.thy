@@ -12,7 +12,7 @@ imports
   Main Real
   "~~/src/HOL/Library/Countable_Set"
   "~~/src/HOL/Cardinals/Cardinals"
-  "../utils/Infinity" UNIV_TYPE
+  "../toolkit/Infinity" UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}
