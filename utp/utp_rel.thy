@@ -76,12 +76,12 @@ text {* We create type synonyms for conditions (which are simply predicates) -- 
   be different, and finally homogeneous relations. *}
   
 type_synonym '\<alpha> cond        = "'\<alpha> upred"
-type_synonym ('\<alpha>, '\<beta>) rel   = "('\<alpha> \<times> '\<beta>) upred"
+type_synonym ('\<alpha>, '\<beta>) urel  = "('\<alpha> \<times> '\<beta>) upred"
 type_synonym '\<alpha> hrel        = "('\<alpha> \<times> '\<alpha>) upred"
 type_synonym ('a, '\<alpha>) hexpr = "('a, '\<alpha> \<times> '\<alpha>) uexpr"
   
 translations
-  (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
+  (type) "('\<alpha>, '\<beta>) urel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
 text {* We set up some overloaded constants for sequential composition and the identity in case
   we want to overload their definitions later. *}
@@ -100,7 +100,7 @@ definition lift_rcond ("\<lceil>_\<rceil>\<^sub>\<leftarrow>") where
 [upred_defs]: "\<lceil>b\<rceil>\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub><"
     
 abbreviation 
-  rcond :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel"
+  rcond :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) urel"
   ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
   where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>\<leftarrow> \<triangleright> Q)"
     
@@ -109,7 +109,7 @@ text {* Sequential composition is heterogeneous, and simply requires that the ou
   built-in relational composition operator (@{term "op O"}). Since this returns a set, the
   definition states that the state binding $b$ is an element of this set. *}
   
-lift_definition seqr::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<beta>, '\<gamma>) rel \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
+lift_definition seqr::"('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<beta>, '\<gamma>) urel \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q b. b \<in> ({p. P p} O {q. Q q})" .
 
 adhoc_overloading
@@ -339,10 +339,10 @@ subsection {* Relation Properties *}
 text {* We describe some properties of relations, including functional and injective relations. We
   also provide operators for extracting the domain and range of a UTP relation. *}
 
-definition ufunctional :: "('a, 'b) rel \<Rightarrow> bool"
+definition ufunctional :: "('a, 'b) urel \<Rightarrow> bool"
 where [urel_defs]: "ufunctional R \<longleftrightarrow> II \<sqsubseteq> R\<^sup>- ;; R"
 
-definition uinj :: "('a, 'b) rel \<Rightarrow> bool"
+definition uinj :: "('a, 'b) urel \<Rightarrow> bool"
 where [urel_defs]: "uinj R \<longleftrightarrow> II \<sqsubseteq> R ;; R\<^sup>-"
   
 definition Dom :: "'\<alpha> hrel \<Rightarrow> '\<alpha> upred" 

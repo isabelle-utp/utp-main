@@ -24,11 +24,6 @@ purge_notation
   Set.member ("(_/ : _)" [51, 51] 50) and
   disj  (infixr "|" 30) and
   conj  (infixr "&" 35)
-  
-text \<open> We hide HOL's built-in relation type since we will replace it with our own \<close>
-
-hide_type rel
-type_synonym 'a relation = "('a \<times> 'a) set"
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]

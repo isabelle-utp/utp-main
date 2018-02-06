@@ -118,7 +118,7 @@ subsection {* Merge Predicates *}
 text {* A merge predicate is a relation whose input has three parts: the prior variables, the output
   variables of the left predicate, and the output of the right predicate. *}
   
-type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha>) rel"
+type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha>) urel"
   
 text {* skip is the merge predicate which ignores the output of both parallel predicates *}
 
@@ -143,10 +143,10 @@ subsection {* Separating Simulations *}
 text {* U0 and U1 are relations modify the variables of the input state-space such that they become 
   indexed with $0$ and $1$, respectively. *}
 
-definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
+definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) urel" where
 [upred_defs]: "U0 = ($0-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
-definition U1 :: "('\<beta>\<^sub>1, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
+definition U1 :: "('\<beta>\<^sub>1, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) urel" where
 [upred_defs]: "U1 = ($1-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
@@ -242,7 +242,7 @@ text {* Associativity of a merge means that if we construct a three way merge fr
   the two way merge in an appropriate way.
 *}
   
-definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) rel" ("\<^bold>M3'(_')") where
+definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) urel" ("\<^bold>M3'(_')") where
 [upred_defs]: "ThreeWayMerge M = (($0-\<^bold>v\<acute> =\<^sub>u $0-\<^bold>v \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-0-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M ;; U0 \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-1-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M"
   
 text {* The next definition rotates the inputs to a three way merge to the left one place. *}
@@ -268,7 +268,7 @@ text {* The following implementation of parallel by merge is less general than t
   of programs. May reconsider later. *}
 
 definition 
-  par_by_merge :: "('\<alpha>, '\<beta>) rel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) rel \<Rightarrow> ('\<alpha>, '\<gamma>) rel \<Rightarrow> ('\<alpha>, '\<delta>) rel" 
+  par_by_merge :: "('\<alpha>, '\<beta>) urel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel \<Rightarrow> ('\<alpha>, '\<gamma>) urel \<Rightarrow> ('\<alpha>, '\<delta>) urel" 
   ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
