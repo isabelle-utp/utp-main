@@ -10,7 +10,6 @@ section {* Meta-theory for UTP Theories *}
 theory utp_theories
 imports
   "designs/utp_designs"
-  utp_invariants
   utp_reactive
   utp_rea_designs
   utp_reactive_hoare
