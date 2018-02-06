@@ -51,13 +51,13 @@ lemma ok_ord [usubst]:
   by (simp add: var_name_ord_def)
 
 type_synonym '\<alpha> des  = "'\<alpha> des_vars_scheme"
-type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) rel"
+type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) urel"
 type_synonym '\<alpha> hrel_des = "('\<alpha> des) hrel"
 
 translations
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_scheme"
   (type) "'\<alpha> des" <= (type) "'\<alpha> des_vars_ext"
-  (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) rel"
+  (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) urel"
   (type) "'\<alpha> hrel_des" <= (type) "'\<alpha> des hrel"
   
 notation des_vars_child_lens ("\<Sigma>\<^sub>D")
@@ -71,13 +71,13 @@ definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow
 where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
 
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
-  by (unfold_locales, auto simp add: lens_defs des_vars.defs)
+  by (unfold_locales, auto simp add: lens_defs)
 
 lemma lmap_id: "lmap\<^sub>D 1\<^sub>L = 1\<^sub>L"
-  by (simp add: lens_defs des_vars.defs fun_eq_iff)
+  by (simp add: lens_defs fun_eq_iff)
 
 lemma lmap_comp: "lmap\<^sub>D (f ;\<^sub>L g) = lmap\<^sub>D f ;\<^sub>L lmap\<^sub>D g"
-  by (simp add: lens_defs des_vars.defs fun_eq_iff)
+  by (simp add: lens_defs fun_eq_iff)
 
 text {* The following notations define liftings from non-design predicates into design
   predicates using alphabet extensions. *}
@@ -104,12 +104,12 @@ where "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 text {* An rdesign is a design that uses the Isabelle type system to prevent reference to ok in the
         assumption and commitment. *}
 
-definition rdesign::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 60)
+definition rdesign::"('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 60)
 where "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D"
   
 text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
 
-definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 60)
+definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 60)
 where "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q)"
 
 definition skip_d :: "'\<alpha> hrel_des" ("II\<^sub>D")
@@ -151,14 +151,14 @@ translations
 definition bot_d :: "('\<alpha>, '\<beta>) rel_des" ("\<bottom>\<^sub>D") where
 [upred_defs]: "\<bottom>\<^sub>D = (false \<turnstile> false)"
   
-definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("pre\<^sub>D") where
+definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("pre\<^sub>D") where
 "pre\<^sub>D(P) = \<lfloor>\<not> P\<lbrakk>true,false/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
-definition post_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("post\<^sub>D") where
+definition post_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("post\<^sub>D") where
 "post\<^sub>D(P) = \<lfloor>P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
 
 definition wp_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" (infix "wp\<^sub>D" 60) where
-"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) rel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
+"Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
 
 declare design_def [upred_defs]
 declare rdesign_def [upred_defs]

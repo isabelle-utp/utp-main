@@ -35,4 +35,5 @@ theory utp_toolkit
   Positive
   TotalRecall
   InjUniv
+  Trace_Algebra
 begin end

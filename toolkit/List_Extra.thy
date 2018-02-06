@@ -723,4 +723,103 @@ lemma seq_filter_empty [simp]: "xs \<restriction>\<^sub>l {} = []"
 lemma seq_filter_append: "(xs @ ys) \<restriction>\<^sub>l A = (xs \<restriction>\<^sub>l A) @ (ys \<restriction>\<^sub>l A)"
   by (simp add: seq_filter_def)
 
+subsection {* Minus on lists *}
+
+instantiation list :: (type) minus
+begin
+
+text {* We define list minus so that if the second list is not a prefix of the first, then an arbitrary
+        list longer than the combined length is produced. Thus we can always determined from the output
+        whether the minus is defined or not. *}
+
+definition "xs - ys = (if (prefix ys xs) then drop (length ys) xs else [])"
+
+instance ..
+end
+
+lemma minus_cancel [simp]: "xs - xs = []"
+  by (simp add: minus_list_def)
+
+lemma append_minus [simp]: "(xs @ ys) - xs = ys"
+  by (simp add: minus_list_def)
+
+lemma minus_right_nil [simp]: "xs - [] = xs"
+  by (simp add: minus_list_def)
+
+lemma list_concat_minus_list_concat: "(s @ t) - (s @ z) = t - z"
+  by (simp add: minus_list_def)
+
+lemma length_minus_list: "y \<le> x \<Longrightarrow> length(x - y) = length(x) - length(y)"
+  by (simp add: less_eq_list_def minus_list_def)
+
+text {* Extra lemmas about @{term prefix} and @{term strict_prefix} *}
+
+lemma prefix_concat_minus:
+  assumes "prefix xs ys"
+  shows "xs @ (ys - xs) = ys"
+  using assms by (metis minus_list_def prefix_drop)
+
+lemma prefix_minus_concat:
+  assumes "prefix s t"
+  shows "(t - s) @ z = (t @ z) - s"
+  using assms by (simp add: Sublist.prefix_length_le minus_list_def)
+
+lemma strict_prefix_minus_not_empty:
+  assumes "strict_prefix xs ys"
+  shows "ys - xs \<noteq> []"
+  using assms by (metis append_Nil2 prefix_concat_minus strict_prefix_def)
+
+lemma strict_prefix_diff_minus:
+  assumes "prefix xs ys" and "xs \<noteq> ys"
+  shows "(ys - xs) \<noteq> []"
+  using assms by (simp add: strict_prefix_minus_not_empty)
+
+lemma length_tl_list_minus_butlast_gt_zero:
+  assumes "length s < length t" and "strict_prefix (butlast s) t" and "length s > 0"
+  shows "length (tl (t - (butlast s))) > 0"
+  using assms
+  by (metis Nitpick.size_list_simp(2) butlast_snoc hd_Cons_tl length_butlast length_greater_0_conv length_tl less_trans nat_neq_iff strict_prefix_minus_not_empty prefix_order.dual_order.strict_implies_order prefix_concat_minus)
+
+lemma list_minus_butlast_eq_butlast_list:
+  assumes "length t = length s" and "strict_prefix (butlast s) t"
+  shows "t - (butlast s) = [last t]"
+  using assms
+  by (metis append_butlast_last_id append_eq_append_conv butlast.simps(1) length_butlast less_numeral_extra(3) list.size(3) prefix_order.dual_order.strict_implies_order prefix_concat_minus prefix_length_less)
+
+lemma butlast_strict_prefix_length_lt_imp_last_tl_minus_butlast_eq_last:
+  assumes "length s > 0" "strict_prefix (butlast s) t" "length s < length t"
+  shows "last (tl (t - (butlast s))) = (last t)"
+  using assms by (metis last_append last_tl length_tl_list_minus_butlast_gt_zero less_numeral_extra(3) list.size(3) append_minus strict_prefix_eq_exists)
+
+lemma tl_list_minus_butlast_not_empty:
+  assumes "strict_prefix (butlast s) t" and "length s > 0" and "length t > length s"
+  shows "tl (t - (butlast s)) \<noteq> []"
+  using assms length_tl_list_minus_butlast_gt_zero by fastforce
+
+lemma tl_list_minus_butlast_empty:
+  assumes "strict_prefix (butlast s) t" and "length s > 0" and "length t = length s"
+  shows "tl (t - (butlast s)) = []"
+  using assms by (simp add: list_minus_butlast_eq_butlast_list)
+
+lemma concat_minus_list_concat_butlast_eq_list_minus_butlast:
+  assumes "prefix (butlast u) s"
+  shows "(t @ s) - (t @ (butlast u)) = s - (butlast u)"
+  using assms by (metis append_assoc prefix_concat_minus append_minus)
+
+lemma tl_list_minus_butlast_eq_empty:
+  assumes "strict_prefix (butlast s) t" and "length s = length t"
+  shows "tl (t - (butlast s)) = []"
+  using assms by (metis list.sel(3) list_minus_butlast_eq_butlast_list)
+
+(* this can be shown using length_tl, but care is needed when list is empty? *)
+lemma prefix_length_tl_minus:
+  assumes "strict_prefix s t"
+  shows "length (tl (t-s)) = (length (t-s)) - 1"
+  by (auto)
+
+lemma length_list_minus:
+  assumes "strict_prefix s t"
+  shows "length(t - s) = length(t) - length(s)"
+  using assms by (simp add: minus_list_def prefix_order.dual_order.strict_implies_order)
+
 end

@@ -4,7 +4,7 @@ theory utp_reactive
 imports
   "../utp/utp_concurrency"
   utp_designs
-  "../traces/Trace_Algebra"
+  "../tookit/Trace_Algebra"
 begin recall_syntax
   
 alphabet 't::trace rp_vars = des_vars +
@@ -14,6 +14,7 @@ alphabet 't::trace rp_vars = des_vars +
 declare rp_vars.splits [alpha_splits]
 declare rp_vars.defs [lens_defs]
 declare zero_list_def [upred_defs]
+declare plus_list_def [upred_defs]
 declare prefixE [elim]
   
 text {*
@@ -42,13 +43,13 @@ done
 
 type_synonym ('t, '\<alpha>) rp = "('t, '\<alpha>) rp_vars_scheme des"
 
-type_synonym ('t,'\<alpha>,'\<beta>) rel_rp  = "(('t,'\<alpha>) rp, ('t,'\<beta>) rp) rel"
+type_synonym ('t,'\<alpha>,'\<beta>) rel_rp  = "(('t,'\<alpha>) rp, ('t,'\<beta>) rp) urel"
 type_synonym ('t,'\<alpha>) hrel_rp  = "('t,'\<alpha>) rp hrel"
 
 translations
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
   (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_ext des"
-  (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, ('\<gamma>,'\<beta>) rp) rel"
+  (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, ('\<gamma>,'\<beta>) rp) urel"
   (type) "('t, '\<alpha>) hrel_rp"  <= (type) "('t, '\<alpha>) rp hrel"
   
 notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")
@@ -84,7 +85,7 @@ translations
 abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
 "\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-abbreviation drop_rea :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("\<lfloor>_\<rfloor>\<^sub>R") where
+abbreviation drop_rea :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("\<lfloor>_\<rfloor>\<^sub>R") where
 "\<lfloor>P\<rfloor>\<^sub>R \<equiv> P \<restriction>\<^sub>e (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
