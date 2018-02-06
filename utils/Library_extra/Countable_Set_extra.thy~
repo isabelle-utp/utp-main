@@ -239,13 +239,13 @@ is "\<lambda> A i. if (i \<in> A) then 1 else 0" .
 lemma bit_seq_of_nat_set_inj: "inj bit_seq_of_nat_set"
   apply (rule injI)
   apply (transfer, auto)
-   apply (metis bit.distinct(1))
+  apply (metis bit.distinct(1))
   apply (meson zero_neq_one)
 done
 
 lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
   apply (rule bijI)
-   apply (fact bit_seq_of_nat_set_inj)
+  apply (fact bit_seq_of_nat_set_inj)
   apply (auto simp add: image_def)
   apply (transfer)
   apply (rename_tac x)
@@ -267,13 +267,13 @@ proof -
   thus ?thesis
     apply (simp add: nat_set_cset_collapse_def)
     apply (rule comp_inj_on)
-     apply (meson bit_seq_of_nat_set_inj cset.inj_map injD inj_onI)
+    apply (meson bit_seq_of_nat_set_inj cset.inj_map injD inj_onI)
     apply (rule comp_inj_on)
-     apply (metis cset2seq_inj subset_inj_on)
+    apply (metis cset2seq_inj subset_inj_on)
     apply (rule comp_inj_on)
-     apply (rule subset_inj_on)
-      apply (rule seq_inj)
-     apply (simp)
+    apply (rule subset_inj_on)
+    apply (rule seq_inj)
+    apply (simp)
     apply (meson UNIV_I bij_imp_bij_inv bij_is_inj bit_seq_of_nat_cset_bij subsetI subset_inj_on)
   done
 qed

@@ -2,7 +2,7 @@ section {* Injection Universes *}
 
 theory InjUniv
   imports 
-    "~~/src/HOL/Library/Countable"
+    Countable
     "../optics/Lenses" 
 begin
 

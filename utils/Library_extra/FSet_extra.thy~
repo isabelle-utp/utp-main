@@ -1,4 +1,4 @@
-section {* Finite Sets: extra functions and properties *}
+section {* Finite sets: extra functions and properties *}
 
 theory FSet_extra
 imports
@@ -97,9 +97,9 @@ lemma sorted_list_of_set_inj:
    \<Longrightarrow> xs = ys"
   apply (simp add:sorted_list_of_set_def)
   apply (induct xs rule:finite_induct)
-   apply (induct ys rule:finite_induct)
-    apply (simp_all)
-   apply (metis finite.insertI insert_not_empty sorted_list_of_set_def sorted_list_of_set_empty sorted_list_of_set_eq_Nil_iff)
+  apply (induct ys rule:finite_induct)
+  apply (simp_all)
+  apply (metis finite.insertI insert_not_empty sorted_list_of_set_def sorted_list_of_set_empty sorted_list_of_set_eq_Nil_iff)
   apply (metis finite.insertI finite_list set_remdups set_sort sorted_list_of_set_def sorted_list_of_set_sort_remdups)
 done
 
@@ -109,9 +109,8 @@ definition flist :: "'a fset \<Rightarrow> 'a list" where
 lemma flist_inj: "inj flist"
   apply (simp add:flist_def inj_on_def)
   apply (clarify)
-  apply (rename_tac x y)
   apply (subgoal_tac "fset x = fset y")
-   apply (simp add:fset_inject)
+  apply (simp add:fset_inject)
   apply (rule sorted_list_of_set_inj, simp_all)
 done
 
@@ -160,7 +159,7 @@ definition flists :: "'a fset \<Rightarrow> 'a list set" where
 lemma flists_nonempty: "\<exists> xs. xs \<in> flists A"
   apply (simp add: flists_def)
   apply (metis Abs_fset_cases Abs_fset_inverse finite_distinct_list finite_fset finset.rep_eq)
-  done
+done
 
 lemma flists_elem_uniq: "\<lbrakk> x \<in> flists A; x \<in> flists B \<rbrakk> \<Longrightarrow> A = B"
   by (simp add: flists_def)
@@ -194,9 +193,9 @@ proof -
     apply (simp add: countable_def)
     apply (rule_tac x="to_nat_list \<circ> flist_arb" in exI)
     apply (rule comp_inj_on)
-     apply (metis flist_arb_inv inj_on_def)
+    apply (metis flist_arb_inv inj_on_def)
     apply (simp add: flist_arb_lists subset_inj_on)
-    done
+  done
 qed
 
 definition flub :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
@@ -213,10 +212,10 @@ lemma finite_UN_subsets:
 lemma flub_rep_eq:
   "\<langle>flub A t\<rangle>\<^sub>f = (if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f)"
   apply (subgoal_tac "(if (\<forall> a\<in>A. a |\<subseteq>| t) then (\<Union>x\<in>A. \<langle>x\<rangle>\<^sub>f) else \<langle>t\<rangle>\<^sub>f) \<in> {x. finite x}")
-   apply (auto simp add:flub_def)
+  apply (auto simp add:flub_def)
   apply (rule finite_UN_subsets[of _ _ "\<langle>t\<rangle>\<^sub>f"])
-   apply (auto)
-  done
+  apply (auto)
+done
 
 definition fglb :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" where
 "fglb A t = (if (A = {}) then t else Abs_fset (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
@@ -224,21 +223,20 @@ definition fglb :: "'a fset set \<Rightarrow> 'a fset \<Rightarrow> 'a fset" whe
 lemma fglb_rep_eq:
   "\<langle>fglb A t\<rangle>\<^sub>f = (if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f))"
   apply (subgoal_tac "(if (A = {}) then \<langle>t\<rangle>\<^sub>f else (\<Inter>x\<in>A. \<langle>x\<rangle>\<^sub>f)) \<in> {x. finite x}")
-   apply (metis Abs_fset_inverse fglb_def)
+  apply (metis Abs_fset_inverse fglb_def)
   apply (auto)
   apply (metis finite_INT finite_fset)
-  done
+done
 
 lemma FinPow_rep_eq [simp]:
   "fset (FinPow xs) = {ys. ys |\<subseteq>| xs}"
   apply (subgoal_tac "finite (Abs_fset ` Pow \<langle>xs\<rangle>\<^sub>f)")
-   apply (auto simp add: fmember_def FinPow_def)
-   apply (rename_tac x' y')
-   apply (subgoal_tac "finite x'")
-    apply (auto)
-   apply (metis finite_fset finite_subset)
+  apply (auto simp add: fmember_def FinPow_def)
+  apply (subgoal_tac "finite xa")
+  apply (auto)
+  apply (metis finite_fset finite_subset)
   apply (metis (full_types) Pow_iff fset_inverse imageI less_eq_fset.rep_eq)
-  done
+done
 
 lemma FUnion_rep_eq [simp]:
   "\<langle>\<Union>\<^sub>f xs\<rangle>\<^sub>f = (\<Union>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
@@ -248,9 +246,9 @@ lemma FInter_rep_eq [simp]:
   "xs \<noteq> \<lbrace>\<rbrace> \<Longrightarrow> \<langle>\<Inter>\<^sub>f xs\<rangle>\<^sub>f = (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)"
   apply (simp add:FInter_def)
   apply (subgoal_tac "finite (\<Inter>x\<in>\<langle>xs\<rangle>\<^sub>f. \<langle>x\<rangle>\<^sub>f)")
-   apply (simp)
+  apply (simp)
   apply (metis (poly_guards_query) bot_fset.rep_eq fglb_rep_eq finite_fset fset_inverse)
-  done
+done
 
 lemma FUnion_empty [simp]:
   "\<Union>\<^sub>f \<lbrace>\<rbrace> = \<lbrace>\<rbrace>"

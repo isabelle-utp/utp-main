@@ -1,4 +1,4 @@
-section {* Partial Functions *}
+section {* Partial functions *}
 
 theory Pfun
 imports Map_Extra
@@ -135,11 +135,11 @@ lemma pfun_override_dist_comp:
   apply (auto simp add: map_add_def)
   apply (rename_tac f g h x)
   apply (case_tac "h x")
-   apply (auto)
+  apply (auto)
   apply (rename_tac f g h x y)
   apply (case_tac "g y")
-   apply (auto)
-  done
+  apply (auto)
+done
 
 lemma pfun_minus_unit [simp]:
   fixes f :: "('a, 'b) pfun"
@@ -373,8 +373,8 @@ lemma pran_res_override: "(f + g) \<rhd>\<^sub>p A \<subseteq>\<^sub>p (f \<rhd>
   apply (transfer, auto simp add: map_add_def ran_restrict_map_def map_le_def)
   apply (rename_tac f g A a y x)
   apply (case_tac "g a")
-   apply (auto)
-  done
+  apply (auto)
+done
 
 subsection {* Graph laws *}
 
@@ -392,8 +392,8 @@ lemma pfun_graph_minus: "pfun_graph (f - g) = pfun_graph f - pfun_graph g"
 
 lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inter> pfun_graph g"
   apply (transfer, auto simp add: map_graph_def)
-   apply (metis option.discI)+
-  done
+  apply (metis option.discI)+
+done
 
 subsection {* Entries *}
   
@@ -451,8 +451,8 @@ proof -
     apply (simp add: pfun_sum_def)
     apply (subst 1)
     apply (subst sum_diff)
-      apply (auto simp add: sum_diff Diff_subset Int_commute boolean_algebra_class.diff_eq assms)
-    done
+    apply (auto simp add: sum_diff Diff_subset Int_commute boolean_algebra_class.diff_eq assms)
+  done
 qed
   
 lemma pfun_sum_pdom_antires [simp]:

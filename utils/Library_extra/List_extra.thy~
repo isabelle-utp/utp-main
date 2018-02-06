@@ -27,17 +27,17 @@ where
 
 lemma nth_el_appendl[simp]: "i < length xs \<Longrightarrow> (xs @ ys)\<langle>i\<rangle>\<^sub>l = xs\<langle>i\<rangle>\<^sub>l"
   apply (induct xs arbitrary: i)
-   apply simp
+  apply simp
   apply (case_tac i)
-   apply simp_all
-  done
+  apply simp_all
+done
 
 lemma nth_el_appendr[simp]: "length xs \<le> i \<Longrightarrow> (xs @ ys)\<langle>i\<rangle>\<^sub>l = ys\<langle>i - length xs\<rangle>\<^sub>l"
   apply (induct xs arbitrary: i)
-   apply simp
+  apply simp
   apply (case_tac i)
-   apply simp_all
-  done
+  apply simp_all
+done
 
 subsection {* Extra List Theorems *}
 
@@ -61,9 +61,9 @@ subsubsection {* Sorted Lists *}
 
 lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> x \<le> last xs"
   apply (induct xs)
-   apply (auto)
-   apply (metis last_in_set sorted_Cons)+
-  done
+  apply (auto)
+  apply (metis last_in_set sorted_Cons)+
+done
 
 lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
   by (simp add: monoD sorted_equals_nth_mono)
@@ -114,9 +114,9 @@ qed
 lemma is_sorted_list_of_set_alt_def:
   "is_sorted_list_of_set A xs \<longleftrightarrow> sorted (xs) \<and> distinct (xs) \<and> set(xs) = A"
   apply (auto intro: sorted_is_sorted_list_of_set)
-    apply (auto simp add: is_sorted_list_of_set_def)
+  apply (auto simp add: is_sorted_list_of_set_def)
   apply (metis Nat.add_0_right One_nat_def add_Suc_right sorted_distinct)
-  done
+done
 
 definition sorted_list_of_set_alt :: "('a::ord) set \<Rightarrow> 'a list" where
 "sorted_list_of_set_alt A =
@@ -126,21 +126,21 @@ lemma is_sorted_list_of_set:
   "finite A \<Longrightarrow> is_sorted_list_of_set A (sorted_list_of_set A)"
   apply (simp add: is_sorted_list_of_set_def)
   apply (metis One_nat_def add.right_neutral add_Suc_right sorted_distinct sorted_list_of_set)
-  done
+done
 
 lemma sorted_list_of_set_other_def:
   "finite A \<Longrightarrow> sorted_list_of_set(A) = (THE xs. sorted(xs) \<and> distinct(xs) \<and> set xs = A)"
   apply (rule sym)
   apply (rule the_equality)
-   apply (auto)
+  apply (auto)
   apply (simp add: sorted_distinct_set_unique)
-  done
+done
 
 lemma sorted_list_of_set_alt [simp]:
   "finite A \<Longrightarrow> sorted_list_of_set_alt(A) = sorted_list_of_set(A)"
   apply (rule sym)
   apply (auto simp add: sorted_list_of_set_alt_def is_sorted_list_of_set_alt_def sorted_list_of_set_other_def)
-  done
+done
 
 text {* Sorting lists according to a relation *}
 
@@ -175,12 +175,11 @@ proof
 
   with fin hyp show "(xs, ys) \<in> fin_set_lexord {(x, y). g x y}"
     apply (auto simp add: fin_set_lexord_def)
-    apply (rename_tac xs' ys')
-    apply (rule_tac x="xs'" in exI)
+    apply (rule_tac x="xsa" in exI)
     apply (auto)
-     apply (metis case_prodD case_prodI is_sorted_list_of_set_by_def mem_Collect_eq)
+    apply (metis case_prodD case_prodI is_sorted_list_of_set_by_def mem_Collect_eq)
     apply (metis case_prodD case_prodI is_sorted_list_of_set_by_def lexord_mono' mem_Collect_eq)
-    done
+  done
 qed
 
 definition distincts :: "'a set \<Rightarrow> 'a list set" where
@@ -219,10 +218,10 @@ subsubsection {* Drop While and Take While *}
 lemma dropWhile_sorted_le_above:
   "\<lbrakk> sorted xs; x \<in> set (dropWhile (\<lambda> x. x \<le> n) xs) \<rbrakk> \<Longrightarrow> x > n"
   apply (induct xs)
-   apply (auto)
+  apply (auto)
   apply (rename_tac a xs)
   apply (case_tac "a \<le> n")
-   apply (simp_all)
+  apply (simp_all)
   using sorted_Cons apply blast
   apply (meson dual_order.trans not_less sorted_Cons)
 done
@@ -230,13 +229,13 @@ done
 lemma set_dropWhile_le:
   "sorted xs \<Longrightarrow> set (dropWhile (\<lambda> x. x \<le> n) xs) = {x\<in>set xs. x > n}"
   apply (induct xs)
-   apply (simp)
+  apply (simp)
   apply (rename_tac x xs)
   apply (subgoal_tac "sorted xs")
-   apply (simp)
-   apply (safe)
-     apply (simp_all)
-   apply (meson not_less order_trans sorted_Cons)
+  apply (simp)
+  apply (safe)
+  apply (simp_all)
+  apply (meson not_less order_trans sorted_Cons)
   using sorted_Cons apply auto
 done
 
@@ -254,9 +253,9 @@ lemma nth_le_takeWhile_ord: "\<lbrakk> sorted xs; i \<ge> length (takeWhile (\<l
   apply (induct xs arbitrary: i, auto)
   apply (rename_tac x xs i)
   apply (case_tac "x \<le> n")
-   apply (auto simp add: sorted_Cons)
+  apply (auto simp add: sorted_Cons)
   apply (metis One_nat_def Suc_eq_plus1 le_less_linear le_less_trans less_imp_le list.size(4) nth_mem set_ConsD)
-  done
+done
 
 lemma length_takeWhile_less:
   "\<lbrakk> a \<in> set xs; \<not> P a \<rbrakk> \<Longrightarrow> length (takeWhile P xs) < length xs"
@@ -265,8 +264,7 @@ lemma length_takeWhile_less:
 lemma nth_length_takeWhile_less:
   "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
   apply (induct xs, auto)
-  using sorted_Cons apply blast
-  done
+  using sorted_Cons by blast
 
 subsubsection {* Last and But Last *}
 
@@ -314,11 +312,11 @@ lemma prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
    prefix xs ys"
   apply (induct xs arbitrary:ys)
-   apply (simp_all)
+  apply (simp_all)
   apply (erule prefix_Cons_elim)
   apply (auto)
   apply (metis image_insert insertI1 insert_Diff_if singletonE)
-  done
+done
 
 lemma prefix_map_inj_eq [simp]:
   "inj_on f (set xs \<union> set ys) \<Longrightarrow>
@@ -335,12 +333,12 @@ lemma strict_prefix_map_inj:
   "\<lbrakk> inj_on f (set xs \<union> set ys); strict_prefix (map f xs) (map f ys) \<rbrakk> \<Longrightarrow>
    strict_prefix xs ys"
   apply (induct xs arbitrary:ys)
-   apply (auto)
+  apply (auto)
   using prefix_bot.bot.not_eq_extremum apply fastforce
   apply (erule strict_prefix_Cons_elim)
   apply (auto)
   apply (metis (hide_lams, full_types) image_insert insertI1 insert_Diff_if singletonE)
-  done
+done
 
 lemma strict_prefix_map_inj_eq [simp]:
   "inj_on f (set xs \<union> set ys) \<Longrightarrow>
@@ -443,12 +441,12 @@ lemma gcp_append [simp]: "gcp (xs @ ys) (xs @ zs) = xs @ gcp ys zs"
 lemma gcp_lb1: "prefix (gcp xs ys) xs"
   apply (induct xs arbitrary: ys, auto)
   apply (case_tac ys, auto)
-  done
+done
 
 lemma gcp_lb2: "prefix (gcp xs ys) ys"
   apply (induct ys arbitrary: xs, auto)
   apply (case_tac xs, auto)
-  done
+done
 
 interpretation prefix_semilattice: semilattice_inf gcp prefix strict_prefix
 proof

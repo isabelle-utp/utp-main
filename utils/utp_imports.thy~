@@ -25,9 +25,9 @@ theory utp_imports
   "~~/src/HOL/Algebra/Complete_Lattice"
   "~~/src/HOL/Algebra/Galois_Connection"
   "../optics/Lenses"
+  "Library_extra/Countable_Set_extra"
   "Library_extra/FSet_extra"
   "Library_extra/Map_Extra"
-  "Library_extra/List_extra"
   "Library_extra/Pfun"
   "Library_extra/Ffun"
   TotalRecall

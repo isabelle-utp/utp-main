@@ -10,7 +10,8 @@ section {* Positive Subtypes *}
 
 theory Positive
 imports 
-  Infinity
+  Infinity 
+  "Library_extra/Monoid_extra"
   "~~/src/HOL/Library/Countable"
 begin
 
@@ -121,6 +122,31 @@ end
 
 lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,linorder} pos)"
   by (transfer, simp)
+
+text {* Positives form a trace algebra *}
+    
+instance pos :: (linordered_semidom) trace
+proof (intro_classes, simp_all)
+  fix a b c d :: "'a pos"
+  show "a + b = 0 \<Longrightarrow> a = 0"
+    by (transfer, simp add: add_nonneg_eq_0_iff)
+  show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    apply (cases "c \<le> a")
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
+    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq less_imp_le linordered_semidom_class.add_diff_inverse semiring_normalization_rules(21))
+  done
+  show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
+    by auto    
+  show le_def: "\<And> a b :: 'a pos. (a \<le> b) = (a \<le>\<^sub>m b)"    
+    by (auto simp add: monoid_le_def, metis le_add_diff_inverse)  
+  show "a - b = a -\<^sub>m b"
+    apply (auto simp add: monoid_subtract_def le_def[THEN sym])
+     apply (rule sym)
+     apply (rule the_equality)
+      apply (simp_all)
+      apply (transfer, simp)
+  done
+qed
  
 subsection {* Theorems *}
   
