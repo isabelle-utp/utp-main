@@ -5,9 +5,9 @@ theory Contiguous_Functions
   imports
   Real_Vector_Spaces
   "../optics/Lenses"
-  "../utils/Library_extra/Map_Extra"
-  "../utils/Library_extra/List_extra"
-  "../utils/Library_extra/Monoid_extra"
+  "../toolkit/Map_Extra"
+  "../toolkit/List_Extra"
+  "../toolkit/Trace_Algebra"
   Derivative_extra
   "~~/src/HOL/Analysis/Topology_Euclidean_Space"
 begin

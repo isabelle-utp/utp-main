@@ -50,8 +50,6 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 
 (* Continuous System Dynamics *)
 
-(*
-
 session "Dynamics" in "dynamics" = "HOL-Analysis" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
@@ -65,8 +63,6 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
     "document.sty"
     "zed.sty"
     "csp.sty"
-
-*)
 
 (* UTP Mathematical Toolkit *)
 
