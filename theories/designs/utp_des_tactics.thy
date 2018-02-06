@@ -11,7 +11,10 @@ named_theorems ND_elim
   
 lemma ndes_elim: "\<lbrakk> P is \<^bold>N; Q(\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: ndesign_form)
-    
+
+lemma ndes_ind_elim: "\<lbrakk> \<And> i. P i is \<^bold>N; Q(\<lambda> i. \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i)) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (simp add: ndesign_form)
+
 lemma ndes_split [ND_elim]: "\<lbrakk> P is \<^bold>N; \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(P)"
   by (metis H1_H2_eq_rdesign H1_H3_impl_H2 H3_unrest_out_alpha Healthy_def drop_pre_inv ndesign_def)
 
