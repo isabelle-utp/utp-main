@@ -4,10 +4,11 @@ theory utp_des_core
 imports "../../utp/utp"
 begin
 
-text {* In UTP, in order to explicitly record the termination of a program,
-a subset of alphabetized relations is introduced. These relations are called
-designs and their alphabet should contain the special boolean observational variable ok.
-It is used to record the start and termination of a program. *}
+text {* In UTP, in order to explicitly record the termination of a program, a subset of alphabetised 
+  relations is introduced. These relations are called designs, and their alphabet contains the 
+  special boolean observational variable $ok$. It is used to record the start and termination of a 
+  program. For more information on designs please see Chapter 3 of the UTP book~\cite{Hoare&98}, or
+  the more accessible designs tutorial~\cite{Cavalcanti04}. *}
 
 subsection {* Definitions *}
 
@@ -15,10 +16,6 @@ text {* Two named theorem sets exist are created to group theorems that, respect
   pre-postcondition definitions, and simplify operators to their normal design form. *}
 
 named_theorems ndes and ndes_simp
-  
-text {* In the following, the definitions of designs alphabets, designs and
-healthiness (well-formedness) conditions are given. The healthiness conditions of
-designs are defined by $H1$, $H2$, $H3$ and $H4$.*}
 
 alphabet des_vars =
   ok :: bool

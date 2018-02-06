@@ -87,6 +87,15 @@ session "UTP" in "utp" = "UTP-TOOLKIT" +
     "root.tex"
     "document.sty"
 
+session "UTP-DESIGNS" in "theories/designs" = "UTP" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_designs
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
+
 (*
 (* Core UTP with Deep Variables *)
 
