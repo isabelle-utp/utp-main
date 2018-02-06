@@ -3,7 +3,7 @@ section {* Reactive processes *}
 theory utp_reactive
 imports
   "../utp/utp_concurrency"
-  utp_designs
+  "designs/utp_designs"
   "../tookit/Trace_Algebra"
 begin recall_syntax
   
