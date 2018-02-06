@@ -70,6 +70,12 @@ lemma true_conj_zero [simp]:
   "(P \<and> false) = false" "(false \<and> P) = false"
   by (pred_auto)+
 
+lemma false_sup [simp]: "false \<sqinter> P = P" "P \<sqinter> false = P"
+  by (pred_auto)+
+
+lemma true_inf [simp]: "true \<squnion> P = P" "P \<squnion> true = P"
+  by (pred_auto)+
+
 lemma imp_vacuous [simp]: "(false \<Rightarrow> u) = true"
   by (pred_auto)
 
@@ -203,6 +209,9 @@ lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A
 
 lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
   by (pred_auto)
+
+lemma UINF_pred_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
+  by (rel_auto)
 
 lemma UINF_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>

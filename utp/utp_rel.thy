@@ -699,7 +699,19 @@ declare unrest_relation_def [urel_defs]
 lemma runrest_assign_commute:
   "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
   by (metis RID2 Healthy_def unrest_relation_def)
-  
+
+lemma runrest_ident_var:
+  assumes "x \<sharp>\<sharp> P"
+  shows "($x \<and> P) = (P \<and> $x\<acute>)"
+proof -
+  have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
+    by (metis RID_def assms Healthy_def unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
+  moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
+    by (rel_auto)
+  ultimately show ?thesis
+    by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf_left_commute)
+qed
+
 lemma skip_r_runrest [unrest]:
   "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
   by (simp add: unrest_relation_def closure)
