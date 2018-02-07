@@ -19,9 +19,9 @@ imports uimports document
   "utils/Typedef_extra"
   (* "utils/Typedep" *)
   "utils/Typerep_ind"
-  (* Provided by the UTP-IMPORTS heap. *)
-  "../optics/Lenses"
-  "../../toolkit/Infinity"
+  (* Provided by the UTP-Toolkit heap. *)
+  "Optics.Lenses"
+  "UTP-Toolkit.Infinity"
 begin
 
 text {* ML Utility Functions *}

@@ -4,12 +4,12 @@ section {* Contiguous Functions *}
 theory Contiguous_Functions
   imports
   Real_Vector_Spaces
-  "../optics/Lenses"
-  "../toolkit/Map_Extra"
-  "../toolkit/List_Extra"
-  "../toolkit/Trace_Algebra"
+  "Optics.Lenses"
+  "UTP-Toolkit.Map_Extra"
+  "UTP-Toolkit.List_Extra"
+  "UTP-Toolkit.Trace_Algebra"
   Derivative_extra
-  "~~/src/HOL/Analysis/Topology_Euclidean_Space"
+  "HOL-Analysis.Topology_Euclidean_Space"
 begin
 (*>*)
 

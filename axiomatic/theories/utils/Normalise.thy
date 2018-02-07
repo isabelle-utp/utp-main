@@ -10,7 +10,7 @@ section {* Normalisation *}
 
 theory Normalise
 imports Main
- "~~/src/HOL/Eisbach/Eisbach"
+ "HOL-Eisbach.Eisbach"
 begin
 
 subsection {* Theorem Attribute *}

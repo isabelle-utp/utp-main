@@ -3,7 +3,7 @@ section {* Injection Universes *}
 theory InjUniv
   imports 
     "~~/src/HOL/Library/Countable"
-    "../optics/Lenses" 
+    "Optics.Lenses" 
 begin
 
 record ('a, 'u) inj_univ =

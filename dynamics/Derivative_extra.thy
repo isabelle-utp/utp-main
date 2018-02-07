@@ -2,8 +2,8 @@ section {* Derivatives: extra laws and tactics *}
 
 theory Derivative_extra
   imports
-  "~~/src/HOL/Analysis/Derivative"
-  "~~/src/HOL/Eisbach/Eisbach"
+  "HOL-Analysis.Derivative"
+  "HOL-Eisbach.Eisbach"
 begin
 
 subsection {* Properties of filters *}

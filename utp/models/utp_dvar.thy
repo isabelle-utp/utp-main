@@ -9,8 +9,8 @@ subsection {* Deep Variables *}
 
 theory utp_dvar
   imports 
-  "../utp"
-  "../../continuum/Continuum"
+  "UTP.utp"
+  "Continuum.Continuum"
 begin recall_syntax
 
 text {* UTP variables represented by record fields are shallow, nameless entities. They are fundamentally

@@ -1,7 +1,7 @@
 section {* Imperative Programs *}
   
 theory utp_prog
-  imports "../theories/designs/utp_designs"
+  imports "UTP-Designs.utp_designs"
 begin
   
 subsection {* Program Type *}
@@ -74,7 +74,8 @@ lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rig
 lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
 lift_definition paltern_list  :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD_list
   by (simp add: AlternateD_list_def list_all_def pred_prod_beta closure)
-     (metis AlternateD_H1_H3_closed atLeastLessThan_iff nth_mem)  
+     (metis (no_types) AlternateD_H1_H3_closed atLeastLessThan_iff nth_map nth_mem)
+       
 lift_definition piterate :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog" is IterateD by (simp add: closure)
 lift_definition piterate_list :: "('\<alpha> upred \<times> '\<alpha> prog) list \<Rightarrow> '\<alpha> prog" is IterateD_list 
   by (simp add: IterateD_list_def list_all_def pred_prod_beta closure)

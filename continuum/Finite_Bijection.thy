@@ -1,7 +1,7 @@
 section {* Finite bijections *}
 
 theory Finite_Bijection
-  imports "~~/src/HOL/Library/Countable_Set"
+  imports "HOL-Library.Countable_Set"
 begin
 
 text {* This theory shows that there exists a bijection between any finite type and the set

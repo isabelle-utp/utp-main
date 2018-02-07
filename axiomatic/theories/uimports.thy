@@ -10,13 +10,13 @@ section {* Imported Theories *}
 
 theory uimports
 imports Main Real
-  "~~/src/Tools/Adhoc_Overloading"
-  "~~/src/HOL/Eisbach/Eisbach"
-  "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/Library/Char_ord"
-  "~~/src/HOL/Library/Option_ord"
-  "~~/src/HOL/Library/FSet"
-  "~~/src/HOL/Library/Infinite_Set"
+  "HOL-Library.Adhoc_Overloading"
+  "HOL-Eisbach.Eisbach"
+  "HOL-Library.Countable"
+  "HOL-Library.Char_ord"
+  "HOL-Library.Option_ord"
+  "HOL-Library.FSet"
+  "HOL-Library.Infinite_Set"
   (* "~~/src/HOL/Cardinals/Bounded_Set" *)
 begin
 end

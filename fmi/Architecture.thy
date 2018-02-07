@@ -10,7 +10,8 @@ section {* Railways Architecture *}
 
 theory Architecture
 imports fmi String
-  "~~/src/HOL/Library/Code_Target_Numeral"
+  "Profiling.Profiling"
+  "HOL-Library.Code_Target_Numeral"
   "../tools/transcl/isabelle/transcl"
 begin recall_syntax
 
@@ -280,7 +281,7 @@ definition pdg_set :: "(PORT \<times> PORT) set" where
 
 experiment
 begin
-definition pdg :: "port relation" where
+definition pdg :: "port rel" where
 "pdg = {
   (* External Dependencies *)
   ((train1, $track_segment:{int}\<^sub>u), (merger, $track_segment1:{int}\<^sub>u)),

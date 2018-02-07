@@ -11,7 +11,7 @@ section {* Infinity Supplement *}
 theory Infinity
 imports Main Real
   "~~/src/HOL/Library/Infinite_Set"
-  "../optics/Two"
+  "Optics.Two"
 begin
 
 text {*

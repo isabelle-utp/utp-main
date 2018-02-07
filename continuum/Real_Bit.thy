@@ -3,8 +3,8 @@ section {* Encoding real numbers as bit sequences *}
 theory Real_Bit
 imports
   Transcendental
-  "~~/src/HOL/Library/Bit"
-  "~~/src/HOL/Library/Sublist"
+  "HOL-Library.Bit"
+  "HOL-Library.Sublist"
   Dyadic
 begin
 

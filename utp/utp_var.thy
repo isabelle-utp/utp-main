@@ -8,7 +8,7 @@ begin
 
 text \<open> In this first UTP theory we set up variable, which are are built on lenses. A large part
   of this theory is setting up the parser for UTP variable syntax. \<close>
-  
+
 subsection \<open> Initial syntax setup \<close>
   
 text \<open> We will overload the square order relation with refinement and also the lattice operators so

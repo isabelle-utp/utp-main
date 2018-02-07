@@ -1,7 +1,7 @@
 section {* Design Signature and Core Laws *}
 
 theory utp_des_core
-imports "../../utp/utp"
+imports UTP.utp
 begin
 
 text {* In UTP, in order to explicitly record the termination of a program, a subset of alphabetised 

@@ -12,9 +12,6 @@ section {* UTP Tactics *}
 
 theory utp_tactics
   imports 
-    "~~/src/HOL/Eisbach/Eisbach"
-    "../optics/Lenses" 
-    "../optics/Interp" 
     utp_expr utp_unrest utp_usedby
 keywords "update_uexpr_rep_eq_thms" :: thy_decl
 begin

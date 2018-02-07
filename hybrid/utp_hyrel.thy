@@ -2,14 +2,14 @@ section {* Hybrid Relational Calculus *}
 
 theory utp_hyrel
 imports
-  "../utp/utp"
-  "../theories/utp_csp"
-  "../theories/utp_rea_designs"
-  "../theories/utp_time_rel"
-  "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
-  "../dynamics/Derivative_extra"
-  "../dynamics/Timed_Traces"
-  Topology_Euclidean_Space
+  "UTP.utp"
+  "UTP-Theories.utp_csp"
+  "UTP-Theories.utp_rea_designs"
+  "UTP-Theories.utp_time_rel"
+  "Ordinary_Differential_Equations.ODE_Analysis"
+  "Dynamics.Derivative_extra"
+  "Dynamics.Timed_Traces"
+  "HOL-Analysis.Topology_Euclidean_Space"
 begin recall_syntax
   
 subsection {* Continuous Lenses and Preliminaries *}

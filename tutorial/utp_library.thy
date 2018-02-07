@@ -1,7 +1,7 @@
 section {* A simple library in the UTP theory of designs *}
 
 theory utp_library
-  imports "../theories/utp_theories"
+  imports "UTP-Theories.utp_theories"
 begin
 
 subsection {* Preliminaries -- set up some syntax *}

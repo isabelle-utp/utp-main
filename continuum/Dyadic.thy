@@ -2,7 +2,7 @@ section {* Dyadic rational numbers *}
 
 theory Dyadic
 imports
-  "~~/src/HOL/Library/Float"
+  "HOL-Library.Float"
   Real
   Transcendental
   Lightweight_Cardinals
