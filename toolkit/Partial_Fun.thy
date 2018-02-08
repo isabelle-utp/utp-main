@@ -1,14 +1,21 @@
-section {* Partial Functions *}
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: Partial_Fun.thy                                                      *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
+section \<open> Partial Functions \<close>
 
 theory Partial_Fun
 imports Map_Extra
 begin
 
-text {* I'm not completely satisfied with partial functions as provided by Map.thy, since they don't
+text \<open> I'm not completely satisfied with partial functions as provided by Map.thy, since they don't
         have a unique type and so we can't instantiate classes, make use of adhoc-overloading
-        etc. Consequently I've created a new type and derived the laws. *}
+        etc. Consequently I've created a new type and derived the laws. \<close>
 
-subsection {* Partial function type and operations *}
+subsection \<open> Partial function type and operations \<close>
 
 typedef ('a, 'b) pfun = "UNIV :: ('a \<rightharpoonup> 'b) set" ..
 
@@ -117,7 +124,7 @@ translations
   "_Pfun (_Maplets ms1 ms2)"     <= "_PfunUpd (_Pfun ms1) ms2"
   "_Pfun ms"                     <= "_PfunUpd (CONST pempty) ms"
 
-subsection {* Algebraic laws *}
+subsection \<open> Algebraic laws \<close>
 
 lemma pfun_comp_assoc: "f \<circ>\<^sub>p (g \<circ>\<^sub>p h) = (f \<circ>\<^sub>p g) \<circ>\<^sub>p h"
   by (transfer, simp add: map_comp_assoc)
@@ -173,7 +180,7 @@ lemma pfun_minus_plus:
   by (transfer, simp add: map_add_def map_minus_def option.case_eq_if, rule ext, auto)
      (metis Int_commute domIff insert_disjoint(1) insert_dom)
 
-subsection {* Membership, application, and update *}
+subsection \<open> Membership, application, and update \<close>
 
 lemma pfun_ext: "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>p f \<longleftrightarrow> (x, y) \<in>\<^sub>p g \<rbrakk> \<Longrightarrow> f = g"
   by (transfer, simp add: map_ext)
@@ -251,7 +258,7 @@ lemma psubseteq_ran_subset:
   "f \<subseteq>\<^sub>p g \<Longrightarrow> pran(f) \<subseteq> pran(g)"
   by (transfer, auto simp add: map_le_def dom_def ran_def, fastforce)
 
-subsection {* Domain laws *}
+subsection \<open> Domain laws \<close>
 
 lemma pdom_zero [simp]: "pdom 0 = {}"
   by (transfer, simp)
@@ -285,7 +292,7 @@ lemma pdom_pfun_graph_finite [simp]:
   "finite (pdom f) \<Longrightarrow> finite (pfun_graph f)"
   by (transfer, simp add: finite_dom_graph)
 
-subsection {* Range laws *}
+subsection \<open> Range laws \<close>
 
 lemma pran_zero [simp]: "pran 0 = {}"
   by (transfer, simp)
@@ -305,7 +312,7 @@ lemma pran_comp [simp]: "pran (g \<circ>\<^sub>p f) = pran (pran f \<lhd>\<^sub>
 lemma pran_finite [simp]: "finite (pdom f) \<Longrightarrow> finite (pran f)"
   by (transfer, auto)
 
-subsection {* Domain restriction laws *}
+subsection \<open> Domain restriction laws \<close>
 
 lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
   by (transfer, auto)
@@ -355,7 +362,7 @@ lemma pdom_res_apply [simp]:
   "x \<in> A \<Longrightarrow> (A \<lhd>\<^sub>p f)(x)\<^sub>p = f(x)\<^sub>p"
   by (transfer, auto)
     
-subsection {* Range restriction laws *}
+subsection \<open> Range restriction laws \<close>
 
 lemma pran_res_zero [simp]: "{}\<^sub>p \<rhd>\<^sub>p A = {}\<^sub>p"
   by (transfer, auto simp add: ran_restrict_map_def)
@@ -376,7 +383,7 @@ lemma pran_res_override: "(f + g) \<rhd>\<^sub>p A \<subseteq>\<^sub>p (f \<rhd>
    apply (auto)
   done
 
-subsection {* Graph laws *}
+subsection \<open> Graph laws \<close>
 
 lemma pfun_graph_inv: "graph_pfun (pfun_graph f) = f"
   by (transfer, simp)
@@ -395,7 +402,7 @@ lemma pfun_graph_inter: "pfun_graph (f \<inter>\<^sub>p g) = pfun_graph f \<inte
    apply (metis option.discI)+
   done
 
-subsection {* Entries *}
+subsection \<open> Entries \<close>
   
 lemma pfun_entries_empty [simp]: "pfun_entries {} f = {}\<^sub>p"
   by (transfer, simp)
@@ -408,7 +415,7 @@ lemma pfun_entries_apply_2 [simp]:
   "x \<notin> d \<Longrightarrow> (pfun_entries d f)(x)\<^sub>p = undefined"
   by (transfer, auto)
 
-subsection {* Summation *}
+subsection \<open> Summation \<close>
     
 definition pfun_sum :: "('k, 'v::comm_monoid_add) pfun \<Rightarrow> 'v" where
 "pfun_sum f = sum (pfun_app f) (pdom f)"
@@ -461,7 +468,7 @@ lemma pfun_sum_pdom_antires [simp]:
   shows "pfun_sum ((- A) \<lhd>\<^sub>p f) = pfun_sum f - pfun_sum (A \<lhd>\<^sub>p f)"
   by (subst pfun_sum_pdom_res, simp_all add: assms)
   
-text {* Hide implementation details for partial functions *}
+text \<open> Hide implementation details for partial functions \<close>
 
 lifting_update pfun.lifting
 lifting_forget pfun.lifting

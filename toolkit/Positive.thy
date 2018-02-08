@@ -1,10 +1,9 @@
 (******************************************************************************)
-(* Project: The Isabelle/UTP Proof System                                     *)
+(* Project: Isabelle/UTP Toolkit                                              *)
 (* File: Positive.thy                                                         *)
 (* Authors: Simon Foster and Frank Zeyda                                      *)
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 14 Sept 2017 *)
 
 section \<open> Positive Subtypes \<close>
 

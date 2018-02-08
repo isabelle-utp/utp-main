@@ -1,3 +1,10 @@
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: Countable_Set_Extra.thy                                              *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
 section \<open> Countable Sets: Extra functions and properties \<close>
 
 theory Countable_Set_Extra

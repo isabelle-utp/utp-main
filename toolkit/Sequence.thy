@@ -1,3 +1,10 @@
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: Sequence.thy                                                         *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
 section \<open> Infinite Sequences \<close>
 
 theory Sequence

@@ -1,10 +1,17 @@
-section {* Finite Functions *}
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: Finite_Fun.thy                                                       *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
+section \<open> Finite Functions \<close>
 
 theory Finite_Fun
 imports Map_Extra Partial_Fun FSet_Extra
 begin
 
-subsection {* Finite function type and operations *}
+subsection \<open> Finite function type and operations \<close>
 
 typedef ('a, 'b) ffun = "{f :: ('a, 'b) pfun. finite(pdom(f))}"
   morphisms pfun_of Abs_pfun
@@ -35,9 +42,6 @@ lift_definition ffun_graph :: "('a, 'b) ffun \<Rightarrow> ('a \<times> 'b) set"
 lift_definition graph_ffun :: "('a \<times> 'b) set \<Rightarrow> ('a, 'b) ffun" is
   "\<lambda> R. if (finite (Domain R)) then graph_pfun R else pempty"
   by (simp add: finite_Domain)
-
-definition pcard :: "('a, 'b) pfun \<Rightarrow> nat"
-where "pcard f = card (pdom f)"
 
 instantiation ffun :: (type, type) zero
 begin
@@ -108,7 +112,7 @@ translations
   "_Ffun (_Maplets ms1 ms2)"     <= "_FfunUpd (_Ffun ms1) ms2"
   "_Ffun ms"                     <= "_FfunUpd (CONST fempty) ms"
 
-subsection {* Algebraic laws *}
+subsection \<open> Algebraic laws \<close>
 
 lemma ffun_comp_assoc: "f \<circ>\<^sub>f (g \<circ>\<^sub>f h) = (f \<circ>\<^sub>f g) \<circ>\<^sub>f h"
   by (transfer, simp add: pfun_comp_assoc)
@@ -148,7 +152,7 @@ lemma ffun_minus_plus:
   "fdom(f) \<inter> fdom(g) = {} \<Longrightarrow> (f + g) - g = f"
   by (transfer, simp add: pfun_minus_plus)
 
-subsection {* Membership, application, and update *}
+subsection \<open> Membership, application, and update \<close>
 
 lemma ffun_ext: "\<lbrakk> \<And> x y. (x, y) \<in>\<^sub>f f \<longleftrightarrow> (x, y) \<in>\<^sub>f g \<rbrakk> \<Longrightarrow> f = g"
   by (transfer, simp add: pfun_ext)
@@ -219,7 +223,7 @@ lemma fsubseteq_ran_subset:
   "f \<subseteq>\<^sub>f g \<Longrightarrow> fran(f) \<subseteq> fran(g)"
   by (transfer, simp add: psubseteq_ran_subset)
 
-subsection {* Domain laws *}
+subsection \<open> Domain laws \<close>
 
 lemma fdom_zero [simp]: "fdom 0 = {}"
   by (transfer, simp)
@@ -243,7 +247,7 @@ lemma fdom_graph_ffun [simp]:
   "finite (Domain R) \<Longrightarrow> fdom (graph_ffun R) = Domain R"
   by (transfer, simp add: Domain_fst graph_map_dom)
 
-subsection {* Range laws *}
+subsection \<open> Range laws \<close>
 
 lemma fran_zero [simp]: "fran 0 = {}"
   by (transfer, simp)
@@ -257,7 +261,7 @@ lemma fran_fran_res [simp]: "fran (f \<rhd>\<^sub>f A) = fran(f) \<inter> A"
 lemma fran_comp [simp]: "fran (g \<circ>\<^sub>f f) = fran (fran f \<lhd>\<^sub>f g)"
   by (transfer, auto)
 
-subsection {* Domain restriction laws *}
+subsection \<open> Domain restriction laws \<close>
 
 lemma fdom_res_zero [simp]: "A \<lhd>\<^sub>f {}\<^sub>f = {}\<^sub>f"
   by (transfer, auto)
@@ -285,7 +289,7 @@ lemma fdom_res_twice [simp]: "A \<lhd>\<^sub>f (B \<lhd>\<^sub>f f) = (A \<inter
 lemma fdom_res_comp [simp]: "A \<lhd>\<^sub>f (g \<circ>\<^sub>f f) =  g \<circ>\<^sub>f (A \<lhd>\<^sub>f f)"
   by (transfer, simp)
 
-subsection {* Range restriction laws *}
+subsection \<open> Range restriction laws \<close>
 
 lemma fran_res_zero [simp]: "{}\<^sub>f \<rhd>\<^sub>f A = {}\<^sub>f"
   by (transfer, auto)
@@ -299,7 +303,7 @@ lemma fran_res_upd_2 [simp]: "v \<notin> A \<Longrightarrow> f(x \<mapsto> v)\<^
 lemma fran_res_override: "(f + g) \<rhd>\<^sub>f A \<subseteq>\<^sub>f (f \<rhd>\<^sub>f A) + (g \<rhd>\<^sub>f A)"
   by (transfer, simp add: pran_res_override)
 
-subsection {* Graph laws *}
+subsection \<open> Graph laws \<close>
 
 lemma ffun_graph_inv: "graph_ffun (ffun_graph f) = f"
   by (transfer, auto simp add: pfun_graph_inv finite_Domain)
@@ -313,7 +317,7 @@ lemma ffun_graph_minus: "ffun_graph (f - g) = ffun_graph f - ffun_graph g"
 lemma ffun_graph_inter: "ffun_graph (f \<inter>\<^sub>f g) = ffun_graph f \<inter> ffun_graph g"
   by (transfer, simp add: pfun_graph_inter)
 
-text {* Hide implementation details for partial functions *}
+text \<open> Hide implementation details for finite functions \<close>
 
 lifting_update ffun.lifting
 lifting_forget ffun.lifting

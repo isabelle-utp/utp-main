@@ -1,3 +1,10 @@
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: List_Extra.thy                                                       *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
 section {* Lists: extra functions and properties *}
 
 theory List_Extra

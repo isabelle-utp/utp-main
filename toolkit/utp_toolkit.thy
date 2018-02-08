@@ -1,11 +1,11 @@
 (******************************************************************************)
-(* Project: The Isabelle/UTP Proof System                                     *)
+(* Project: Isabelle/UTP Toolkit                                              *)
 (* File: utp_toolkit.thy                                                      *)
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Meta-theory for UTP Toolkit *}
+section \<open> Meta-theory for UTP Toolkit \<close>
 
 theory utp_toolkit
   imports

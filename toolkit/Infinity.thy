@@ -1,10 +1,9 @@
 (******************************************************************************)
-(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
+(* Project: Isabelle/UTP Toolkit                                              *)
 (* File: Infinity.thy                                                         *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
 (* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Jan 2016 *)
 
 section \<open> Infinity Supplement \<close>
 

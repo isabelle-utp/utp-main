@@ -1,3 +1,10 @@
+(******************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                              *)
+(* File: Trace_Algebra.thy                                                    *)
+(* Authors: Simon Foster and Frank Zeyda                                      *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(******************************************************************************)
+
 section \<open> Trace Algebras \<close>
 
 theory Trace_Algebra
