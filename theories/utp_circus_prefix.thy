@@ -82,6 +82,21 @@ done
 
 subsection {* Input Prefix *}
 
+text \<open>The below is obsolete as we can use @{const InputCSP} for actions too.\<close>
+
+-- \<open>Is the use of @{const RDES} correct anyway here?\<close>
+
+definition InputCircus ::
+  "('a::{continuum, two}, '\<epsilon>) chan \<Rightarrow>
+    ('a, ('\<sigma>, '\<epsilon>) st_csp) lvar \<Rightarrow>
+    ('a \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
+    (('a \<Longrightarrow> ('\<sigma>, '\<epsilon>) st_csp) \<Rightarrow> ('\<sigma>, '\<epsilon>) action) \<Rightarrow>
+    ('\<sigma>, '\<epsilon>) action" where
+"InputCircus c x P A =
+  (var\<^bsub>RDES\<^esub> x \<bullet> \<^bold>R\<^sub>s(true \<turnstile> (do\<^sub>I c x P) \<and> (\<exists> $x\<acute> \<bullet> II)) ;; A(x))"
+
+declare InputCircus_def [urel_defs]
+
 text \<open>Simplifications based on the original definition of Marcel Oliveira.\<close>
 
 definition NewInputCircus ::
@@ -108,6 +123,16 @@ apply (safe; clarsimp?)
 apply (metis)+
 done
 
+text \<open>Locale variables appear not to be support yet for CSP/{\Circus}.\<close>
+
+lemma
+"vwb_lens x \<Longrightarrow>
+ InputCircus c x P A = NewInputCircus' c P (\<lambda>v. (var\<^bsub>RDES\<^esub> x \<bullet> (x := \<guillemotleft>v\<guillemotright>) ;; A x))"
+apply (rel_simp)
+apply (unfold comp_def)
+apply (safe; clarsimp?)
+oops
+
 (************************)
 (* REVIEWED UNNTIL HERE *)
 (************************)
@@ -130,9 +155,9 @@ syntax
 translations
   "c \<rightarrow>\<^sub>u A" \<rightleftharpoons> "(CONST OutputCSP) c ()\<^sub>u A"
   "c!\<^sub>u(v) \<rightarrow> A" \<rightleftharpoons> "(CONST OutputCSP) c v A"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCSP) c
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<rightharpoonup> "(CONST InputCircus) c
     (*(CONST top_var \<dots>*) (CONST MkDVar IDSTR(x)) (\<lambda>x. P) (\<lambda>x. A)"
-  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCSP) c x (\<lambda>v. P) (\<lambda>w. A)"
+  "c?\<^sub>u(x : P) \<rightarrow> A" \<leftharpoondown> "(CONST InputCircus) c x (\<lambda>v. P) (\<lambda>w. A)"
 
 (*
 syntax
@@ -151,7 +176,7 @@ no_translations
 subsubsection {* Prefix Semantics *}
 
 text {*
-  We first define a new and simplified version of the @{const InputCSP}
+  We first define a new and simplified version of the @{const InputCircus}
   operator. Simplification is due to its action argument being parametrised
   by the a (HOL) value rather than a variable lens. This makes a subsequent
   definition of syntax and translations for mixed prefixes much easier. We
