@@ -1,14 +1,12 @@
-section {* Infinite sequences *}
+section \<open> Infinite Sequences \<close>
 
 theory Sequence
 imports
   Real
   List_Extra
-  "~~/src/HOL/Library/Sublist"
-  "~~/src/HOL/Library/Nat_Bijection"
+  "HOL-Library.Sublist"
+  "HOL-Library.Nat_Bijection"
 begin
-
-text {* Infinite Sequences *}
 
 typedef 'a seq = "UNIV :: (nat \<Rightarrow> 'a) set"
   by (auto)

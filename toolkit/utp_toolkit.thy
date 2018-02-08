@@ -30,11 +30,11 @@ theory utp_toolkit
   Map_Extra
   List_Extra
   List_Lexord_Alt
-  Pfun
-  Ffun
+  Partial_Fun
+  Finite_Fun
   Infinity
   Positive
-  TotalRecall
-  InjUniv
+  Total_Recall
+  Injection_Universe
   Trace_Algebra
 begin end

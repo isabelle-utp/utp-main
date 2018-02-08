@@ -1,13 +1,13 @@
 (******************************************************************************)
 (* Project: The Isabelle/UTP Proof System                                     *)
-(* File: TotalRecall.thy                                                      *)
+(* File: Total_Recall.thy                                                      *)
 (* Authors: Simon Foster & Frank Zeyda (University of York, UK)               *)
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
 
 section \<open> Recall Undeclarations \<close>
 
-theory TotalRecall
+theory Total_Recall
 imports Main
 keywords
   "purge_syntax" :: thy_decl and
@@ -17,7 +17,7 @@ begin
 
 subsection \<open> ML File Import \<close>
 
-ML_file "TotalRecall.ML"
+ML_file "Total_Recall.ML"
 
 subsection \<open> Outer Commands \<close>
 

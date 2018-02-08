@@ -3,9 +3,9 @@ section {* Lists: extra functions and properties *}
 theory List_Extra
 imports
   Main
-  "~~/src/HOL/Library/Sublist"
-  "~~/src/HOL/Library/Monad_Syntax"
-  "~~/src/HOL/Library/Prefix_Order"
+  "HOL-Library.Sublist"
+  "HOL-Library.Monad_Syntax"
+  "HOL-Library.Prefix_Order"
 begin
 
 subsection {* Useful Abbreviations *}

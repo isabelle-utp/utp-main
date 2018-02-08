@@ -1,6 +1,6 @@
 section {* Partial Functions *}
 
-theory Pfun
+theory Partial_Fun
 imports Map_Extra
 begin
 

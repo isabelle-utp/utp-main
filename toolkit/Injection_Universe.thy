@@ -1,6 +1,6 @@
 section \<open> Injection Universes \<close>
 
-theory InjUniv
+theory Injection_Universe
   imports 
     "HOL-Library.Countable"
     "Optics.Lenses" 
