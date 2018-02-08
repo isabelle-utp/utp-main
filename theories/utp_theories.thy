@@ -9,10 +9,9 @@ section {* Meta-theory for UTP Theories *}
 
 theory utp_theories
 imports
-  "designs/utp_designs"
-  utp_reactive
+  "UTP-Designs.utp_designs"
+  "UTP-Reactive.utp_reactive"
   utp_rea_designs
-  utp_reactive_hoare
   utp_time_rel
   utp_csp
   utp_cml

@@ -2,9 +2,9 @@ section {* Reactive processes *}
 
 theory utp_reactive
 imports
-  "../utp/utp_concurrency"
-  "designs/utp_designs"
-  "../tookit/Trace_Algebra"
+  "UTP-Toolkit.Trace_Algebra"
+  "UTP.utp_concurrency"
+  "UTP-Designs.utp_designs"
 begin recall_syntax
   
 alphabet 't::trace rp_vars = des_vars +

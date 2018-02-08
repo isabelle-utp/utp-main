@@ -83,6 +83,16 @@ session "UTP-Impl" in "impl" = "UTP-Designs" +
   theories
     utp_impl
 
+(* UTP Generalised Reactive Processes *)
+
+session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_reactive
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
 (* Core UTP with Deep Variables *)
 
 session "UTP-Deep" in "utp/models" = "UTP" +
@@ -105,7 +115,7 @@ session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
 
 (* UTP Theory Base *)
 
-session "UTP-Theories" in "theories" = "UTP" +
+session "UTP-Theories" in "theories" = "UTP-Reactive" +
   options [browser_info = true, document = false]
   theories utp_theories
 
