@@ -1,31 +1,37 @@
   (******************************************************************************)
-(* Project: The Isabelle/UTP Proof System                                     *)
-(* File: Positive_New.thy                                                     *)
-(* Authors: Simon Foster and Frank Zeyda                                      *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
-(******************************************************************************)
+(* Project: The Isabelle/UTP Proof System                                       *)
+(* File: Positive.thy                                                           *)
+(* Authors: Simon Foster and Frank Zeyda                                        *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                   *)
+(********************************************************************************)
 (* LAST REVIEWED: 14 Sept 2017 *)
 
-section {* Positive Subtypes *}
+section \<open> Positive Subtypes \<close>
 
 theory Positive
 imports 
   Infinity
-  "~~/src/HOL/Library/Countable"
+  "HOL-Library.Countable"
 begin
 
-subsection {* Type Definition *}
+subsection \<open> Type Definition \<close>
 
 typedef (overloaded) 'a::"{zero, linorder}" pos = "{x::'a. x \<ge> 0}"
   apply (rule_tac x = "0" in exI)
   apply (clarsimp)
   done
 
+syntax
+  "_type_pos" :: "type \<Rightarrow> type" ("_\<^sup>+" [999] 999)
+
+translations
+  (type) "'a\<^sup>+" == (type) "'a pos"
+
 setup_lifting type_definition_pos
 
 type_synonym preal = "real pos"
   
-subsection {* Operators *}
+subsection \<open> Operators \<close>
   
 lift_definition mk_pos :: "'a::{zero, linorder} \<Rightarrow> 'a pos" is
 "\<lambda> n. if (n \<ge> 0) then n else 0" by auto
@@ -33,8 +39,8 @@ lift_definition mk_pos :: "'a::{zero, linorder} \<Rightarrow> 'a pos" is
 lift_definition real_of_pos :: "real pos \<Rightarrow> real" is id .
 
 declare [[coercion real_of_pos]]
-  
-subsection {* Instantiations *}
+
+subsection \<open> Instantiations \<close>
 
 instantiation pos :: ("{zero, linorder}") zero
 begin
@@ -122,7 +128,7 @@ end
 lemma pos_positive [simp]: "0 \<le> (x::'a::{zero,linorder} pos)"
   by (transfer, simp)
  
-subsection {* Theorems *}
+subsection \<open> Theorems \<close>
   
 lemma mk_pos_zero [simp]: "mk_pos 0 = 0"
   by (transfer, simp)
@@ -144,7 +150,7 @@ lemma real_of_pos [simp]: "x \<ge> 0 \<Longrightarrow> real_of_pos (mk_pos x) = 
 lemma mk_pos_real_of_pos [simp]: "mk_pos (real_of_pos x) = x"
   by (transfer, simp)
     
-subsection {* Transfer to Reals *}
+subsection \<open> Transfer to Reals \<close>
   
 named_theorems pos_transfer
     

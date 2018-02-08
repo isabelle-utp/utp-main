@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
 
-section {* Recall Undeclarations *}
+section \<open> Recall Undeclarations \<close>
 
 theory TotalRecall
 imports Main
@@ -15,13 +15,13 @@ keywords
   "recall_syntax" :: thy_decl
 begin
 
-subsection {* ML File Import *}
+subsection \<open> ML File Import \<close>
 
 ML_file "TotalRecall.ML"
 
-subsection {* Outer Commands *}
+subsection \<open> Outer Commands \<close>
 
-ML {*
+ML \<open>
   val _ =
     Outer_Syntax.command @{command_keyword purge_syntax}
       "purge raw syntax clauses"
@@ -43,5 +43,5 @@ ML {*
     Outer_Syntax.command @{command_keyword recall_syntax}
       "recall undecarations of all purged items"
       (Scan.succeed (Toplevel.theory TotalRecall.execute_all))
-*}
+\<close>
 end

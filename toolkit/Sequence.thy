@@ -47,7 +47,7 @@ lemma nth_sinit:
   "i < n \<Longrightarrow> sinit n xs ! i = xs !\<^sub>s i"
   apply (auto simp add: ssubstr_def)
   apply (transfer, auto)
-done
+  done
 
 lemma sinit_append_split:
   assumes "i < j"
@@ -136,9 +136,9 @@ proof (rule transI, clarify)
       by (metis less_le_trans less_trans nth_sinit)
     ultimately have "(sinit n xs, sinit n zs) \<in> lexord R" using sinitm(2) sinitn(2) lt
       apply (rule_tac lexord_intro_elems)
-      apply (auto)
+         apply (auto)
       apply (metis less_le_trans less_trans nth_sinit)
-    done
+      done
     thus ?thesis by auto
   next
     case False
@@ -149,9 +149,9 @@ proof (rule transI, clarify)
       by (metis dual_order.strict_trans nth_sinit)
     ultimately have "(sinit n xs, sinit n zs) \<in> lexord R" using sinitm(2) sinitn(2) ge
       apply (rule_tac lexord_intro_elems)
-      apply (auto)
+         apply (auto)
       apply (metis less_trans nth_sinit)
-    done
+      done
     thus ?thesis by auto
   qed
 qed
@@ -221,23 +221,23 @@ next
   then show "xs = ys"
     apply (auto simp add: less_eq_seq_def less_seq_def)
     apply (rule seq_lexord_irreflexive [THEN notE])
-    defer
-    apply (rule seq_lexord_trans)
-    apply (auto intro: transI)
-  done
+     defer
+     apply (rule seq_lexord_trans)
+       apply (auto intro: transI)
+    done
 next
   fix xs ys :: "'a seq"
   show "xs < ys \<longleftrightarrow> xs \<le> ys \<and> \<not> ys \<le> xs"
     apply (auto simp add: less_seq_def less_eq_seq_def)
-    defer
-    apply (rule seq_lexord_irreflexive [THEN notE])
-    apply auto
-    apply (rule seq_lexord_irreflexive [THEN notE])
-    defer
-    apply (rule seq_lexord_trans)
-    apply (auto intro: transI)
+     defer
+     apply (rule seq_lexord_irreflexive [THEN notE])
+      apply auto
+     apply (rule seq_lexord_irreflexive [THEN notE])
+      defer
+      apply (rule seq_lexord_trans)
+        apply (auto intro: transI)
     apply (simp add: seq_lexord_irreflexive)
-  done
+    done
 qed
 
 instance seq :: (linorder) linorder
@@ -283,7 +283,7 @@ lemma seq_inj: "inj seq_inj"
 
 lemma seq_inj_surj: "bij seq_inj"
   apply (rule bijI)
-  apply (auto simp add: seq_inj)
+   apply (auto simp add: seq_inj)
   apply (metis rangeI seq_proj_inverse)
-done
+  done
 end

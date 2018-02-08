@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Jan 2016 *)
 
-section {* Infinity Supplement *}
+section \<open> Infinity Supplement \<close>
 
 theory Infinity
 imports Main Real
@@ -14,31 +14,30 @@ imports Main Real
   "Optics.Two"
 begin
 
-text {*
+text \<open>
   This theory introduces a type class @{text infinite} that guarantees that the
   underlying universe of the type is infinite. It also provides useful theorems
   to prove infinity of the universes for various HOL types.
-*}
+\<close>
 
-subsection {* Type class @{text infinite} *}
+subsection \<open> Type class @{text infinite} \<close>
 
-text {*
+text \<open>
   The type class postulates that the universe (carrier) of a type is infinite.
-*}
+\<close>
 
 class infinite =
   assumes infinite_UNIV [simp]: "infinite (UNIV :: 'a set)"
 
-subsection {* Infinity Theorems *}
+subsection \<open> Infinity Theorems \<close>
 
-text {* Useful theorems to prove that a type's @{const UNIV} is infinite. *}
+text \<open> Useful theorems to prove that a type's @{const UNIV} is infinite. \<close>
 
-text {*
+text \<open>
   Note that @{thm [source] infinite_UNIV_nat} is already a simplification rule
   by default.
-*}
+\<close>
 
-lemmas infinite_UNIV_nat (*[simp]*)
 lemmas infinite_UNIV_int [simp]
 
 theorem infinite_UNIV_real [simp]:
@@ -121,14 +120,14 @@ theorem infinite_transfer (*[intro]*) :
 
 subsection {* Instantiations *}
 
-text {*
+text \<open>
   The instantiations for product and sum types have stronger caveats than in
   principle needed. Namely, it would be sufficient for one type of a product
   or sum to be infinite. A corresponding rule, however, cannot be formulated
   using type classes. Generally, classes are not entirely adequate for the
   purpose of deriving the infinity of HOL types, which is perhaps why a class
   such as @{class infinite} was omitted from the Isabelle/HOL library.
-*}
+\<close>
 
 instance nat :: infinite by (intro_classes, simp)
 instance int :: infinite by (intro_classes, simp)

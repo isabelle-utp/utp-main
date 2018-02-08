@@ -53,6 +53,7 @@ session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
   theories utp_toolkit
   document_files
     "root.tex"
+    "root.bib"
     "document.sty"
 
 (* Core UTP Framework *)

@@ -1,10 +1,17 @@
-section {* Trace Algebras *}
+section \<open> Trace Algebras \<close>
 
 theory Trace_Algebra
   imports 
     List_Extra
     Positive
 begin
+
+text \<open> Trace algebras provide a useful way in the UTP of characterising different notions of trace
+  history. They can characterise notions as diverse as discrete event sequences and piecewise 
+  continuous functions, as employed by hybrid systems. For more information, please see our
+  journal publication~\cite{Foster17b}. \<close>
+
+subsection \<open> Ordered Semigroups \<close>
 
 class ordered_semigroup = semigroup_add + order +
   assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
@@ -16,6 +23,8 @@ lemma add_mono:
   using local.add_left_mono local.add_right_mono local.order.trans by blast
 
 end
+
+subsection \<open> Monoid Subclasses \<close>
 
 class left_cancel_monoid = monoid_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
@@ -38,18 +47,33 @@ end
 context monoid_add
 begin
 
+text \<open> An additive monoid gives rise to natural notions of order, which we here define. \<close>
+
 definition monoid_le (infix "\<le>\<^sub>m" 50)
 where "a \<le>\<^sub>m b \<longleftrightarrow> (\<exists>c. b = a + c)"
+
+text \<open> We can also define a subtraction operator that remove a prefix from a monoid, if possible. \<close>
 
 definition monoid_subtract (infixl "-\<^sub>m" 65)
 where "a -\<^sub>m b = (if (b \<le>\<^sub>m a) then THE c. a = b + c else 0)"
 
 end 
 
+subsection \<open> Trace Algebras \<close>
+
+text \<open> A pre-trace algebra is based on a left-cancellative monoid with the additional property that
+  plus has no additive inverse. The latter is required to ensure that there are no ``negative 
+  traces''. A pre-trace algebra has all the trace algebra axioms, but does not export the definitions
+  of @{term "op \<le>"} and @{term "op -"}. \<close>
+
 class pre_trace = left_cancel_monoid + monoid_sum_0 +
   assumes
   sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+  -- \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
+       can be expressed in terms of each other. \<close>
 begin
+
+text \<open> From our axiom set, we can derive a variety of properties of the monoid order \<close>
   
 lemma monoid_le_least_zero: "0 \<le>\<^sub>m a"
   by (simp add: monoid_le_def)
@@ -89,20 +113,26 @@ lemma monoid_le_add: "a \<le>\<^sub>m a + b"
 lemma monoid_le_add_left_mono: "a \<le>\<^sub>m b \<Longrightarrow> c + a \<le>\<^sub>m c + b"
   using add_assoc by (auto simp add: monoid_le_def)
 
+text \<open> The monoid minus operator is also the inverse of plus in this context, as expected. \<close>
+
 lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
   apply (simp add: monoid_subtract_def monoid_le_add)
   apply (rule the_equality)
-  apply (simp)
+   apply (simp)
   using local.add_left_imp_eq apply blast
-done
+  done
 
 end
-  
+
+text \<open> We now construct the trace algebra by also exporting the order and minus operators. \<close>
+
 class trace = pre_trace + ord + minus +
   assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
   and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
   and minus_def: "a - b = a -\<^sub>m b"
 begin
+
+text \<open> Next we prove all the trace algebra lemmas. \<close>
 
   lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
     by (simp add: local.le_is_monoid_le local.monoid_le_def)
@@ -160,7 +190,8 @@ begin
     "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
     using add_assoc le_iff_add by auto
 
-  text {* The set subtraces of a common trace $c$ is totally ordered *} 
+  text \<open> The set subtraces of a common trace $c$ is totally ordered. \<close>
+
   lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
     by (metis diff_add_cancel_left' le_add local.sum_eq_sum_conv)
   
@@ -190,12 +221,18 @@ begin
       
 end
 
+text \<open> Trace algebra give rise to a partial order on traces. \<close>
+
 instance trace \<subseteq> order
   apply (intro_classes)
-  apply (simp_all add: less_iff le_is_monoid_le monoid_le_refl)
+     apply (simp_all add: less_iff le_is_monoid_le monoid_le_refl)
   using monoid_le_trans apply blast
   apply (simp add: monoid_le_antisym)
-done
+  done
+
+subsection \<open> Models \<close>
+
+text \<open> Lists form a trace algebra. \<close>
 
 instantiation list :: (type) monoid_add
 begin
@@ -212,21 +249,21 @@ lemma monoid_le_list:
   "(xs :: 'a list) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   apply (simp add: monoid_le_def plus_list_def)
   using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
-done
+  done
 
 lemma monoid_subtract_list:
   "(xs :: 'a list) -\<^sub>m ys = xs - ys"
   apply (auto simp add: monoid_subtract_def monoid_le_list minus_list_def less_eq_list_def)
-  apply (rule the_equality)
-  apply (simp_all add: zero_list_def plus_list_def prefix_drop)
-done
+   apply (rule the_equality)
+    apply (simp_all add: zero_list_def plus_list_def prefix_drop)
+  done
 
 instance list :: (type) trace
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-  apply (simp add: append_eq_append_conv2)
+    apply (simp add: append_eq_append_conv2)
   using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
   apply (simp add: less_list_def)
-done
+  done
 
 lemma monoid_le_nat:
   "(x :: nat) \<le>\<^sub>m y \<longleftrightarrow> x \<le> y"
@@ -238,12 +275,12 @@ lemma monoid_subtract_nat:
 
 instance nat :: trace
   apply (intro_classes, simp_all add: monoid_subtract_nat)
-  apply (metis Nat.diff_add_assoc Nat.diff_add_assoc2 add_diff_cancel_right' add_le_cancel_left add_le_cancel_right add_less_mono cancel_ab_semigroup_add_class.add_diff_cancel_left' less_irrefl not_le)
-  apply (simp add: nat_le_iff_add monoid_le_def)
+    apply (metis Nat.diff_add_assoc Nat.diff_add_assoc2 add_diff_cancel_right' add_le_cancel_left add_le_cancel_right add_less_mono cancel_ab_semigroup_add_class.add_diff_cancel_left' less_irrefl not_le)
+   apply (simp add: nat_le_iff_add monoid_le_def)
   apply linarith+
-done
+  done
 
-text {* Positives form a trace algebra *}
+text \<open> Positives form a trace algebra. \<close>
     
 instance pos :: (linordered_semidom) trace
 proof (intro_classes, simp_all)
@@ -252,9 +289,9 @@ proof (intro_classes, simp_all)
     by (transfer, simp add: add_nonneg_eq_0_iff)
   show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
     apply (cases "c \<le> a")
-    apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
+     apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
     apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq less_imp_le linordered_semidom_class.add_diff_inverse semiring_normalization_rules(21))
-  done
+    done
   show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
     by auto    
   show le_def: "\<And> a b :: 'a pos. (a \<le> b) = (a \<le>\<^sub>m b)"    
@@ -264,8 +301,8 @@ proof (intro_classes, simp_all)
      apply (rule sym)
      apply (rule the_equality)
       apply (simp_all)
-      apply (transfer, simp)
-  done
+    apply (transfer, simp)
+    done
 qed
 
 end

@@ -1,14 +1,14 @@
-section {* Countable Sets: Extra functions and properties *}
+section \<open> Countable Sets: Extra functions and properties \<close>
 
 theory Countable_Set_Extra
 imports
-  "~~/src/HOL/Library/Countable_Set_Type"
+  "HOL-Library.Countable_Set_Type"
   Sequence
   FSet_Extra
-  "~~/src/HOL/Library/Bit"
+  "HOL-Library.Bit"
 begin
 
-subsection {* Extra syntax *}
+subsection \<open> Extra syntax \<close>
 
 notation cempty ("{}\<^sub>c")
 notation cin (infix "\<in>\<^sub>c" 50)
@@ -24,7 +24,7 @@ where "A \<subseteq>\<^sub>c B \<equiv> A \<le> B"
 abbreviation csubset :: "'a cset \<Rightarrow> 'a cset \<Rightarrow> bool" ("(_/ \<subset>\<^sub>c _)" [51, 51] 50)
 where "A \<subset>\<^sub>c B \<equiv> A < B"
 
-subsection {* Countable set functions *}
+subsection \<open> Countable set functions \<close>
 
 setup_lifting type_definition_cset
 
@@ -81,12 +81,12 @@ lemma cset_CollectD: "(a :: 'a::countable) \<in>\<^sub>c {x. P x}\<^sub>c \<Long
 lemma cset_Collect_cong: "(\<And>x. P x = Q x) ==> {x. P x}\<^sub>c = {x. Q x}\<^sub>c"
   by simp
 
--- {* Avoid eta-contraction for robust pretty-printing. *}
+-- \<open> Avoid eta-contraction for robust pretty-printing. \<close>
 
-print_translation {*
+print_translation \<open>
  [Syntax_Trans.preserve_binder_abs_tr'
    @{const_syntax cset_Collect} @{syntax_const "_cColl"}]
-*}
+\<close>
 
 lift_definition cset_set :: "'a list \<Rightarrow> 'a cset" is set
   using countable_finite by blast
@@ -112,7 +112,7 @@ proof -
   have "{B :: 'a cset. B \<subseteq>\<^sub>c A \<and> cfinite B} = acset ` {B :: 'a set. B \<subseteq> rcset A \<and> finite B}"
     apply (auto simp add: cfinite.rep_eq cin_def less_eq_cset_def countable_finite)
     using image_iff apply fastforce
-  done
+    done
 
   moreover have "countable {B :: 'a set. B \<subseteq> rcset A \<and> finite B}"
     by (auto intro: countable_finite_power)
@@ -143,8 +143,8 @@ lemma the_Some_image [simp]:
 lemma CCollect_ext_Some [simp]:
   "CCollect_ext Some xs = CCollect xs"
   apply (case_tac "CCollect xs")
-  apply (auto simp add:CCollect_ext_def)
-done
+   apply (auto simp add:CCollect_ext_def)
+  done
 
 lift_definition list_of_cset :: "'a :: linorder cset \<Rightarrow> 'a list" is sorted_list_of_set .
 
@@ -218,7 +218,7 @@ lemma cset2seq_inj:
   apply (rule inj_onI)
   apply (simp)
   apply (metis range_cset2seq rcset_inject)
-done
+  done
 
 lift_definition nat_seq2set :: "nat seq \<Rightarrow> nat set" is
 "\<lambda> f. prod_encode ` {(x, f x) | x. True}" .
@@ -241,7 +241,7 @@ lemma bit_seq_of_nat_set_inj: "inj bit_seq_of_nat_set"
   apply (transfer, auto)
    apply (metis bit.distinct(1))
   apply (meson zero_neq_one)
-done
+  done
 
 lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
   apply (rule bijI)
@@ -251,11 +251,11 @@ lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
   apply (rename_tac x)
   apply (rule_tac x="{i. x i = 1}" in exI)
   apply (auto)
-done
+  done
 
-text {* This function is a partial injection from countable sets of natural sets to natural sets.
+text \<open> This function is a partial injection from countable sets of natural sets to natural sets.
         When used with the Schroeder-Bernstein theorem, it can be used to conjure a total
-        bijection between these two types. *}
+        bijection between these two types. \<close>
 
 definition nat_set_cset_collapse :: "nat set cset \<Rightarrow> nat set" where
 "nat_set_cset_collapse = inv bit_seq_of_nat_set \<circ> seq_inj \<circ> cset2seq \<circ> (\<lambda> A. (bit_seq_of_nat_set `\<^sub>c A))"
@@ -275,7 +275,7 @@ proof -
       apply (rule seq_inj)
      apply (simp)
     apply (meson UNIV_I bij_imp_bij_inv bij_is_inj bit_seq_of_nat_cset_bij subsetI subset_inj_on)
-  done
+    done
 qed
 
 lemma inj_csingle:
@@ -356,7 +356,7 @@ lemma image_csets_surj:
   apply (erule subset_imageE)
   apply (auto)
   apply (metis countable_image rcset_inverse rcset_to_rcset subset_inj_on the_inv_into_onto)
-done
+  done
 
 lemma bij_betw_image_csets:
   "bij_betw f A B \<Longrightarrow> bij_betw (op `\<^sub>c f) (csets A) (csets B)"

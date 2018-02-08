@@ -1,13 +1,13 @@
-section {* Map type: extra functions and properties *}
+section {* Map Type: extra functions and properties *}
 
 theory Map_Extra
   imports
   Main
-  "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Library/Monad_Syntax"
+  "HOL-Library.Countable_Set"
+  "HOL-Library.Monad_Syntax"
 begin
 
-subsection {* Functional Relations *}
+subsection \<open> Functional Relations \<close>
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where
 "functional g = inj_on fst g"
@@ -36,7 +36,7 @@ lemma functional_list: "functional_list xs \<longleftrightarrow> functional (set
   apply (force)
   done
 
-subsection {* Graphing Maps *}
+subsection \<open> Graphing Maps \<close>
 
 definition map_graph :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a * 'b) set" where
 "map_graph f = {(x,y) | x y. f x = Some y}"
@@ -132,12 +132,12 @@ lemma map_graph_comp: "map_graph (g \<circ>\<^sub>m f) = (map_graph f) O (map_gr
   apply (case_tac "f a", auto)
   done
 
-subsection {* Map Application *}
+subsection \<open> Map Application \<close>
 
 definition map_apply :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>m" [999,0] 999) where
 "map_apply = (\<lambda> f x. the (f x))"
 
-subsection {* Map membership *}
+subsection \<open> Map Membership \<close>
 
 fun map_member :: "'a \<times> 'b \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" (infix "\<in>\<^sub>m" 50) where
 "(k, v) \<in>\<^sub>m m \<longleftrightarrow> m(k) = Some(v)"
@@ -154,7 +154,7 @@ lemma map_le_member:
   "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<forall> x y. (x,y) \<in>\<^sub>m f \<longrightarrow> (x,y) \<in>\<^sub>m g)"
   by (force simp add: map_le_def)
 
-subsection {* Preimage *}
+subsection \<open> Preimage \<close>
 
 definition preimage :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a set" where
 "preimage f B = {x \<in> dom(f). the(f(x)) \<in> B}"
@@ -178,7 +178,7 @@ lemma countable_preimage:
      apply (auto simp add: preimage_def inj_onD)
   done
 
-subsection {* Minus operation for maps *}
+subsection \<open> Minus operation for maps \<close>
 
 definition map_minus :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" (infixl "--" 100)
 where "map_minus f g = (\<lambda> x. if (f x = g x) then None else f x)"
@@ -199,7 +199,7 @@ lemma map_minus_plus_commute:
   apply (rule map_ext)
   apply (auto simp add: map_member_plus map_member_minus simp del: map_member.simps)
   apply (auto simp add: map_member_alt_def)
-done
+  done
 
 lemma map_graph_minus: "map_graph (f -- g) = map_graph f - map_graph g"
   by (auto simp add: map_minus_def map_graph_def, (meson option.distinct(1))+)
@@ -208,10 +208,9 @@ lemma map_minus_common_subset:
   "\<lbrakk> h \<subseteq>\<^sub>m f; h \<subseteq>\<^sub>m g \<rbrakk> \<Longrightarrow> (f -- h = g -- h) = (f = g)"
   by (auto simp add: map_eq_graph map_graph_minus map_le_graph)
 
-subsection {* Map Bind *}
+subsection \<open> Map Bind \<close>
 
-text {* Create some extra intro/elim rules to help dealing with proof about
-        option bind. *}
+text \<open> Create some extra intro/elim rules to help dealing with proof about option bind. \<close>
 
 lemma option_bindSomeE [elim!]:
   "\<lbrakk> X >>= F = Some(v); \<And> x. \<lbrakk> X = Some(x); F(x) = Some(v) \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
@@ -224,9 +223,9 @@ lemma option_bindSomeI [intro]:
 lemma ifSomeE [elim]: "\<lbrakk> (if c then Some(x) else None) = Some(y); \<lbrakk> c; x = y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
   by (case_tac c, auto)
 
-subsection {* Range Restriction *}
+subsection \<open> Range Restriction \<close>
 
-text {* A range restriction operator; only domain restriction is provided in HOL *}
+text {* A range restriction operator; only domain restriction is provided in HOL. *}
 
 definition ran_restrict_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> 'b set \<Rightarrow> 'a \<rightharpoonup> 'b" ("_\<upharpoonleft>\<^bsub>_\<^esub>" [111,110] 110) where
 "ran_restrict_map f B = (\<lambda>x. do { v <- f(x); if (v \<in> B) then Some(v) else None })"
@@ -263,7 +262,7 @@ lemma map_add_restrict:
   "f ++ g = (f |` (- dom g)) ++ g"
   by (rule ext, auto simp add: map_add_def restrict_map_def)
 
-subsection {* Map Inverse and Identity *}
+subsection \<open> Map Inverse and Identity \<close>
 
 definition map_inv :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('b \<rightharpoonup> 'a)" where
 "map_inv f \<equiv> \<lambda> y. if (y \<in> ran f) then Some (SOME x. f x = Some y) else None"
@@ -596,13 +595,6 @@ lemma maplets_lookup_nth [rule_format,simp]:
 theorem the_Some[simp]: "the \<circ> Some = id"
   by (simp add:comp_def id_def)
 
-theorem map_inv_expand [simp]:
-  "\<lbrakk> inj_on f (dom f); f x = Some y \<rbrakk> \<Longrightarrow> map_inv f y = Some x"
-  apply (auto simp add:ran_def map_inv_def)
-  apply (rule some_equality, simp)
-  apply (metis map_inv_f_f option.inject)
-  done
-
 theorem inv_map_inv:
   "\<lbrakk> inj_on f (dom f); ran f = dom f \<rbrakk>
   \<Longrightarrow> inv (the \<circ> (Some ++ f)) = the \<circ> map_inv (Some ++ f)"
@@ -666,7 +658,7 @@ qed
 lemma map_comp_apply [simp]: "(f \<circ>\<^sub>m g) x = g(x) >>= f"
   by (auto simp add: map_comp_def option.case_eq_if)
 
-subsection {* Merging of compatible maps *}
+subsection \<open> Merging of compatible maps \<close>
 
 definition comp_map :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b) \<Rightarrow> bool" (infixl "\<parallel>\<^sub>m" 60) where
 "comp_map f g = (\<forall> x \<in> dom(f) \<inter> dom(g). the(f(x)) = the(g(x)))"
@@ -692,7 +684,7 @@ lemma merge_singleton: "merge {f} = f"
   using option.collapse apply fastforce
   done
 
-subsection {* Conversion between lists and maps *}
+subsection \<open> Conversion between lists and maps \<close>
 
 definition map_of_list :: "'a list \<Rightarrow> (nat \<rightharpoonup> 'a)" where
 "map_of_list xs = (\<lambda> i. if (i < length xs) then Some (xs!i) else None)"
@@ -732,9 +724,9 @@ next
     by (auto simp add: list_of_map_def map_of_list_def nth_equalityI)
 qed
 
-subsection {* Map Comprehension *}
+subsection \<open> Map Comprehension \<close>
 
-text {* Map comprehension simply converts a relation built through set comprehension into a map *}
+text \<open> Map comprehension simply converts a relation built through set comprehension into a map. \<close>
 
 syntax
   "_Mapcompr" :: "'a \<Rightarrow> 'b \<Rightarrow> idts \<Rightarrow> bool \<Rightarrow> 'a \<rightharpoonup> 'b"    ("(1[_ \<mapsto> _ |/_./ _])")
@@ -769,7 +761,7 @@ lemma map_compr_eval_simple [simp]:
   "[x \<mapsto> f x | x. P x] x = (if (P x) then Some (f x) else None)"
   by (auto simp add: graph_map_def image_Collect)
 
-subsection {* Sorted lists from maps *}
+subsection \<open> Sorted lists from maps \<close>
 
 definition sorted_list_of_map :: "('a::linorder \<rightharpoonup> 'b) \<Rightarrow> ('a \<times> 'b) list" where
 "sorted_list_of_map f = map (\<lambda> k. (k, the (f k))) (sorted_list_of_set(dom(f)))"
@@ -796,7 +788,7 @@ qed
 
 declare map_member.simps [simp del]
 
-subsection {* Extra map lemmas *}
+subsection \<open> Extra map lemmas \<close>
 
 lemma map_eqI:
   "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"

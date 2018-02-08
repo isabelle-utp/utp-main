@@ -1,8 +1,8 @@
-section {* Injection Universes *}
+section \<open> Injection Universes \<close>
 
 theory InjUniv
   imports 
-    "~~/src/HOL/Library/Countable"
+    "HOL-Library.Countable"
     "Optics.Lenses" 
 begin
 
