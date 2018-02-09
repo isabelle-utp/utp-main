@@ -90,7 +90,13 @@ lemma st'_unrest_st_lift_pred [unrest]:
 lemma out_alpha_unrest_st_lift_pre [unrest]:
   "out\<alpha> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
-    
+
+lemma R1_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R1(P)"
+  by (simp add: R1_def unrest)
+
+lemma R2c_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
 lemma st_lift_lemma:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"
   by (auto simp add: upred_defs lens_defs prod.case_eq_if)

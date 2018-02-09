@@ -1,4 +1,4 @@
-section {* Hoare Logic for Reactive Processes *}
+section \<open> Hoare Logic for Reactive Processes \<close>
 
 theory utp_rea_hoare
   imports utp_rea_prog

@@ -647,6 +647,12 @@ lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bull
 lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
   by (pred_auto)
 
+lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = (P \<and> (\<exists> x \<bullet> Q))"
+  by (pred_auto)
+
+lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
+  by (pred_auto)
+
 subsection {* Variable Restriction *}    
   
 lemma var_res_all: 

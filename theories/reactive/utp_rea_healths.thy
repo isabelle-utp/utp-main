@@ -183,6 +183,48 @@ text \<open> @{term R2a} and @{term R2s} are the standard definitions from the U
   and otherwise has no effect. This latter healthiness condition can therefore be reasoned about
   independently of @{term R1}, which is useful in some circumstances. \<close>
 
+lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest)
+
+lemma unrest_ok'_R2s [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest)
+
+lemma unrest_ok_R2c [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
+lemma unrest_ok'_R2c [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2c(P)"
+  by (simp add: R2c_def unrest)
+
+lemma R2s_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R2s(P)"
+  by (simp add: R2s_def unrest usubst lens_indep_sym)
+
+lemma R2s_subst_wait_true [usubst]:
+  "(R2s(P))\<lbrakk>true/$wait\<rbrakk> = R2s(P\<lbrakk>true/$wait\<rbrakk>)"
+  by (simp add: R2s_def usubst unrest)
+
+lemma R2s_subst_wait'_true [usubst]:
+  "(R2s(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2s(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2s_def usubst unrest)
+
+lemma R2_subst_wait_true [usubst]:
+  "(R2(P))\<lbrakk>true/$wait\<rbrakk> = R2(P\<lbrakk>true/$wait\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait'_true [usubst]:
+  "(R2(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait_false [usubst]:
+  "(R2(P))\<lbrakk>false/$wait\<rbrakk> = R2(P\<lbrakk>false/$wait\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2_subst_wait'_false [usubst]:
+  "(R2(P))\<lbrakk>false/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
+  by (simp add: R2_def R1_def R2s_def usubst unrest)
+
+lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
+  by (rel_auto)
+
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   by (rel_auto)
 
@@ -213,9 +255,6 @@ lemma R2a'_weakening: "R2a'(P) \<sqsubseteq> P"
 
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (pred_auto)
-
-lemma R2s_unrest [unrest]: "\<lbrakk> vwb_lens x; x \<bowtie> in_var tr; x \<bowtie> out_var tr; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> R2s(P)"
-  by (simp add: R2s_def unrest usubst lens_indep_sym)
 
 lemma R2_idem: "R2(R2(P)) = R2(P)"
   by (pred_auto)

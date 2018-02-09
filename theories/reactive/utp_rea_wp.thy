@@ -1,3 +1,5 @@
+section \<open> Reactive Weakest Preconditions \<close>
+
 theory utp_rea_wp
   imports utp_rea_prog
 begin
@@ -118,6 +120,5 @@ lemma wp_rea_RC1: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<
     
 lemma wp_rea_RC [closure]: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is RC"
   by (rule RC_intro', simp_all add: wp_rea_RC1 closure)
-
 
 end

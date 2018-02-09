@@ -801,18 +801,6 @@ lemma R1_R3h_design:
   "R1(R3h(P \<turnstile> Q)) = R1(R3c_pre(P) \<turnstile> R3h_post(Q))"
   by (rel_auto)
 
-lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
-  by (simp add: R2s_def unrest)
-
-lemma unrest_ok'_R2s [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2s(P)"
-  by (simp add: R2s_def unrest)
-
-lemma unrest_ok_R2c [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2c(P)"
-  by (simp add: R2c_def unrest)
-
-lemma unrest_ok'_R2c [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R2c(P)"
-  by (simp add: R2c_def unrest)
-
 lemma unrest_ok_R3c_pre [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R3c_pre(P)"
   by (simp add: R3c_pre_def cond_def unrest)
 
@@ -830,12 +818,6 @@ lemma unrest_ok_R3h_post [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp
 
 lemma unrest_ok_R3h_post' [unrest]: "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> R3h_post(P)"
   by (simp add: R3h_post_def cond_def unrest)
-
-lemma R1_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R1(P)"
-  by (simp add: R1_def unrest)
-
-lemma R2c_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R2c(P)"
-  by (simp add: R2c_def unrest)
 
 lemma R3c_R1_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
@@ -878,36 +860,9 @@ qed
 lemma R1_des_lift_skip: "R1(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
   by (rel_auto)
 
-lemma R2s_subst_wait_true [usubst]:
-  "(R2s(P))\<lbrakk>true/$wait\<rbrakk> = R2s(P\<lbrakk>true/$wait\<rbrakk>)"
-  by (simp add: R2s_def usubst unrest)
-
-lemma R2s_subst_wait'_true [usubst]:
-  "(R2s(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2s(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  by (simp add: R2s_def usubst unrest)
-
-lemma R2_subst_wait_true [usubst]:
-  "(R2(P))\<lbrakk>true/$wait\<rbrakk> = R2(P\<lbrakk>true/$wait\<rbrakk>)"
-  by (simp add: R2_def R1_def R2s_def usubst unrest)
-
-lemma R2_subst_wait'_true [usubst]:
-  "(R2(P))\<lbrakk>true/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  by (simp add: R2_def R1_def R2s_def usubst unrest)
-
-lemma R2_subst_wait_false [usubst]:
-  "(R2(P))\<lbrakk>false/$wait\<rbrakk> = R2(P\<lbrakk>false/$wait\<rbrakk>)"
-  by (simp add: R2_def R1_def R2s_def usubst unrest)
-
-lemma R2_subst_wait'_false [usubst]:
-  "(R2(P))\<lbrakk>false/$wait\<acute>\<rbrakk> = R2(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
-  by (simp add: R2_def R1_def R2s_def usubst unrest)
-
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
   apply (rel_auto) using minus_zero_eq by blast
-
-lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
-  by (rel_auto)
 
 lemma R2_design_composition:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok \<sharp> R" "$ok \<sharp> S"
@@ -1285,12 +1240,6 @@ proof -
     apply (simp add: R1_R2s_R2c RH_design_lemma1)
   done
 qed
-
-lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = (P \<and> (\<exists> x \<bullet> Q))"
-  by (pred_auto)
-
-lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
-  by (pred_auto)
 
 lemma R1_R2c_ex_st: "R1 (R2c (\<exists> $st\<acute> \<bullet> Q\<^sub>1)) = (\<exists> $st\<acute> \<bullet> R1 (R2c Q\<^sub>1))"
   by (rel_auto)
