@@ -119,6 +119,9 @@ lemma R2c_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<ac
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
+lemma R2c_lift_state_pre: "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+
 subsection \<open> Reactive Program Operators \<close>
 
 subsubsection \<open> State Substitution \<close>
@@ -353,4 +356,108 @@ proof -
     by (simp add: assms Healthy_if)
 qed
 
+subsection \<open> Stateful Reactive specifications \<close>
+
+definition rea_st_rel :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
+[upred_defs]: "rea_st_rel b = (\<lceil>b\<rceil>\<^sub>S \<and> $tr\<acute> =\<^sub>u $tr)"
+
+definition rea_st_rel' :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S'") where
+[upred_defs]: "rea_st_rel' b = R1(\<lceil>b\<rceil>\<^sub>S)"
+
+definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub><") where
+[upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
+
+definition rea_st_post :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub>>") where
+[upred_defs]: "rea_st_post b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub>>)"
+
+lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
+  by (rel_simp, simp add: lens_indep_def)
+
+lemma rea_st_rel_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($st\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S\<^sub><"
+  by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
+    
+lemma rea_st_cond_unrest [unrest]:
+  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S\<^sub><"
+  by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
+  
+lemma subst_st_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> [P]\<^sub>S\<^sub>< = [\<sigma> \<dagger> P]\<^sub>S\<^sub><"
+  by (rel_auto)
+    
+lemma rea_st_cond_R1 [closure]: "[b]\<^sub>S\<^sub>< is R1"
+  by (rel_auto)
+
+lemma rea_st_cond_R2c [closure]: "[b]\<^sub>S\<^sub>< is R2c"
+  by (rel_auto)
+
+lemma rea_st_rel_RR [closure]: "[P]\<^sub>S is RR"
+  using minus_zero_eq by (rel_auto)
+
+lemma rea_st_rel'_RR [closure]: "[P]\<^sub>S' is RR"
+  by (rel_auto)
+
+lemma st_subst_rel [usubst]:
+  "\<sigma> \<dagger>\<^sub>S [P]\<^sub>S = [\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P]\<^sub>S"
+  by (rel_auto)
+    
+lemma st_rel_cond [rpred]:
+  "[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sub>S = [P]\<^sub>S \<triangleleft> b \<triangleright>\<^sub>R [Q]\<^sub>S"
+  by (rel_auto)
+   
+lemma st_rel_false [rpred]: "[false]\<^sub>S = false"
+  by (rel_auto)
+    
+lemma st_rel_skip [rpred]: 
+  "[II]\<^sub>S = (II\<^sub>r :: ('s, 't::trace) rdes)"
+  by (rel_auto)
+    
+lemma st_rel_seq [rpred]:
+  "[P ;; Q]\<^sub>S = [P]\<^sub>S ;; [Q]\<^sub>S"
+  by (rel_auto)
+  
+lemma st_rel_conj [rpred]:
+  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
+   by (rel_auto)
+     
+lemma rea_st_cond_RR [closure]: "[b]\<^sub>S\<^sub>< is RR"
+  by (rule RR_intro, simp_all add: unrest closure)
+
+lemma rea_st_cond_RC [closure]: "[b]\<^sub>S\<^sub>< is RC"
+  by (rule RC_intro, simp add: closure, rel_auto)
+    
+lemma rea_st_cond_true [rpred]: "[true]\<^sub>S\<^sub>< = true\<^sub>r"
+  by (rel_auto)
+
+lemma rea_st_cond_false [rpred]: "[false]\<^sub>S\<^sub>< = false"
+  by (rel_auto)
+    
+lemma st_cond_not [rpred]: "(\<not>\<^sub>r [P]\<^sub>S\<^sub><) = [\<not> P]\<^sub>S\<^sub><"
+  by (rel_auto)
+
+lemma st_cond_conj [rpred]: "([P]\<^sub>S\<^sub>< \<and> [Q]\<^sub>S\<^sub><) = [P \<and> Q]\<^sub>S\<^sub><"
+  by (rel_auto)
+    
+lemma st_rel_assigns [rpred]:
+  "[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>S = (\<langle>\<sigma>\<rangle>\<^sub>r :: ('\<alpha>, 't::trace) rdes)"
+  by (rel_auto)
+        
+lemma cond_st_distr: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
+  by (rel_auto)
+        
+lemma cond_st_miracle [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S\<^sub>< \<and> P)"
+  by (rel_blast)
+
+lemma cond_st_true [rpred]: "P \<triangleleft> true \<triangleright>\<^sub>R Q = P"
+  by (rel_blast)
+    
+lemma cond_st_false [rpred]: "P \<triangleleft> false \<triangleright>\<^sub>R Q = Q"
+  by (rel_blast)
+    
+lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<triangleleft> b \<triangleright>\<^sub>R P) = ([b]\<^sub>S\<^sub>< \<or> P)"
+  by (rel_blast)
+    
+lemma st_cond_left_impl_RC_closed [closure]:
+  "P is RC \<Longrightarrow> ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) is RC"
+  by (simp add: rea_impl_def rpred closure)
+  
 end

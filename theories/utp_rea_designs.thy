@@ -2249,114 +2249,6 @@ proof -
     by (simp add: RHS_tri_design_is_SRD lift_cond_srea_def unrest)
   finally show ?thesis .
 qed
-
-text {* State relation and condition lifting *}
-
-definition rea_st_rel :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S") where
-[upred_defs]: "rea_st_rel b = (\<lceil>b\<rceil>\<^sub>S \<and> $tr\<acute> =\<^sub>u $tr)"
-
-definition rea_st_rel' :: "'s hrel \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S'") where
-[upred_defs]: "rea_st_rel' b = R1(\<lceil>b\<rceil>\<^sub>S)"
-
-definition rea_st_cond :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub><") where
-[upred_defs]: "rea_st_cond b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub><)"
-
-definition rea_st_post :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>, '\<beta>) rel_rsp" ("[_]\<^sub>S\<^sub>>") where
-[upred_defs]: "rea_st_post b = R1(\<lceil>b\<rceil>\<^sub>S\<^sub>>)"
-
-lemma lift_state_pre_unrest [unrest]: "x \<bowtie> ($st)\<^sub>v \<Longrightarrow> x \<sharp> \<lceil>P\<rceil>\<^sub>S\<^sub><"
-  by (rel_simp, simp add: lens_indep_def)
-
-lemma rea_st_rel_unrest [unrest]:
-  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($st\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S\<^sub><"
-  by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
-    
-lemma rea_st_cond_unrest [unrest]:
-  "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> [P]\<^sub>S\<^sub><"
-  by (simp add: add: rea_st_cond_def R1_def unrest lens_indep_sym)
-  
-lemma subst_st_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> [P]\<^sub>S\<^sub>< = [\<sigma> \<dagger> P]\<^sub>S\<^sub><"
-  by (rel_auto)
-    
-lemma rea_st_cond_R1 [closure]: "[b]\<^sub>S\<^sub>< is R1"
-  by (rel_auto)
-
-lemma rea_st_cond_R2c [closure]: "[b]\<^sub>S\<^sub>< is R2c"
-  by (rel_auto)
-
-lemma rea_st_rel_RR [closure]: "[P]\<^sub>S is RR"
-  using minus_zero_eq by (rel_auto)
-
-lemma rea_st_rel'_RR [closure]: "[P]\<^sub>S' is RR"
-  by (rel_auto)
-
-lemma st_subst_rel [usubst]:
-  "\<sigma> \<dagger>\<^sub>S [P]\<^sub>S = [\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P]\<^sub>S"
-  by (rel_auto)
-    
-lemma st_rel_cond [rpred]:
-  "[P \<triangleleft> b \<triangleright>\<^sub>r Q]\<^sub>S = [P]\<^sub>S \<triangleleft> b \<triangleright>\<^sub>R [Q]\<^sub>S"
-  by (rel_auto)
-   
-lemma st_rel_false [rpred]: "[false]\<^sub>S = false"
-  by (rel_auto)
-    
-lemma st_rel_skip [rpred]: 
-  "[II]\<^sub>S = (II\<^sub>r :: ('s, 't::trace) rdes)"
-  by (rel_auto)
-    
-lemma st_rel_seq [rpred]:
-  "[P ;; Q]\<^sub>S = [P]\<^sub>S ;; [Q]\<^sub>S"
-  by (rel_auto)
-  
-lemma st_rel_conj [rpred]:
-  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
-   by (rel_auto)
-     
-lemma rea_st_cond_RR [closure]: "[b]\<^sub>S\<^sub>< is RR"
-  by (rule RR_intro, simp_all add: unrest closure)
-
-lemma rea_st_cond_RC [closure]: "[b]\<^sub>S\<^sub>< is RC"
-  by (rule RC_intro, simp add: closure, rel_auto)
-    
-lemma rea_st_cond_true [rpred]: "[true]\<^sub>S\<^sub>< = true\<^sub>r"
-  by (rel_auto)
-
-lemma rea_st_cond_false [rpred]: "[false]\<^sub>S\<^sub>< = false"
-  by (rel_auto)
-    
-lemma st_cond_not [rpred]: "(\<not>\<^sub>r [P]\<^sub>S\<^sub><) = [\<not> P]\<^sub>S\<^sub><"
-  by (rel_auto)
-
-lemma st_cond_conj [rpred]: "([P]\<^sub>S\<^sub>< \<and> [Q]\<^sub>S\<^sub><) = [P \<and> Q]\<^sub>S\<^sub><"
-  by (rel_auto)
-    
-lemma st_rel_assigns [rpred]:
-  "[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>S = (\<langle>\<sigma>\<rangle>\<^sub>r :: ('\<alpha>, 't::trace) rdes)"
-  by (rel_auto)
-        
-lemma cond_st_distr: "(P \<triangleleft> b \<triangleright>\<^sub>R Q) ;; R = (P ;; R \<triangleleft> b \<triangleright>\<^sub>R Q ;; R)"
-  by (rel_auto)
-        
-lemma cond_st_miracle [rpred]: "P is R1 \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R false = ([b]\<^sub>S\<^sub>< \<and> P)"
-  by (rel_blast)
-
-lemma cond_st_true [rpred]: "P \<triangleleft> true \<triangleright>\<^sub>R Q = P"
-  by (rel_blast)
-    
-lemma cond_st_false [rpred]: "P \<triangleleft> false \<triangleright>\<^sub>R Q = Q"
-  by (rel_blast)
-    
-lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<triangleleft> b \<triangleright>\<^sub>R P) = ([b]\<^sub>S\<^sub>< \<or> P)"
-  by (rel_blast)
-    
-lemma st_cond_left_impl_RC_closed [closure]:
-  "P is RC \<Longrightarrow> ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) is RC"
-  by (simp add: rea_impl_def rpred closure)
-    
-lemma wp_rea_st_cond_div [wp]:
-  "P \<noteq> true \<Longrightarrow> true\<^sub>r wp\<^sub>r [P]\<^sub>S\<^sub>< = false"
-  by (rel_auto)
      
 lemma preR_cond_srea [rdes]:
   "pre\<^sub>R(P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sub>S\<^sub>< \<and> pre\<^sub>R(P) \<or> [\<not>b]\<^sub>S\<^sub>< \<and> pre\<^sub>R(Q))"
@@ -2702,10 +2594,6 @@ lemma NSRD_composition_wp:
   shows "P ;; Q =
          \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
   by (simp add: SRD_composition_wp assms NSRD_is_SRD wp_rea_def NSRD_neg_pre_unit NSRD_st'_unrest_peri R1_negate_R1 R1_preR ex_unrest rpred)
- 
-lemma R2c_lift_state_pre:
-  "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
-  by (rel_auto)
 
 lemma preR_NSRD_seq_lemma:
   assumes "P is NSRD" "Q is SRD"
@@ -2977,14 +2865,6 @@ proof -
   thus ?thesis
     by (simp add: ndesign_form assms)
 qed
-
-  
-lemma design_refine_thms:
-  assumes "P \<sqsubseteq> Q"
-  shows "`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)`" "`pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`"
-  apply (metis assms design_pre_choice disj_comm disj_upred_def order_refl rdesign_refinement utp_pred_laws.le_iff_sup)
-  apply (metis assms conj_comm design_post_choice disj_upred_def refBy_order semilattice_sup_class.le_iff_sup utp_pred_laws.inf.coboundedI1)
-done
         
 lemma des_rea_lift_closure [closure]: "\<^bold>R\<^sub>D(P) is SRD"
   by (simp add: des_rea_lift_def RHS_design_is_SRD unrest)

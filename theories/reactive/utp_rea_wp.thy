@@ -40,6 +40,10 @@ lemma wp_rea_div [wp]:
   "(\<not>\<^sub>r P ;; true\<^sub>r) = true\<^sub>r \<Longrightarrow> true\<^sub>r wp\<^sub>r P = false"
   by (simp add: wp_rea_def rpred, rel_blast)
 
+lemma wp_rea_st_cond_div [wp]:
+  "P \<noteq> true \<Longrightarrow> true\<^sub>r wp\<^sub>r [P]\<^sub>S\<^sub>< = false"
+  by (rel_auto)
+
 lemma wp_rea_cond [wp]:
   "out\<alpha> \<sharp> b \<Longrightarrow> (P \<triangleleft> b \<triangleright> Q) wp\<^sub>r R = P wp\<^sub>r R \<triangleleft> b \<triangleright> Q wp\<^sub>r R"
   by (simp add: wp_rea_def cond_seq_left_distr, rel_auto)

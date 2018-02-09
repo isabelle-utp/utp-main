@@ -573,7 +573,14 @@ lemma R2_R1_true:
     
 lemma R1_true_R2 [closure]: "R1(true) is R2"
   by (rel_auto)
-    
+
+lemma R1_R2s_R1_true_lemma:
+  "R1(R2s(R1 (\<not> R2s P) ;; R1 true)) = R1(R2s((\<not> P) ;; R1 true))"
+  by (rel_auto)
+
+lemma R2c_healthy_R2s: "P is R2c \<Longrightarrow> R1(R2s(P)) = R1(P)"
+  by (simp add: Healthy_def R1_R2s_R2c) 
+
 subsection \<open> R3: No activity while predecessor is waiting \<close>
 
 definition R3 :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where

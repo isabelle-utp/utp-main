@@ -282,71 +282,6 @@ proof -
   finally show ?thesis ..
 qed
 
-subsection {* Refinement Introduction *}
-
-lemma ndesign_eq_intro:
-  assumes "p\<^sub>1 = q\<^sub>1" "P\<^sub>2 = Q\<^sub>2"
-  shows "p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2 = q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2"
-  by (simp add: assms)
-    
-theorem design_refinement:
-  assumes
-    "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
-    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
-  shows "(P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
-proof -
-  have "(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2) \<longleftrightarrow> `($ok \<and> P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> ($ok \<and> P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
-    by (pred_auto)
-  also with assms have "... = `(P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
-    by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac)
-  also with assms have "... = `(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> P1 \<Rightarrow> Q1)`"
-    by (subst subst_bool_split[of "out_var ok"], simp_all, subst_tac)
-  also have "... \<longleftrightarrow> `(P1 \<Rightarrow> P2)` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`"
-    by (pred_auto)
-  finally show ?thesis .
-qed
-
-theorem rdesign_refinement:
-  "(P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
-  by (rel_auto)
-
-lemma design_refine_intro:
-  assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
-  shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
-  using assms unfolding upred_defs
-  by (pred_auto)
-
-lemma design_refine_intro':
-  assumes "P\<^sub>2 \<sqsubseteq> P\<^sub>1" "Q\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)"
-  shows "P\<^sub>1 \<turnstile> Q\<^sub>1 \<sqsubseteq> P\<^sub>2 \<turnstile> Q\<^sub>2"
-  using assms design_refine_intro[of P\<^sub>1 P\<^sub>2 Q\<^sub>2 Q\<^sub>1] by (simp add: refBy_order)
-
-lemma rdesign_refine_intro:
-  assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
-  shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
-  using assms unfolding upred_defs
-  by (pred_auto)
-
-lemma rdesign_refine_intro':
-  assumes "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> (P1 \<and> Q2)"
-  shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
-  using assms unfolding upred_defs
-  by (pred_auto)
-
-lemma ndesign_refine_intro:
-  assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
-  shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
-  using assms unfolding upred_defs
-  by (pred_auto)
-
-lemma design_top:
-  "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
-  by (rel_auto)
-
-lemma design_bottom:
-  "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
-  by (rel_auto)
-
 subsection {* Sequential Composition Laws *}
 
 theorem design_skip_idem [simp]:
@@ -604,5 +539,77 @@ lemma ndesign_USUP_mem [ndes_simp]:
 lemma ndesign_USUP_ind [ndes_simp]:
   "(\<Squnion> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
   by (rel_auto)
+
+subsection {* Refinement Introduction *}
+
+lemma ndesign_eq_intro:
+  assumes "p\<^sub>1 = q\<^sub>1" "P\<^sub>2 = Q\<^sub>2"
+  shows "p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2 = q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2"
+  by (simp add: assms)
+
+theorem design_refinement:
+  assumes
+    "$ok \<sharp> P1" "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "$ok\<acute> \<sharp> P2"
+    "$ok \<sharp> Q1" "$ok\<acute> \<sharp> Q1" "$ok \<sharp> Q2" "$ok\<acute> \<sharp> Q2"
+  shows "(P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
+proof -
+  have "(P1 \<turnstile> Q1) \<sqsubseteq> (P2 \<turnstile> Q2) \<longleftrightarrow> `($ok \<and> P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> ($ok \<and> P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
+    by (pred_auto)
+  also with assms have "... = `(P2 \<Rightarrow> $ok\<acute> \<and> Q2) \<Rightarrow> (P1 \<Rightarrow> $ok\<acute> \<and> Q1)`"
+    by (subst subst_bool_split[of "in_var ok"], simp_all, subst_tac)
+  also with assms have "... = `(\<not> P2 \<Rightarrow> \<not> P1) \<and> ((P2 \<Rightarrow> Q2) \<Rightarrow> P1 \<Rightarrow> Q1)`"
+    by (subst subst_bool_split[of "out_var ok"], simp_all, subst_tac)
+  also have "... \<longleftrightarrow> `(P1 \<Rightarrow> P2)` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`"
+    by (pred_auto)
+  finally show ?thesis .
+qed
+
+theorem rdesign_refinement:
+  "(P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2) \<longleftrightarrow> (`P1 \<Rightarrow> P2` \<and> `P1 \<and> Q2 \<Rightarrow> Q1`)"
+  by (rel_auto)
+
+lemma design_refine_intro:
+  assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
+  shows "P1 \<turnstile> Q1 \<sqsubseteq> P2 \<turnstile> Q2"
+  using assms unfolding upred_defs
+  by (pred_auto)
+
+lemma design_refine_intro':
+  assumes "P\<^sub>2 \<sqsubseteq> P\<^sub>1" "Q\<^sub>1 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)"
+  shows "P\<^sub>1 \<turnstile> Q\<^sub>1 \<sqsubseteq> P\<^sub>2 \<turnstile> Q\<^sub>2"
+  using assms design_refine_intro[of P\<^sub>1 P\<^sub>2 Q\<^sub>2 Q\<^sub>1] by (simp add: refBy_order)
+
+lemma rdesign_refine_intro:
+  assumes "`P1 \<Rightarrow> P2`" "`P1 \<and> Q2 \<Rightarrow> Q1`"
+  shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
+  using assms unfolding upred_defs
+  by (pred_auto)
+
+lemma rdesign_refine_intro':
+  assumes "P2 \<sqsubseteq> P1" "Q1 \<sqsubseteq> (P1 \<and> Q2)"
+  shows "P1 \<turnstile>\<^sub>r Q1 \<sqsubseteq> P2 \<turnstile>\<^sub>r Q2"
+  using assms unfolding upred_defs
+  by (pred_auto)
+
+lemma ndesign_refine_intro:
+  assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
+  shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
+  using assms unfolding upred_defs
+  by (pred_auto)
+
+lemma design_top:
+  "(P \<turnstile> Q) \<sqsubseteq> \<top>\<^sub>D"
+  by (rel_auto)
+
+lemma design_bottom:
+  "\<bottom>\<^sub>D \<sqsubseteq> (P \<turnstile> Q)"
+  by (rel_auto)
+
+lemma design_refine_thms:
+  assumes "P \<sqsubseteq> Q"
+  shows "`pre\<^sub>D(P) \<Rightarrow> pre\<^sub>D(Q)`" "`pre\<^sub>D(P) \<and> post\<^sub>D(Q) \<Rightarrow> post\<^sub>D(P)`"
+  apply (metis assms design_pre_choice disj_comm disj_upred_def order_refl rdesign_refinement utp_pred_laws.le_iff_sup)
+  apply (metis assms conj_comm design_post_choice disj_upred_def refBy_order semilattice_sup_class.le_iff_sup utp_pred_laws.inf.coboundedI1)
+done
 
 end
