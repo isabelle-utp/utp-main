@@ -34,7 +34,7 @@ method rdes_calc = (simp add: rdes rpred closure alpha usubst unrest wp prod.cas
 
 text {* The following tactic attempts to prove a reactive design refinement by calculation of
   the pre-, peri-, and postconditions and then showing three implications between them using
-  rel_blast. *}
+  rel-blast. *}
 
 method rdspl_refine =
   (rule_tac SRD_refine_intro; (simp add: closure rdes unrest usubst ; rel_blast?))

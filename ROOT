@@ -93,6 +93,15 @@ session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
     "root.tex"
     "document.sty"
 
+(* Reactive Designs *)
+
+session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_rea_designs
+  document_files
+    "root.tex"
+    "document.sty"
+
 (* Core UTP with Deep Variables *)
 
 session "UTP-Deep" in "utp/models" = "UTP" +
