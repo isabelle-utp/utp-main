@@ -431,9 +431,9 @@ lemma R1_R2s_tr'_eq_tr:
 lemma R1_R2s_tr'_extend_tr:
   "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr  ^\<^sub>u v)"
   apply (rel_auto)
-  apply (metis append_minus)
+   apply (metis append_minus)
   apply (simp add: Prefix_Order.prefixI)
-done
+  done
 
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (pred_auto)
@@ -499,10 +499,10 @@ proof -
     have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
            = ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       apply (rel_auto)
-      apply (metis add.assoc diff_add_cancel_left')
-      apply (simp add: add.assoc)
+        apply (metis add.assoc diff_add_cancel_left')
+       apply (simp add: add.assoc)
       apply (meson le_add order_trans)
-    done
+      done
     thus ?thesis by simp
   qed
   also have "... = (R2(P) ;; R2(Q))"
@@ -643,7 +643,7 @@ lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   apply (rel_auto)
   using minus_zero_eq apply blast+
-done
+  done
 
 subsection {* RP laws *}
 

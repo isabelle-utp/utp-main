@@ -65,8 +65,8 @@ lemma R2m_idem: "R2m(R2m(P)) = R2m(P)"
 lemma R2m_seq_lemma: "R2m'(R2m'(M) ;; R2(P)) = R2m'(M) ;; R2(P)"
   apply (simp add: R2m'_form R2_form)
   apply (rel_auto)
-  apply (metis (no_types, lifting) add.assoc)+
-done
+   apply (metis (no_types, lifting) add.assoc)+
+  done
 
 lemma R2m'_seq [closure]:
   assumes "M is R2m'" "P is R2"
