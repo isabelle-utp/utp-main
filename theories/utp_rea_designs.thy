@@ -2681,6 +2681,8 @@ lemma NSRD_Chaos [closure]: "Chaos is NSRD"
 lemma NSRD_Miracle [closure]: "Miracle is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
+(* ========= REVIEW FROM HERE =============== *)
+
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
