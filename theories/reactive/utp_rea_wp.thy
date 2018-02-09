@@ -22,6 +22,10 @@ lemma wp_rea_R1 [closure]: "P wp\<^sub>r Q is R1"
 lemma wp_rea_RR_closed [closure]: "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is RR"
   by (simp add: wp_rea_def closure)    
 
+lemma wp_rea_impl_lemma:
+  "((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(Q \<Rightarrow>\<^sub>r R))) = ((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(R)))"
+  by (rel_auto, blast)
+
 lemma wpR_R1_right [wp]:
   "P wp\<^sub>r R1(Q) = P wp\<^sub>r Q"
   by (rel_auto)
@@ -35,7 +39,11 @@ lemma wp_rea_conj [wp]: "P wp\<^sub>r (Q \<and> R) = (P wp\<^sub>r Q \<and> P wp
 lemma wp_rea_USUP_mem [wp]: 
   "A \<noteq> {} \<Longrightarrow> P wp\<^sub>r (\<Squnion> i\<in>A \<bullet> Q(i)) = (\<Squnion> i\<in>A \<bullet> P wp\<^sub>r Q(i))"
   by (simp add: wp_rea_def seq_UINF_distl)
-    
+
+lemma wp_rea_Inf_pre [wp]: 
+  "P wp\<^sub>r (\<Squnion>i\<in>{0..n::nat}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>r Q(i))"
+  by (simp add: wp_rea_def seq_SUP_distl)
+
 lemma wp_rea_div [wp]:
   "(\<not>\<^sub>r P ;; true\<^sub>r) = true\<^sub>r \<Longrightarrow> true\<^sub>r wp\<^sub>r P = false"
   by (simp add: wp_rea_def rpred, rel_blast)

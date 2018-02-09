@@ -52,6 +52,9 @@ lemma R1_USUP:
   "R1(\<Sqinter> i \<in> A \<bullet> P(i)) = (\<Sqinter> i \<in> A \<bullet> R1(P(i)))"
   by (rel_auto)
 
+lemma R1_Sup [closure]: "\<lbrakk> \<And> P. P \<in> A \<Longrightarrow> P is R1; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter> A is R1"
+  using R1_Continuous by (auto simp add: Continuous_def Healthy_def)
+
 lemma R1_UINF:
   assumes "A \<noteq> {}"
   shows "R1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R1(P(i)))"
@@ -117,6 +120,9 @@ lemma R1_seqr_closure [closure]:
   shows "(P ;; Q) is R1"
   using assms unfolding R1_by_refinement
   by (metis seqr_mono tr_le_trans)
+
+lemma R1_power [closure]: "P is R1 \<Longrightarrow> P\<^bold>^n is R1"
+  by (induct n, simp_all add: closure)
 
 lemma R1_true_comp [simp]: "(R1(true) ;; R1(true)) = R1(true)"
   by (rel_auto)

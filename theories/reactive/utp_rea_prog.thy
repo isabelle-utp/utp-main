@@ -132,7 +132,7 @@ definition usubst_st_lift ::
   "'s usubst \<Rightarrow> (('s,'t::trace,'\<alpha>) rsp \<times> ('s,'t,'\<beta>) rsp) usubst"  ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<sigma>") where
 [upred_defs]: "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s"
 
-abbreviation st_subst :: "'s usubst \<Rightarrow> ('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<dagger>\<^sub>S" 80) where
+abbreviation st_subst :: "'s usubst \<Rightarrow> ('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow> ('s, 't, '\<alpha>, '\<beta>) rel_rsp" (infixr "\<dagger>\<^sub>S" 80) where
 "\<sigma> \<dagger>\<^sub>S P \<equiv> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
 
 translations
@@ -165,8 +165,32 @@ lemma unrest_lift_cond_srea [unrest]:
   "x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<Longrightarrow> x \<sharp> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow>"
   by (simp add: lift_cond_srea_def)
 
+lemma st_subst_RR_closed [closure]:
+  assumes "P is RR"
+  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is RR"
+proof -
+  have "RR(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 lemma subst_lift_cond_srea [usubst]: "\<sigma> \<dagger>\<^sub>S \<lceil>P\<rceil>\<^sub>S\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> P\<rceil>\<^sub>S\<^sub>\<leftarrow>"
   by (rel_auto)
+
+lemma st_subst_rea_not [usubst]: "\<sigma> \<dagger>\<^sub>S (\<not>\<^sub>r P) = (\<not>\<^sub>r \<sigma> \<dagger>\<^sub>S P)"
+  by (rel_auto)
+
+lemma st_subst_seq [usubst]: "\<sigma> \<dagger>\<^sub>S (P ;; Q) = \<sigma> \<dagger>\<^sub>S P ;; Q"
+  by (rel_auto)
+
+lemma st_subst_RC_closed [closure]:
+  assumes "P is RC"
+  shows "\<sigma> \<dagger>\<^sub>S P is RC"
+  apply (rule RC_intro, simp add: closure assms)
+  apply (simp add: st_subst_rea_not[THEN sym] st_subst_seq[THEN sym])
+  apply (metis Healthy_if RC1_def RC_implies_RC1 assms)
+done
 
 subsubsection \<open> Assignment \<close>
 

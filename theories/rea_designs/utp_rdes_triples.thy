@@ -369,6 +369,9 @@ lemma trace_ident_right_postR:
   "post\<^sub>R(P) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R) = post\<^sub>R(P)"
   by (rel_auto)
 
+lemma preR_R2_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2"
+  by (simp add: R2_comp_def Healthy_comp closure)
+
 subsubsection \<open> Calculation laws \<close>
 
 lemma wait'_cond_peri_post_cmt [rdes]:
@@ -571,6 +574,17 @@ lemma UINF_R1_R2s_cmt_SRD:
   shows "(\<Sqinter> P \<in> A \<bullet> R1 (R2s (cmt\<^sub>R P))) = (\<Sqinter> P \<in> A \<bullet> cmt\<^sub>R P)"
   by (rule UINF_cong[of A], metis (mono_tags, lifting) Ball_Collect R1_R2s_cmt_SRD assms)
 
+subsubsection \<open> Order laws \<close>
+
+lemma preR_antitone: "P \<sqsubseteq> Q \<Longrightarrow> pre\<^sub>R(Q) \<sqsubseteq> pre\<^sub>R(P)"
+  by (rel_auto)
+
+lemma periR_monotone: "P \<sqsubseteq> Q \<Longrightarrow> peri\<^sub>R(P) \<sqsubseteq> peri\<^sub>R(Q)"
+  by (rel_auto)
+
+lemma postR_monotone: "P \<sqsubseteq> Q \<Longrightarrow> post\<^sub>R(P) \<sqsubseteq> post\<^sub>R(Q)"
+  by (rel_auto)
+
 subsection \<open> Composition laws \<close>
 
 theorem RH_tri_design_composition:
@@ -731,6 +745,44 @@ proof -
   finally show ?thesis .
 qed
 
+theorem RHS_tri_design_composition_RR_wp:
+  assumes "P is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR"
+          "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
+          \<^bold>R\<^sub>s(((\<not>\<^sub>r P) wp\<^sub>r false \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> (((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2)))" (is "?lhs = ?rhs")
+  by (simp add: RHS_tri_design_composition_wp add: closure assms unrest RR_implies_R2c)
+
+lemma RHS_tri_normal_design_composition:
+  assumes
+    "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>2" "$ok \<sharp> R" "$ok \<sharp> S\<^sub>1" "$ok \<sharp> S\<^sub>2"
+    "$wait \<sharp> R" "$wait\<acute> \<sharp> Q\<^sub>2" "$wait \<sharp> S\<^sub>1" "$wait \<sharp> S\<^sub>2"
+    "P is R2c" "Q\<^sub>1 is R1" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R1" "Q\<^sub>2 is R2c"
+    "R is R2c" "S\<^sub>1 is R1" "S\<^sub>1 is R2c" "S\<^sub>2 is R1" "S\<^sub>2 is R2c"
+    "R1 (\<not> P) ;; R1(true) = R1(\<not> P)" "$st\<acute> \<sharp> Q\<^sub>1"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
+         = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+proof -
+  have "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
+        \<^bold>R\<^sub>s ((R1 (\<not> P) wp\<^sub>r false \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+    by (simp_all add: RHS_tri_design_composition_wp rea_not_def assms unrest)
+  also have "... = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+    by (simp add: assms wp_rea_def ex_unrest, rel_auto)
+  finally show ?thesis .
+qed
+  
+lemma RHS_tri_normal_design_composition' [rdes_def]:
+  assumes "P is RC" "Q\<^sub>1 is RR" "$st\<acute> \<sharp> Q\<^sub>1" "Q\<^sub>2 is RR" "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2)
+         = \<^bold>R\<^sub>s((P \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> (Q\<^sub>1 \<or> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
+proof -
+  have "R1 (\<not> P) ;; R1 true = R1(\<not> P)"
+    using RC_implies_RC1[OF assms(1)]
+    by (simp add: Healthy_def RC1_def rea_not_def)
+       (metis R1_negate_R1 R1_seqr utp_pred_laws.double_compl)
+  thus ?thesis
+    by (simp add: RHS_tri_normal_design_composition assms closure unrest RR_implies_R2c)
+qed
+
 lemma RHS_tri_design_right_unit_lemma:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
@@ -879,6 +931,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P ;; P\<^bold>^n is SRD"
+proof (induct n)
+  case 0
+  then show ?case
+    by (simp)
+next
+  case (Suc n)
+  then show ?case
+    using SRD_seqr_closure by auto
+qed
+
 lemma SRD_Sup_closure [closure]:
   assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H" "A \<noteq> {}"
   shows "(\<Sqinter> A) is SRD"
@@ -1010,5 +1073,69 @@ lemma SRD_right_Miracle_tri_lemma:
   assumes "P is SRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false)"
   by (simp add: SRD_composition_wp closure rdes assms wp, rel_auto)
+
+text \<open> Stateful reactive designs are left unital \<close>
+
+overloading
+  srdes_unit == "utp_unit :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+begin
+  definition srdes_unit :: "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
+  "srdes_unit T = II\<^sub>R"
+end
+
+interpretation srdes_left_unital: utp_theory_left_unital SRDES
+  by (unfold_locales, simp_all add: srdes_hcond_def srdes_unit_def SRD_seqr_closure SRD_srdes_skip SRD_left_unit)
+
+subsection \<open> Recursion laws \<close>
+
+lemma mono_srd_iter:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "mono (\<lambda>X. \<^bold>R\<^sub>s(pre\<^sub>R(F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X)))"
+  apply (rule monoI)
+  apply (rule srdes_tri_refine_intro')
+  apply (meson assms(1) monoE preR_antitone utp_pred_laws.le_infI2)
+  apply (meson assms(1) monoE periR_monotone utp_pred_laws.le_infI2)
+  apply (meson assms(1) monoE postR_monotone utp_pred_laws.le_infI2)
+done
+
+lemma mu_srd_SRD:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "(\<mu> X \<bullet> \<^bold>R\<^sub>s (pre\<^sub>R (F X) \<turnstile> peri\<^sub>R (F X) \<diamondop> post\<^sub>R (F X))) is SRD"
+  apply (subst gfp_unfold)
+  apply (simp add: mono_srd_iter assms)
+  apply (rule RHS_tri_design_is_SRD)
+  apply (simp_all add: unrest)
+done
+
+lemma mu_srd_iter:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X)))) = F(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X))))"
+  apply (subst gfp_unfold)
+  apply (simp add: mono_srd_iter assms)
+  apply (subst SRD_as_reactive_tri_design[THEN sym])
+  using Healthy_func assms(1) assms(2) mu_srd_SRD apply blast
+done
+
+lemma mu_srd_form:
+  assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  shows "\<mu>\<^sub>R F = (\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X))))"
+proof -
+  have 1: "F (\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) is SRD"
+    by (simp add: Healthy_apply_closed assms(1) assms(2) mu_srd_SRD)
+  have 2:"Mono\<^bsub>uthy_order SRDES\<^esub> F"
+    by (simp add: assms(1) mono_Monotone_utp_order)
+  hence 3:"\<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
+    by (simp add: srdes_theory_continuous.LFP_unfold[THEN sym] assms)
+  hence "\<^bold>R\<^sub>s(pre\<^sub>R (F (F (\<mu>\<^sub>R F))) \<turnstile> peri\<^sub>R (F (F (\<mu>\<^sub>R F))) \<diamondop> post\<^sub>R (F (F (\<mu>\<^sub>R F)))) = \<mu>\<^sub>R F"
+    using SRD_reactive_tri_design by force
+  hence "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) \<sqsubseteq> F (\<mu>\<^sub>R F)"
+    by (simp add: 2 srdes_theory_continuous.weak.LFP_lemma3 gfp_upperbound assms)
+  thus ?thesis
+    using assms 1 3 srdes_theory_continuous.weak.LFP_lowerbound eq_iff mu_srd_iter
+    by (metis (mono_tags, lifting))
+qed
+
+lemma Monotonic_SRD_comp [closure]: "Monotonic (op ;; P \<circ> SRD)"
+  by (simp add: mono_def R1_R2c_is_R2 R2_mono R3h_mono RD1_mono RD2_mono RHS_def SRD_def seqr_mono)
 
 end

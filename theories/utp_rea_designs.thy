@@ -1348,6 +1348,13 @@ proof -
   finally show ?thesis .
 qed
 
+theorem RHS_tri_design_composition_RR_wp:
+  assumes "P is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR"
+          "R is RR" "S\<^sub>1 is RR" "S\<^sub>2 is RR"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) ;; \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
+          \<^bold>R\<^sub>s(((\<not>\<^sub>r P) wp\<^sub>r false \<and> Q\<^sub>2 wp\<^sub>r R) \<turnstile> (((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2)))" (is "?lhs = ?rhs")
+  by (simp add: RHS_tri_design_composition_wp add: closure assms unrest RR_implies_R2c)
+
 lemma RHS_tri_design_form:
   assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = (II\<^sub>R \<triangleleft> $wait \<triangleright> (($ok \<and> P\<^sub>1) \<Rightarrow>\<^sub>r ($ok\<acute> \<and> (P\<^sub>2 \<diamondop> P\<^sub>3))))"
@@ -2681,8 +2688,6 @@ lemma NSRD_Chaos [closure]: "Chaos is NSRD"
 lemma NSRD_Miracle [closure]: "Miracle is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
-(* ========= REVIEW FROM HERE =============== *)
-
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
@@ -2757,33 +2762,7 @@ lemma periR_srd_subst [rdes]:
 lemma postR_srd_subst [rdes]:
   "post\<^sub>R(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> post\<^sub>R(P)"
   by (rel_auto)
-    
-lemma st_subst_rea_not [usubst]: 
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (\<not>\<^sub>r P) = (\<not>\<^sub>r \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)"
-  by (rel_auto)
-
-lemma st_subst_seq [usubst]: 
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> (P ;; Q) = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P) ;; Q"
-  by (rel_auto)
-    
-lemma st_subst_RR_closed [closure]:
-  assumes "P is RR"
-  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is RR"
-proof -
-  have "RR(\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)) = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> RR(P)"
-    by (rel_auto)
-  thus ?thesis
-    by (metis Healthy_def assms)
-qed
-
-lemma st_subst_RC_closed [closure]:
-  assumes "P is RC"
-  shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is RC"
-  apply (rule RC_intro, simp add: closure assms)
-  apply (simp add: st_subst_rea_not[THEN sym] st_subst_seq[THEN sym])
-  apply (metis Healthy_if RC1_def RC_implies_RC1 assms)
-done
-  
+      
 lemma srd_subst_NSRD_closed [closure]: 
   assumes "P is NSRD"
   shows "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P is NSRD"
@@ -3134,9 +3113,6 @@ next
     using NSRD_seqr_closure by auto
 qed
 
-lemma wpR_Inf_pre [wp]: "P wp\<^sub>r (\<Squnion>i\<in>{0..n::nat}. Q(i)) = (\<Squnion>i\<in>{0..n}. P wp\<^sub>r Q(i))"
-  by (simp add: wp_rea_def seq_SUP_distl)
-
 lemma preR_power:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n}. (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
@@ -3182,13 +3158,6 @@ lemma preR_power' [rdes]:
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
   by (simp add: preR_power assms USUP_as_Inf[THEN sym])
 
-lemma wpR_impl_lemma:
-  "((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(Q \<Rightarrow>\<^sub>r R))) = ((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(R)))"
-  by (rel_auto, blast)
-
-lemma R1_Sup [closure]: "\<lbrakk> \<And> P. P \<in> A \<Longrightarrow> P is R1; A \<noteq> {} \<rbrakk> \<Longrightarrow> \<Sqinter> A is R1"
-  using R1_Continuous by (auto simp add: Continuous_def Healthy_def)
-
 lemma periR_power:
   assumes "P is NSRD"
   shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r (\<Sqinter> i\<in>{0..n}. post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
@@ -3220,7 +3189,7 @@ next
           = (post\<^sub>R P wp\<^sub>r pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r R1(post\<^sub>R P) ;; R1(pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"
       by (simp add: Healthy_if R1_post_SRD assms closure)
     thus ?thesis
-      by (simp only: wpR_impl_lemma, simp add: Healthy_if 1, simp add: R1_post_SRD assms closure)
+      by (simp only: wp_rea_impl_lemma, simp add: Healthy_if 1, simp add: R1_post_SRD assms closure)
   qed
   also
   have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> post\<^sub>R P ;; ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P))"
@@ -3272,7 +3241,7 @@ next
     by (simp add: rdes closure assms, pred_auto)
   also
   have "... = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R P wp\<^sub>r pre\<^sub>R (P \<^bold>^ Suc n) \<Rightarrow>\<^sub>r post\<^sub>R P ;; post\<^sub>R P \<^bold>^ Suc n))"
-    by (metis (no_types, lifting) Healthy_if NSRD_is_SRD NSRD_power_Suc R1_power assms hyp postR_SRD_R1 upred_semiring.power_Suc wpR_impl_lemma)
+    by (metis (no_types, lifting) Healthy_if NSRD_is_SRD NSRD_power_Suc R1_power assms hyp postR_SRD_R1 upred_semiring.power_Suc wp_rea_impl_lemma)
   also
   have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R (P \<^bold>^ Suc n) \<Rightarrow>\<^sub>r post\<^sub>R P \<^bold>^ Suc (Suc n))"
     by (pred_auto)
@@ -3345,7 +3314,9 @@ next
   from 1 2 3 Suc show ?case
     by (simp add: Suc RHS_tri_normal_design_composition' closure assms wp)
 qed
-  
+
+(* ========= REVIEW FROM HERE =============== *)
+
 subsection {* Syntax for reactive design contracts *}
 
 text {* We give an experimental syntax for reactive design contracts $[P \vdash Q | R]_R$, where $P$ is

@@ -350,7 +350,7 @@ qed
 
 subsection \<open> RD2: A reactive specification cannot require non-termination \<close>
 
-definition RD2 :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+definition RD2 where
 [upred_defs]: "RD2(P) = H2(P)"
   
 text \<open> $RD2$ is just $H2$ since the type system will automatically have J identifying 

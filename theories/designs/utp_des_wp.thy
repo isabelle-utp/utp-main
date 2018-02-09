@@ -48,5 +48,4 @@ theorem wpd_seq_r_H1_H3 [wp]:
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
   by (metis H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def' assms(1) assms(2) wpnd_seq_r)
 
-
 end
