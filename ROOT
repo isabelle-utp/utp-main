@@ -124,7 +124,7 @@ session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
 
 (* UTP Theory Base *)
 
-session "UTP-Theories" in "theories" = "UTP-Reactive" +
+session "UTP-Theories" in "theories" = "UTP-Reactive-Designs" +
   options [browser_info = true, document = false]
   theories utp_theories
 

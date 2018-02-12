@@ -389,6 +389,16 @@ proof -
     by (simp add: RHS_tri_normal_design_composition assms closure unrest RR_implies_R2c)
 qed
 
+text {* If a normal reactive design has postcondition false, then it is a left zero for sequential
+  composition. *}
+
+lemma NSRD_seq_post_false:
+  assumes "P is NSRD" "Q is SRD" "post\<^sub>R(P) = false"
+  shows "P ;; Q = P"
+  apply (simp add: NSRD_composition_wp assms wp rpred closure)
+  using NSRD_is_SRD SRD_reactive_tri_design assms(1,3) apply fastforce
+done
+
 lemma NSRD_srd_skip [closure]: "II\<^sub>R is NSRD"
   by (rule NSRD_intro, simp_all add: rdes closure unrest)
   

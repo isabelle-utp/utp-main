@@ -4,7 +4,7 @@ theory utp_hyrel
 imports
   "UTP.utp"
   "UTP-Theories.utp_csp"
-  "UTP-Theories.utp_rea_designs"
+  "UTP-Reactive-Designs.utp_rea_designs"
   "UTP-Theories.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"
   "Dynamics.Derivative_extra"

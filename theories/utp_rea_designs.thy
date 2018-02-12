@@ -4283,7 +4283,7 @@ definition ISRD1 :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<a
 definition ISRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
 [upred_defs]: "ISRD = ISRD1 \<circ> NSRD"
 
-lemma choose_srd_par: 
+lemma choose_srd_par:
   "choose\<^sub>R \<parallel>\<^sub>R choose\<^sub>R = choose\<^sub>R"
   by (rdes_eq)
 

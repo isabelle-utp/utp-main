@@ -9,7 +9,7 @@
 section {* Theory of CSP *}
 
 theory utp_csp
-  imports utp_rea_designs
+  imports "UTP-Reactive-Designs.utp_rea_designs"
 begin
 
 subsection {* CSP Alphabet *}
@@ -2191,7 +2191,7 @@ lemma Guard_conditional:
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
-  by (rdes_eq cls: assms)
+  by (rdes_eq' cls: assms)
     
 lemma InputCSP_CSP [closure]: "x?(v:A(v)) \<^bold>\<rightarrow> P(v) is CSP"
   by (simp add: CSP_ExtChoice InputCSP_def)
