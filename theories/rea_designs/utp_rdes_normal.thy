@@ -275,20 +275,6 @@ lemma NSRD_is_RD3 [closure]:
   shows "P is RD3"
   by (simp add: NSRD_is_SRD NSRD_neg_pre_unit NSRD_st'_unrest_peri RD3_intro_pre assms)    
 
-lemma NSRD_refine_intro:
-  assumes
-    "P is NSRD" "Q is NSRD"
-    "`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)`" "`peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)`" "`post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)`"
-  shows "P \<sqsubseteq> Q"
-proof -
-  have 1:"`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)` = `peri\<^sub>R(Q) \<Rightarrow>\<^sub>r (pre\<^sub>R(P) \<Rightarrow>\<^sub>r peri\<^sub>R(P))`"
-    by (rel_blast)
-  have 2:"`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)` = `post\<^sub>R(Q) \<Rightarrow>\<^sub>r (pre\<^sub>R(P) \<Rightarrow>\<^sub>r post\<^sub>R(P))`"      
-    by (rel_blast)
-  show ?thesis
-    by (rule SRD_refine_intro', simp_all add: closure assms 1 2 SRD_post_under_pre SRD_peri_under_pre unrest)
-qed
-
 lemma NSRD_refine_elim:
   assumes
     "P \<sqsubseteq> Q" "P is NSRD" "Q is NSRD"

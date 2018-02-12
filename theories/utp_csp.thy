@@ -2532,9 +2532,6 @@ lemma msubst_tt_RR [closure]: "\<lbrakk> \<And> t. P t is RR \<rbrakk> \<Longrig
 lemma msubst_ref'_RR [closure]: "\<lbrakk> \<And> r. P r is RR \<rbrakk> \<Longrightarrow> (P r)\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> is RR"
   by (simp add: Healthy_def RR_msubst_ref')  
 
-lemma msubst_pair: "(P x y)\<lbrakk>(x, y) \<rightarrow> (e, f)\<^sub>u\<rbrakk> = (P x y)\<lbrakk>x \<rightarrow> e\<rbrakk>\<lbrakk>y \<rightarrow> f\<rbrakk>"
-  by (rel_auto)
-
 lemma CSP_mk_CRD [closure]: "[P \<turnstile> Q trace refs | R(trace)]\<^sub>C is CSP"
   by (simp add: mk_CRD_def closure unrest)
 

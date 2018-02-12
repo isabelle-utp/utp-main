@@ -60,6 +60,22 @@ lemma R1_UINF:
   shows "R1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R1(P(i)))"
   using assms by (rel_auto)
 
+lemma UINF_ind_R1_closed [closure]:
+  "\<lbrakk> \<And> i. P(i) is R1 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is R1"
+  by (rel_blast)
+
+lemma UINF_R1_closed [closure]:
+  "\<lbrakk> \<And> i. P i is R1 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<in> A \<bullet> P i) is R1"
+  by (rel_blast)
+    
+lemma tr_ext_conj_R1 [closure]: 
+  "$tr\<acute> =\<^sub>u $tr ^\<^sub>u e \<and> P is R1"
+  by (rel_auto, simp add: Prefix_Order.prefixI)
+
+lemma tr_id_conj_R1 [closure]: 
+  "$tr\<acute> =\<^sub>u $tr \<and> P is R1"
+  by (rel_auto)
+
 lemma R1_extend_conj: "R1(P \<and> Q) = (R1(P) \<and> Q)"
   by pred_auto
 
@@ -159,7 +175,7 @@ lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute
 
 lemma tr_strict_prefix_R1_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R1"
   by (rel_auto)
-
+    
 lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
   by (simp add: H2_split R1_def usubst, rel_auto)
 

@@ -1,7 +1,7 @@
 section {* Mini-mondex example *}
 
 theory utp_csp_mini_mondex
-  imports "UTP-Theories.utp_csp"
+  imports "UTP-Circus.utp_circus"
 begin
 
 text {* This example is a modified version of the Mini-Mondex card example taken from the 2014

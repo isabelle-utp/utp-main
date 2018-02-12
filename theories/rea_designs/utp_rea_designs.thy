@@ -11,5 +11,6 @@ theory utp_rea_designs
     utp_rdes_parallel
     utp_rdes_prog
     utp_rdes_instant
+    utp_rdes_guarded
 begin end
 

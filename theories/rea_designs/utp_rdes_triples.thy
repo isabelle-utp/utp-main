@@ -372,6 +372,12 @@ lemma trace_ident_right_postR:
 lemma preR_R2_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2"
   by (simp add: R2_comp_def Healthy_comp closure)
 
+lemma periR_R2_closed [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R2"
+  by (simp add: Healthy_def' R1_R2c_peri_RHS R2_R2c_def)
+    
+lemma postR_R2_closed [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R2"
+  by (simp add: Healthy_def' R1_R2c_post_RHS R2_R2c_def)
+
 subsubsection \<open> Calculation laws \<close>
 
 lemma wait'_cond_peri_post_cmt [rdes]:
@@ -890,23 +896,9 @@ lemma SRD_refine_intro:
 lemma SRD_refine_intro':
   assumes
     "P is SRD" "Q is SRD"
-    "`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)`" "`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)`" "`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)`"
+    "`pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`" "peri\<^sub>R(P) \<sqsubseteq> (pre\<^sub>R(P) \<and> peri\<^sub>R(Q))" "post\<^sub>R(P) \<sqsubseteq> (pre\<^sub>R(P) \<and> post\<^sub>R(Q))"
   shows "P \<sqsubseteq> Q"
-proof -
-  have "\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) \<sqsubseteq> \<^bold>R\<^sub>s (pre\<^sub>R Q \<turnstile> peri\<^sub>R Q \<diamondop> post\<^sub>R Q)"
-  proof -
-    have 1:"`pre\<^sub>R(P) \<Rightarrow>\<^sub>r pre\<^sub>R(Q)` \<Longrightarrow> `pre\<^sub>R(P) \<Rightarrow> pre\<^sub>R(Q)`"
-      by rel_blast
-    have 2:"`pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow>\<^sub>r peri\<^sub>R(P)` \<Longrightarrow> `pre\<^sub>R(P) \<and> peri\<^sub>R(Q) \<Rightarrow> peri\<^sub>R(P)`"
-      by rel_blast
-    have 3:"`pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow>\<^sub>r post\<^sub>R(P)` \<Longrightarrow> `pre\<^sub>R(P) \<and> post\<^sub>R(Q) \<Rightarrow> post\<^sub>R(P)`"
-      by rel_blast
-    show ?thesis
-      by (simp add: 1 2 3 assms srdes_tri_refine_intro)
-  qed
-  thus ?thesis
-    by (simp add: SRD_reactive_tri_design assms)
-qed
+  using assms by (rule_tac SRD_refine_intro, simp_all add: refBy_order)
  
 lemma SRD_eq_intro:
   assumes

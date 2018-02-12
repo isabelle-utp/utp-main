@@ -29,7 +29,10 @@ lemma msubst_lit [usubst]: "\<guillemotleft>x\<guillemotright>\<lbrakk>x\<righta
 
 lemma msubst_const [usubst]: "P\<lbrakk>x\<rightarrow>v\<rbrakk> = P"
   by (pred_auto) 
-    
+
+lemma msubst_pair [usubst]: "(P x y)\<lbrakk>(x, y) \<rightarrow> (e, f)\<^sub>u\<rbrakk> = (P x y)\<lbrakk>x \<rightarrow> e\<rbrakk>\<lbrakk>y \<rightarrow> f\<rbrakk>"
+  by (rel_auto)
+
 lemma msubst_lit_2_1 [usubst]: "\<guillemotleft>x\<guillemotright>\<lbrakk>(x,y)\<rightarrow>(u,v)\<^sub>u\<rbrakk> = u"
   by (pred_auto)
 

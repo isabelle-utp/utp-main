@@ -102,6 +102,12 @@ session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
     "root.tex"
     "document.sty"
 
+(* Circus *)
+
+session "UTP-Circus" in "theories/circus" = "UTP-Reactive-Designs" +
+  options [document = false, timeout = 1000]
+  theories utp_circus
+
 (* Core UTP with Deep Variables *)
 
 session "UTP-Deep" in "utp/models" = "UTP" +
@@ -124,10 +130,11 @@ session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
 
 (* UTP Theory Base *)
 
-session "UTP-Theories" in "theories" = "UTP-Reactive-Designs" +
+session "UTP-Theories" in "theories" = "UTP-Circus" +
   options [browser_info = true, document = false]
   theories utp_theories
 
+(*
 session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
   options [browser_info = true, document = false]
   sessions
@@ -226,6 +233,7 @@ session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
     "root.bib"
     "root.tex"
     "document.sty"
+*)
 
 (* FMI Mechanisation *)
 

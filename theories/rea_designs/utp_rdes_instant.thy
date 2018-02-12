@@ -61,9 +61,6 @@ proof -
     by (simp add: Healthy_def)
 qed
     
-lemma preR_R2_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2"
-  by (simp add: R2_comp_def Healthy_comp closure)
-    
 lemma ISRD_implies_NSRD [closure]: 
   assumes "P is ISRD"
   shows "P is NSRD"

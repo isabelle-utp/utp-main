@@ -104,7 +104,7 @@ lemma rea_not_unrest [unrest]:
 lemma rea_impl_unrest [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<sharp> P; x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> (P \<Rightarrow>\<^sub>r Q)"
   by (simp add: rea_impl_def unrest)
-    
+
 lemma rea_true_usubst [usubst]:
   "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> true\<^sub>r = true\<^sub>r"
   by (simp add: R1_def usubst)
@@ -429,10 +429,14 @@ lemma rea_impl_true [simp]: "(P \<Rightarrow>\<^sub>r true\<^sub>r) = true\<^sub
     
 lemma rea_impl_false [simp]: "(P \<Rightarrow>\<^sub>r false) = (\<not>\<^sub>r P)"
   by (rel_simp)
-    
+
 lemma rea_imp_refl [rpred]: "P is R1 \<Longrightarrow> (P \<Rightarrow>\<^sub>r P) = true\<^sub>r"
   by (rel_blast)
-    
+
+lemma rea_impl_conj [rpred]: 
+  "(P \<Rightarrow>\<^sub>r Q \<Rightarrow>\<^sub>r R) = ((P \<and> Q) \<Rightarrow>\<^sub>r R)"
+  by (rel_auto)
+
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
     
@@ -476,7 +480,10 @@ lemma USUP_ind_rea_true [simp]: "(\<Squnion> i \<bullet> true\<^sub>r) = true\<^
     
 lemma UINF_ind_rea_true [rpred]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> true\<^sub>r) = true\<^sub>r"
   by (rel_auto)
-    
+
+lemma UINF_rea_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow>\<^sub>r G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> G(P)))"
+  by (rel_auto)  
+
 lemma rea_assert_true:
   "{true\<^sub>r}\<^sub>r = II\<^sub>r"
   by (rel_auto)

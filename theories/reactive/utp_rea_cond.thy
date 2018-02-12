@@ -61,7 +61,7 @@ lemma RC_implies_RR [closure]:
 
 lemma RC_implies_RC1: "P is RC \<Longrightarrow> P is RC1"
   by (metis Healthy_def RC_R2_def RC_implies_RR comp_eq_dest_lhs)
-    
+
 lemma RC1_trace_ext_prefix:
   "out\<alpha> \<sharp> e \<Longrightarrow> RC1(\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = (\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)

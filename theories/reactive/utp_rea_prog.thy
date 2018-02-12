@@ -82,6 +82,19 @@ interpretation alphabet_state_rel: lens_interp "\<lambda>(ok, ok', wait, wait', 
   apply (clarsimp)
   done
 
+lemma unrest_st'_neg_RC [unrest]:
+  assumes "P is RR" "P is RC"
+  shows "$st\<acute> \<sharp> P"
+proof -
+  have "P = (\<not>\<^sub>r \<not>\<^sub>r P)"
+    by (simp add: closure rpred assms)
+  also have "... = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
+    by (metis Healthy_if RC1_def RC_implies_RC1 assms(2) calculation)
+  also have "$st\<acute> \<sharp> ..."
+    by (rel_auto)
+  finally show ?thesis .
+qed
+
 subsection \<open> State Lifting \<close>
 
 abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S")
@@ -483,5 +496,5 @@ lemma st_cond_true_or [rpred]: "P is R1 \<Longrightarrow> (R1 true \<trianglelef
 lemma st_cond_left_impl_RC_closed [closure]:
   "P is RC \<Longrightarrow> ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) is RC"
   by (simp add: rea_impl_def rpred closure)
-  
+
 end
