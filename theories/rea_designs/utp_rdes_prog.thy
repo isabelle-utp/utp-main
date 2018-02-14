@@ -5,6 +5,7 @@ theory utp_rdes_prog
     utp_rdes_normal
     utp_rdes_tactics
     utp_rdes_parallel
+    utp_rdes_guarded
 begin
 
 subsection \<open> State substitution \<close>
@@ -118,7 +119,7 @@ qed
 
 subsection \<open> Guarded commands \<close>
 
-definition GuardedCommR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_ \<rightarrow>\<^sub>R _") where
+definition GuardedCommR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_ \<rightarrow>\<^sub>R _" [85, 86] 85) where
 gcmd_def[rdes_def]: "GuardedCommR g A = A \<triangleleft> g \<triangleright>\<^sub>R Miracle"
 
 lemma gcmd_false[simp]: "(false \<rightarrow>\<^sub>R A) = Miracle"
@@ -136,6 +137,11 @@ lemma gcmd_NSRD [closure]:
   assumes "A is NSRD"
   shows "(g \<rightarrow>\<^sub>R A) is NSRD"
   by (simp add: gcmd_def NSRD_cond_srea assms NSRD_Miracle)
+
+lemma gcmd_Productive [closure]:
+  assumes "A is NSRD" "A is Productive"
+  shows "(g \<rightarrow>\<^sub>R A) is Productive"
+  by (simp add: gcmd_def closure assms)
 
 lemma gcmd_seq_distr: 
   assumes "B is NSRD"
@@ -183,6 +189,25 @@ proof (cases "I = {}")
 next
   case False
   then show ?thesis by (simp add: AlternateR_def closure assms)
+qed
+
+lemma AlternateR_empty [simp]:
+  "(if\<^sub>R i \<in> {} \<bullet> g i \<rightarrow> A i else B fi) = B"
+  by (rdes_simp)
+
+lemma AlternateR_Productive [closure]:
+  assumes 
+    "\<And> i. A i is NSRD" "B is NSRD" 
+    "\<And> i. A i is Productive" "B is Productive"
+  shows "(if\<^sub>R i\<in>I \<bullet> g i \<rightarrow> A i else B fi) is Productive"
+proof (cases "I = {}")
+  case True
+  then show ?thesis
+    by (simp add: assms(4)) 
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateR_def closure assms)
 qed
 
 subsection \<open> Choose \<close>
@@ -250,8 +275,113 @@ lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
   by (rel_auto)
 
+subsection \<open> Assumptions \<close>
+
+definition AssumeR :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sub>R") where
+[upred_defs, rdes_def]: "[b]\<^sub>R = b \<rightarrow>\<^sub>R II\<^sub>R"
+
+lemma AssumeR_NSRD [closure]: "[b]\<^sub>R is NSRD"
+  by (simp add: AssumeR_def NSRD_srd_skip gcmd_NSRD)
+
+lemma AssumeR_true: "[true]\<^sub>R = II\<^sub>R"
+  by (rdes_eq)
+
+lemma AssumeR_false: "[false]\<^sub>R = Miracle"
+  by (rdes_eq)
+
+lemma AssumeR_seq: "[b]\<^sub>R ;; [c]\<^sub>R = [b \<and> c]\<^sub>R"
+  by (rdes_eq)
+ 
+subsection \<open> While Loop \<close>
+
+definition WhileR :: "'s upred \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("while\<^sub>R _ do _ od") where
+"WhileR b P = (\<mu>\<^sub>R X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+
+lemma Continuous_const [closure]: "Continuous (\<lambda> X. P)"
+  by pred_auto
+
+lemma Continuous_cond [closure]:
+  assumes "Continuous F" "Continuous G"
+  shows "Continuous (\<lambda> X. F(X) \<triangleleft> b \<triangleright> G(X))"
+  using assms by (pred_auto)
+
+lemma Sup_power_false:
+  fixes F :: "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
+  shows "(\<Sqinter>i. (F ^^ i) false) = (\<Sqinter>i. (F ^^ (i+1)) false)"
+proof -
+  have "(\<Sqinter>i. (F ^^ i) false) = (F ^^ 0) false \<sqinter> (\<Sqinter>i. (F ^^ (i+1)) false)"
+    by (subst Sup_power_expand, simp)
+  also have "... = (\<Sqinter>i. (F ^^ (i+1)) false)"
+    by (simp)
+  finally show ?thesis .
+qed
+
+theorem WhileR_iter_form:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R b do P od = (\<Sqinter>i. (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))" (is "?lhs = ?rhs")
+proof -
+  have 1:"Continuous (\<lambda>X. P ;; SRD X)"
+    using SRD_Continuous
+    by (clarsimp simp add: Continuous_def seq_SUP_distl[THEN sym], drule_tac x="A" in spec, simp)
+  have 2: "Continuous (\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: 1 closure assms)
+  have "?lhs = (\<mu>\<^sub>R X \<bullet> P ;; X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: WhileR_def)
+  also have "... = (\<mu> X \<bullet> P ;; SRD(X) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (auto simp add: srd_mu_equiv closure assms)
+  also have "... = (\<nu> X \<bullet> P ;; SRD(X) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (auto simp add: guarded_fp_uniq Guarded_if_Productive[OF assms] funcsetI closure assms)
+  also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ^^ i) false)"
+    by (simp add: sup_continuous_lfp 2 sup_continuous_Continuous false_upred_def)
+  also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ^^ (i+1)) false)"
+    by (simp add: Sup_power_false)
+  also have "... = (\<Sqinter>i. (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^bold>^i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))"
+  proof (rule SUP_cong, simp)
+    fix i
+    show "((\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ^^ (i + 1)) false = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    proof (induct i)
+      case 0
+      thm if_eq_cancel
+      then show ?case
+        by (simp, metis srdes_hcond_def srdes_theory_continuous.healthy_top) 
+    next
+      case (Suc i)
+      show ?case
+      proof -
+        have "((\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ^^ (Suc i + 1)) false = 
+              P ;; SRD (((\<lambda>X. P ;; SRD X \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ^^ (i + 1)) false) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
+          by simp
+        also have "... = P ;; SRD ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
+          using Suc.hyps by auto
+        also have "... = P ;; ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
+          by (metis (no_types, lifting) Healthy_if NSRD_cond_srea NSRD_is_SRD NSRD_power_Suc NSRD_srd_skip SRD_cond_srea SRD_seqr_closure assms(1) power.power_eq_if seqr_left_unit srdes_theory_continuous.top_closed)
+        also have "... = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ Suc i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+        proof (induct i)
+          case 0
+          then show ?case
+            by (simp add: NSRD_is_SRD SRD_cond_srea SRD_left_unit SRD_seqr_closure SRD_srdes_skip assms(1) cond_L6 cond_st_distr srdes_theory_continuous.top_closed)
+        next
+          case (Suc i)
+          have 1: "II\<^sub>R ;; ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i) = ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i)"
+            by (simp add: NSRD_is_SRD RA1 SRD_cond_srea SRD_left_unit SRD_srdes_skip assms(1))
+          then show ?case
+          proof -
+            have "\<And>u. (u ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ Suc i) ;; (P ;; (Miracle) \<triangleleft> b \<triangleright>\<^sub>R (II\<^sub>R)) \<triangleleft> b \<triangleright>\<^sub>R (II\<^sub>R) = 
+                      ((u \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ Suc i) ;; (P ;; (Miracle) \<triangleleft> b \<triangleright>\<^sub>R (II\<^sub>R))"
+              by (metis (no_types) Suc.hyps 1 cond_L6 cond_st_distr power.power.power_Suc)
+            then show ?thesis
+              by (simp add: RA1)
+          qed
+        qed
+        finally show ?thesis .
+      qed
+    qed
+  qed
+  finally show ?thesis .
+qed
+
 subsection \<open> Iteration Construction \<close>
-  
+
 definition IterateR
   :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
 where "IterateR A g P = (\<mu>\<^sub>R X \<bullet> (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi ;; X) \<triangleleft> (\<Or> i\<in>A \<bullet> g(i)) \<triangleright>\<^sub>R II\<^sub>R)"
@@ -306,10 +436,6 @@ theorem assigns_srd_left_seq:
   assumes "P is NSRD"
   shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = \<sigma> \<dagger>\<^sub>S P"
   by (rdes_simp cls: assms)
-
-lemma AlternateR_empty [simp]:
-  "(if\<^sub>R i \<in> {} \<bullet> g i \<rightarrow> A i else B fi) = B"
-  by (rdes_simp)
 
 lemma AlternateR_seq_distr:
   assumes "\<And> i. A i is NSRD" "B is NSRD" "C is NSRD"

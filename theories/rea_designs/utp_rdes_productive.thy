@@ -163,6 +163,22 @@ lemma Productive_Chaos [closure]: "Chaos is Productive"
   unfolding Chaos_tri_def Healthy_def
   by (subst Productive_RHS_design_form, simp_all add: unrest, rel_auto)
 
+lemma Productive_intChoice [closure]:
+  assumes "P is SRD" "P is Productive" "Q is SRD" "Q is Productive"
+  shows "P \<sqinter> Q is Productive"
+proof -
+  have "P \<sqinter> Q =
+        \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>)) \<sqinter> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> (post\<^sub>R(Q) \<and> $tr <\<^sub>u $tr\<acute>))"
+    by (metis Healthy_if Productive_form assms)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> peri\<^sub>R Q) \<diamondop> ((post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) \<or> (post\<^sub>R Q \<and> $tr\<acute> >\<^sub>u $tr)))"
+    by (simp add: RHS_tri_design_choice)
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> peri\<^sub>R Q) \<diamondop> (((post\<^sub>R P) \<or> (post\<^sub>R Q)) \<and> $tr\<acute> >\<^sub>u $tr))"
+    by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
+  also have "... is Productive"
+    by (simp add: Healthy_def Productive_RHS_design_form  unrest)
+  finally show ?thesis .
+qed
+
 lemma Productive_cond_rea [closure]:
   assumes "P is SRD" "P is Productive" "Q is SRD" "Q is Productive"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is Productive"

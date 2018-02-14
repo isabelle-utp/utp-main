@@ -635,8 +635,8 @@ syntax
   "_srd_nu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>R _ \<bullet> _" [0, 10] 10)
 
 translations
-  "\<mu>\<^sub>R X \<bullet> P" == "\<^bold>\<mu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
-  "\<nu>\<^sub>R X \<bullet> P" == "\<^bold>\<nu>\<^bsub>CONST SRDES\<^esub> (\<lambda> X. P)"
+  "\<mu>\<^sub>R X \<bullet> P" == "\<mu>\<^sub>R (\<lambda> X. P)"
+  "\<nu>\<^sub>R X \<bullet> P" == "\<mu>\<^sub>R (\<lambda> X. P)"
 
 text \<open> The reactive design weakest fixed-point can be defined in terms of relational calculus one. \<close>
 

@@ -63,7 +63,7 @@ lemma gvrt_limit: "\<Sqinter> (range gvrt) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto)
 
 definition Guarded :: "(('t::size_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp) \<Rightarrow> bool" where
-"Guarded(F) = (\<forall> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)))"
+[upred_defs]: "Guarded(F) = (\<forall> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)))"
 
 lemma GuardedI: "\<lbrakk> \<And> X n. (F(X) \<and> gvrt(n+1)) = (F(X \<and> gvrt(n)) \<and> gvrt(n+1)) \<rbrakk> \<Longrightarrow> Guarded F"
   by (simp add: Guarded_def)
@@ -145,6 +145,11 @@ proof -
   thus ?thesis
     by (simp)
 qed
+
+lemma cond_srea_Guarded [closure]:
+  assumes "Guarded P" "Guarded Q"
+  shows "Guarded (\<lambda> X. P(X) \<triangleleft> b \<triangleright>\<^sub>R Q(X))"
+  using assms by (rel_auto)
 
 text \<open> A tail recursive reactive design with a productive body is guarded. \<close>
 
