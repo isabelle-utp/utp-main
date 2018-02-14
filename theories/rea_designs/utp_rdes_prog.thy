@@ -153,14 +153,26 @@ definition AlternateR
   :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
 [upred_defs, rdes_def]: "AlternateR I g A B = (\<Sqinter> i \<in> I \<bullet> ((g i) \<rightarrow>\<^sub>R (A i))) \<sqinter> ((\<not> (\<Or> i \<in> I \<bullet> g i)) \<rightarrow>\<^sub>R B)"
 
+definition AlternateR_list 
+  :: "('s upred \<times> ('s, 't::trace, '\<alpha>) hrel_rsp) list \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where 
+[upred_defs, ndes_simp]:
+  "AlternateR_list xs P = AlternateR {0..<length xs} (\<lambda> i. map fst xs ! i) (\<lambda> i. map snd xs ! i) P"
+
 syntax
-  "_altindR_els" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
-  "_altindR"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_altindR_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altindR"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  (* We reuse part of the parsing infrastructure for design alternation over a (finite) list of branches *)
+  "_altgcommR_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _ else _ fi")
+  "_altgcommR"     :: "gcomms \<Rightarrow> logic" ("if\<^sub>R _ fi")
 
 translations
   "if\<^sub>R i\<in>I \<bullet> g \<rightarrow> A else B fi"  \<rightharpoonup> "CONST AlternateR I (\<lambda>i. g) (\<lambda>i. A) B"
   "if\<^sub>R i\<in>I \<bullet> g \<rightarrow> A fi"  \<rightharpoonup> "CONST AlternateR I (\<lambda>i. g) (\<lambda>i. A) (CONST Chaos)"
   "if\<^sub>R i\<in>I \<bullet> (g i) \<rightarrow> A else B fi"  \<leftharpoondown> "CONST AlternateR I g (\<lambda>i. A) B"
+  "_altgcommR cs" \<rightharpoonup> "CONST AlternateR_list cs (CONST Chaos)"
+  "_altgcommR (_gcomm_show cs)" \<leftharpoondown> "CONST AlternateR_list cs (CONST Chaos)"
+  "_altgcommR_els cs P" \<rightharpoonup> "CONST AlternateR_list cs P"
+  "_altgcommR_els (_gcomm_show cs) P" \<leftharpoondown> "CONST AlternateR_list cs P"
 
 lemma AlternateR_NSRD_closed [closure]:
   assumes "\<And> i. A i is NSRD" "B is NSRD"
