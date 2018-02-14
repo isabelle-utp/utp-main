@@ -947,6 +947,14 @@ qed
 
 subsection \<open> Distribution laws \<close>
 
+lemma RHS_tri_design_choice [rdes_def]: 
+  "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqinter> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3))"
+  apply (simp add: RHS_design_choice)
+  apply (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"])
+   apply (simp)
+  apply (rel_auto)
+  done
+
 lemma RHS_tri_design_sup [rdes_def]: 
   "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<squnion> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))"
   by (simp add: RHS_design_sup, rel_auto)
@@ -966,8 +974,13 @@ proof -
     by (simp add: preR_INF periR_INF postR_INF assms)
   finally show ?thesis .
 qed
-  
-lemma SRD_UINF_ind [rdes_def]:
+
+lemma RHS_tri_design_USUP [rdes_def]:
+  assumes "A \<noteq> {}"
+  shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i) \<diamondop> R(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)) \<diamondop> (\<Sqinter> i \<in> A \<bullet> R(i)))"
+  by (subst RHS_INF[OF assms, THEN sym], simp add: design_UINF_mem assms, rel_auto)
+
+lemma SRD_UINF_ind:
   assumes "A \<noteq> {}" "\<And> i. P i is SRD"
   shows "(\<Sqinter> i\<in>A \<bullet> P i) = \<^bold>R\<^sub>s((\<And> i\<in>A \<bullet> pre\<^sub>R(P i)) \<turnstile> (\<Or> i\<in>A \<bullet> peri\<^sub>R(P i)) \<diamondop> (\<Or> i\<in>A \<bullet> post\<^sub>R(P i)))"
   (is "?lhs = ?rhs")

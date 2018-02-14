@@ -272,6 +272,31 @@ lemma st_cond_assigns [rpred]:
   "\<langle>\<sigma>\<rangle>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>\<rangle>\<^sub>r"
   by (rel_auto)
 
+lemma cond_srea_RR_closed [closure]:
+  assumes "P is RR" "Q is RR"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is RR"
+proof -
+  have "RR(RR(P) \<triangleleft> b \<triangleright>\<^sub>R RR(Q)) = RR(P) \<triangleleft> b \<triangleright>\<^sub>R RR(Q)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def' assms(1) assms(2))
+qed
+  
+lemma cond_srea_RC1_closed:
+  assumes "P is RC1" "Q is RC1"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is RC1"
+proof -
+  have "RC1(RC1(P) \<triangleleft> b \<triangleright>\<^sub>R RC1(Q)) = RC1(P) \<triangleleft> b \<triangleright>\<^sub>R RC1(Q)"
+    using dual_order.trans by (rel_blast)
+  thus ?thesis
+    by (metis Healthy_def' assms)
+qed
+
+lemma cond_srea_RC_closed [closure]:
+  assumes "P is RC" "Q is RC"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is RC"
+  by (rule RC_intro', simp_all add: closure cond_srea_RC1_closed RC_implies_RC1 assms)
+
 subsubsection \<open> State Abstraction \<close>
 
 text \<open> We introduce state abstraction by creating some lens functors that allow us to lift

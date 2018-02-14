@@ -161,6 +161,11 @@ proof -
   finally show ?thesis by (simp add: Healthy_def)
 qed
 
+lemma intChoice_NSRD_closed [closure]:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "P \<sqinter> Q is NSRD"
+  using NSRD_Sup_closure[of "{P, Q}"] by (simp add: assms)
+
 lemma NRSD_SUP_closure [closure]:
   "\<lbrakk> \<And> i. i \<in> A \<Longrightarrow> P(i) is NSRD; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter>i\<in>A. P(i)) is NSRD"
   by (rule NSRD_Sup_closure, auto)

@@ -116,43 +116,62 @@ proof (rule NSRD_RC_intro)
    by (simp add: rdes assms closure unrest)
 qed
 
-subsection \<open> Alternation \<close>
-  
+subsection \<open> Guarded commands \<close>
+
+definition GuardedCommR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_ \<rightarrow>\<^sub>R _") where
+gcmd_def[rdes_def]: "GuardedCommR g A = A \<triangleleft> g \<triangleright>\<^sub>R Miracle"
+
+lemma gcmd_false[simp]: "(false \<rightarrow>\<^sub>R A) = Miracle"
+  unfolding gcmd_def by (pred_auto)
+
+lemma gcmd_true[simp]: "(true \<rightarrow>\<^sub>R A) = A"
+  unfolding gcmd_def by (pred_auto)
+
+lemma gcmd_SRD: 
+  assumes "A is SRD"
+  shows "(g \<rightarrow>\<^sub>R A) is SRD"
+  by (simp add: gcmd_def SRD_cond_srea assms srdes_theory_continuous.weak.top_closed)
+
+lemma gcmd_NSRD [closure]: 
+  assumes "A is NSRD"
+  shows "(g \<rightarrow>\<^sub>R A) is NSRD"
+  by (simp add: gcmd_def NSRD_cond_srea assms NSRD_Miracle)
+
+lemma gcmd_seq_distr: 
+  assumes "B is NSRD"
+  shows "(g \<rightarrow>\<^sub>R A) ;; B = (g \<rightarrow>\<^sub>R (A ;; B))"
+  by (simp add: Miracle_left_zero NSRD_is_SRD assms cond_st_distr gcmd_def)
+
+lemma gcmd_nondet_distr:
+  assumes "A is NSRD" "B is NSRD"
+  shows "(g \<rightarrow>\<^sub>R (A \<sqinter> B)) = (g \<rightarrow>\<^sub>R A) \<sqinter> (g \<rightarrow>\<^sub>R B)"
+  by (rdes_eq cls: assms)
+
+section {* Generalised Alternation *}
+
 definition AlternateR 
-  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
-[upred_defs]:
-"AlternateR A g P = \<^bold>R\<^sub>s(((\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub><) \<and> (\<And> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(P i))) 
-                       \<turnstile> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> peri\<^sub>R(P i)) 
-                       \<diamondop> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> post\<^sub>R(P i)))"
+  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
+[upred_defs, rdes_def]: "AlternateR I g A B = (\<Sqinter> i \<in> I \<bullet> ((g i) \<rightarrow>\<^sub>R (A i))) \<sqinter> ((\<not> (\<Or> i \<in> I \<bullet> g i)) \<rightarrow>\<^sub>R B)"
 
 syntax
-  "_altind_srd" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
-  
+  "_altindR_els" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altindR"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+
 translations
-  "_altind_srd x A g P" => "CONST AlternateR A (\<lambda> x. g) (\<lambda> x. P)"
-  "_altind_srd x A g P" <= "CONST AlternateR A (\<lambda> x. g) (\<lambda> x'. P)"
-  
-lemma AlternateR_NSRD_closed: 
-  assumes "\<And> i. P(i) is NSRD"
-  shows "AlternateR A g P is NSRD"
-proof (cases "A = {}")
+  "if\<^sub>R i\<in>I \<bullet> g \<rightarrow> A else B fi"  \<rightharpoonup> "CONST AlternateR I (\<lambda>i. g) (\<lambda>i. A) B"
+  "if\<^sub>R i\<in>I \<bullet> g \<rightarrow> A fi"  \<rightharpoonup> "CONST AlternateR I (\<lambda>i. g) (\<lambda>i. A) (CONST Chaos)"
+  "if\<^sub>R i\<in>I \<bullet> (g i) \<rightarrow> A else B fi"  \<leftharpoondown> "CONST AlternateR I g (\<lambda>i. A) B"
+
+lemma AlternateR_NSRD_closed [closure]:
+  assumes "\<And> i. A i is NSRD" "B is NSRD"
+  shows "(if\<^sub>R i\<in>I \<bullet> g i \<rightarrow> A i else B fi) is NSRD"
+proof (cases "I = {}")
   case True
-  then show ?thesis 
-    by (simp add: AlternateR_def closure unrest) 
+  then show ?thesis by (simp add: AlternateR_def assms)
 next
   case False
-  then show ?thesis
-    by (simp add: AlternateR_def closure unrest assms)
+  then show ?thesis by (simp add: AlternateR_def closure assms)
 qed
-  
-lemma AlternateR_rdes_def [rdes_def]: 
-  assumes "\<And> i. P\<^sub>1(i) is RR" "\<And> i. P\<^sub>2(i) is RR" "\<And> i. P\<^sub>3(i) is RR"
-  shows
-  "if\<^sub>R i \<in> A \<bullet> g(i) \<rightarrow> \<^bold>R\<^sub>s(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i)) fi = 
-    \<^bold>R\<^sub>s(((\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub><) \<and> (\<And> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P\<^sub>1 i)) 
-        \<turnstile> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> P\<^sub>2 i) 
-        \<diamondop> (\<Or> i\<in>A \<bullet> [g(i)]\<^sub>S\<^sub>< \<and> P\<^sub>3 i))"
-  by (simp add: AlternateR_def rdes closure assms, rel_auto)
 
 subsection \<open> Choose \<close>
 
@@ -276,13 +295,30 @@ theorem assigns_srd_left_seq:
   shows "\<langle>\<sigma>\<rangle>\<^sub>R ;; P = \<sigma> \<dagger>\<^sub>S P"
   by (rdes_simp cls: assms)
 
-lemma AlternateR_empty: 
-  "if\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = Chaos"
-  by (simp add: AlternateR_def Chaos_def, rel_auto)
+lemma AlternateR_empty [simp]:
+  "(if\<^sub>R i \<in> {} \<bullet> g i \<rightarrow> A i else B fi) = B"
+  by (rdes_simp)
+
+lemma AlternateR_seq_distr:
+  assumes "\<And> i. A i is NSRD" "B is NSRD" "C is NSRD"
+  shows "(if\<^sub>R i \<in> I \<bullet> g i \<rightarrow> A i else B fi) ;; C = (if\<^sub>R i \<in> I \<bullet> g i \<rightarrow> A i ;; C else B ;; C fi)"
+proof (cases "I = {}")
+  case True
+  then show ?thesis by (simp)
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateR_def upred_semiring.distrib_right seq_UINF_distr gcmd_seq_distr assms(3))
+qed
+
+lemma AlternateR_is_cond_srea:
+  assumes "A is NSRD" "B is NSRD"
+  shows "(if\<^sub>R i \<in> {a} \<bullet> g \<rightarrow> A else B fi) = (A \<triangleleft> g \<triangleright>\<^sub>R B)"
+  by (rdes_eq' cls: assms)
 
 lemma AlternateR_Chaos: 
   "if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> Chaos fi = Chaos"
-  by (simp add: AlternateR_def Chaos_def, rel_auto)
+  by (cases "A = {}", simp, rdes_eq)
 
 lemma choose_srd_par:
   "choose\<^sub>R \<parallel>\<^sub>R choose\<^sub>R = choose\<^sub>R"
