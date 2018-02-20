@@ -4,6 +4,10 @@ theory utp_rdes_tactics
   imports utp_rdes_triples
 begin
 
+text {* The following tactic can be used to simply and evaluate reactive predicates. *}
+
+method rpred_simp = (uexpr_simp simps: rpred usubst closure unrest)
+
 text {* Tactic to expand out healthy reactive design predicates into the syntactic triple form. *}
   
 method rdes_expand uses cls = (insert cls, (erule RD_elim)+)    

@@ -386,7 +386,7 @@ proof -
   finally show ?thesis .
 qed
   
-lemma FinalMerge_csp_do [rpred]:
+lemma FinalMerge_csp_do:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) = 
          ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> [\<langle>\<sigma>\<^sub>1 [&ns1|&ns2]\<^sub>s \<sigma>\<^sub>2\<rangle>\<^sub>a]\<^sub>S')" 
@@ -404,8 +404,15 @@ proof -
     by (rel_auto)
   finally show ?thesis .
 qed
-  
-lemma InterMerge_csp_enable [rpred]:
+
+lemma FinalMerge_csp_do' [rpred]:
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) = 
+         (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
+                    \<Phi>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<sigma>\<^sub>1 [&ns1|&ns2]\<^sub>s \<sigma>\<^sub>2, \<guillemotleft>trace\<guillemotright>))"
+  by (simp add: FinalMerge_csp_do assms, rel_auto)
+
+lemma InterMerge_csp_enable:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
           ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and>
@@ -442,7 +449,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma InterMerge_csp_enable_csp_do [rpred]:
+lemma InterMerge_csp_enable':
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
+          (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
+                     \<E>( s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
+                      , \<guillemotleft>trace\<guillemotright>
+                      , (E\<^sub>1 \<inter>\<^sub>u E\<^sub>2 \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u ((E\<^sub>1 \<union>\<^sub>u E\<^sub>2) - \<guillemotleft>cs\<guillemotright>)))"
+  by (simp add: InterMerge_csp_enable assms, rel_auto)
+
+lemma InterMerge_csp_enable_csp_do:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) = 
            ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> (\<^bold>\<forall> e\<in>\<lceil>(E\<^sub>1 - \<guillemotleft>cs\<guillemotright>)\<rceil>\<^sub>S\<^sub>< \<bullet> \<guillemotleft>e\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<and>
@@ -469,7 +485,14 @@ proof -
   finally show ?thesis .
 qed
 
-lemma InterMerge_csp_do_csp_enable [rpred]:
+lemma InterMerge_csp_enable_csp_do' [rpred]:
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) =
+         (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
+                     \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>trace\<guillemotright>, E\<^sub>1 - \<guillemotleft>cs\<guillemotright>))"
+  by (simp add: InterMerge_csp_enable_csp_do assms, rel_auto)
+
+lemma InterMerge_csp_do_csp_enable:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
            ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> (\<^bold>\<forall> e\<in>\<lceil>(E\<^sub>2 - \<guillemotleft>cs\<guillemotright>)\<rceil>\<^sub>S\<^sub>< \<bullet> \<guillemotleft>e\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<and>
@@ -482,7 +505,22 @@ proof -
     by (simp add: InterMerge_csp_enable_csp_do assms lens_indep_sym trace_merge_commute conj_comm eq_upred_sym)
   finally show ?thesis .
 qed
-  
+
+lemma InterMerge_csp_do_csp_enable' [rpred]:
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) =
+         (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet> 
+                     \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>trace\<guillemotright>, E\<^sub>2 - \<guillemotleft>cs\<guillemotright>))" 
+  by (simp add: InterMerge_csp_do_csp_enable assms, rel_auto)
+
+lemma CSPInterMerge_or_left [rpred]: 
+  "(P \<or> Q) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I R = (P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I R \<or> Q \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I R)"
+  by (simp add: CSPInterMerge_def par_by_merge_or_left)
+
+lemma CSPInterMerge_or_right [rpred]:
+  "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I (Q \<or> R) = (P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q \<or> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I R)"
+  by (simp add: CSPInterMerge_def par_by_merge_or_right)
+
 lemma par_by_merge_seq_remove: "(P \<parallel>\<^bsub>M ;; R\<^esub> Q) = (P \<parallel>\<^bsub>M\<^esub> Q) ;; R"
   by (simp add: par_by_merge_seq_add[THEN sym])
   
@@ -515,7 +553,7 @@ subsection \<open> Parallel operator \<close>
 
 syntax
   "_par_circus"   :: "logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76)
-  "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<lbrakk>_\<rbrakk>\<^sub>C" 75)
+  "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<lbrakk>_\<rbrakk>\<^sub>C _" [75,0,76] 76)
   "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
   "_inter_csp"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "|||" 75)
     
@@ -790,6 +828,6 @@ proof -
                    &tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;;
                     R1 true)"
     by (simp add: Healthy_if assms)
-oops      
+  oops
 
 end

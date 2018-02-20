@@ -409,7 +409,15 @@ lemma UINF_refines':
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
   using assms
   apply (rel_auto) using Sup_le_iff by fastforce
-  
+
+lemma UINF_pred_ueq [simp]: 
+  "(\<Sqinter> x | \<guillemotleft>x\<guillemotright> =\<^sub>u v \<bullet> P(x)) = (P x)\<lbrakk>x\<rightarrow>v\<rbrakk>"
+  by (pred_auto)
+
+lemma UINF_pred_lit_eq [simp]: 
+  "(\<Sqinter> x | \<guillemotleft>x = v\<guillemotright> \<bullet> P(x)) = (P v)"
+  by (pred_auto)
+
 subsection {* Equality laws *}
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"

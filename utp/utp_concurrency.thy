@@ -426,6 +426,14 @@ theorem par_by_merge_choice_left:
 theorem par_by_merge_choice_right:
   "P \<parallel>\<^bsub>M\<^esub> (Q \<sqinter> R) = (P \<parallel>\<^bsub>M\<^esub> Q) \<sqinter> (P \<parallel>\<^bsub>M\<^esub> R)"
   by (rel_auto)
+
+theorem par_by_merge_or_left:
+  "(P \<or> Q) \<parallel>\<^bsub>M\<^esub> R = (P \<parallel>\<^bsub>M\<^esub> R \<or> Q \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
+  
+theorem par_by_merge_or_right:
+  "P \<parallel>\<^bsub>M\<^esub> (Q \<or> R) = (P \<parallel>\<^bsub>M\<^esub> Q \<or> P \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
     
 theorem par_by_merge_USUP_mem_left:
   "(\<Sqinter> i\<in>I \<bullet> P(i)) \<parallel>\<^bsub>M\<^esub> Q = (\<Sqinter> i\<in>I \<bullet> P(i) \<parallel>\<^bsub>M\<^esub> Q)"

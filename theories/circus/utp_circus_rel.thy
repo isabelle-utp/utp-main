@@ -352,6 +352,13 @@ lemma csp_enable_st_pred [rpred]:
 lemma csp_enable_tr_empty: "\<E>(true,\<langle>\<rangle>,{v}\<^sub>u) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>v\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (rel_auto)
 
+lemma msubst_nil_csp_enable [usubst]: 
+  "\<E>(s(x),t(x),E(x))\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk> = \<E>(s(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,E(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>)"
+  by (pred_auto)
+
+lemma csp_enable_false [rpred]: "\<E>(false,t,E) = false"
+  by (rel_auto)
+
 subsection \<open> Completed Trace Interaction \<close>
 
 definition csp_do :: "'s upred \<Rightarrow> ('s \<Rightarrow> 's) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
@@ -380,7 +387,10 @@ lemma st_subst_csp_do [usubst]:
   
 lemma csp_init_do [rpred]: "(\<I>(s1,t) \<and> \<Phi>(s2,\<sigma>,t)) = \<Phi>(s1 \<and> s2, \<sigma>, t)"
   by (rel_auto)
-    
+
+lemma csp_do_false [rpred]: "\<Phi>(false,s,t) = false"
+  by (rel_auto)
+
 lemma csp_do_assign [rpred]:
   assumes "P is CRR"
   shows "\<Phi>(s, \<sigma>, t) ;; P = ([s]\<^sub>S\<^sub>< \<and> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)\<lbrakk>t\<rbrakk>\<^sub>t)"
