@@ -314,6 +314,9 @@ lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
 lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
   by (simp add: assigns_r_comp usubst)
 
+lemma assigns_cond: "(\<langle>f\<rangle>\<^sub>a \<triangleleft> b \<triangleright>\<^sub>r \<langle>g\<rangle>\<^sub>a) = \<langle>f \<triangleleft> b \<triangleright>\<^sub>s g\<rangle>\<^sub>a"
+  by (rel_auto)
+
 lemma assigns_r_conv:
   "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
   by (rel_auto, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
@@ -721,7 +724,10 @@ lemma SUP_atLeastAtMost_first:
     
 lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
   by (induct n, simp_all)
-    
+
+lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
+  by (induct n, rel_auto+)
+
 subsubsection {* Kleene Star *}
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
