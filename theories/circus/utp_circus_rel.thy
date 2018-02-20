@@ -356,7 +356,15 @@ lemma msubst_nil_csp_enable [usubst]:
   "\<E>(s(x),t(x),E(x))\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk> = \<E>(s(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,E(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>)"
   by (pred_auto)
 
+lemma msubst_csp_enable [usubst]: 
+  "\<E>(s(x),t(x),E(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk> = \<E>(s(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,E(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+
 lemma csp_enable_false [rpred]: "\<E>(false,t,E) = false"
+  by (rel_auto)
+
+lemma USUP_csp_enable [rpred]: 
+  "(\<Squnion> x \<bullet> \<E>(s, t, A(x))) = \<E>(s, t, (\<Or> x \<bullet> A(x)))"
   by (rel_auto)
 
 subsection \<open> Completed Trace Interaction \<close>
@@ -449,5 +457,9 @@ proof -
     by (simp add: skip_r_def)
   thus ?thesis by (simp add: wp assms usubst alpha)
 qed
+
+lemma msubst_csp_do [usubst]: 
+  "\<Phi>(s(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk> = \<Phi>(s(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
 
 end

@@ -412,6 +412,14 @@ lemma FinalMerge_csp_do' [rpred]:
                     \<Phi>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<sigma>\<^sub>1 [&ns1|&ns2]\<^sub>s \<sigma>\<^sub>2, \<guillemotleft>trace\<guillemotright>))"
   by (simp add: FinalMerge_csp_do assms, rel_auto)
 
+lemma CSPFinalMerge_UINF_ind_left [rpred]: 
+  "(\<Sqinter> i \<bullet> P(i)) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q = (\<Sqinter> i \<bullet> P(i) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q)"
+  by (simp add: CSPFinalMerge_def par_by_merge_USUP_ind_left)
+
+lemma CSPFinalMerge_UINF_ind_right [rpred]: 
+  "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q(i))"
+  by (simp add: CSPFinalMerge_def par_by_merge_USUP_ind_right)
+
 lemma InterMerge_csp_enable:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
@@ -449,7 +457,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma InterMerge_csp_enable':
+lemma InterMerge_csp_enable' [rpred]:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
           (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
@@ -520,6 +528,14 @@ lemma CSPInterMerge_or_left [rpred]:
 lemma CSPInterMerge_or_right [rpred]:
   "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I (Q \<or> R) = (P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q \<or> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I R)"
   by (simp add: CSPInterMerge_def par_by_merge_or_right)
+
+lemma CSPInterMerge_UINF_ind_left [rpred]: 
+  "(\<Sqinter> i \<bullet> P(i)) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q = (\<Sqinter> i \<bullet> P(i) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q)"
+  by (simp add: CSPInterMerge_def par_by_merge_USUP_ind_left)
+
+lemma CSPInterMerge_UINF_ind_right [rpred]: 
+  "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q(i))"
+  by (simp add: CSPInterMerge_def par_by_merge_USUP_ind_right)
 
 lemma par_by_merge_seq_remove: "(P \<parallel>\<^bsub>M ;; R\<^esub> Q) = (P \<parallel>\<^bsub>M\<^esub> Q) ;; R"
   by (simp add: par_by_merge_seq_add[THEN sym])

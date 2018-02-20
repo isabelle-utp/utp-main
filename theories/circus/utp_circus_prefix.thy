@@ -107,7 +107,31 @@ lemma UINF_one_point_simp [rpred]:
 lemma USUP_one_point_simp [rpred]:
   "\<lbrakk> \<And> i. P i is R1 \<rbrakk> \<Longrightarrow> (\<Squnion> x \<bullet> [\<guillemotleft>i\<guillemotright> =\<^sub>o x]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P(x)) = P(i)"
   by (rel_blast)
-    
+
+lemma USUP_eq_event_eq [rpred]:
+  assumes "\<And> y. P(y) is RR"
+  shows "(\<Squnion> y \<bullet> [v =\<^sub>o y]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P(y)) = P(y)\<lbrakk>y\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk>"
+proof -
+  have "(\<Squnion> y \<bullet> [v =\<^sub>o y]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r RR(P(y))) = RR(P(y))\<lbrakk>y\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk>"
+    apply (rel_simp, safe)
+    apply metis
+    apply blast
+    apply simp
+    done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma UINF_eq_event_eq [rpred]:
+  assumes "\<And> y. P(y) is RR"
+  shows "(\<Sqinter> y \<bullet> [v =\<^sub>o y]\<^sub>S\<^sub>< \<and> P(y)) = P(y)\<lbrakk>y\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk>"
+proof -
+  have "(\<Sqinter> y \<bullet> [v =\<^sub>o y]\<^sub>S\<^sub>< \<and> RR(P(y))) = RR(P(y))\<lbrakk>y\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk>"
+    by (rel_simp, safe, metis)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 text {* Proofs that the input constrained parser versions of output is the same as the regular definition. *}
 
 lemma output_prefix_is_OutputCSP [simp]:

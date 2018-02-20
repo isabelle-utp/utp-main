@@ -69,4 +69,12 @@ lemma unrest_chan_apply [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> (c\
 lemma usubst_chan_apply [usubst]: "\<sigma> \<dagger> (c\<cdot>v)\<^sub>u = (c\<cdot>\<sigma> \<dagger> v)\<^sub>u"
   by (rel_auto)
 
+lemma msubst_event [usubst]:
+  "(c\<cdot>v x)\<^sub>u\<lbrakk>x\<rightarrow>u\<rbrakk> = (c\<cdot>(v x)\<lbrakk>x\<rightarrow>u\<rbrakk>)\<^sub>u"
+  by (pred_simp)
+
+lemma msubst_event_2 [usubst]:
+  "(c\<cdot>v x y)\<^sub>u\<lbrakk>(x,y)\<rightarrow>u\<rbrakk> = (c\<cdot>(v x y)\<lbrakk>(x,y)\<rightarrow>u\<rbrakk>)\<^sub>u"
+  by (pred_simp)+
+
 end

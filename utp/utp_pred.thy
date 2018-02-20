@@ -4,6 +4,7 @@ theory utp_pred
 imports
   utp_expr
   utp_subst
+  utp_meta_subst
   utp_tactics
 begin
   
@@ -571,5 +572,44 @@ lemma subst_all_indep [usubst]:
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
-    
+
+lemma msubst_true [usubst]: "true\<lbrakk>x\<rightarrow>v\<rbrakk> = true"
+  by (pred_auto)
+
+lemma msubst_false [usubst]: "false\<lbrakk>x\<rightarrow>v\<rbrakk> = false"
+  by (pred_auto)
+lemma msubst_not [usubst]: "(\<not> P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = (\<not> ((P x)\<lbrakk>x\<rightarrow>v\<rbrakk>))"
+  by (pred_auto)
+
+lemma msubst_not_2 [usubst]: "(\<not> P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = (\<not> ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>))"
+  by (pred_auto)+
+
+lemma msubst_disj [usubst]: "(P(x) \<or> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> \<or> (Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_disj_2 [usubst]: "(P x y \<or> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<or> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_conj [usubst]: "(P(x) \<and> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> \<and> (Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_conj_2 [usubst]: "(P x y \<and> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<and> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_implies [usubst]:
+  "(P x \<Rightarrow> Q x)\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P x)\<lbrakk>x\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_implies_2 [usubst]:
+  "(P x y \<Rightarrow> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_shAll [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y)\<lbrakk>y\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y)\<lbrakk>y\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_shAll_2 [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
 end
