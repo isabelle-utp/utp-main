@@ -1,5 +1,5 @@
 theory utp_circus_hiding
-imports utp_circus
+imports utp_circus_parallel
 begin
 
 definition hide_rea ("hide\<^sub>r") where
@@ -15,8 +15,15 @@ proof -
     by (metis Healthy_def' assms)
 qed
 
+typedef (overloaded) 't::trace tchain = "{f :: nat \<Rightarrow> 't. f(0) = 0 \<and> (\<forall> n. f(n) \<le> f(Suc n))}" 
+  by (rule_tac x="\<lambda> n. 0" in exI, auto)
+
+setup_lifting type_definition_tchain
+
+lift_definition infinite_tchain :: "'t::trace tchain \<Rightarrow> bool" is "\<lambda> f. (\<forall> n. f(n) < f(Suc n))" .
+
 definition abs_rea ("abs\<^sub>r") where
-[upred_defs]: "abs\<^sub>r P E = (\<not>\<^sub>r ((\<^bold>\<exists> s \<bullet> (\<not>\<^sub>r P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>))) ;; true\<^sub>r))"
+[upred_defs]: "abs\<^sub>r P Q E = (\<not>\<^sub>r ((\<^bold>\<exists> s \<bullet> (\<not>\<^sub>r P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>))) ;; true\<^sub>r))"
 
 lemma abs_rea_false [rpred]: "abs\<^sub>r false E = false"
   by (rel_simp, metis append.right_neutral order_refl seq_filter_Nil)

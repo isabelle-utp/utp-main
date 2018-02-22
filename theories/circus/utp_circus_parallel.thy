@@ -4,6 +4,7 @@ theory utp_circus_parallel
   imports 
     utp_circus_prefix
     utp_circus_traces
+    utp_circus_recursion
 begin
 
 subsection \<open> Merge predicates \<close>

@@ -129,6 +129,15 @@ lemma add_monoid_diff_cancel_left [simp]: "(a + b) -\<^sub>m a = b"
   using local.add_left_imp_eq apply blast
   done
 
+text \<open> Iterating a trace \<close>
+
+fun tr_iter :: "nat \<Rightarrow> 'a \<Rightarrow> 'a" where
+tr_iter_0: "tr_iter 0 t = 0" |
+tr_iter_Suc: "tr_iter (Suc n) t = tr_iter n t + t"
+
+lemma tr_iter_empty [simp]: "tr_iter m 0 = 0"
+  by (induct m, simp_all)
+
 end
 
 text \<open> We now construct the trace algebra by also exporting the order and minus operators. \<close>

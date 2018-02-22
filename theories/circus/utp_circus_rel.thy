@@ -213,7 +213,17 @@ lemma trace_subst_CRR_closed [closure]:
   assumes "P is CRR"
   shows "P\<lbrakk>v\<rbrakk>\<^sub>t is CRR"
   by (rule CRR_intro, simp_all add: closure assms unrest)
-      
+
+lemma tsubst_nil [usubst]: 
+  assumes "P is CRR"
+  shows "P\<lbrakk>\<langle>\<rangle>\<rbrakk>\<^sub>t = P"
+proof -
+  have "(CRR P)\<lbrakk>\<langle>\<rangle>\<rbrakk>\<^sub>t = CRR P"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma tsubst_false [usubst]: "false\<lbrakk>y\<rbrakk>\<^sub>t = false"
   by rel_auto
 
@@ -430,7 +440,7 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
-    
+
 lemma wp_rea_csp_do_lemma:
   fixes P :: "('\<sigma>, '\<phi>) action"
   assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
@@ -447,7 +457,19 @@ proof -
   thus ?thesis 
     by (simp add: assms Healthy_if)
 qed
-  
+
+lemma csp_do_power_Suc [rpred]:
+  "\<Phi>(true, id, t) \<^bold>^ (Suc i) = \<Phi>(true, id, iter[Suc i](t))"
+  by (induct i, (rel_auto)+)
+
+lemma csp_power_do_comp [rpred]:
+  assumes "P is CRR"
+  shows "\<Phi>(true, id, t) \<^bold>^ i ;; P = \<Phi>(true, id, iter[i](t)) ;; P"
+  apply (cases i)
+   apply (simp_all add: rpred usubst assms closure)
+  apply (metis assms csp_do_power_Suc csp_do_skip upred_semiring.power_Suc)
+  done
+
 lemma wp_rea_csp_do_skip [wp]:
   fixes Q :: "('\<sigma>, '\<phi>) action"
   assumes "P is CRR"
