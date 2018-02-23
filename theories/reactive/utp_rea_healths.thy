@@ -464,6 +464,16 @@ lemma R2_form:
   "R2(P) = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
   by (rel_auto, metis trace_class.add_diff_cancel_left trace_class.le_iff_add)
 
+lemma R2_subst_tr: 
+  assumes "P is R2" 
+  shows "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> P = [$tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> P"
+proof -
+  have "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> R2 P = [$tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> R2 P"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma R2_seqr_form:
   shows "(R2(P) ;; R2(Q)) =
          (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
@@ -492,6 +502,28 @@ proof -
                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
     by (rel_auto)
   finally show ?thesis .
+qed
+
+lemma R2_seqr_form':
+  assumes "P is R2" "Q is R2"
+  shows "P ;; Q =
+         (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                        \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+  using R2_seqr_form[of P Q] by (simp add: Healthy_if assms)
+
+lemma R2_tr_middle:
+  assumes "P is R2" "Q is R2"
+  shows "(\<^bold>\<exists> tr\<^sub>0 \<bullet> (P\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>) = (P ;; Q)"
+proof -
+  have "(P ;; Q) = (\<^bold>\<exists> tr\<^sub>0 \<bullet> (P\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"
+    by (simp add: seqr_middle)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((R2 P)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; (R2 Q)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"
+    by (simp add: assms Healthy_if)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((R2 P)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; (R2 Q)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)"
+    by (rel_auto)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> (P\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)"
+    by (simp add: assms Healthy_if)
+  finally show ?thesis ..
 qed
 
 lemma R2_seqr_distribute:

@@ -164,7 +164,7 @@ lemma out_var_sublens [simp]:
 lemma pr_var_sublens [simp]:
   "y \<subseteq>\<^sub>L x \<Longrightarrow> pr_var y \<subseteq>\<^sub>L pr_var x"
   by (simp add: pr_var_def)
-    
+
 subsection \<open> Lens simplifications \<close>
     
 text \<open> We also define some lookup abstraction simplifications. \<close>

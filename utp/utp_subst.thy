@@ -276,6 +276,20 @@ text {* If a variable is unrestricted in an expression, then any substitution of
 lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
   by (simp add: subst_upd_uvar_def, transfer, auto)
 
+lemma subst_unrest_2 [usubst]: 
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "x \<sharp> P" "x \<bowtie> y"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u,y \<mapsto>\<^sub>s v) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s v) \<dagger> P"
+  using assms
+  by (simp add: subst_upd_uvar_def, transfer, auto, metis lens_indep.lens_put_comm)
+
+lemma subst_unrest_3 [usubst]: 
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P"
+  using assms
+  by (simp add: subst_upd_uvar_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+
 lemma subst_compose_upd [usubst]: "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
   by (simp add: subst_upd_uvar_def, transfer, auto simp add: unrest_usubst_def)
 

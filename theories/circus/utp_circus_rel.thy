@@ -106,7 +106,7 @@ lemma conj_CRC_closed [closure]:
 lemma disj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<or> Q) is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
-    
+
 lemma shEx_CRR_closed [closure]: 
   assumes "\<And> x. P x is CRR"
   shows "(\<^bold>\<exists> x \<bullet> P(x)) is CRR"
@@ -143,7 +143,11 @@ lemma conj_CRR_closed [closure]:
 lemma disj_CRR_closed [closure]: 
   "\<lbrakk> P is CRR; Q is CRR \<rbrakk> \<Longrightarrow> (P \<or> Q) is CRR"
   by (rule CRR_intro, simp_all add: unrest closure)
-    
+
+lemma rea_not_CRR_closed [closure]:
+  "P is CRR \<Longrightarrow> (\<not>\<^sub>r P) is CRR"
+  using false_CRR rea_implies_CRR_closed by fastforce
+
 lemma disj_R1_closed [closure]: "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> (P \<or> Q) is R1"
   by (rel_blast)
     

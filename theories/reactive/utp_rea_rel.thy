@@ -437,6 +437,10 @@ lemma rea_impl_conj [rpred]:
   "(P \<Rightarrow>\<^sub>r Q \<Rightarrow>\<^sub>r R) = ((P \<and> Q) \<Rightarrow>\<^sub>r R)"
   by (rel_auto)
 
+lemma rea_impl_mp [rpred]:
+  "(P \<and> (P \<Rightarrow>\<^sub>r Q)) = (P \<and> Q)"
+  by (rel_auto)
+
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
     

@@ -9,6 +9,9 @@ subsection \<open> Circus Alphabet \<close>
 alphabet '\<phi> csp_vars = "'\<sigma> rsp_vars" +
   ref :: "'\<phi> set"
 
+declare csp_vars.defs [lens_defs]
+declare csp_vars.splits [alpha_splits]
+
 text \<open>
   The following two locale interpretations are a technicality to improve the
   behaviour of the automatic tactics. They enable (re)interpretation of state
@@ -55,6 +58,10 @@ subsection \<open> Basic laws \<close>
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   by (rel_auto)
 
+lemma circus_alpha_bij_lens:
+  "bij_lens ({$ok,$ok\<acute>,$wait,$wait\<acute>,$tr,$tr\<acute>,$st,$st\<acute>,$ref,$ref\<acute>}\<^sub>\<alpha> :: _ \<Longrightarrow> ('s,'e) st_csp \<times> ('s,'e) st_csp)"
+  by (unfold_locales, lens_simp+)
+
 subsection \<open> Unrestriction laws \<close>
 
 lemma pre_unrest_ref [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> pre\<^sub>R(P)"
@@ -90,5 +97,41 @@ lemma R2c_ref'_unrest [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\
 
 lemma R2s_notin_ref': "R2s(\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>) = (\<lceil>\<guillemotleft>x\<guillemotright>\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (pred_auto)
+
+lemma unrest_circus_alpha:
+  fixes P :: "('e, 't) action"
+  assumes 
+    "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$tr \<sharp> P" 
+    "$tr\<acute> \<sharp> P" "$st \<sharp> P" "$st\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P"
+  shows "\<Sigma> \<sharp> P"
+  by (rule bij_lens_unrest_all[OF circus_alpha_bij_lens], simp add: unrest assms)
+
+lemma unrest_all_circus_vars:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> s'" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
+  shows "\<Sigma> \<sharp> [$st \<mapsto>\<^sub>s s, $st\<acute> \<mapsto>\<^sub>s s', $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P"
+  using assms
+  by (simp add: bij_lens_unrest_all_eq[OF circus_alpha_bij_lens] unrest_plus_split plus_vwb_lens)
+      (simp add: unrest usubst closure)
+
+lemma unrest_all_circus_vars_st:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "$st\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
+  shows "\<Sigma> \<sharp> [$st \<mapsto>\<^sub>s s, $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P"
+  using assms
+  by (simp add: bij_lens_unrest_all_eq[OF circus_alpha_bij_lens] unrest_plus_split plus_vwb_lens)
+      (simp add: unrest usubst closure)
+
+lemma unrest_any_circus_var:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> s'" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
+  shows "x \<sharp> [$st \<mapsto>\<^sub>s s, $st\<acute> \<mapsto>\<^sub>s s', $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P" 
+  by (simp add: unrest_all_var unrest_all_circus_vars assms)
+
+lemma unrest_any_circus_var_st:
+  fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "$st\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
+  shows "x \<sharp> [$st \<mapsto>\<^sub>s s, $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P"
+  by (simp add: unrest_all_var unrest_all_circus_vars_st assms)
 
 end

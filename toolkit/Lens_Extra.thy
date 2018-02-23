@@ -8,7 +8,9 @@
 section \<open> Extra Lens Laws \<close>
 
 theory Lens_Extra
-  imports Optics.Lenses
+  imports 
+    Optics.Lenses 
+    "HOL-Eisbach.Eisbach"
 begin
 
 lemma list_augment_last [simp]:
@@ -54,6 +56,9 @@ lemma lens_override_put_right_in:
 lemma lens_override_put_right_out:
   "\<lbrakk> vwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
   by (simp add: lens_override_def  lens_indep.lens_put_irr2)    
+
+lemma bij_lens_intro: "\<lbrakk> weak_lens L; \<And> \<sigma> \<rho>. put\<^bsub>L\<^esub> \<sigma> (get\<^bsub>L\<^esub> \<rho>) = \<rho> \<rbrakk> \<Longrightarrow> bij_lens L"
+  using bij_lens.intro bij_lens_axioms.intro by blast
 
 subsection \<open>Mapper Lenses\<close>
 
@@ -101,5 +106,13 @@ ML \<open>
 \<close>
 
 parse_translation \<open>[(@{syntax_const "_lmap"}, K lmap_tr)]\<close>  
+
+subsection \<open> Tactic \<close>
+
+text \<open> A simple tactic for simplifying lens expressions \<close>
+
+declare split_paired_all [alpha_splits]
+
+method lens_simp = (simp add: alpha_splits lens_defs prod.case_eq_if)
 
 end

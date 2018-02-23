@@ -52,6 +52,21 @@ lemma RC_implies_R2: "P is RC \<Longrightarrow> P is R2"
 lemma RC_ex_ok_wait: "(\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>} \<bullet> RC P) = RC P"
   by (rel_auto)
 
+text \<open> An important property of reactive conditions is they are monotonic with respect to the trace.
+  That is, $P$ with a shorter trace is refined by $P$ with a longer trace. \<close>
+
+lemma RC_prefix_refine:
+  assumes "P is RC" "s \<le> t"
+  shows "P\<lbrakk>0,\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> P\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+proof -
+  from assms(2) have "(RC P)\<lbrakk>0,\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RC P)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+    apply (rel_auto)
+    using dual_order.trans apply blast
+    done
+  thus ?thesis
+    by (simp only: assms(1) Healthy_if)
+qed
+
 subsection \<open> Closure laws \<close>
 
 lemma RC_implies_RR [closure]: 

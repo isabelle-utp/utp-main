@@ -19,6 +19,23 @@ lemma taut_true [simp]: "`true`"
 lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
 
+lemma taut_conj: "`A \<and> B` = (`A` \<and> `B`)"
+  by (rel_auto)
+
+lemma taut_conj_elim [elim!]:
+  "\<lbrakk> `A \<and> B`; \<lbrakk> `A`; `B` \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (rel_auto)
+
+lemma taut_refine_impl: "\<lbrakk> Q \<sqsubseteq> P; `P` \<rbrakk> \<Longrightarrow> `Q`"
+  by (rel_auto)
+
+lemma taut_shEx_elim: 
+  "\<lbrakk> `(\<^bold>\<exists> x \<bullet> P x)`; \<And> x. \<Sigma> \<sharp> P x; \<And> x. `P x` \<Longrightarrow> Q  \<rbrakk> \<Longrightarrow> Q"
+  by (rel_blast)
+
+lemma taut_not: "\<Sigma> \<sharp> P \<Longrightarrow> (\<not> `P`) = `\<not> P`"
+  by (rel_auto)
+
 lemma upred_eval_taut:
   "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<^bold>v\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
   by (pred_auto)
