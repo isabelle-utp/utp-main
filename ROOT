@@ -99,14 +99,19 @@ session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_rea_designs
   document_files
+    "root.bib"
     "root.tex"
     "document.sty"
 
 (* Circus *)
 
 session "UTP-Circus" in "theories/circus" = "UTP-Reactive-Designs" +
-  options [document = false, timeout = 1000]
+  options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_circus
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
 
 (* Core UTP with Deep Variables *)
 
