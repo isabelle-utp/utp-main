@@ -25,7 +25,9 @@ lemma CRC_intro:
   assumes "$ref \<sharp> P" "P is RC"
   shows "P is CRC"
   by (simp add: CRC_def Healthy_def, simp add: Healthy_if assms ex_unrest)
-    
+
+subsection \<open> Closure Properties \<close>
+
 lemma CRR_implies_RR [closure]: 
   assumes "P is CRR"
   shows "P is RR"
@@ -189,6 +191,48 @@ lemma msubst_tt_RR [closure]: "\<lbrakk> \<And> t. P t is RR \<rbrakk> \<Longrig
     
 lemma msubst_ref'_RR [closure]: "\<lbrakk> \<And> r. P r is RR \<rbrakk> \<Longrightarrow> (P r)\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> is RR"
   by (simp add: Healthy_def RR_msubst_ref')  
+
+subsection \<open> Introduction laws \<close>
+
+text \<open> Extensionality principles for introducing refinement and equality of Circus reactive 
+  relations. It is necessary only to consider a subset of the variables that are present. \<close>
+
+lemma CRR_refine_ext:
+  assumes 
+    "P is CRR" "Q is CRR"
+    "\<And> t s s' r'. P\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
+  shows "P \<sqsubseteq> Q"
+proof -
+  have "\<And> t s s' r'. (CRR P)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> 
+                    \<sqsubseteq> (CRR Q)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
+    by (simp add: assms Healthy_if)
+  hence "CRR P \<sqsubseteq> CRR Q"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if assms(1) assms(2))
+qed
+
+lemma CRR_eq_ext:
+  assumes 
+    "P is CRR" "Q is CRR"
+    "\<And> t s s' r'. P\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> = Q\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
+  shows "P = Q"
+proof -
+  have "\<And> t s s' r'. (CRR P)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> 
+                    = (CRR Q)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
+    by (simp add: assms Healthy_if)
+  hence "CRR P = CRR Q"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if assms(1) assms(2))
+qed
+
+lemma CRR_refine_impl_prop:
+  assumes "P is CRR" "Q is CRR" 
+    "\<And> t s s' r'. `Q\<lbrakk>\<guillemotleft>r'\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$st\<acute>,$tr,$tr\<acute>\<rbrakk>` \<Longrightarrow> `P\<lbrakk>\<guillemotleft>r'\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$st\<acute>,$tr,$tr\<acute>\<rbrakk>`"
+  shows "P \<sqsubseteq> Q"
+  by (rule CRR_refine_ext, simp_all add: assms closure unrest usubst)
+     (rule refine_prop_intro, simp_all add: unrest unrest_all_circus_vars closure assms)
 
 subsection \<open> Trace Substitution \<close>
 

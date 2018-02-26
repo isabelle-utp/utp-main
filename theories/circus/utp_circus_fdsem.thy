@@ -4,7 +4,16 @@ theory utp_circus_fdsem
   imports utp_circus_parallel utp_circus_recursion
 begin
 
-subsection {* Failures-Divergences Semantics *}
+subsection \<open> Failures-Divergences Semantics \<close>
+
+text \<open> The following functions play a similar role to those in Roscoe's CSP semantics, and are
+  calculated from the Circus reactive design semantics. A major difference is that these three
+  functions account for state. Each divergence, trace, and failure is subject to an initial
+  state. Moreover, the traces are terminating traces, and therefore also provide a final state
+  following the given interaction. A more subtle difference from the Roscoe semantics is that
+  the set of traces do not include the divergences. The same semantic information is present,
+  but we construct a direct analogy with the pre-, peri- and postconditions of our reactive 
+  designs. \<close>
 
 definition divergences :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> '\<phi> list set" ("dv\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "divergences P s = {t | t. `(\<not>\<^sub>r pre\<^sub>R(P))\<lbrakk>\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>`}"
@@ -14,7 +23,92 @@ definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Right
 
 definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "failures P s = {(t,r) | t r. `(pre\<^sub>R(P) \<and> peri\<^sub>R(P))\<lbrakk>\<guillemotleft>r\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$tr,$tr\<acute>\<rbrakk>`}"
-   
+
+lemma preR_refine_divergences:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. dv\<lbrakk>P\<rbrakk>s \<subseteq> dv\<lbrakk>Q\<rbrakk>s"
+  shows "pre\<^sub>R(P) \<sqsubseteq> pre\<^sub>R(Q)"
+proof (rule CRR_refine_impl_prop, simp_all add: assms closure usubst unrest)
+  fix t s
+  assume a: "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> pre\<^sub>R Q`"
+  with a show "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> pre\<^sub>R P`"
+  proof (rule_tac ccontr)
+    from assms(3)[of s] have b: "t \<in> dv\<lbrakk>P\<rbrakk>s \<Longrightarrow> t \<in> dv\<lbrakk>Q\<rbrakk>s"
+      by (auto)
+    assume "\<not> `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> pre\<^sub>R P`"
+    hence "\<not> `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> CRC(pre\<^sub>R P)`"
+      by (simp add: assms closure Healthy_if)
+    hence "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (\<not>\<^sub>r CRC(pre\<^sub>R P))`"
+      by (rel_auto)
+    hence "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (\<not>\<^sub>r pre\<^sub>R P)`"
+      by (simp add: assms closure Healthy_if)
+    with a b show False
+      by (rel_auto)
+  qed
+qed
+
+lemma preR_eq_divergences:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. dv\<lbrakk>P\<rbrakk>s = dv\<lbrakk>Q\<rbrakk>s"
+  shows "pre\<^sub>R(P) = pre\<^sub>R(Q)"
+  by (metis assms dual_order.antisym order_refl preR_refine_divergences)
+
+lemma periR_refine_failures:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. fl\<lbrakk>Q\<rbrakk>s \<subseteq> fl\<lbrakk>P\<rbrakk>s"
+  shows "(pre\<^sub>R(P) \<and> peri\<^sub>R(P)) \<sqsubseteq> (pre\<^sub>R(Q) \<and> peri\<^sub>R(Q))"
+proof (rule CRR_refine_impl_prop, simp_all add: assms closure unrest subst_unrest_3)
+  fix t s r'
+  assume a: "`[$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r'\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (pre\<^sub>R Q \<and> peri\<^sub>R Q)`"
+  from assms(3)[of s] have b: "(t, r') \<in> fl\<lbrakk>Q\<rbrakk>s \<Longrightarrow> (t, r') \<in> fl\<lbrakk>P\<rbrakk>s"
+    by (auto)
+  with a show "`[$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r'\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (pre\<^sub>R P \<and> peri\<^sub>R P)`"
+    by (simp add: failures_def)
+qed
+
+lemma periR_eq_failures:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. fl\<lbrakk>P\<rbrakk>s = fl\<lbrakk>Q\<rbrakk>s"
+  shows "(pre\<^sub>R(P) \<and> peri\<^sub>R(P)) = (pre\<^sub>R(Q) \<and> peri\<^sub>R(Q))"
+  by (metis (full_types) assms dual_order.antisym order_refl periR_refine_failures)
+
+lemma postR_refine_traces:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. tr\<lbrakk>Q\<rbrakk>s \<subseteq> tr\<lbrakk>P\<rbrakk>s"
+  shows "(pre\<^sub>R(P) \<and> post\<^sub>R(P)) \<sqsubseteq> (pre\<^sub>R(Q) \<and> post\<^sub>R(Q))"
+proof (rule CRR_refine_impl_prop, simp_all add: assms closure unrest subst_unrest_5)
+  fix t s s'
+  assume a: "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (pre\<^sub>R Q \<and> post\<^sub>R Q)`"
+  from assms(3)[of s] have b: "(t, s') \<in> tr\<lbrakk>Q\<rbrakk>s \<Longrightarrow> (t, s') \<in> tr\<lbrakk>P\<rbrakk>s"
+    by (auto)
+  with a show "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (pre\<^sub>R P \<and> post\<^sub>R P)`"
+    by (simp add: traces_def)
+qed
+
+lemma postR_eq_traces:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. tr\<lbrakk>P\<rbrakk>s = tr\<lbrakk>Q\<rbrakk>s"
+  shows "(pre\<^sub>R(P) \<and> post\<^sub>R(P)) = (pre\<^sub>R(Q) \<and> post\<^sub>R(Q))"
+  by (metis assms dual_order.antisym order_refl postR_refine_traces)
+
+lemma circus_fd_refine_intro:
+  assumes "P is NCSP" "Q is NCSP" "\<And> s. dv\<lbrakk>Q\<rbrakk>s \<subseteq> dv\<lbrakk>P\<rbrakk>s" "\<And> s. fl\<lbrakk>Q\<rbrakk>s \<subseteq> fl\<lbrakk>P\<rbrakk>s" "\<And> s. tr\<lbrakk>Q\<rbrakk>s \<subseteq> tr\<lbrakk>P\<rbrakk>s"
+  shows "P \<sqsubseteq> Q"
+proof (rule SRD_refine_intro', simp_all add: closure assms)
+  show a: "`pre\<^sub>R P \<Rightarrow> pre\<^sub>R Q`"
+    using assms(1) assms(2) assms(3) preR_refine_divergences refBy_order by blast
+  show "peri\<^sub>R P \<sqsubseteq> (pre\<^sub>R P \<and> peri\<^sub>R Q)"
+  proof -
+    have "peri\<^sub>R P \<sqsubseteq> (pre\<^sub>R Q \<and> peri\<^sub>R Q)"
+      by (metis (no_types) assms(1) assms(2) assms(4) periR_refine_failures utp_pred_laws.le_inf_iff)
+    then show ?thesis
+      by (metis a refBy_order utp_pred_laws.inf.order_iff utp_pred_laws.inf_assoc)
+  qed
+  show "post\<^sub>R P \<sqsubseteq> (pre\<^sub>R P \<and> post\<^sub>R Q)"
+  proof -
+    have "post\<^sub>R P \<sqsubseteq> (pre\<^sub>R Q \<and> post\<^sub>R Q)"
+      by (meson assms(1) assms(2) assms(5) postR_refine_traces utp_pred_laws.le_inf_iff)
+    then show ?thesis
+      by (metis a refBy_order utp_pred_laws.inf.absorb_iff1 utp_pred_laws.inf_assoc)
+  qed
+qed
+
+subsection \<open> Circus Operators \<close>
+
 lemma traces_Skip:
   "tr\<lbrakk>Skip\<rbrakk>s = {([], s)}"
   by (simp add: traces_def rdes alpha closure, rel_simp)
@@ -25,6 +119,18 @@ lemma failures_Skip:
 
 lemma divergences_Skip:
   "dv\<lbrakk>Skip\<rbrakk>s = {}"
+  by (simp add: divergences_def, rdes_calc)
+
+lemma traces_Stop:
+  "tr\<lbrakk>Stop\<rbrakk>s = {}"
+  by (simp add: traces_def, rdes_calc)
+
+lemma failures_Stop:
+  "fl\<lbrakk>Stop\<rbrakk>s = {([], E) | E. True}"
+  by (simp add: failures_def, rdes_calc, rel_auto)
+
+lemma divergences_Stop:
+  "dv\<lbrakk>Stop\<rbrakk>s = {}"
   by (simp add: divergences_def, rdes_calc)
 
 lemma traces_AssignsCSP:
@@ -45,6 +151,9 @@ lemma failures_Miracle: "fl\<lbrakk>Miracle\<rbrakk>s = {}"
 lemma divergences_Miracle: "dv\<lbrakk>Miracle\<rbrakk>s = {}"
   by (simp add: divergences_def rdes closure usubst)
 
+lemma failures_Chaos: "fl\<lbrakk>Chaos\<rbrakk>s = {}"
+  by (simp add: failures_def rdes, rel_auto)
+
 lemma divergences_Chaos: "dv\<lbrakk>Chaos\<rbrakk>s = UNIV"
   by (simp add: divergences_def rdes, rel_auto)
 
@@ -63,11 +172,14 @@ lemma divergences_do: "dv\<lbrakk>do\<^sub>C(e)\<rbrakk>s = {}"
 lemma nil_least [simp]:
   "\<langle>\<rangle> \<le>\<^sub>u x = true" by rel_auto
 
+(*
 lemma traces_seq:
   fixes P :: "('s, 'e) action"
   assumes "P is NCSP" "Q is NCSP"
   shows "tr\<lbrakk>P ;; Q\<rbrakk>s = 
-          {(t\<^sub>1 @ t\<^sub>2, s') | t\<^sub>1 t\<^sub>2 s\<^sub>0 s'. (t\<^sub>1, s\<^sub>0) \<in> tr\<lbrakk>P\<rbrakk>s \<and> (t\<^sub>2, s') \<in> tr\<lbrakk>Q\<rbrakk>s\<^sub>0 \<and> (t\<^sub>1 @ t\<^sub>2) \<notin> dv\<lbrakk>P\<rbrakk>s }"
+          {(t\<^sub>1 @ t\<^sub>2, s') | t\<^sub>1 t\<^sub>2 s\<^sub>0 s'. (t\<^sub>1, s\<^sub>0) \<in> tr\<lbrakk>P\<rbrakk>s \<and> (t\<^sub>2, s') \<in> tr\<lbrakk>Q\<rbrakk>s\<^sub>0 
+                                     \<and> (t\<^sub>1@t\<^sub>2) \<notin> dv\<lbrakk>P\<rbrakk>s 
+                                     \<and> (\<forall> (t, s\<^sub>1) \<in> tr\<lbrakk>P\<rbrakk>s. t \<le> t\<^sub>1@t\<^sub>2 \<longrightarrow> (t\<^sub>1@t\<^sub>2)-t \<notin> dv\<lbrakk>Q\<rbrakk>s\<^sub>1) }"
   (is "?lhs = ?rhs")
 proof 
   show "?lhs \<subseteq> ?rhs"
@@ -208,6 +320,7 @@ lemma traces_prefix:
   assumes "P is NCSP"
   shows "tr\<lbrakk>a \<^bold>\<rightarrow> P\<rbrakk>s = {(a # t, s') | t s'. (t, s') \<in> tr\<lbrakk>P\<rbrakk>s}"
   by (auto simp add: PrefixCSP_def traces_seq traces_do divergences_do lit.rep_eq assms closure Healthy_if)
+*)
 
 subsection {* Deadlock Freedom *}
   

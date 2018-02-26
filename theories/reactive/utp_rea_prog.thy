@@ -40,6 +40,13 @@ syntax
 translations
   "_svid_st_alpha" => "CONST rsp_vars_child_lens"
 
+lemma srea_var_ords [usubst]:
+  "$st \<prec>\<^sub>v $st\<acute>"
+  "$ok \<prec>\<^sub>v $st" "$ok\<acute> \<prec>\<^sub>v $st\<acute>" "$ok \<prec>\<^sub>v $st\<acute>" "$ok\<acute> \<prec>\<^sub>v $st"
+  "$st \<prec>\<^sub>v $wait" "$st\<acute> \<prec>\<^sub>v $wait\<acute>" "$st \<prec>\<^sub>v $wait\<acute>" "$st\<acute> \<prec>\<^sub>v $wait"
+  "$st \<prec>\<^sub>v $tr" "$st\<acute> \<prec>\<^sub>v $tr\<acute>" "$st \<prec>\<^sub>v $tr\<acute>" "$st\<acute> \<prec>\<^sub>v $tr"
+  by (simp_all add: var_name_ord_def)
+
 lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
   by (unfold_locales, auto simp add: lens_defs)
 

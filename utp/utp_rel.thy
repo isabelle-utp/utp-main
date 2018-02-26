@@ -355,6 +355,16 @@ where [upred_defs]: "Ran P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\
 
 update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
 
+subsection \<open> Introduction laws \<close>
+
+lemma urel_refine_ext:
+  "\<lbrakk> \<And> s s'. P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<rbrakk> \<Longrightarrow> P \<sqsubseteq> Q"
+  by (rel_auto)
+
+lemma urel_eq_ext:
+  "\<lbrakk> \<And> s s'. P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> = Q\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<rbrakk> \<Longrightarrow> P = Q"
+  by (rel_auto)
+
 subsection {* Unrestriction Laws *}
 
 lemma unrest_iuvar [unrest]: "out\<alpha> \<sharp> $x"

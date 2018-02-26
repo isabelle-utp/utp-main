@@ -36,6 +36,14 @@ apply (rule injI)
 apply (clarsimp)
 done
 
+lemma circus_var_ords [usubst]:
+  "$ref \<prec>\<^sub>v $ref\<acute>"
+  "$ok \<prec>\<^sub>v $ref" "$ok\<acute> \<prec>\<^sub>v $ref\<acute>" "$ok \<prec>\<^sub>v $ref\<acute>" "$ok\<acute> \<prec>\<^sub>v $ref"
+  "$ref \<prec>\<^sub>v $wait" "$ref\<acute> \<prec>\<^sub>v $wait\<acute>" "$ref \<prec>\<^sub>v $wait\<acute>" "$ref\<acute> \<prec>\<^sub>v $wait"
+  "$ref \<prec>\<^sub>v $st" "$ref\<acute> \<prec>\<^sub>v $st\<acute>" "$ref \<prec>\<^sub>v $st\<acute>" "$ref\<acute> \<prec>\<^sub>v $st"
+  "$ref \<prec>\<^sub>v $tr" "$ref\<acute> \<prec>\<^sub>v $tr\<acute>" "$ref \<prec>\<^sub>v $tr\<acute>" "$ref\<acute> \<prec>\<^sub>v $tr"
+  by (simp_all add: var_name_ord_def)
+
 type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi> list, ('\<phi>, unit) csp_vars_scheme) rsp"
 type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>,'\<phi>) st_csp hrel"
 type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
@@ -108,11 +116,19 @@ lemma unrest_circus_alpha:
 
 lemma unrest_all_circus_vars:
   fixes P :: "('s, 'e) action"
+  assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "\<Sigma> \<sharp> r'" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> s'" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
+  shows "\<Sigma> \<sharp> [$ref\<acute> \<mapsto>\<^sub>s r', $st \<mapsto>\<^sub>s s, $st\<acute> \<mapsto>\<^sub>s s', $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P"
+  using assms
+  by (simp add: bij_lens_unrest_all_eq[OF circus_alpha_bij_lens] unrest_plus_split plus_vwb_lens)
+     (simp add: unrest usubst closure)
+
+lemma unrest_all_circus_vars_st_st':
+  fixes P :: "('s, 'e) action"
   assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> s'" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
   shows "\<Sigma> \<sharp> [$st \<mapsto>\<^sub>s s, $st\<acute> \<mapsto>\<^sub>s s', $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P"
   using assms
   by (simp add: bij_lens_unrest_all_eq[OF circus_alpha_bij_lens] unrest_plus_split plus_vwb_lens)
-      (simp add: unrest usubst closure)
+     (simp add: unrest usubst closure)
 
 lemma unrest_all_circus_vars_st:
   fixes P :: "('s, 'e) action"
@@ -126,7 +142,7 @@ lemma unrest_any_circus_var:
   fixes P :: "('s, 'e) action"
   assumes "$ok \<sharp> P" "$ok\<acute> \<sharp> P" "$wait \<sharp> P" "$wait\<acute> \<sharp> P" "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "\<Sigma> \<sharp> s" "\<Sigma> \<sharp> s'" "\<Sigma> \<sharp> t" "\<Sigma> \<sharp> t'"
   shows "x \<sharp> [$st \<mapsto>\<^sub>s s, $st\<acute> \<mapsto>\<^sub>s s', $tr \<mapsto>\<^sub>s t, $tr\<acute> \<mapsto>\<^sub>s t'] \<dagger> P" 
-  by (simp add: unrest_all_var unrest_all_circus_vars assms)
+  by (simp add: unrest_all_var unrest_all_circus_vars_st_st' assms)
 
 lemma unrest_any_circus_var_st:
   fixes P :: "('s, 'e) action"

@@ -33,6 +33,14 @@ lemma taut_shEx_elim:
   "\<lbrakk> `(\<^bold>\<exists> x \<bullet> P x)`; \<And> x. \<Sigma> \<sharp> P x; \<And> x. `P x` \<Longrightarrow> Q  \<rbrakk> \<Longrightarrow> Q"
   by (rel_blast)
 
+text \<open> Linking refinement and HOL implication \<close>
+
+lemma refine_prop_intro:
+  assumes "\<Sigma> \<sharp> P" "\<Sigma> \<sharp> Q" "`Q` \<Longrightarrow> `P`"
+  shows "P \<sqsubseteq> Q"
+  using assms
+  by (pred_auto)
+
 lemma taut_not: "\<Sigma> \<sharp> P \<Longrightarrow> (\<not> `P`) = `\<not> P`"
   by (rel_auto)
 
