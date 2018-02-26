@@ -511,6 +511,13 @@ lemma R2_seqr_form':
                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   using R2_seqr_form[of P Q] by (simp add: Healthy_if assms)
 
+lemma R2_seqr_form'':
+  assumes "P is R2" "Q is R2"
+  shows "P ;; Q =
+         (\<^bold>\<exists> (tt\<^sub>1, tt\<^sub>2) \<bullet> ((P\<lbrakk>0,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0,\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr,$tr\<acute>\<rbrakk>))
+                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+  by (subst R2_seqr_form', simp_all add: assms, rel_auto)
+
 lemma R2_tr_middle:
   assumes "P is R2" "Q is R2"
   shows "(\<^bold>\<exists> tr\<^sub>0 \<bullet> (P\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>) \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>) = (P ;; Q)"

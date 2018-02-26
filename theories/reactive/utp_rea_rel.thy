@@ -33,7 +33,7 @@ lemma RR_implies_R1 [closure]: "P is RR \<Longrightarrow> P is R1"
 lemma RR_implies_R2c: "P is RR \<Longrightarrow> P is R2c"
   by (metis Healthy_def R2c_RR)
   
-lemma RR_implies_R2: "P is RR \<Longrightarrow> P is R2"
+lemma RR_implies_R2 [closure]: "P is RR \<Longrightarrow> P is R2"
   by (metis Healthy_def R1_RR R2_R2c_def R2c_RR)
 
 lemma RR_intro:
@@ -487,6 +487,9 @@ lemma UINF_ind_rea_true [rpred]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\
 
 lemma UINF_rea_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow>\<^sub>r G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow>\<^sub>r (\<Sqinter> P\<in>A \<bullet> G(P)))"
   by (rel_auto)  
+
+lemma rea_not_shEx [rpred]: "(\<not>\<^sub>r shEx P) = (shAll (\<lambda> x. \<not>\<^sub>r P x))"
+  by (rel_auto)
 
 lemma rea_assert_true:
   "{true\<^sub>r}\<^sub>r = II\<^sub>r"
