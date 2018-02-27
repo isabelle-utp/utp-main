@@ -31,10 +31,13 @@ provides support for lenses, which we use to model variables. Our hybrid systems
 depends on [Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.html).
 
 The easiest way to build the key heap images is using the build script located in ``bin/build.sh``, which also handles
-fetching of appropriate AFP dependencies. Alternatively, you can follow the [AFP
-instructions](https://www.isa-afp.org/using.html), which requires that you download and install the whole AFP first. Our
-build scripts rely on knowing the location of where Isabelle/UTP is installed. If they do not correctly guess the
-location then please set the environment variable ``ISABELLE_UTP`` to the absolute path where it is installed.
+fetching of appropriate AFP dependencies. Running this script will first attempt to download all the necessary libraries
+from the AFP, and will then build the main UTP heap images one by one.
+
+Alternatively, you can follow the [AFP instructions](https://www.isa-afp.org/using.html), which requires that you
+download and install the whole AFP first. Our build scripts rely on knowing the location of where Isabelle/UTP is
+installed. If they do not correctly guess the location then please set the environment variable ``ISABELLE_UTP`` to the
+absolute path where it is installed.
 
 Either way, once the depedencies are installed and appropriate heap images built, you're ready to go. If you wish to
 develop something using UTP, then you can use the heap image called ``UTP``, that can be loaded by invoking
@@ -49,10 +52,10 @@ from the command line in the installed directory. Alternatively you can configur
 Isabelle/UTP core you can instead invoke the ``UTP-Toolkit`` heap image. Various other heap images
 exist including:
 
-* ``UTP-Designs`` -- imperative programs with total correctness
-* ``UTP-Reactive`` -- UTP theory of Generalised Reactive Processes
-* ``UTP-Reactive-Designs" -- Reactive Designs
-* ``UTP-Circus`` -- Circus modelling language
+* ``UTP-Designs`` - imperative programs with total correctness
+* ``UTP-Reactive`` - UTP theory of Generalised Reactive Processes
+* ``UTP-Reactive-Designs`` - Reactive Designs
+* ``UTP-Circus`` - Circus modelling language
 * ``UTP-Hybrid - hybrid relational calculus``
 
 Some of these heap images rely on other entries from the AFP. We therefore provide a utility under ``bin/``
@@ -85,10 +88,10 @@ the following key UTP theories:
 Additionally, under the ``theories/`` directory a number of UTP theories that we have developed can be found,
 including:
 
-* [``utp_designs.thy``](theories/utp_designs.thy) -- theory of designs, including signature, healthiness conditions, and laws
-* [``utp_reactive.thy``](theories/utp_reactive.thy) -- theory of reactive processes
-* [``utp_rea_designs.thy``](theories/utp_rea_designs.thy) -- theory of reactive designs
-* [``utp_csp.thy``](theories/utp_csp.thy) -- theory of CSP process algebra
+* [``utp_designs.thy``](theories/designs/utp_designs.thy) -- theory of designs, including signature, healthiness conditions, and laws
+* [``utp_reactive.thy``](theories/reactive/utp_reactive.thy) -- theory of reactive processes
+* [``utp_rea_designs.thy``](theories/rea_designs/utp_rea_designs.thy) -- theory of reactive designs
+* [``utp_csp.thy``](theories/circus/utp_circus.thy) -- theory of Circus and CSP
 * [``utp_cml.thy``](theories/utp_cml.thy) -- the COMPASS modelling language (see <http://compass-research.eu>)
 
 This repository is constantly a work in progress, so not all laws have yet been proved, though the number
