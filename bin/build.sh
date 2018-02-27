@@ -6,16 +6,14 @@ ISABELLE_UTP=${ISABELLE_UTP:-$(readlink -f $(dirname $0))/..}
 BIN_DIR=$ISABELLE_UTP/bin
 CONTRIB_DIR=$ISABELLE_UTP/contrib
 
-printf "Checking and obtaining AFP dependencies... \n\n"
-
-# Download required AFP entries
-while read in; do $BIN_DIR/afp_get.sh "$in" ; done < $CONTRIB_DIR/ROOTS
+# Check for Isabelle/UTP dependencies
+bash "$BIN_DIR/utp_deps.sh"
 
 ROOT=$ISABELLE_UTP
 
 # Build all heap images of Isabelle/UTP
 
-printf "\nBuilding UTP sessions... \n\n"
+printf "\nBuilding Isabelle/UTP sessions... \n\n"
 
 dirs=( "toolkit" "utp" "theories/designs" "theories/reactive" "theories/rea_designs" "theories/circus" "tutorial" )
 heaps=( "UTP-Toolkit" "UTP" "UTP-Designs" "UTP-Reactive" "UTP-Reactive-Designs" "UTP-Circus" "UTP-Tutorial" )

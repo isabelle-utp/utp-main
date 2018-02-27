@@ -3,7 +3,6 @@ section {* Imports for UTP Hybrid *}
 theory utp_hybrid_imports
   imports
   "UTP.utp"
-  "UTP-Theories.utp_csp"
   "UTP-Reactive-Designs.utp_rea_designs"
   "UTP-Theories.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"

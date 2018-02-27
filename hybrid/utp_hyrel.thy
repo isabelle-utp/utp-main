@@ -3,7 +3,6 @@ section {* Hybrid Relational Calculus *}
 theory utp_hyrel
 imports
   "UTP.utp"
-  "UTP-Theories.utp_csp"
   "UTP-Reactive-Designs.utp_rea_designs"
   "UTP-Theories.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"
