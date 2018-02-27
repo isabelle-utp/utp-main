@@ -1,3 +1,4 @@
-# Ingore all directories and files in this folder except for NOTICE.txt.
+# Ignore all directories and files in this folder except for NOTICE.txt and ROOTS.
 /*
 !NOTICE.txt
+!ROOTS

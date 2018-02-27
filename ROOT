@@ -139,7 +139,6 @@ session "UTP-Theories" in "theories" = "UTP-Circus" +
   options [browser_info = true, document = false]
   theories utp_theories
 
-(*
 session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
   options [browser_info = true, document = false]
   sessions
@@ -238,7 +237,7 @@ session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
     "root.bib"
     "root.tex"
     "document.sty"
-*)
+
 
 (* FMI Mechanisation *)
 
