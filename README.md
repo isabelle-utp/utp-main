@@ -1,13 +1,13 @@
 Isabelle/UTP
 ============
 
-This is a semantic embedding of Hoare and He's _Unifying Theories of Programming_ (UTP) in the Isabelle/HOL proof
-assistant. We base this particular implementation on the shallow embedding first created by Feliachi, Gaudel, and Wolff
-(2010), but we also integrates a number of ideas from the alternative deep model of the UTP in Isabelle by Foster,
-Zeyda, and Woodcock (2015).  In particular we recast variables to characterised by lenses (see Foster, Zeyda, and
-Woodcock (2016)), and add semantic approximations of syntactic notions like fresh variables (unrestriction) and
-substitution, and also add a form of "deep variables" that provides a more flexible form of alphabet extension (whilst
-being subject to certain cardinality constraints).
+This is a semantic embedding of Hoare and He's [Unifying Theories of Programming](http://www.unifyingtheories.org/)
+(UTP) in the Isabelle/HOL proof assistant. We base this particular implementation on the shallow embedding first created
+by Feliachi, Gaudel, and Wolff (2010), but we also integrates a number of ideas from the alternative deep model of the
+UTP in Isabelle by Foster, Zeyda, and Woodcock (2015).  In particular we recast variables to characterised by lenses
+(see Foster, Zeyda, and Woodcock (2016)), and add semantic approximations of syntactic notions like fresh variables
+(unrestriction) and substitution, and also add a form of "deep variables" that provides a more flexible form of alphabet
+extension (whilst being subject to certain cardinality constraints).
 
 Our aim is to use this version of Isabelle/UTP to support the mechanised semantics work we
 are doing on EU H2020 project "INTO-CPS" (Grant agreement 644047) -- see <http://into-cps.au.dk/>
@@ -22,38 +22,50 @@ Add-ons](https://addons.mozilla.org/en-US/firefox/addon/matisa/).
 Installation
 ------------
 
-Installation requires that you have already installed the latest version of Isabelle on your
-system from <http://isabelle.in.tum.de/> (at time of writing this is Isabelle2016-1). We provide
-a ROOT file in this repository with a number of heap images. If you wish to develop something
-using UTP, then you can use the heap image called "UTP", that can be loaded by invoking
+Installation requires that you have already installed the latest version of Isabelle on your system from
+<http://isabelle.in.tum.de/> (at time of writing this is Isabelle2017). We provide a ROOT file in this repository with a
+number of heap images. Our Isabelle theories depend on a number of entries from the [Archive of Formal
+Proofs](https://www.isa-afp.org) (AFP), and without installing these dependencies you will not be able to start
+Isabelle/UTP. Our repository notably depends on the [Optics](https://www.isa-afp.org/entries/Optics.html) session which
+provides support for lenses, which we use to model variables. Our hybrid systems modelling session ``UTP-Hybrid`` also
+depends on [Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.html).
+
+The easiest way to build the key heap images is using the build script located in ``bin/build.sh``, which also handles
+fetching of appropriate AFP dependencies. Alternatively, you can follow the [AFP
+instructions](https://www.isa-afp.org/using.html), which requires that you download and install the whole AFP first. Our
+build scripts rely on knowing the location of where Isabelle/UTP is installed. If they do not correctly guess the
+location then please set the environment variable ``ISABELLE_UTP`` to the absolute path where it is installed.
+
+Either way, once the depedencies are installed and appropriate heap images built, you're ready to go. If you wish to
+develop something using UTP, then you can use the heap image called ``UTP``, that can be loaded by invoking
 
 ```bash
-isabelle jedit -d. -l UTP
+isabelle jedit -d. -d contrib/ -l UTP
 ```
 
 from the command line in the installed directory. Alternatively you can configure your main Isabelle
-ROOTS file so that it knows about the location of Isabelle/UTP 
-(see <https://isabelle.in.tum.de/dist/Isabelle2016-1/doc/system.pdf>). If you're developing the
-Isabelle/UTP core you can instead invoke the UTP-IMPORTS heap image. Various other heap images
+``ROOTS`` file so that it knows about the location of Isabelle/UTP 
+(see <https://isabelle.in.tum.de/dist/Isabelle2017/doc/system.pdf>). If you're developing the
+Isabelle/UTP core you can instead invoke the ``UTP-Toolkit`` heap image. Various other heap images
 exist including:
 
-* UTP-DEEP -- adds support for deep variables
-* UTP-THY -- a repository of UTP theories including designs, reactive processes, and CSP
-* UTP-HYBRID - hybrid relational calculus
+* ``UTP-Designs`` -- imperative programs with total correctness
+* ``UTP-Reactive`` -- UTP theory of Generalised Reactive Processes
+* ``UTP-Reactive-Designs" -- Reactive Designs
+* ``UTP-Circus`` -- Circus modelling language
+* ``UTP-Hybrid - hybrid relational calculus``
 
 Some of these heap images rely on other entries from the AFP. We therefore provide a utility under ``bin/``
-called ``afp_get.sh`` which fetches entries and places them in the contrib directory. UTP-HYBRID notably
-relies on [Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.shtml)
-which can be obtained by running
+called ``afp_get.sh`` which fetches entries and places them in the contrib directory. For example, 
+[Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.shtml)
+can be obtained by running
 
 ```bash
 bin/afp_get.sh Ordinary_Differential_Equations
 ```
 
 from the main UTP root directory. Alternatively there is a script ``bin/build.sh`` which fetches all dependencies
-and builds all heap images, and thus may be an easier option for installation. Our scripts rely on knowing the location
-of where Isabelle/UTP is installed. If they do not correctly guess the location then please set the environment variable
-``ISABELLE_UTP`` to the absolute path where it is installed.
+and builds all heap images, and thus may be an easier option for installation. 
 
 Repository overview
 -------------------
@@ -94,11 +106,11 @@ Usage
 
 Isabelle/UTP is documented by a number of tutorial theories under the ``tutorial/`` directory. First and
 foremost it is worth checking the [UTP tutorial theory](tutorial/utp_tutorial.thy) which attempts to give
-an overview of the UTP in Isabelle. You can view the associated [PDF of the tutorial](tutorial/utp_tutorial.pdf) 
+an overview of the UTP in Isabelle. You can view the associated [PDF of the tutorial](doc/UTP-Tutorial.pdf) 
 as well. You can also check out [Boyle's law](tutorial/utp_boyle.thy) for a very 
 basic UTP theory. An example of usage of the theory of designs for proving properties about programs can
 be found in the [library example](tutorial/utp_library.thy). You can also check out the 
-[proof document](utp/utp.pdf). We also provide some preliminary usage notes below.
+[proof document](doc/UTP.pdf). We also provide some preliminary usage notes below.
 
 ### Parser
 
