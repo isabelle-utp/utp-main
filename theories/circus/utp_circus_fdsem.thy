@@ -24,6 +24,12 @@ definition traces :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Right
 definition failures :: "('\<sigma>,'\<phi>) action \<Rightarrow> '\<sigma> \<Rightarrow> ('\<phi> list \<times> '\<phi> set) set" ("fl\<lbrakk>_\<rbrakk>_" [0,100] 100) where
 [upred_defs]: "failures P s = {(t,r) | t r. `(pre\<^sub>R(P) \<and> peri\<^sub>R(P))\<lbrakk>\<guillemotleft>r\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$ref\<acute>,$st,$tr,$tr\<acute>\<rbrakk>`}"
 
+lemma trace_divergence_disj:
+  assumes "P is NCSP" "(t, s') \<in> tr\<lbrakk>P\<rbrakk>s" "t \<in> dv\<lbrakk>P\<rbrakk>s"
+  shows False
+  using assms(2,3)
+  by (simp add: traces_def divergences_def, rdes_simp cls:assms, rel_auto)
+
 lemma preR_refine_divergences:
   assumes "P is NCSP" "Q is NCSP" "\<And> s. dv\<lbrakk>P\<rbrakk>s \<subseteq> dv\<lbrakk>Q\<rbrakk>s"
   shows "pre\<^sub>R(P) \<sqsubseteq> pre\<^sub>R(Q)"
@@ -255,7 +261,6 @@ proof -
   finally show ?thesis .
 qed
 
-(*
 lemma traces_seq:
   fixes P :: "('s, 'e) action"
   assumes "P is NCSP" "Q is NCSP"
@@ -330,11 +335,14 @@ proof
         by (rel_auto)
     qed
 
-    from a2 have ndiv: "\<not> `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tr\<^sub>0 @ (t - tr\<^sub>0)\<guillemotright>] \<dagger> (\<not>\<^sub>r pre\<^sub>R P)`"
-      using tr0 by (rel_auto)
+    from a2 have ndiv: "\<not> `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (\<not>\<^sub>r pre\<^sub>R P)`"
+      by (rel_auto)
+
+    have t_minus_tr0: "tr\<^sub>0 @ (t - tr\<^sub>0) = t"
+      using append_minus tr0 by blast
 
     from a3
-    have "\<And>t\<^sub>0 s\<^sub>1.
+    have wpr: "\<And>t\<^sub>0 s\<^sub>1.
            `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> pre\<^sub>R P` \<Longrightarrow>
            `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> post\<^sub>R P` \<Longrightarrow>
             t\<^sub>0 \<le> t \<Longrightarrow> `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t - t\<^sub>0\<guillemotright>] \<dagger> (\<not>\<^sub>r pre\<^sub>R Q)` \<Longrightarrow> False"
@@ -346,37 +354,15 @@ proof
         "t\<^sub>0 \<le> t" 
         "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t - t\<^sub>0\<guillemotright>] \<dagger> (\<not>\<^sub>r pre\<^sub>R Q)`"
 
-      from b(2) have c1: "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> RR(post\<^sub>R P)`"
-        by (simp add: Healthy_if assms closure)
+      from a3 have c: "`\<^bold>\<forall> (s\<^sub>0, t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>t\<guillemotright> 
+                                \<and> [$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> post\<^sub>R P 
+                                \<Rightarrow> [$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright> - \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> pre\<^sub>R Q`"
+        by (simp add: wp_rea_circus_form_alt[of "post\<^sub>R P" "pre\<^sub>R Q"] closure assms unrest usubst)
+           (rel_simp)
 
-      from b(4) have c2: "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t - t\<^sub>0\<guillemotright>] \<dagger> (\<not>\<^sub>r RC(pre\<^sub>R Q))`"
-        by (simp add: Healthy_if assms closure)
-
-      from a3 have "`\<^bold>\<forall> (s\<^sub>0, t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> [$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> post\<^sub>R P 
-                               \<Rightarrow>\<^sub>r [$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> pre\<^sub>R Q`"
-        using wp_rea_circus_form[of "post\<^sub>R P" "pre\<^sub>R Q"]
-        apply (simp_all add: closure assms unrest usubst)
-
-      from a3 have
-
-      from a3 have c3: "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> (RR(post\<^sub>R P) wp\<^sub>r RC(pre\<^sub>R Q))`"
-        by (simp add: Healthy_if assms closure)
-
-      from a3 have "`\<^bold>\<forall> (s\<^sub>0, t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>t\<guillemotright> \<Rightarrow> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$st\<acute>,$tr,$tr\<acute>\<rbrakk> \<and> \<not>\<^sub>r Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t - t\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>`"
-        using wp_rea_circus[of "post\<^sub>R P" "pre\<^sub>R Q" s t]  apply (simp_all add: closure unrest assms)
-
-(*
-      have "\<And> s\<^sub>0 t\<^sub>0. t\<^sub>0 \<le> t \<Longrightarrow> `[$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> post\<^sub>R P \<and>
-                                 \<not>\<^sub>r [$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t - t\<^sub>0\<guillemotright>] \<dagger> pre\<^sub>R Q`"
-
-        using wp_rea_circus[of "post\<^sub>R P" "pre\<^sub>R Q" s t]
-        apply (simp_all add: closure unrest assms)
-*)
-
-      from c1 c2 c3 b(3) show False
-        apply (simp add: wp_rea_def)
-        apply (rel_auto)
-
+      from c b(2-4) show False
+        by (rel_auto)
+    qed
       
     show "\<exists>t\<^sub>1 t\<^sub>2.
             t = t\<^sub>1 @ t\<^sub>2 \<and>
@@ -393,7 +379,7 @@ proof
       apply (auto)
       using tr0 apply auto[1]
       apply (rule_tac x="s\<^sub>0" in exI)
-      apply (auto simp add: taut_conj preP preQ postP postQ ndiv)
+      apply (auto intro:wpr simp add: taut_conj preP preQ postP postQ ndiv wpr t_minus_tr0)
       done
   qed
 
@@ -447,11 +433,15 @@ proof
   qed
 qed
 
+lemma Cons_minus [simp]: "(a # t) - [a] = t"
+  by (metis append_Cons append_Nil append_minus)
+  
 lemma traces_prefix: 
   assumes "P is NCSP"
   shows "tr\<lbrakk>a \<^bold>\<rightarrow> P\<rbrakk>s = {(a # t, s') | t s'. (t, s') \<in> tr\<lbrakk>P\<rbrakk>s}"
-  by (auto simp add: PrefixCSP_def traces_seq traces_do divergences_do lit.rep_eq assms closure Healthy_if)
-*)
+  apply (auto simp add: PrefixCSP_def traces_seq traces_do divergences_do lit.rep_eq assms closure Healthy_if trace_divergence_disj)
+  apply (meson assms trace_divergence_disj)
+  done
 
 subsection {* Deadlock Freedom *}
   
