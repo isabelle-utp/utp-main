@@ -43,7 +43,7 @@ Either way, once the depedencies are installed and appropriate heap images built
 develop something using UTP, then you can use the heap image called ``UTP``, that can be loaded by invoking
 
 ```bash
-isabelle jedit -d. -d contrib/ -l UTP
+bin/utp-jedit UTP
 ```
 
 from the command line in the installed directory. Alternatively you can configure your main Isabelle
