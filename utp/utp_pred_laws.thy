@@ -44,6 +44,18 @@ lemma refine_prop_intro:
 lemma taut_not: "\<Sigma> \<sharp> P \<Longrightarrow> (\<not> `P`) = `\<not> P`"
   by (rel_auto)
 
+lemma taut_shAll_intro:
+  "\<forall> x. `P x` \<Longrightarrow> `\<^bold>\<forall> x \<bullet> P x`"
+  by (rel_auto)
+
+lemma taut_shAll_intro_2:
+  "\<forall> x y. `P x y` \<Longrightarrow> `\<^bold>\<forall> (x, y) \<bullet> P x y`"
+  by (rel_auto)
+
+lemma taut_impl_intro:
+  "\<lbrakk> \<Sigma> \<sharp> P; `P` \<Longrightarrow> `Q` \<rbrakk> \<Longrightarrow> `P \<Rightarrow> Q`"
+  by (rel_auto)
+
 lemma upred_eval_taut:
   "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<^bold>v\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
   by (pred_auto)

@@ -11,20 +11,50 @@ text \<open> CSP Reactive Relations \<close>
 definition CRR :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
 [upred_defs]: "CRR(P) = (\<exists> $ref \<bullet> RR(P))"
 
-text \<open> CSP Reactive Conditions \<close>
+lemma CRR_idem: "CRR(CRR(P)) = CRR(P)"
+  by (rel_auto)
 
-definition CRC :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
-[upred_defs]: "CRC(P) = (\<exists> $ref \<bullet> RC(P))"
+lemma Idempotent_CRR [closure]: "Idempotent CRR"
+  by (simp add: CRR_idem Idempotent_def)
 
 lemma CRR_intro:
   assumes "$ref \<sharp> P" "P is RR"
   shows "P is CRR"
   by (simp add: CRR_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+
+text \<open> CSP Reactive Conditions \<close>
+
+definition CRC :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
+[upred_defs]: "CRC(P) = (\<exists> $ref \<bullet> RC(P))"
     
 lemma CRC_intro:
   assumes "$ref \<sharp> P" "P is RC"
   shows "P is CRC"
   by (simp add: CRC_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+
+lemma ref_unrest_RR [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> RR P"
+  by (rel_auto, blast+)
+
+lemma ref_unrest_RC1 [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> RC1 P"
+  by (rel_auto, blast+)
+
+lemma ref_unrest_RC [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> RC P"
+  by (simp add: RC_R2_def ref_unrest_RC1 ref_unrest_RR)
+
+lemma RR_ex_ref: "RR (\<exists> $ref \<bullet> RR P) = (\<exists> $ref \<bullet> RR P)"
+  by (rel_auto)
+
+lemma RC1_ex_ref: "RC1 (\<exists> $ref \<bullet> RC1 P) = (\<exists> $ref \<bullet> RC1 P)"
+  by (rel_auto, meson dual_order.trans)
+
+lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
+  apply (simp add: CRC_def ex_unrest  unrest)
+  apply (simp add: RC_def RR_ex_ref)
+  apply (metis (no_types, hide_lams) Healthy_def RC1_RR_closed RC1_ex_ref RR_ex_ref RR_idem)
+done
+
+lemma Idempotent_CRC [closure]: "Idempotent CRC"
+  by (simp add: CRC_idem Idempotent_def)
 
 subsection \<open> Closure Properties \<close>
 

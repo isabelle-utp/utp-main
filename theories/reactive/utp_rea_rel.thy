@@ -441,6 +441,16 @@ lemma rea_impl_mp [rpred]:
   "(P \<and> (P \<Rightarrow>\<^sub>r Q)) = (P \<and> Q)"
   by (rel_auto)
 
+lemma rea_impl_alt_def:
+  assumes "Q is R1"
+  shows "(P \<Rightarrow>\<^sub>r Q) = R1(P \<Rightarrow> Q)"
+proof -
+  have "(P \<Rightarrow>\<^sub>r R1(Q)) = R1(P \<Rightarrow> Q)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
     
