@@ -102,6 +102,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma ex_st'_RR_closed [closure]: 
+  assumes "P is RR"
+  shows "(\<exists> $st\<acute> \<bullet> P) is RR"
+proof -
+  have "RR (\<exists> $st\<acute> \<bullet> RR(P)) = (\<exists> $st\<acute> \<bullet> RR(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 subsection \<open> State Lifting \<close>
 
 abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S")

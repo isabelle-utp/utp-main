@@ -228,6 +228,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma NSRD_alt_def: "NSRD(P) = RD3(SRD(P))"
+  by (metis NSRD_def RD1_RD3_commute RD3_left_subsumes_RD2 SRD_def comp_eq_dest_lhs)
+
 lemma preR_RR [closure]: "P is NSRD \<Longrightarrow> pre\<^sub>R(P) is RR"
   by (rule RR_intro, simp_all add: closure unrest)
 

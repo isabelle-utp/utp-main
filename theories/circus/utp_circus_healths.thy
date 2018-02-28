@@ -38,6 +38,8 @@ definition CSP4 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) s
 definition NCSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
 [upred_defs]: "NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
 
+abbreviation "PCSP \<equiv> Productive \<circ> NCSP"
+
 subsection \<open> Healthiness condition properties \<close>
 
 text {* @{term SKIP} is the same as @{term Skip}, and @{term STOP} is the same as @{term Stop},
@@ -169,6 +171,16 @@ proof -
     by (rel_auto)
 qed
 
+lemma CSP3_rdes:
+  assumes "P is RR" "Q is RR" "R is RR"
+  shows "CSP3(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s((\<forall> $ref \<bullet> P) \<turnstile> (\<exists> $ref \<bullet> Q) \<diamondop> (\<exists> $ref \<bullet> R))"
+  by (simp add: CSP3_def Skip_left_lemma closure assms rdes, rel_auto)
+
+lemma CSP3_form:
+  assumes "P is CSP"
+  shows "CSP3(P) = \<^bold>R\<^sub>s((\<forall> $ref \<bullet> pre\<^sub>R(P)) \<turnstile> (\<exists> $ref \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref \<bullet> post\<^sub>R(P)))"
+  by (simp add: CSP3_def Skip_left_lemma assms, rel_auto)
+
 lemma CSP3_Skip [closure]:
   "Skip is CSP3"
   by (rule CSP3_intro, simp add: Skip_is_CSP, simp add: Skip_def unrest)
@@ -240,7 +252,17 @@ proof -
   thus ?thesis
     by (simp add: CSP4_intro assms)
 qed
-      
+
+lemma CSP4_rdes:
+  assumes "P is RR" "Q is RR" "R is RR"
+  shows "CSP4(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s ((\<not>\<^sub>r P) wp\<^sub>r false \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> (\<exists> $ref\<acute> \<bullet> R)))"
+  by (simp add: CSP4_def Skip_right_lemma closure assms rdes, rel_auto, blast+)
+
+lemma CSP4_form:
+  assumes "P is CSP"
+  shows "CSP4(P) =   \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> (\<exists> $ref\<acute> \<bullet> post\<^sub>R P)))"
+  by (simp add: CSP4_def Skip_right_tri_lemma assms)
+
 lemma Skip_srdes_right_unit:
   "(Skip :: ('\<sigma>,'\<phi>) action) ;; II\<^sub>R = Skip"
   by (rdes_simp)
@@ -329,6 +351,21 @@ lemma NSRD_CSP4_intro:
   assumes "P is CSP" "P is CSP4"
   shows "P is NSRD"
   by (simp add: CSP4_implies_RD3 SRD_RD3_implies_NSRD assms(1) assms(2))
+
+lemma NCSP_form: 
+  "NCSP P = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(P)) wp\<^sub>r false) \<turnstile> ((\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R(P))))"
+proof -
+  have "NCSP P = CSP3 (CSP4 (NSRD P))"
+    by (metis (no_types, hide_lams) CSP4_def NCSP_def NSRD_alt_def RA1 RD3_def Skip_srdes_left_unit o_apply)
+  also 
+  have "... =  \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R (NSRD P)) wp\<^sub>r false) \<turnstile>
+                   (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R (NSRD P)) \<diamondop>
+                   (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NSRD P)))"
+    by (simp add: CSP3_form CSP4_form closure unrest rdes, rel_auto)
+  also have "... = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(P)) wp\<^sub>r false) \<turnstile> ((\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R(P))))"
+    by (simp add: NSRD_form rdes closure, rel_blast)
+  finally show ?thesis .
+qed
 
 lemma CSP4_st'_unrest_peri [unrest]:
   assumes "P is CSP" "P is CSP4"

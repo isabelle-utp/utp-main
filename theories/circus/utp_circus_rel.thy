@@ -47,6 +47,16 @@ lemma RR_ex_ref: "RR (\<exists> $ref \<bullet> RR P) = (\<exists> $ref \<bullet>
 lemma RC1_ex_ref: "RC1 (\<exists> $ref \<bullet> RC1 P) = (\<exists> $ref \<bullet> RC1 P)"
   by (rel_auto, meson dual_order.trans)
 
+lemma ex_ref'_RR_closed [closure]: 
+  assumes "P is RR"
+  shows "(\<exists> $ref\<acute> \<bullet> P) is RR"
+proof -
+  have "RR (\<exists> $ref\<acute> \<bullet> RR(P)) = (\<exists> $ref\<acute> \<bullet> RR(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
   apply (simp add: CRC_def ex_unrest  unrest)
   apply (simp add: RC_def RR_ex_ref)
