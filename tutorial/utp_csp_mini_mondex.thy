@@ -1,7 +1,7 @@
 section {* Mini-mondex example *}
 
 theory utp_csp_mini_mondex
-  imports "../theories/utp_csp"
+  imports "UTP-Circus.utp_circus"
 begin
 
 text {* This example is a modified version of the Mini-Mondex card example taken from the 2014
@@ -163,7 +163,11 @@ text {* We perform verification by writing contracts that specify desired behavi
   that initially the number of cards is $cardNum$. The pericondition is $true$ as we don't
   care about intermediate behaviour here. The postcondition has that the summation of the 
   sequence of card values remains the same, though of course individual records will change. *}
-  
+
+lemma uminus_inter_insert [simp]: 
+  "(- A) \<inter> (- insert x B) = (- insert x A) \<inter> (- B)"
+  by (auto)
+
 theorem money_constant:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
   shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"

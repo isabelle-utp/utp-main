@@ -3,8 +3,8 @@ section {* Encoding real numbers as bit sequences *}
 theory Real_Bit
 imports
   Transcendental
-  "~~/src/HOL/Library/Bit"
-  "~~/src/HOL/Library/Sublist"
+  "HOL-Library.Bit"
+  "HOL-Library.Sublist"
   Dyadic
 begin
 
@@ -431,7 +431,7 @@ proof -
   apply (simp add: nth_cont_def)
   apply (cases "\<lfloor>x * (2 * 2 ^ i)\<rfloor>" rule: parity_cases)
   apply (simp_all)
-  using zmod_eq_dvd_iff apply force
+    apply (metis minus_int_code(1) mod_diff_right_eq)
   done
 qed
 

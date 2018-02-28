@@ -12,9 +12,6 @@ section {* UTP Tactics *}
 
 theory utp_tactics
   imports 
-    "~/src/HOL/Eisbach/Eisbach"
-    "../optics/Lenses" 
-    "../optics/Interp" 
     utp_expr utp_unrest utp_usedby
 keywords "update_uexpr_rep_eq_thms" :: thy_decl
 begin
@@ -266,7 +263,7 @@ text {* Simpler, one-shot versions of the above tactics, but without the possibi
   
 method rel_simp' 
   uses simp 
-  = (simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp add: upred_defs urel_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_auto' 
   uses simp intro elim dest

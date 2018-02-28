@@ -9,13 +9,10 @@ section {* Meta-theory for UTP Theories *}
 
 theory utp_theories
 imports
-  utp_designs
-  utp_invariants
-  utp_refcalc
-  utp_reactive
-  utp_rea_designs
-  utp_reactive_hoare
+  "UTP-Designs.utp_designs"
+  "UTP-Reactive.utp_reactive"
+  "UTP-Reactive-Designs.utp_rea_designs"
   utp_time_rel
-  utp_csp
+  "UTP-Circus.utp_circus"
   utp_cml
 begin recall_syntax end

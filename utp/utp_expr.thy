@@ -269,10 +269,9 @@ instance uexpr :: (ordered_ab_group_add, type) ordered_ab_group_add
 
 instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
   apply (intro_classes)
-  apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
+      apply (simp add: abs_uexpr_def zero_uexpr_def plus_uexpr_def uminus_uexpr_def, transfer, simp add: abs_ge_self abs_le_iff abs_triangle_ineq)+
   apply (metis ab_group_add_class.ab_diff_conv_add_uminus abs_ge_minus_self abs_ge_self add_mono_thms_linordered_semiring(1))
-done
-
+  done
 
 text \<open> The following instantiation sets up numerals. This will allow us to have Isabelle number
   representations (i.e. 3,7,42,198 etc.) to UTP expressions directly. \<close>
@@ -285,10 +284,10 @@ text \<open> The following two theorems also set up interpretation of numerals, 
     
 lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
   apply (induct x)
-  apply (simp add: lit.rep_eq one_uexpr_def)
-  apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
+    apply (simp add: lit.rep_eq one_uexpr_def)
+   apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
   apply (simp add: bop.rep_eq lit.rep_eq numeral_code(3) one_uexpr_def plus_uexpr_def)
-done
+  done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
   by (simp add: uexpr_eq_iff numeral_uexpr_rep_eq lit.rep_eq)
@@ -297,10 +296,10 @@ text \<open> The next theorem lifts powers. \<close>
 
 lemma power_rep_eq: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
   by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
-    
-text \<open> We can also lift a few arithmetic properties from the class instantiations above using
+
+text \<open> We can also lift a few trace properties from the class instantiations above using
   \emph{transfer}. \<close>
-    
+
 lemma uexpr_diff_zero [simp]:
   fixes a :: "('\<alpha>::trace, 'a) uexpr"
   shows "a - 0 = a"
@@ -373,9 +372,15 @@ text \<open> The follows a large number of translations that lift HOL functions 
   the HOL syntax but add a "u" subscript. \<close>
   
 abbreviation (input) "ulens_override x f g \<equiv> lens_override f g x"
+
+text \<open> This operator allows us to get the characteristic set of a type. Essentially this is 
+  @{term "UNIV"}, but it retains the type syntactically for pretty printing. \<close>
+
+definition set_of :: "'a itself \<Rightarrow> 'a set" where
+"set_of t = UNIV"
   
 translations
-  "0" <= "CONST uempty" -- {* We have to do this so we don't see uempty. Is there a better way of printing? *}
+  "0" <= "CONST uempty" -- \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
     
 text \<open> We add new non-terminals for UTP tuples and maplets. \<close>
   
@@ -495,7 +500,8 @@ syntax -- \<open> Lists / Sequences \<close>
   "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
   "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
   "_uzip"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("zip\<^sub>u")
-  
+  "_utr_iter"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("iter[_]'(_')")
+
 translations
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
@@ -516,7 +522,8 @@ translations
   "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
   "map\<^sub>u f xs" == "CONST bop CONST map f xs"
   "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
-  
+  "iter[n](P)" == "CONST uop (CONST tr_iter n) P"
+
 syntax -- \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
@@ -526,6 +533,11 @@ syntax -- \<open> Sets \<close>
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
   "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
   "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
+  "_uconverse"  :: "logic \<Rightarrow> logic" ("(_\<^sup>~)" [1000] 999)
+  "_ucarrier"   :: "type \<Rightarrow> logic" ("[_]\<^sub>T")
+  "_uid"        :: "type \<Rightarrow> logic" ("id[_]")
+  "_uproduct"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<times>\<^sub>u" 80)
+  "_urelcomp"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr ";\<^sub>u" 75)
 
 translations
   "finite\<^sub>u(x)" == "CONST uop (CONST finite) x"
@@ -541,7 +553,12 @@ translations
   "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
   "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
-  
+  "P\<^sup>~"        == "CONST uop CONST converse P"
+  "['a]\<^sub>T"     == "\<guillemotleft>CONST set_of TYPE('a)\<guillemotright>"
+  "id['a]"    == "\<guillemotleft>CONST Id_on (CONST set_of TYPE('a))\<guillemotright>"
+  "A \<times>\<^sub>u B"    == "CONST bop CONST Product_Type.Times A B"
+  "A ;\<^sub>u B"    == "CONST bop CONST relcomp A B"
+
 syntax -- \<open> Partial functions \<close>
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>u" 85)
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
@@ -626,7 +643,7 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
-  plus_list_def
+(*  plus_list_def *)
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
   the above definitions are defined. Thus, using these theorems together, we can convert any UTP 
@@ -685,6 +702,12 @@ lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle
 
 lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
   by (transfer, simp)
+
+lemma uconcat_units [simp]: "\<langle>\<rangle> ^\<^sub>u xs = xs" "xs ^\<^sub>u \<langle>\<rangle> = xs"
+  by (transfer, simp)+
+
+lemma iter_0 [simp]: "iter[0](t) = \<langle>\<rangle>"
+  by (transfer, simp add: zero_list_def)
 
 lemma ufun_apply_lit [simp]: 
   "\<guillemotleft>f\<guillemotright>(\<guillemotleft>x\<guillemotright>)\<^sub>a = \<guillemotleft>f(x)\<guillemotright>"

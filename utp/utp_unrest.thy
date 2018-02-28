@@ -73,7 +73,7 @@ lemma unrest_var_comp [unrest]:
 
 lemma unrest_svar [unrest]: "(&x \<sharp> P) \<longleftrightarrow> (x \<sharp> P)"
   by (transfer, simp add: lens_defs)
-    
+
 text {* No lens is restricted by a literal, since it returns the same value for any state binding. *}
     
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
@@ -97,6 +97,38 @@ lemma unrest_equiv:
   assumes "mwb_lens y" "x \<approx>\<^sub>L y" "x \<sharp> P"
   shows "y \<sharp> P"
   by (metis assms lens_equiv_def sublens_pres_mwb sublens_put_put unrest_uexpr.rep_eq)
+
+text \<open> If we can show that an expression is unrestricted on a bijective lens, then is unrestricted
+  on the entire state-space. \<close>
+
+lemma bij_lens_unrest_all:
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "bij_lens X" "X \<sharp> P"
+  shows "\<Sigma> \<sharp> P"
+  using assms bij_lens_equiv_id lens_equiv_def unrest_sublens by blast
+
+lemma bij_lens_unrest_all_eq:
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "bij_lens X"
+  shows "(\<Sigma> \<sharp> P) \<longleftrightarrow> (X \<sharp> P)"
+  by (meson assms bij_lens_equiv_id lens_equiv_def unrest_sublens)
+
+text \<open> If an expression is unrestricted by all variables, then it is unrestricted by any variable \<close>
+
+lemma unrest_all_var:
+  fixes e :: "('a, '\<alpha>) uexpr"
+  assumes "\<Sigma> \<sharp> e"
+  shows "x \<sharp> e"
+  by (metis assms id_lens_def lens.simps(2) unrest_uexpr.rep_eq)
+
+text \<open> We can split an unrestriction composed by lens plus \<close>
+
+lemma unrest_plus_split:
+  fixes P :: "('a, '\<alpha>) uexpr"
+  assumes "x \<bowtie> y" "vwb_lens x" "vwb_lens y"
+  shows "unrest (x +\<^sub>L y) P \<longleftrightarrow> (x \<sharp> P) \<and> (y \<sharp> P)"
+  using assms
+  by (meson lens_plus_right_sublens lens_plus_ub sublens_refl unrest_sublens unrest_var_comp vwb_lens_wb)
 
 text {* The following laws demonstrate the primary motivation for lens independence: a variable
   expression is unrestricted by another variable only when the two variables are independent. 

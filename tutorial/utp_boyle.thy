@@ -1,7 +1,7 @@
 section {* Example UTP theory: Boyle's laws *}
 (*<*)
 theory utp_boyle
-imports "../utp/utp_theory"
+imports "UTP.utp_theory"
 begin
 (*>*)
 

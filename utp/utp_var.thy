@@ -2,13 +2,13 @@ section \<open> UTP variables \<close>
 
 theory utp_var
   imports
-  "../utils/utp_imports"
+  "../toolkit/utp_toolkit"
   utp_parser_utils
 begin
 
 text \<open> In this first UTP theory we set up variable, which are are built on lenses. A large part
   of this theory is setting up the parser for UTP variable syntax. \<close>
-  
+
 subsection \<open> Initial syntax setup \<close>
   
 text \<open> We will overload the square order relation with refinement and also the lattice operators so
@@ -20,17 +20,10 @@ purge_notation
   Lattice.inf ("\<Sqinter>\<index>_" [90] 90) and
   Lattice.join (infixl "\<squnion>\<index>" 65) and
   Lattice.meet (infixl "\<sqinter>\<index>" 70) and
-  LFP ("\<mu>\<index>") and
-  GFP ("\<nu>\<index>") and
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50) and
   disj  (infixr "|" 30) and
   conj  (infixr "&" 35)
-  
-text \<open> We hide HOL's built-in relation type since we will replace it with our own \<close>
-
-hide_type rel
-type_synonym 'a relation = "('a \<times> 'a) set"
 
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
@@ -171,7 +164,7 @@ lemma out_var_sublens [simp]:
 lemma pr_var_sublens [simp]:
   "y \<subseteq>\<^sub>L x \<Longrightarrow> pr_var y \<subseteq>\<^sub>L pr_var x"
   by (simp add: pr_var_def)
-    
+
 subsection \<open> Lens simplifications \<close>
     
 text \<open> We also define some lookup abstraction simplifications. \<close>

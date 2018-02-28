@@ -2,7 +2,7 @@ section {* Isabelle/UTP Primer *}
 
 (*<*)
 theory utp_tutorial
-imports "../theories/utp_theories"
+imports "UTP-Theories.utp_theories"
 begin
 (*>*)
 
@@ -201,7 +201,7 @@ text {* The first quantification is a quantification of a UTP variable, which we
 
 subsection {* Relations *}
 
-text {* Relations, @{typ "('\<alpha>, '\<beta>) rel"}, are a class of predicate in which the state space is a product
+text {* Relations, @{typ "('\<alpha>, '\<beta>) urel"}, are a class of predicate in which the state space is a product
   -- i.e. @{typ "('\<alpha> \<times> '\<beta>) upred"} -- and divides the variables into input or ``before'' variables
   and output or ``after'' variables. In Isabelle/UTP we can write down a relational variable using
   the dollar notation, as illustrated below: *}

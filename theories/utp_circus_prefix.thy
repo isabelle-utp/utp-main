@@ -9,7 +9,7 @@
 section {* {\Circus} Prefixes (OLD) *}
 
 theory utp_circus_prefix
-imports utp_theories_deep
+imports "UTP-Theories-Deep.utp_theories_deep"
 begin (* recall_syntax *)
 
 text \<open>TODO: Allow simplification theorems to be passed to @{method rel_simp}.\<close>

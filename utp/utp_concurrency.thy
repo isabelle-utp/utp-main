@@ -118,7 +118,7 @@ subsection {* Merge Predicates *}
 text {* A merge predicate is a relation whose input has three parts: the prior variables, the output
   variables of the left predicate, and the output of the right predicate. *}
   
-type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha>) rel"
+type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha>) urel"
   
 text {* skip is the merge predicate which ignores the output of both parallel predicates *}
 
@@ -143,10 +143,10 @@ subsection {* Separating Simulations *}
 text {* U0 and U1 are relations modify the variables of the input state-space such that they become 
   indexed with $0$ and $1$, respectively. *}
 
-definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
+definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) urel" where
 [upred_defs]: "U0 = ($0-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
-definition U1 :: "('\<beta>\<^sub>1, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) rel" where
+definition U1 :: "('\<beta>\<^sub>1, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) urel" where
 [upred_defs]: "U1 = ($1-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
 
 lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
@@ -242,7 +242,7 @@ text {* Associativity of a merge means that if we construct a three way merge fr
   the two way merge in an appropriate way.
 *}
   
-definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) rel" ("\<^bold>M3'(_')") where
+definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) urel" ("\<^bold>M3'(_')") where
 [upred_defs]: "ThreeWayMerge M = (($0-\<^bold>v\<acute> =\<^sub>u $0-\<^bold>v \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-0-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M ;; U0 \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-1-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M"
   
 text {* The next definition rotates the inputs to a three way merge to the left one place. *}
@@ -268,7 +268,7 @@ text {* The following implementation of parallel by merge is less general than t
   of programs. May reconsider later. *}
 
 definition 
-  par_by_merge :: "('\<alpha>, '\<beta>) rel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) rel \<Rightarrow> ('\<alpha>, '\<gamma>) rel \<Rightarrow> ('\<alpha>, '\<delta>) rel" 
+  par_by_merge :: "('\<alpha>, '\<beta>) urel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel \<Rightarrow> ('\<alpha>, '\<gamma>) urel \<Rightarrow> ('\<alpha>, '\<delta>) urel" 
   ("_ \<parallel>\<^bsub>_\<^esub> _" [85,0,86] 85)
 where [upred_defs]: "P \<parallel>\<^bsub>M\<^esub> Q = (P \<parallel>\<^sub>s Q ;; M)"
 
@@ -426,6 +426,14 @@ theorem par_by_merge_choice_left:
 theorem par_by_merge_choice_right:
   "P \<parallel>\<^bsub>M\<^esub> (Q \<sqinter> R) = (P \<parallel>\<^bsub>M\<^esub> Q) \<sqinter> (P \<parallel>\<^bsub>M\<^esub> R)"
   by (rel_auto)
+
+theorem par_by_merge_or_left:
+  "(P \<or> Q) \<parallel>\<^bsub>M\<^esub> R = (P \<parallel>\<^bsub>M\<^esub> R \<or> Q \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
+  
+theorem par_by_merge_or_right:
+  "P \<parallel>\<^bsub>M\<^esub> (Q \<or> R) = (P \<parallel>\<^bsub>M\<^esub> Q \<or> P \<parallel>\<^bsub>M\<^esub> R)"
+  by (rel_auto)
     
 theorem par_by_merge_USUP_mem_left:
   "(\<Sqinter> i\<in>I \<bullet> P(i)) \<parallel>\<^bsub>M\<^esub> Q = (\<Sqinter> i\<in>I \<bullet> P(i) \<parallel>\<^bsub>M\<^esub> Q)"
@@ -468,11 +476,11 @@ lemma StateParallel_form':
   shows "P |a|b|\<^sub>\<sigma> Q = {&a,&b}:[(P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>}) \<and> (Q \<restriction>\<^sub>v {$\<^bold>v,$b\<acute>})]"
   using assms
   apply (simp add: StateParallel_form, rel_auto)
-  apply (metis vwb_lens_wb wb_lens_axioms_def wb_lens_def)
-  apply (metis vwb_lens_wb wb_lens.get_put)
-  apply (simp add: lens_indep_comm)
+     apply (metis vwb_lens_wb wb_lens_axioms_def wb_lens_def)
+    apply (metis vwb_lens_wb wb_lens.get_put)
+   apply (simp add: lens_indep_comm)
   apply (metis (no_types, hide_lams) lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
-done  
+  done  
   
 text {* We can frame all the variables that the parallel operator refers to *}
     
@@ -482,7 +490,7 @@ lemma StateParallel_frame:
   using assms
   apply (simp add: StateParallel_form, rel_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 text {* Parallel Hoare logic rule. This employs something similar to separating conjunction in
   the postcondition, but we explicitly require that the two conjuncts only refer to variables

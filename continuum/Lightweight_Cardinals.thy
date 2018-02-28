@@ -10,9 +10,9 @@ section {* Lightweight Cardinals *}
 theory Lightweight_Cardinals
 imports
   Main Real
-  "~~/src/HOL/Library/Countable_Set"
-  "~~/src/HOL/Cardinals/Cardinals"
-  "../utils/Infinity" UNIV_TYPE
+  "HOL-Library.Countable_Set"
+  "HOL-Cardinals.Cardinals"
+  "UTP-Toolkit.Infinity" UNIV_TYPE
 begin
 
 subsection {* Cardinal Order *}

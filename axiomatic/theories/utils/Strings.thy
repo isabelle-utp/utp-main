@@ -9,7 +9,7 @@
 section {* String Literals *}
 
 theory Strings
-imports Infinity Normalise
+imports "../../../utils/Infinity" Normalise
   "~~/src/HOL/Library/Countable"
   "~~/src/HOL/Library/Char_ord"
 begin

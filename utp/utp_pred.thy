@@ -4,6 +4,7 @@ theory utp_pred
 imports
   utp_expr
   utp_subst
+  utp_meta_subst
   utp_tactics
 begin
   
@@ -139,9 +140,9 @@ instance uexpr :: (order, type) refine ..
 
 theorem upred_ref_iff [uexpr_transfer_laws]:
 "(P \<sqsubseteq> Q) = (\<forall>b. \<lbrakk>Q\<rbrakk>\<^sub>e b \<longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e b)"
-apply (transfer)
-apply (clarsimp)
-done
+  apply (transfer)
+  apply (clarsimp)
+  done
 
 text {* Next we introduce the lattice operators, which is again done by lifting. *}
 
@@ -179,9 +180,9 @@ text {* Finally we show that predicates form a Boolean algebra (under the lattic
   equip us with a very complete theory for basic logical propositions. *}
 
 instance uexpr :: (boolean_algebra, type) boolean_algebra
-apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
-apply (simp_all add: sup_inf_distrib1 diff_eq)
-done
+  apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
+    apply (simp_all add: sup_inf_distrib1 diff_eq)
+  done
 
 instantiation uexpr :: (complete_lattice, type) complete_lattice
 begin
@@ -196,11 +197,11 @@ end
   
 instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
   apply (intro_classes)
-  apply (transfer, rule ext, auto)
+   apply (transfer, rule ext, auto)
   using sup_INF apply fastforce
   apply (transfer, rule ext, auto)
   using inf_SUP apply fastforce
-done
+  done
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
   
@@ -451,9 +452,9 @@ lemma unrest_var_res_in [unrest]:
   shows "y \<sharp> (P \<restriction>\<^sub>v x)"
   using assms 
   apply (pred_auto)
-  apply fastforce
+   apply fastforce
   apply (metis (no_types, lifting) mwb_lens_weak weak_lens.put_get)
-done
+  done
 
 lemma unrest_shEx [unrest]:
   assumes "\<And> y. x \<sharp> P(y)"
@@ -556,7 +557,7 @@ lemma subst_ex_indep [usubst]:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma subst_ex_unrest [usubst]:
   "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
@@ -571,5 +572,44 @@ lemma subst_all_indep [usubst]:
   shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
   using assms
   by (pred_simp, simp_all add: lens_indep_comm)
-    
+
+lemma msubst_true [usubst]: "true\<lbrakk>x\<rightarrow>v\<rbrakk> = true"
+  by (pred_auto)
+
+lemma msubst_false [usubst]: "false\<lbrakk>x\<rightarrow>v\<rbrakk> = false"
+  by (pred_auto)
+lemma msubst_not [usubst]: "(\<not> P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = (\<not> ((P x)\<lbrakk>x\<rightarrow>v\<rbrakk>))"
+  by (pred_auto)
+
+lemma msubst_not_2 [usubst]: "(\<not> P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = (\<not> ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>))"
+  by (pred_auto)+
+
+lemma msubst_disj [usubst]: "(P(x) \<or> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> \<or> (Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_disj_2 [usubst]: "(P x y \<or> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<or> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_conj [usubst]: "(P(x) \<and> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>v\<rbrakk> \<and> (Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_conj_2 [usubst]: "(P x y \<and> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<and> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_implies [usubst]:
+  "(P x \<Rightarrow> Q x)\<lbrakk>x\<rightarrow>v\<rbrakk> = ((P x)\<lbrakk>x\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_implies_2 [usubst]:
+  "(P x y \<Rightarrow> Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> = ((P x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk> \<Rightarrow> (Q x y)\<lbrakk>(x,y)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
+lemma msubst_shAll [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y)\<lbrakk>y\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y)\<lbrakk>y\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)
+
+lemma msubst_shAll_2 [usubst]:
+  "(\<^bold>\<forall> x \<bullet> P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk>)"
+  by (pred_auto)+
+
 end

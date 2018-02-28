@@ -13,8 +13,8 @@ method wp_tac = (simp add: wp)
 consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infix "wp" 60)
 
-definition wp_upred :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
-"wp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) rel\<rfloor>\<^sub><"
+definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
+"wp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub><"
 
 adhoc_overloading
   uwp wp_upred
@@ -45,6 +45,9 @@ theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
 
 theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
   by rel_auto
+
+lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wp Q(i))"
+  by (rel_auto)
 
 theorem wp_hoare_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wp r \<sqsubseteq> p)"

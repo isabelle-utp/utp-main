@@ -76,12 +76,12 @@ text {* We create type synonyms for conditions (which are simply predicates) -- 
   be different, and finally homogeneous relations. *}
   
 type_synonym '\<alpha> cond        = "'\<alpha> upred"
-type_synonym ('\<alpha>, '\<beta>) rel   = "('\<alpha> \<times> '\<beta>) upred"
+type_synonym ('\<alpha>, '\<beta>) urel  = "('\<alpha> \<times> '\<beta>) upred"
 type_synonym '\<alpha> hrel        = "('\<alpha> \<times> '\<alpha>) upred"
 type_synonym ('a, '\<alpha>) hexpr = "('a, '\<alpha> \<times> '\<alpha>) uexpr"
   
 translations
-  (type) "('\<alpha>, '\<beta>) rel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
+  (type) "('\<alpha>, '\<beta>) urel" <= (type) "('\<alpha> \<times> '\<beta>) upred"
 
 text {* We set up some overloaded constants for sequential composition and the identity in case
   we want to overload their definitions later. *}
@@ -100,7 +100,7 @@ definition lift_rcond ("\<lceil>_\<rceil>\<^sub>\<leftarrow>") where
 [upred_defs]: "\<lceil>b\<rceil>\<^sub>\<leftarrow> = \<lceil>b\<rceil>\<^sub><"
     
 abbreviation 
-  rcond :: "('\<alpha>, '\<beta>) rel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<alpha>, '\<beta>) rel"
+  rcond :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) urel"
   ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
   where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>\<leftarrow> \<triangleright> Q)"
     
@@ -109,7 +109,7 @@ text {* Sequential composition is heterogeneous, and simply requires that the ou
   built-in relational composition operator (@{term "op O"}). Since this returns a set, the
   definition states that the state binding $b$ is an element of this set. *}
   
-lift_definition seqr::"('\<alpha>, '\<beta>) rel \<Rightarrow> ('\<beta>, '\<gamma>) rel \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
+lift_definition seqr::"('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<beta>, '\<gamma>) urel \<Rightarrow> ('\<alpha> \<times> '\<gamma>) upred"
 is "\<lambda> P Q b. b \<in> ({p. P p} O {q. Q q})" .
 
 adhoc_overloading
@@ -339,10 +339,10 @@ subsection {* Relation Properties *}
 text {* We describe some properties of relations, including functional and injective relations. We
   also provide operators for extracting the domain and range of a UTP relation. *}
 
-definition ufunctional :: "('a, 'b) rel \<Rightarrow> bool"
+definition ufunctional :: "('a, 'b) urel \<Rightarrow> bool"
 where [urel_defs]: "ufunctional R \<longleftrightarrow> II \<sqsubseteq> R\<^sup>- ;; R"
 
-definition uinj :: "('a, 'b) rel \<Rightarrow> bool"
+definition uinj :: "('a, 'b) urel \<Rightarrow> bool"
 where [urel_defs]: "uinj R \<longleftrightarrow> II \<sqsubseteq> R ;; R\<^sup>-"
   
 definition Dom :: "'\<alpha> hrel \<Rightarrow> '\<alpha> upred" 
@@ -354,6 +354,16 @@ where [upred_defs]: "Ran P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\
 -- {* Configuration for UTP tactics (see @{theory utp_tactics}). *}
 
 update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
+
+subsection \<open> Introduction laws \<close>
+
+lemma urel_refine_ext:
+  "\<lbrakk> \<And> s s'. P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<rbrakk> \<Longrightarrow> P \<sqsubseteq> Q"
+  by (rel_auto)
+
+lemma urel_eq_ext:
+  "\<lbrakk> \<And> s s'. P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> = Q\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>/$\<^bold>v,$\<^bold>v\<acute>\<rbrakk> \<rbrakk> \<Longrightarrow> P = Q"
+  by (rel_auto)
 
 subsection {* Unrestriction Laws *}
 
@@ -437,7 +447,7 @@ lemma rel_aext_seq [alpha]:
   apply (rename_tac aa b y)
   apply (rule_tac x="create\<^bsub>a\<^esub> y" in exI)
   apply (simp)
-done
+  done
 
 lemma rel_aext_cond [alpha]:
   "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a \<triangleleft> b \<oplus>\<^sub>p a \<triangleright>\<^sub>r Q \<oplus>\<^sub>r a)"
@@ -534,7 +544,10 @@ lemma unrest_usubst_lift_out [unrest]:
 
 lemma subst_lift_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>s\<rceil>\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>\<leftarrow>"
   by (rel_auto)
-    
+
+lemma msubst_seq [usubst]: "(P(x) ;; Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> = ((P(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk> ;; (Q(x))\<lbrakk>x\<rightarrow>\<guillemotleft>v\<guillemotright>\<rbrakk>)"
+  by (rel_auto)  
+
 subsection {* Alphabet laws *}
 
 lemma aext_cond [alpha]:
@@ -577,15 +590,15 @@ declare RID_def [urel_defs]
 
 lemma RID1: "vwb_lens x \<Longrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>) \<Longrightarrow> RID(x)(P) = P"
   apply (rel_auto)
-  apply (metis vwb_lens.put_eq)
+   apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-done
+  done
     
 lemma RID2: "vwb_lens x \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; RID(x)(P) = RID(x)(P) ;; x := \<guillemotleft>v\<guillemotright>"
   apply (rel_auto)
-  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
+   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
   apply blast
-done
+  done
     
 lemma RID_assign_commute:
   "vwb_lens x \<Longrightarrow> P = RID(x)(P) \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
@@ -627,9 +640,9 @@ lemma conj_RID [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbra
 lemma RID_assigns_r_diff:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_auto)
-  apply (metis vwb_lens.put_eq)
+   apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-done
+  done
 
 lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
   by (simp add: Healthy_def RID_assigns_r_diff)
@@ -638,7 +651,7 @@ lemma RID_assign_r_same:
   "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
   apply (rel_auto)
   using vwb_lens.put_eq apply fastforce
-done
+  done
 
 lemma RID_seq_left:
   assumes "vwb_lens x"
@@ -650,9 +663,9 @@ proof -
     by (rel_auto)
   also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     apply (rel_auto)
-    apply (metis vwb_lens.put_eq)
+     apply (metis vwb_lens.put_eq)
     apply (metis mwb_lens.put_put vwb_lens_mwb)
-  done
+    done
   also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_simp, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
   also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
@@ -674,9 +687,9 @@ proof -
     by (rel_auto)
   also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     apply (rel_auto)
-    apply (metis vwb_lens.put_eq)
+     apply (metis vwb_lens.put_eq)
     apply (metis mwb_lens.put_put vwb_lens_mwb)
-  done
+    done
   also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
     by (rel_simp robust, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
   also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
@@ -699,7 +712,19 @@ declare unrest_relation_def [urel_defs]
 lemma runrest_assign_commute:
   "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
   by (metis RID2 Healthy_def unrest_relation_def)
-  
+
+lemma runrest_ident_var:
+  assumes "x \<sharp>\<sharp> P"
+  shows "($x \<and> P) = (P \<and> $x\<acute>)"
+proof -
+  have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
+    by (metis RID_def assms Healthy_def unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
+  moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
+    by (rel_auto)
+  ultimately show ?thesis
+    by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf_left_commute)
+qed
+
 lemma skip_r_runrest [unrest]:
   "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
   by (simp add: unrest_relation_def closure)

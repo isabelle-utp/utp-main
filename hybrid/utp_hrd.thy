@@ -2,7 +2,7 @@ section {* Hybrid Reactive Designs *}
 
 theory utp_hrd
   imports
-    utp_rea_designs
+    "UTP-Reactive-Designs.utp_rea_designs"
     utp_differential
 begin
   

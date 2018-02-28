@@ -287,9 +287,9 @@ lemma skip_ra_unfold:
 lemma skip_res_as_ra:
   "\<lbrakk> vwb_lens y; x +\<^sub>L y \<approx>\<^sub>L 1\<^sub>L; x \<bowtie> y \<rbrakk> \<Longrightarrow> II\<restriction>\<^sub>\<alpha>x = II\<^bsub>y\<^esub>"
   apply (rel_auto)
-  apply (metis (no_types, lifting) lens_indep_def)
+   apply (metis (no_types, lifting) lens_indep_def)
   apply (metis vwb_lens.put_eq)
-done
+  done
 
 subsection {* Assignment Laws *}
   
@@ -313,6 +313,9 @@ lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
 
 lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
   by (simp add: assigns_r_comp usubst)
+
+lemma assigns_cond: "(\<langle>f\<rangle>\<^sub>a \<triangleleft> b \<triangleright>\<^sub>r \<langle>g\<rangle>\<^sub>a) = \<langle>f \<triangleleft> b \<triangleright>\<^sub>s g\<rangle>\<^sub>a"
+  by (rel_auto)
 
 lemma assigns_r_conv:
   "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
@@ -447,21 +450,32 @@ lemma frame_all [frame]: "\<Sigma>:[P] = P"
 lemma frame_none [frame]: 
   "\<emptyset>:[P] = (P \<and> II)"
   by (rel_auto)
-    
+
 lemma frame_commute:
   assumes "$y \<sharp> P" "$y\<acute> \<sharp> P" "$x \<sharp> Q" "$x\<acute> \<sharp> Q" "x \<bowtie> y" 
   shows "x:[P] ;; y:[Q] = y:[Q] ;; x:[P]"
-oops
-    
+  apply (insert assms)
+  apply (rel_auto)
+   apply (rename_tac s s' s\<^sub>0)
+   apply (subgoal_tac "(s \<oplus>\<^sub>L s' on y) \<oplus>\<^sub>L s\<^sub>0 on x = s\<^sub>0 \<oplus>\<^sub>L s' on y")
+    apply (metis lens_indep_get lens_indep_sym lens_override_def)
+   apply (simp add: lens_indep.lens_put_comm lens_override_def)
+  apply (rename_tac s s' s\<^sub>0)
+  apply (subgoal_tac "put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> s (get\<^bsub>x\<^esub> (put\<^bsub>x\<^esub> s\<^sub>0 (get\<^bsub>x\<^esub> s')))) (get\<^bsub>y\<^esub> (put\<^bsub>y\<^esub> s (get\<^bsub>y\<^esub> s\<^sub>0))) 
+                      = put\<^bsub>x\<^esub> s\<^sub>0 (get\<^bsub>x\<^esub> s')")
+   apply (metis lens_indep_get lens_indep_sym)
+  apply (metis lens_indep.lens_put_comm)
+  done
+
 lemma frame_contract_RID:
   assumes "vwb_lens x" "P is RID(x)" "x \<bowtie> y"
   shows "(x;y):[P] = y:[P]"
 proof -
   from assms(1,3) have "(x;y):[RID(x)(P)] = y:[RID(x)(P)]"
     apply (rel_auto)
-    apply (simp add: lens_indep.lens_put_comm)
+     apply (simp add: lens_indep.lens_put_comm)
     apply (metis (no_types) vwb_lens_wb wb_lens.get_put)
-  done
+    done
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -489,9 +503,9 @@ lemma frame_is_assign [frame]:
 lemma frame_seq [frame]:
   "\<lbrakk> vwb_lens x; {$x,$x\<acute>} \<natural> P; {$x,$x\<acute>} \<natural> Q \<rbrakk> \<Longrightarrow> x:[P ;; Q] = x:[P] ;; x:[Q]"
   apply (rel_auto)
-  apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_def weak_lens.put_get)
+   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens_def weak_lens.put_get)
   apply (metis mwb_lens.put_put vwb_lens_mwb)
-done
+  done
 
 lemma frame_to_antiframe [frame]:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
@@ -508,11 +522,11 @@ lemma rel_frext_skip [frame]:
 lemma rel_frext_seq [frame]:
   "vwb_lens a \<Longrightarrow> a:[P ;; Q]\<^sup>+ = (a:[P]\<^sup>+ ;; a:[Q]\<^sup>+)"
   apply (rel_auto)
-  apply (rename_tac s s' s\<^sub>0)
-  apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
-  apply (auto)
+   apply (rename_tac s s' s\<^sub>0)
+   apply (rule_tac x="put\<^bsub>a\<^esub> s s\<^sub>0" in exI)
+   apply (auto)
   apply (metis mwb_lens.put_put vwb_lens_mwb)
-done
+  done
 
 lemma rel_frext_assigns [frame]:
   "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
@@ -525,15 +539,15 @@ lemma rel_frext_rcond [frame]:
 lemma rel_frext_commute: 
   "x \<bowtie> y \<Longrightarrow> x:[P]\<^sup>+ ;; y:[Q]\<^sup>+ = y:[Q]\<^sup>+ ;; x:[P]\<^sup>+"
   apply (rel_auto)
-  apply (rename_tac a c b)
-  apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
-  apply (metis (no_types, hide_lams) lens_indep_comm lens_indep_get)
-  apply (simp add: lens_indep.lens_put_irr2)
+   apply (rename_tac a c b)
+   apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
+    apply (metis (no_types, hide_lams) lens_indep_comm lens_indep_get)
+   apply (simp add: lens_indep.lens_put_irr2)
   apply (subgoal_tac "\<And>b c. get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> b c) = get\<^bsub>x\<^esub> b")
-  apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
-  apply (metis (mono_tags, lifting) lens_indep_comm)
-  apply (simp_all add: lens_indep.lens_put_irr2)    
-done
+   apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
+    apply (metis (mono_tags, lifting) lens_indep_comm)
+   apply (simp_all add: lens_indep.lens_put_irr2)    
+  done
     
 lemma antiframe_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P \<or> Q\<rbrakk>"
   by (rel_auto)
@@ -541,9 +555,9 @@ lemma antiframe_disj [frame]: "(x:\<lbrakk>P\<rbrakk> \<or> x:\<lbrakk>Q\<rbrakk
 lemma antiframe_seq [frame]:
   "\<lbrakk> vwb_lens x; $x\<acute> \<sharp> P; $x \<sharp> Q \<rbrakk>  \<Longrightarrow> (x:\<lbrakk>P\<rbrakk> ;; x:\<lbrakk>Q\<rbrakk>) = x:\<lbrakk>P ;; Q\<rbrakk>"
   apply (rel_auto)
-  apply (metis vwb_lens_wb wb_lens_def weak_lens.put_get)
+   apply (metis vwb_lens_wb wb_lens_def weak_lens.put_get)
   apply (metis vwb_lens_wb wb_lens.put_twice wb_lens_def weak_lens.put_get)
-done
+  done
   
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
@@ -575,10 +589,10 @@ theorem while_false: "while false do P od = II"
 theorem while_true: "while true do P od = false"
   apply (simp add: while_def alpha)
   apply (rule antisym)
-  apply (simp_all)
+   apply (simp_all)
   apply (rule lfp_lowerbound)
   apply (rel_auto)
-done
+  done
 
 theorem while_bot_unfold:
   "while\<^sub>\<bottom> b do P od = ((P ;; while\<^sub>\<bottom> b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
@@ -605,10 +619,10 @@ text {* An infinite loop with a feasible body corresponds to a program error (no
 theorem while_infinite: "P ;; true\<^sub>h = true \<Longrightarrow> while\<^sub>\<bottom> true do P od = true"
   apply (simp add: while_bot_true)
   apply (rule antisym)
-  apply (simp)
+   apply (simp)
   apply (rule gfp_upperbound)
   apply (simp)
-done
+  done
 
 subsection {* Algebraic Properties *}
 
@@ -656,7 +670,7 @@ proof -
   moreover have "\<Sqinter> (P ` insert 0 {1..}) = P(0) \<sqinter> SUPREMUM {1..} P"
     by (simp)
   moreover have "SUPREMUM {1..} P = (\<Sqinter>i. P(i+1))"
-    by (simp add: atLeast_Suc_greaterThan)
+    by (simp add: atLeast_Suc_greaterThan greaterThan_0)
   ultimately show ?thesis
     by (simp only:)
 qed
@@ -710,7 +724,10 @@ lemma SUP_atLeastAtMost_first:
     
 lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
   by (induct n, simp_all)
-    
+
+lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
+  by (induct n, rel_auto+)
+
 subsubsection {* Kleene Star *}
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
@@ -800,9 +817,9 @@ qed
 lemma ustar_unfoldl: "P\<^sup>\<star> = II \<sqinter> (P ;; P\<^sup>\<star>)"
   apply (simp add: ustar_as_nu)
   apply (subst lfp_unfold)
-  apply (rule monoI)
-  apply (rel_auto)+
-done
+   apply (rule monoI)
+   apply (rel_auto)+
+  done
   
 subsection {* Omega Algebra Laws *}
 

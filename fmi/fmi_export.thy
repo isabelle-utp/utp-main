@@ -67,7 +67,7 @@ instance uvar_ext :: (type) "{continuum, two}" sorry
 subsection {* {\Circus} Constructs *}
 
 syntax "_if_then_else" ::
-  "'a upred \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel \<Rightarrow> ('a, 'b) rel"
+  "'a upred \<Rightarrow> ('a, 'b) urel \<Rightarrow> ('a, 'b) urel \<Rightarrow> ('a, 'b) urel"
     ("(if\<^sub>\<C> (_)/ then\<^sub>\<C> (_)/ else\<^sub>\<C> (_))" [0, 0, 10] 10)
 
 translations "if\<^sub>\<C> b then\<^sub>\<C> P else\<^sub>\<C> Q" \<rightleftharpoons> "P \<triangleleft> b \<triangleright>\<^sub>r Q"

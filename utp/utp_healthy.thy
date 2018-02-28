@@ -212,7 +212,7 @@ lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
   apply (rename_tac P Q)
   apply (drule_tac x="{P,Q}" in spec)
   apply (simp)
-done
+  done
 
 lemma Continuous_Monotonic [closure]: "Continuous H \<Longrightarrow> Monotonic H"
   by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)

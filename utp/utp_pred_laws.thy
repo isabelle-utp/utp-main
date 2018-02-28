@@ -19,6 +19,43 @@ lemma taut_true [simp]: "`true`"
 lemma taut_false [simp]: "`false` = False"
   by (pred_auto)
 
+lemma taut_conj: "`A \<and> B` = (`A` \<and> `B`)"
+  by (rel_auto)
+
+lemma taut_conj_elim [elim!]:
+  "\<lbrakk> `A \<and> B`; \<lbrakk> `A`; `B` \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (rel_auto)
+
+lemma taut_refine_impl: "\<lbrakk> Q \<sqsubseteq> P; `P` \<rbrakk> \<Longrightarrow> `Q`"
+  by (rel_auto)
+
+lemma taut_shEx_elim: 
+  "\<lbrakk> `(\<^bold>\<exists> x \<bullet> P x)`; \<And> x. \<Sigma> \<sharp> P x; \<And> x. `P x` \<Longrightarrow> Q  \<rbrakk> \<Longrightarrow> Q"
+  by (rel_blast)
+
+text \<open> Linking refinement and HOL implication \<close>
+
+lemma refine_prop_intro:
+  assumes "\<Sigma> \<sharp> P" "\<Sigma> \<sharp> Q" "`Q` \<Longrightarrow> `P`"
+  shows "P \<sqsubseteq> Q"
+  using assms
+  by (pred_auto)
+
+lemma taut_not: "\<Sigma> \<sharp> P \<Longrightarrow> (\<not> `P`) = `\<not> P`"
+  by (rel_auto)
+
+lemma taut_shAll_intro:
+  "\<forall> x. `P x` \<Longrightarrow> `\<^bold>\<forall> x \<bullet> P x`"
+  by (rel_auto)
+
+lemma taut_shAll_intro_2:
+  "\<forall> x y. `P x y` \<Longrightarrow> `\<^bold>\<forall> (x, y) \<bullet> P x y`"
+  by (rel_auto)
+
+lemma taut_impl_intro:
+  "\<lbrakk> \<Sigma> \<sharp> P; `P` \<Longrightarrow> `Q` \<rbrakk> \<Longrightarrow> `P \<Rightarrow> Q`"
+  by (rel_auto)
+
 lemma upred_eval_taut:
   "`P\<lbrakk>\<guillemotleft>b\<guillemotright>/&\<^bold>v\<rbrakk>` = \<lbrakk>P\<rbrakk>\<^sub>eb"
   by (pred_auto)
@@ -68,6 +105,12 @@ lemma true_disj_zero [simp]:
 
 lemma true_conj_zero [simp]:
   "(P \<and> false) = false" "(false \<and> P) = false"
+  by (pred_auto)+
+
+lemma false_sup [simp]: "false \<sqinter> P = P" "P \<sqinter> false = P"
+  by (pred_auto)+
+
+lemma true_inf [simp]: "true \<squnion> P = P" "P \<squnion> true = P"
   by (pred_auto)+
 
 lemma imp_vacuous [simp]: "(false \<Rightarrow> u) = true"
@@ -191,6 +234,9 @@ lemma USUP_mem_UNIV [simp]: "(\<Squnion> x\<in>UNIV \<bullet> P(x)) = (\<Squnion
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
   by (pred_simp)
 
+lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
+  by (rel_auto)
+
 lemma UINF_true [simp]: "(\<Sqinter> i \<bullet> true) = true"
   by (pred_simp)
 
@@ -204,6 +250,9 @@ lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A
 lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
   by (pred_auto)
 
+lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
+  by (rel_auto)
+
 lemma UINF_cong_eq:
   "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
@@ -213,52 +262,52 @@ lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma UINF_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
-done
+  done
 
 lemma UINF_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
-done
+  done
 
 lemma UINF_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<in>A. f(P))"
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
-done
+  done
 
 lemma USUP_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
-done
+  done
 
 lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
   apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
   by (pred_simp, rule_tac cong[of Inf Inf], auto)
@@ -282,8 +331,8 @@ lemma UINF_insert [simp]: "(\<Sqinter> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (pred_simp)
   apply (subst Sup_insert[THEN sym])
   apply (rule_tac cong[of Sup Sup])
-  apply (auto)
-done
+   apply (auto)
+  done
     
 lemma UINF_atLeast_first:
   "P(n) \<sqinter> (\<Sqinter> i \<in> {Suc n..} \<bullet> P(i)) = (\<Sqinter> i \<in> {n..} \<bullet> P(i))"
@@ -301,8 +350,8 @@ lemma USUP_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (pred_simp)
   apply (subst Inf_insert[THEN sym])
   apply (rule_tac cong[of Inf Inf])
-  apply (auto)
-done
+   apply (auto)
+  done
 
 lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
@@ -383,23 +432,29 @@ lemma UINF_list_conv:
   apply (induct xs)
    apply (rel_auto)
   apply (simp add: UINF_upto_expand_first UINF_Suc_shift)
-    
-    thm UINF_upto_expand_first
-done
+  done
 
 lemma USUP_list_conv:
   "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<and> (map f xs) true"    
   apply (induct xs)
    apply (rel_auto)
   apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)
-done
+  done
     
 lemma UINF_refines':
   assumes "\<And> i. P \<sqsubseteq> Q(i)" 
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
   using assms
   apply (rel_auto) using Sup_le_iff by fastforce
-  
+
+lemma UINF_pred_ueq [simp]: 
+  "(\<Sqinter> x | \<guillemotleft>x\<guillemotright> =\<^sub>u v \<bullet> P(x)) = (P x)\<lbrakk>x\<rightarrow>v\<rbrakk>"
+  by (pred_auto)
+
+lemma UINF_pred_lit_eq [simp]: 
+  "(\<Sqinter> x | \<guillemotleft>x = v\<guillemotright> \<bullet> P(x)) = (P v)"
+  by (pred_auto)
+
 subsection {* Equality laws *}
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
@@ -567,7 +622,7 @@ lemma ex_commute:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma all_commute:
   assumes "x \<bowtie> y"
@@ -575,7 +630,7 @@ lemma all_commute:
   using assms
   apply (pred_auto)
   using lens_indep_comm apply fastforce+
-done
+  done
 
 lemma ex_equiv:
   assumes "x \<approx>\<^sub>L y"
@@ -635,6 +690,12 @@ lemma not_ex_not: "\<not> (\<exists> x \<bullet> \<not> P) = (\<forall> x \<bull
   by (pred_auto)
 
 lemma not_all_not: "\<not> (\<forall> x \<bullet> \<not> P) = (\<exists> x \<bullet> P)"
+  by (pred_auto)
+
+lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = (P \<and> (\<exists> x \<bullet> Q))"
+  by (pred_auto)
+
+lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
   by (pred_auto)
 
 subsection {* Variable Restriction *}    
@@ -819,8 +880,8 @@ lemma refine_by_obs:
   apply (rename_tac b)
   apply (drule_tac x="get\<^bsub>x\<^esub>b" in spec)
   apply (auto simp add: assms)
-  apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
-done
+   apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
+  done
     
 subsection {* Cylindric Algebra *}
 

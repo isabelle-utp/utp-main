@@ -130,7 +130,7 @@ proof -
                      (S ;; (X \<and> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><) \<triangleleft> b \<triangleright>\<^sub>r II \<and> \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n + 1\<guillemotright>\<rceil>\<^sub><)"
           apply (rel_auto)
           using less_antisym less_trans apply blast
-        done
+          done
       qed  
     qed
   qed
@@ -145,7 +145,7 @@ lemma while_vrt_hoare_r [hoare_safe]:
   apply (rule hoare_r_conseq[OF assms(2) _ assms(3)])
   apply (simp add: while_vrt_def)
   apply (rule while_term_hoare_r[where v="v", OF assms(1)]) 
-done
+  done
   
 text {* General total correctness law based on well-founded induction *}
         

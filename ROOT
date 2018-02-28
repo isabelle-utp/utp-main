@@ -5,81 +5,35 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-(* AFP Contributions *)
+(* Profiling Library *)
 
-session "HOL-Algebra2" (main timing) in "contrib/Algebra" = HOL +
-  description {*
-    Author: Clemens Ballarin, started 24 September 1999
-
-    The Isabelle Algebraic Library.
-  *}
-  theories [document = false]
-    (* Preliminaries from set and number theory *)
-    "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Number_Theory/Primes"
-    "~~/src/HOL/Library/Permutation"
-  theories [document = pdf]
-    (*** New development, based on explicit structures ***)
-    (* Groups *)
-    FiniteProduct        (* Product operator for commutative groups *)
-    Sylow                (* Sylow's theorem *)
-    Bij                  (* Automorphism Groups *)
-
-    (* Orders and Lattices *)
-    Order
-    Lattice
-    Complete_Lattice
-    Galois_Connection
-
-    (* Rings *)
-    Divisibility         (* Rings *)
-    IntRing              (* Ideals and residue classes *)
-    UnivPoly             (* Polynomials *)
-  document_files
-    "root.bib"
-    "root.tex"
-
-(* Optics Library *)
-
-session "Optics" in "optics"
-  = (* "HOL-Algebra2" *) "HOL" +
-  options [document = pdf, document_output = "output", timeout = 300]
+session "Profiling" in "profiling"
+  = "HOL" +
+  options [document = false, timeout = 1000]
   theories
-    Interp
-    Two
-    Lens_Laws
-    Lens_Algebra
-    Lens_Order
-    Lens_Instances
-    Lenses
-  document_files
-    "root.bib"
-    "root.tex"
-    "document.sty"
-    "figures/Lens.pdf"
-    "figures/Independence.pdf"
-    "figures/Sum.pdf"
-    "figures/Composition.pdf"
+    Profiling
 
 (* Continuum Universe *)
 
 session "Continuum" in "continuum" = "HOL-Cardinals" +
   options [document = false, timeout = 1000]
+  sessions
+    "UTP-Toolkit"
   theories
     Continuum
     Dyadic
     Finite_Bijection
-    (* Infinity *)
     Lightweight_Cardinals
     Real_Bit
     UNIV_TYPE
 
 (* Continuous System Dynamics *)
 
-session "Dynamics" in "dynamics" = "HOL-Analysis" +
+session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
   options [document = pdf, document_output = "output", timeout = 1000]
+  sessions
+    "UTP-Toolkit"
   theories
-    "../contrib/Ordinary_Differential_Equations/ODE_Analysis"
     Derivative_extra
     Contiguous_Functions
     Timed_Traces
@@ -90,15 +44,21 @@ session "Dynamics" in "dynamics" = "HOL-Analysis" +
     "zed.sty"
     "csp.sty"
 
-(* Library Imports for UTP *)
+(* UTP Mathematical Toolkit *)
 
-session "UTP-IMPORTS" in "utils" = "HOL-Algebra2" +
-  options [document = false, timeout = 1000]
-  theories utp_imports
+session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  sessions
+    Optics
+  theories utp_toolkit
+  document_files
+    "root.tex"
+    "root.bib"
+    "document.sty"
 
 (* Core UTP Framework *)
 
-session "UTP" in "utp" = "UTP-IMPORTS" +
+session "UTP" in "utp" = "UTP-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp
   document_files
@@ -106,40 +66,95 @@ session "UTP" in "utp" = "UTP-IMPORTS" +
     "root.tex"
     "document.sty"
 
+(* UTP Designs *)
+
+session "UTP-Designs" in "theories/designs" = "UTP" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_designs
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
+(* Imperative Programs based on Designs *)
+    
+session "UTP-Impl" in "impl" = "UTP-Designs" +
+  options [document = false]
+  theories
+    utp_impl
+
+(* UTP Generalised Reactive Processes *)
+
+session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_reactive
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
+(* Reactive Designs *)
+
+session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_rea_designs
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
+(* Circus *)
+
+session "UTP-Circus" in "theories/circus" = "UTP-Reactive-Designs" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_circus
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
 (* Core UTP with Deep Variables *)
 
-session "UTP-DEEP" in "utp/models" = "UTP" +
+session "UTP-Deep" in "utp/models" = "UTP" +
   options [browser_info = true, document = false]
+  sessions
+    Continuum
   theories utp_deep
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-AXM" in "utp/models" = "UTP" +
+session "UTP-Axm" in "utp/models" = "UTP" +
   options [browser_info = true, document = false]
   theories utp_axm
 
 (* Core UTP with Deep & Axiomatic Variables *)
 
-session "UTP-DEEP-AXM" in "utp/models" = "UTP-DEEP" +
+session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
   options [browser_info = true, document = false]
   theories utp_deep utp_axm
 
 (* UTP Theory Base *)
 
-session "UTP-THY" in "theories" = "UTP" +
+session "UTP-Theories" in "theories" = "UTP-Circus" +
   options [browser_info = true, document = false]
   theories utp_theories
 
-session "UTP-THY-DEEP" in "theories" = "UTP-THY" +
+session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
   options [browser_info = true, document = false]
+  sessions
+    "UTP-Deep"
   theories utp_theories_deep
 
-session "UTP-THY-AXM" in "utp/models" = "UTP-THY" +
+session "UTP-Theories-Axm" in "utp/models" = "UTP-Theories" +
   options [browser_info = true, document = false]
+  sessions
+    "UTP-Axm"
   theories utp_theories utp_axm
 
-session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
+session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
   options [browser_info = true, document = false]
+  sessions
+    "UTP-Deep-Axm"
   theories utp_theories_deep utp_axm
 
 (* Imports for Hybrid UTP *)
@@ -149,20 +164,16 @@ session "UTP-THY-DEEP-AXM" in "utp/models" = "UTP-THY-DEEP" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
-session "UTP-HYBRID-IMPORTS" = "Dynamics" +
+session "UTP-Hybrid-Imports" = "Dynamics" +
   options [document = false]
+  sessions
+    "UTP-Theories"
   theories
-    "~~/src/HOL/Library/FuncSet"
-    "~~/src/HOL/Library/Permutation"
-    "contrib/Algebra/Complete_Lattice"
-    "contrib/Algebra/Galois_Connection"
-    "utils/utp_imports"
-    "utp/utp"
-    "theories/utp_theories"
+    "hybrid/utp_hybrid_imports"
 
 (* Hybrid UTP *)
 
-session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
+session "UTP-Hybrid" in "hybrid" = "UTP-Hybrid-Imports" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
@@ -175,19 +186,21 @@ session "UTP-HYBRID" in "hybrid" = "UTP-HYBRID-IMPORTS" +
 
 (* Hybrid UTP with deep model *)
 
-session "UTP-HYBRID-DEEP" in "theories" = "UTP-HYBRID" +
+(*
+session "UTP-Hybrid-Deep" in "theories" = "UTP-HYBRID" +
   options [browser_info = true, document = false]
   theories utp_theories_deep
+*)
 
 (* Hybrid UTP examples *)
 
-session "UTP-HYBRID-EXAMPLES" in "hybrid/examples" = "UTP-HYBRID" +
+session "UTP-Hybrid-Examples" in "hybrid/examples" = "UTP-Hybrid" +
   options [document = false]
   theories
     utp_bouncing_ball
     utp_thermostat
     utp_trains
-
+(*
 (* Modelica Mechanisation: Limited Compositional Semantics *)
 
 session "Modelica" in "modelica" = "UTP-HYBRID" +
@@ -201,13 +214,6 @@ session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
   options [document = false]
   theories
     Modelica_NonComp
-
-(* Imperative Programs based on Designs *)
-    
-session "UTP-IMPL" in "impl" = "UTP-THY-DEEP" +
-  options [document = false]
-  theories
-    utp_impl
   
 (* VDM-SL Mechanisation *)
 
@@ -216,15 +222,15 @@ session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
   theories
     PFOL
     VDM
+*)
 
 (* Isabelle/UTP Tutorial *)
 
-session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
+session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial
     utp_boyle
-    utp
     utp_csp_buffer
     utp_csp_mini_mondex
   document_files
@@ -232,9 +238,11 @@ session "UTP-TUTORIAL" in "tutorial" = "UTP-THY" +
     "root.tex"
     "document.sty"
 
+
 (* FMI Mechanisation *)
 
-session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
+(*
+session "FMI" in "fmi" = "UTP-Theories-Deep-Axm" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi
@@ -248,3 +256,4 @@ session "FMI" in "fmi" = "UTP-THY-DEEP-AXM" +
     (* "root.bib" *)
     "root.tex"
     "document.sty"
+*)

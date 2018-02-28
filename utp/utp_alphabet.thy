@@ -190,7 +190,7 @@ proof -
     apply (auto simp add: id_lens_def lens_plus_def sublens_def lens_comp_def prod.case_eq_if)
     apply (pred_simp)
     apply (metis lens_indep_comm mwb_lens_weak weak_lens.put_get)
-  done
+    done
 qed
 
 lemma arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
@@ -281,9 +281,9 @@ lemma out_var_prod_lens [alpha]:
   apply (simp add: out_var_def prod_as_plus lens_comp_assoc)
   apply (subst snd_lens_plus)
   using comp_wb_lens fst_vwb_lens vwb_lens_wb apply blast
-  apply (simp add: alpha_in_var alpha_out_var)
+   apply (simp add: alpha_in_var alpha_out_var)
   apply (simp)
-done
+  done
   
 subsection {* Substitution Alphabet Extension *}
 

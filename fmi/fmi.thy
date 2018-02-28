@@ -9,8 +9,8 @@
 section {* FMI {\Circus} Model *}
 
 theory fmi
-imports "../utils/Positive" Time
-  "../utp/models/utp_axm"
+imports "UTP-Toolkit.Positive" Time
+  "UTP-Axm.utp_axm"
   "../theories/utp_circus"
 begin recall_syntax
 
