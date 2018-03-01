@@ -14,23 +14,23 @@ method rdes_expand uses cls = (insert cls, (erule RD_elim)+)
 
 text {* Tactic to simplify the definition of a reactive design *}
   
-method rdes_simp uses cls =
-  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if))
+method rdes_simp uses cls cong simps =
+  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if simps cong: cong))
 
 text {* Tactic to prove a refinement *}
   
-method rdes_refine uses cls =
-  (rdes_simp cls: cls; rule_tac srdes_tri_refine_intro; (insert cls; rel_auto))
+method rdes_refine uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro; (insert cls; rel_auto))
 
 text {* Tactics to prove an equality *}
 
-method rdes_eq uses cls =
-  (rdes_simp cls: cls; (rule_tac srdes_tri_eq_intro; insert cls; rel_auto))
+method rdes_eq uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro; rel_auto))
 
 text {* Via antisymmetry *}
 
-method rdes_eq' uses cls =
-  (rdes_simp cls: cls; (rule_tac antisym; (rule_tac srdes_tri_refine_intro; insert cls; rel_auto)))
+method rdes_eq_anti uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac antisym; (rule_tac srdes_tri_refine_intro; rel_auto)))
 
 text {* Tactic to calculate pre/peri/postconditions from reactive designs *}
 

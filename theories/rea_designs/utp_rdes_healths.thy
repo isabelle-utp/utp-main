@@ -492,7 +492,7 @@ lemma SRD_Continuous [closure]: "Continuous SRD"
 lemma SRD_RHS_H1_H2: "SRD(P) = \<^bold>R\<^sub>s(\<^bold>H(P))"
   by (rel_auto)
 
-lemma SRD_healths:
+lemma SRD_healths [closure]:
   assumes "P is SRD"
   shows "P is R1" "P is R2" "P is R3h" "P is RD1" "P is RD2"
   apply (metis Healthy_def R1_idem RD1_RHS_commute RD2_RHS_commute RHS_def SRD_def assms)

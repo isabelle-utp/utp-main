@@ -232,6 +232,18 @@ lemma msubst_tt_RR [closure]: "\<lbrakk> \<And> t. P t is RR \<rbrakk> \<Longrig
 lemma msubst_ref'_RR [closure]: "\<lbrakk> \<And> r. P r is RR \<rbrakk> \<Longrightarrow> (P r)\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> is RR"
   by (simp add: Healthy_def RR_msubst_ref')  
 
+lemma conj_less_tr_RR_closed [closure]:
+  assumes "P is CRR"
+  shows "(P \<and> $tr <\<^sub>u $tr\<acute>) is CRR"
+proof -
+  have "CRR(CRR(P) \<and> $tr <\<^sub>u $tr\<acute>) = (CRR(P) \<and> $tr <\<^sub>u $tr\<acute>)"
+    apply (rel_auto, blast+)
+    using less_le apply fastforce+
+    done
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 subsection \<open> Introduction laws \<close>
 
 text \<open> Extensionality principles for introducing refinement and equality of Circus reactive 

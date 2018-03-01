@@ -347,6 +347,10 @@ proof -
     by (simp add: Healthy_def)
 qed
 
+lemma PCSP_DoCSP [closure]:
+  "(do\<^sub>C a :: ('\<sigma>, '\<psi>) action) is PCSP"
+  by (simp add: Healthy_comp NCSP_DoCSP Productive_DoCSP)
+
 lemma wp_rea_DoCSP_lemma:
   fixes P :: "('\<sigma>, '\<phi>) action"
   assumes "$ok \<sharp> P" "$wait \<sharp> P"
@@ -371,7 +375,7 @@ subsection \<open> Event prefix \<close>
 definition PrefixCSP ::
   "('\<phi>, '\<sigma>) uexpr \<Rightarrow>
   ('\<sigma>, '\<phi>) action \<Rightarrow>
-  ('\<sigma>, '\<phi>) action" where
+  ('\<sigma>, '\<phi>) action" ("_ \<rightarrow>\<^sub>C _" [81, 80] 80) where
 [upred_defs]: "PrefixCSP a P = (do\<^sub>C(a) ;; CSP(P))"
 
 abbreviation "OutputCSP c v P \<equiv> PrefixCSP (c\<cdot>v)\<^sub>u P"
@@ -397,6 +401,9 @@ lemma NCSP_PrefixCSP [closure]:
 lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> PrefixCSP a P is Productive"
   by (simp add: Healthy_if NCSP_DoCSP NCSP_implies_NSRD NSRD_is_SRD PrefixCSP_def Productive_DoCSP Productive_seq_1)
 
+lemma PCSP_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> PrefixCSP a P is PCSP"
+  by (simp add: Healthy_comp NCSP_PrefixCSP Productive_PrefixCSP)
+  
 lemma PrefixCSP_Guarded [closure]: "Guarded (PrefixCSP a)"
 proof -
   have "PrefixCSP a = (\<lambda> X. do\<^sub>C(a) ;; CSP(X))"
@@ -621,7 +628,7 @@ lemma Guard_conditional:
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
-  by (rdes_eq' cls: assms)
+  by (rdes_eq cls: assms)
 
 lemma PrefixCSP_dist:
   "PrefixCSP a (P \<sqinter> Q) = (PrefixCSP a P) \<sqinter> (PrefixCSP a Q)"
@@ -631,10 +638,19 @@ lemma DoCSP_is_Prefix:
   "do\<^sub>C(a) = PrefixCSP a Skip"
   by (simp add: PrefixCSP_def Healthy_if closure, metis CSP4_DoCSP CSP4_def Healthy_def)
 
-lemma Prefix_CSP_seq:
+lemma PrefixCSP_seq:
   assumes "P is CSP" "Q is CSP"
   shows "(PrefixCSP a P) ;; Q = (PrefixCSP a (P ;; Q))"
   by (simp add: PrefixCSP_def seqr_assoc Healthy_if assms closure)
 
+lemma PrefixCSP_extChoice_dist:
+  assumes "P is NCSP" "Q is NCSP" "R is NCSP"
+  shows "((a \<rightarrow>\<^sub>C P) \<box> (b \<rightarrow>\<^sub>C Q)) ;; R  = (a \<rightarrow>\<^sub>C P ;; R) \<box> (b \<rightarrow>\<^sub>C Q ;; R)"
+  by (simp add: PCSP_PrefixCSP assms(1) assms(2) assms(3) extChoice_seq_distr)
+
+lemma GuardedChoiceCSP_dist: 
+  assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
+  shows "\<box> x\<in>A \<^bold>\<rightarrow> P(x) ;; Q = \<box> x\<in>A \<^bold>\<rightarrow> (P(x) ;; Q)"
+  by (simp add: ExtChoice_seq_distr PrefixCSP_seq closure assms cong: ExtChoice_cong)
 
 end

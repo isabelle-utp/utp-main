@@ -310,7 +310,7 @@ proof -
                              \<not>\<^sub>r (cmt\<^sub>s \<dagger> P) \<parallel>\<^bsub>N\<^sub>0 M ;; R1 true\<^esub> (pre\<^sub>s \<dagger> Q))"
     by (simp add: pre\<^sub>R_def parallel_assm_lemma assms SRD_healths R1_conj rea_not_def[THEN sym])
   also have "... = ?rhs"
-    by (simp add: pre\<^sub>s_SRD assms cmt\<^sub>R_def)
+    by (simp add: pre\<^sub>s_SRD assms cmt\<^sub>R_def Healthy_if closure unrest)
   finally show ?thesis .
 qed
 
@@ -386,12 +386,12 @@ lemma parallel_commitment_lemma_2:
 lemma parallel_commitment_lemma_3:
   "M is R1m \<Longrightarrow> ($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t is R1m"
   by (rel_simp, safe, metis+)  
-  
+
 lemma parallel_commitment:
   assumes "P is SRD" "Q is SRD" "M is RDM"
   shows "cmt\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = (pre\<^sub>R(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) \<Rightarrow>\<^sub>r cmt\<^sub>R(P) \<parallel>\<^bsub>($ok\<acute> \<and> N\<^sub>0 M) ;; II\<^sub>R\<^sup>t\<^esub> cmt\<^sub>R(Q))"
-  by (simp add: parallel_commitment_lemma_2 parallel_commitment_lemma_3 Healthy_if SRD_healths assms cmt\<^sub>R_def pre\<^sub>s_SRD closure rea_impl_def disj_comm)  
-
+  by (simp add: parallel_commitment_lemma_2 parallel_commitment_lemma_3 Healthy_if assms cmt\<^sub>R_def pre\<^sub>s_SRD closure rea_impl_def disj_comm unrest)  
+  
 theorem parallel_reactive_design:
   assumes "P is SRD" "Q is SRD" "M is RDM"
   shows "(P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q) = \<^bold>R\<^sub>s(

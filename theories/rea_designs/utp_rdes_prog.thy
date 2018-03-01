@@ -452,7 +452,7 @@ qed
 lemma AlternateR_is_cond_srea:
   assumes "A is NSRD" "B is NSRD"
   shows "(if\<^sub>R i \<in> {a} \<bullet> g \<rightarrow> A else B fi) = (A \<triangleleft> g \<triangleright>\<^sub>R B)"
-  by (rdes_eq' cls: assms)
+  by (rdes_eq cls: assms)
 
 lemma AlternateR_Chaos: 
   "if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> Chaos fi = Chaos"

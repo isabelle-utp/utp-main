@@ -38,6 +38,8 @@ definition CSP4 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) s
 definition NCSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
 [upred_defs]: "NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
 
+text \<open> Productive and normal processes \<close>
+
 abbreviation "PCSP \<equiv> Productive \<circ> NCSP"
 
 subsection \<open> Healthiness condition properties \<close>
@@ -166,9 +168,9 @@ proof -
   from a show "$ref \<sharp> pre\<^sub>R(P)"
     by (rel_blast)
   from a show "$ref \<sharp> peri\<^sub>R(P)"
-    by (rel_auto)
+    by (rel_blast)
   from a show "$ref \<sharp> post\<^sub>R(P)"
-    by (rel_auto)
+    by (rel_blast)
 qed
 
 lemma CSP3_rdes:
@@ -552,6 +554,30 @@ lemma NCSP_Sup_closure [closure]: "\<lbrakk> A \<subseteq> \<lbrakk>NCSP\<rbrakk
 
 lemma NCSP_SUP_closure [closure]: "\<lbrakk> \<And> i. P(i) is NCSP; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is NCSP"
   by (metis (mono_tags, lifting) Ball_Collect NCSP_Sup_closure image_iff image_is_empty)
+
+lemma PCSP_implies_NCSP [closure]:
+  assumes "P is PCSP"
+  shows "P is NCSP"
+proof -
+  have "P = Productive(NCSP(NCSP P))"
+    by (metis (no_types, hide_lams) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
+    
+  also have "... = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(NCSP P)) wp\<^sub>r false) \<turnstile> 
+                       (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R(NCSP P)) \<diamondop> 
+                       ((\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NCSP P)) \<and> $tr <\<^sub>u $tr\<acute>))"
+    by (simp add: NCSP_form Productive_RHS_design_form unrest closure)
+  also have "... is NCSP"
+    apply (rule NCSP_rdes_intro)
+        apply (rule CRC_intro)
+         apply (simp_all add: unrest ex_unrest all_unrest closure)
+    done
+  finally show ?thesis .
+qed
+
+lemma PCSP_elim [RD_elim]: 
+  assumes "X is PCSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> peri\<^sub>R X \<diamondop> (post\<^sub>R X \<and> $tr <\<^sub>u $tr\<acute>)))"
+  shows "P X"
+  by (metis Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms comp_apply)
 
 subsection {* CSP theories *}
 

@@ -42,6 +42,9 @@ lemma conj_R1_closed_2 [closure]: "Q is R1 \<Longrightarrow> (P \<and> Q) is R1"
 lemma R1_disj: "R1(P \<or> Q) = (R1(P) \<or> R1(Q))"
   by pred_auto
 
+lemma disj_R1_closed [closure]: "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> (P \<or> Q) is R1"
+  by (simp add: Healthy_def R1_def utp_pred_laws.inf_sup_distrib2)
+
 lemma R1_impl: "R1(P \<Rightarrow> Q) = ((\<not> R1(\<not> P)) \<Rightarrow> R1(Q))"
   by (rel_auto)
 
@@ -114,6 +117,12 @@ lemma R1_skip: "R1(II) = II"
 
 lemma skip_is_R1 [closure]: "II is R1"
   by (rel_auto)
+
+lemma subst_R1: "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma>  \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (R1 P) = R1(\<sigma> \<dagger> P)"
+  by (simp add: R1_def usubst)
+  
+lemma subst_R1_closed [closure]: "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma>; P is R1 \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> P is R1"
+  by (metis Healthy_def subst_R1)
 
 lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"

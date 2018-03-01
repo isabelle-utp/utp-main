@@ -436,7 +436,7 @@ proof
     qed
     with a3
     have postPQ: " `[$st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>1 @ t\<^sub>2\<guillemotright>] \<dagger> (post\<^sub>R P ;; post\<^sub>R Q)`"
-      by (rel_blast)
+      by (rel_auto, meson Prefix_Order.prefixI)
 
     have "`[$st \<mapsto>\<^sub>s \<guillemotleft>s\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>1\<guillemotright>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>1\<guillemotright>+\<guillemotleft>t\<^sub>2\<guillemotright>] \<dagger> pre\<^sub>R Q`"
     proof -

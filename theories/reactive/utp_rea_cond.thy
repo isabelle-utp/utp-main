@@ -146,23 +146,23 @@ lemma UINF_ind_RC_closed [closure]:
   by (metis (no_types) UINF_as_Sup_collect' UINF_as_Sup_image UINF_mem_RC_closed assms)
   
 lemma USUP_mem_RC1_closed [closure]:
-  assumes "\<And> i. P i is RC1" "A \<noteq> {}"
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RC1" "A \<noteq> {}"
   shows "(\<Squnion> i\<in>A \<bullet> P i) is RC1"
 proof -
   have "RC1(\<Squnion> i\<in>A \<bullet> P i) = RC1(\<Squnion> i\<in>A \<bullet> RC1(P i))"
-    by (simp add: Healthy_if assms(1))
+    by (simp add: Healthy_if assms(1) cong: USUP_cong)
   also from assms(2) have "... = (\<Squnion> i\<in>A \<bullet> RC1(P i))"
     using dual_order.trans by (rel_blast)
   also have "... = (\<Squnion> i\<in>A \<bullet> P i)"
-    by (simp add: Healthy_if assms(1))
+    by (simp add: Healthy_if assms(1) cong: USUP_cong)
   finally show ?thesis
     using Healthy_def by blast
 qed
 
 lemma USUP_mem_RC_closed [closure]:
-  assumes "\<And> i. P i is RC" "A \<noteq> {}"
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RC" "A \<noteq> {}"
   shows "(\<Squnion> i\<in>A \<bullet> P i) is RC"
-  by (rule RC_intro', simp_all add: closure assms RC_implies_RC1)  
+  by (rule RC_intro', simp_all add: closure assms RC_implies_RC1)
 
 lemma neg_trace_ext_prefix_RC [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> \<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"

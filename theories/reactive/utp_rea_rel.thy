@@ -218,13 +218,13 @@ lemma disj_RR [closure]:
   by (metis Healthy_def' R1_RR R1_idem R1_rea_not' RR_rea_impl RR_rea_not disj_comm double_negation rea_impl_def rea_not_def)
 
 lemma USUP_mem_RR_closed [closure]:
-  assumes "\<And> i. P i is RR" "A \<noteq> {}"
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RR" "A \<noteq> {}"
   shows "(\<Squnion> i\<in>A \<bullet> P(i)) is RR"
 proof -
   have 1:"(\<Squnion> i\<in>A \<bullet> P(i)) is R1"
-    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure)
+    by (unfold Healthy_def, subst R1_UINF, simp_all add: Healthy_if assms closure cong: USUP_cong)
   have 2:"(\<Squnion> i\<in>A \<bullet> P(i)) is R2c"
-    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure)
+    by (unfold Healthy_def, subst R2c_UINF, simp_all add: Healthy_if assms RR_implies_R2c closure cong: USUP_cong)
   show ?thesis
     using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
 qed
@@ -232,7 +232,7 @@ qed
 lemma USUP_ind_RR_closed [closure]:
   assumes "\<And> i. P i is RR"
   shows "(\<Squnion> i \<bullet> P(i)) is RR"
-  using USUP_mem_RR_closed[of P UNIV] by (simp add: assms)
+  using USUP_mem_RR_closed[of UNIV P] by (simp add: assms)
 
 lemma UINF_mem_RR_closed [closure]:
   assumes "\<And> i. P i is RR"
@@ -300,7 +300,17 @@ lemma tr'_eq_tr_RR_closed [closure]: "$tr\<acute> =\<^sub>u $tr is RR"
 lemma inf_RR_closed [closure]: 
   "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> P \<sqinter> Q is RR"
   by (simp add: disj_RR uinf_or)
-  
+
+lemma conj_tr_strict_RR_closed [closure]: 
+  assumes "P is RR"
+  shows "(P \<and> $tr <\<^sub>u $tr\<acute>) is RR"
+proof -
+  have "RR(RR(P) \<and> $tr <\<^sub>u $tr\<acute>) = (RR(P) \<and> $tr <\<^sub>u $tr\<acute>)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 lemma rea_assert_RR_closed [closure]:
   assumes "b is RR"
   shows "{b}\<^sub>r is RR"

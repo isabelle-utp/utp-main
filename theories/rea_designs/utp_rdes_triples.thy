@@ -129,9 +129,9 @@ abbreviation "post\<^sub>s \<equiv> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<m
 abbreviation "npre\<^sub>R(P) \<equiv> pre\<^sub>s \<dagger> P"
 
 definition [upred_defs]: "pre\<^sub>R(P)  = (\<not>\<^sub>r npre\<^sub>R(P))"
-definition [upred_defs]: "cmt\<^sub>R(P)  = (cmt\<^sub>s \<dagger> P)"
-definition [upred_defs]: "peri\<^sub>R(P) = (peri\<^sub>s \<dagger> P)"
-definition [upred_defs]: "post\<^sub>R(P) = (post\<^sub>s \<dagger> P)"
+definition [upred_defs]: "cmt\<^sub>R(P)  = R1(cmt\<^sub>s \<dagger> P)"
+definition [upred_defs]: "peri\<^sub>R(P) = R1(peri\<^sub>s \<dagger> P)"
+definition [upred_defs]: "post\<^sub>R(P) = R1(post\<^sub>s \<dagger> P)"
 
 subsubsection \<open> Unrestriction laws \<close>
 
@@ -227,7 +227,7 @@ lemma rea_pre_RHS_design: "pre\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = R1
   by (simp add: RHS_def usubst R3h_def pre\<^sub>R_def pre\<^sub>s_design R1_negate_R1 R2c_not rea_not_def)
 
 lemma rea_cmt_RHS_design: "cmt\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q)) = R1(R2c(cmt\<^sub>s \<dagger> (P \<Rightarrow> Q)))"
-  by (simp add: RHS_def usubst R3h_def cmt\<^sub>R_def cmt\<^sub>s_design)
+  by (simp add: RHS_def usubst R3h_def cmt\<^sub>R_def cmt\<^sub>s_design R1_idem)
 
 lemma rea_peri_RHS_design: "peri\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = R1(R2c(peri\<^sub>s \<dagger> (P \<Rightarrow>\<^sub>r Q)))"
   by (simp add:RHS_def usubst peri\<^sub>R_def R3h_def peri\<^sub>s_design, rel_auto)
@@ -263,7 +263,7 @@ lemma R1_R2s_cmt_SRD:
 lemma R1_R2s_peri_SRD:
   assumes "P is SRD"
   shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
-  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
+  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms R1_idem peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
 
 lemma R1_peri_SRD:
   assumes "P is SRD"
@@ -287,7 +287,7 @@ lemma R1_R2c_peri_RHS:
 lemma R1_R2s_post_SRD:
   assumes "P is SRD"
   shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
-  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
+  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R1_idem R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
 
 lemma R2c_peri_SRD:
   assumes "P is SRD"
@@ -430,10 +430,10 @@ lemma preR_INF [rdes]: "A \<noteq> {} \<Longrightarrow> pre\<^sub>R(\<Sqinter> A
   by (rel_auto)
 
 lemma periR_INF [rdes]: "peri\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> peri\<^sub>R(P))"
-  by (rel_simp, simp add: Setcompr_eq_image)
+  by (rel_auto)
 
 lemma postR_INF [rdes]: "post\<^sub>R(\<Sqinter> A) = (\<Or> P\<in>A \<bullet> post\<^sub>R(P))"
-  by (rel_simp, simp add: Setcompr_eq_image)
+  by (rel_auto)
 
 lemma preR_UINF [rdes]: "pre\<^sub>R(\<Sqinter> i \<bullet> P(i)) = (\<Squnion> i \<bullet> pre\<^sub>R(P(i)))"
   by (rel_auto)
@@ -475,19 +475,19 @@ lemma preR_inf [rdes]: "pre\<^sub>R(P \<sqinter> Q) = (pre\<^sub>R(P) \<and> pre
   by (rel_auto)
 
 lemma periR_inf [rdes]: "peri\<^sub>R(P \<sqinter> Q) = (peri\<^sub>R(P) \<or> peri\<^sub>R(Q))"
-  by (rel_simp)
+  by (rel_auto)
 
 lemma postR_inf [rdes]: "post\<^sub>R(P \<sqinter> Q) = (post\<^sub>R(P) \<or> post\<^sub>R(Q))"
-  by (rel_simp)
+  by (rel_auto)
 
 lemma preR_SUP [rdes]: "pre\<^sub>R(\<Squnion> A) = (\<Or> P\<in>A \<bullet> pre\<^sub>R(P))"
   by (rel_auto)
 
-lemma periR_SUP [rdes]: "peri\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> peri\<^sub>R(P))"
-  by (rel_simp, simp add: Setcompr_eq_image)
+lemma periR_SUP [rdes]: "A \<noteq> {} \<Longrightarrow> peri\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> peri\<^sub>R(P))"
+  by (rel_auto)
 
-lemma postR_SUP [rdes]: "post\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> post\<^sub>R(P))"
-  by (rel_simp, simp add: Setcompr_eq_image)
+lemma postR_SUP [rdes]: "A \<noteq> {} \<Longrightarrow> post\<^sub>R(\<Squnion> A) = (\<And> P\<in>A \<bullet> post\<^sub>R(P))"
+  by (rel_auto)
 
 subsection \<open> Formation laws \<close>
 
