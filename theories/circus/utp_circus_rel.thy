@@ -244,6 +244,16 @@ proof -
     by (metis Healthy_def assms)
 qed
 
+lemma conj_eq_tr_RR_closed [closure]:
+  assumes "P is CRR"
+  shows "(P \<and> $tr\<acute> =\<^sub>u $tr) is CRR"
+proof -
+  have "CRR(CRR(P) \<and> $tr\<acute> =\<^sub>u $tr) = (CRR(P) \<and> $tr\<acute> =\<^sub>u $tr)"
+    by (rel_auto, blast+)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 subsection \<open> Introduction laws \<close>
 
 text \<open> Extensionality principles for introducing refinement and equality of Circus reactive 

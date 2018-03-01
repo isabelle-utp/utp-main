@@ -652,4 +652,10 @@ lemma extChoice_seq_distr:
   shows "(P \<box> Q) ;; R = (P ;; R \<box> Q ;; R)"
   by (rdes_eq cls: assms)
 
+lemma extChoice_seq_distl:
+  assumes "P is ICSP" "Q is ICSP" "R is NCSP"
+  shows "P ;; (Q \<box> R) = (P ;; Q \<box> P ;; R)"
+  by (rdes_eq cls: assms)
+
+
 end

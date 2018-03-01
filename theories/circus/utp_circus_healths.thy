@@ -42,6 +42,10 @@ text \<open> Productive and normal processes \<close>
 
 abbreviation "PCSP \<equiv> Productive \<circ> NCSP"
 
+text \<open> Instantaneous and normal processes \<close>
+
+abbreviation "ICSP \<equiv> ISRD1 \<circ> NCSP"
+
 subsection \<open> Healthiness condition properties \<close>
 
 text {* @{term SKIP} is the same as @{term Skip}, and @{term STOP} is the same as @{term Stop},
@@ -578,6 +582,33 @@ lemma PCSP_elim [RD_elim]:
   assumes "X is PCSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> peri\<^sub>R X \<diamondop> (post\<^sub>R X \<and> $tr <\<^sub>u $tr\<acute>)))"
   shows "P X"
   by (metis Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms comp_apply)
+
+lemma ICSP_implies_NCSP [closure]:
+  assumes "P is ICSP"
+  shows "P is NCSP"
+proof -
+  have "P = ISRD1(NCSP(NCSP P))"
+    by (metis (no_types, hide_lams) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
+  also have "... = ISRD1 (\<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R (NCSP P)) wp\<^sub>r false) \<turnstile>
+                              (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R (NCSP P)) \<diamondop> 
+                              (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NCSP P))))"
+    by (simp add: NCSP_form)
+  also have "... = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(NCSP P)) wp\<^sub>r false) \<turnstile> 
+                       false \<diamondop> 
+                       ((\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NCSP P)) \<and> $tr\<acute> =\<^sub>u $tr))"
+      by (simp_all add: ISRD1_RHS_design_form closure rdes unrest)
+  also have "... is NCSP"
+    apply (rule NCSP_rdes_intro)
+        apply (rule CRC_intro)
+         apply (simp_all add: unrest ex_unrest all_unrest closure)
+    done
+  finally show ?thesis .
+qed
+
+lemma ICSP_elim [RD_elim]: 
+  assumes "X is ICSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> false \<diamondop> (post\<^sub>R X \<and> $tr\<acute> =\<^sub>u $tr)))"
+  shows "P X"
+  by (metis Healthy_if NCSP_implies_CSP ICSP_implies_NCSP ISRD1_form assms comp_apply)
 
 subsection {* CSP theories *}
 
