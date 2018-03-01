@@ -605,10 +605,40 @@ proof -
   finally show ?thesis .
 qed
 
+lemma ICSP_implies_ISRD [closure]:
+  assumes "P is ICSP"
+  shows "P is ISRD"
+  by (metis (no_types, hide_lams) Healthy_def ICSP_implies_NCSP ISRD_def NCSP_implies_NSRD assms comp_apply)
+
 lemma ICSP_elim [RD_elim]: 
   assumes "X is ICSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> false \<diamondop> (post\<^sub>R X \<and> $tr\<acute> =\<^sub>u $tr)))"
   shows "P X"
   by (metis Healthy_if NCSP_implies_CSP ICSP_implies_NCSP ISRD1_form assms comp_apply)
+
+lemma ICSP_Stop_right_zero_lemma:
+  "(P \<and> ($tr\<acute> =\<^sub>u $tr)) ;; true\<^sub>r = true\<^sub>r \<Longrightarrow> (P \<and> ($tr\<acute> =\<^sub>u $tr)) ;; ($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
+  by (rel_blast)
+
+lemma ICSP_Stop_right_zero:
+  assumes "P is ICSP" "pre\<^sub>R(P) = true\<^sub>r" "post\<^sub>R(P) ;; true\<^sub>r = true\<^sub>r"
+  shows "P ;; Stop = Stop"
+proof -
+  from assms(3) have 1:"(post\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr) ;; true\<^sub>r = true\<^sub>r"
+    by (rel_auto, metis (full_types, hide_lams) dual_order.antisym order_refl)
+  show ?thesis
+    by (rdes_simp cls: assms(1), simp add: csp_enable_nothing assms(2) ICSP_Stop_right_zero_lemma[OF 1])
+qed
+
+lemma ICSP_intro: "\<lbrakk> P is NCSP; P is ISRD1 \<rbrakk> \<Longrightarrow> P is ICSP"
+  using Healthy_comp by blast
+
+lemma seq_ICSP_closed [closure]:
+  assumes "P is ICSP" "Q is ICSP"
+  shows "P ;; Q is ICSP"
+  by (meson ICSP_implies_ISRD ICSP_implies_NCSP ICSP_intro ISRD_implies_ISRD1 NCSP_seqr_closure assms seq_ISRD_closed)
+
+lemma Miracle_ICSP [closure]: "Miracle is ICSP"
+  by (rule ICSP_intro, simp add: closure, simp add: ISRD1_rdes_intro rdes_def closure)
 
 subsection {* CSP theories *}
 

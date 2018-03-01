@@ -27,18 +27,6 @@ translations
   "_assigns_csp x v" <= "_assigns_csp (_spvar x) v"
   "x,y :=\<^sub>C u,v" <= "CONST AssignsCSP (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
 
-lemma AssignsCSP_CSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP"
-  by (simp add: AssignsCSP_def RHS_tri_design_is_SRD unrest)
-
-lemma AssignsCSP_CSP3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP3"
-  by (rule CSP3_intro, simp add: closure, rel_auto)
-
-lemma AssignsCSP_CSP4 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP4"
-  by (rule CSP4_intro, simp add: closure, rel_auto+)
-
-lemma AssignsCSP_NCSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is NCSP"
-  by (simp add: AssignsCSP_CSP AssignsCSP_CSP3 AssignsCSP_CSP4 NCSP_intro)
-    
 lemma preR_AssignsCSP [rdes]: "pre\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C) = true\<^sub>r"
   by (rel_auto)
 
@@ -50,6 +38,25 @@ lemma postR_AssignsCSP [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C)
 
 lemma AssignsCSP_rdes_def [rdes_def] : "\<langle>\<sigma>\<rangle>\<^sub>C = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<Phi>(true,\<sigma>,\<langle>\<rangle>))"
   by (rel_auto)
+
+lemma AssignsCSP_CSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP"
+  by (simp add: AssignsCSP_def RHS_tri_design_is_SRD unrest)
+
+lemma AssignsCSP_CSP3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP3"
+  by (rule CSP3_intro, simp add: closure, rel_auto)
+
+lemma AssignsCSP_CSP4 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CSP4"
+  by (rule CSP4_intro, simp add: closure, rel_auto+)
+
+lemma AssignsCSP_NCSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is NCSP"
+  by (simp add: AssignsCSP_CSP AssignsCSP_CSP3 AssignsCSP_CSP4 NCSP_intro)
+
+lemma AssignsCSP_ICSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is ICSP"
+  apply (rule ICSP_intro, simp add: closure, simp add: rdes_def)
+  apply (rule ISRD1_rdes_intro)
+  apply (simp_all add: closure)
+  apply (rel_auto)
+done
 
 subsection \<open> Assignment with update \<close>
 

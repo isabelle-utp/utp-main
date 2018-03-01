@@ -28,7 +28,7 @@ lemma ISRD1_form:
 lemma ISRD1_rdes_def [rdes_def]: 
   "\<lbrakk> P is RR; R is RR \<rbrakk> \<Longrightarrow> ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> (R \<and> $tr\<acute> =\<^sub>u $tr))"
   by (simp add: ISRD1_def rdes_def closure rpred)
-    
+
 lemma ISRD_intro: 
   assumes "P is NSRD" "peri\<^sub>R(P) = (\<not>\<^sub>r pre\<^sub>R(P))" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> post\<^sub>R(P)"
   shows "P is ISRD"
@@ -42,6 +42,12 @@ proof -
   thus ?thesis
     by (simp add: ISRD_def Healthy_comp assms(1))
 qed
+
+lemma ISRD1_rdes_intro:
+  assumes "P is RR" "Q is RR" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> Q"
+  shows "\<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> Q) is ISRD1"
+  unfolding Healthy_def
+  by (simp add: ISRD1_rdes_def assms closure unrest utp_pred_laws.inf.absorb1)
 
 lemma ISRD_rdes_intro [closure]:
   assumes "P is RC" "Q is RR" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> Q"

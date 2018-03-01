@@ -472,6 +472,9 @@ lemma csp_enable_st_pred [rpred]:
 lemma csp_enable_tr_empty: "\<E>(true,\<langle>\<rangle>,{v}\<^sub>u) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>v\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (rel_auto)
 
+lemma csp_enable_nothing: "\<E>(true,\<langle>\<rangle>, {}\<^sub>u) = ($tr\<acute> =\<^sub>u $tr)"
+  by (rel_auto)
+
 lemma msubst_nil_csp_enable [usubst]: 
   "\<E>(s(x),t(x),E(x))\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk> = \<E>(s(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>,E(x)\<lbrakk>x\<rightarrow>\<langle>\<rangle>\<rbrakk>)"
   by (pred_auto)
