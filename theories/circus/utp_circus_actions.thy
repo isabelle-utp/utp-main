@@ -12,6 +12,28 @@ lemma NCSP_cond_srea [closure]:
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is NCSP"
   by (rule NCSP_NSRD_intro, simp_all add: closure rdes assms unrest)
 
+subsection \<open> Guarded commands \<close>
+
+lemma GuardedCommR_NCSP_closed [closure]: 
+  assumes "P is NCSP"
+  shows "g \<rightarrow>\<^sub>R P is NCSP"
+  by (simp add: gcmd_def closure assms)
+
+subsection \<open> Alternation \<close>
+
+lemma AlternateR_NCSP_closed [closure]:
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
+  shows "(if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi) is NCSP"
+proof (cases "A = {}")
+  case True
+  then show ?thesis
+    by (simp add: assms)
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateR_def closure assms)
+qed
+
 subsection \<open> Assignment \<close>
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -631,7 +653,12 @@ lemma Guard_conditional:
   assumes "P is NCSP"
   shows "b &\<^sub>u P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"  
   by (rdes_eq cls: assms)
-    
+
+lemma Guard_expansion:
+  assumes "P is NCSP"
+  shows "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>u P = (g\<^sub>1 &\<^sub>u P) \<box> (g\<^sub>2 &\<^sub>u P)"
+  by (rdes_eq cls: assms)
+
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
@@ -659,5 +686,30 @@ lemma GuardedChoiceCSP_dist:
   assumes "\<And> i. i\<in>A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
   shows "\<box> x\<in>A \<^bold>\<rightarrow> P(x) ;; Q = \<box> x\<in>A \<^bold>\<rightarrow> (P(x) ;; Q)"
   by (simp add: ExtChoice_seq_distr PrefixCSP_seq closure assms cong: ExtChoice_cong)
+
+text \<open> Alternation can be re-expressed as an external choice when the guards are disjoint \<close>
+
+lemma AlternateR_as_ExtChoice:
+  assumes 
+    "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
+    "\<And> i j. \<lbrakk> i \<in> A; j \<in> A; i \<noteq> j \<rbrakk> \<Longrightarrow> (g i \<and> g j) = false" 
+  shows "(if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi) = 
+         (\<box> i\<in>A \<bullet> g(i) &\<^sub>u P(i)) \<box> (\<And> i\<in>A \<bullet> \<not> g(i)) &\<^sub>u Q"
+proof (cases "A = {}")
+  case True
+  then show ?thesis by (simp add: ExtChoice_empty extChoice_Stop closure assms)
+next
+  case False
+  show ?thesis
+  proof -
+    have 1:"(\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R P i) = (\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
+      by (rule UINF_cong, simp add: NCSP_implies_CSP SRD_reactive_tri_design assms(1))
+    have 2:"(\<box> i\<in>A \<bullet> g(i) &\<^sub>u P(i)) = (\<box> i\<in>A \<bullet> g(i) &\<^sub>u \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
+      by (rule ExtChoice_cong, simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
+    from assms(3) show ?thesis
+      by (simp add: AlternateR_def 1 2)
+         (rdes_eq cls: assms(1-2) simps: False cong: UINF_cong ExtChoice_cong)
+  qed
+qed
 
 end
