@@ -26,6 +26,7 @@ imports
   utp_tactics
   utp_hoare
   utp_wp
+  utp_sp
   utp_theory
   utp_concurrency
   utp_rel_opsem

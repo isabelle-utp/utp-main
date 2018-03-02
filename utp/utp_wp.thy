@@ -1,4 +1,4 @@
-subsection {* Weakest precondition calculus *}
+section {* Weakest Precondition Calculus *}
 
 theory utp_wp
 imports utp_hoare
