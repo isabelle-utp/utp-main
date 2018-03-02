@@ -160,7 +160,7 @@ proof (rule pre_weak_rel[of _ "\<lceil>p\<rceil>\<^sub><" ])
   from I0 show "`\<lceil>pre\<rceil>\<^sub>< \<Rightarrow> \<lceil>p\<rceil>\<^sub><`"
     by rel_auto
   show "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>post\<rceil>\<^sub>>) \<sqsubseteq> (\<mu> X \<bullet> Q ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
-  proof (rule rec_total_utp_rule[where e=e, OF WF])
+  proof (rule mu_rec_total_utp_rule[where e=e, OF WF])
     show "Monotonic (\<lambda>X. Q ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
       by (simp add: closure)
     have induct_step': "\<And> st. (\<lceil>b \<and> p \<and>  e =\<^sub>u \<guillemotleft>st\<guillemotright> \<rceil>\<^sub>< \<Rightarrow> (\<lceil>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<rceil>\<^sub>> )) \<sqsubseteq> Q"

@@ -112,7 +112,8 @@ theorem constr_fp_uniq:
     
 subsection {* Noetherian Induction Instantiation*}
       
-text {* The following generalization was used by Tobias Nipkow in .. and Peter Lammich  in \emph{Refine\_Monadic} *}
+text {* Contribution from Yakoub Nemouchi.The following generalization was used by Tobias Nipkow
+        and Peter Lammich  in \emph{Refine\_Monadic} *}
 
 lemma  wf_fixp_uinduct_pure_ueq_gen:     
   assumes fixp_unfold: "fp B = B (fp B)"
@@ -146,7 +147,7 @@ lemma refine_usubst_to_ueq:
 text {* By instantiation of @{thm wf_fixp_uinduct_pure_ueq_gen} with @{term \<mu>} and lifting of the 
         well-founded relation we have ... *}
   
-lemma rec_total_pure_rule: 
+lemma mu_rec_total_pure_rule: 
   assumes WF: "wf R"
   and     M: "mono B"  
   and     induct_step:
@@ -164,17 +165,46 @@ proof (rule wf_fixp_uinduct_pure_ueq_gen[where fp=\<mu> and Pre=Pre and B=B and 
     by (rule induct_step, rel_simp, simp)
 qed
 
+lemma nu_rec_total_pure_rule: 
+  assumes WF: "wf R"
+  and     M: "mono B"  
+  and     induct_step:
+          "\<And> f st.  \<lbrakk>(Pre \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f\<rbrakk>
+               \<Longrightarrow> \<nu> B = f \<Longrightarrow>(Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> (B f)"
+        shows "(Pre \<Rightarrow> Post) \<sqsubseteq> \<nu> B"  
+proof (rule wf_fixp_uinduct_pure_ueq_gen[where fp=\<nu> and Pre=Pre and B=B and R=R and e=e])
+  show "\<nu> B = B (\<nu> B)"
+    by (simp add: M def_lfp_unfold)
+  show "wf R"
+    by (fact WF)
+  show "\<And>f st. (\<And>st'. (st', st) \<in> R \<Longrightarrow> (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st'\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f) \<Longrightarrow> 
+                \<nu> B = f \<Longrightarrow> 
+                (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B f"
+    by (rule induct_step, rel_simp, simp)
+qed
+
 text {*Since @{term "B ((Pre \<and> (\<lceil>E\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright> \<Rightarrow> Post)) \<sqsubseteq> B (\<mu> B)"} and 
-      @{term "mono B"}, thus,  @{thm rec_total_pure_rule} can be expressed as follows*}
+      @{term "mono B"}, thus,  @{thm mu_rec_total_pure_rule} can be expressed as follows*}
   
-lemma rec_total_utp_rule: 
+lemma mu_rec_total_utp_rule: 
   assumes WF: "wf R"
     and     M: "mono B"  
     and     induct_step:
     "\<And>st. (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> (B ((Pre \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post)))"
   shows "(Pre \<Rightarrow> Post) \<sqsubseteq> \<mu> B"  
-proof (rule rec_total_pure_rule[where R=R and e=e], simp_all add: assms)
+proof (rule mu_rec_total_pure_rule[where R=R and e=e], simp_all add: assms)
   show "\<And>f st. (Pre \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f \<Longrightarrow> \<mu> B = f \<Longrightarrow> (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B f"
+    by (simp add: M induct_step monoD order_subst2)
+qed
+
+lemma nu_rec_total_utp_rule: 
+  assumes WF: "wf R"
+    and     M: "mono B"  
+    and     induct_step:
+    "\<And>st. (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> (B ((Pre \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post)))"
+  shows "(Pre \<Rightarrow> Post) \<sqsubseteq> \<nu> B"  
+proof (rule nu_rec_total_pure_rule[where R=R and e=e], simp_all add: assms)
+  show "\<And>f st. (Pre \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> f \<Longrightarrow> \<nu> B = f \<Longrightarrow> (Pre \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright> \<Rightarrow> Post) \<sqsubseteq> B f"
     by (simp add: M induct_step monoD order_subst2)
 qed
 
