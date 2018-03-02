@@ -69,9 +69,17 @@ subsection \<open> Variable lens properties \<close>
 text \<open> We can now easily show that our UTP variable construction are various classes of 
   well-behaved lens .\<close>
 
+lemma in_var_weak_lens [simp]:
+  "weak_lens x \<Longrightarrow> weak_lens (in_var x)"
+  by (simp add: comp_weak_lens in_var_def)
+
 lemma in_var_semi_uvar [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (in_var x)"
   by (simp add: comp_mwb_lens in_var_def)
+
+lemma pr_var_weak_lens [simp]:
+  "weak_lens x \<Longrightarrow> weak_lens (pr_var x)"
+  by (simp add: pr_var_def)
 
 lemma pr_var_mwb_lens [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (pr_var x)"
@@ -84,6 +92,10 @@ lemma pr_var_vwb_lens [simp]:
 lemma in_var_uvar [simp]:
   "vwb_lens x \<Longrightarrow> vwb_lens (in_var x)"
   by (simp add: in_var_def)
+
+lemma out_var_weak_lens [simp]:
+  "weak_lens x \<Longrightarrow> weak_lens (out_var x)"
+  by (simp add: comp_weak_lens out_var_def)
 
 lemma out_var_semi_uvar [simp]:
   "mwb_lens x \<Longrightarrow> mwb_lens (out_var x)"

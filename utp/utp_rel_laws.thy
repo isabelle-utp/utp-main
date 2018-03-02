@@ -305,10 +305,20 @@ lemma assigns_r_feasible:
   by (rel_auto)
 
 lemma assign_subst [usubst]:
-  "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y := u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
+  "\<lbrakk> mwb_lens x; mwb_lens y \<rbrakk> \<Longrightarrow> [$x \<mapsto>\<^sub>s \<lceil>u\<rceil>\<^sub><] \<dagger> (y := v) = (x, y) := (u, [x \<mapsto>\<^sub>s u] \<dagger> v)"
   by (rel_auto)
-    
-lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x := u,v) = (x := v)"
+
+lemma assign_vacuous_skip:
+  assumes "vwb_lens x"
+  shows "(x := &x) = II"
+  using assms by rel_auto
+
+lemma assign_simultaneous:
+  assumes "vwb_lens y" "x \<bowtie> y"
+  shows "(x,y) := (e, &y) = (x := e)"
+  by (simp add: assms usubst_upd_comm usubst_upd_var_id)
+
+lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x) := (u,v) = (x := v)"
   by (simp add: usubst)
 
 lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
@@ -828,6 +838,10 @@ lemma uomega_induct:
   by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
 subsection {* Refinement Laws *}
+
+lemma skip_r_refine:
+  "(p \<Rightarrow> p) \<sqsubseteq> II"
+  by pred_blast
 
 lemma conj_refine_left:
   "(Q \<Rightarrow> P) \<sqsubseteq> R \<Longrightarrow> P \<sqsubseteq> (Q \<and> R)"

@@ -13,6 +13,9 @@ theory Lens_Extra
     "HOL-Eisbach.Eisbach"
 begin
 
+lemma comp_weak_lens: "\<lbrakk> weak_lens x; weak_lens y \<rbrakk> \<Longrightarrow> weak_lens (x ;\<^sub>L y)"
+  by (unfold_locales, simp_all add: lens_comp_def)
+
 lemma list_augment_last [simp]:
   "list_augment (xs @ [y]) (length xs) z = xs @ [z]"
   by (induct xs, simp_all)
@@ -55,7 +58,7 @@ lemma lens_override_put_right_in:
 
 lemma lens_override_put_right_out:
   "\<lbrakk> vwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
-  by (simp add: lens_override_def  lens_indep.lens_put_irr2)    
+  by (simp add: lens_override_def  lens_indep.lens_put_irr2)
 
 lemma bij_lens_intro: "\<lbrakk> weak_lens L; \<And> \<sigma> \<rho>. put\<^bsub>L\<^esub> \<sigma> (get\<^bsub>L\<^esub> \<rho>) = \<rho> \<rbrakk> \<Longrightarrow> bij_lens L"
   using bij_lens.intro bij_lens_axioms.intro by blast

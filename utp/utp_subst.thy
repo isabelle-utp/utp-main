@@ -158,13 +158,13 @@ lemma subst_upd_id_lam [usubst]: "subst_upd (\<lambda> x. x) x v = subst_upd id 
 text {* A substitution update naturally yields the given expression. *}
     
 lemma usubst_lookup_upd [usubst]:
-  assumes "mwb_lens x"
+  assumes "weak_lens x"
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = v"
   using assms
   by (simp add: subst_upd_uvar_def, transfer) (simp)
 
 lemma usubst_lookup_upd_pr_var [usubst]:
-  assumes "mwb_lens x"
+  assumes "weak_lens x"
   shows "\<langle>\<sigma>(x \<mapsto>\<^sub>s v)\<rangle>\<^sub>s (pr_var x) = v"
   using assms
   by (simp add: subst_upd_uvar_def pr_var_def, transfer) (simp)
@@ -185,7 +185,7 @@ lemma usubst_upd_comm:
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
 
 lemma usubst_upd_comm2:
-  assumes "z \<bowtie> y" and "mwb_lens x"
+  assumes "z \<bowtie> y"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s s) = \<sigma>(x \<mapsto>\<^sub>s u, z \<mapsto>\<^sub>s s, y \<mapsto>\<^sub>s v)"
   using assms
   by (rule_tac ext, auto simp add: subst_upd_uvar_def assms comp_def lens_indep_comm)
