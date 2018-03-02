@@ -1,10 +1,17 @@
-subsection {* Relational Hoare calculus *}
+section {* Relational Hoare calculus *}
 
 theory utp_hoare
   imports 
     utp_rel_laws
     utp_theory
 begin
+
+subsection \<open> Hoare Triple Definitions and Tactics \<close>
+
+definition hoare_r :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>u") where
+"\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
+
+declare hoare_r_def [upred_defs]
 
 named_theorems hoare and hoare_safe
 
@@ -15,11 +22,8 @@ method hoare_split uses hr =
     simp add: assigns_r_comp conj_comm conj_assoc usubst unrest))[1] -- {* Apply Hoare logic laws *}
 
 method hoare_auto uses hr = (hoare_split hr: hr; rel_auto?)
-  
-definition hoare_r :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>u") where
-"\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
 
-declare hoare_r_def [upred_defs]
+subsection \<open> Basic Laws \<close>
 
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
   by rel_auto
@@ -28,15 +32,42 @@ lemma hoare_r_weaken_pre [hoare]:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u"
   "\<lbrace>q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> q\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u"
   by rel_auto+
- 
+
+lemma pre_str_hoare_r:
+  assumes "`p\<^sub>1 \<Rightarrow> p\<^sub>2`" and "\<lbrace>p\<^sub>2\<rbrace>C\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>p\<^sub>1\<rbrace>C\<lbrace>q\<rbrace>\<^sub>u" 
+  using assms by rel_auto
+    
+lemma post_weak_hoare_r:
+  assumes "\<lbrace>p\<rbrace>C\<lbrace>q\<^sub>2\<rbrace>\<^sub>u" and "`q\<^sub>2 \<Rightarrow> q\<^sub>1`"
+  shows "\<lbrace>p\<rbrace>C\<lbrace>q\<^sub>1\<rbrace>\<^sub>u" 
+  using assms by rel_auto
+
 lemma hoare_r_conseq: "\<lbrakk> `p\<^sub>1 \<Rightarrow> p\<^sub>2`; \<lbrace>p\<^sub>2\<rbrace>S\<lbrace>q\<^sub>2\<rbrace>\<^sub>u; `q\<^sub>2 \<Rightarrow> q\<^sub>1` \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1\<rbrace>S\<lbrace>q\<^sub>1\<rbrace>\<^sub>u"
   by rel_auto
+
+subsection \<open> Assignment Laws \<close>
 
 lemma assigns_hoare_r [hoare_safe]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrightarrow> \<lbrace>p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
 
+lemma assigns_backward_hoare_r: 
+  "\<lbrace>\<sigma> \<dagger> p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>p\<rbrace>\<^sub>u"
+  by rel_auto
+
+lemma assign_floyd_hoare_r:
+  assumes "vwb_lens x"
+  shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
+  using assms
+  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
+
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
   by rel_auto
+
+lemma skip_hoare_impl_r [hoare_safe]: "`p \<Rightarrow> q` \<Longrightarrow> \<lbrace>p\<rbrace>II\<lbrace>q\<rbrace>\<^sub>u"
+  by rel_auto  
+
+subsection \<open> Sequence Laws \<close>
 
 lemma seq_hoare_r: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rbrace>\<^sub>u ; \<lbrace>s\<rbrace>Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u"
   by rel_auto
@@ -58,24 +89,54 @@ lemma seq_hoare_inv_r_2 [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace
 lemma seq_hoare_inv_r_3 [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>p\<rbrace>\<^sub>u ; \<lbrace>p\<rbrace>Q\<^sub>2\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
 
+subsection \<open> Conditional Laws \<close>
+
 lemma cond_hoare_r [hoare_safe]: "\<lbrakk> \<lbrace>b \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u ; \<lbrace>\<not>b \<and> p\<rbrace>T\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
 
-text {* Frame rule: If starting $S$ in a state satisfying $p establishes q$ in the final state, then
-  we can insert an invariant predicate $r$ when $S$ is framed by $a$, provided that $r$ does not
-  refer to variables in the frame, and $q$ does not refer to variables outside the frame. *}
-    
-lemma frame_hoare_r [hoare_safe]: 
-  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p \<and> r\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
-  shows "\<lbrace>p \<and> r\<rbrace>a:[S]\<lbrace>q \<and> r\<rbrace>\<^sub>u"
-  using assms by (rel_auto, metis)
+lemma cond_hoare_r_wp: 
+  assumes "\<lbrace>p'\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u" and "\<lbrace>p''\<rbrace>T\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>(b \<and> p') \<or> (\<not>b \<and> p'')\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q\<rbrace>\<^sub>u"
+  using assms by pred_simp
 
-lemma frame_hoare_r' [hoare_safe]: 
-  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>r \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
-  shows "\<lbrace>r \<and> p\<rbrace>a:[S]\<lbrace>r \<and> q\<rbrace>\<^sub>u"
-  using assms
-  by (simp add: frame_hoare_r utp_pred_laws.inf.commute)
+lemma cond_hoare_r_sp:
+  assumes \<open>\<lbrace>b \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u\<close> and \<open>\<lbrace>\<not>b \<and> p\<rbrace>T\<lbrace>s\<rbrace>\<^sub>u\<close>
+  shows \<open>\<lbrace>p\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q \<or> s\<rbrace>\<^sub>u\<close>
+  using assms by pred_simp
+
+subsection \<open> Recursion Laws \<close>
+
+lemma nu_hoare_r_partial: 
+  assumes induct_step:
+    "\<And> st P. \<lbrace>p\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>F P\<lbrace>q\<rbrace>\<^sub>u"   
+  shows "\<lbrace>p\<rbrace>\<nu> F \<lbrace>q\<rbrace>\<^sub>u"  
+  by (meson hoare_r_def induct_step lfp_lowerbound order_refl)
+
+lemma mu_hoare_r:
+  assumes WF: "wf R"
+  assumes M:"mono F"  
+  assumes induct_step:
+    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace>F P\<lbrace>q\<rbrace>\<^sub>u"   
+  shows "\<lbrace>p\<rbrace>\<mu> F \<lbrace>q\<rbrace>\<^sub>u"  
+  unfolding hoare_r_def
+proof (rule mu_rec_total_utp_rule[OF WF M , of _ e ], goal_cases)
+  case (1 st)
+  then show ?case 
+    using induct_step[unfolded hoare_r_def, of "(\<lceil>p\<rceil>\<^sub>< \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright> \<Rightarrow> \<lceil>q\<rceil>\<^sub>>)" st]
+    by (simp add: alpha)    
+qed
     
+lemma mu_hoare_r':
+  assumes WF: "wf R"
+  assumes M:"mono F"  
+  assumes induct_step:
+    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace> P \<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace> F P \<lbrace>q\<rbrace>\<^sub>u" 
+  assumes I0: "`p' \<Rightarrow> p`"  
+  shows "\<lbrace>p'\<rbrace> \<mu> F \<lbrace>q\<rbrace>\<^sub>u"
+  by (meson I0 M WF induct_step mu_hoare_r pre_str_hoare_r)
+
+subsection \<open> Iteration Rules \<close>
+
 lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
@@ -86,6 +147,12 @@ lemma while_invr_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
   shows "\<lbrace>pre\<rbrace>while b invr p do S od\<lbrace>post\<rbrace>\<^sub>u"
   by (metis assms hoare_r_conseq while_hoare_r while_inv_def)
+
+lemma while_r_minimal_partial:
+  assumes seq_step: "`p \<Rightarrow> invar`"
+  assumes induct_step: "\<lbrace>invar\<and> b\<rbrace> C \<lbrace>invar\<rbrace>\<^sub>u"  
+  shows "\<lbrace>p\<rbrace>while b do C od\<lbrace>\<not>b \<and> invar\<rbrace>\<^sub>u"
+  using induct_step pre_str_hoare_r seq_step while_hoare_r by blast
 
 lemma approx_chain: 
   "(\<Sqinter>n::nat. \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><) = \<lceil>p\<rceil>\<^sub><"
@@ -170,5 +237,53 @@ proof (rule pre_weak_rel[of _ "\<lceil>p\<rceil>\<^sub><" ])
       by (rel_auto)
   qed       
 qed
+
+subsection \<open> Frame Rules \<close>
+
+text {* Frame rule: If starting $S$ in a state satisfying $p establishes q$ in the final state, then
+  we can insert an invariant predicate $r$ when $S$ is framed by $a$, provided that $r$ does not
+  refer to variables in the frame, and $q$ does not refer to variables outside the frame. *}
+
+lemma frame_hoare_r:
+  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  
+  shows "\<lbrace>p \<and> r\<rbrace>a:[P]\<lbrace>q \<and> r\<rbrace>\<^sub>u"
+  using assms
+  by (rel_auto, metis)
+
+lemma frame_strong_hoare_r [hoare_safe]: 
+  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p \<and> r\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>p \<and> r\<rbrace>a:[S]\<lbrace>q \<and> r\<rbrace>\<^sub>u"
+  using assms by (rel_auto, metis)
+
+lemma frame_hoare_r' [hoare_safe]: 
+  assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>r \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>r \<and> p\<rbrace>a:[S]\<lbrace>r \<and> q\<rbrace>\<^sub>u"
+  using assms
+  by (simp add: frame_strong_hoare_r utp_pred_laws.inf.commute)
+
+lemma antiframe_hoare_r:
+  assumes "vwb_lens a" "a \<natural> r" "a \<sharp> q" "\<lbrace>p\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  
+  shows "\<lbrace>p \<and> r\<rbrace> a:\<lbrakk>P\<rbrakk> \<lbrace>q \<and> r\<rbrace>\<^sub>u"
+  using assms by (rel_auto, metis)
+    
+lemma antiframe_strong_hoare_r:
+  assumes "vwb_lens a" "a \<natural> r" "a \<sharp> q" "\<lbrace>p \<and> r\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  
+  shows "\<lbrace>p \<and> r\<rbrace> a:\<lbrakk>P\<rbrakk> \<lbrace>q \<and> r\<rbrace>\<^sub>u"
+  using assms by (rel_auto, metis)
+
+(* FIXME: Got some work to prove this theorem from Yakoub ... *)
+
+lemma antiframe_intro:
+  assumes 
+    "vwb_lens g" "vwb_lens g'" "vwb_lens l" "l \<bowtie> g" "g' \<subseteq>\<^sub>L g" 
+    "{&g', &l}:[C] = C" "\<lbrace>p\<rbrace>C\<lbrace>q\<rbrace>\<^sub>u" "`r \<Rightarrow> p`"     
+  shows "\<lbrace>r\<rbrace> l:\<lbrakk>C\<rbrakk> \<lbrace>(\<exists> l \<bullet> q) \<and> (\<exists>g' \<bullet> r)\<rbrace>\<^sub>u"
+  using assms
+  apply (rel_auto, simp_all add: lens_defs)
+   apply metis
+  apply (rename_tac Z a b)
+  apply (rule_tac x="get\<^bsub> g'\<^esub> a" in exI)
+oops
+
   
 end
