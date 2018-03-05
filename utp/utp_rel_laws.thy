@@ -20,6 +20,11 @@ lemma cond_seq_right_distr:
   "in\<alpha> \<sharp> b \<Longrightarrow> (P ;; (Q \<triangleleft> b \<triangleright> R)) = ((P ;; Q) \<triangleleft> b \<triangleright> (P ;; R))"
   by (rel_auto)
 
+text \<open> Alternative expression of conditional using assumptions and choice \<close>
+
+lemma rcond_rassume_expand: "P \<triangleleft> b \<triangleright>\<^sub>r Q = ([b]\<^sup>\<top> ;; P) \<sqinter> ([\<not> b]\<^sup>\<top> ;; Q)"
+  by (rel_auto)
+
 subsection {* Precondition and Postcondition Laws *}
   
 theorem precond_equiv:
@@ -830,6 +835,39 @@ lemma ustar_unfoldl: "P\<^sup>\<star> = II \<sqinter> (P ;; P\<^sup>\<star>)"
    apply (rule monoI)
    apply (rel_auto)+
   done
+
+text \<open> While loop can be expressed using Kleene star \<close>
+
+lemma while_star_form:
+  "while b do P od = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [\<not>b]\<^sup>\<top>"
+proof -
+  have 1: "Continuous (\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
+    by (rel_auto)
+  have "while b do P od = (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ i) false)"
+    by (simp add: "1" false_upred_def sup_continuous_Continuous sup_continuous_lfp while_def)
+  also have "... = ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ 0) false \<sqinter> (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ (i+1)) false)"
+    by (subst Sup_power_expand, simp)
+  also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ (i+1)) false)"
+    by (simp)
+  also have "... = (\<Sqinter>i. (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; (false \<triangleleft> b \<triangleright>\<^sub>r II))"
+  proof (rule SUP_cong, simp_all)
+    fix i
+    show "P ;; ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ i) false \<triangleleft> b \<triangleright>\<^sub>r II = (P \<triangleleft> b \<triangleright>\<^sub>r II) \<^bold>^ i ;; (false \<triangleleft> b \<triangleright>\<^sub>r II)"
+    proof (induct i)
+      case 0
+      then show ?case by simp
+    next
+      case (Suc i)
+      then show ?case
+        by (simp, metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 resugar_cond upred_semiring.mult.left_neutral)
+    qed
+  qed
+  also have "... = (\<Sqinter>i\<in>{0..} \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; [\<not>b]\<^sup>\<top>)"
+    by (rel_auto)
+  also have "... = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [\<not>b]\<^sup>\<top>"
+    by (metis seq_UINF_distr ustar_def)
+  finally show ?thesis .
+qed
   
 subsection {* Omega Algebra Laws *}
 

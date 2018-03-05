@@ -1,8 +1,8 @@
-section {* Kleene Algebra Laws *}
+section {* Kleene Algebra and KAT Laws *}
 
 theory utp_kleene
   imports
-    "../contrib/Kleene_Algebra/Kleene_Algebra"
+    "KAT_and_DRA.KAT"
     "../utp/utp"
 begin
 
@@ -37,17 +37,34 @@ proof
   show "false ;; P = false" by simp
   show "P ;; false = false" by simp
   show "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P ;; P\<^sup>\<star>"
-    using ustar_unfoldl by blast
+    using ustar_sub_unfoldl by blast
   show "Q \<sqsubseteq> R \<sqinter> P ;; Q \<Longrightarrow> Q \<sqsubseteq> P\<^sup>\<star> ;; R"
     by (simp add: ustar_inductl)
   show "Q \<sqsubseteq> R \<sqinter> Q ;; P \<Longrightarrow> Q \<sqsubseteq> R ;; P\<^sup>\<star>"
     by (simp add: ustar_inductr)
 qed
 
-text {* We can now access the laws of KA for UTP relations as below. *}
+interpretation urel_kat: kat
+  where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar and n_op = "\<lambda>x. II \<and> (\<not> x)"
+  by (unfold_locales, rel_auto+)
 
+text {* We can now access the laws of KA and KAT for UTP relations as below. *}
+
+thm urel_ka.star_inductr_var
 thm urel_ka.star_trans
 thm urel_ka.star_square
 thm urel_ka.independence1
+
+text \<open> We prove that UTP assumptions are tests \<close>
+
+lemma test_rassume [simp]: "urel_kat.test [b]\<^sup>\<top>"
+  by (simp add: urel_kat.test_def, rel_auto)
+
+text \<open> The KAT laws can be used to prove results like the one below \<close>
+
+lemma while_kat_form:
+  "while b do P od = ([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+  by (simp add: while_star_form rcond_rassume_expand)
+     (metis seqr_left_unit test_rassume urel_dioid.add_comm urel_dioid.less_eq_def urel_ka.conway.zero_dagger urel_ka.star_denest urel_ka.star_invol urel_kat.test_restrictr)
 
 end
