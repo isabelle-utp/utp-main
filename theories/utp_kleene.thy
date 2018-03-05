@@ -6,12 +6,24 @@ theory utp_kleene
     "../utp/utp"
 begin
 
+text \<open> It is necessary to replace parts of the KA/KAT syntax to ensure compatibility with UTP\<close>
+
+purge_notation star ("_\<^sup>\<star>" [101] 100)
+
+recall_syntax
+
+purge_notation n_op ("n _" [90] 91)
+purge_notation ts_ord (infix "\<sqsubseteq>" 50)
+
+notation n_op ("\<^bold>n[_]")
+notation t ("\<^bold>n\<^sup>2[_]")
+notation ts_ord (infix "\<sqsubseteq>\<^sub>t" 50)
+
+hide_const t
+
 text {* In this theory we import the laws of Kleene Algebra into UTP relational calculus. We show
   that relations form a dioid and Kleene algebra via two locales, the interpretation of which
   exports a large library of algebraic laws. *}
-
-no_notation star ("_\<^sup>\<star>" [101] 100)
-recall_syntax
 
 interpretation urel_dioid: dioid
   where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and less_eq = less_eq and less = less
