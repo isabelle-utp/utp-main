@@ -271,7 +271,7 @@ lemma seq_RR_closed [closure]:
     
 lemma power_Suc_RR_closed [closure]:
   "P is RR \<Longrightarrow> P ;; P \<^bold>^ i is RR"
-  by (induct i, simp_all add: closure)
+  by (induct i, simp_all add: closure upred_semiring.power_Suc)
     
 lemma seqr_iter_RR_closed [closure]:
   "\<lbrakk> I \<noteq> []; \<And> i. i \<in> set(I) \<Longrightarrow> P(i) is RR \<rbrakk> \<Longrightarrow> (;; i : I \<bullet> P(i)) is RR"
@@ -321,9 +321,14 @@ lemma upower_RR_closed [closure]:
   apply (induct i, simp_all)
   apply (rename_tac i)
   apply (case_tac "i = 0")
-   apply (simp_all add: closure)
-done
-  
+   apply (simp_all add: closure upred_semiring.power_Suc)
+  done
+
+lemma seq_power_RR_closed [closure]:
+  assumes "P is RR" "Q is RR"
+  shows "(P \<^bold>^ i) ;; Q is RR"
+  by (metis assms neq0_conv seq_RR_closed seqr_left_unit upower_RR_closed upred_semiring.power_0)
+
 lemma ustar_right_RR_closed [closure]:
   assumes "P is RR" "Q is RR"
   shows "P ;; Q\<^sup>\<star> is RR"

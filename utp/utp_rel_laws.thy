@@ -645,6 +645,8 @@ interpretation upred_semiring: semiring_1
   where times = seqr and one = skip_r and zero = false\<^sub>h and plus = Lattices.sup
   by (unfold_locales, (rel_auto)+)
 
+declare upred_semiring.power_Suc [simp del]
+
 text {* We introduce the power syntax derived from semirings *}
 
 abbreviation upower :: "'\<alpha> hrel \<Rightarrow> nat \<Rightarrow> '\<alpha> hrel" (infixr "\<^bold>^" 80) where
@@ -665,7 +667,7 @@ proof (induct i arbitrary: P)
 next
   case (Suc i)
   show ?case
-    by (simp add: Suc seqr.rep_eq relpow_commute)
+    by (simp add: Suc seqr.rep_eq relpow_commute upred_semiring.power_Suc)
 qed
 
 lemma upower_rep_eq_alt:
@@ -711,7 +713,7 @@ proof (induct n)
 next
   case (Suc n)
   then show ?case
-    by (auto, metis (no_types, hide_lams) dual_order.trans order_refl seqr_assoc seqr_mono)
+    by (auto simp add: upred_semiring.power_Suc, metis (no_types, hide_lams) dual_order.trans order_refl seqr_assoc seqr_mono)
 qed
 
 lemma upower_inductr:
@@ -738,7 +740,7 @@ lemma SUP_atLeastAtMost_first:
   by (metis SUP_insert assms atLeastAtMost_insertL)
     
 lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
-  by (induct n, simp_all)
+  by (induct n, simp_all add: upred_semiring.power_Suc)
 
 lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
   by (induct n, rel_auto+)
@@ -760,8 +762,11 @@ purge_notation trancl ("(_\<^sup>+)" [1000] 999)
 
 definition uplus :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>+" [999] 999) where
 [upred_defs]: "P\<^sup>+ = P ;; P\<^sup>\<star>"
-  
-subsubsection {* Omega *}
+
+lemma uplus_power_def: "P\<^sup>+ = (\<Sqinter> i \<bullet> P \<^bold>^ (Suc i))"
+  by (simp add: uplus_def ustar_def seq_UINF_distl' UINF_atLeast_Suc upred_semiring.power_Suc)
+
+subsection {* Omega *}
 
 definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where
 "P\<^sup>\<omega> = (\<mu> X \<bullet> P ;; X)"
@@ -859,7 +864,8 @@ proof -
     next
       case (Suc i)
       then show ?case
-        by (simp, metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 resugar_cond upred_semiring.mult.left_neutral)
+        by (simp add: upred_semiring.power_Suc)
+           (metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 resugar_cond upred_semiring.mult.left_neutral)
     qed
   qed
   also have "... = (\<Sqinter>i\<in>{0..} \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; [\<not>b]\<^sup>\<top>)"

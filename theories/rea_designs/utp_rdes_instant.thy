@@ -94,7 +94,7 @@ proof -
   also have "... = (... ;; II\<^sub>R)"
     by (rdes_simp, simp add: RHS_tri_normal_design_composition' closure assms unrest ISRD_implies_SRD wp rpred wp_rea_false_RC)
   also have "... is RD3"
-    by (simp add: Healthy_def RD3_def seqr_assoc, simp add: NSRD_right_unit closure)
+    by (simp add: Healthy_def RD3_def seqr_assoc)
   finally show ?thesis
     by (simp add: SRD_RD3_implies_NSRD Healthy_if assms ISRD_implies_SRD)
 qed

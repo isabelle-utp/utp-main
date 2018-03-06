@@ -87,7 +87,7 @@ lemma wp_rea_rea_skip [wp]:
 lemma power_wp_rea_RR_closed [closure]: 
   "\<lbrakk> R is RR; P is RR \<rbrakk> \<Longrightarrow> R \<^bold>^ i wp\<^sub>r P is RR"
   by (induct i, simp_all add: wp closure)
-    
+
 lemma wp_rea_rea_assigns [wp]:
   assumes "P is RR"
   shows "\<langle>\<sigma>\<rangle>\<^sub>r wp\<^sub>r P = \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P"
@@ -132,5 +132,10 @@ lemma wp_rea_RC1: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<
     
 lemma wp_rea_RC [closure]: "\<lbrakk> P is RR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is RC"
   by (rule RC_intro', simp_all add: wp_rea_RC1 closure)
+
+lemma wpR_power_RC_closed [closure]:
+  assumes "P is RR" "Q is RC"
+  shows "P \<^bold>^ i wp\<^sub>r Q is RC"
+  by (metis RC_implies_RR RR_implies_R1 assms power.power_eq_if power_Suc_RR_closed wp_rea_RC wp_rea_skip)
 
 end

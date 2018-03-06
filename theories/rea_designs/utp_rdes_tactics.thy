@@ -17,6 +17,16 @@ text {* Tactic to simplify the definition of a reactive design *}
 method rdes_simp uses cls cong simps =
   ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if simps cong: cong))
 
+text {* Tactic to split a refinement conjecture into three POs *}
+
+method rdes_refine_split uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro)
+
+text {* Tactic to split an equality conjecture into three POs *}
+
+method rdes_eq_split uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro))
+
 text {* Tactic to prove a refinement *}
   
 method rdes_refine uses cls cong simps =

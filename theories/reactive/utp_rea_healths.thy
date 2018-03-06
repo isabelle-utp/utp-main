@@ -147,7 +147,7 @@ lemma R1_seqr_closure [closure]:
   by (metis seqr_mono tr_le_trans)
 
 lemma R1_power [closure]: "P is R1 \<Longrightarrow> P\<^bold>^n is R1"
-  by (induct n, simp_all add: closure)
+  by (induct n, simp_all add: upred_semiring.power_Suc closure)
 
 lemma R1_true_comp [simp]: "(R1(true) ;; R1(true)) = R1(true)"
   by (rel_auto)

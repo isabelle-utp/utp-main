@@ -6,6 +6,8 @@ theory utp_kleene
     "../utp/utp"
 begin
 
+subsection \<open> Syntax setup \<close>
+
 text \<open> It is necessary to replace parts of the KA/KAT syntax to ensure compatibility with UTP\<close>
 
 purge_notation star ("_\<^sup>\<star>" [101] 100)
@@ -20,6 +22,8 @@ notation t ("\<^bold>n\<^sup>2[_]")
 notation ts_ord (infix "\<sqsubseteq>\<^sub>t" 50)
 
 hide_const t
+
+text \<open> Kleene Algebra Instantiations \<close>
 
 text {* In this theory we import the laws of Kleene Algebra into UTP relational calculus. We show
   that relations form a dioid and Kleene algebra via two locales, the interpretation of which
@@ -67,6 +71,8 @@ thm urel_ka.star_trans
 thm urel_ka.star_square
 thm urel_ka.independence1
 
+subsection \<open> Derived Laws \<close>
+
 text \<open> We prove that UTP assumptions are tests \<close>
 
 lemma test_rassume [simp]: "urel_kat.test [b]\<^sup>\<top>"
@@ -93,5 +99,11 @@ proof -
     by (metis urel_ka.star_invol)
   finally show ?thesis .
 qed
+
+lemma uplus_invol [simp]: "(P\<^sup>+)\<^sup>+ = P\<^sup>+"
+  by (metis RA1 uplus_def urel_ka.conway.dagger_trans_eq urel_ka.star_denest_var_2 urel_ka.star_invol)
+
+lemma uplus_alt_def: "P\<^sup>+ = P\<^sup>\<star> ;; P"
+  by (simp add: uplus_def urel_ka.star_slide_var)
 
 end

@@ -343,6 +343,10 @@ proof -
     by (metis UINF_insert)
 qed  
 
+lemma UINF_atLeast_Suc:
+  "(\<Sqinter> i \<in> {Suc m..} \<bullet> P(i)) = (\<Sqinter> i \<in> {m..} \<bullet> P(Suc i))"
+  by (rel_simp, metis (full_types) Suc_le_D not_less_eq_eq)
+
 lemma USUP_empty [simp]: "(\<Squnion> i \<in> {} \<bullet> P(i)) = true"
   by (pred_auto)
 
@@ -397,9 +401,23 @@ lemma USUP_subset_mono: "A \<subseteq> B \<Longrightarrow> (\<Squnion> P\<in>A \
 lemma UINF_impl: "(\<Sqinter> P\<in>A \<bullet> F(P) \<Rightarrow> G(P)) = ((\<Squnion> P\<in>A \<bullet> F(P)) \<Rightarrow> (\<Sqinter> P\<in>A \<bullet> G(P)))"
   by (pred_auto)
 
+lemma USUP_is_forall: "(\<Squnion> x \<bullet> P(x)) = (\<^bold>\<forall> x \<bullet> P(x))"
+  by (pred_simp)
+
+lemma USUP_ind_is_forall: "(\<Squnion> x\<in>A \<bullet> P(x)) = (\<^bold>\<forall> x\<in>\<guillemotleft>A\<guillemotright> \<bullet> P(x))"
+  by (pred_auto)
+
+lemma UINF_is_exists: "(\<Sqinter> x \<bullet> P(x)) = (\<^bold>\<exists> x \<bullet> P(x))"
+  by (pred_simp)
+
 lemma UINF_all_nats [simp]:
   fixes P :: "nat \<Rightarrow> '\<alpha> upred"
-  shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> i\<in>{0..} \<bullet> P(i))"
+  shows "(\<Sqinter> n \<bullet> \<Sqinter> i\<in>{0..n} \<bullet> P(i)) = (\<Sqinter> n \<bullet> P(n))"
+  by (pred_auto)
+
+lemma USUP_all_nats [simp]:
+  fixes P :: "nat \<Rightarrow> '\<alpha> upred"
+  shows "(\<Squnion> n \<bullet> \<Squnion> i\<in>{0..n} \<bullet> P(i)) = (\<Squnion> n \<bullet> P(n))"
   by (pred_auto)
 
 lemma UINF_upto_expand_first:

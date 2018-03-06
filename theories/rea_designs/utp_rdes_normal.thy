@@ -402,12 +402,27 @@ lemma NSRD_Chaos [closure]: "Chaos is NSRD"
 lemma NSRD_Miracle [closure]: "Miracle is NSRD"
   by (rule NSRD_intro, simp_all add: closure rdes unrest)
 
+text \<open> Post-composing a miracle filters out the non-terminating behaviours \<close>
+
 lemma NSRD_right_Miracle_tri_lemma:
   assumes "P is NSRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
   by (simp add: NSRD_composition_wp closure assms rdes wp rpred)
 
-lemma NSRD_power_Suc [closure]: "P is NSRD \<Longrightarrow> P ;; P\<^bold>^n is NSRD"
+text \<open> The set of non-terminating behaviours is a subset \<close>
+
+lemma NSRD_right_Miracle_refines:
+  assumes "P is NSRD"
+  shows "P \<sqsubseteq> P ;; Miracle"
+proof -
+  have "\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) \<sqsubseteq> \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
+    by (rule srdes_tri_refine_intro, rel_auto+)
+  thus ?thesis
+    by (simp add: NSRD_elim NSRD_right_Miracle_tri_lemma assms)
+qed
+
+lemma upower_Suc_NSRD_closed [closure]:
+  "P is NSRD \<Longrightarrow> P \<^bold>^ Suc n is NSRD"
 proof (induct n)
   case 0
   then show ?case
@@ -415,8 +430,15 @@ proof (induct n)
 next
   case (Suc n)
   then show ?case
-    using NSRD_seqr_closure by auto
+    by (simp add: NSRD_seqr_closure upred_semiring.power_Suc) 
 qed
+
+lemma NSRD_power_Suc [closure]:
+  "P is NSRD \<Longrightarrow> P ;; P \<^bold>^ n is NSRD"
+  by (metis upower_Suc_NSRD_closed upred_semiring.power_Suc)
+
+lemma uplus_NSRD_closed [closure]: "P is NSRD \<Longrightarrow> P\<^sup>+ is NSRD"
+  by (simp add: uplus_power_def closure)
 
 lemma preR_power:
   assumes "P is NSRD"
@@ -428,11 +450,11 @@ proof (induct n)
 next
   case (Suc n) note hyp = this
   have "pre\<^sub>R (P \<^bold>^ (Suc n + 1)) = pre\<^sub>R (P ;; P \<^bold>^ (n+1))"
-    by (simp)
-  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R (P ;; P \<^bold>^ n))"
-    by (subst preR_NSRD_seq, simp_all add: closure assms)
+    by (simp add: upred_semiring.power_Suc)
+  also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R (P \<^bold>^ (Suc n)))"
+    using NSRD_iff assms preR_NSRD_seq upower_Suc_NSRD_closed by fastforce
   also have "... = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r (\<Squnion>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i wp\<^sub>r pre\<^sub>R P))"
-    by (simp only: hyp)
+    by (simp add: hyp upred_semiring.power_Suc)
   also have "... = (pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. post\<^sub>R P wp\<^sub>r (post\<^sub>R P \<^bold>^ i wp\<^sub>r pre\<^sub>R P)))"
     by (simp add: wp)
   also have "... = (pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>r pre\<^sub>R P)))"
@@ -440,7 +462,7 @@ next
     have "\<And> i. R1 (post\<^sub>R P \<^bold>^ i ;; (\<not>\<^sub>r pre\<^sub>R P)) = (post\<^sub>R P \<^bold>^ i ;; (\<not>\<^sub>r pre\<^sub>R P))"
       by (induct_tac i, simp_all add: closure Healthy_if assms)
     thus ?thesis
-      by (simp add: wp_rea_def seqr_assoc rpred closure assms)
+      by (simp add: wp_rea_def upred_semiring.power_Suc seqr_assoc rpred closure assms)
   qed
   also have "... = (post\<^sub>R P \<^bold>^ 0 wp\<^sub>r pre\<^sub>R P \<and> (\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>r pre\<^sub>R P)))"
     by (simp add: wp assms closure)
@@ -448,20 +470,22 @@ next
   proof -
     have "(\<Squnion>i\<in>{0..n}. (post\<^sub>R P \<^bold>^ (i+1) wp\<^sub>r pre\<^sub>R P)) = (\<Squnion>i\<in>{1..Suc n}. (post\<^sub>R P \<^bold>^ i wp\<^sub>r pre\<^sub>R P))"
       by (rule cong[of Inf], simp_all add: fun_eq_iff)
-         (metis (no_types, lifting) image_Suc_atLeastAtMost image_cong image_image upred_semiring.power_Suc)
+         (metis (no_types, lifting) image_Suc_atLeastAtMost image_cong image_image)
     thus ?thesis by simp
   qed
   also have "... = (\<Squnion>i\<in>insert 0 {1..Suc n}. (post\<^sub>R P \<^bold>^ i wp\<^sub>r pre\<^sub>R P))"
     by (simp add: conj_upred_def)
   also have "... = (\<Squnion>i\<in>{0..Suc n}. post\<^sub>R P \<^bold>^ i wp\<^sub>r pre\<^sub>R P)"
     by (simp add: atLeast0_atMost_Suc_eq_insert_0)
-  finally show ?case by simp
+  finally show ?case by (simp add: upred_semiring.power_Suc)
 qed
 
 lemma preR_power' [rdes]:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
   by (simp add: preR_power assms USUP_as_Inf[THEN sym])
+
+declare upred_semiring.power_Suc [simp]
 
 lemma periR_power:
   assumes "P is NSRD"
@@ -619,5 +643,7 @@ next
   from 1 2 3 Suc show ?case
     by (simp add: Suc RHS_tri_normal_design_composition' closure assms wp)
 qed
+
+declare upred_semiring.power_Suc [simp del]
 
 end

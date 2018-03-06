@@ -923,7 +923,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P ;; P\<^bold>^n is SRD"
+lemma SRD_power_Suc [closure]: "P is SRD \<Longrightarrow> P\<^bold>^(Suc n) is SRD"
 proof (induct n)
   case 0
   then show ?case
@@ -931,8 +931,14 @@ proof (induct n)
 next
   case (Suc n)
   then show ?case
-    using SRD_seqr_closure by auto
+    using SRD_seqr_closure by (simp add: SRD_seqr_closure upred_semiring.power_Suc) 
 qed
+
+lemma SRD_power_comp [closure]: "P is SRD \<Longrightarrow> P ;; P\<^bold>^n is SRD"
+  by (metis SRD_power_Suc upred_semiring.power_Suc)
+
+lemma uplus_SRD_closed [closure]: "P is SRD \<Longrightarrow> P\<^sup>+ is SRD"
+  by (simp add: uplus_power_def closure)
 
 lemma SRD_Sup_closure [closure]:
   assumes "A \<subseteq> \<lbrakk>SRD\<rbrakk>\<^sub>H" "A \<noteq> {}"
@@ -980,7 +986,7 @@ lemma RHS_tri_design_USUP [rdes_def]:
   shows "(\<Sqinter> i \<in> A \<bullet> \<^bold>R\<^sub>s(P(i) \<turnstile> Q(i) \<diamondop> R(i))) = \<^bold>R\<^sub>s((\<Squnion> i \<in> A \<bullet> P(i)) \<turnstile> (\<Sqinter> i \<in> A \<bullet> Q(i)) \<diamondop> (\<Sqinter> i \<in> A \<bullet> R(i)))"
   by (subst RHS_INF[OF assms, THEN sym], simp add: design_UINF_mem assms, rel_auto)
 
-lemma SRD_UINF_ind:
+lemma SRD_UINF_mem:
   assumes "A \<noteq> {}" "\<And> i. P i is SRD"
   shows "(\<Sqinter> i\<in>A \<bullet> P i) = \<^bold>R\<^sub>s((\<And> i\<in>A \<bullet> pre\<^sub>R(P i)) \<turnstile> (\<Or> i\<in>A \<bullet> peri\<^sub>R(P i)) \<diamondop> (\<Or> i\<in>A \<bullet> post\<^sub>R(P i)))"
   (is "?lhs = ?rhs")
@@ -993,6 +999,10 @@ proof -
     by (rel_auto)
   finally show ?thesis .
 qed
+
+lemma RHS_tri_design_UINF_ind [rdes_def]:
+  "(\<Sqinter> i \<bullet> \<^bold>R\<^sub>s(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i))) = \<^bold>R\<^sub>s((\<And> i \<bullet> P\<^sub>1 i) \<turnstile> (\<Or> i \<bullet> P\<^sub>2(i)) \<diamondop> (\<Or> i \<bullet> P\<^sub>3(i)))"
+  by (rel_auto)
 
 lemma cond_srea_form [rdes_def]:
   "\<^bold>R\<^sub>s(P \<turnstile> Q\<^sub>1 \<diamondop> Q\<^sub>2) \<triangleleft> b \<triangleright>\<^sub>R \<^bold>R\<^sub>s(R \<turnstile> S\<^sub>1 \<diamondop> S\<^sub>2) =
@@ -1029,6 +1039,10 @@ lemma SRD_left_unit:
   shows "II\<^sub>R ;; P = P"
   by (simp add: SRD_composition_wp closure rdes wp C1 R1_negate_R1 R1_false 
       rpred trace_ident_left_periR trace_ident_left_postR SRD_reactive_tri_design assms)
+
+lemma skip_srea_self_unit [simp]:
+  "II\<^sub>R ;; II\<^sub>R = II\<^sub>R"
+  by (simp add: SRD_left_unit closure)
 
 lemma SRD_right_unit_tri_lemma:
   assumes "P is SRD"

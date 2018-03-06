@@ -274,6 +274,8 @@ qed
 
 subsection {* Tail recursive fixed-point calculations *}
 
+declare upred_semiring.power_Suc [simp]
+
 lemma mu_csp_form_1 [rdes]:
   fixes P :: "('s, 't::size_trace,'\<alpha>) hrel_rsp"
   assumes "P is NSRD" "P is Productive"
@@ -293,7 +295,7 @@ proof -
   also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; SRD X) ^^ (i+1)) false)"
     by (simp)
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1) ;; Miracle)"
-  proof (rule SUP_cong,simp_all)
+  proof (rule SUP_cong, simp_all) 
     fix i
     show "P ;; SRD (((\<lambda>X. P ;; SRD X) ^^ i) false) = (P ;; P \<^bold>^ i) ;; Miracle"
     proof (induct i)
@@ -303,7 +305,7 @@ proof -
     next
       case (Suc i)
       then show ?case
-        by (simp add: Healthy_if NSRD_is_SRD SRD_power_Suc SRD_seqr_closure assms(1) seqr_assoc[THEN sym] srdes_theory_continuous.weak.top_closed)
+        by (simp add: Healthy_if NSRD_is_SRD SRD_power_comp SRD_seqr_closure assms(1) seqr_assoc[THEN sym] srdes_theory_continuous.weak.top_closed)
     qed
   qed
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
@@ -329,5 +331,7 @@ proof -
     by (simp only: seq_UINF_distl[THEN sym], simp add: ustar_def)
   finally show ?thesis .
 qed
+
+declare upred_semiring.power_Suc [simp del]
 
 end

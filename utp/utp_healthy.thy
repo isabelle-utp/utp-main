@@ -221,6 +221,14 @@ lemma Continuous_comp [intro]:
   "\<lbrakk> Continuous f; Continuous g \<rbrakk> \<Longrightarrow> Continuous (f \<circ> g)"
   by (simp add: Continuous_def)
 
+lemma Continuous_const [closure]: "Continuous (\<lambda> X. P)"
+  by pred_auto
+
+lemma Continuous_cond [closure]:
+  assumes "Continuous F" "Continuous G"
+  shows "Continuous (\<lambda> X. F(X) \<triangleleft> b \<triangleright> G(X))"
+  using assms by (pred_auto)
+
 text {* Closure laws derived from continuity *}
 
 lemma Sup_Continuous_closed [closure]:

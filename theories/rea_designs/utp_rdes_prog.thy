@@ -6,6 +6,7 @@ theory utp_rdes_prog
     utp_rdes_tactics
     utp_rdes_parallel
     utp_rdes_guarded
+    "UTP-KAT.utp_kleene"
 begin
 
 subsection \<open> State substitution \<close>
@@ -134,11 +135,19 @@ lemma AssumeR_true: "[true]\<^sup>\<top>\<^sub>R = II\<^sub>R"
 lemma AssumeR_comp: "[b]\<^sup>\<top>\<^sub>R ;; [c]\<^sup>\<top>\<^sub>R = [b \<and> c]\<^sup>\<top>\<^sub>R"
   by (rdes_eq)
 
+lemma AssumeR_choice: "[b]\<^sup>\<top>\<^sub>R \<sqinter> [c]\<^sup>\<top>\<^sub>R = [b \<or> c]\<^sup>\<top>\<^sub>R"
+  by (rdes_eq)
+
 lemma AssumeR_refine_skip: "II\<^sub>R \<sqsubseteq> [b]\<^sup>\<top>\<^sub>R"
   by (rdes_refine)
 
 lemma AssumeR_choice_skip: "II\<^sub>R \<sqinter> [b]\<^sup>\<top>\<^sub>R = II\<^sub>R"
   by (rdes_eq)
+
+lemma cond_srea_AssumeR_form:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = ([b]\<^sup>\<top>\<^sub>R ;; P \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R ;; Q)"
+  by (rdes_eq cls: assms)
 
 subsection \<open> Guarded commands \<close>
 
@@ -175,6 +184,10 @@ lemma gcmd_nondet_distr:
   assumes "A is NSRD" "B is NSRD"
   shows "(g \<rightarrow>\<^sub>R (A \<sqinter> B)) = (g \<rightarrow>\<^sub>R A) \<sqinter> (g \<rightarrow>\<^sub>R B)"
   by (rdes_eq cls: assms)
+
+lemma AssumeR_as_gcmd:
+  "[b]\<^sup>\<top>\<^sub>R = b \<rightarrow>\<^sub>R II\<^sub>R"
+  by (rdes_eq)
 
 section {* Generalised Alternation *}
 
@@ -298,35 +311,88 @@ lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
   by (rel_auto)
 
-subsection \<open> Assumptions \<close>
+subsection \<open> Kleene Star \<close>
 
-definition AssumeR :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sub>R") where
-[upred_defs, rdes_def]: "[b]\<^sub>R = b \<rightarrow>\<^sub>R II\<^sub>R"
+definition StarR :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_\<^sup>\<star>\<^sup>R" [999] 999) where
+[upred_defs]: "StarR P = (P\<^sup>\<star> ;; II\<^sub>R)"
 
-lemma AssumeR_NSRD [closure]: "[b]\<^sub>R is NSRD"
-  by (simp add: AssumeR_def NSRD_srd_skip gcmd_NSRD)
+lemma StarR_alt_def:
+  assumes "P is NSRD"
+  shows "P\<^sup>\<star>\<^sup>R = II\<^sub>R \<sqinter> P\<^sup>+"
+proof -
+  from assms have "P\<^sup>+ = P\<^sup>\<star> ;; (P ;; II\<^sub>R)"
+    by (simp add: NSRD_right_unit uplus_def urel_ka.star_slide_var)
+  then show ?thesis
+    by (simp add: RA1 StarR_def)
+qed
 
-lemma AssumeR_true: "[true]\<^sub>R = II\<^sub>R"
-  by (rdes_eq)
+lemma StarR_NSRD_closed [closure]:
+  assumes "P is NSRD"
+  shows "P\<^sup>\<star>\<^sup>R is NSRD"
+  by (simp add: StarR_alt_def closure assms)
 
-lemma AssumeR_false: "[false]\<^sub>R = Miracle"
-  by (rdes_eq)
+lemma StarR_invol:
+  assumes "P is NSRD"
+  shows "P\<^sup>\<star>\<^sup>R\<^sup>\<star>\<^sup>R = P\<^sup>\<star>\<^sup>R"  
+  by (metis (no_types) NSRD_is_SRD RD3_def RD3_idem SRD_left_unit SRD_srdes_skip StarR_alt_def StarR_def assms srdes_theory_continuous.meet_is_healthy uplus_NSRD_closed urel_ka.star_invol urel_ka.star_sim3)
 
-lemma AssumeR_seq: "[b]\<^sub>R ;; [c]\<^sub>R = [b \<and> c]\<^sub>R"
-  by (rdes_eq)
- 
+lemma StarR_lemma_1:
+  "P is NSRD \<Longrightarrow> II\<^sub>R ;; P\<^sup>\<star> ;; II\<^sub>R = P\<^sup>\<star> ;; II\<^sub>R"
+  by (simp add: StarR_def[THEN sym] closure SRD_left_unit)
+
+lemma StarR_AssumeR: "[b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R = II\<^sub>R"
+  by (simp add: AssumeR_NSRD AssumeR_choice_skip AssumeR_comp StarR_alt_def uplus_def urel_ka.star_inductr_var_eq2)
+
+lemma StarR_lemma_2:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(P\<^sup>\<star> ;; Q\<^sup>\<star> ;; II\<^sub>R)\<^sup>\<star> ;; II\<^sub>R = (P\<^sup>\<star> ;; Q\<^sup>\<star>)\<^sup>\<star> ;; II\<^sub>R"
+  by (metis (no_types) assms RA1 StarR_lemma_1 skip_srea_self_unit urel_ka.star_sim3)
+
+lemma StarR_denest:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(P \<sqinter> Q)\<^sup>\<star>\<^sup>R = (P\<^sup>\<star>\<^sup>R ;; Q\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R"
+  by (metis (no_types, lifting) RA1 StarR_def StarR_lemma_1 StarR_lemma_2 assms urel_ka.star_denest)  
+
+lemma StarR_unfoldl_eq: 
+  assumes "P is NSRD"
+  shows "II\<^sub>R \<sqinter> P ;; P\<^sup>\<star>\<^sup>R = P\<^sup>\<star>\<^sup>R"
+  by (simp add: RA1 StarR_def)
+
+lemma uplus_NSRD_def:
+  assumes "P is NSRD"
+  shows "P\<^sup>+ = (P ;; P\<^sup>\<star>\<^sup>R)"
+  by (metis (no_types, hide_lams) NSRD_right_unit RA1 StarR_def assms uplus_NSRD_closed uplus_def)
+
+lemma StarR_trade_skip:
+  "P is NSRD \<Longrightarrow> II\<^sub>R ;; P\<^sup>\<star> = P\<^sup>\<star> ;; II\<^sub>R"
+  by (metis (mono_tags, hide_lams) AssumeR_NSRD NSRD_right_unit RA1 StarR_AssumeR StarR_def StarR_lemma_1 urel_ka.conway.dagger_slide)
+
+lemma StarR_slide:
+  assumes "P is NSRD"
+  shows "(P ;; P\<^sup>\<star>\<^sup>R) = (P\<^sup>\<star>\<^sup>R ;; P)" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = P ;; P\<^sup>\<star> ;; II\<^sub>R"
+    by (simp add: StarR_def)
+  also have "... = P ;; II\<^sub>R ;; P\<^sup>\<star>"
+    by (simp add: StarR_trade_skip assms)
+  also have "... = P ;; P\<^sup>\<star>"
+    by (simp add: NSRD_right_unit assms closure seqr_assoc[THEN sym])
+  also have "... = P\<^sup>\<star> ;; P"
+    by (simp add: urel_ka.star_slide_var)
+  also have "... = ?rhs"
+    by (simp add: StarR_def seqr_assoc SRD_left_unit closure assms)
+  finally show ?thesis .
+qed
+
+lemma StarR_unfoldr_eq:
+  assumes "P is NSRD"
+  shows "II\<^sub>R \<sqinter> P\<^sup>\<star>\<^sup>R ;; P = P\<^sup>\<star>\<^sup>R"
+  using StarR_slide StarR_unfoldl_eq assms by fastforce
+
 subsection \<open> While Loop \<close>
 
 definition WhileR :: "'s upred \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("while\<^sub>R _ do _ od") where
 "WhileR b P = (\<mu>\<^sub>R X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-
-lemma Continuous_const [closure]: "Continuous (\<lambda> X. P)"
-  by pred_auto
-
-lemma Continuous_cond [closure]:
-  assumes "Continuous F" "Continuous G"
-  shows "Continuous (\<lambda> X. F(X) \<triangleleft> b \<triangleright> G(X))"
-  using assms by (pred_auto)
 
 lemma Sup_power_false:
   fixes F :: "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
@@ -338,10 +404,11 @@ proof -
     by (simp)
   finally show ?thesis .
 qed
+  
 
-theorem WhileR_iter_form:
+theorem WhileR_iter_expand:
   assumes "P is NSRD" "P is Productive"
-  shows "while\<^sub>R b do P od = (\<Sqinter>i. (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))" (is "?lhs = ?rhs")
+  shows "while\<^sub>R b do P od = (\<Sqinter>i \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))" (is "?lhs = ?rhs")
 proof -
   have 1:"Continuous (\<lambda>X. P ;; SRD X)"
     using SRD_Continuous
@@ -393,15 +460,78 @@ proof -
                       ((u \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ Suc i) ;; (P ;; (Miracle) \<triangleleft> b \<triangleright>\<^sub>R (II\<^sub>R))"
               by (metis (no_types) Suc.hyps 1 cond_L6 cond_st_distr power.power.power_Suc)
             then show ?thesis
-              by (simp add: RA1)
+              by (simp add: RA1 upred_semiring.power_Suc)
           qed
         qed
         finally show ?thesis .
       qed
     qed
   qed
+  also have "... = (\<Sqinter>i \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^bold>^i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))"
+    by (simp add: UINF_as_Sup_collect')
   finally show ?thesis .
 qed
+
+theorem WhileR_star_expand:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R b do P od = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<Sqinter>i \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: WhileR_iter_expand seq_UINF_distr' assms)
+  also have "... = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star> ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: ustar_def)
+  also have "... = ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star> ;; II\<^sub>R) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: seqr_assoc SRD_left_unit closure assms)
+  also have "... = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: StarR_def)
+  finally show ?thesis .
+qed
+
+theorem WhileR_iter_form:
+  assumes "P is NSRD"
+  shows "(P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+proof -
+  have "(P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) = ([b]\<^sup>\<top>\<^sub>R ;; P \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: AssumeR_NSRD NSRD_right_unit NSRD_srd_skip assms(1) cond_srea_AssumeR_form)
+  also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: AssumeR_NSRD NSRD_seqr_closure StarR_denest assms(1))
+  also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (metis (no_types, hide_lams) RD3_def RD3_idem StarR_AssumeR StarR_def)
+  also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
+    by (simp add: AssumeR_NSRD NSRD_seqr_closure StarR_invol assms(1))
+  also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; ([b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R)"
+    by (simp add: AssumeR_NSRD NSRD_Miracle NSRD_right_unit NSRD_seqr_closure NSRD_srd_skip assms(1) cond_srea_AssumeR_form)
+  also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not>b]\<^sup>\<top>\<^sub>R"
+    by (simp add: upred_semiring.distrib_left)
+  also have "... = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+  proof -
+    have "(([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not>b]\<^sup>\<top>\<^sub>R = (II\<^sub>R \<sqinter> ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+      by (simp add: AssumeR_NSRD NSRD_seqr_closure StarR_unfoldr_eq assms(1))
+    also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+      by (metis (no_types, lifting) AssumeR_NSRD AssumeR_as_gcmd NSRD_srd_skip StarR_AssumeR StarR_slide gcmd_seq_distr skip_srea_self_unit urel_dioid.distrib_right')
+    also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [b \<or> \<not> b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+      by (simp add: AssumeR_true NSRD_right_unit assms(1))
+    also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R
+                             \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [\<not> b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+      by (metis (no_types, hide_lams) AssumeR_choice upred_semiring.add_assoc upred_semiring.distrib_left upred_semiring.distrib_right)
+    also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; ([b]\<^sup>\<top>\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R)
+                             \<sqinter> ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; ([\<not> b]\<^sup>\<top>\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R)"
+      by (simp add: RA1)
+    also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle)
+                             \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [\<not> b]\<^sup>\<top>\<^sub>R)"
+      by (simp add: AssumeR_comp AssumeR_false)
+    finally have "([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R \<sqsubseteq> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle"
+      by (simp add: semilattice_sup_class.le_supI1)
+    thus ?thesis
+      by (simp add: semilattice_sup_class.le_iff_sup)
+  qed
+  finally show ?thesis .
+qed
+      
+theorem WhileR_iter_rdes_eq:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R b do P od = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+  by (simp add: WhileR_iter_form WhileR_star_expand assms)
 
 subsection \<open> Iteration Construction \<close>
 
