@@ -75,8 +75,23 @@ lemma test_rassume [simp]: "urel_kat.test [b]\<^sup>\<top>"
 text \<open> The KAT laws can be used to prove results like the one below \<close>
 
 lemma while_kat_form:
-  "while b do P od = ([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
-  by (simp add: while_star_form rcond_rassume_expand)
-     (metis seqr_left_unit test_rassume urel_dioid.add_comm urel_dioid.less_eq_def urel_ka.conway.zero_dagger urel_ka.star_denest urel_ka.star_invol urel_kat.test_restrictr)
+  "while b do P od = ([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>" (is "?lhs = ?rhs")
+proof -
+  have 1:"(II::'a hrel) \<sqinter> (II::'a hrel) ;; [\<not> b]\<^sup>\<top> = II"
+    by (metis assume_true test_rassume urel_kat.test_absorb1)
+  have "?lhs = ([b]\<^sup>\<top> ;; P \<sqinter> [\<not> b]\<^sup>\<top> ;; II)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+    by (simp add: while_star_form rcond_rassume_expand)
+  also have "... = (([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>\<^sup>\<star>)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+    by (metis seqr_right_unit urel_ka.star_denest)
+  also have "... = (([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; (II \<sqinter> [\<not> b]\<^sup>\<top>)\<^sup>\<star>)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+    by (metis urel_ka.star2)
+  also have "... = (([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; (II)\<^sup>\<star>)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+    by (metis 1 seqr_left_unit)
+  also have "... = (([b]\<^sup>\<top> ;; P)\<^sup>\<star>)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+    by (metis urel_ka.mult_oner urel_ka.star_one)
+  also have "... = ?rhs"
+    by (metis urel_ka.star_invol)
+  finally show ?thesis .
+qed
 
 end

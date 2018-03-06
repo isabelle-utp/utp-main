@@ -117,6 +117,29 @@ proof (rule NSRD_RC_intro)
    by (simp add: rdes assms closure unrest)
 qed
 
+subsection \<open> Assumptions \<close>
+
+definition AssumeR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sup>\<top>\<^sub>R") where
+[upred_defs,rdes_def]: "AssumeR b = II\<^sub>R \<triangleleft> b \<triangleright>\<^sub>R Miracle"
+
+lemma AssumeR_NSRD [closure]: "[b]\<^sup>\<top>\<^sub>R is NSRD"
+  by (simp add: AssumeR_def closure)
+
+lemma AssumeR_false: "[false]\<^sup>\<top>\<^sub>R = Miracle"
+  by (rel_auto)
+
+lemma AssumeR_true: "[true]\<^sup>\<top>\<^sub>R = II\<^sub>R"
+  by (rel_auto)
+
+lemma AssumeR_comp: "[b]\<^sup>\<top>\<^sub>R ;; [c]\<^sup>\<top>\<^sub>R = [b \<and> c]\<^sup>\<top>\<^sub>R"
+  by (rdes_eq)
+
+lemma AssumeR_refine_skip: "II\<^sub>R \<sqsubseteq> [b]\<^sup>\<top>\<^sub>R"
+  by (rdes_refine)
+
+lemma AssumeR_choice_skip: "II\<^sub>R \<sqinter> [b]\<^sup>\<top>\<^sub>R = II\<^sub>R"
+  by (rdes_eq)
+
 subsection \<open> Guarded commands \<close>
 
 definition GuardedCommR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_ \<rightarrow>\<^sub>R _" [85, 86] 85) where
