@@ -623,7 +623,7 @@ next
     finally show ?thesis
       by (simp add: UINF_as_Sup_collect)
   qed
-        thm image_Suc_atLeastLessThan
+
   have 3: "(\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ i) ;; Q is RR"
   proof -
     have "(\<Sqinter> i \<in> {0..n} \<bullet> R \<^bold>^ i) ;; Q = (\<Sqinter> i \<in> {0..n}. R \<^bold>^ i) ;; Q"
@@ -645,5 +645,16 @@ next
 qed
 
 declare upred_semiring.power_Suc [simp del]
+
+theorem uplus_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>+ = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>r wp\<^sub>r P \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>+)"
+proof -
+  have 1:"(\<Sqinter> i \<bullet> R \<^bold>^ i) ;; Q = R\<^sup>\<star>\<^sup>r ;; Q"
+    by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rea_star_def ustar_alt_def)
+  show ?thesis
+    by (simp add: uplus_power_def seq_UINF_distr wp closure assms rdes_def)
+       (metis "1" seq_UINF_distr')       
+qed
 
 end

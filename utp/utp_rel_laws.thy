@@ -796,6 +796,9 @@ theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
 
 subsection {* Kleene Algebra Laws *}
 
+lemma ustar_alt_def: "P\<^sup>\<star> = (\<Sqinter> i \<bullet> P \<^bold>^ i)"
+  by (simp add: ustar_def)
+
 theorem ustar_sub_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
     

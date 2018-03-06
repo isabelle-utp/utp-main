@@ -63,6 +63,10 @@ lemma R1_UINF:
   shows "R1(\<Squnion> i \<in> A \<bullet> P(i)) = (\<Squnion> i \<in> A \<bullet> R1(P(i)))"
   using assms by (rel_auto)
 
+lemma R1_UINF_ind:
+  "R1(\<Squnion> i \<bullet> P(i)) = (\<Squnion> i \<bullet> R1(P(i)))"
+  by (rel_auto)
+
 lemma UINF_ind_R1_closed [closure]:
   "\<lbrakk> \<And> i. P(i) is R1 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is R1"
   by (rel_blast)

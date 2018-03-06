@@ -314,6 +314,23 @@ lemma cond_srea_RC_closed [closure]:
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is RC"
   by (rule RC_intro', simp_all add: closure cond_srea_RC1_closed RC_implies_RC1 assms)
 
+subsubsection \<open> Assumptions \<close>
+
+definition rea_assume :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sup>\<top>\<^sub>r") where
+[upred_defs]: "[b]\<^sup>\<top>\<^sub>r = (II\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R false)"
+
+lemma rea_assume_RR [closure]: "[b]\<^sup>\<top>\<^sub>r is RR"
+  by (simp add: rea_assume_def closure)
+
+lemma rea_assume_false [rpred]: "[false]\<^sup>\<top>\<^sub>r = false"
+  by (rel_auto)
+
+lemma rea_assume_true [rpred]: "[true]\<^sup>\<top>\<^sub>r = II\<^sub>r"
+  by (rel_auto)
+
+lemma rea_assume_comp [rpred]: "[b]\<^sup>\<top>\<^sub>r ;; [c]\<^sup>\<top>\<^sub>r = [b \<and> c]\<^sup>\<top>\<^sub>r"
+  by (rel_auto)
+
 subsubsection \<open> State Abstraction \<close>
 
 text \<open> We introduce state abstraction by creating some lens functors that allow us to lift

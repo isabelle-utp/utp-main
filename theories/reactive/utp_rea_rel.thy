@@ -403,10 +403,14 @@ qed
 lemma rea_star_unfoldl:
   "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (P ;; P\<^sup>\<star>\<^sup>r)"
   by (metis (no_types, lifting) rea_star_def seqr_assoc seqr_left_unit upred_semiring.distrib_right ustar_unfoldl)
- 
+
 lemma rea_uplus_unfold: "P is RR \<Longrightarrow> P\<^sup>+ = P ;; P\<^sup>\<star>\<^sup>r"
   by (simp add: RA1 rea_skip_unit(1) rea_star_def uplus_def ustar_right_RR_closed)
-    
+
+lemma rea_star_alt_def:
+  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = (II\<^sub>r \<sqinter> P\<^sup>+)"
+  using rea_star_unfoldl rea_uplus_unfold by fastforce
+
 lemma rea_true_conj [rpred]: 
   assumes "P is R1"
   shows "(true\<^sub>r \<and> P) = P" "(P \<and> true\<^sub>r) = P"

@@ -324,6 +324,12 @@ lemma not_UINF: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in
 lemma not_USUP: "(\<not> (\<Squnion> i\<in>A\<bullet> P(i))) = (\<Sqinter> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
 
+lemma not_UINF_ind: "(\<not> (\<Sqinter> i \<bullet> P(i))) = (\<Squnion> i \<bullet> \<not> P(i))"
+  by (pred_auto)
+
+lemma not_USUP_ind: "(\<not> (\<Squnion> i \<bullet> P(i))) = (\<Sqinter> i \<bullet> \<not> P(i))"
+  by (pred_auto)
+
 lemma UINF_empty [simp]: "(\<Sqinter> i \<in> {} \<bullet> P(i)) = false"
   by (pred_auto)
 
@@ -356,6 +362,19 @@ lemma USUP_insert [simp]: "(\<Squnion> i\<in>insert x xs \<bullet> P(i)) = (P(x)
   apply (rule_tac cong[of Inf Inf])
    apply (auto)
   done
+
+lemma USUP_atLeast_first:
+  "(P(n) \<and> (\<Squnion> i \<in> {Suc n..} \<bullet> P(i))) = (\<Squnion> i \<in> {n..} \<bullet> P(i))"
+proof -
+  have "insert n {Suc n..} = {n..}"
+    by (auto)
+  thus ?thesis
+    by (metis USUP_insert conj_upred_def)
+qed
+
+lemma USUP_atLeast_Suc:
+  "(\<Squnion> i \<in> {Suc m..} \<bullet> P(i)) = (\<Squnion> i \<in> {m..} \<bullet> P(Suc i))"
+  by (rel_simp, metis (full_types) Suc_le_D not_less_eq_eq)
 
 lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"

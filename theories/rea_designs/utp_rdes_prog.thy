@@ -121,7 +121,11 @@ qed
 subsection \<open> Assumptions \<close>
 
 definition AssumeR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sup>\<top>\<^sub>R") where
-[upred_defs,rdes_def]: "AssumeR b = II\<^sub>R \<triangleleft> b \<triangleright>\<^sub>R Miracle"
+[upred_defs]: "AssumeR b = II\<^sub>R \<triangleleft> b \<triangleright>\<^sub>R Miracle"
+
+lemma AssumeR_rdes_def [rdes_def]: 
+  "[b]\<^sup>\<top>\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> [b]\<^sup>\<top>\<^sub>r)"
+  unfolding AssumeR_def by (rdes_eq)
 
 lemma AssumeR_NSRD [closure]: "[b]\<^sup>\<top>\<^sub>R is NSRD"
   by (simp add: AssumeR_def closure)
@@ -133,7 +137,7 @@ lemma AssumeR_true: "[true]\<^sup>\<top>\<^sub>R = II\<^sub>R"
   by (rel_auto)
 
 lemma AssumeR_comp: "[b]\<^sup>\<top>\<^sub>R ;; [c]\<^sup>\<top>\<^sub>R = [b \<and> c]\<^sup>\<top>\<^sub>R"
-  by (rdes_eq)
+  by (rdes_simp)
 
 lemma AssumeR_choice: "[b]\<^sup>\<top>\<^sub>R \<sqinter> [c]\<^sup>\<top>\<^sub>R = [b \<or> c]\<^sup>\<top>\<^sub>R"
   by (rdes_eq)
@@ -331,6 +335,11 @@ lemma StarR_NSRD_closed [closure]:
   shows "P\<^sup>\<star>\<^sup>R is NSRD"
   by (simp add: StarR_alt_def closure assms)
 
+lemma StarR_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R = \<^bold>R\<^sub>s((R\<^sup>\<star>\<^sup>r wp\<^sub>r P) \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>\<star>\<^sup>r)"
+  by (simp add: StarR_alt_def assms closure rdes_def unrest rea_star_alt_def rpred disj_upred_def)
+
 lemma StarR_invol:
   assumes "P is NSRD"
   shows "P\<^sup>\<star>\<^sup>R\<^sup>\<star>\<^sup>R = P\<^sup>\<star>\<^sup>R"  
@@ -404,8 +413,7 @@ proof -
     by (simp)
   finally show ?thesis .
 qed
-  
-
+ 
 theorem WhileR_iter_expand:
   assumes "P is NSRD" "P is Productive"
   shows "while\<^sub>R b do P od = (\<Sqinter>i \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))" (is "?lhs = ?rhs")
@@ -487,7 +495,7 @@ proof -
   finally show ?thesis .
 qed
 
-theorem WhileR_iter_form:
+theorem WhileR_iter_form_lemma:
   assumes "P is NSRD"
   shows "(P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
 proof -
@@ -528,10 +536,24 @@ proof -
   finally show ?thesis .
 qed
       
-theorem WhileR_iter_rdes_eq:
+theorem WhileR_iter_form:
   assumes "P is NSRD" "P is Productive"
   shows "while\<^sub>R b do P od = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
-  by (simp add: WhileR_iter_form WhileR_star_expand assms)
+  by (simp add: WhileR_iter_form_lemma WhileR_star_expand assms)
+
+
+theorem WhileR_rdes_def:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R"
+  shows "while\<^sub>R b do \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) od = 
+         \<^bold>R\<^sub>s (([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q \<diamondop> ([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)" 
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = ([b]\<^sup>\<top>\<^sub>R ;; \<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+    by (simp add: WhileR_iter_form Productive_rdes_RR_intro assms closure)
+  also have "... = ?rhs"
+    by (simp add: rdes_def assms closure unrest rpred wp del: rea_star_wp)
+  finally show ?thesis .
+qed
 
 subsection \<open> Iteration Construction \<close>
 

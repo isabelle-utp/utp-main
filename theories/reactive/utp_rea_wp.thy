@@ -101,13 +101,49 @@ qed
 lemma wp_rea_miracle [wp]: "false wp\<^sub>r Q = true\<^sub>r"
   by (simp add: wp_rea_def)
 
-lemma wp_rea_choice [wp]: "(P \<or> Q) wp\<^sub>r R = (P wp\<^sub>r R \<and> Q wp\<^sub>r R)"
+lemma wp_rea_disj [wp]: "(P \<or> Q) wp\<^sub>r R = (P wp\<^sub>r R \<and> Q wp\<^sub>r R)"
   by (rel_blast)
 
 lemma wp_rea_UINF [wp]:
   assumes "A \<noteq> {}"
   shows "(\<Sqinter> x\<in>A \<bullet> P(x)) wp\<^sub>r Q = (\<Squnion> x\<in>A \<bullet> P(x) wp\<^sub>r Q)"
   by (simp add: wp_rea_def rea_not_def seq_UINF_distr not_UINF R1_UINF assms)
+
+lemma wp_rea_choice [wp]:
+  "(P \<sqinter> Q) wp\<^sub>r R = (P wp\<^sub>r R \<and> Q wp\<^sub>r R)"
+  by (rel_blast)
+
+lemma wp_rea_UINF_ind [wp]:
+  "(\<Sqinter> i \<bullet> P(i)) wp\<^sub>r Q = (\<Squnion> i \<bullet> P(i) wp\<^sub>r Q)"
+  by (simp add: wp_rea_def rea_not_def seq_UINF_distr' not_UINF_ind R1_UINF_ind)
+
+lemma rea_assume_wp [wp]: 
+  assumes "P is RC"  
+  shows "([b]\<^sup>\<top>\<^sub>r wp\<^sub>r P) = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P)"
+proof -
+  have "([b]\<^sup>\<top>\<^sub>r wp\<^sub>r RC P) = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r RC P)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma rea_star_wp [wp]: 
+  assumes "P is RR" "Q is RR"  
+  shows "P\<^sup>\<star>\<^sup>r wp\<^sub>r Q = (\<Squnion> i \<bullet> P \<^bold>^ i wp\<^sub>r Q)"
+proof -
+  have "P\<^sup>\<star>\<^sup>r wp\<^sub>r Q = (Q \<and> P\<^sup>+ wp\<^sub>r Q)"
+    by (simp add: assms rea_star_alt_def wp_rea_choice wp_rea_rea_skip)
+  also have "... = (II wp\<^sub>r Q \<and> (\<Squnion> i \<bullet> P \<^bold>^ Suc i wp\<^sub>r Q))"
+    by (simp add: uplus_power_def wp closure assms)
+  also have "... = (\<Squnion> i \<bullet> P \<^bold>^ i wp\<^sub>r Q)"
+  proof -
+    have "P\<^sup>\<star> wp\<^sub>r Q = P\<^sup>\<star>\<^sup>r wp\<^sub>r Q"
+      by (metis (no_types) RA1 assms(2) rea_no_RR rea_skip_unit(2) rea_star_def wp_rea_def)
+    then show ?thesis
+      by (simp add: calculation ustar_def wp_rea_UINF_ind)
+  qed
+  finally show ?thesis .
+qed
 
 lemma wp_rea_R2_closed [closure]:
   "\<lbrakk> P is R2; Q is R2 \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is R2"
