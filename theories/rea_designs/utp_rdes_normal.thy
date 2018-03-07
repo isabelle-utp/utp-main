@@ -485,6 +485,11 @@ lemma preR_power' [rdes]:
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
   by (simp add: preR_power assms USUP_as_Inf[THEN sym])
 
+lemma preR_power_Suc [rdes]:
+  assumes "P is NSRD"
+  shows "pre\<^sub>R(P\<^bold>^(Suc n)) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
+  by (simp add: upred_semiring.power_Suc rdes assms)
+
 declare upred_semiring.power_Suc [simp]
 
 lemma periR_power:
@@ -550,6 +555,11 @@ lemma periR_power' [rdes]:
   shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r (\<Sqinter> i\<in>{0..n} \<bullet> post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
   by (simp add: periR_power assms UINF_as_Sup[THEN sym])
 
+lemma periR_power_Suc [rdes]:
+  assumes "P is NSRD"
+  shows "peri\<^sub>R(P\<^bold>^(Suc n)) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r (\<Sqinter> i\<in>{0..n} \<bullet> post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
+  by (simp add: rdes assms)
+
 lemma postR_power [rdes]:
   assumes "P is NSRD"
   shows "post\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r post\<^sub>R(P) \<^bold>^ Suc n)"
@@ -578,6 +588,11 @@ next
     by (simp add: rdes closure assms)
   finally show ?case by (simp)
 qed
+
+lemma postR_power_Suc [rdes]:
+  assumes "P is NSRD"
+  shows "post\<^sub>R(P\<^bold>^(Suc n)) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r post\<^sub>R(P) \<^bold>^ Suc n)"
+  by (simp add: rdes assms)
 
 lemma power_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"

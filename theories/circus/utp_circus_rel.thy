@@ -580,7 +580,6 @@ lemma csp_power_do_comp [rpred]:
   shows "\<Phi>(true, id, t) \<^bold>^ i ;; P = \<Phi>(true, id, iter[i](t)) ;; P"
   apply (cases i)
    apply (simp_all add: rpred usubst assms closure)
-  apply (metis assms csp_do_power_Suc csp_do_skip upred_semiring.power_Suc)
   done
 
 lemma wp_rea_csp_do_skip [wp]:
