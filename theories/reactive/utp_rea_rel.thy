@@ -388,6 +388,13 @@ lemma rea_subst_R1_closed [closure]: "P\<lbrakk>v\<rbrakk>\<^sub>r is R1"
 
 subsection \<open> Reactive relational calculus \<close>
 
+declare R4_false [rpred]
+declare R4_conj [rpred]
+declare R4_disj [rpred]
+
+declare R5_conj [rpred]
+declare R5_disj [rpred]
+
 lemma rea_skip_unit [rpred]:
   assumes "P is RR"
   shows "P ;; II\<^sub>r = P" "II\<^sub>r ;; P = P"

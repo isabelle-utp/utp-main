@@ -314,6 +314,12 @@ lemma cond_srea_RC_closed [closure]:
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is RC"
   by (rule RC_intro', simp_all add: closure cond_srea_RC1_closed RC_implies_RC1 assms)
 
+lemma R4_cond [rpred]: "R4(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (R4(P) \<triangleleft> b \<triangleright>\<^sub>R R4(Q))"
+  by (rel_auto)
+
+lemma R5_cond [rpred]: "R5(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (R5(P) \<triangleleft> b \<triangleright>\<^sub>R R5(Q))"
+  by (rel_auto)
+
 subsubsection \<open> Assumptions \<close>
 
 definition rea_assume :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("[_]\<^sup>\<top>\<^sub>r") where

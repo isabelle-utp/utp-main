@@ -726,6 +726,84 @@ lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   using minus_zero_eq apply blast+
   done
 
+subsection \<open> R4: The trace strictly increases \<close>
+
+definition R4 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "R4(P) = (P \<and> $tr <\<^sub>u $tr\<acute>)"
+
+lemma R4_implies_R1 [closure]: "P is R4 \<Longrightarrow> P is R1"
+  using less_iff by rel_blast
+
+lemma R4_iff_refine:
+  "P is R4 \<longleftrightarrow> ($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> P"
+  by (rel_blast)
+
+lemma R4_false: "R4(false) = false"
+  by (rel_auto)
+
+lemma R4_conj: "R4(P \<and> Q) = (R4(P) \<and> R4(Q))"
+  by (rel_auto)
+
+lemma R4_disj: "R4(P \<or> Q) = (R4(P) \<or> R4(Q))"
+  by (rel_auto)
+
+lemma false_R4 [closure]: "false is R4"
+  by (rel_auto)
+
+lemma UINF_R4_closed [closure]: 
+  "\<lbrakk> \<And> i. P i is R4 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P i) is R4"
+  by (rel_blast)
+
+lemma conj_R4_closed [closure]:
+  "\<lbrakk> P is R4; Q is R4 \<rbrakk> \<Longrightarrow> (P \<and> Q) is R4"
+  by (simp add: Healthy_def R4_conj)
+
+lemma disj_R4_closed [closure]:
+  "\<lbrakk> P is R4; Q is R4 \<rbrakk> \<Longrightarrow> (P \<or> Q) is R4"
+  by (simp add: Healthy_def R4_disj)
+
+lemma seq_R4_closed_1 [closure]:
+  "\<lbrakk> P is R4; Q is R1 \<rbrakk> \<Longrightarrow> (P ;; Q) is R4"
+  using less_le_trans by rel_blast
+
+lemma seq_R4_closed_2 [closure]:
+  "\<lbrakk> P is R1; Q is R4 \<rbrakk> \<Longrightarrow> (P ;; Q) is R4"
+  using le_less_trans by rel_blast
+
+subsection \<open> R5: The trace does not increase \<close>
+
+definition R5 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "R5(P) = (P \<and> $tr =\<^sub>u $tr\<acute>)"
+
+lemma R5_implies_R1 [closure]: "P is R5 \<Longrightarrow> P is R1"
+  using eq_iff by rel_blast
+
+lemma R5_iff_refine:
+  "P is R5 \<longleftrightarrow> ($tr =\<^sub>u $tr\<acute>) \<sqsubseteq> P"
+  by (rel_blast)
+
+lemma R5_conj: "R5(P \<and> Q) = (R5(P) \<and> R5(Q))"
+  by (rel_auto)
+
+lemma R5_disj: "R5(P \<or> Q) = (R5(P) \<or> R5(Q))"
+  by (rel_auto)
+
+lemma UINF_R5_closed [closure]: 
+  "\<lbrakk> \<And> i. P i is R5 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P i) is R5"
+  by (rel_blast)
+
+lemma conj_R5_closed [closure]:
+  "\<lbrakk> P is R5; Q is R5 \<rbrakk> \<Longrightarrow> (P \<and> Q) is R5"
+  by (simp add: Healthy_def R5_conj)
+
+lemma disj_R5_closed [closure]:
+  "\<lbrakk> P is R5; Q is R5 \<rbrakk> \<Longrightarrow> (P \<or> Q) is R5"
+  by (simp add: Healthy_def R5_disj)
+
+lemma seq_R5_closed [closure]:
+  "\<lbrakk> P is R5; Q is R5 \<rbrakk> \<Longrightarrow> (P ;; Q) is R5"
+  by (rel_auto, metis)
+
 subsection {* RP laws *}
 
 definition RP_def [upred_defs]: "RP(P) = R1(R2c(R3(P)))"

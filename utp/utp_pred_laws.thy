@@ -380,6 +380,10 @@ lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
+lemma conj_UINF_ind_dist:
+  "(P \<and> (\<Sqinter> Q \<bullet> F(Q))) = (\<Sqinter> Q \<bullet> P \<and> F(Q))"
+  by pred_auto
+
 lemma disj_UINF_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<or> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<or> F(Q))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
