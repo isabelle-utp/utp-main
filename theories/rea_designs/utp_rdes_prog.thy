@@ -153,6 +153,21 @@ lemma cond_srea_AssumeR_form:
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = ([b]\<^sup>\<top>\<^sub>R ;; P \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R ;; Q)"
   by (rdes_eq cls: assms)
 
+lemma cond_srea_insert_assume:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = ([b]\<^sup>\<top>\<^sub>R ;; P \<triangleleft> b \<triangleright>\<^sub>R [\<not>b]\<^sup>\<top>\<^sub>R ;; Q)"
+  by (simp add: AssumeR_NSRD AssumeR_comp NSRD_seqr_closure RA1 assms cond_srea_AssumeR_form)
+
+lemma AssumeR_cond_left:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "[b]\<^sup>\<top>\<^sub>R ;; (P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([b]\<^sup>\<top>\<^sub>R ;; P)"
+  by (rdes_eq cls: assms)
+
+lemma AssumeR_cond_right:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "[\<not>b]\<^sup>\<top>\<^sub>R ;; (P \<triangleleft> b \<triangleright>\<^sub>R Q) = ([\<not>b]\<^sup>\<top>\<^sub>R ;; Q)"
+  by (rdes_eq cls: assms)
+
 subsection \<open> Guarded commands \<close>
 
 definition GuardedCommR :: "'s cond \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_ \<rightarrow>\<^sub>R _" [85, 86] 85) where
@@ -221,7 +236,7 @@ translations
   "_altgcommR_els (_gcomm_show cs) P" \<leftharpoondown> "CONST AlternateR_list cs P"
 
 lemma AlternateR_NSRD_closed [closure]:
-  assumes "\<And> i. A i is NSRD" "B is NSRD"
+  assumes "\<And> i. i \<in> I \<Longrightarrow> A i is NSRD" "B is NSRD"
   shows "(if\<^sub>R i\<in>I \<bullet> g i \<rightarrow> A i else B fi) is NSRD"
 proof (cases "I = {}")
   case True
@@ -237,8 +252,8 @@ lemma AlternateR_empty [simp]:
 
 lemma AlternateR_Productive [closure]:
   assumes 
-    "\<And> i. A i is NSRD" "B is NSRD" 
-    "\<And> i. A i is Productive" "B is Productive"
+    "\<And> i. i \<in> I \<Longrightarrow> A i is NSRD" "B is NSRD" 
+    "\<And> i. i \<in> I \<Longrightarrow> A i is Productive" "B is Productive"
   shows "(if\<^sub>R i\<in>I \<bullet> g i \<rightarrow> A i else B fi) is Productive"
 proof (cases "I = {}")
   case True
@@ -248,6 +263,31 @@ next
   case False
   then show ?thesis
     by (simp add: AlternateR_def closure assms)
+qed
+
+lemma AlternateR_singleton:
+  assumes "A k is NSRD" "B is NSRD"
+  shows "(if\<^sub>R i \<in> {k} \<bullet> g i \<rightarrow> A i else B fi) = (A(k) \<triangleleft> g(k) \<triangleright>\<^sub>R B)"
+  by (simp add: AlternateR_def, rdes_eq cls: assms)
+
+text \<open> Convert an alternation over disjoint guards into a cascading if-then-else \<close>
+
+lemma AlternateR_insert_cascade:
+  assumes 
+    "\<And> i. i \<in> I \<Longrightarrow> A i is NSRD"
+    "A k is NSRD" "B is NSRD" 
+    "(g(k) \<and> (\<Or> i\<in>I \<bullet> g(i))) = false"
+  shows "(if\<^sub>R i \<in> insert k I \<bullet> g i \<rightarrow> A i else B fi) = (A(k) \<triangleleft> g(k) \<triangleright>\<^sub>R (if\<^sub>R i\<in>I \<bullet> g(i) \<rightarrow> A(i) else B fi))"
+proof (cases "I = {}")
+  case True
+  then show ?thesis by (simp add: AlternateR_singleton assms)
+next
+  case False
+  have 1: "(\<Sqinter> i \<in> I \<bullet> g i \<rightarrow>\<^sub>R A i) = (\<Sqinter> i \<in> I \<bullet> g i \<rightarrow>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(A i) \<turnstile> peri\<^sub>R(A i) \<diamondop> post\<^sub>R(A i)))"
+    by (simp add: NSRD_is_SRD SRD_reactive_tri_design assms(1) cong: UINF_cong)
+  from assms(4) show ?thesis
+    by (simp add: AlternateR_def 1 False)
+       (rdes_eq cls: assms(1-3) False cong: UINF_cong)
 qed
 
 subsection \<open> Choose \<close>
@@ -495,6 +535,11 @@ proof -
   finally show ?thesis .
 qed
 
+lemma WhileR_NSRD_closed [closure]:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R b do P od is NSRD"
+  by (simp add: WhileR_star_expand assms closure)
+
 theorem WhileR_iter_form_lemma:
   assumes "P is NSRD"
   shows "(P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
@@ -541,6 +586,20 @@ theorem WhileR_iter_form:
   shows "while\<^sub>R b do P od = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   by (simp add: WhileR_iter_form_lemma WhileR_star_expand assms)
 
+theorem WhileR_false:
+  assumes "P is NSRD"
+  shows "while\<^sub>R false do P od = II\<^sub>R"
+  by (simp add: WhileR_def rpred closure srdes_theory_continuous.LFP_const)
+
+theorem WhileR_true:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R true do P od = P\<^sup>\<star>\<^sup>R ;; Miracle"
+  by (simp add: WhileR_iter_form AssumeR_true AssumeR_false SRD_left_unit assms closure)
+
+lemma WhileR_insert_assume:
+  assumes "P is NSRD" "P is Productive"
+  shows "while\<^sub>R b do ([b]\<^sup>\<top>\<^sub>R ;; P) od = while\<^sub>R b do P od"
+  by (simp add: AssumeR_NSRD AssumeR_comp NSRD_seqr_closure Productive_seq_2 RA1 WhileR_iter_form assms)
 
 theorem WhileR_rdes_def:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R"
@@ -558,19 +617,39 @@ qed
 subsection \<open> Iteration Construction \<close>
 
 definition IterateR
-  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
-where "IterateR A g P = (\<mu>\<^sub>R X \<bullet> (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi ;; X) \<triangleleft> (\<Or> i\<in>A \<bullet> g(i)) \<triangleright>\<^sub>R II\<^sub>R)"
-   
+  :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
+where "IterateR A g P = while\<^sub>R (\<Or> i\<in>A \<bullet> g(i)) do (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi) od"
+
 syntax
   "_iter_srd" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
   
 translations
   "_iter_srd x A g P" => "CONST IterateR A (\<lambda> x. g) (\<lambda> x. P)"
   "_iter_srd x A g P" <= "CONST IterateR A (\<lambda> x. g) (\<lambda> x'. P)"
-  
+
+lemma IterateR_NSRD_closed [closure]:
+  assumes 
+    "\<And> i. i \<in> I \<Longrightarrow> P(i) is NSRD" 
+    "\<And> i. i \<in> I \<Longrightarrow> P(i) is Productive"
+  shows "do\<^sub>R i\<in>I \<bullet> g(i) \<rightarrow> P(i) fi is NSRD"
+  by (simp add: IterateR_def closure assms)
+
 lemma IterateR_empty: 
   "do\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = II\<^sub>R"
-  by (simp add: IterateR_def srd_mu_equiv closure rpred gfp_const)
+  by (simp add: IterateR_def srd_mu_equiv closure rpred gfp_const WhileR_false)
+
+lemma IterateR_singleton: 
+  assumes "P k is NSRD" "P k is Productive"
+  shows "do\<^sub>R i\<in>{k} \<bullet> g(i) \<rightarrow> P(i) fi = while\<^sub>R g(k) do P(k) od" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = while\<^sub>R g k do P k \<triangleleft> g k \<triangleright>\<^sub>R Chaos od"
+    by (simp add: IterateR_def AlternateR_singleton assms closure)
+  also have "... = while\<^sub>R g k do [g k]\<^sup>\<top>\<^sub>R ;; (P k \<triangleleft> g k \<triangleright>\<^sub>R Chaos) od"
+    by (simp add: WhileR_insert_assume closure assms)
+  also have "... = while\<^sub>R g k do P k od"
+    by (simp add: AssumeR_cond_left NSRD_Chaos WhileR_insert_assume assms)
+  finally show ?thesis .
+qed
 
 subsection \<open> Substitution Laws \<close>
   
