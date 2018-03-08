@@ -1,7 +1,9 @@
 section \<open> Normal Reactive Designs \<close>
 
 theory utp_rdes_normal
-  imports utp_rdes_triples
+  imports 
+    utp_rdes_triples
+    "UTP-KAT.utp_kleene"
 begin
 
 text \<open> This additional healthiness condition is analogous to H3 \<close>
@@ -666,10 +668,49 @@ theorem uplus_rdes_def [rdes_def]:
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>+ = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>r wp\<^sub>r P \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>+)"
 proof -
   have 1:"(\<Sqinter> i \<bullet> R \<^bold>^ i) ;; Q = R\<^sup>\<star>\<^sup>r ;; Q"
-    by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rea_star_def ustar_alt_def)
+    by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rrel_thy.Star_def ustar_alt_def)
   show ?thesis
     by (simp add: uplus_power_def seq_UINF_distr wp closure assms rdes_def)
        (metis "1" seq_UINF_distr')       
 qed
+
+subsection \<open> UTP theory \<close>
+
+typedecl NSRDES
+
+abbreviation "NSRDES \<equiv> UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
+
+overloading
+  nsrdes_hcond  == "utp_hcond :: (NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
+  nsrdes_unit   == "utp_unit  :: (NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
+begin
+  definition nsrdes_hcond :: "(NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
+  [upred_defs]: "nsrdes_hcond T = NSRD"
+  definition nsrdes_unit :: "(NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
+  [upred_defs]: "nsrdes_unit T = II\<^sub>R"
+end
+
+interpretation nsrd_thy: utp_theory_kleene "UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order NSRDES) \<longleftrightarrow> P is NSRD"
+  and "P is \<H>\<^bsub>NSRDES\<^esub> \<longleftrightarrow> P is NSRD"
+  and "carrier (uthy_order NSRDES) \<rightarrow> carrier (uthy_order NSRDES) \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
+  and "\<I>\<I>\<^bsub>NSRDES\<^esub> = II\<^sub>R"
+  and "le (uthy_order NSRDES) = op \<sqsubseteq>"
+  by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if SRD_left_unit NSRD_right_unit)
+
+declare nsrd_thy.top_healthy [simp del]
+declare nsrd_thy.bottom_healthy [simp del]
+
+abbreviation TestR ("test\<^sub>R") where
+"test\<^sub>R P \<equiv> utest NSRDES P"
+
+abbreviation StarR :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_\<^sup>\<star>\<^sup>R" [999] 999) where
+"StarR P \<equiv> P\<^bold>\<star>\<^bsub>NSRDES\<^esub>"
+
+lemma StarR_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R = \<^bold>R\<^sub>s((R\<^sup>\<star>\<^sup>r wp\<^sub>r P) \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>\<star>\<^sup>r)"
+  by (simp add: rrel_thy.Star_alt_def nsrd_thy.Star_alt_def assms closure rdes_def unrest rpred disj_upred_def)
 
 end

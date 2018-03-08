@@ -132,13 +132,13 @@ lemma rea_star_wp [wp]:
   shows "P\<^sup>\<star>\<^sup>r wp\<^sub>r Q = (\<Squnion> i \<bullet> P \<^bold>^ i wp\<^sub>r Q)"
 proof -
   have "P\<^sup>\<star>\<^sup>r wp\<^sub>r Q = (Q \<and> P\<^sup>+ wp\<^sub>r Q)"
-    by (simp add: assms rea_star_alt_def wp_rea_choice wp_rea_rea_skip)
+    by (simp add: assms rrel_thy.Star_alt_def wp_rea_choice wp_rea_rea_skip)
   also have "... = (II wp\<^sub>r Q \<and> (\<Squnion> i \<bullet> P \<^bold>^ Suc i wp\<^sub>r Q))"
     by (simp add: uplus_power_def wp closure assms)
   also have "... = (\<Squnion> i \<bullet> P \<^bold>^ i wp\<^sub>r Q)"
   proof -
     have "P\<^sup>\<star> wp\<^sub>r Q = P\<^sup>\<star>\<^sup>r wp\<^sub>r Q"
-      by (metis (no_types) RA1 assms(2) rea_no_RR rea_skip_unit(2) rea_star_def wp_rea_def)
+      by (metis (no_types) RA1 assms(2) rea_no_RR rea_skip_unit(2) rrel_thy.Star_def wp_rea_def)
     then show ?thesis
       by (simp add: calculation ustar_def wp_rea_UINF_ind)
   qed

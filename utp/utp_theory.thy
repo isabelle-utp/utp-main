@@ -519,7 +519,7 @@ consts
 text {* We can characterise the theory Kleene star by lifting the relational one. *}
 
 definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
-"utp_star \<T> P = (P\<^sup>\<star> ;; \<I>\<I>\<^bsub>\<T>\<^esub>)"
+[upred_defs]: "utp_star \<T> P = (P\<^sup>\<star> ;; \<I>\<I>\<^bsub>\<T>\<^esub>)"
 
 text {* We can then characterise tests as refinements of units. *}
 
@@ -549,6 +549,10 @@ begin
 lemma Unit_self [simp]:
   "\<I>\<I> ;; \<I>\<I> = \<I>\<I>"
   by (simp add: Healthy_Unit Unit_Right)
+
+lemma utest_intro:
+  "\<I>\<I> \<sqsubseteq> P \<Longrightarrow> utest \<T> P"
+  by (simp add: utest_def)
 
 end
 

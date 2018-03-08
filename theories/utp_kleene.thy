@@ -108,9 +108,12 @@ lemma uplus_alt_def: "P\<^sup>+ = P\<^sup>\<star> ;; P"
 
 subsection \<open> UTP Theories with Kleene Algebra \<close>
 
-locale utp_kleene = utp_theory_cont_rel + utp_theory_unital
+locale utp_theory_kleene = utp_theory_cont_rel + utp_theory_unital
 begin
 
+lemma Star_def: "P\<^bold>\<star> = P\<^sup>\<star> ;; \<I>\<I>"
+  by (simp add: utp_star_def)
+  
 lemma Star_alt_def:
   assumes "P is \<H>"
   shows "P\<^bold>\<star> = \<I>\<I> \<sqinter> P\<^sup>+"
@@ -121,7 +124,7 @@ proof -
     by (simp add: RA1 utp_star_def)
 qed
 
-lemma Star_Healthy:
+lemma Star_Healthy [closure]:
   assumes "P is \<H>"
   shows "P\<^bold>\<star> is \<H>"
   by (simp add: assms closure Star_alt_def)

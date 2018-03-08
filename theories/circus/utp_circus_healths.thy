@@ -114,7 +114,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma Skip_left_unit:
+lemma Skip_left_unit_ref_unrest:
   assumes "P is CSP" "$ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>"
   shows "Skip ;; P = P"
   using assms
@@ -123,7 +123,7 @@ lemma Skip_left_unit:
 
 lemma CSP3_intro:
   "\<lbrakk> P is CSP; $ref \<sharp> P\<lbrakk>false/$wait\<rbrakk> \<rbrakk> \<Longrightarrow> P is CSP3"
-  by (simp add: CSP3_def Healthy_def' Skip_left_unit)
+  by (simp add: CSP3_def Healthy_def' Skip_left_unit_ref_unrest)
 
 lemma ref_unrest_RHS_design:
   assumes "$ref \<sharp> P" "$ref \<sharp> Q\<^sub>1" "$ref \<sharp> Q\<^sub>2"
@@ -306,7 +306,7 @@ lemma NCSP_elim [RD_elim]:
     
 lemma NCSP_implies_CSP3 [closure]:
   "P is NCSP \<Longrightarrow> P is CSP3"
-  by (metis (no_types, lifting) CSP3_def Healthy_def' NCSP_def Skip_is_CSP Skip_left_unit Skip_unrest_ref comp_apply seqr_assoc)
+  by (metis (no_types, lifting) CSP3_def Healthy_def' NCSP_def Skip_is_CSP Skip_left_unit_ref_unrest Skip_unrest_ref comp_apply seqr_assoc)
 
 lemma NCSP_implies_CSP4 [closure]:
   "P is NCSP \<Longrightarrow> P is CSP4"
@@ -342,6 +342,12 @@ lemma NCSP_intro:
   assumes "P is CSP" "P is CSP3" "P is CSP4"
   shows "P is NCSP"
   by (metis Healthy_def NCSP_def assms comp_eq_dest_lhs)
+
+lemma Skip_left_unit: "P is NCSP \<Longrightarrow> Skip ;; P = P"
+  by (metis (full_types) CSP3_def Healthy_if NCSP_implies_CSP3)
+
+lemma Skip_right_unit: "P is NCSP \<Longrightarrow> P ;; Skip = P"
+  by (metis (full_types) CSP4_def Healthy_if NCSP_implies_CSP4)
 
 lemma NCSP_NSRD_intro:
   assumes "P is NSRD" "$ref \<sharp> pre\<^sub>R(P)" "$ref \<sharp> peri\<^sub>R(P)" "$ref \<sharp> post\<^sub>R(P)" "$ref\<acute> \<sharp> post\<^sub>R(P)"
@@ -648,21 +654,31 @@ abbreviation "TCSP \<equiv> UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
 
 overloading
   tcsp_hcond   == "utp_hcond :: (TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health"
+  tcsp_unit    == "utp_unit :: (TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action"
 begin
   definition tcsp_hcond :: "(TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health" where
   [upred_defs]: "tcsp_hcond T = NCSP"
+  definition tcsp_unit :: "(TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+  [upred_defs]: "tcsp_unit T = Skip"
 end
 
-interpretation csp_theory: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
   and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
-  and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  and "\<I>\<I>\<^bsub>TCSP\<^esub> = Skip"
+ and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "le (uthy_order TCSP) = op \<sqsubseteq>"
-  by (unfold_locales, simp_all add: tcsp_hcond_def NCSP_Continuous Healthy_Idempotent Healthy_if NCSP_Idempotent)
+  by (unfold_locales, simp_all add: tcsp_hcond_def tcsp_unit_def Skip_left_unit Skip_right_unit Healthy_if closure)
 
 declare csp_theory.top_healthy [simp del]
 declare csp_theory.bottom_healthy [simp del]
+
+abbreviation TestC ("test\<^sub>C") where
+"test\<^sub>C P \<equiv> utest TCSP P"
+
+abbreviation StarC :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" ("_\<^sup>\<star>\<^sup>C" [999] 999) where
+"StarC P \<equiv> P\<^bold>\<star>\<^bsub>TCSP\<^esub>"
 
 lemma csp_bottom_Chaos: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = Chaos"
 proof -

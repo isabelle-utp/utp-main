@@ -1,7 +1,7 @@
 section {* Simple UTP Test *}
   
 theory utp_hello_world
-  imports "../utp"
+  imports "UTP.utp"
 begin
   
 text {* Create a basic state space with one variable *}

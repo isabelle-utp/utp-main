@@ -1,7 +1,9 @@
 section \<open> Reactive Relations \<close>
 
 theory utp_rea_rel
-  imports utp_rea_healths
+  imports 
+    utp_rea_healths
+    "UTP-KAT.utp_kleene"
 begin
 
 text \<open> This theory defines a predicate calculus for R1-R2 predicates as an extension of the standard 
@@ -101,9 +103,6 @@ where [upred_defs]: "II\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^
   
 definition rea_assert :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
 where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
-
-definition rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
-[upred_defs]: "P\<^sup>\<star>\<^sup>r = P\<^sup>\<star> ;; II\<^sub>r"
 
 text \<open> Trace contribution substitution: make a substitution for the trace contribution lens 
   @{term tt}, and apply @{term R1} to make the resulting predicate healthy again. \<close>
@@ -389,10 +388,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma rea_star_RR_closed [closure]: 
-  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r is RR"
-  by (simp add: rea_skip_RR rea_star_def ustar_left_RR_closed)
-
 lemma uplus_RR_closed [closure]: "P is RR \<Longrightarrow> P\<^sup>+ is RR"
   by (simp add: uplus_def ustar_right_RR_closed)
 
@@ -440,17 +435,6 @@ proof -
     by (simp_all add: Healthy_if assms)
 qed
   
-lemma rea_star_unfoldl:
-  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (P ;; P\<^sup>\<star>\<^sup>r)"
-  by (metis (no_types, lifting) rea_star_def seqr_assoc seqr_left_unit upred_semiring.distrib_right ustar_unfoldl)
-
-lemma rea_uplus_unfold: "P is RR \<Longrightarrow> P\<^sup>+ = P ;; P\<^sup>\<star>\<^sup>r"
-  by (simp add: RA1 rea_skip_unit(1) rea_star_def uplus_def ustar_right_RR_closed)
-
-lemma rea_star_alt_def:
-  "P is RR \<Longrightarrow> P\<^sup>\<star>\<^sup>r = (II\<^sub>r \<sqinter> P\<^sup>+)"
-  using rea_star_unfoldl rea_uplus_unfold by fastforce
-
 lemma rea_true_conj [rpred]: 
   assumes "P is R1"
   shows "(true\<^sub>r \<and> P) = P" "(P \<and> true\<^sub>r) = P"
@@ -590,6 +574,39 @@ lemma R4_UINF [rpred]: "R4(\<Sqinter> i\<in>I \<bullet> P(i)) = (\<Sqinter> i\<i
 
 lemma R5_UINF [rpred]: "R5(\<Sqinter> i\<in>I \<bullet> P(i)) = (\<Sqinter> i\<in>I \<bullet> R5(P(i)))"
   by (rel_auto)
+
+subsection \<open> UTP theory \<close>
+
+text \<open> We create a UTP theory of reactive relations which in particular provides Kleene star theorems \<close>
+
+typedecl RREL
+
+abbreviation "RREL \<equiv> UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+
+overloading
+  rrel_hcond  == "utp_hcond :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  rrel_unit   == "utp_unit  :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t, '\<alpha>) hrel_rp"
+begin
+  definition rrel_hcond :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  [upred_defs]: "rrel_hcond T = RR"
+  definition rrel_unit :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp" where
+  [upred_defs]: "rrel_unit T = II\<^sub>r"
+end
+
+interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order RREL) \<longleftrightarrow> P is RR"
+  and "P is \<H>\<^bsub>RREL\<^esub> \<longleftrightarrow> P is RR"
+  and "carrier (uthy_order RREL) \<rightarrow> carrier (uthy_order RREL) \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
+  and "\<I>\<I>\<^bsub>RREL\<^esub> = II\<^sub>r"
+  and "le (uthy_order RREL) = op \<sqsubseteq>"
+  by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
+
+declare rrel_thy.top_healthy [simp del]
+declare rrel_thy.bottom_healthy [simp del]
+
+abbreviation rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
+"P\<^sup>\<star>\<^sup>r \<equiv> P\<^bold>\<star>\<^bsub>RREL\<^esub>"
 
 subsection \<open> Instantaneous Reactive Relations \<close>
 
