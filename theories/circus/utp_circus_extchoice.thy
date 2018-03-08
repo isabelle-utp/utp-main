@@ -121,7 +121,7 @@ proof -
   finally show ?thesis .
 qed
 
-lemma ExtChoice_tri_rdes [rdes_def]:
+lemma ExtChoice_tri_rdes:
   assumes "\<And> i . $ok\<acute> \<sharp> P\<^sub>1(i)" "A \<noteq> {}"
   shows "(\<box> i\<in>A \<bullet> \<^bold>R\<^sub>s(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i))) =
          \<^bold>R\<^sub>s ((\<Squnion> i\<in>A \<bullet> P\<^sub>1(i)) \<turnstile> (((\<Squnion> i\<in>A \<bullet> P\<^sub>2(i)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> i\<in>A \<bullet> P\<^sub>2(i))) \<diamondop> (\<Sqinter> i\<in>A \<bullet> P\<^sub>3(i))))"
@@ -142,6 +142,12 @@ proof -
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   finally show ?thesis .
 qed
+
+lemma ExtChoice_tri_rdes' [rdes_def]:
+  assumes "\<And> i . $ok\<acute> \<sharp> P\<^sub>1(i)" "A \<noteq> {}"
+  shows "(\<box> i\<in>A \<bullet> \<^bold>R\<^sub>s(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i))) =
+         \<^bold>R\<^sub>s ((\<Squnion> i\<in>A \<bullet> P\<^sub>1(i)) \<turnstile> (((\<Squnion> i\<in>A \<bullet> R5(P\<^sub>2(i))) \<or> (\<Sqinter> i\<in>A \<bullet> R4(P\<^sub>2(i)))) \<diamondop> (\<Sqinter> i\<in>A \<bullet> P\<^sub>3(i))))"
+  by (simp add: ExtChoice_tri_rdes assms, rel_auto, simp_all add: less_le assms)
 
 lemma ExtChoice_tri_rdes_def [rdes_def]:
   assumes "A \<subseteq> \<lbrakk>CSP\<rbrakk>\<^sub>H"
@@ -193,12 +199,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma extChoice_rdes_def [rdes_def]:
+lemma extChoice_rdes_def:
   assumes "P\<^sub>1 is RR" "Q\<^sub>1 is RR"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
          \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3)))"
   by (subst extChoice_tri_rdes, simp_all add: assms unrest)
-  
+
+lemma extChoice_rdes_def' [rdes_def]:
+  assumes "P\<^sub>1 is RR" "Q\<^sub>1 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
+         \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((R5(P\<^sub>2 \<and> Q\<^sub>2) \<or> R4(P\<^sub>2 \<or> Q\<^sub>2)) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3)))"
+  by (simp add: extChoice_rdes_def assms, rel_auto, simp_all add: less_le)
+
 lemma CSP_ExtChoice [closure]:
   "ExtChoice A is CSP"
   by (simp add: ExtChoice_def RHS_design_is_SRD unrest)
@@ -630,20 +642,14 @@ next
   case False
   show ?thesis
   proof -
-    have 1:"(\<box> i\<in>A \<bullet> P i) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (post\<^sub>R (P i) \<and> $tr <\<^sub>u $tr\<acute>))))"
+    have 1:"(\<box> i\<in>A \<bullet> P i) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (R4(post\<^sub>R (P i))))))"
       (is "?X = ?Y")
-      by (rule ExtChoice_cong, metis (no_types, hide_lams) Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
-    have 2:"(\<box> i\<in>A \<bullet> P i ;; Q) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (post\<^sub>R (P i) \<and> $tr <\<^sub>u $tr\<acute>))) ;; Q)"
+      by (rule ExtChoice_cong, metis (no_types, hide_lams) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
+    have 2:"(\<box> i\<in>A \<bullet> P i ;; Q) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (R4(post\<^sub>R (P i))))) ;; Q)"
       (is "?X = ?Y")
-      by (rule ExtChoice_cong, metis (no_types, hide_lams) Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
+      by (rule ExtChoice_cong, metis (no_types, hide_lams) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
     show ?thesis
-      apply (simp add: 1 2)
-      apply (rdes_simp cls: assms False cong: ExtChoice_cong)
-      apply (rule_tac srdes_tri_eq_intro)
-        apply (rel_blast)
-       apply (rel_auto; blast)
-      apply (rel_auto; blast)
-      done
+      by (simp add: 1 2, rdes_eq cls: assms False cong: ExtChoice_cong USUP_cong)
   qed
 qed
 
@@ -656,6 +662,5 @@ lemma extChoice_seq_distl:
   assumes "P is ICSP" "Q is ICSP" "R is NCSP"
   shows "P ;; (Q \<box> R) = (P ;; Q \<box> P ;; R)"
   by (rdes_eq cls: assms)
-
 
 end

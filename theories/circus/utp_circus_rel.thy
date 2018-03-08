@@ -469,6 +469,14 @@ lemma csp_enable_st_pred [rpred]:
   "([s\<^sub>1]\<^sub>S\<^sub>< \<and> \<E>(s\<^sub>2,t,E)) = \<E>(s\<^sub>1 \<and> s\<^sub>2,t,E)"
   by (rel_auto)
 
+lemma csp_enable_conj [rpred]:
+  "(\<E>(s, t, E\<^sub>1) \<and> \<E>(s, t, E\<^sub>2)) = \<E>(s, t, E\<^sub>1 \<union>\<^sub>u E\<^sub>2)"
+  by (rel_auto)
+
+lemma csp_enable_cond [rpred]:
+  "\<E>(s\<^sub>1, t\<^sub>1, E\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<E>(s\<^sub>2, t\<^sub>2, E\<^sub>2) = \<E>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2, E\<^sub>1 \<triangleleft> b \<triangleright> E\<^sub>2)"
+  by (rel_auto)
+
 lemma csp_enable_tr_empty: "\<E>(true,\<langle>\<rangle>,{v}\<^sub>u) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>v\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (rel_auto)
 
@@ -490,6 +498,14 @@ lemma USUP_csp_enable [rpred]:
   "(\<Squnion> x \<bullet> \<E>(s, t, A(x))) = \<E>(s, t, (\<Or> x \<bullet> A(x)))"
   by (rel_auto)
 
+lemma R4_csp_enable_nil [rpred]:
+  "R4(\<E>(s, \<langle>\<rangle>, E)) = false"
+  by (rel_auto)
+
+lemma R5_csp_enable_nil [rpred]:
+  "R5(\<E>(s, \<langle>\<rangle>, E)) = \<E>(s, \<langle>\<rangle>, E)"
+  by (rel_auto)
+
 subsection \<open> Completed Trace Interaction \<close>
 
 definition csp_do :: "'s upred \<Rightarrow> ('s \<Rightarrow> 's) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
@@ -504,7 +520,15 @@ lemma unrest_csp_do [unrest]:
     
 lemma csp_do_CRR [closure]: "\<Phi>(s,\<sigma>,t) is CRR"
   by (rel_auto)
-    
+
+lemma csp_do_R4_closed [closure]:
+  "\<Phi>(b,\<sigma>,bop Cons x xs) is R4"
+  by (rel_auto, simp add: Prefix_Order.strict_prefixI')
+
+lemma st_pred_conj_csp_do [rpred]: 
+  "([b]\<^sub>S\<^sub>< \<and> \<Phi>(s,\<sigma>,t)) = \<Phi>(b \<and> s,\<sigma>,t)"
+  by (rel_auto)
+
 lemma trea_subst_csp_do [usubst]:
   "(\<Phi>(s,\<sigma>,t\<^sub>2))\<lbrakk>t\<^sub>1\<rbrakk>\<^sub>t = \<Phi>(s,\<sigma>,t\<^sub>1 ^\<^sub>u t\<^sub>2)"
   apply (rel_auto)

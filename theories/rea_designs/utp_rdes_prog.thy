@@ -601,8 +601,8 @@ lemma WhileR_insert_assume:
   shows "while\<^sub>R b do ([b]\<^sup>\<top>\<^sub>R ;; P) od = while\<^sub>R b do P od"
   by (simp add: AssumeR_NSRD AssumeR_comp NSRD_seqr_closure Productive_seq_2 RA1 WhileR_iter_form assms)
 
-theorem WhileR_rdes_def:
-  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R"
+theorem WhileR_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q" "R is R4"
   shows "while\<^sub>R b do \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) od = 
          \<^bold>R\<^sub>s (([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q \<diamondop> ([b]\<^sup>\<top>\<^sub>r ;; R)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)" 
   (is "?lhs = ?rhs")

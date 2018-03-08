@@ -234,6 +234,9 @@ lemma USUP_mem_UNIV [simp]: "(\<Squnion> x\<in>UNIV \<bullet> P(x)) = (\<Squnion
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
   by (pred_simp)
 
+lemma USUP_mem_false [simp]: "I \<noteq> {} \<Longrightarrow> (\<Squnion> i\<in>I \<bullet> false) = false"
+  by (rel_simp)
+
 lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
   by (rel_auto)
 

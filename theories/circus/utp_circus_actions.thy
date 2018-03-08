@@ -34,6 +34,20 @@ next
     by (simp add: AlternateR_def closure assms)
 qed
 
+subsection \<open> While Loops \<close>
+
+lemma NSRD_coerce_NCSP:
+  "P is NSRD \<Longrightarrow> Skip ;; P ;; Skip is NCSP"
+  by (metis (no_types, hide_lams) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
+
+definition WhileC :: "'s upred \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" ("while\<^sub>C _ do _ od") where
+"while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
+
+lemma WhileC_NCSP_closed [closure]:
+  assumes "P is NCSP" "P is Productive"
+  shows "while\<^sub>C b do P od is NCSP"
+  by (simp add: WhileC_def NSRD_coerce_NCSP assms closure)
+
 subsection \<open> Assignment \<close>
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -166,7 +180,7 @@ qed
     
 lemma Guard_rdes_def [rdes_def]:
   assumes "P is RR" "Q is RR" "R is RR"
-  shows "g &\<^sub>u \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (Q \<triangleleft> g \<triangleright>\<^sub>R ($tr\<acute> =\<^sub>u $tr)) \<diamondop> ([g]\<^sub>S\<^sub>< \<and> R))"
+  shows "g &\<^sub>u \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (Q \<triangleleft> g \<triangleright>\<^sub>R (\<E>(true,\<langle>\<rangle>,{}\<^sub>u))) \<diamondop> ([g]\<^sub>S\<^sub>< \<and> R))"
   by (simp add: Guard_tri_design rdes assms, rel_auto)
 
 lemma Guard_rdes_def':
@@ -657,12 +671,12 @@ lemma Guard_conditional:
 lemma Guard_expansion:
   assumes "P is NCSP"
   shows "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>u P = (g\<^sub>1 &\<^sub>u P) \<box> (g\<^sub>2 &\<^sub>u P)"
-  by (rdes_eq cls: assms)
+  by (rdes_eq cls: assms; simp add: le_less)
 
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
-  by (rdes_eq cls: assms)
+  by (rdes_eq cls: assms; simp add: le_less)
 
 lemma PrefixCSP_dist:
   "PrefixCSP a (P \<sqinter> Q) = (PrefixCSP a P) \<sqinter> (PrefixCSP a Q)"
@@ -689,6 +703,12 @@ lemma GuardedChoiceCSP_dist:
 
 text \<open> Alternation can be re-expressed as an external choice when the guards are disjoint \<close>
 
+declare ExtChoice_tri_rdes [rdes_def]
+declare ExtChoice_tri_rdes' [rdes_def del]
+
+declare extChoice_rdes_def [rdes_def]
+declare extChoice_rdes_def' [rdes_def del]
+
 lemma AlternateR_as_ExtChoice:
   assumes 
     "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
@@ -701,6 +721,7 @@ proof (cases "A = {}")
 next
   case False
   show ?thesis
+  
   proof -
     have 1:"(\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R P i) = (\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
       by (rule UINF_cong, simp add: NCSP_implies_CSP SRD_reactive_tri_design assms(1))
@@ -711,5 +732,12 @@ next
          (rdes_eq cls: assms(1-2) simps: False cong: UINF_cong ExtChoice_cong)
   qed
 qed
+
+declare ExtChoice_tri_rdes [rdes_def del]
+declare ExtChoice_tri_rdes' [rdes_def]
+
+declare extChoice_rdes_def [rdes_def del]
+declare extChoice_rdes_def' [rdes_def]
+
 
 end

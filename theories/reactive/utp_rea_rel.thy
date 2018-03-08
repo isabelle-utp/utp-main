@@ -56,6 +56,26 @@ proof -
     by (simp_all add: assms Healthy_if)
 qed
 
+lemma R4_RR_closed [closure]:
+  assumes "P is RR"
+  shows "R4(P) is RR"
+proof -
+  have "R4(RR(P)) is RR"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma R5_RR_closed [closure]:
+  assumes "P is RR"
+  shows "R5(P) is RR"
+proof -
+  have "R5(RR(P)) is RR"
+    using minus_zero_eq by rel_auto
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 subsection \<open> Reactive relational operators \<close>
 
 named_theorems rpred
@@ -386,14 +406,27 @@ done
 lemma rea_subst_R1_closed [closure]: "P\<lbrakk>v\<rbrakk>\<^sub>r is R1"
   by (rel_auto)
 
+lemma R5_comp [rpred]:
+  assumes "P is RR" "Q is RR"
+  shows "R5(P ;; Q) = R5(P) ;; R5(Q)"
+proof -
+  have "R5(RR(P) ;; RR(Q)) = R5(RR(P)) ;; R5(RR(Q))"
+    by (rel_auto; force)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma R4_comp [rpred]:
+  assumes "P is R4" "Q is RR"
+  shows "R4(P ;; Q) = P ;; Q"
+proof -
+  have "R4(R4(P) ;; RR(Q)) = R4(P) ;; RR(Q)"
+    by (rel_auto, blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 subsection \<open> Reactive relational calculus \<close>
-
-declare R4_false [rpred]
-declare R4_conj [rpred]
-declare R4_disj [rpred]
-
-declare R5_conj [rpred]
-declare R5_disj [rpred]
 
 lemma rea_skip_unit [rpred]:
   assumes "P is RR"
@@ -534,7 +567,30 @@ lemma rea_assert_true:
 lemma rea_false_true:
   "{false}\<^sub>r = true\<^sub>r"
   by (rel_auto)
-    
+
+declare R4_idem [rpred]
+declare R4_false [rpred]
+declare R4_conj [rpred]
+declare R4_disj [rpred]
+
+declare R4_R5 [rpred]
+declare R5_R4 [rpred]
+
+declare R5_conj [rpred]
+declare R5_disj [rpred]
+
+lemma R4_USUP [rpred]: "I \<noteq> {} \<Longrightarrow> R4(\<Squnion> i\<in>I \<bullet> P(i)) = (\<Squnion> i\<in>I \<bullet> R4(P(i)))"
+  by (rel_auto)
+
+lemma R5_USUP [rpred]: "I \<noteq> {} \<Longrightarrow> R5(\<Squnion> i\<in>I \<bullet> P(i)) = (\<Squnion> i\<in>I \<bullet> R5(P(i)))"
+  by (rel_auto)
+
+lemma R4_UINF [rpred]: "R4(\<Sqinter> i\<in>I \<bullet> P(i)) = (\<Sqinter> i\<in>I \<bullet> R4(P(i)))"
+  by (rel_auto)
+
+lemma R5_UINF [rpred]: "R5(\<Sqinter> i\<in>I \<bullet> P(i)) = (\<Sqinter> i\<in>I \<bullet> R5(P(i)))"
+  by (rel_auto)
+
 subsection \<open> Instantaneous Reactive Relations \<close>
 
 text \<open> Instantaneous Reactive Relations, where the trace stays the same. \<close>

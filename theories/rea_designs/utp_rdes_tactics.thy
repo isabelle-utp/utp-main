@@ -4,6 +4,21 @@ theory utp_rdes_tactics
   imports utp_rdes_triples
 begin
 
+text \<open> Theorems for normalisation \<close>
+
+lemmas rdes_rel_norms = 
+  prod.case_eq_if
+  conj_assoc
+  disj_assoc
+  conj_UINF_dist
+  conj_UINF_ind_dist  
+  seqr_or_distl
+  seqr_or_distr
+  seq_UINF_distl
+  seq_UINF_distl'
+  seq_UINF_distr
+  seq_UINF_distr'
+
 text {* The following tactic can be used to simply and evaluate reactive predicates. *}
 
 method rpred_simp = (uexpr_simp simps: rpred usubst closure unrest)
@@ -15,7 +30,7 @@ method rdes_expand uses cls = (insert cls, (erule RD_elim)+)
 text {* Tactic to simplify the definition of a reactive design *}
   
 method rdes_simp uses cls cong simps =
-  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes rpred cls closure alpha usubst unrest wp prod.case_eq_if simps cong: cong))
+  ((rdes_expand cls: cls)?, (simp add: rdes_def rdes_rel_norms rdes rpred cls closure alpha usubst unrest wp simps cong: cong))
 
 text {* Tactic to split a refinement conjecture into three POs *}
 

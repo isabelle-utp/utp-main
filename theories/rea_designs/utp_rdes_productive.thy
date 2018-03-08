@@ -150,10 +150,13 @@ proof (rule Productive_intro)
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
 qed
 
+text \<open> We use the @{term R4} healthiness condition to characterise that the postcondition must
+  extend the trace for a reactive design to be productive. \<close>
+
 lemma Productive_rdes_RR_intro:
-  assumes "P is RR" "Q is RR" "R is RR" "($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> R"
+  assumes "P is RR" "Q is RR" "R is RR" "R is R4"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is Productive"
-  by (simp add: Productive_rdes_intro unrest assms)
+  using assms by (simp add: Productive_rdes_intro R4_iff_refine unrest)
 
 lemma Productive_Miracle [closure]: "Miracle is Productive"
   unfolding Miracle_tri_def Healthy_def

@@ -579,9 +579,9 @@ proof -
 qed
 
 lemma PCSP_elim [RD_elim]: 
-  assumes "X is PCSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> peri\<^sub>R X \<diamondop> (post\<^sub>R X \<and> $tr <\<^sub>u $tr\<acute>)))"
+  assumes "X is PCSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> peri\<^sub>R X \<diamondop> (R4(post\<^sub>R X))))"
   shows "P X"
-  by (metis Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms comp_apply)
+  by (metis R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms comp_apply)
 
 lemma ICSP_implies_NCSP [closure]:
   assumes "P is ICSP"

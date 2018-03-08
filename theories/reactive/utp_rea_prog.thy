@@ -112,6 +112,14 @@ proof -
     by (metis Healthy_def assms)
 qed
 
+lemma unrest_st'_R4 [unrest]:
+  "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R4(P)"
+  by (rel_auto)
+
+lemma unrest_st'_R5 [unrest]:
+  "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R5(P)"
+  by (rel_auto)
+
 subsection \<open> State Lifting \<close>
 
 abbreviation lift_state_rel ("\<lceil>_\<rceil>\<^sub>S")

@@ -738,6 +738,9 @@ lemma R4_iff_refine:
   "P is R4 \<longleftrightarrow> ($tr <\<^sub>u $tr\<acute>) \<sqsubseteq> P"
   by (rel_blast)
 
+lemma R4_idem: "R4 (R4 P) = R4 P"
+  by (rel_auto)
+
 lemma R4_false: "R4(false) = false"
   by (rel_auto)
 
@@ -745,6 +748,9 @@ lemma R4_conj: "R4(P \<and> Q) = (R4(P) \<and> R4(Q))"
   by (rel_auto)
 
 lemma R4_disj: "R4(P \<or> Q) = (R4(P) \<or> R4(Q))"
+  by (rel_auto)
+
+lemma R4_is_R4 [closure]: "R4(P) is R4"
   by (rel_auto)
 
 lemma false_R4 [closure]: "false is R4"
@@ -786,6 +792,12 @@ lemma R5_conj: "R5(P \<and> Q) = (R5(P) \<and> R5(Q))"
   by (rel_auto)
 
 lemma R5_disj: "R5(P \<or> Q) = (R5(P) \<or> R5(Q))"
+  by (rel_auto)
+
+lemma R4_R5: "R4 (R5 P) = false"
+  by (rel_auto)
+
+lemma R5_R4: "R5 (R4 P) = false"
   by (rel_auto)
 
 lemma UINF_R5_closed [closure]: 
