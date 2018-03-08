@@ -388,11 +388,15 @@ lemma disj_UINF_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<or> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<or> F(Q))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
+lemma UINF_conj_UINF [simp]: 
+  "((\<Sqinter> i\<in>I \<bullet> P(i)) \<or> (\<Sqinter> i\<in>I \<bullet> Q(i))) = (\<Sqinter> i\<in>I \<bullet> P(i) \<or> Q(i))"
+  by (rel_auto)
+
 lemma conj_USUP_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
   by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUP.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
 
-lemma USUP_conj_USUP: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
+lemma USUP_conj_USUP [simp]: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
   by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
 
 lemma UINF_all_cong [cong]:
