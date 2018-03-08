@@ -458,6 +458,11 @@ begin
       done
   qed
 
+  lemma UINF_ind_Healthy [closure]:
+    assumes "\<And> i. P(i) is \<H>"
+    shows "(\<Sqinter> i \<bullet> P(i)) is \<H>"
+    by (simp add: HCond_Cont UINF_Continuous_closed assms)
+
 end
 
 text {* In another direction, we can also characterise UTP theories that are relational. Minimally
@@ -466,6 +471,14 @@ text {* In another direction, we can also characterise UTP theories that are rel
 locale utp_theory_rel =
   utp_theory +
   assumes Healthy_Sequence [closure]: "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P ;; Q) is \<H>"
+begin
+
+lemma upower_Suc_Healthy [closure]:
+  assumes "P is \<H>"
+  shows "P \<^bold>^ Suc n is \<H>"
+  by (induct n, simp_all add: closure assms upred_semiring.power_Suc)
+
+end
 
 locale utp_theory_cont_rel = utp_theory_continuous + utp_theory_rel
 begin
@@ -490,6 +503,11 @@ begin
       by (simp add: healthy_inf_cont seq_Sup_distr setcompr_eq_image assms)
   qed
 
+  lemma uplus_healthy [closure]:
+    assumes "P is \<H>"  
+    shows "P\<^sup>+ is \<H>"
+    by (simp add: uplus_power_def closure assms)
+
 end
 
 text {* There also exist UTP theories with units, and the following operator is a theory specific
@@ -497,6 +515,16 @@ text {* There also exist UTP theories with units, and the following operator is 
 
 consts
   utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" ("\<I>\<I>\<index>")
+
+text {* We can characterise the theory Kleene star by lifting the relational one. *}
+
+definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
+"utp_star \<T> P = (P\<^sup>\<star> ;; \<I>\<I>\<^bsub>\<T>\<^esub>)"
+
+text {* We can then characterise tests as refinements of units. *}
+
+definition utest :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" where
+[upred_defs]: "utest \<T> b = (\<I>\<I>\<^bsub>\<T>\<^esub> \<sqsubseteq> b)"
 
 text {* Not all theories have both a left and a right unit (e.g. H1-H2 designs) and so we split
   up the locale into two cases. *}
@@ -516,32 +544,15 @@ locale utp_theory_unital =
   assumes Healthy_Unit [closure]: "\<I>\<I> is \<H>"
   and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
   and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
-
-locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
-
-definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
-"utp_star \<T> P = (\<^bold>\<nu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X) \<^bold>\<sqinter>\<^bsub>\<T>\<^esub> \<I>\<I>\<^bsub>\<T>\<^esub>))"
-
-definition utp_omega ("_\<^bold>\<omega>\<index>" [999] 999) where
-"utp_omega \<T> P = (\<^bold>\<mu>\<^bsub>\<T>\<^esub> (\<lambda> X. (P ;; X)))"
-
-locale utp_pre_left_quantale = utp_theory_continuous + utp_theory_left_unital
 begin
 
-  lemma star_healthy [closure]: "P\<^bold>\<star> is \<H>"
-    by (metis mem_Collect_eq utp_order_carrier utp_star_def weak.GFP_closed)
-
-  lemma star_unfold: "P is \<H> \<Longrightarrow> P\<^bold>\<star> = (P;;P\<^bold>\<star>) \<sqinter> \<I>\<I>"
-    apply (simp add: utp_star_def healthy_meet_cont)
-    apply (subst GFP_unfold)
-      apply (rule Mono_utp_orderI)
-      apply (simp add: healthy_meet_cont closure semilattice_sup_class.le_supI1 seqr_mono)
-     apply (auto intro: funcsetI)
-     apply (simp add: Healthy_Left_Unit Healthy_Sequence healthy_meet_cont meet_is_healthy)
-    using Healthy_Left_Unit Healthy_Sequence healthy_meet_cont weak.GFP_closed apply auto
-    done
+lemma Unit_self [simp]:
+  "\<I>\<I> ;; \<I>\<I> = \<I>\<I>"
+  by (simp add: Healthy_Unit Unit_Right)
 
 end
+
+locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
   by (simp add: Healthy_Unit Unit_Left Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
