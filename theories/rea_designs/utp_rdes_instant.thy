@@ -138,4 +138,29 @@ lemma ISRD_Miracle_right_zero:
   shows "P ;; Miracle = Miracle"
   by (rdes_simp cls: assms)
 
+text \<open> A recursion whose body does not extend the trace results in divergence \<close>
+
+lemma ISRD_recurse_Chaos:
+  assumes "P is ISRD" "post\<^sub>R P ;; true\<^sub>r = true\<^sub>r"
+  shows "(\<mu>\<^sub>R X \<bullet> P ;; X) = Chaos"
+proof -
+  have 1: "(\<mu>\<^sub>R X \<bullet> P ;; X) = (\<mu> X \<bullet> P ;; SRD(X))"
+    by (auto simp add: srdes_theory_continuous.utp_lfp_def closure assms)
+  have "(\<mu> X \<bullet> P ;; SRD(X)) \<sqsubseteq> Chaos"
+  proof (rule gfp_upperbound)
+    have "P ;; Chaos \<sqsubseteq> Chaos"
+      apply (rdes_refine_split cls: assms)
+      using assms(2) apply (rel_auto, metis (no_types, lifting) dual_order.antisym order_refl)+
+      done
+    thus "P ;; SRD Chaos \<sqsubseteq> Chaos"
+      by (simp add: Healthy_if srdes_theory_continuous.bottom_closed)
+  qed
+  thus ?thesis
+    by (metis "1" dual_order.antisym srdes_theory_continuous.LFP_closed srdes_theory_continuous.bottom_lower)
+qed
+
+lemma recursive_assign_Chaos:
+  "(\<mu>\<^sub>R X \<bullet> \<langle>\<sigma>\<rangle>\<^sub>R ;; X) = Chaos"
+  by (rule ISRD_recurse_Chaos, simp_all add: closure rdes, rel_auto)
+
 end

@@ -606,6 +606,7 @@ interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rs
 interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
   and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
+  and "(\<mu> X \<bullet> F (\<H>\<^bsub>SRDES\<^esub> X)) = (\<mu> X \<bullet> F (SRD X))"
   and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   and "le (uthy_order SRDES) = op \<sqsubseteq>"

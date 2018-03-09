@@ -598,9 +598,17 @@ interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)
   and "P is \<H>\<^bsub>RREL\<^esub> \<longleftrightarrow> P is RR"
   and "carrier (uthy_order RREL) \<rightarrow> carrier (uthy_order RREL) \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
+  and "\<^bold>\<top>\<^bsub>RREL\<^esub> = false"
   and "\<I>\<I>\<^bsub>RREL\<^esub> = II\<^sub>r"
   and "le (uthy_order RREL) = op \<sqsubseteq>"
-  by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
+proof -
+  interpret lat: utp_theory_continuous "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+    by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
+  show 1: "\<^bold>\<top>\<^bsub>RREL\<^esub> = (false :: ('t,'\<alpha>) hrel_rp)"
+    by (metis Healthy_if lat.healthy_top rea_no_RR rea_not_rea_true rea_true_RR rrel_hcond_def)
+  thus "utp_theory_kleene UTHY(RREL, ('t,'\<alpha>) rp)"
+    by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
+qed (simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
 
 declare rrel_thy.top_healthy [simp del]
 declare rrel_thy.bottom_healthy [simp del]

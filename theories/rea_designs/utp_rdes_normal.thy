@@ -693,11 +693,21 @@ end
 interpretation nsrd_thy: utp_theory_kleene "UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order NSRDES) \<longleftrightarrow> P is NSRD"
   and "P is \<H>\<^bsub>NSRDES\<^esub> \<longleftrightarrow> P is NSRD"
+  and "(\<mu> X \<bullet> F (\<H>\<^bsub>NSRDES\<^esub> X)) = (\<mu> X \<bullet> F (NSRD X))"
   and "carrier (uthy_order NSRDES) \<rightarrow> carrier (uthy_order NSRDES) \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
+  and "\<^bold>\<top>\<^bsub>NSRDES\<^esub> = Miracle"
   and "\<I>\<I>\<^bsub>NSRDES\<^esub> = II\<^sub>R"
   and "le (uthy_order NSRDES) = op \<sqsubseteq>"
-  by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if SRD_left_unit NSRD_right_unit)
+proof -
+  interpret lat: utp_theory_continuous "UTHY(NSRDES, ('s,'t,'\<alpha>) rsp)"
+    by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if)
+  show 1: "\<^bold>\<top>\<^bsub>NSRDES\<^esub> = (Miracle :: ('s,'t,'\<alpha>) hrel_rsp)"
+    by (metis NSRD_Miracle NSRD_is_SRD lat.top_healthy lat.utp_theory_continuous_axioms nsrdes_hcond_def srdes_theory_continuous.meet_top upred_semiring.add_commute utp_theory_continuous.meet_top)
+    
+  thus "utp_theory_kleene UTHY(NSRDES, ('s,'t,'\<alpha>) rsp)"
+    by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if Miracle_left_zero SRD_left_unit NSRD_right_unit)
+qed (simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if)
 
 declare nsrd_thy.top_healthy [simp del]
 declare nsrd_thy.bottom_healthy [simp del]

@@ -581,7 +581,7 @@ sublocale utp_theory_cont_unital \<subseteq> utp_theory_mono_unital
 
 locale utp_theory_unital_zerol =
   utp_theory_unital +
-  assumes Top_Left_Zero: "\<^bold>\<top> ;; P = \<^bold>\<top>"
+  assumes Top_Left_Zero: "P is \<H> \<Longrightarrow> \<^bold>\<top> ;; P = \<^bold>\<top>"
 
 locale utp_theory_cont_unital_zerol =
   utp_theory_cont_unital + utp_theory_unital_zerol
@@ -590,8 +590,12 @@ begin
 lemma Top_test_Right_Zero:
   assumes "b is \<H>" "utest \<T> b"
   shows "b ;; \<^bold>\<top> = \<^bold>\<top>"
-  by (metis seqr_right_zero utp_theory_unital_zerol.Top_Left_Zero utp_theory_unital_zerol_axioms)
-  
+proof -
+  have "b \<sqinter> \<I>\<I> = \<I>\<I>"
+    by (meson assms(2) semilattice_sup_class.le_iff_sup utest_def)
+  then show ?thesis
+    by (metis (no_types) Top_Left_Zero Unit_Left assms(1) meet_top top_healthy upred_semiring.distrib_right)
+qed
 
 end
 
