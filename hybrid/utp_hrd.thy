@@ -133,7 +133,7 @@ lemma hrdUntil_rdes_def [rdes_def]:
     
 lemma preR_hrdUntil [rdes]: 
   "P is SRD \<Longrightarrow> pre\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = pre\<^sub>R(P)"
-  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2 Healthy_if)
+  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2_closed Healthy_if)
 
 lemma periR_hrdUntil [rdes]: 
   "P is NSRD \<Longrightarrow> peri\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R(P) \<and> \<lceil>b(ti)\<rceil>\<^sub>h)"
@@ -152,7 +152,7 @@ text {* It should be possible to simplify this surely. *}
 lemma hrdPreempt_nz_rdes_def [rdes_def]:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "$st\<acute> \<sharp> P\<^sub>2" "P\<^sub>3 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
   shows "(\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) [b(ti)|c(ti)]\<^sub>H\<^sup>+ \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)) =
-          \<^bold>R\<^sub>s ( (P\<^sub>1 \<and> (P\<^sub>3 \<or> P\<^sub>2 inv b(ti) until\<^sub>h c(ti)) wp\<^sub>R Q\<^sub>1) 
+          \<^bold>R\<^sub>s ( (P\<^sub>1 \<and> (P\<^sub>3 \<or> P\<^sub>2 inv b(ti) until\<^sub>h c(ti)) wp\<^sub>r Q\<^sub>1) 
              \<turnstile> (P\<^sub>2 \<and> hInt b \<or> (P\<^sub>3 \<or> P\<^sub>2 inv b(ti) until\<^sub>h c(ti)) ;; Q\<^sub>2) 
              \<diamondop> (P\<^sub>3 \<or> P\<^sub>2 inv b(ti) until\<^sub>h c(ti)) ;; Q\<^sub>3)"
   by (simp add: hrdPreempt_nz_def rdes_def assms closure unrest)

@@ -1,8 +1,7 @@
 theory SimpleFMI
   imports 
-    "../theories/utp_time_rel"
-    "../theories/utp_reactive_hoare"
-    "../hybrid/utp_hybrid"    
+    "UTP-Theories.utp_time_rel"
+    "UTP-Hybrid.utp_hybrid"
 begin
   
 purge_notation Sublist.parallel (infixl "\<parallel>" 50)

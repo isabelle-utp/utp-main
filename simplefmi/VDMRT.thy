@@ -37,7 +37,7 @@ definition PeriodicBody :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel 
 
 definition Periodic :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrel" where
 [upred_defs]: 
-  "Periodic n P = (PeriodicBody n P)\<^sup>\<star> ;; II\<^sub>r"
+  "Periodic n P = (PeriodicBody n P)\<^sup>\<star>\<^sup>r"
   
 lemma PeriodicBody_RR_closed [closure]:
   "PeriodicBody n P is RR"
@@ -45,12 +45,7 @@ lemma PeriodicBody_RR_closed [closure]:
   
 lemma Periodic_RR_closed [closure]:
   "Periodic n P is RR"
-  apply (simp add: Periodic_def ustar_def seq_UINF_distr')
-  apply (rule UINF_Continuous_closed)
-   apply (simp_all add: closure)
-  apply (induct_tac i)
-   apply (simp_all add: usubst seqr_assoc closure)
-  done
+  by (simp add: Periodic_def closure)
       
 definition VDMRT_FMU :: "real pos \<Rightarrow> '\<alpha> vrt_st_scheme hrel \<Rightarrow> '\<alpha> vrt_st_scheme fmu" where
 [upred_defs]:

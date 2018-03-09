@@ -2,8 +2,8 @@ theory SimpleTank
   imports 
     VDMRT
     SimpleFMI
-    "../hybrid/utp_hybrid"
-    "../theories/utp_reactive_hoare"
+    "UTP-Hybrid.utp_hybrid"
+    "UTP-Reactive.utp_rea_hoare"
 begin recall_syntax
   
 alphabet tank_st =
