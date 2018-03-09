@@ -108,7 +108,7 @@ lemma uplus_alt_def: "P\<^sup>+ = P\<^sup>\<star> ;; P"
 
 subsection \<open> UTP Theories with Kleene Algebra \<close>
 
-locale utp_theory_kleene = utp_theory_cont_rel + utp_theory_unital
+locale utp_theory_kleene = utp_theory_cont_unital_zerol
 begin
 
 lemma Star_def: "P\<^bold>\<star> = P\<^sup>\<star> ;; \<I>\<I>"
@@ -202,6 +202,9 @@ lemma Star_unfoldr_eq:
   assumes "P is \<H>"
   shows "\<I>\<I> \<sqinter> P\<^bold>\<star> ;; P = P\<^bold>\<star>"
   using Star_slide Star_unfoldl_eq assms by auto
+
+lemma Star_Top: "\<^bold>\<top>\<^bold>\<star> = \<I>\<I>"
+  by (simp add: Star_test top_healthy utest_Top)
 
 end
 

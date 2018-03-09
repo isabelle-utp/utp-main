@@ -554,16 +554,47 @@ lemma utest_intro:
   "\<I>\<I> \<sqsubseteq> P \<Longrightarrow> utest \<T> P"
   by (simp add: utest_def)
 
-end
+lemma utest_Unit [closure]:
+  "utest \<T> \<I>\<I>"
+  by (simp add: utest_def)
 
-locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
+end
 
 sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
   by (simp add: Healthy_Unit Unit_Left Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
 
 sublocale utp_theory_unital \<subseteq> utp_theory_right_unital
   by (simp add: Healthy_Unit Unit_Right Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
-    
+
+locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
+begin
+
+lemma utest_Top [closure]:
+  "utest \<T> \<^bold>\<top>"
+  by (simp add: Healthy_Unit utest_def utp_top)
+end
+
+locale utp_theory_cont_unital = utp_theory_cont_rel + utp_theory_unital
+
+sublocale utp_theory_cont_unital \<subseteq> utp_theory_mono_unital
+  by (simp add: utp_theory_mono_axioms utp_theory_mono_unital_def utp_theory_unital_axioms)
+
+locale utp_theory_unital_zerol =
+  utp_theory_unital +
+  assumes Top_Left_Zero: "\<^bold>\<top> ;; P = \<^bold>\<top>"
+
+locale utp_theory_cont_unital_zerol =
+  utp_theory_cont_unital + utp_theory_unital_zerol
+begin
+  
+lemma Top_test_Right_Zero:
+  assumes "b is \<H>" "utest \<T> b"
+  shows "b ;; \<^bold>\<top> = \<^bold>\<top>"
+  by (metis seqr_right_zero utp_theory_unital_zerol.Top_Left_Zero utp_theory_unital_zerol_axioms)
+  
+
+end
+
 subsection {* Theory of relations *}
 
 text {* We can exemplify the creation of a UTP theory with the theory of relations, a trivial theory. *}
