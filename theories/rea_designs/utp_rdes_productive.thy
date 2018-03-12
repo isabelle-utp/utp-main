@@ -164,7 +164,7 @@ lemma Productive_Miracle [closure]: "Miracle is Productive"
 
 lemma Productive_Chaos [closure]: "Chaos is Productive"
   unfolding Chaos_tri_def Healthy_def
-  by (subst Productive_RHS_design_form, simp_all add: unrest, rel_auto)
+  by (subst Productive_RHS_design_form, simp_all add: unrest)
 
 lemma Productive_intChoice [closure]:
   assumes "P is SRD" "P is Productive" "Q is SRD" "Q is Productive"

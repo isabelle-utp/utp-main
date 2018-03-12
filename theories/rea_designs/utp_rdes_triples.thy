@@ -494,7 +494,7 @@ subsection \<open> Formation laws \<close>
 lemma srdes_skip_tri_design [rdes_def]: "II\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> II\<^sub>r)"
   by (simp add: srdes_skip_def, rel_auto)
 
-lemma Chaos_tri_def [rdes_def]: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true\<^sub>r \<diamondop> true\<^sub>r)"
+lemma Chaos_tri_def [rdes_def]: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> false \<diamondop> false)"
   by (simp add: Chaos_def design_false_pre)
 
 lemma Miracle_tri_def [rdes_def]: "Miracle = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> false)"

@@ -694,6 +694,9 @@ lemma uinter_empty_2 [simp]: "{}\<^sub>u \<inter>\<^sub>u x = {}\<^sub>u"
 lemma uunion_empty_1 [simp]: "{}\<^sub>u \<union>\<^sub>u x = x"
   by (transfer, simp)
 
+lemma uunion_insert [simp]: "(bop insert x A) \<union>\<^sub>u B = bop insert x (A \<union>\<^sub>u B)"
+  by (transfer, simp)
+
 lemma uset_minus_empty [simp]: "x - {}\<^sub>u = x"
   by (simp add: uexpr_defs, transfer, simp)
 

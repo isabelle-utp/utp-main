@@ -433,6 +433,20 @@ lemma tsubst_rea_not [usubst]: "(\<not>\<^sub>r P)\<lbrakk>v\<rbrakk>\<^sub>t = 
 lemma tsubst_true [usubst]: "true\<^sub>r\<lbrakk>v\<rbrakk>\<^sub>t = \<I>(true,v)"
   by (rel_auto)
 
+lemma R4_csp_init [rpred]: "R4(\<I>(s,bop Cons x xs)) = \<I>(s,bop Cons x xs)"
+  using less_list_def by (rel_blast)
+
+lemma R5_csp_init [rpred]: "R5(\<I>(s,bop Cons x xs)) = false"
+  by (rel_auto)
+
+lemma R4_trace_subst [rpred]:
+  "R4 (P\<lbrakk>bop Cons x xs\<rbrakk>\<^sub>t) = P\<lbrakk>bop Cons x xs\<rbrakk>\<^sub>t"
+  using le_imp_less_or_eq by (rel_blast)
+
+lemma R5_trace_subst [rpred]:
+  "R5 (P\<lbrakk>bop Cons x xs\<rbrakk>\<^sub>t) = false"
+  by (rel_auto)
+
 subsection \<open> Enabled Events \<close>
 
 definition csp_enable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('e set, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<E>'(_,_, _')") where
@@ -504,6 +518,14 @@ lemma R4_csp_enable_nil [rpred]:
 
 lemma R5_csp_enable_nil [rpred]:
   "R5(\<E>(s, \<langle>\<rangle>, E)) = \<E>(s, \<langle>\<rangle>, E)"
+  by (rel_auto)
+
+lemma R4_csp_enable_Cons [rpred]: 
+  "R4(\<E>(s,bop Cons x xs, E)) = \<E>(s,bop Cons x xs, E)"
+  by (rel_auto, simp add: Prefix_Order.strict_prefixI')
+
+lemma R5_csp_enable_Cons [rpred]: 
+  "R5(\<E>(s,bop Cons x xs, E)) = false"
   by (rel_auto)
 
 subsection \<open> Completed Trace Interaction \<close>

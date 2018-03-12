@@ -177,11 +177,30 @@ proof -
     by (rel_auto)
   thus ?thesis by (simp add: GuardCSP_def)
 qed
-    
+
+lemma csp_do_cond_conj:
+  assumes "P is CRR"
+  shows "(\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> P) = \<Phi>(b, id, \<langle>\<rangle>) ;; P"
+proof -
+  have "(\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> CRR(P)) = \<Phi>(b, id, \<langle>\<rangle>) ;; CRR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
 lemma Guard_rdes_def [rdes_def]:
-  assumes "P is RR" "Q is RR" "R is RR"
-  shows "g &\<^sub>u \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (Q \<triangleleft> g \<triangleright>\<^sub>R (\<E>(true,\<langle>\<rangle>,{}\<^sub>u))) \<diamondop> ([g]\<^sub>S\<^sub>< \<and> R))"
-  by (simp add: Guard_tri_design rdes assms, rel_auto)
+  assumes "P is RR" "Q is CRR" "R is CRR"
+  shows "g &\<^sub>u \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<^bold>R\<^sub>s ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ((P \<Rightarrow>\<^sub>r Q) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> (P \<Rightarrow>\<^sub>r R)))"
+    by (simp add: Guard_tri_design rdes assms closure)
+  also have "... = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> R))"
+    by (rel_auto)
+  also have "... = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
+    by (simp add: assms(2) assms(3) csp_do_cond_conj)
+  finally show ?thesis .
+qed
 
 lemma Guard_rdes_def':
   assumes "$ok\<acute> \<sharp> P"
@@ -669,9 +688,8 @@ lemma Guard_conditional:
   by (rdes_eq cls: assms)
 
 lemma Guard_expansion:
-  assumes "P is NCSP"
-  shows "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>u P = (g\<^sub>1 &\<^sub>u P) \<box> (g\<^sub>2 &\<^sub>u P)"
-  by (rdes_eq cls: assms; simp add: le_less)
+  "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>u P = (g\<^sub>1 &\<^sub>u P) \<box> (g\<^sub>2 &\<^sub>u P)"
+  by (rel_auto)
 
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"

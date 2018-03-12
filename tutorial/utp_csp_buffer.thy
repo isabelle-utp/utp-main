@@ -68,6 +68,6 @@ lemma Buffer_contract:
                         \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))\<^sup>\<star>\<^sup>r ;;
                         \<E>(true,\<langle>\<rangle>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>head\<^sub>u(&buff))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
                        false)"
-  by (rdes_eq)
+  unfolding Buffer_def DoBuff_contract by rdes_eq
 
 end

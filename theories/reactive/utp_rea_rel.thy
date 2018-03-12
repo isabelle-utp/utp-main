@@ -484,6 +484,10 @@ lemma rea_impl_mp [rpred]:
   "(P \<and> (P \<Rightarrow>\<^sub>r Q)) = (P \<and> Q)"
   by (rel_auto)
 
+lemma rea_impl_conj_combine [rpred]: 
+  "((P \<Rightarrow>\<^sub>r Q) \<and> (P \<Rightarrow>\<^sub>r R)) = (P \<Rightarrow>\<^sub>r Q \<and> R)"
+  by (rel_auto)
+
 lemma rea_impl_alt_def:
   assumes "Q is R1"
   shows "(P \<Rightarrow>\<^sub>r Q) = R1(P \<Rightarrow> Q)"

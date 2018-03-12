@@ -150,7 +150,8 @@ proof -
   proof (rule gfp_upperbound)
     have "P ;; Chaos \<sqsubseteq> Chaos"
       apply (rdes_refine_split cls: assms)
-      using assms(2) apply (rel_auto, metis (no_types, lifting) dual_order.antisym order_refl)+
+      using assms(2) apply (rel_auto, metis (no_types, lifting) dual_order.antisym order_refl)
+       apply (rel_auto)+
       done
     thus "P ;; SRD Chaos \<sqsubseteq> Chaos"
       by (simp add: Healthy_if srdes_theory_continuous.bottom_closed)
