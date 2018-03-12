@@ -38,6 +38,25 @@ lemma csp_ex_6:
 lemma csp_ex_7: "a \<^bold>\<rightarrow> a \<^bold>\<rightarrow> a \<^bold>\<rightarrow> Miracle \<sqsubseteq> a \<^bold>\<rightarrow> Miracle"
   by (rdes_refine)
 
+lemma csp_ex_8: 
+  "a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip \<box> c \<^bold>\<rightarrow> Skip = 
+   \<^bold>R\<^sub>s (true\<^sub>r \<turnstile> (\<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>, \<guillemotleft>c\<guillemotright>}\<^sub>u) \<or> \<E>(true,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>, {\<guillemotleft>b\<guillemotright>}\<^sub>u)) \<diamondop> (\<Phi>(true,id,\<langle>\<guillemotleft>a\<guillemotright>, \<guillemotleft>b\<guillemotright>\<rangle>) \<or> \<Phi>(true,id,\<langle>\<guillemotleft>c\<guillemotright>\<rangle>)))"
+  by (rdes_simp)
+
+subsection {* State Examples *}
+
+lemma assign_prefix_ex:
+  assumes "vwb_lens x"
+  shows "x :=\<^sub>C 1 ;; a \<^bold>\<rightarrow> x :=\<^sub>C (&x + 2) = a \<^bold>\<rightarrow> x :=\<^sub>C 3"
+  (is "?lhs = ?rhs")
+proof -
+  from assms have "?lhs = \<^bold>R\<^sub>s (true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>}\<^sub>u) \<diamondop> \<Phi>(true,[&x \<mapsto>\<^sub>s 3],\<langle>\<guillemotleft>a\<guillemotright>\<rangle>))"
+    by (rdes_simp)
+  also have "... = ?rhs"
+    by (rdes_simp)
+  finally show ?thesis .
+qed
+
 subsection {* Parallel Examples *}
   
 lemma csp_parallel_ex1:
