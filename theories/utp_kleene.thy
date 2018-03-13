@@ -203,6 +203,11 @@ lemma Star_unfoldr_eq:
   shows "\<I>\<I> \<sqinter> P\<^bold>\<star> ;; P = P\<^bold>\<star>"
   using Star_slide Star_unfoldl_eq assms by auto
 
+lemma Star_inductr:
+  assumes "P is \<H>" "R is \<H>" "Q \<sqsubseteq> P \<sqinter> Q ;; R"
+  shows "Q \<sqsubseteq> P;;R\<^bold>\<star>"
+  by (metis (full_types) RA1 Star_def Star_trade_skip Unit_Right assms urel_ka.star_inductr')
+
 lemma Star_Top: "\<^bold>\<top>\<^bold>\<star> = \<I>\<I>"
   by (simp add: Star_test top_healthy utest_Top)
 
