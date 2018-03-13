@@ -5,7 +5,7 @@ theory utp_circus_contracts
 begin
 
 definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rightarrow> 's upred) \<Rightarrow> ('e list \<Rightarrow> 's hrel) \<Rightarrow> ('s, 'e) action" where
-"mk_CRD P Q R = \<^bold>R\<^sub>s([P]\<^sub>S\<^sub>< \<turnstile> [Q x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> [R(x)]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
+[rdes_def]: "mk_CRD P Q R = \<^bold>R\<^sub>s([P]\<^sub>S\<^sub>< \<turnstile> [Q x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<diamondop> [R(x)]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
 
 syntax
   "_ref_var" :: "logic"
@@ -79,5 +79,32 @@ lemma CRD_refine_rdes:
           \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
   using assms
   by (simp add: mk_CRD_def, rule_tac srdes_tri_refine_intro, rel_auto+)
+
+lemma CRD_refine_rdes': 
+  assumes
+    "Q\<^sub>2 is RR"
+    "Q\<^sub>3 is RR"
+    "`[P\<^sub>1]\<^sub>S\<^sub>< \<Rightarrow> Q\<^sub>1`"
+    "\<And> t. ([P\<^sub>2 t r]\<^sub>S\<^sub><\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>2\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>)"
+    "\<And> t. [P\<^sub>3 t]\<^sub>S' \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>3\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>)"
+  shows "([P\<^sub>1 \<turnstile> P\<^sub>2 trace refs | P\<^sub>3 trace]\<^sub>C :: ('e,'s) action) \<sqsubseteq> 
+          \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
+proof (simp add: mk_CRD_def, rule srdes_tri_refine_intro)
+  show "`[P\<^sub>1]\<^sub>S\<^sub>< \<Rightarrow> Q\<^sub>1`" by (fact assms(3))
+
+  have "\<And> t. ([P\<^sub>2 t r]\<^sub>S\<^sub><\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>) \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> (RR Q\<^sub>2)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>)"
+    by (simp add: assms Healthy_if)
+  hence "`[P\<^sub>1]\<^sub>S\<^sub>< \<and> RR(Q\<^sub>2) \<Rightarrow> [P\<^sub>2 x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
+    by (rel_simp; meson)
+  thus "`[P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>2 \<Rightarrow> [P\<^sub>2 x r]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk>`"
+    by (simp add: Healthy_if assms)
+
+  have "\<And> t. [P\<^sub>3 t]\<^sub>S' \<sqsubseteq> ([P\<^sub>1]\<^sub>S\<^sub>< \<and> (RR Q\<^sub>3)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>)"
+    by (simp add: assms Healthy_if)
+  hence "`[P\<^sub>1]\<^sub>S\<^sub>< \<and> (RR Q\<^sub>3) \<Rightarrow> [P\<^sub>3 x]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk>`"
+    by (rel_simp; meson)
+  thus "`[P\<^sub>1]\<^sub>S\<^sub>< \<and> Q\<^sub>3 \<Rightarrow> [P\<^sub>3 x]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk>`"
+    by (simp add: Healthy_if assms)
+qed
 
 end

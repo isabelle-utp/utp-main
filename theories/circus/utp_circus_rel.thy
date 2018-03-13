@@ -208,6 +208,11 @@ lemma cond_st_CRR_closed [closure]:
   "\<lbrakk> P is CRR; Q is CRR \<rbrakk> \<Longrightarrow> (P \<triangleleft> b \<triangleright>\<^sub>R Q) is CRR"
   by (simp_all add: CRR_intro closure unrest)
 
+lemma seq_CRR_closed [closure]:
+  assumes "P is CRR" "Q is RR"
+  shows "(P ;; Q) is CRR"
+  by (rule CRR_intro, simp_all add: unrest assms closure)
+
 lemma tr_extend_seqr_lit [rdes]:
   fixes P :: "('s, 'e) action"
   assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
@@ -508,7 +513,10 @@ lemma msubst_csp_enable [usubst]:
 lemma csp_enable_false [rpred]: "\<E>(false,t,E) = false"
   by (rel_auto)
 
-lemma USUP_csp_enable [rpred]: 
+lemma conj_csp_enable [rpred]: "(\<E>(b\<^sub>1, t, E\<^sub>1) \<and> \<E>(b\<^sub>2, t, E\<^sub>2)) = \<E>(b\<^sub>1 \<and> b\<^sub>2, t, E\<^sub>1 \<union>\<^sub>u E\<^sub>2)"
+  by (rel_auto)
+
+lemma USUP_csp_enable [rpred]:
   "(\<Squnion> x \<bullet> \<E>(s, t, A(x))) = \<E>(s, t, (\<Or> x \<bullet> A(x)))"
   by (rel_auto)
 

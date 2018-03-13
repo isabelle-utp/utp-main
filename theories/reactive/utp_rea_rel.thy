@@ -58,6 +58,18 @@ proof -
     by (simp_all add: assms Healthy_if)
 qed
 
+lemma RR_refine_intro:
+  assumes "P is RR" "Q is RR" "\<And> t. P\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+  shows "P \<sqsubseteq> Q"
+proof -
+  have "\<And> t. (RR P)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RR Q)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+    by (simp add: Healthy_if assms)
+  hence "RR(P) \<sqsubseteq> RR(Q)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma R4_RR_closed [closure]:
   assumes "P is RR"
   shows "R4(P) is RR"

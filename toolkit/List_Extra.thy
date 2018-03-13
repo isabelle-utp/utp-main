@@ -759,6 +759,14 @@ lemma list_concat_minus_list_concat: "(s @ t) - (s @ z) = t - z"
 lemma length_minus_list: "y \<le> x \<Longrightarrow> length(x - y) = length(x) - length(y)"
   by (simp add: less_eq_list_def minus_list_def)
 
+lemma map_list_minus:
+  "xs \<le> ys \<Longrightarrow> map f (ys - xs) = map f ys - map f xs"
+  by (simp add: drop_map less_eq_list_def map_prefixI minus_list_def)
+
+lemma list_minus_first_tl [simp]: 
+  "[x] \<le> xs \<Longrightarrow> (xs - [x]) = tl xs"
+  by (metis Prefix_Order.prefixE append.left_neutral append_minus list.sel(3) not_Cons_self2 tl_append2)
+
 text {* Extra lemmas about @{term prefix} and @{term strict_prefix} *}
 
 lemma prefix_concat_minus:

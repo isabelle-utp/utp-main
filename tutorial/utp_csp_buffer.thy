@@ -70,4 +70,33 @@ lemma Buffer_contract:
                        false)"
   unfolding Buffer_def DoBuff_contract by rdes_eq
 
+subsection \<open> Verifications \<close>
+
+text \<open> We first show that the buffer always outputs the same elements that were input first. \<close>
+
+abbreviation "inps t \<equiv> [x. inp x \<leftarrow> t]"
+abbreviation "outps t \<equiv> [x. outp x \<leftarrow> t]"
+
+lemma P1_lemma:
+  "[true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u &buff ^\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C \<sqsubseteq> while\<^sub>R true do DoBuff od"
+  apply (rdes_refine_split)
+    apply (simp_all add: rpred closure usubst)
+   apply (rule rrel_thy.Star_inductl)
+    apply (simp add: closure)
+   apply (rule RR_refine_intro)
+  apply (simp_all add: closure)
+   apply (rel_auto)
+  apply (smt Prefix_Order.Cons_prefix_Cons Prefix_Order.prefix_Nil append_Cons append_Nil ch_buffer.simps(6) concat_map_maps hd_Cons_tl maps_simps(1) not_Cons_self2)
+  done 
+
+lemma P1: "[true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C \<sqsubseteq> Buffer"
+proof -
+  have "[true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C
+        \<sqsubseteq>
+        Init ;; [true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u &buff ^\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C"
+    by (rdes_refine)
+  thus ?thesis
+    by (metis (no_types, lifting) Buffer_def P1_lemma dual_order.trans urel_dioid.mult_isol)
+qed
+
 end

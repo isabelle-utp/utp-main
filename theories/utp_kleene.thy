@@ -167,6 +167,11 @@ lemma Star_denest:
   shows "(P \<sqinter> Q)\<^bold>\<star> = (P\<^bold>\<star> ;; Q\<^bold>\<star>)\<^bold>\<star>"
   by (metis (no_types, lifting) RA1 utp_star_def Star_lemma_1 Star_lemma_2 assms urel_ka.star_denest)  
 
+lemma Star_denest_disj: 
+  assumes "P is \<H>" "Q is \<H>"
+  shows "(P \<or> Q)\<^bold>\<star> = (P\<^bold>\<star> ;; Q\<^bold>\<star>)\<^bold>\<star>"
+  by (simp add: disj_upred_def Star_denest assms)
+
 lemma Star_unfoldl_eq: 
   assumes "P is \<H>"
   shows "\<I>\<I> \<sqinter> P ;; P\<^bold>\<star> = P\<^bold>\<star>"

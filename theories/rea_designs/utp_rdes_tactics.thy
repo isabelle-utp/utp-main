@@ -11,7 +11,7 @@ lemmas rdes_rel_norms =
   conj_assoc
   disj_assoc
   conj_UINF_dist
-  conj_UINF_ind_dist  
+  conj_UINF_ind_dist
   seqr_or_distl
   seqr_or_distr
   seq_UINF_distl
@@ -35,7 +35,7 @@ method rdes_simp uses cls cong simps =
 text {* Tactic to split a refinement conjecture into three POs *}
 
 method rdes_refine_split uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro)
+  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro')
 
 text {* Tactic to split an equality conjecture into three POs *}
 
@@ -45,12 +45,12 @@ method rdes_eq_split uses cls cong simps =
 text {* Tactic to prove a refinement *}
   
 method rdes_refine uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro; (insert cls; rel_auto))
+  (rdes_refine_split cls: cls cong: cong simps: simps; (insert cls; rel_auto))
 
 text {* Tactics to prove an equality *}
 
 method rdes_eq uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro; rel_auto))
+  (rdes_eq_split cls: cls cong: cong simps: simps; rel_auto)
 
 text {* Via antisymmetry *}
 
