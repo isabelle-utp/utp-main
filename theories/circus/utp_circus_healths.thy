@@ -522,7 +522,7 @@ lemma periR_CRR [closure]: "P is NCSP \<Longrightarrow> peri\<^sub>R(P) is CRR"
 lemma postR_CRR [closure]: "P is NCSP \<Longrightarrow> post\<^sub>R(P) is CRR"
   by (rule CRR_intro, simp_all add: closure unrest)
     
-lemma NCSP_rdes_intro:
+lemma NCSP_rdes_intro [closure]:
   assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) is NCSP"

@@ -287,11 +287,22 @@ proof -
     by (simp add: UINF_healthy[OF assms(1), THEN sym] USUP_healthy[OF assms(1), THEN sym])
   finally show ?thesis .
 qed
-  
+
+lemma periR_ExtChoice':
+  assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<noteq> {}"
+  shows "peri\<^sub>R(ExtChoice A) = (R5((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R P)) \<or> (\<Sqinter> P\<in>A \<bullet> R4(peri\<^sub>R P)))"
+  using assms(2)
+  by (simp add: periR_ExtChoice assms(1), rel_auto)
+
 lemma periR_ExtChoice_ind [rdes]:
   assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP" "A \<noteq> {}"
   shows "peri\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R (F P))) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R (F P))"
   using assms by (subst periR_ExtChoice, auto simp add: closure unrest)
+
+lemma periR_ExtChoice_ind':
+  assumes "\<And> P. P\<in>A \<Longrightarrow> F(P) is NCSP" "A \<noteq> {}"
+  shows "peri\<^sub>R(\<box> P\<in>A \<bullet> F(P)) = (R5((\<Squnion> P\<in>A \<bullet> pre\<^sub>R(F P)) \<Rightarrow>\<^sub>r (\<Squnion> P\<in>A \<bullet> peri\<^sub>R (F P))) \<or> (\<Sqinter> P\<in>A \<bullet> R4(peri\<^sub>R (F P))))"
+  using assms by (subst periR_ExtChoice', auto simp add: closure unrest)
 
 lemma postR_ExtChoice [rdes]:
   assumes "A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H" "A \<noteq> {}"
@@ -442,6 +453,11 @@ next
       by (simp add: CSP4_ExtChoice assms)
   qed
 qed
+
+lemma ExtChoice_NCSP_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P(i) is NCSP"
+  shows "(\<box> i\<in>I \<bullet> P(i)) is NCSP"
+  by (simp add: NCSP_ExtChoice assms image_subset_iff)
 
 lemma NCSP_extChoice [closure]:
   assumes "P is NCSP" "Q is NCSP"

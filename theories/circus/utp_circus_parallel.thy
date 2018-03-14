@@ -759,64 +759,204 @@ proof -
   qed
 qed
 
-lemma Skip_C2_closed [closure]: 
-  "Skip is C2"
-  apply (simp add: Healthy_def C2_form)
-  apply (simp add: C2_form closure rdes usubst)
-  apply (simp add: rdes_def)
-done
-  
-lemma ref_down_CRR [closure]:
-  assumes "P is NCSP"
-  shows "(\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) is CRR"
+text \<open> We define downward closure of the pericondition by the following healthiness condition \<close>
+
+definition CDC :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
+[upred_defs]: "CDC(P) = (\<^bold>\<exists> ref\<^sub>0 \<bullet> P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)"
+
+lemma CDC_idem: "CDC(CDC(P)) = CDC(P)"
+  by (rel_auto)
+
+lemma CDC_RR_commute: "CDC(RR(P)) = RR(CDC(P))"
+  by (rel_blast)
+
+lemma CDC_RR_closed [closure]: "P is RR \<Longrightarrow> CDC(P) is RR"
+  by (metis CDC_RR_commute Healthy_def)
+
+lemma CDC_unrest [unrest]: "\<lbrakk> vwb_lens x; ($ref\<acute>)\<^sub>v \<bowtie> x; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> CDC(P)"
+  by (simp add: CDC_def unrest usubst lens_indep_sym)
+
+lemma CDC_R4_commute: "CDC(R4(P)) = R4(CDC(P))"
+  by (rel_auto)
+
+lemma R4_CDC_closed [closure]: "P is CDC \<Longrightarrow> R4(P) is CDC"
+  by (simp add: CDC_R4_commute Healthy_def)
+
+lemma CDC_R5_commute: "CDC(R5(P)) = R5(CDC(P))"
+  by (rel_auto)
+
+lemma R5_CDC_closed [closure]: "P is CDC \<Longrightarrow> R5(P) is CDC"
+  by (simp add: CDC_R5_commute Healthy_def)
+
+lemma rea_true_CDC [closure]: "true\<^sub>r is CDC"
+  by (rel_auto)
+
+lemma false_CDC [closure]: "false is CDC"
+  by (rel_auto)
+
+lemma CDC_UINF_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
+  shows "(\<Sqinter> i \<in> I \<bullet> P i) is CDC"
+  using assms by (rel_blast)
+
+lemma CDC_disj_closed [closure]:
+  assumes "P is CDC" "Q is CDC"
+  shows "(P \<or> Q) is CDC"
 proof -
-  have "(\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) = 
-        (\<^bold>\<exists> ref\<^sub>0 \<bullet> (CRR(peri\<^sub>R P))\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)"
-    by (simp add: Healthy_if assms closure)
-  also have "... = CRR(\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)"
+  have "CDC(P \<or> Q) = (CDC(P) \<or> CDC(Q))"
     by (rel_auto)
-  finally show ?thesis
-    by (simp add: Healthy_def')
+  thus ?thesis
+    by (metis Healthy_def assms(1) assms(2))
 qed
+
+lemma CDC_USUP_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
+  shows "(\<Squnion> i \<in> I \<bullet> P i) is CDC"
+  using assms by (rel_blast)
+
+lemma CDC_conj_closed [closure]:
+  assumes "P is CDC" "Q is CDC"
+  shows "(P \<and> Q) is CDC"
+  using assms by (rel_auto, blast, meson)
+
+lemma CDC_rea_impl [rpred]:
+  "$ref\<acute> \<sharp> P \<Longrightarrow> CDC(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r CDC(Q))"
+  by (rel_auto)
+
+lemma rea_impl_CDC_closed [closure]:
+  assumes "$ref\<acute> \<sharp> P" "Q is CDC"
+  shows "(P \<Rightarrow>\<^sub>r Q) is CDC"
+  using assms by (simp add: CDC_rea_impl Healthy_def)
+
+lemma seq_CDC_closed [closure]:
+  assumes "Q is CDC"
+  shows "(P ;; Q) is CDC"
+proof -
+  have "CDC(P ;; Q) = P ;; CDC(Q)"
+    by (rel_blast)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma csp_enable_CDC [closure]: "\<E>(s,t,E) is CDC"
+  by (rel_auto)
+
+lemma C2_CDC_form:
+  assumes "P is NCSP"
+  shows "C2(P) = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+  by (simp add: C2_form assms CDC_def)
+
+lemma C2_rdes_def:
+  assumes "P\<^sub>1 is CRC" "P\<^sub>2 is CRR" "P\<^sub>3 is CRR" "$st\<acute> \<sharp> P\<^sub>2" "$ref\<acute> \<sharp> P\<^sub>3"
+  shows "C2(\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3)) = \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> CDC(P\<^sub>2) \<diamondop> P\<^sub>3)"
+  by (simp add: C2_form assms closure rdes unrest usubst, rel_auto)
+
+lemma C2_NCSP_intro:
+  assumes "P is NCSP" "peri\<^sub>R(P) is CDC"
+  shows "P is C2"
+proof -
+  have "C2(P) = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: C2_CDC_form assms(1))
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    by (simp add: Healthy_if assms)
+  also have "... = P"
+    by (simp add: NCSP_implies_CSP SRD_reactive_tri_design assms(1))
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+lemma C2_rdes_intro:
+  assumes "P\<^sub>1 is CRC" "P\<^sub>2 is CRR" "P\<^sub>2 is CDC" "P\<^sub>3 is CRR" "$st\<acute> \<sharp> P\<^sub>2" "$ref\<acute> \<sharp> P\<^sub>3"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) is C2"
+  unfolding Healthy_def
+  by (simp add: C2_rdes_def assms unrest closure Healthy_if)
+
+lemma C2_implies_CDC_peri [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "peri\<^sub>R(P) is CDC"
+proof -
+  have "peri\<^sub>R(P) = peri\<^sub>R (\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P))"
+    by (metis C2_CDC_form Healthy_if assms(1) assms(2))
+  also have "... = CDC (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P)"
+    by (simp add: rdes rpred assms closure unrest)
+  also have "... = CDC (peri\<^sub>R P)"
+    by (simp add: SRD_peri_under_pre closure unrest assms)
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+lemma Miracle_C2_closed [closure]: "Miracle is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma Chaos_C2_closed [closure]: "Chaos is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma Skip_C2_closed [closure]: "Skip is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma Stop_C2_closed [closure]: "Stop is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is CRC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
+  by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma seq_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
+  shows "P ;; Q is C2"
+  by (rdes_simp cls: assms(1,3), rule C2_rdes_intro, simp_all add: closure assms unrest)
+
+lemma DoCSP_C2 [closure]:
+  "do\<^sub>C(a) is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma PrefixCSP_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "a \<rightarrow>\<^sub>C P is C2"
+  unfolding PrefixCSP_def by (metis DoCSP_C2 Healthy_def NCSP_DoCSP NCSP_implies_CSP assms seq_C2_closed)
+
+lemma ExtChoice_C2_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> I \<Longrightarrow> P(i) is C2"
+  shows "(\<box> i\<in>I \<bullet> P(i)) is C2"
+proof (cases "I = {}")
+  case True
+  then show ?thesis by (simp add: closure ExtChoice_empty)
+next
+  case False
+  show ?thesis
+    by (rule C2_NCSP_intro, simp_all add: assms closure unrest periR_ExtChoice_ind' False)
+qed
+
+lemma extChoice_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
+  shows "P \<box> Q is C2"
+proof -
+  have "P \<box> Q = (\<box> I\<in>{P,Q} \<bullet> I)"
+    by (simp add: extChoice_def)
+  also have "... is C2"
+    by (rule ExtChoice_C2_closed, auto simp add: assms)
+  finally show ?thesis .
+qed
+
+lemma CDC_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "CDC(P) is CRR"
+  by (rule CRR_intro, simp add: CDC_def unrest assms closure, simp add: unrest assms closure)
   
 lemma C2_idem: 
   assumes "P is NCSP"
   shows "C2(C2(P)) = C2(P)" (is "?lhs = ?rhs")
 proof -
-  have "?lhs = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> (pre\<^sub>R P \<Rightarrow>\<^sub>r (\<^bold>\<exists> ref\<^sub>0' \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0'\<guillemotright>/$ref\<acute>\<rbrakk> \<and> \<guillemotleft>ref\<^sub>0\<guillemotright> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0'\<guillemotright>)) \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
-    by (simp add: C2_form closure unrest rdes SRD_post_under_pre SRD_peri_under_pre usubst NCSP_rdes_intro assms)
-  also have 
-    "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> (\<^bold>\<exists> ref\<^sub>0' \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0'\<guillemotright>/$ref\<acute>\<rbrakk> \<and> \<guillemotleft>ref\<^sub>0\<guillemotright> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0'\<guillemotright>) \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
-     by (rel_auto)
-  also have 
-    "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
-    by (rel_auto)
+  have "?lhs = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> (pre\<^sub>R P \<Rightarrow>\<^sub>r CDC (peri\<^sub>R P)) \<diamondop> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P))"
+    by (simp add: C2_CDC_form assms closure unrest rdes rpred CDC_idem)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> CDC (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: rpred unrest SRD_post_under_pre assms closure)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> CDC (peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: unrest SRD_peri_under_pre assms closure)
   also have "... = C2(P)"
-    by (simp add: C2_form closure unrest assms)
+    by (simp add: C2_CDC_form assms)
   finally show ?thesis .
-qed  
+qed
   
-lemma Stop_C2_closed [closure]: 
-  "Stop is C2"
-  apply (simp add: Healthy_def C2_form)
-  apply (simp add: C2_form closure rdes usubst)
-  apply (rel_auto)
-done
-
-lemma Miracle_C2_closed [closure]: 
-  "Miracle is C2"
-  apply (simp add: Healthy_def C2_form)
-  apply (simp add: C2_form closure rdes usubst)
-  apply (simp add: rdes_def)
-done
-
-lemma Chaos_C2_closed [closure]: 
-  "Chaos is C2"
-  apply (simp add: Healthy_def C2_form)
-  apply (simp add: C2_form closure rdes usubst unrest)
-  apply (simp add: rdes_def)
-  apply (rel_auto)
-done
   
 (* An attempt at proving that the precondition of Chaos is false *)
   
