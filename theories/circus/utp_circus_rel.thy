@@ -301,6 +301,98 @@ lemma CRR_refine_impl_prop:
   by (rule CRR_refine_ext, simp_all add: assms closure unrest usubst)
      (rule refine_prop_intro, simp_all add: unrest unrest_all_circus_vars closure assms)
 
+subsection \<open> Weakest Precondition \<close>
+
+lemma nil_least [simp]:
+  "\<langle>\<rangle> \<le>\<^sub>u x = true" by rel_auto
+
+lemma minus_nil [simp]:
+  "xs - \<langle>\<rangle> = xs" by rel_auto
+
+lemma wp_rea_circus_lemma_1:
+  assumes "P is CRR" "$ref\<acute> \<sharp> P"
+  shows "out\<alpha> \<sharp> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk>"
+proof -
+  have "out\<alpha> \<sharp> (CRR (\<exists> $ref\<acute> \<bullet> P))\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk>"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2) ex_unrest)
+qed
+
+lemma wp_rea_circus_lemma_2:
+  assumes "P is CRR"
+  shows "in\<alpha> \<sharp> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>"
+proof -
+  have "in\<alpha> \<sharp> (CRR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms ex_unrest)
+qed
+
+text \<open> The meaning of reactive weakest precondition for Circus. @{term "P wp\<^sub>r Q"} means that,
+  whenever $P$ terminates in a state @{term s\<^sub>0} having done the interaction trace @{term t\<^sub>0}, which 
+  is a prefix of the overall trace, then $Q$ must be satisfied. This in particular means that
+  the remainder of the trace after @{term t\<^sub>0} must not be a divergent behaviour of $Q$. \<close>
+
+lemma wp_rea_circus_form:
+  assumes "P is CRR" "$ref\<acute> \<sharp> P" "Q is CRC"
+  shows "(P wp\<^sub>r Q) = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<Rightarrow>\<^sub>r Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>)"
+proof -
+  have "(P wp\<^sub>r Q) = (\<not>\<^sub>r (\<^bold>\<exists> t\<^sub>0 \<bullet> P\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<not>\<^sub>r Q)\<lbrakk>\<guillemotleft>t\<^sub>0\<guillemotright>/$tr\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>))"
+    by (simp_all add: wp_rea_def R2_tr_middle closure assms)
+  also have "... = (\<not>\<^sub>r (\<^bold>\<exists> (s\<^sub>0,t\<^sub>0) \<bullet> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> ;; (\<not>\<^sub>r Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>))"
+    by (rel_blast)
+  also have "... = (\<not>\<^sub>r (\<^bold>\<exists> (s\<^sub>0,t\<^sub>0) \<bullet> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<and> (\<not>\<^sub>r Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>))"
+    by (simp add: seqr_to_conj add: wp_rea_circus_lemma_1 wp_rea_circus_lemma_2 assms closure conj_assoc)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<not>\<^sub>r P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<or> \<not>\<^sub>r (\<not>\<^sub>r Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk> \<or> \<not>\<^sub>r \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)"
+    by (rel_auto)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<not>\<^sub>r P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<or> \<not>\<^sub>r (\<not>\<^sub>r RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk> \<or> \<not>\<^sub>r \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)"
+    by (simp add: Healthy_if assms closure)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<not>\<^sub>r P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<or> (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk> \<or> \<not>\<^sub>r \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute>)"
+    by (rel_auto)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<Rightarrow>\<^sub>r (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>)"
+    by (rel_auto)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<Rightarrow>\<^sub>r Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>)"
+    by (simp add: Healthy_if assms closure)
+  finally show ?thesis .
+qed
+
+lemma wp_rea_circus_form_alt:
+  assumes "P is CRR" "$ref\<acute> \<sharp> P" "Q is CRC"
+  shows "(P wp\<^sub>r Q) = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> $tr ^\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                               \<Rightarrow>\<^sub>r R1(Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,&tt-\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>))"
+proof -
+  have "(P wp\<^sub>r Q) = R2(P wp\<^sub>r Q)"
+    by (simp add: CRC_implies_RR CRR_implies_RR Healthy_if RR_implies_R2 assms wp_rea_R2_closed)
+  also have "... = R2(\<^bold>\<forall> (s\<^sub>0,tr\<^sub>0) \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> (RR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st\<acute>,$tr\<acute>\<rbrakk> \<Rightarrow>\<^sub>r (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st,$tr\<rbrakk>)"
+    by (simp add: wp_rea_circus_form assms closure Healthy_if)
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<^bold>\<forall> (s\<^sub>0,tr\<^sub>0) \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> (RR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                                        \<Rightarrow>\<^sub>r (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<guillemotleft>tr\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>) 
+                                         \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>)"
+    by (simp add: R2_form, rel_auto)
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<^bold>\<forall> (s\<^sub>0,tr\<^sub>0) \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> (RR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                                        \<Rightarrow>\<^sub>r (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tt\<^sub>0-tr\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>) 
+                                         \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>)"
+    by (rel_auto)
+  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<^bold>\<forall> (s\<^sub>0,tr\<^sub>0) \<bullet> $tr ^\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> (RR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                                        \<Rightarrow>\<^sub>r (RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,&tt-\<guillemotleft>tr\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>) 
+                                         \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>)"
+    by (rel_auto, (metis list_concat_minus_list_concat)+)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,tr\<^sub>0) \<bullet> $tr ^\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> (RR P)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>tr\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                                        \<Rightarrow>\<^sub>r R1((RR Q)\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,&tt-\<guillemotleft>tr\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>))"
+    by (rel_auto, blast+)
+  also have "... = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> $tr ^\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                               \<Rightarrow>\<^sub>r R1(Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,&tt-\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>))"
+    by (simp add: Healthy_if assms closure)
+  finally show ?thesis .
+qed
+
+lemma wp_rea_circus_form_alt:
+  assumes "P is CRR" "$ref\<acute> \<sharp> P" "Q is CRC"
+  shows "(P wp\<^sub>r Q) = (\<^bold>\<forall> (s\<^sub>0,t\<^sub>0) \<bullet> $tr ^\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u $tr\<acute> \<and> P\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,\<guillemotleft>t\<^sub>0\<guillemotright>/$st\<acute>,$tr,$tr\<acute>\<rbrakk> 
+                               \<Rightarrow>\<^sub>r R1(Q\<lbrakk>\<guillemotleft>s\<^sub>0\<guillemotright>,\<langle>\<rangle>,&tt-\<guillemotleft>t\<^sub>0\<guillemotright>/$st,$tr,$tr\<acute>\<rbrakk>))"
+  oops
+
 subsection \<open> Trace Substitution \<close>
 
 definition trace_subst ("_\<lbrakk>_\<rbrakk>\<^sub>t" [999,0] 999) 
@@ -598,6 +690,10 @@ lemma csp_do_assign_do [rpred]:
   "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) ;; \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<and> (\<sigma> \<dagger> s\<^sub>2), \<rho> \<circ> \<sigma>, t\<^sub>1^\<^sub>u(\<sigma> \<dagger> t\<^sub>2))"
   by (rel_auto)
 
+lemma csp_do_cond [rpred]:
+  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, \<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2)"
+  by (rel_auto)
+
 lemma csp_do_skip [rpred]:
   assumes "P is CRR"
   shows "\<Phi>(true,id,t) ;; P = P\<lbrakk>t\<rbrakk>\<^sub>t"
@@ -613,7 +709,7 @@ lemma wp_rea_csp_do_lemma:
   assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"
   shows "(\<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) ;; P = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)\<lbrakk>$tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub></$tr\<rbrakk>"
   using assms by (rel_auto, meson)
-    
+
 lemma wp_rea_csp_do [wp]:
   fixes P :: "('\<sigma>, '\<phi>) action"
   assumes "P is CRR"
