@@ -37,4 +37,5 @@ theory utp_toolkit
   Total_Recall
   Injection_Universe
   Trace_Algebra
+  Trace_Algebra_Hierarchy
 begin end
