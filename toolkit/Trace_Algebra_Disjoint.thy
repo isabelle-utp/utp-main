@@ -246,7 +246,7 @@ proof -
       have "b \<le>\<^sub>u\<^sub>s a"
         using True fzero_le_iff by auto
       have "b \<le>\<^sub>u\<^sub>s a \<Longrightarrow> \<forall>x. x = a -\<^sub>u\<^sub>s b \<longleftrightarrow> b + x = a"
-        using prefix_diff_sum by auto
+        using fzero_add_left_cancel_class.diff_add_cancel_left' by auto
       then show ?thesis using True fzero_le_iff
         by (simp add: \<open>a = b + d\<close>)
     qed
@@ -597,7 +597,7 @@ proof
     by (metis Diff_Diff_Int Diff_empty Un_Diff Un_Diff_Int Un_empty_right inf_commute myset2set_inject)
   show "a \<bar> b \<and> a + b = a + c \<Longrightarrow> b \<le> c"
     apply (simp add:disjoint_rel_myset_def)
-    by (metis (no_types, lifting) Compl_disjoint Int_Un_distrib2 Un_empty_right inf.absorb_iff2 inf.idem inf_sup_aci(5) less_eq_myset.rep_eq plus_myset.rep_eq sup_inf_absorb)
+    by (metis (no_types, lifting) Int_Un_distrib2 Un_empty_right inf.absorb_iff2 inf.idem inf_sup_aci(5) less_eq_myset.rep_eq plus_myset.rep_eq sup_inf_absorb)
   show "a - b = a -\<^sub>s b"
   proof (cases "b \<le> a")
     case True
