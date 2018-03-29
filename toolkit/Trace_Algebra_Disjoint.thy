@@ -162,7 +162,7 @@ end
 
 class fzero_weak_left_cancel = fzero_add_fzero_ord + fzero_weak_add_zero +
   assumes 
-      -- \<open> Assume a partial left cancellative property where this is applicable for
+      -- \<open> Assume a partial left cancellative property which is applicable for
            a \<bar> b and a \<bar> c. This is valid for sets. \<close>
           add_left_imp_eq: "((a \<bar> b) \<and> (a \<bar> c) \<and> (a + b = a + c)) \<Longrightarrow> b = c"
       -- \<open> To be able to show @{thm add_le_imp_le_left} we need, in addition, the
@@ -287,7 +287,7 @@ begin
   lemma fzero_plus_right: "f\<^sub>0(c + b) = f\<^sub>0(b)"
     by (metis add_assoc local.add_diff_cancel_left local.add_fzero_right local.add_le_imp_le_left local.fzero_idem local.le_add local.le_iff_add local.disjoint_rel_sym local.disjoint_rel_zero)
 
-  (* This is used in many places without this assumption *)
+  (* This is used in many theories without this assumption, so care will be needed. *)
   lemma add_diff_cancel_left' [simp]:  
     assumes "c \<bar> a" "c \<bar> b"
     shows "(c + a) - (c + b) = a - b"
@@ -390,26 +390,71 @@ begin
   
 end
 
+class fzero_weak_left_cancel_minus_ord_rel_universal = fzero_weak_left_cancel_minus_ord + disjoint_rel_universal
+
+(* TODO: Complete instantiation 
+instance fzero_weak_left_cancel_minus_ord_rel_universal \<subseteq> semigroup_add_left_cancel_minus_ord
+proof
+  fix a b :: "'a::fzero_weak_left_cancel_minus_ord_rel_universal"
+  show "a - b = a -\<^sub>u\<^sub>s b"
+    using disjoint_rel_univ
+*)
+
+(* NOTE: It turns out this axiom is not necessary in the original Trace Algebra for the
+         generalised reactive processes hierarchy. However, there are still some questions
+         to be answered here, even in the context of a boolean algebra. For example, the
+         following law:
+
+         a \<bar> c \<and> a \<le> b + c \<Longrightarrow> a \<le> b
+
+         This is not satisfied for sure without the following weakened version of sum_eq_sum_conv,
+         but also it is not clear whether it can be proved. *)
+
 class fzero_weak_pre_trace = fzero_weak_left_cancel_minus_ord +
   assumes (* TODO: move this out of pre_trace class, so it doesn't need to be repeated *)
-  sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+  sum_eq_sum_conv: "a \<bar> b \<and> (a \<bar> d) \<and> (a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
 begin
 
-  text {* The set subtraces of a common trace $c$ is totally ordered *} 
-  lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
-    by (metis diff_add_cancel_left' le_add local.sum_eq_sum_conv)
-  
-  lemma le_sum_cases: "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
-    by (simp add: le_common_total)
+  (* Does this work for sets? You bet it does.
+  lemma "a \<inter> b = {} \<and> (a \<inter> d = {}) \<and> (a \<union> b) = (c \<union> d) \<Longrightarrow> \<exists> e . a = c \<union> e \<and> e \<union> b = d \<or> a \<union> e = c \<and> b = e \<union> d"
+     by (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_sup_absorb inf_sup_distrib1 sup.abel_semigroup_axioms sup_bot.right_neutral sup_left_idem)
+
+  lemma "a \<inter> c = {} \<and> a \<subseteq> b \<union> c \<Longrightarrow> a \<subseteq> b"
+    by auto*)
+
+  (* The original le_common_total cannot possibly hold, even in a weakened form
+     where a \<bar> b. But the following might hold, however I haven't proved it.  
+  lemma le_common_total: "\<lbrakk> (\<not> a \<bar> b); a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
+    oops
+  *)
+
+  lemma le_sum_cases: "a \<bar> c \<and> a \<le> b + c \<longrightarrow> b \<le> a \<or> a \<le> b" 
+  proof -
+    have "(a \<bar> c \<and> a \<le> b + c) = (\<exists>e. (a \<bar> e) \<and> a \<bar> c \<and>  a + e = b + c )"
+      using local.le_iff_add by fastforce
+    also have "... = (\<exists>e. (a \<bar> e) \<and> a \<bar> c \<and> a + e = b + c \<and> (\<exists>d. a = b + d \<and> d + e = c \<or> a + d = b \<and> e = d + c))" (* \<exists>d. a = b + d \<and> d + e = c *)
+    proof -
+      have "\<forall>a c e b. ((a \<bar> e) \<and> a \<bar> c \<and> a + e = b + c) \<longrightarrow> (\<exists>d. a = b + d \<and> d + e = c \<or> a + d = b \<and> e = d + c)"
+        by (simp add: sum_eq_sum_conv)
+      then show ?thesis by auto
+    qed
+    also have "... \<longrightarrow> (\<exists>d. a = b + d \<or> a + d = b)"
+      by auto
+
+    then have "... = (b \<le> a \<or> a \<le> b)"
+      using local.fzero_le_def local.le_is_fzero_le by auto
+
+    then show ?thesis using calculation by auto
+  qed
             
   lemma le_sum_cases':
-    "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
-    apply auto
-    using local.le_sum_cases apply auto[1]
-    by (metis local.add_diff_cancel_left local.add_le_imp_le_left local.le_iff_add local.le_sum_cases)
+    "a \<bar> c \<and> a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
+    by (metis local.add_diff_cancel_left local.fzero_weak_add_le_imp_le_left local.le_iff_add local.le_sum_cases)
     
-  lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
-    by (metis local.add_left_mono local.diff_add_cancel_left' local.le_is_fzero_le local.le_sum_cases' local.fzero_le_add local.fzero_le_trans)
+  lemma le_sum_iff: 
+    assumes "a \<bar> c"
+    shows "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
+    using assms by (metis local.add_left_mono local.diff_add_cancel_left' local.le_is_fzero_le local.le_sum_cases' local.fzero_le_add local.fzero_le_trans)
 
 end
 
@@ -450,7 +495,7 @@ qed
 
 text \<open> We then define the weak fzero algebra. \<close>
 
-class fzero_weak_trace = fzero_weak_pre_trace + fzero_sum_zero
+class fzero_weak_trace = fzero_weak_left_cancel_minus_ord + fzero_sum_zero
 begin
  lemma neq_zero_impl_greater:
     "x \<noteq> fzero x \<Longrightarrow> fzero x < x"
@@ -497,6 +542,9 @@ begin
   lemma set_p1: "a \<inter> b \<noteq> {} \<longrightarrow> (\<exists>d. a \<union> b = a \<union> d \<and> a \<inter> d = {})"
     by (metis Diff_disjoint Un_Diff_cancel)
 
+  lemma set_subtract: "a \<subseteq> b \<longrightarrow> (\<exists>c. b = c \<union> a \<and> c \<inter> a = {})"
+    by (metis Diff_disjoint Diff_partition abel_semigroup.commute inf_commute sup.abel_semigroup_axioms)
+
 instance
 proof (intro_classes)
   fix a b c :: "'a myset"
@@ -537,12 +585,9 @@ qed
 lemma set2myset_dist: "set2myset(a \<union> b) = set2myset(a) + set2myset(b)"
   by (simp add: eq_onp_same_args plus_myset.abs_eq)
 
-(* TODO: Weaken sum_eq_conv, because it does not hold in general *)
+lemma set_sum_eq_weak_conv: "a \<inter> b = {} \<and> (a \<inter> d = {}) \<and> (a \<union> b) = (c \<union> d) \<Longrightarrow> \<exists> e . a = c \<union> e \<and> e \<union> b = d \<or> a \<union> e = c \<and> b = e \<union> d"
+  by (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_sup_absorb inf_sup_distrib1 sup.abel_semigroup_axioms sup_bot.right_neutral sup_left_idem)
 
-lemma 
-  fixes a :: "'a set"
-  shows "a \<bar> b \<and> (a \<bar> d) \<and> a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-  nitpick
 
 instance myset :: (type) fzero_weak_trace
 proof
@@ -553,33 +598,66 @@ proof
   show "a \<bar> b \<and> a + b = a + c \<Longrightarrow> b \<le> c"
     apply (simp add:disjoint_rel_myset_def)
     by (metis (no_types, lifting) Compl_disjoint Int_Un_distrib2 Un_empty_right inf.absorb_iff2 inf.idem inf_sup_aci(5) less_eq_myset.rep_eq plus_myset.rep_eq sup_inf_absorb)
-(*  show "a - b = a -\<^sub>s b"
-    sorry *)
-  show "a \<bar> b \<and> a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-    nitpick
-    apply (simp add:plus_myset_def set2myset_inject)
-    apply (simp add:set2myset_dist myset2set_inverse)
-    using set2myset_dist sledgehammer[debug=true]
-
+  show "a - b = a -\<^sub>s b"
+  proof (cases "b \<le> a")
+    case True
+    then obtain d where d:"b + d = a \<and> b \<bar> d"  
+      by (metis (no_types) le_is_fzero_le disjoint_rel_sum fzero_le_def)
+    
+    have "b \<le> a = (b \<le>\<^sub>s a)" 
+      by (auto simp add:le_is_fzero_le fzero_le_iff)
+    then have "d = a -\<^sub>s b"
+      using True apply (simp add:fzero_weak_subtract_def)
+      apply (rule sym)
+      apply (rule the_equality)
+       apply (simp add: d)
+        proof -
+          fix ca :: "'a myset"
+          assume a1: "a = b + ca \<and> b \<bar> ca"
+          have f2: "myset2set b \<inter> myset2set d = {}"
+            by (metis d disjoint_rel_myset_def)
+            have f3: "\<forall>A Aa. (Aa::'a set) \<inter> A = A \<inter> Aa"
+              by blast
+            have f4: "myset2set b \<inter> myset2set ca = {}"
+              using a1 by (simp add: disjoint_rel_myset_def)
+            have "\<forall>A. (A::'a set) \<inter> A = A"
+              by simp
+            then show "ca = d"
+              using f4 f3 f2 a1 by (metis (no_types) Int_Un_distrib2 d myset2set_inverse plus_myset.rep_eq sup_bot.left_neutral)
+          qed
+          case True
+          then show ?thesis
+            by (smt Diff_Diff_Int Diff_empty Diff_partition Diff_triv Int_lower2 Un_Diff \<open>d = a -\<^sub>s b\<close> d disjoint_rel_myset_def disjoint_rel_sym map_fun_apply minus_myset_def myset2set_inverse original_minus_def plus_myset.rep_eq)      
+  next
+    case False
+    then show ?thesis
+      by (metis eq_onp_same_args fzero_myset.abs_eq fzero_weak_le_def fzero_weak_subtract_def less_eq_myset.rep_eq minus_myset_def myset2set_inverse plus_myset.rep_eq sup_ge1)
+  qed
+  show "a + b = f\<^sub>0(b) \<Longrightarrow> b = f\<^sub>0(b)"
+    apply (auto simp add:plus_myset_def fzero_myset_def)
+    by (metis fzero_myset.rep_eq monoid.left_neutral myset2set_inverse plus_myset.rep_eq sup.commute sup_bot.monoid_axioms sup_left_idem)
+qed
 
 text \<open> Also every boolean algebra where plus is the lub and fzero is bot
        can be instantiated in a simple way as a fzero_weak_add_zero. \<close>
 
-class boolean_fzero = boolean_algebra + fzero + plus + disjoint_rel_def +
+class boolean_fzero = inf + sup + bot + fzero + plus + disjoint_rel_def +
   assumes fzero_is_bot : "f\<^sub>0(a) = bot"
       and plus_is_lub  : "a + b = (sup a b)"
       and disjoint_rel_is_glb_no_bot: "a \<bar> b \<longleftrightarrow> (inf a b = bot)"
 
-instance boolean_fzero \<subseteq> fzero_weak_add_zero
+class boolean_fzero_algebra = boolean_fzero + boolean_algebra
+
+instance boolean_fzero_algebra \<subseteq> fzero_weak_add_zero
 proof
-  fix a b c :: "'a::boolean_fzero"
+  fix a b c :: "'a::boolean_fzero_algebra"
   show "(a \<bar> b) = b \<bar> a"
     by (auto simp add:disjoint_rel_is_glb_no_bot inf_commute)
   show "a \<bar> f\<^sub>0(a)"
     by (auto simp add:disjoint_rel_is_glb_no_bot fzero_is_bot)
   show "(\<not> a \<bar> b) \<Longrightarrow> \<exists>d. a + b = a + d \<and> a \<bar> d"
     apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
-    by (metis compl_sup_top inf_compl_bot_left1 inf_left_commute inf_sup_absorb sup_assoc sup_compl_top sup_compl_top_left1 sup_inf_distrib1 sup_inf_distrib2)
+    by (metis inf_compl_bot_left1 inf_left_commute inf_sup_absorb sup_compl_top sup_inf_distrib1)
   show "(a + b) \<bar> c = ((a \<bar> c) \<and> b \<bar> c)"
     by (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub inf_sup_distrib2)
   show "f\<^sub>0(f\<^sub>0(a)) = f\<^sub>0(a)"
@@ -591,6 +669,21 @@ proof
   show "a + f\<^sub>0(a) = a"
     by (auto simp add:plus_is_lub fzero_is_bot)
 qed
-end
+
+instance boolean_fzero_algebra \<subseteq> fzero_weak_left_cancel
+proof
+  fix a b c :: "'a::boolean_fzero_algebra"
+  show "(a \<le> b) = (a \<le>\<^sub>u\<^sub>s b)"
+    apply (auto simp add:fzero_le_def plus_is_lub)
+    by (metis le_iff_sup)
+  show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
+    by (auto simp add:fzero_le_def)
+  show "a \<bar> b \<and> (a \<bar> c) \<and> a + b = a + c \<Longrightarrow> b = c"
+    apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
+    by (metis inf.absorb_iff2 inf_commute inf_sup_distrib1 sup_ge2)
+  show "a \<bar> b \<and> a + b = a + c \<Longrightarrow> b \<le> c"
+    apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
+    by (metis compl_inf double_compl inf_sup_aci(5) le_iff_sup sup_bot.left_neutral sup_ge2 sup_inf_distrib2)
+qed
 
 end

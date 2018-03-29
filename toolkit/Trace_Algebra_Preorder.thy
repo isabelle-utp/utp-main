@@ -121,16 +121,18 @@ end
 text \<open> The following class allows @term{\<le>}, @term{<} and @term{-} to be related with
        that of fzero_add_zero. \<close>
 
-class fzero_add_fzero_ord_minus = fzero_add_zero + ord + minus +
+class fzero_add_fzero_ord = fzero_add_zero + ord + 
   assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>u\<^sub>s b)"
   and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
-  and minus_def: "a - b = a -\<^sub>u\<^sub>s b"
+  
+class fzero_add_fzero_ord_minus = fzero_add_fzero_ord + ord + minus +
+  assumes minus_def: "a - b = a -\<^sub>u\<^sub>s b"
 
 text \<open> We then show we have a preorder. \<close>
 
-instance fzero_add_fzero_ord_minus \<subseteq> preorder
+instance fzero_add_fzero_ord \<subseteq> preorder
 proof
-  fix x y z :: "'a::fzero_add_fzero_ord_minus" 
+  fix x y z :: "'a::fzero_add_fzero_ord" 
   show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
     by (simp add: less_iff)
   show "x \<le> x"
@@ -142,8 +144,10 @@ qed
 
 subsection \<open> Unary left-cancellative fzero semigroup class \<close>
   
-class semigroup_add_left_cancel = fzero_add_zero +
+class semigroup_add_left_cancel = semigroup_add +
   assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"
+
+class fzero_add_left_cancel = semigroup_add_left_cancel + fzero_add_zero 
 begin
   
 lemma add_fzero_diff_cancel_left [simp]: 
@@ -158,9 +162,16 @@ lemma add_le_imp_le_left:
   unfolding fzero_le_def
   by (metis add_assoc local.add_left_imp_eq)
 
+lemma diff_add_cancel_left': "a \<le>\<^sub>u\<^sub>s b \<Longrightarrow> a + (b -\<^sub>u\<^sub>s a) = b"
+  using local.fzero_subtract_def
+  by (metis add_fzero_diff_cancel_left local.fzero_le_def)
+
+lemma prefix_diff_sum: "b \<le>\<^sub>u\<^sub>s a \<Longrightarrow> x = a -\<^sub>u\<^sub>s b \<longleftrightarrow> b + x = a"
+  by (metis diff_add_cancel_left' local.add_left_imp_eq)
+
 end 
   
-class semigroup_add_left_cancel_minus_ord = fzero_add_fzero_ord_minus + semigroup_add_left_cancel
+class semigroup_add_left_cancel_minus_ord = fzero_add_fzero_ord_minus + fzero_add_left_cancel
 begin
   
   lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
