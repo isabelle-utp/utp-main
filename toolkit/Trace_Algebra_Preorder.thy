@@ -166,7 +166,7 @@ lemma diff_add_cancel_left': "a \<le>\<^sub>u\<^sub>s b \<Longrightarrow> a + (b
   using local.fzero_subtract_def
   by (metis add_fzero_diff_cancel_left local.fzero_le_def)
 
-lemma prefix_diff_sum: "b \<le>\<^sub>u\<^sub>s a \<Longrightarrow> x = a -\<^sub>u\<^sub>s b \<longleftrightarrow> b + x = a"
+lemma "b \<le>\<^sub>u\<^sub>s a \<Longrightarrow> x = a -\<^sub>u\<^sub>s b \<longleftrightarrow> b + x = a"
   by (metis diff_add_cancel_left' local.add_left_imp_eq)
 
 end 
@@ -329,7 +329,7 @@ qed
 
 text \<open> We finally define the extended trace algebra that uses @{term f\<^sub>0}. \<close>
 
-class fzero_trace = fzero_pre_trace + semigroup_add_left_cancel_minus_ord + fzero_sum_zero
+class fzero_trace = semigroup_add_left_cancel_minus_ord + fzero_sum_zero
 begin
   -- \<open> The following lemma requires fzero_sum_zero. \<close>
   lemma neq_zero_impl_greater:

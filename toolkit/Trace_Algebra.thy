@@ -73,11 +73,11 @@ text \<open> A pre-trace algebra is based on a left-cancellative monoid with the
   traces''. A pre-trace algebra has all the trace algebra axioms, but does not export the definitions
   of @{term "op \<le>"} and @{term "op -"}. \<close>
 
-class pre_trace = left_cancel_monoid + monoid_sum_0 +
-  assumes
-  sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+class pre_trace = left_cancel_monoid + monoid_sum_0
+(*  assumes
+  sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d" 
   -- \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
-       can be expressed in terms of each other. \<close>
+       can be expressed in terms of each other. \<close>*)
 begin
 
 text \<open> From our axiom set, we can derive a variety of properties of the monoid order \<close>
@@ -207,7 +207,7 @@ text \<open> Next we prove all the trace algebra lemmas. \<close>
     using add_assoc le_iff_add by auto
 
   text \<open> The set subtraces of a common trace $c$ is totally ordered. \<close>
-
+(*
   lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
     by (metis diff_add_cancel_left' le_add local.sum_eq_sum_conv)
   
@@ -220,7 +220,7 @@ text \<open> Next we prove all the trace algebra lemmas. \<close>
 
   lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
     by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_monoid_le minus_def monoid_le_add_left_mono monoid_le_def monoid_le_trans)
-    
+    *)
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left')
 
@@ -232,8 +232,9 @@ text \<open> Next we prove all the trace algebra lemmas. \<close>
     using local.le_iff_add local.zero_sum by auto
             
   lemma minus_assoc [simp]: "x - y - z = x - (y + z)"
-    by (metis local.add_diff_cancel_left' local.diff_add_cancel_left' local.le_add local.le_sum_iff 
-        local.not_le_minus local.zero_sum_right)
+    by (smt local.add.semigroup_axioms local.add_0_right local.add_diff_cancel_left local.le_iff_add local.monoid_le_add local.monoid_le_antisym not_le_minus semigroup.assoc)
+    (*by (metis local.add_diff_cancel_left' local.diff_add_cancel_left' local.le_add local.le_sum_iff 
+        local.not_le_minus local.zero_sum_right)*)
       
 end
 
@@ -276,10 +277,8 @@ lemma monoid_subtract_list:
 
 instance list :: (type) trace
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-    apply (simp add: append_eq_append_conv2)
-  using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
-  apply (simp add: less_list_def)
-  done
+  using Prefix_Order.prefixE apply blast
+    by (simp add: less_le_not_le)
 
 lemma monoid_le_nat:
   "(x :: nat) \<le>\<^sub>m y \<longleftrightarrow> x \<le> y"
@@ -291,10 +290,8 @@ lemma monoid_subtract_nat:
 
 instance nat :: trace
   apply (intro_classes, simp_all add: monoid_subtract_nat)
-    apply (metis Nat.diff_add_assoc Nat.diff_add_assoc2 add_diff_cancel_right' add_le_cancel_left add_le_cancel_right add_less_mono cancel_ab_semigroup_add_class.add_diff_cancel_left' less_irrefl not_le)
-   apply (simp add: nat_le_iff_add monoid_le_def)
-  apply linarith+
-  done
+   apply (simp add: monoid_le_nat)
+  by linarith
 
 text \<open> Positives form a trace algebra. \<close>
     
@@ -303,11 +300,11 @@ proof (intro_classes, simp_all)
   fix a b c d :: "'a pos"
   show "a + b = 0 \<Longrightarrow> a = 0"
     by (transfer, simp add: add_nonneg_eq_0_iff)
-  show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+  (*show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
     apply (cases "c \<le> a")
      apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq le_add_diff_inverse semiring_normalization_rules(25))
     apply (metis (no_types, lifting) cancel_semigroup_add_class.add_left_imp_eq less_imp_le linordered_semidom_class.add_diff_inverse semiring_normalization_rules(21))
-    done
+    done*)
   show "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
     by auto    
   show le_def: "\<And> a b :: 'a pos. (a \<le> b) = (a \<le>\<^sub>m b)"    
