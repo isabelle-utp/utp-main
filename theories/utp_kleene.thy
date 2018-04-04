@@ -1,4 +1,4 @@
-section {* Kleene Algebra and KAT Laws *}
+section \<open> Kleene Algebra and UTP \<close>
 
 theory utp_kleene
   imports
@@ -6,9 +6,17 @@ theory utp_kleene
     "../utp/utp"
 begin
 
+text \<open> This theory instantiates the Isabelle/HOL Kleene Algebra (KA) hierarchy of Armstrong, Gomes, 
+  Struth et al. for UTP alphabetised relations. Specifically, we substantiate the required dioid 
+  and KA laws in the type class hierarchy, which allows us to make use of all theorems proved in the former
+  work. Moreover, we also prove an important result that a subclass of UTP theories, which we call
+  ``Kleene UTP theories'', always form Kleene Algebra. The proof of the latter is obtained
+  by lifting laws from the KA hierarchy. \<close>
+
 subsection \<open> Syntax setup \<close>
 
-text \<open> It is necessary to replace parts of the KA/KAT syntax to ensure compatibility with UTP\<close>
+text \<open> It is necessary to replace parts of the KA/KAT syntax to ensure compatibility with UTP. We
+  therefore delete various bits of notation, and hide some constants. \<close>
 
 purge_notation star ("_\<^sup>\<star>" [101] 100)
 
@@ -23,11 +31,11 @@ notation ts_ord (infix "\<sqsubseteq>\<^sub>t" 50)
 
 hide_const t
 
-text \<open> Kleene Algebra Instantiations \<close>
+subsection \<open> Kleene Algebra Instantiations \<close>
 
-text {* In this theory we import the laws of Kleene Algebra into UTP relational calculus. We show
-  that relations form a dioid and Kleene algebra via two locales, the interpretation of which
-  exports a large library of algebraic laws. *}
+text \<open> Next, import the laws of Kleene Algebra into the UTP relational calculus. We show
+  that relations form a dioid and a Kleene algebra via two locales, the interpretation of which
+  exports a large library of algebraic laws. \<close>
 
 interpretation urel_dioid: dioid
   where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and less_eq = less_eq and less = less
@@ -60,11 +68,13 @@ proof
     by (simp add: ustar_inductr)
 qed
 
+text \<open> We also show that UTP relations form a Kleene Algebra with Tests (KAT). \<close>
+
 interpretation urel_kat: kat
   where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar and n_op = "\<lambda>x. II \<and> (\<not> x)"
   by (unfold_locales, rel_auto+)
 
-text {* We can now access the laws of KA and KAT for UTP relations as below. *}
+text \<open> We can now access the laws of KA and KAT for UTP relations as below. \<close>
 
 thm urel_ka.star_inductr_var
 thm urel_ka.star_trans
@@ -107,6 +117,10 @@ lemma uplus_alt_def: "P\<^sup>+ = P\<^sup>\<star> ;; P"
   by (simp add: uplus_def urel_ka.star_slide_var)
 
 subsection \<open> UTP Theories with Kleene Algebra \<close>
+
+text \<open> A Kleene UTP theory is continuous UTP theory with a left unit. The star in such a context
+  has already been defined by lifting the relational Kleene star. Here, we use the KA theorems
+  obtained above to provide corresponding theorems for a Kleene UTP theory. \<close>
 
 locale utp_theory_kleene = utp_theory_cont_unital_zerol
 begin
