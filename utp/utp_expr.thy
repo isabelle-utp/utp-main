@@ -1,4 +1,4 @@
-section \<open> UTP expressions \<close>
+section \<open> UTP Expressions \<close>
 
 theory utp_expr
 imports

@@ -60,6 +60,8 @@ session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
 
 session "UTP" in "utp" = "UTP-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
+  theories [document = false]
+    utp_parser_utils
   theories utp
   document_files
     "root.bib"

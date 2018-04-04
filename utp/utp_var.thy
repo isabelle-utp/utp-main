@@ -1,4 +1,4 @@
-section \<open> UTP variables \<close>
+section \<open> UTP Variables \<close>
 
 theory utp_var
   imports
@@ -6,8 +6,8 @@ theory utp_var
   utp_parser_utils
 begin
 
-text \<open> In this first UTP theory we set up variable, which are are built on lenses. A large part
-  of this theory is setting up the parser for UTP variable syntax. \<close>
+text \<open> In this first UTP theory we set up variables, which are are built on lenses~\cite{Foster09,Foster16a}. 
+  A large part of this theory is setting up the parser for UTP variable syntax. \<close>
 
 subsection \<open> Initial syntax setup \<close>
   

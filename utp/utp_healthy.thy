@@ -1,17 +1,20 @@
-section {* Healthiness Conditions *}
+section \<open> Healthiness Conditions \<close>
 
 theory utp_healthy
   imports utp_pred_laws
 begin
 
-text {* Closure laws for theories *}
+subsection \<open> Main Definitions \<close>
+
+text \<open> We collect closure laws for healthiness conditions in the following theorem attribute. \<close>
 
 named_theorems closure
   
 type_synonym '\<alpha> health = "'\<alpha> upred \<Rightarrow> '\<alpha> upred"
 
-definition
-  Healthy::"'\<alpha> upred \<Rightarrow> '\<alpha> health \<Rightarrow> bool" (infix "is" 30)
+text \<open> A predicate $P$ is healthy, under healthiness function $H$, if $P$ is a fixed-point of $H$. \<close>
+
+definition Healthy :: "'\<alpha> upred \<Rightarrow> '\<alpha> health \<Rightarrow> bool" (infix "is" 30)
 where "P is H \<equiv> (H P = P)"
 
 lemma Healthy_def': "P is H \<longleftrightarrow> (H P = P)"
@@ -76,7 +79,7 @@ lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>
 lemma is_Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> P is H"
   by blast
 
-subsection {* Properties of healthiness conditions *}
+subsection {* Properties of Healthiness Conditions *}
 
 definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where
   "Idempotent(H) \<longleftrightarrow> (\<forall> P. H(H(P)) = H(P))"
@@ -271,7 +274,6 @@ text {* All continuous functions are also Scott-continuous *}
 
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
   by (simp add: Continuous_def sup_continuous_def)
-
 
 lemma USUP_healthy: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> F(H(P)))"
   by (rule USUP_cong, simp add: Healthy_subset_member)

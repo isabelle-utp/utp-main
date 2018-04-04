@@ -1,4 +1,4 @@
-section {* Lifting expressions *}
+section {* Lifting Expressions *}
 
 theory utp_lift
   imports

@@ -1,4 +1,4 @@
-subsection {* Local Variables *}
+section {* Local Variables *}
 
 theory utp_local
 imports 

@@ -4,6 +4,10 @@ theory utp_theory
 imports utp_rel_laws
 begin
 
+text \<open> Here, we mechanise a representation of UTP theories using locales~\cite{Ballarin06}. We also
+  link them to the HOL-Algebra library~\cite{Ballarin17}, which allows us to import properties from 
+  complete lattices and Galois connections. \<close>
+
 subsection {* Complete lattice of predicates *}
 
 definition upred_lattice :: "('\<alpha> upred) gorder" ("\<P>") where
