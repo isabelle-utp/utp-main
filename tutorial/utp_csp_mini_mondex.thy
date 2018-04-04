@@ -108,28 +108,7 @@ lemma Pay_contract [rdes_def]:
             \<triangleleft> \<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
           \<Phi>(true,[&accts \<mapsto>\<^sub>s &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u]
                 ,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle>)))"
-  using assms by (simp add: Pay_def closure, rdes_simp, simp add: pr_var_def)  
-
-lemma Pay_contract':
-  assumes "i \<noteq> j"
-  shows
-  "Pay i j n = 
-    \<^bold>R\<^sub>s ((\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>,\<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle> \<le>\<^sub>u &tt \<and> 
-          [\<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> 0 <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a]\<^sub>S\<^sub><  
-          \<Rightarrow>\<^sub>r [\<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><) 
-       
-       \<turnstile> (&tt =\<^sub>u \<langle>\<rangle> \<and> (pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u \<notin>\<^sub>u $ref\<acute> \<or>
-            (&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle> \<and> (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)
-               \<triangleleft> \<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
-            (&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle> \<and> (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u \<notin>\<^sub>u $ref\<acute>)) 
-
-       \<diamondop> ((&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and> $st\<acute> =\<^sub>u $st)
-            \<triangleleft> \<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<triangleright>\<^sub>R
-          (&tt =\<^sub>u \<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle> \<and>
-             [accts := &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, 
-                              \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u]\<^sub>S'
-          )))"
-  using assms by (simp add: Pay_def closure, rdes_simp, rel_auto) 
+  using assms by (simp add: Pay_def closure, rdes_simp, simp add: pr_var_def, rel_auto)  
     
 lemma Pay_wf [closure]:
   "Pay i j n is NCSP"
