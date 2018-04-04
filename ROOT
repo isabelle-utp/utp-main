@@ -68,11 +68,15 @@ session "UTP" in "utp" = "UTP-Toolkit" +
 
 (* UTP and Kleene Algebra with Tests (KAT) *)
 
-session "UTP-KAT" in "theories" = "UTP" +
-  options [document = false, timeout = 1000]
+session "UTP-KAT" in "theories/kleene" = "UTP" +
+  options [document = pdf, document_output = "output", timeout = 1000]
   sessions
     "KAT_and_DRA"
   theories utp_kleene
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
 
 (* UTP Designs *)
 

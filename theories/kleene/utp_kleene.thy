@@ -3,19 +3,19 @@ section \<open> Kleene Algebra and UTP \<close>
 theory utp_kleene
   imports
     "KAT_and_DRA.KAT"
-    "../utp/utp"
+    "UTP.utp"
 begin
 
-text \<open> This theory instantiates the Isabelle/HOL Kleene Algebra (KA) hierarchy of Armstrong, Gomes, 
-  Struth et al. for UTP alphabetised relations. Specifically, we substantiate the required dioid 
-  and KA laws in the type class hierarchy, which allows us to make use of all theorems proved in the former
-  work. Moreover, we also prove an important result that a subclass of UTP theories, which we call
-  ``Kleene UTP theories'', always form Kleene Algebra. The proof of the latter is obtained
-  by lifting laws from the KA hierarchy. \<close>
+text \<open> This theory instantiates the Kleene Algebra~\cite{Kozen90} (KA) hierarchy, mechanised in 
+  Isabelle/HOL by Armstrong, Gomes, Struth et al~\cite{Armstrong2015,Gomes2016,Foster11a}., for UTP alphabetised 
+  relations~\cite{Hoare&98}. Specifically, we substantiate the required dioid and KA laws in the type class hierarchy, 
+  which allows us to make use of all theorems proved in the former work. Moreover, we also prove an 
+  important result that a subclass of UTP theories, which we call ``Kleene UTP theories'', always 
+  form Kleene algebras. The proof of the latter is obtained by lifting laws from the KA hierarchy. \<close>
 
 subsection \<open> Syntax setup \<close>
 
-text \<open> It is necessary to replace parts of the KA/KAT syntax to ensure compatibility with UTP. We
+text \<open> It is necessary to replace parts of the KA syntax to ensure compatibility with UTP. We
   therefore delete various bits of notation, and hide some constants. \<close>
 
 purge_notation star ("_\<^sup>\<star>" [101] 100)
@@ -68,7 +68,7 @@ proof
     by (simp add: ustar_inductr)
 qed
 
-text \<open> We also show that UTP relations form a Kleene Algebra with Tests (KAT). \<close>
+text \<open> We also show that UTP relations form a Kleene Algebra with Tests~\cite{kozen1997kleene,Gomes2016} (KAT). \<close>
 
 interpretation urel_kat: kat
   where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar and n_op = "\<lambda>x. II \<and> (\<not> x)"
@@ -83,12 +83,12 @@ thm urel_ka.independence1
 
 subsection \<open> Derived Laws \<close>
 
-text \<open> We prove that UTP assumptions are tests \<close>
+text \<open> We prove that UTP assumptions are tests. \<close>
 
 lemma test_rassume [simp]: "urel_kat.test [b]\<^sup>\<top>"
   by (simp add: urel_kat.test_def, rel_auto)
 
-text \<open> The KAT laws can be used to prove results like the one below \<close>
+text \<open> The KAT laws can be used to prove results like the one below. \<close>
 
 lemma while_kat_form:
   "while b do P od = ([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>" (is "?lhs = ?rhs")
