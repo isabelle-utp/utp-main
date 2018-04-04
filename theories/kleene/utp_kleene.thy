@@ -7,11 +7,12 @@ theory utp_kleene
 begin
 
 text \<open> This theory instantiates the Kleene Algebra~\cite{Kozen90} (KA) hierarchy, mechanised in 
-  Isabelle/HOL by Armstrong, Gomes, Struth et al~\cite{Armstrong2015,Gomes2016,Foster11a}., for UTP alphabetised 
-  relations~\cite{Hoare&98}. Specifically, we substantiate the required dioid and KA laws in the type class hierarchy, 
-  which allows us to make use of all theorems proved in the former work. Moreover, we also prove an 
-  important result that a subclass of UTP theories, which we call ``Kleene UTP theories'', always 
-  form Kleene algebras. The proof of the latter is obtained by lifting laws from the KA hierarchy. \<close>
+  Isabelle/HOL by Armstrong, Gomes, Struth et al~\cite{Armstrong2015,Gomes2016,Foster11a}., for 
+  Isabelle/UTP alphabetised relations~\cite{Foster16a,Hoare&98}. Specifically, we substantiate the 
+  required dioid and KA laws in the type class hierarchy, which allows us to make use of all theorems 
+  proved in the former work. Moreover, we also prove an important result that a subclass of UTP 
+  theories, which we call ``Kleene UTP theories'', always form Kleene algebras. The proof of the 
+  latter is obtained by lifting laws from the KA hierarchy. \<close>
 
 subsection \<open> Syntax setup \<close>
 
