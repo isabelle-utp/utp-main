@@ -44,6 +44,16 @@
 
 \maketitle
 
+\begin{abstract}
+  This document describes a mechanisation of the UTP theory of designs in Isabelle/UTP. Designs enrich UTP relations
+  with explicit precondition/postcondition pairs, as present in formal notations like VDM, B, and the refinement
+  calculus. If a program's precondition holds, then it is guaranteed to terminate and establish its postcondition, which
+  an approach known as total correctness. If the precondition does not hold, the behaviour is maximally nondeterminstic,
+  which represents unspecified behaviour. In this mechanisation, we create the theory of designs, including its
+  alphabet, signature, and healthiness conditions. We then use these to prove the key algebraic laws of
+  programming. This development can be used to support program verification based on total correctness.
+\end{abstract}
+
 \tableofcontents
 
 % sane default for proof documents
