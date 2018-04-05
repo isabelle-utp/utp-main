@@ -9,6 +9,7 @@ theory Trace_Algebra_Hierarchy
   imports
     Trace_Algebra
     Trace_Algebra_Preorder
+    Trace_Algebra_Disjoint
 begin
 
 section \<open> Hierarchy \<close>
@@ -33,7 +34,7 @@ proof
   fix a :: "'a::fzero_trace_0"
   show add_fzero_left: 
     "0 + a = a"
-    by (metis add_fzero_right fzero_is_0 fzero_pre_trace_class.sum_eq_sum_conv semigroup_add_left_cancel_class.add_left_imp_eq)
+    by (metis add_fzero_right fzero_is_0 fzero_restrict1)
   show add_zero_right: 
     "a + 0 = a"
     by (metis add_fzero_right fzero_is_0)
@@ -51,15 +52,15 @@ proof
   show sum_left_zero:
     "a + b = 0 \<Longrightarrow> a = 0"
     by (metis add.right_neutral add_fzero_right fzero_sum_left semigroup_add_left_cancel_class.add_left_imp_eq)
-  show sum_eq_conv:
+ (* show sum_eq_conv:
     "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-    by (simp add: fzero_pre_trace_class.sum_eq_sum_conv)
+    by (simp add: fzero_pre_trace_class.sum_eq_sum_conv) *)
   show monoid_le:
     "(a \<le> b) = (a \<le>\<^sub>m b)"
     by (simp add: monoid_le_def semigroup_add_left_cancel_minus_ord_class.le_iff_add)
   show less:
     "(a < b) = (a \<le> b \<and> \<not> b \<le> a)"
-    by (simp add: fzero_add_fzero_ord_minus_class.less_iff)
+    by (simp add: fzero_add_fzero_ord_class.less_iff)
   show minus:
     "a - b = a -\<^sub>m b"
     by (metis fzero_add_fzero_ord_minus_class.minus_def fzero_is_0 fzero_subtract_def le_is_fzero_le monoid_le_def monoid_subtract_def semigroup_add_left_cancel_minus_ord_class.le_iff_add)
@@ -94,8 +95,8 @@ proof
     by (metis fzero_is_0 fzero_le_def fzero_subtract_def le_is_monoid_le monoid_subtract_def trace_class.le_iff_add trace_class.minus_def)
   show "a + b = a + c \<Longrightarrow> b = c"
     using left_cancel_monoid_class.add_left_imp_eq by blast
-  show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-    by (simp add: pre_trace_class.sum_eq_sum_conv)
+ (* show "a + b = c + d \<Longrightarrow> \<exists>e. a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    by (simp add: pre_trace_class.sum_eq_sum_conv) *)
   show "a + b = f\<^sub>0(b) \<Longrightarrow> b = f\<^sub>0(b)"
     by (simp add: fzero_is_0 zero_sum_right)
 qed
@@ -104,6 +105,10 @@ text \<open> Therefore, a semigroup trace with a fixed @{term f\<^sub>0} is exac
        monoid trace. This is convenient as any type instantiated with the class @{class trace}
        can also be instantiated with the class @{class fzero_trace} by defining an appropriate
        @{term f\<^sub>0}. \<close>
+
+subsection \<open> Trace Algebra and disjoint variant. \<close>
+
+
 
 section \<open> Models \<close>
 
