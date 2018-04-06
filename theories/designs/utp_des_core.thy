@@ -4,10 +4,9 @@ theory utp_des_core
 imports UTP.utp
 begin
 
-text {* In UTP, in order to explicitly record the termination of a program, a subset of alphabetised 
-  relations is introduced. These relations are called designs, and their alphabet contains the 
-  special boolean observational variable $ok$. It is used to record the start and termination of a 
-  program. For more information on designs please see Chapter 3 of the UTP book~\cite{Hoare&98}, or
+text {* UTP designs~\cite{Cavalcanti04,Hoare&98} are a subset of the alphabetised relations that
+  use a boolean observational variable $ok$ to record the start and termination of a program. For 
+  more information on designs please see Chapter 3 of the UTP book~\cite{Hoare&98}, or
   the more accessible designs tutorial~\cite{Cavalcanti04}. *}
 
 subsection {* Definitions *}

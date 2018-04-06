@@ -618,7 +618,9 @@ theorem H3_ndesign: "H3(p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n Q)"
 theorem ndesign_is_H3 [closure]: "p \<turnstile>\<^sub>n Q is H3"
   by (simp add: H3_ndesign Healthy_def)
 
-subsection {* Normal Designs as $H1$-$H2$ predicates *}
+subsection {* Normal Designs as $H1$-$H3$ predicates *}
+
+text \<open> A normal design~\cite{Guttman2010} refers only to initial state variables in the precondition. \<close>
 
 abbreviation H1_H3 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("\<^bold>N") where
 "H1_H3 p \<equiv> H1 (H3 p)"

@@ -4,6 +4,9 @@ theory utp_rea_wp
   imports utp_rea_prog
 begin
 
+text \<open> Here, we create a weakest precondition calculus for reactive relations, using the recast
+  boolean algebra and relational operators. Please see our journal paper~\cite{Foster17c} for more information. \<close>
+
 definition wp_rea ::
   "('t::trace, '\<alpha>) hrel_rp \<Rightarrow>  
    ('t, '\<alpha>) hrel_rp \<Rightarrow> 

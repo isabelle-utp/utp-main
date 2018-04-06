@@ -38,11 +38,24 @@
 
 \begin{document}
 
-\title{Reactive Designs}
+\title{Reactive Designs in Isabelle/UTP}
 
 \author{Simon Foster \and James Baxter \and Ana Cavalcanti \and Jim Woodcock \and Samuel Canham}
 
 \maketitle
+
+\begin{abstract}
+  Reactive designs combine the UTP theories of reactive processes and designs to characterise
+  reactive programs. Whereas sequential imperative programs are expected to run until termination,
+  reactive programs pause at instances to allow interaction with the environment using abstract
+  events, and often do not terminate at all. Thus, whereas a design describes the precondition and 
+  postcondition for a program, to characterise initial and final states, a reactive design also has 
+  a ``pericondition'', which characterises intermediate quiescent observations. This gives rise
+  to a notion of ``reactive contract'', which specifies the assumptions a program makes of its
+  environment, and the guarantees it will make of its own behaviour in both intermediate and final
+  observations. This Isabelle/UTP document mechanises the UTP theory of reactive designs, including
+  its healthiness conditions, signature, and a large library of algebraic laws of reactive programming.
+\end{abstract}
 
 \tableofcontents
 

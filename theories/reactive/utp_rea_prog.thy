@@ -11,7 +11,7 @@ text \<open> @{term R3} as presented in the UTP book and related publications is
   of @{term R3} from Butterfield et al.~\cite{BGW09} that explicitly states that intermediate
   waiting states do not propogate final state variables. In order to do this we need an additional
   observational variable that capture the program state that we call $st$. Upon this foundation,
-  we can define operators for reactive programs. \<close>
+  we can define operators for reactive programs~\cite{Foster17c}. \<close>
 
 alphabet 's rsp_vars = "'t rp_vars" +
   st :: 's

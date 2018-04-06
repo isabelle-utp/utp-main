@@ -38,11 +38,25 @@
 
 \begin{document}
 
-\title{Generalised Reactive Processes}
+\title{Generalised Reactive Processes in Isabelle/UTP}
 
 \author{Simon Foster \and Samuel Canham}
 
 \maketitle
+
+\begin{abstract}
+  Hoare and He's UTP theory of reactive processes provides a unifying foundation for the semantics
+  of process calculi and reactive programming. A reactive process is a form of UTP relation which
+  can refer to both state variables and also a trace history of events. In their original presentation,
+  a trace was modelled solely by a discrete sequence of events. Here, we generalise the trace model 
+  using ``trace algebra'', which characterises traces abstractly using cancellative monoids, and 
+  thus enables application of the theory to a wider family of computational models, including 
+  hybrid computation. We recast the reactive healthiness conditions in this setting, and prove
+  all the associated distributivity laws. We tackle parallel composition of reactive processes
+  using the ``parallel-by-merge'' scheme from UTP. We also identify the associated theory of
+  ``reactive relations'', and use it to define generic reactive laws, a Hoare logic, and a weakest
+  precondition calculus.
+\end{abstract}
 
 \tableofcontents
 

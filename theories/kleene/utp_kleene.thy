@@ -119,9 +119,9 @@ lemma uplus_alt_def: "P\<^sup>+ = P\<^sup>\<star> ;; P"
 
 subsection \<open> UTP Theories with Kleene Algebra \<close>
 
-text \<open> A Kleene UTP theory is continuous UTP theory with a left unit. The star in such a context
-  has already been defined by lifting the relational Kleene star. Here, we use the KA theorems
-  obtained above to provide corresponding theorems for a Kleene UTP theory. \<close>
+text \<open> A Kleene UTP theory is continuous UTP theory with left and right units, and the top element as
+  a left zero. The star in such a context has already been defined by lifting the relational Kleene star. Here, 
+  we use the KA theorems obtained above to provide corresponding theorems for a Kleene UTP theory. \<close>
 
 locale utp_theory_kleene = utp_theory_cont_unital_zerol
 begin

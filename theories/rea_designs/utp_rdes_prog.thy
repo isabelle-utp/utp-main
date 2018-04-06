@@ -537,6 +537,38 @@ proof -
   finally show ?thesis .
 qed
 
+text \<open> Refinement introduction law for reactive while loops \<close>
+
+theorem WhileR_refine_intro:
+  assumes 
+    -- {* Closure conditions *}
+    "Q\<^sub>1 is RC" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR" "$st\<acute> \<sharp> Q\<^sub>2" "Q\<^sub>3 is R4"
+    -- {* Refinement conditions *}
+    "([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r Q\<^sub>1) \<sqsubseteq> P\<^sub>1"
+    "P\<^sub>2 \<sqsubseteq> [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2"
+    "P\<^sub>2 \<sqsubseteq> [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 ;; P\<^sub>2"
+    "P\<^sub>3 \<sqsubseteq> [\<not>b]\<^sup>\<top>\<^sub>r"
+    "P\<^sub>3 \<sqsubseteq> [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 ;; P\<^sub>3"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> while\<^sub>R b do \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) od"
+proof (simp add: rdes_def assms, rule srdes_tri_refine_intro')
+  show "([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r Q\<^sub>1) \<sqsubseteq> P\<^sub>1"
+    by (simp add: assms)
+  show "P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2)"
+  proof -
+    have "P\<^sub>2 \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2"
+      by (simp add: assms rea_assume_RR rrel_thy.Star_inductl seq_RR_closed seqr_assoc)
+    thus ?thesis
+      by (simp add: utp_pred_laws.le_infI2)
+  qed
+  show "P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)"
+  proof -
+    have "P\<^sub>3 \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r"
+      by (simp add: assms rea_assume_RR rrel_thy.Star_inductl seqr_assoc)
+    thus ?thesis
+      by (simp add: utp_pred_laws.le_infI2)
+  qed
+qed
+
 subsection \<open> Iteration Construction \<close>
 
 definition IterateR

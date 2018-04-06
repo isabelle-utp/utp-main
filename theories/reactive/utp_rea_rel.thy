@@ -6,8 +6,10 @@ theory utp_rea_rel
     "UTP-KAT.utp_kleene"
 begin
 
-text \<open> This theory defines a predicate calculus for R1-R2 predicates as an extension of the standard 
-  alphabetised predicate calculus. \<close>
+text \<open> This theory defines a reactive relational calculus for @{term R1}-@{term R2} predicates as an 
+  extension of the standard alphabetised predicate calculus. This enables us to formally characterise
+  relational programs that refer to both state variables and a trace history. For more details on
+  reactive relations, please see the associated journal paper~\cite{Foster17c}. \<close>
 
 subsection \<open> Healthiness Conditions \<close>
 

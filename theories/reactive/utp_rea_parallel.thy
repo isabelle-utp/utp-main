@@ -5,8 +5,8 @@ theory utp_rea_parallel
 begin
 
 text \<open> We show closure of parallel by merge under the reactive healthiness conditions by means
-  of suitable restrictions on the merge predicate. We first define healthiness conditions
-  for R1 and R2 merge predicates. \<close>
+  of suitable restrictions on the merge predicate~\cite{Foster17b}. We first define healthiness 
+  conditions for $R1$ and $R2$ merge predicates. \<close>
 
 definition R1m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
