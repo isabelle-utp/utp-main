@@ -99,10 +99,10 @@ lemma revent_notin_refusal [simp]:
   "revent a \<notin>\<^sub>\<R> rrefusal a"
   by (metis Rep_revent mem_Collect_eq prod.case_eq_if revent.rep_eq rrefusal.rep_eq)
 
-lemma rrefusal_revent: "b \<notin>\<^sub>\<R> a \<Longrightarrow> rrefusal (a,b)\<^sub>\<R> = a"
+lemma rrefusal_revent [simp]: "b \<notin>\<^sub>\<R> a \<Longrightarrow> rrefusal (a,b)\<^sub>\<R> = a"
   by (auto simp add:rrefusal_def Abs_revent_inverse)
 
-lemma revent_revent: "b \<notin>\<^sub>\<R> a \<Longrightarrow> revent (a,b)\<^sub>\<R> = b"
+lemma revent_revent [simp]: "b \<notin>\<^sub>\<R> a \<Longrightarrow> revent (a,b)\<^sub>\<R> = b"
   by (auto simp add:revent_def Abs_revent_inverse)
 
 lemma rrefusal_revent_pair [simp]: "rrefusal (rrefusal a, revent a)\<^sub>\<R> = rrefusal a"
@@ -152,7 +152,8 @@ value "\<langle>e\<rangle>\<^sub>\<R>"
 
 instantiation refusal :: (type) plus
 begin
-  lift_definition plus_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> 'e refusal" is sup .
+lift_definition plus_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> 'e refusal" is sup .
+
 instance
   by intro_classes
 end
@@ -222,7 +223,7 @@ definition MRT5 :: "'e::plus rtraces \<Rightarrow> bool" where
 "MRT5 RT \<equiv> \<forall>X X\<^sub>1 \<Phi>\<^sub>1 \<Phi>\<^sub>2 e. \<Phi>\<^sub>1 + \<langle>[X\<^sub>1]\<^sub>\<R>\<rangle>\<^sub>\<R> + \<Phi>\<^sub>2 \<in> RT \<and> \<Phi>\<^sub>1 + \<langle>([X]\<^sub>\<R>,e)\<^sub>\<R>,\<bullet>\<rangle>\<^sub>\<R> \<notin> RT \<longrightarrow> \<Phi>\<^sub>1 + \<langle>[X + {e}]\<^sub>\<R>\<rangle>\<^sub>\<R> + \<Phi>\<^sub>2 \<in> RT"
 
 definition RT1 :: "'e rtraces \<Rightarrow> bool" where
-"RT1 RT \<equiv> \<forall>\<rho>\<^sub>1 \<rho>\<^sub>2. \<rho>\<^sub>2 \<in> RT \<and> \<rho>\<^sub>1 \<le> \<rho>\<^sub>2 \<longrightarrow> \<rho>\<^sub>2 \<in> RT"
+"RT1 RT \<equiv> \<forall>\<rho>\<^sub>1 \<rho>\<^sub>2. (\<rho>\<^sub>2 \<in> RT \<and> \<rho>\<^sub>1 \<le> \<rho>\<^sub>2) \<longrightarrow> \<rho>\<^sub>1 \<in> RT"
 
 definition RT2 :: "'e::plus rtraces \<Rightarrow> bool" where
 "RT2 RT \<equiv> \<forall>\<Phi>\<^sub>1 \<Phi>\<^sub>2 X Y. \<Phi>\<^sub>1 + \<langle>[X]\<^sub>\<R>\<rangle>\<^sub>\<R> + \<Phi>\<^sub>2 \<in> RT \<and> (\<forall>e. e \<in> Y \<and> \<Phi>\<^sub>1 + \<langle>([X]\<^sub>\<R>,e)\<^sub>\<R>,\<bullet>\<rangle>\<^sub>\<R> \<notin> RT) \<longrightarrow> \<Phi>\<^sub>1 + \<langle>[X + Y]\<^sub>\<R>\<rangle>\<^sub>\<R> + \<Phi>\<^sub>2 \<in> RT"
@@ -274,11 +275,76 @@ definition Stop :: "'e rtraces" where
 definition Prefix :: "'e \<Rightarrow> 'e rtraces \<Rightarrow> 'e rtraces" (infixl "\<rightarrow>\<^sub>\<R>" 65) where
 "a \<rightarrow>\<^sub>\<R> P = {rt. \<exists>X. a \<notin>\<^sub>\<R> X \<and> rt = \<langle>X\<rangle>\<^sub>\<R>} \<union> {rt. \<exists>X \<rho>. \<rho> \<in> P \<and> a \<notin>\<^sub>\<R> X \<and> rt = (X,a)\<^sub>\<R>#\<^sub>\<R>\<rho>}"
 
-abbreviation IntChoice :: "'e rtraces \<Rightarrow> 'e rtraces \<Rightarrow> 'e rtraces" (infixl "\<sqinter>" 65) where
-"P \<sqinter> Q == P \<union> Q"
+definition IntChoice :: "'e rtraces \<Rightarrow> 'e rtraces \<Rightarrow> 'e rtraces" (infixl "\<sqinter>\<^sub>\<R>" 65) where
+"P \<sqinter>\<^sub>\<R> Q = P \<union> Q"
 
 definition ExtChoice :: "'e rtraces \<Rightarrow> 'e rtraces \<Rightarrow> 'e rtraces" (infix "\<box>\<^sub>\<R>" 65) where
 "P \<box>\<^sub>\<R> Q = {rt. rt \<in> (P \<union> Q) \<and> \<langle>firstRefusal rt\<rangle>\<^sub>\<R> \<in> (P \<inter> Q)}"
+
+definition PriRevent :: "'e::order revent \<Rightarrow> bool" where
+"PriRevent \<rho> == \<forall>b. \<rho> \<noteq> b \<longrightarrow> \<not> revent \<rho> \<le> revent b"
+
+definition PriHigher :: "'e::order revent \<Rightarrow> 'e refusal" where
+"PriHigher X = [{b. revent X < b}]\<^sub>\<R>"
+
+primrec PriRtrace :: "'e::order rtrace \<Rightarrow> 'e rtrace" where
+"PriRtrace \<langle>X\<rangle>\<^sub>\<R> = \<langle>X\<rangle>\<^sub>\<R>" |
+"PriRtrace (X #\<^sub>\<R> ys) = (if PriRevent X then X #\<^sub>\<R> PriRtrace ys else (rrefusal X \<union>\<^sub>\<R> PriHigher X,revent X)\<^sub>\<R> #\<^sub>\<R> PriRtrace ys)"
+
+definition Pri :: "'e::order rtraces \<Rightarrow> 'e rtraces" where
+"Pri P = {rt. \<exists>\<rho>. \<rho> \<in> P \<and> rt = PriRtrace \<rho>}"
+
+subsubsection \<open> Results with Pri \<close>
+
+lemma 
+  assumes "RT1 P" "RT1 Q" "RT1 R"
+  shows "P \<box>\<^sub>\<R> (Q \<sqinter>\<^sub>\<R> R) = (P \<box>\<^sub>\<R> Q) \<sqinter>\<^sub>\<R> (P \<box>\<^sub>\<R> R)"
+  using assms unfolding ExtChoice_def IntChoice_def apply auto
+  by (metis RT1_def distrib_sup_le firstRefusal.simps(1) firstRefusal.simps(2) inf_refusal.simps(1) less_eq_rtrace.simps(2) refusal.exhaust rtrace.exhaust rtrace_refl sup.cobounded1 sup_refusal.simps(1) sup_refusal.simps(2))+
+
+lemma Pri_Stop: "Pri(Stop) = Stop"
+  unfolding Pri_def PriRtrace_def PriRevent_def Stop_def
+  by auto
+
+lemma Pri_Div: "Pri(Div) = Div"
+  unfolding Pri_def PriRtrace_def PriRevent_def Div_def
+  by auto
+  
+lemma Pri_IntChoice: "Pri(P \<sqinter>\<^sub>\<R> Q) = Pri(P) \<sqinter>\<^sub>\<R> Pri(Q)"
+  unfolding Pri_def PriRtrace_def PriRevent_def IntChoice_def
+  by auto
+
+lemma Pri_ExtChoice: "Pri(P \<box>\<^sub>\<R> Q) = Pri(P) \<box>\<^sub>\<R> Pri(Q)"
+  unfolding Pri_def PriRtrace_def PriRevent_def ExtChoice_def
+  nitpick
+  oops
+
+lemma a_b_Stop:
+  "(a \<rightarrow>\<^sub>\<R> Stop) \<box>\<^sub>\<R> (b \<rightarrow>\<^sub>\<R> Stop) = {rt. (\<exists>X. a \<notin>\<^sub>\<R> X \<and> b \<notin>\<^sub>\<R> X \<and> (rt = \<langle>X\<rangle>\<^sub>\<R> \<or> (\<exists>Y. rt = \<langle>(X,a)\<^sub>\<R>,Y\<rangle>\<^sub>\<R> \<or> rt = \<langle>(X,b)\<^sub>\<R>,Y\<rangle>\<^sub>\<R>)))}"
+  unfolding ExtChoice_def Prefix_def Stop_def by auto
+
+lemma Pri_ExtChoice_eg1:
+  assumes "b \<le> a"
+  shows "Pri((a \<rightarrow>\<^sub>\<R> Stop) \<box>\<^sub>\<R> (b \<rightarrow>\<^sub>\<R> Stop)) = a \<rightarrow>\<^sub>\<R> Stop"
+  apply (simp add:a_b_Stop)
+  using assms unfolding Prefix_def Stop_def Pri_def
+  unfolding PriRtrace_def
+  apply auto
+  unfolding PriHigher_def
+  apply auto
+       apply metis
+  apply (metis Un_iff mem_Collect_eq order_less_irrefl revent_revent rmember.simps(2) rrefusal_revent sup_refusal.elims)
+  
+
+lemma "Pri(a \<rightarrow>\<^sub>\<R> Stop) = a \<rightarrow>\<^sub>\<R> Stop"
+  unfolding Pri_def PriRtrace_def PriRevent_def Stop_def Prefix_def
+  apply auto
+
+nitpick
+lemma "Pri(a \<rightarrow>\<^sub>\<R> P) = a \<rightarrow>\<^sub>\<R> Pri(P)"
+  unfolding Pri_def PriRtrace_def PriRevent_def
+  apply auto
+  
 
 subsubsection \<open> Results with mapping \<close>
 
@@ -319,6 +385,36 @@ lemma Prefix_failures: "fst(a \<rightarrow> RT2F P) = RTtoFailures(a \<rightarro
     apply (metis lastRefusalSet.simps(2) rmember.elims(3))
   by (simp add: revent_revent)+
 
+lemma IntChoice_traces: "snd(RT2F(P) \<sqinter> RT2F(Q)) = RTtoTraces(P \<sqinter>\<^sub>\<R> Q)"
+  unfolding Failures.intChoice_def IntChoice_def
+  unfolding RTtoTraces_def RT2F_def
+  by auto
+
+lemma IntChoice_failures: "fst(RT2F(P) \<sqinter> RT2F(Q)) = RTtoFailures(P \<sqinter>\<^sub>\<R> Q)"
+  unfolding Failures.intChoice_def IntChoice_def
+  unfolding RTtoFailures_def RT2F_def
+  by auto
+
+(* TODO: Proof for external choice is rather more complicated *)
+
+lemma 
+  assumes "MRT0 P" "MRT0 Q" "RT1 P" "RT1 Q"
+  shows ExtChoice_traces: "snd(RT2F(P) \<box> RT2F(Q)) = RTtoTraces(P \<box>\<^sub>\<R> Q)"
+  using assms unfolding Failures.extChoice_def ExtChoice_def
+  unfolding RTtoTraces_def RT2F_def
+  apply auto
+  oops
+
+lemma 
+  assumes "MRT0 P" "MRT0 Q" "RT1 P" "RT1 Q"
+  shows ExtChoice_failures: "fst(RT2F(P) \<box> RT2F(Q)) = RTtoFailures(P \<box>\<^sub>\<R> Q)"
+  using assms unfolding Failures.extChoice_def ExtChoice_def
+  unfolding RTtoFailures_def RTtoTraces_def RT2F_def
+  unfolding firstRefusal_def
+  apply auto
+  apply (smt Refusal_Tests.last.simps(1) failures_def lastRefusalSet.elims list.simps(3) mem_Collect_eq prod.sel(1) prod.sel(2) rtrace.simps(7) trace.simps(2))
+  oops
+
 text \<open> Observe that termination is not treated explicitly here, but could
        be achieved by parametrising 'e with an option type (tick). \<close>
 
@@ -326,8 +422,9 @@ text \<open> Observe that termination is not treated explicitly here, but could
 
 instantiation refusal :: (type) disjoint_rel
 begin
-  definition fzero_refusal :: "'e refusal \<Rightarrow> 'e refusal" where "fzero_refusal a = \<bullet>"
-  definition disjoint_rel_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where "disjoint_rel_refusal a b = (a \<inter>\<^sub>\<R> b = \<bullet> \<or> a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R>)"
+  primrec fzero_refusal :: "'e refusal \<Rightarrow> 'e refusal" where 
+    "fzero_refusal \<bullet> = \<bullet>" | "fzero_refusal [_]\<^sub>\<R> = [{}]\<^sub>\<R>"
+  definition disjoint_rel_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where "disjoint_rel_refusal a b = ((a = \<bullet> \<and> b = \<bullet>) \<or> a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R>)"
 
   lemma refusal_inf_eq_bullet: "[S]\<^sub>\<R> \<inter>\<^sub>\<R> d = \<bullet> \<longleftrightarrow> d = \<bullet>"
     using inf_refusal.elims by blast
@@ -372,6 +469,20 @@ begin
     finally show ?case by auto 
   qed
 
+  lemma refusal_rel_refusal2:
+    "a \<inter>\<^sub>\<R> b \<noteq> \<bullet> \<and> a \<inter>\<^sub>\<R> b \<noteq> [{}]\<^sub>\<R> \<Longrightarrow> \<exists>d. a + b = a + d \<and> (a \<inter>\<^sub>\<R> d = \<bullet> \<or> a \<inter>\<^sub>\<R> d = [{}]\<^sub>\<R>)"
+  proof (induct a b rule:sup_refusal.induct)
+    case (1 R)
+    then show ?case by auto
+  next
+    case (2 v)
+    then show ?case by auto
+  next
+    case (3 S R)
+    then show ?case apply auto
+      by (metis Diff_disjoint Un_Diff_cancel inf_refusal.simps(3) plus_refusal.simps(3))
+  qed
+
   lemma refusal_rel_dist: "((a \<union>\<^sub>\<R> b) \<inter>\<^sub>\<R> c = \<bullet> \<or> (a \<union>\<^sub>\<R> b) \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) = ((a \<inter>\<^sub>\<R> c = \<bullet> \<or> a \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) \<and> (b \<inter>\<^sub>\<R> c = \<bullet> \<or> b \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>))"
   proof (induct a b rule:inf_refusal.induct)
     case (1 R)
@@ -386,12 +497,35 @@ begin
   qed
 
 instance apply intro_classes
-     apply (simp_all add:disjoint_rel_refusal_def fzero_refusal_def plus_refusal_def)
+     apply (simp_all add:disjoint_rel_refusal_def fzero_refusal_def)
+
+     apply (simp add: abel_semigroup.commute inf.abel_semigroup_axioms)
+    apply (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_idem inf_le2 less_eq_refusal.elims(2) refusal.simps(7) refusal_rel_dist sup_inf_absorb)
+  
+  apply (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_idem inf_sup_ord(2) less_eq_refusal.elims(2) refusal.simps(6) refusal.simps(7) refusal_inf_eq_bullet refusal_rel_dist sup_inf_absorb)
+  
+  apply (metis inf_refusal.elims refusal_inf_eq_bullet refusal_rel_refusal2)
+nitpick
+  apply (smt inf_idem inf_le2 inf_refusal.elims inf_right_idem le_iff_sup refusal.simps(6) refusal.simps(7) refusal_rel_dist)
+    apply ( simp add:refusal_rel_refusal2)
+  
+    apply (smt inf_bot_right inf_commute inf_refusal.elims inf_refusal.simps(3) plus_refusal.simps(3) refusal_inf_eq_bullet refusal_rel_refusal sup_inf_absorb sup_refusal.elims sup_refusal.simps(3))
      apply (simp add: inf_commute)+
-  using inf_refusal.elims apply blast
-  using refusal_rel_refusal  apply blast                   
-  using refusal_rel_dist by auto
+(*  using inf_refusal.elims apply blast
+  apply (metis inf_bot_right refusal.exhaust refusal.simps(6) refusal.simps(7) refusal_inf_eq_emptyset)
+  
+    sledgehammer[debug=true]
+    apply (smt inf_bot_right inf_refusal.elims inf_refusal.simps(3) plus_refusal.simps(3) refusal.distinct(1) refusal_inf_eq_bullet refusal_rel_refusal sup_inf_absorb sup_refusal.elims sup_refusal.simps(3))
+(*  apply (metis inf_refusal.elims refusal_inf_eq_bullet refusal_rel_refusal) *)
+
+  by (metis (no_types, lifting) inf_refusal.elims refusal.distinct(1) refusal_rel_dist)
+ *)
 end
+
+lemma
+  fixes a b :: "'e refusal"
+  shows "a \<bar> b \<and> a \<bar> c \<and> a + b = a + c \<longrightarrow> b = c"
+  nitpick
 
 instantiation refusal :: (type) fzero_weak_add_zero
 begin
