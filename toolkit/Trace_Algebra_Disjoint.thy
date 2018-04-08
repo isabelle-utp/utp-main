@@ -61,9 +61,9 @@ class disjoint_rel_def =
 class disjoint_rel = disjoint_rel_def + plus + fzero +
   assumes
       -- \<open> Symmetric \<close>
-          disjoint_rel_sym  : "(a \<bar> b) = b \<bar> a"
+       (*   disjoint_rel_sym  : "(a \<bar> b) = b \<bar> a" *)
       -- \<open> Every element is related to its @{term f\<^sub>0}. \<close>
-      and disjoint_rel_zero : "a \<bar> f\<^sub>0(a)"
+         disjoint_rel_zero : "a \<bar> f\<^sub>0(a)" "f\<^sub>0(a) \<bar> a"
       -- \<open> For every pair of non-related elements there is some element @{term d},
            such that the + of these elements can also be obtained by a + d where
            a and d are related by disjoint_rel. In the context of sets this corresponds to stating
@@ -71,7 +71,7 @@ class disjoint_rel = disjoint_rel_def + plus + fzero +
       and disjoint_rel_sum  : "(\<not> a \<bar> b) \<Longrightarrow> (\<exists>d. a + b = a + d \<and> a \<bar> d)"
       -- \<open> A sum of related elements is related to another element iff. each component
            of the sum is also related to that other element. This holds for sets as well. \<close>
-      and disjoint_rel_dist : "((a + b) \<bar> c) \<longleftrightarrow> ((a \<bar> c) \<and> (b \<bar> c))"
+      and disjoint_rel_dist : "((a + b) \<bar> c) \<longleftrightarrow> ((a \<bar> c) \<and> (b \<bar> c))" "((c \<bar> a) \<and> (c \<bar> b)) \<longrightarrow> c \<bar> (a + b)"
 
 text \<open> For disjoint relations where no two elements are ever non-disjoint we have
        a universal relation. \<close>
@@ -79,6 +79,7 @@ text \<open> For disjoint relations where no two elements are ever non-disjoint 
 class disjoint_rel_universal = disjoint_rel +
   assumes disjoint_rel_univ : "a \<bar> b"
 
+(*
 instantiation set :: (type) disjoint_rel
 begin
   definition disjoint_rel_set :: "'a set \<Rightarrow> 'a set \<Rightarrow> bool" where "disjoint_rel_set a b \<equiv> (a \<inter> b = {})"
@@ -105,7 +106,7 @@ proof
   show "(a + b) \<bar> c = ((a \<bar> c) \<and> b \<bar> c)"
     by (simp add:disjoint_rel_set_def plus_set_def, auto)
 qed
-end
+end *)
 
 text \<open> However, we cannot fully instantiate set as fzero_disjoint_trace because
        set subtraction, is, in general, not the same as our definition. \<close>
@@ -143,11 +144,13 @@ lemma fzero_weak_le_refl:
 
 lemma fzero_weak_le_least_zero:
   "f\<^sub>0(a) \<le>\<^sub>s a"
-  by (metis fzero_weak_le_def local.add_fzero_left local.disjoint_rel_sym local.disjoint_rel_zero)
+  by (simp add: fzero_le_iff local.fzero_le_least_fzero)
    
 lemma fzero_weak_le_trans: 
   "\<lbrakk> a \<le>\<^sub>s b; b \<le>\<^sub>s c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>s c"
-  using add_assoc fzero_weak_le_def local.disjoint_rel_dist local.disjoint_rel_sym by auto
+  using add_assoc fzero_weak_le_def local.disjoint_rel_dist 
+  by (meson fzero_le_iff local.fzero_le_trans)
+(* local.disjoint_rel_sym by auto *)
 
 lemma fzero_weak_le_add: "a \<le>\<^sub>s a + b"
   unfolding fzero_weak_le_def
@@ -168,7 +171,7 @@ class fzero_weak_left_cancel = fzero_add_fzero_ord + fzero_weak_add_zero +
       -- \<open> To be able to show @{thm add_le_imp_le_left} we need, in addition, the
            following assumption as our cancellation property is too weak. In this case,
            however we only require that a \<bar> b. \<close>
-      and add_left_le: "(a \<bar> b \<and> (a + b = a + c)) \<Longrightarrow> b \<le> c"
+     (* and add_left_le: "((a \<bar> b) \<and> (a \<bar> c) \<and> (a + b = a + c)) \<Longrightarrow> b \<le> c" *)
 begin
 
 text \<open> The cancellation for subtraction requires that a \<bar> b. This lemma is true of sets as well. \<close>
@@ -184,7 +187,7 @@ lemma fzero_weak_diff_cancel_left [simp]:
 text \<open> While under the assumption of c \<bar> a, a \<le> b implies that c + a \<le> c + b. \<close>
 
 lemma fzero_weak_add_le_imp_le_left:
-  assumes "c \<bar> a" "c + a \<le> c + b"
+  assumes "c \<bar> a" "c \<bar> b" "c + a \<le> c + b"
   shows "a \<le> b"
 proof -
   have "c + a \<le> c + b = (\<exists>d. c + a + d = c + b \<and> (c + a) \<bar> d)"
@@ -193,16 +196,17 @@ proof -
   proof (cases "c \<bar> b")
     case True
     then show ?thesis using assms(1)
-      by (metis add_assoc fzero_weak_diff_cancel_left local.disjoint_rel_dist local.disjoint_rel_sym)
+      by (metis add_assoc fzero_weak_diff_cancel_left local.disjoint_rel_dist(1) local.disjoint_rel_dist(2))
   next
-    case False show ?thesis using assms(1)
-      by (metis add_assoc local.add_left_le local.disjoint_rel_dist local.disjoint_rel_sum local.disjoint_rel_sym local.fzero_le_def local.le_is_fzero_le)
+    case False then show ?thesis using assms(1,2)
+      
+      by (metis add_assoc  local.disjoint_rel_dist(1) local.disjoint_rel_dist(2) local.disjoint_rel_sum local.fzero_le_def local.le_is_fzero_le)
   qed
   also have "... = (a \<le> b)"
     using local.le_is_fzero_le fzero_le_iff unfolding fzero_weak_le_def 
     by metis
   finally show ?thesis
-    using assms(2) by blast
+    using assms(3) by blast
 qed
 
 lemma fzero_weak_le_is_le : "a \<le> b \<longleftrightarrow> a \<le>\<^sub>s b"
@@ -280,36 +284,52 @@ begin
     by (simp add: local.le_is_fzero_le local.fzero_le_add_left_mono)
 
   lemma add_le_imp_le_left: 
-    assumes "c \<bar> a"
+    assumes "c \<bar> a" "c \<bar> b"
     shows "c + a \<le> c + b \<Longrightarrow> a \<le> b"
     using assms local.fzero_weak_add_le_imp_le_left local.le_is_fzero_le by blast
-  
-  lemma fzero_plus_right: "f\<^sub>0(c + b) = f\<^sub>0(b)"
-    by (metis add_assoc local.add_diff_cancel_left local.add_fzero_right local.add_le_imp_le_left local.fzero_idem local.le_add local.le_iff_add local.disjoint_rel_sym local.disjoint_rel_zero)
 
+lemma 
+  assumes "c \<bar> b"
+  shows fzero_plus_right: "f\<^sub>0(c + b) = f\<^sub>0(b)" 
+proof -
+  have f1: "\<forall>a aa. (aa::'a) + (f\<^sub>0(aa) + a) = aa + a"
+    by (metis (no_types) local.add.semigroup_axioms local.add_fzero_right semigroup.assoc)
+  have f2: "\<forall>a. f\<^sub>0(f\<^sub>0(a::'a)) = f\<^sub>0(a)"
+    by simp
+  then have "\<forall>a aa. f\<^sub>0(aa::'a) \<bar> (f\<^sub>0(aa) + a)"
+    by (metis local.disjoint_rel_dist(2) local.disjoint_rel_zero(1) local.le_add local.le_iff_add)
+  then show ?thesis
+    using f2 f1 assms
+  proof -
+      have "c \<bar> (b + f\<^sub>0(c + b))"
+  by (metis assms local.disjoint_rel_dist(1) local.disjoint_rel_dist(2) local.disjoint_rel_zero(1)) (* 9 ms *)
+    then have "b + f\<^sub>0(c + b) = b + f\<^sub>0(b)"
+      by (metis (no_types) add_assoc assms local.add_diff_cancel_left local.add_fzero_right) (* 90 ms *)
+    then show ?thesis
+      by (meson local.add_left_imp_eq local.disjoint_rel_dist(1) local.disjoint_rel_zero(1)) (* 3 ms *)
+  qed
+qed
+  
   (* This is used in many theories without this assumption, so care will be needed. *)
   lemma add_diff_cancel_left' [simp]:  
     assumes "c \<bar> a" "c \<bar> b"
-    shows "(c + a) - (c + b) = a - b"
+    shows "(c + a) - (c + b) = a - b" 
       proof (cases "b \<le> a")
-        case True thus ?thesis
-        using assms
-        proof -
-          obtain aa :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" where
-            "\<forall>x0 x1. (\<exists>v2. x0 = x1 + v2 \<and> disjoint_rel x1 v2) = (x0 = x1 + aa x0 x1 \<and> disjoint_rel x1 (aa x0 x1))"
-            by moura (* 3 ms *)
-          then have "a = b + aa a b \<and> disjoint_rel b (aa a b)"
-            using True local.le_iff_add by force (* 3 ms *)
-          then show ?thesis
-            by (metis (no_types) add_assoc assms(1) local.fzero_weak_diff_cancel_left local.minus_def local.disjoint_rel_dist local.disjoint_rel_sym) (* 335 ms *)
-        qed
+        case True 
+        then have a:"\<exists>d. (c + b) + d = c + a \<and> (c + b) \<bar> d"
+          by (metis (full_types) add_assoc local.disjoint_rel_sum local.le_iff_add)
+        then have b:"\<exists>d. b + d = a \<and> b \<bar> d"
+          using True local.le_iff_add by auto
+        then show ?thesis 
+          by (metis a add_assoc assms(1) assms(2) local.add_diff_cancel_left local.disjoint_rel_dist(1) local.disjoint_rel_dist(2))
+
       next
         case False 
         have "(c + a) - (c + b) = fzero (c + b)"
           using assms
           using False local.add_le_imp_le_left local.fzero_le_iff local.fzero_weak_subtract_def local.le_is_fzero_le local.minus_def by auto
         also have "... = fzero b"
-          by (simp add: fzero_plus_right)
+          by (simp add: assms(2) fzero_plus_right)
         also have "... = a - b"
           using False local.add_le_imp_le_left local.fzero_le_iff local.fzero_weak_subtract_def local.le_is_fzero_le local.minus_def by auto
           
@@ -319,11 +339,11 @@ begin
   lemma diff_add_cancel_left': "a \<le> b \<Longrightarrow> a + (b - a) = b"
     using local.le_iff_add local.le_is_fzero_le by auto
       
-  lemma add_left_strict_mono: "a \<bar> b \<Longrightarrow> \<lbrakk> a + b < a + c \<rbrakk> \<Longrightarrow> b < c"
+  lemma add_left_strict_mono: "a \<bar> b \<Longrightarrow> a \<bar> c \<Longrightarrow> \<lbrakk> a + b < a + c \<rbrakk> \<Longrightarrow> b < c"
     using local.add_le_imp_le_left local.add_left_mono local.less_iff by blast
  
   lemma sum_minus_left: "a \<bar> b \<Longrightarrow> c \<le> a \<Longrightarrow> (a + b) - c = (a - c) + b"
-    using add_assoc local.le_iff_add local.disjoint_rel_dist local.disjoint_rel_sym by auto
+    using add_assoc local.le_iff_add local.disjoint_rel_dist by auto
   
   lemma minus_cancel_le: "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
     using local.le_iff_add local.le_is_fzero_le local.fzero_le_add local.sum_minus_left by auto
@@ -347,15 +367,18 @@ begin
     qed
 
   lemma least_zero [simp]: 
-     "f\<^sub>0(a) \<le> b"
+    "a \<bar> b \<Longrightarrow> f\<^sub>0(a) \<le> b"
     using local.fzero_weak_add_le_imp_le_left local.disjoint_rel_zero by fastforce
   
   lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = f\<^sub>0(a)"
     by (simp add: local.fzero_weak_le_is_le local.fzero_weak_subtract_def local.minus_def)
       
-  lemma diff_zero [simp]: "a - f\<^sub>0(b) = a"
-    by (metis local.add.semigroup_axioms local.add_fzero_right local.diff_add_cancel_left' local.fzero_idem local.least_zero semigroup.assoc)
-       
+  lemma diff_zero [simp]: "b \<bar> a \<Longrightarrow> a - f\<^sub>0(b) = a"
+    using local.add_diff_cancel_left' local.disjoint_rel_zero(1) by fastforce
+  
+  lemma diff_zero_same [simp]: "a - f\<^sub>0(a) = a"
+    by (metis local.add_diff_cancel_left local.diff_zero local.disjoint_rel_zero(1) local.disjoint_rel_zero(2) local.least_zero local.sum_minus_right)
+  
   lemma diff_cancel [simp]: "a - a = f\<^sub>0(a)"
     using local.add_diff_cancel_left local.disjoint_rel_zero by fastforce
      
@@ -363,7 +386,7 @@ begin
     using local.less_iff local.minus_cancel_le by fastforce
   
   lemma le_imp_zero_le_minus: "\<lbrakk> b \<le> a; b < a \<rbrakk> \<Longrightarrow> f\<^sub>0(b) < a - b"
-    using local.add_left_strict_mono local.diff_add_cancel_left' local.disjoint_rel_zero by force
+    using local.add_left_strict_mono local.disjoint_rel_zero(1) local.fzero_weak_diff_cancel_left local.le_iff_add by fastforce
     
   lemma le_iff_zero_leq_minus: "\<lbrakk> b \<le> a \<rbrakk> \<Longrightarrow> b < a \<longleftrightarrow> f\<^sub>0(b) < a - b"
     using zero_le_minus_imp_le le_imp_zero_le_minus by blast
@@ -449,8 +472,8 @@ begin
             
   lemma le_sum_cases':
     "a \<bar> c \<and> a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
-    by (metis local.add_diff_cancel_left local.fzero_weak_add_le_imp_le_left local.le_iff_add local.le_sum_cases)
-    
+    by (metis (full_types) local.add_diff_cancel_left local.disjoint_rel_dist(1) local.fzero_weak_add_le_imp_le_left local.le_iff_add local.le_sum_cases)
+     
   lemma le_sum_iff: 
     assumes "a \<bar> c"
     shows "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
@@ -499,7 +522,7 @@ class fzero_weak_trace = fzero_weak_left_cancel_minus_ord + fzero_sum_zero
 begin
  lemma neq_zero_impl_greater:
     "x \<noteq> fzero x \<Longrightarrow> fzero x < x"
-    by (metis local.add_fzero_left local.diff_cancel local.least_zero local.fzero_sum_right local.less_iff local.disjoint_rel_sym local.disjoint_rel_zero local.sum_minus_left)
+   by (metis local.add_fzero_left local.diff_cancel local.disjoint_rel_zero(2) local.fzero_sum_right local.fzero_weak_le_is_le local.fzero_weak_le_least_zero local.fzero_weak_less_is_less local.sum_minus_left)
 end
 
 (* instantiation set :: (type) fzero_trace
@@ -532,7 +555,7 @@ begin
 
 instance by intro_classes
 end
-
+(*
 instantiation myset :: (type) fzero_weak_add_zero
 begin
   definition disjoint_rel_myset :: "'a myset \<Rightarrow> 'a myset \<Rightarrow> bool" where "disjoint_rel_myset a b \<equiv> a \<inter> b = {}"
@@ -636,7 +659,7 @@ proof
   show "a + b = f\<^sub>0(b) \<Longrightarrow> b = f\<^sub>0(b)"
     apply (auto simp add:plus_myset_def fzero_myset_def)
     by (metis fzero_myset.rep_eq monoid.left_neutral myset2set_inverse plus_myset.rep_eq sup.commute sup_bot.monoid_axioms sup_left_idem)
-qed
+qed *)
 
 text \<open> Also every boolean algebra where plus is the lub and fzero is bot
        can be instantiated in a simple way as a fzero_weak_add_zero. \<close>
@@ -651,9 +674,11 @@ class boolean_fzero_algebra = boolean_fzero + boolean_algebra
 instance boolean_fzero_algebra \<subseteq> fzero_weak_add_zero
 proof
   fix a b c :: "'a::boolean_fzero_algebra"
-  show "(a \<bar> b) = b \<bar> a"
-    by (auto simp add:disjoint_rel_is_glb_no_bot inf_commute)
+(*  show "(a \<bar> b) = b \<bar> a"
+    by (auto simp add:disjoint_rel_is_glb_no_bot inf_commute) *)
   show "a \<bar> f\<^sub>0(a)"
+    by (auto simp add:disjoint_rel_is_glb_no_bot fzero_is_bot)
+  show "f\<^sub>0(a) \<bar> a"
     by (auto simp add:disjoint_rel_is_glb_no_bot fzero_is_bot)
   show "(\<not> a \<bar> b) \<Longrightarrow> \<exists>d. a + b = a + d \<and> a \<bar> d"
     apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
@@ -668,6 +693,8 @@ proof
     by (auto simp add:plus_is_lub fzero_is_bot)
   show "a + f\<^sub>0(a) = a"
     by (auto simp add:plus_is_lub fzero_is_bot)
+  show "((c \<bar> a) \<and> c \<bar> b) \<longrightarrow> c \<bar> (a + b)"
+    by (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub inf_sup_distrib1) 
 qed
 
 instance boolean_fzero_algebra \<subseteq> fzero_weak_left_cancel
@@ -681,9 +708,9 @@ proof
   show "a \<bar> b \<and> (a \<bar> c) \<and> a + b = a + c \<Longrightarrow> b = c"
     apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
     by (metis inf.absorb_iff2 inf_commute inf_sup_distrib1 sup_ge2)
-  show "a \<bar> b \<and> a + b = a + c \<Longrightarrow> b \<le> c"
+ (* show "a \<bar> b \<and> a \<bar> c \<and> a + b = a + c \<Longrightarrow> b \<le> c"
     apply (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub)
-    by (metis compl_inf double_compl inf_sup_aci(5) le_iff_sup sup_bot.left_neutral sup_ge2 sup_inf_distrib2)
+    by (metis compl_inf double_compl inf_sup_aci(5) le_iff_sup sup_bot.left_neutral sup_ge2 sup_inf_distrib2)*)
 qed
 
 end

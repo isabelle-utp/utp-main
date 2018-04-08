@@ -340,7 +340,7 @@ lemma "Pri(a \<rightarrow>\<^sub>\<R> Stop) = a \<rightarrow>\<^sub>\<R> Stop"
   unfolding Pri_def PriRtrace_def PriRevent_def Stop_def Prefix_def
   apply auto
 
-nitpick
+
 lemma "Pri(a \<rightarrow>\<^sub>\<R> P) = a \<rightarrow>\<^sub>\<R> Pri(P)"
   unfolding Pri_def PriRtrace_def PriRevent_def
   apply auto
@@ -382,8 +382,7 @@ lemma Prefix_failures: "fst(a \<rightarrow> RT2F P) = RTtoFailures(a \<rightarro
   apply auto
   apply (metis Refusal_Tests.last.simps(1) lastRefusalSet.simps(2) refusal.distinct(1) rmember.simps(2) trace.simps(1))
      apply (metis Refusal_Tests.last.simps(2) lastRefusalSet.simps(3) revent_revent rmember.simps(1) trace.simps(2))
-    apply (metis lastRefusalSet.simps(2) rmember.elims(3))
-  by (simp add: revent_revent)+
+  by (metis lastRefusalSet.simps(2) rmember.elims(3))
 
 lemma IntChoice_traces: "snd(RT2F(P) \<sqinter> RT2F(Q)) = RTtoTraces(P \<sqinter>\<^sub>\<R> Q)"
   unfolding Failures.intChoice_def IntChoice_def
@@ -412,7 +411,7 @@ lemma
   unfolding RTtoFailures_def RTtoTraces_def RT2F_def
   unfolding firstRefusal_def
   apply auto
-  apply (smt Refusal_Tests.last.simps(1) failures_def lastRefusalSet.elims list.simps(3) mem_Collect_eq prod.sel(1) prod.sel(2) rtrace.simps(7) trace.simps(2))
+  (*apply (smt Refusal_Tests.last.simps(1) failures_def lastRefusalSet.elims list.simps(3) mem_Collect_eq prod.sel(1) prod.sel(2) rtrace.simps(7) trace.simps(2))*)
   oops
 
 text \<open> Observe that termination is not treated explicitly here, but could
@@ -424,7 +423,7 @@ instantiation refusal :: (type) disjoint_rel
 begin
   primrec fzero_refusal :: "'e refusal \<Rightarrow> 'e refusal" where 
     "fzero_refusal \<bullet> = \<bullet>" | "fzero_refusal [_]\<^sub>\<R> = [{}]\<^sub>\<R>"
-  definition disjoint_rel_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where "disjoint_rel_refusal a b = ((a = \<bullet> \<and> b = \<bullet>) \<or> a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R>)"
+  definition disjoint_rel_refusal :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where "disjoint_rel_refusal a b = (a = \<bullet> \<or> a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R>)"
 
   lemma refusal_inf_eq_bullet: "[S]\<^sub>\<R> \<inter>\<^sub>\<R> d = \<bullet> \<longleftrightarrow> d = \<bullet>"
     using inf_refusal.elims by blast
@@ -432,7 +431,8 @@ begin
   lemma refusal_inf_eq_emptyset:  "[S]\<^sub>\<R> \<inter>\<^sub>\<R> d = [{}]\<^sub>\<R> \<longleftrightarrow> (\<exists>Z. d = [Z]\<^sub>\<R> \<and> S \<inter> Z = {})"
     apply auto
     by (metis inf_refusal.elims refusal.distinct(1) refusal.inject)
-  
+
+(*
   lemma refusal_rel_refusal:
      "a \<inter>\<^sub>\<R> b \<noteq> \<bullet> \<and> a \<inter>\<^sub>\<R> b \<noteq> [{}]\<^sub>\<R> \<Longrightarrow> \<exists>d. a \<union>\<^sub>\<R> b = a \<union>\<^sub>\<R> d \<and> (a \<inter>\<^sub>\<R> d = \<bullet> \<or> a \<inter>\<^sub>\<R> d = [{}]\<^sub>\<R>)"
   proof (induct a b rule:sup_refusal.induct)
@@ -468,59 +468,110 @@ begin
       by (simp add: disjoint_rel_set_sum)
     finally show ?case by auto 
   qed
-
+*)
   lemma refusal_rel_refusal2:
-    "a \<inter>\<^sub>\<R> b \<noteq> \<bullet> \<and> a \<inter>\<^sub>\<R> b \<noteq> [{}]\<^sub>\<R> \<Longrightarrow> \<exists>d. a + b = a + d \<and> (a \<inter>\<^sub>\<R> d = \<bullet> \<or> a \<inter>\<^sub>\<R> d = [{}]\<^sub>\<R>)"
+    "a \<noteq> \<bullet> \<and>  a \<inter>\<^sub>\<R> b \<noteq> [{}]\<^sub>\<R> \<Longrightarrow> \<exists>d. a + b = a + d \<and> (a = \<bullet> \<or> a \<inter>\<^sub>\<R> d = [{}]\<^sub>\<R>)"
   proof (induct a b rule:sup_refusal.induct)
     case (1 R)
     then show ?case by auto
   next
     case (2 v)
-    then show ?case by auto
+    then show ?case 
+      by (metis inf_bot_right inf_refusal.simps(3) plus_refusal.rep_eq refusal_inf_eq_bullet sup_inf_absorb)
   next
     case (3 S R)
     then show ?case apply auto
-      by (metis Diff_disjoint Un_Diff_cancel inf_refusal.simps(3) plus_refusal.simps(3))
+      by (metis Diff_disjoint Un_Diff_cancel inf_refusal.simps(3) plus_refusal.transfer sup_refusal.simps(3)) 
   qed
 
-  lemma refusal_rel_dist: "((a \<union>\<^sub>\<R> b) \<inter>\<^sub>\<R> c = \<bullet> \<or> (a \<union>\<^sub>\<R> b) \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) = ((a \<inter>\<^sub>\<R> c = \<bullet> \<or> a \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) \<and> (b \<inter>\<^sub>\<R> c = \<bullet> \<or> b \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>))"
-  proof (induct a b rule:inf_refusal.induct)
-    case (1 R)
-    then show ?case by auto
+  lemma refusal_rel_dist_1: "(a + b = \<bullet> \<or> (a + b) \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) = ((a = \<bullet> \<or> a \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>) \<and> (b = \<bullet> \<or> b \<inter>\<^sub>\<R> c = [{}]\<^sub>\<R>))"
+  proof (induct a b rule:sup_refusal.induct)
+      case (1 R)
+  then show ?case
+    by (simp add: plus_refusal.rep_eq)
   next
     case (2 v)
-    then show ?case by auto
+    then show ?case by (simp add: plus_refusal.rep_eq)
   next
     case (3 S R)
-    then show ?case apply (case_tac c) 
-      using refusal_inf_eq_bullet by auto
-  qed
+    then show ?case apply(case_tac c) 
+       by (auto simp add: plus_refusal.rep_eq)+
+   qed
 
-instance apply intro_classes
-     apply (simp_all add:disjoint_rel_refusal_def fzero_refusal_def)
+lemma refusal_rel_dist_2: "(c = \<bullet> \<or> c \<inter>\<^sub>\<R> a = [{}]\<^sub>\<R>) \<and> (c = \<bullet> \<or> c \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R>) \<longrightarrow> c = \<bullet> \<or> c \<inter>\<^sub>\<R> (a + b) = [{}]\<^sub>\<R>"
+  proof (induct a b rule:sup_refusal.induct)
+      case (1 R)
+  then show ?case
+    by (simp add: plus_refusal.rep_eq)
+  next
+    case (2 v)
+    then show ?case by (simp add: plus_refusal.rep_eq)
+  next
+    case (3 S R)
+    then show ?case apply(case_tac c) 
+       by (auto simp add: plus_refusal.rep_eq)+
+   qed
+(*
+definition isok :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where
+  "isok a b = (a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R> \<or> (a = \<bullet>))"
 
-     apply (simp add: abel_semigroup.commute inf.abel_semigroup_axioms)
-    apply (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_idem inf_le2 less_eq_refusal.elims(2) refusal.simps(7) refusal_rel_dist sup_inf_absorb)
-  
-  apply (smt abel_semigroup.commute inf.abel_semigroup_axioms inf_idem inf_sup_ord(2) less_eq_refusal.elims(2) refusal.simps(6) refusal.simps(7) refusal_inf_eq_bullet refusal_rel_dist sup_inf_absorb)
-  
-  apply (metis inf_refusal.elims refusal_inf_eq_bullet refusal_rel_refusal2)
-nitpick
-  apply (smt inf_idem inf_le2 inf_refusal.elims inf_right_idem le_iff_sup refusal.simps(6) refusal.simps(7) refusal_rel_dist)
-    apply ( simp add:refusal_rel_refusal2)
-  
-    apply (smt inf_bot_right inf_commute inf_refusal.elims inf_refusal.simps(3) plus_refusal.simps(3) refusal_inf_eq_bullet refusal_rel_refusal sup_inf_absorb sup_refusal.elims sup_refusal.simps(3))
-     apply (simp add: inf_commute)+
-(*  using inf_refusal.elims apply blast
-  apply (metis inf_bot_right refusal.exhaust refusal.simps(6) refusal.simps(7) refusal_inf_eq_emptyset)
-  
-    sledgehammer[debug=true]
-    apply (smt inf_bot_right inf_refusal.elims inf_refusal.simps(3) plus_refusal.simps(3) refusal.distinct(1) refusal_inf_eq_bullet refusal_rel_refusal sup_inf_absorb sup_refusal.elims sup_refusal.simps(3))
-(*  apply (metis inf_refusal.elims refusal_inf_eq_bullet refusal_rel_refusal) *)
+  lemma refusal_rel_refusal_cancel:
+    "(isok a b \<and> isok a d \<and> a + b = a + d) \<longrightarrow> b = d"
+    nitpick
+    (** true **)
+    oops
 
-  by (metis (no_types, lifting) inf_refusal.elims refusal.distinct(1) refusal_rel_dist)
- *)
+  lemma 
+    
+    shows"(isok (a + b) c) \<longleftrightarrow> (isok a c \<and> isok b c)"
+    nitpick
+
+lemma 
+    shows "(isok c a \<and> isok c b) \<longrightarrow> (isok c (a + b))"
+    nitpick *)
+
+(* so: {} {} ok, \<bullet> {} ok, {} \<bullet> not-ok, \<bullet> \<bullet> ok, {a} \<bullet> not-ok, {a} {b} not-ok, 
+    
+   so (a \<inter> b \<noteq> {}) \<longrightarrow> (b \<noteq> \<bullet> \<longrightarrow> a \<noteq> \<bullet>) = (a \<inter> b = {} \<or> (b = \<bullet> \<or> a \<noteq> \<bullet>) *)
+
+instance 
+proof
+  fix a b c :: "'e refusal"
+  show "a \<bar> f\<^sub>0(a)"
+    proof (cases "a")
+      case rfnil
+      then show ?thesis unfolding disjoint_rel_refusal_def by auto
+    next
+      case (rfset x2)
+      then show ?thesis unfolding disjoint_rel_refusal_def by auto
+    qed
+  show "f\<^sub>0(a) \<bar> a"  
+    proof (cases "a")
+          case rfnil
+    then show ?thesis unfolding disjoint_rel_refusal_def by auto
+    next
+      case (rfset x2)
+    then show ?thesis unfolding disjoint_rel_refusal_def by auto
+    qed
+  show "(\<not> a \<bar> b) \<Longrightarrow> \<exists>d. a + b = a + d \<and> a \<bar> d"
+    unfolding disjoint_rel_refusal_def using refusal_rel_refusal2 by auto
+  show "(a + b) \<bar> c = (a \<bar> c \<and> b \<bar> c)"
+    unfolding disjoint_rel_refusal_def using refusal_rel_dist_1 by auto
+  show "c \<bar> a \<and> c \<bar> b \<longrightarrow> c \<bar> (a + b)"
+    unfolding disjoint_rel_refusal_def using refusal_rel_dist_2 by auto
+qed
 end
+
+lemma
+  fixes a b :: "'e refusal"
+  shows "\<exists>d. f\<^sub>0(a) + d = b \<and> f\<^sub>0(a) \<bar> d"
+  nitpick
+
+lemma
+  fixes a b :: "'e refusal"
+  assumes "c \<bar> a" "c + a \<le> c + b"
+  shows "a \<le> b"
+  nitpick
 
 lemma
   fixes a b :: "'e refusal"
