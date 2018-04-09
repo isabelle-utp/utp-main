@@ -40,10 +40,10 @@ text \<open> We define two identities fro reactive designs, which correspond to 
   state-sensitive versions of reactive designs, respectively. The former is the one used in
   the UTP book and related publications for CSP. \<close>
 
-definition skip_rea :: "('t::trace, '\<alpha>) hrel_rp" ("II\<^sub>c") where
+definition skip_rea :: "('t::fzero_weak_trace, '\<alpha>) hrel_rp" ("II\<^sub>c") where
 skip_rea_def [urel_defs]: "II\<^sub>c = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
-definition skip_srea :: "('s, 't::trace, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
+definition skip_srea :: "('s, 't::fzero_weak_trace, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
 skip_srea_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>c) \<triangleleft> $wait \<triangleright> II\<^sub>c)"
 
 lemma skip_rea_R1_lemma: "II\<^sub>c = R1($ok \<Rightarrow> II)"
@@ -65,7 +65,8 @@ lemma R2_skip_rea: "R2(II\<^sub>c) = II\<^sub>c"
   by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)
 
 lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
-  apply (rel_auto) using minus_zero_eq by blast+
+  apply (rel_simp) using minus_zero_eq 
+  by (metis disjoint_rel_zero(1) fzero_weak_left_cancel_minus_ord_class.diff_cancel fzero_weak_left_cancel_minus_ord_class.least_zero fzero_weak_left_cancel_minus_ord_class.not_le_minus minus_minus_fzero)
 
 lemma skip_srea_R1 [closure]: "II\<^sub>R is R1"
   by (rel_auto)
@@ -78,7 +79,7 @@ lemma skip_srea_R2 [closure]: "II\<^sub>R is R2"
 
 subsection \<open> RD1: Divergence yields arbitrary traces \<close>
 
-definition RD1 :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+definition RD1 :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
 [upred_defs]: "RD1(P) = (P \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
 text \<open> $RD1$ is essentially $H1$ from the theory of designs, but viewed through the prism of
@@ -144,7 +145,7 @@ proof -
   also have "... = (((\<not> $ok \<and> R1(true)) ;; P) \<or> P)"
     by (metis (no_types, lifting) R1_def seqr_left_unit seqr_or_distl skip_rea_R1_lemma skip_rea_def utp_pred_laws.inf_top_left utp_pred_laws.sup_commute)
   also have "... = ((R1(\<not> $ok) ;; (R1(true\<^sub>h) ;; P)) \<or> P)"
-    using dual_order.trans by (rel_blast)
+    using order_trans dual_order.trans by (rel_blast)
   also have "... = ((R1(\<not> $ok) ;; R1(true\<^sub>h)) \<or> P)"
     by (simp add: assms(2))
   also have "... = (R1(\<not> $ok) \<or> P)"
@@ -192,10 +193,10 @@ theorem RD1_algebraic:
 
 subsection \<open> R3c and R3h: Reactive design versions of R3 \<close>
 
-definition R3c :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
+definition R3c :: "('t::fzero_weak_trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
 [upred_defs]: "R3c(P) = (II\<^sub>c \<triangleleft> $wait \<triangleright> P)"
 
-definition R3h :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
+definition R3h :: "('s, 't::fzero_weak_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
  R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>c) \<triangleleft> $wait \<triangleright> P)"
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
@@ -251,13 +252,15 @@ lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
-  apply (rel_auto) using minus_zero_eq by blast+
+  apply (rel_simp) using minus_zero_eq
+  by (metis disjoint_rel_zero(1) fzero_weak_left_cancel_minus_ord_class.diff_cancel fzero_weak_left_cancel_minus_ord_class.least_zero fzero_weak_left_cancel_minus_ord_class.not_le_minus minus_minus_fzero)
 
 lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
-  apply (rel_auto) using minus_zero_eq by blast+
+  apply (rel_simp) using minus_zero_eq
+  by (metis disjoint_rel_zero(1) fzero_weak_left_cancel_minus_ord_class.diff_cancel fzero_weak_left_cancel_minus_ord_class.least_zero fzero_weak_left_cancel_minus_ord_class.not_le_minus minus_minus_fzero)
 
 lemma RD1_R3h_commute: "RD1(R3h(P)) = R3h(RD1(P))"
   by (rel_auto)
@@ -382,16 +385,16 @@ lemma RD2_R3h_commute: "RD2(R3h(P)) = R3h(RD2(P))"
 
 subsection \<open> Major healthiness conditions \<close>
 
-definition RH :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("\<^bold>R")
+definition RH :: "('t::fzero_weak_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("\<^bold>R")
 where [upred_defs]: "RH(P) = R1(R2c(R3c(P)))"
 
-definition RHS :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>s")
+definition RHS :: "('s,'t::fzero_weak_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" ("\<^bold>R\<^sub>s")
 where [upred_defs]: "RHS(P) = R1(R2c(R3h(P)))"
 
-definition RD :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+definition RD :: "('t::fzero_weak_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
 where [upred_defs]: "RD(P) = RD1(RD2(RP(P)))"
 
-definition SRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+definition SRD :: "('s,'t::fzero_weak_trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "SRD(P) = RD1(RD2(RHS(P)))"
 
 lemma RH_comp: "RH = R1 \<circ> R2c \<circ> R3c"
@@ -543,23 +546,23 @@ text \<open> We create two theory objects: one for reactive designs and one for 
 typedecl RDES
 typedecl SRDES
 
-abbreviation "RDES \<equiv> UTHY(RDES, ('t::trace,'\<alpha>) rp)"
-abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
+abbreviation "RDES \<equiv> UTHY(RDES, ('t::fzero_weak_trace,'\<alpha>) rp)"
+abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::fzero_weak_trace,'\<alpha>) rsp)"
 
 overloading
-  rdes_hcond   == "utp_hcond :: (RDES, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
+  rdes_hcond   == "utp_hcond :: (RDES, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::fzero_weak_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
 begin
-  definition rdes_hcond :: "(RDES, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  definition rdes_hcond :: "(RDES, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
   [upred_defs]: "rdes_hcond T = RD"
-  definition srdes_hcond :: "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
+  definition srdes_hcond :: "(SRDES, ('s,'t::fzero_weak_trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
   [upred_defs]: "srdes_hcond T = SRD"
 end
 
-interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
+interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::fzero_weak_trace,'\<alpha>) rp)"
   by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
 
-interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
+interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::fzero_weak_trace,'\<alpha>) rp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
   and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
   and "le (uthy_order RDES) = op \<sqsubseteq>"
@@ -600,10 +603,10 @@ interpretation rdes_rea_retract:
   by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
      (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
 
-interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
+interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::fzero_weak_trace,'\<alpha>) rsp)"
   by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
 
-interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
+interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::fzero_weak_trace,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
   and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
   and "(\<mu> X \<bullet> F (\<H>\<^bsub>SRDES\<^esub> X)) = (\<mu> X \<bullet> F (SRD X))"
@@ -616,10 +619,10 @@ interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'
 declare srdes_theory_continuous.top_healthy [simp del]
 declare srdes_theory_continuous.bottom_healthy [simp del]
 
-abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
+abbreviation Chaos :: "('s,'t::fzero_weak_trace,'\<alpha>) hrel_rsp" where
 "Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
 
-abbreviation Miracle :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
+abbreviation Miracle :: "('s,'t::fzero_weak_trace,'\<alpha>) hrel_rsp" where
 "Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
 
 thm srdes_theory_continuous.weak.bottom_lower

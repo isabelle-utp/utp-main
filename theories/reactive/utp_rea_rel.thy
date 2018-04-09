@@ -11,11 +11,12 @@ text \<open> This theory defines a predicate calculus for R1-R2 predicates as an
 
 subsection \<open> Healthiness Conditions \<close>
 
-definition RR :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition RR :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "RR(P) = (\<exists> {$ok,$ok\<acute>,$wait,$wait\<acute>} \<bullet> R2(P))"
   
 lemma RR_idem: "RR(RR(P)) = RR(P)"
-  by (rel_auto)
+  apply (rel_auto)
+  using fzero_weak_left_cancel_minus_ord_class.not_le_minus by force
 
 lemma RR_Idempotent [closure]: "Idempotent RR"
   by (simp add: Idempotent_def RR_idem)
@@ -27,8 +28,9 @@ lemma R1_RR: "R1(RR(P)) = RR(P)"
   by (rel_auto)
     
 lemma R2c_RR: "R2c(RR(P)) = RR(P)"
-  by (rel_auto)
-    
+  apply (rel_auto)
+  using fzero_weak_left_cancel_minus_ord_class.not_le_minus by force
+
 lemma RR_implies_R1 [closure]: "P is RR \<Longrightarrow> P is R1"
   by (metis Healthy_def R1_RR)
   
@@ -59,13 +61,14 @@ proof -
 qed
 
 lemma RR_refine_intro:
-  assumes "P is RR" "Q is RR" "\<And> t. P\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+  assumes "P is RR" "Q is RR" "\<And> t. P\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> Q\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
   shows "P \<sqsubseteq> Q"
 proof -
-  have "\<And> t. (RR P)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RR Q)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+  have "\<And> t. (RR P)\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RR Q)\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
     by (simp add: Healthy_if assms)
   hence "RR(P) \<sqsubseteq> RR(Q)"
-    by (rel_auto)
+    apply (rel_auto)
+    by (smt fzero_weak_left_cancel_minus_ord_class.diff_zero fzero_weak_left_cancel_minus_ord_class.least_zero minus_prefix_disjoint)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -75,7 +78,9 @@ lemma R4_RR_closed [closure]:
   shows "R4(P) is RR"
 proof -
   have "R4(RR(P)) is RR"
-    by (rel_blast)
+    apply rel_auto
+    using fzero_weak_left_cancel_minus_ord_class.zero_le_minus_imp_le apply blast
+    using fzero_weak_left_cancel_minus_ord_class.le_imp_zero_le_minus less_imp_le by auto
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -85,7 +90,8 @@ lemma R5_RR_closed [closure]:
   shows "R5(P) is RR"
 proof -
   have "R5(RR(P)) is RR"
-    using minus_zero_eq by rel_auto
+    using minus_zero_eq apply rel_simp
+    by (smt fzero_weak_left_cancel_minus_ord_class.diff_cancel fzero_weak_left_cancel_minus_ord_class.minus_cancel_le fzero_weak_left_cancel_minus_ord_class.minus_zero_eq)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -94,32 +100,32 @@ subsection \<open> Reactive relational operators \<close>
 
 named_theorems rpred
   
-abbreviation rea_true :: "('t::trace,'\<alpha>,'\<beta>) rel_rp" ("true\<^sub>r") where 
+abbreviation rea_true :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp" ("true\<^sub>r") where 
 "true\<^sub>r \<equiv> R1(true)"     
 
-definition rea_not :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("\<not>\<^sub>r _" [40] 40) 
+definition rea_not :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("\<not>\<^sub>r _" [40] 40) 
 where [upred_defs]: "(\<not>\<^sub>r P) = R1(\<not> P)"
 
-definition rea_diff :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixl "-\<^sub>r" 65)
+definition rea_diff :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixl "-\<^sub>r" 65)
 where [upred_defs]: "rea_diff P Q = (P \<and> \<not>\<^sub>r Q)"
   
 definition rea_impl :: 
-  "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
+  "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<Rightarrow>\<^sub>r" 25) 
 where [upred_defs]: "(P \<Rightarrow>\<^sub>r Q) = (\<not>\<^sub>r P \<or> Q)"
 
-definition rea_lift :: "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
+definition rea_lift :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" ("[_]\<^sub>r") 
 where [upred_defs]: "[P]\<^sub>r = R1(P)"
    
-definition rea_skip :: "('t::trace,'\<alpha>) hrel_rp" ("II\<^sub>r") 
+definition rea_skip :: "('t::fzero_weak_trace,'\<alpha>) hrel_rp" ("II\<^sub>r") 
 where [upred_defs]: "II\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R)"
   
-definition rea_assert :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
+definition rea_assert :: "('t::fzero_weak_trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
 where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
 
 text \<open> Trace contribution substitution: make a substitution for the trace contribution lens 
   @{term tt}, and apply @{term R1} to make the resulting predicate healthy again. \<close>
   
-definition rea_subst :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, ('t, '\<alpha>) rp) hexpr \<Rightarrow> ('t, '\<alpha>) hrel_rp" ("_\<lbrakk>_\<rbrakk>\<^sub>r" [999,0] 999) 
+definition rea_subst :: "('t::fzero_weak_trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, ('t, '\<alpha>) rp) hexpr \<Rightarrow> ('t, '\<alpha>) hrel_rp" ("_\<lbrakk>_\<rbrakk>\<^sub>r" [999,0] 999) 
 where [upred_defs]: "P\<lbrakk>v\<rbrakk>\<^sub>r = R1(P\<lbrakk>v/&tt\<rbrakk>)"
 
 subsection \<open> Unrestriction and substitution laws \<close>
@@ -597,19 +603,19 @@ text \<open> We create a UTP theory of reactive relations which in particular pr
 
 typedecl RREL
 
-abbreviation "RREL \<equiv> UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+abbreviation "RREL \<equiv> UTHY(RREL, ('t::fzero_weak_trace,'\<alpha>) rp)"
 
 overloading
-  rrel_hcond  == "utp_hcond :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  rrel_unit   == "utp_unit  :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t, '\<alpha>) hrel_rp"
+  rrel_hcond  == "utp_hcond :: (RREL, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  rrel_unit   == "utp_unit  :: (RREL, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t, '\<alpha>) hrel_rp"
 begin
-  definition rrel_hcond :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
+  definition rrel_hcond :: "(RREL, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
   [upred_defs]: "rrel_hcond T = RR"
-  definition rrel_unit :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp" where
+  definition rrel_unit :: "(RREL, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp" where
   [upred_defs]: "rrel_unit T = II\<^sub>r"
 end
 
-interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::fzero_weak_trace,'\<alpha>) rp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order RREL) \<longleftrightarrow> P is RR"
   and "P is \<H>\<^bsub>RREL\<^esub> \<longleftrightarrow> P is RR"
   and "carrier (uthy_order RREL) \<rightarrow> carrier (uthy_order RREL) \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
@@ -618,7 +624,7 @@ interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)
   and "\<I>\<I>\<^bsub>RREL\<^esub> = II\<^sub>r"
   and "le (uthy_order RREL) = op \<sqsubseteq>"
 proof -
-  interpret lat: utp_theory_continuous "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
+  interpret lat: utp_theory_continuous "UTHY(RREL, ('t::fzero_weak_trace,'\<alpha>) rp)"
     by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
   show 1: "\<^bold>\<top>\<^bsub>RREL\<^esub> = (false :: ('t,'\<alpha>) hrel_rp)"
     by (metis Healthy_if lat.healthy_top rea_no_RR rea_not_rea_true rea_true_RR rrel_hcond_def)
@@ -635,8 +641,7 @@ abbreviation rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 9
 subsection \<open> Instantaneous Reactive Relations \<close>
 
 text \<open> Instantaneous Reactive Relations, where the trace stays the same. \<close>
-  
-abbreviation Instant :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
+abbreviation Instant :: "('t::fzero_weak_trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
 "Instant(P) \<equiv> RID(tr)(P)"
 
 lemma skip_rea_Instant [closure]: "II\<^sub>r is Instant"

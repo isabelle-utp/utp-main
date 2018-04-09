@@ -8,10 +8,10 @@ text \<open> We show closure of parallel by merge under the reactive healthiness
   of suitable restrictions on the merge predicate. We first define healthiness conditions
   for R1 and R2 merge predicates. \<close>
 
-definition R1m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R1m :: "('t :: fzero_weak_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
 
-definition R1m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R1m' :: "('t :: fzero_weak_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
 
 text \<open> A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
@@ -22,7 +22,7 @@ term "M\<lbrakk>0,x,k/y,z,a\<rbrakk>"
   
 term "M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>"
   
-definition R2m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R2m :: "('t :: fzero_weak_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
 definition R2m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
@@ -111,10 +111,10 @@ proof -
     by (rel_auto, blast, metis diff_add_cancel_left')
   finally show ?thesis ..
 qed
-
+(*
 lemma R2m_R2m'_pbm: "(R2(P) \<parallel>\<^bsub>R2m(M)\<^esub> R2(Q)) = (R2(P) \<parallel>\<^bsub>R2m'(M)\<^esub> R2(Q))"
   by (rel_blast)
-
+*)
 lemma R2_par_by_merge [closure]:
   assumes "P is R2" "Q is R2" "M is R2m"
   shows "(P \<parallel>\<^bsub>M\<^esub> Q) is R2"
@@ -133,7 +133,7 @@ lemma R1m_disj: "R1m(P \<or> Q) = (R1m(P) \<or> R1m(Q))"
 
 lemma R1m_conj: "R1m(P \<and> Q) = (R1m(P) \<and> R1m(Q))"
   by (rel_auto)
-
+(*
 lemma R2m_skip_merge: "R2m(skip\<^sub>m) = skip\<^sub>m"
   apply (rel_auto) using minus_zero_eq by blast
 
@@ -170,5 +170,5 @@ qed
 lemma SymMerge_R1_true [closure]:
   "M is SymMerge \<Longrightarrow> M ;; R1(true) is SymMerge"
   by (rel_auto)
-
+*)
 end

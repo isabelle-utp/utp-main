@@ -6,10 +6,10 @@ begin
 
 subsection \<open> Healthiness Conditions \<close>
     
-definition RC1 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition RC1 :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "RC1(P) = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r)"
   
-definition RC :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition RC :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "RC = RC1 \<circ> RR"
   
 lemma RC_intro: "\<lbrakk> P is RR; ((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) = P) \<rbrakk> \<Longrightarrow> P is RC"
@@ -19,8 +19,8 @@ lemma RC_intro': "\<lbrakk> P is RR; P is RC1 \<rbrakk> \<Longrightarrow> P is R
   by (simp add: Healthy_def RC1_def RC_def)
 
 lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
-  by (rel_auto, (blast intro: dual_order.trans)+)
-  
+  by (rel_auto, (blast intro: order_trans dual_order.trans)+)
+
 lemma RC1_mono: "P \<sqsubseteq> Q \<Longrightarrow> RC1(P) \<sqsubseteq> RC1(Q)"
   by (rel_blast)
       
@@ -57,11 +57,12 @@ text \<open> An important property of reactive conditions is they are monotonic 
 
 lemma RC_prefix_refine:
   assumes "P is RC" "s \<le> t"
-  shows "P\<lbrakk>0,\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> P\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+  shows "P\<lbrakk>f\<^sub>0($tr),\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> P\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
 proof -
-  from assms(2) have "(RC P)\<lbrakk>0,\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RC P)\<lbrakk>0,\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
-    apply (rel_auto)
-    using dual_order.trans apply blast
+  from assms(2) have "(RC P)\<lbrakk>f\<^sub>0($tr),\<guillemotleft>s\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<sqsubseteq> (RC P)\<lbrakk>f\<^sub>0($tr),\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk>"
+    apply (rel_simp)
+    nitpick
+    using dual_order.trans sledgehammer[debug=true]
     done
   thus ?thesis
     by (simp only: assms(1) Healthy_if)
@@ -93,7 +94,7 @@ lemma disj_RC1_closed [closure]:
   shows "(P \<or> Q) is RC1"
 proof -
   have 1:"RC1(RC1(P) \<or> RC1(Q)) = (RC1(P) \<or> RC1(Q))"
-    apply (rel_auto) using dual_order.trans by blast+
+    apply (rel_auto) using order_trans dual_order.trans by blast+
   show ?thesis
     by (metis (no_types) Healthy_def 1 assms)
 qed
@@ -117,7 +118,7 @@ lemma UINF_mem_RC1_closed [closure]:
   shows "(\<Sqinter> i\<in>A \<bullet> P i) is RC1"
 proof -
   have 1:"RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i)) = (\<Sqinter> i\<in>A \<bullet> RC1(P i))"
-    by (rel_auto, meson order.trans)
+    by (rel_auto, meson order_trans order.trans)
   show ?thesis
     by (metis (mono_tags, lifting) "1" Healthy_def' UINF_all_cong UINF_alt_def assms)
 qed
@@ -133,7 +134,7 @@ proof -
   also have "... = RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i))"
     by (simp add: Healthy_if RC_implies_RR RC_implies_RC1 assms)
   also have "... = (\<Sqinter> i\<in>A \<bullet> RC1(P i))"
-    by (rel_auto, meson order.trans)
+    by (rel_auto, meson order_trans order.trans)
   also have "... = (\<Sqinter> i\<in>A \<bullet> P i)"
     by (simp add: Healthy_if RC_implies_RC1 assms)
   finally show ?thesis
@@ -152,7 +153,7 @@ proof -
   have "RC1(\<Squnion> i\<in>A \<bullet> P i) = RC1(\<Squnion> i\<in>A \<bullet> RC1(P i))"
     by (simp add: Healthy_if assms(1) cong: USUP_cong)
   also from assms(2) have "... = (\<Squnion> i\<in>A \<bullet> RC1(P i))"
-    using dual_order.trans by (rel_blast)
+    using order_trans dual_order.trans by (rel_blast)
   also have "... = (\<Squnion> i\<in>A \<bullet> P i)"
     by (simp add: Healthy_if assms(1) cong: USUP_cong)
   finally show ?thesis

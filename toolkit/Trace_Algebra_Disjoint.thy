@@ -402,9 +402,10 @@ qed
 
   lemma minus_prefix_disjoint: "b \<le> a \<and> a - b = c \<longleftrightarrow> a = b + c \<and> b \<bar> c"
     using local.diff_add_cancel_left' local.disjoint_rel_sum by fastforce
-(*
-lemma "d = a + b + c \<and> (fzero(a) \<bar> b) \<and> ((fzero(a) + b) \<bar> c) \<and> a \<bar> (fzero(a) + b + c) \<and> a \<le> d \<longleftrightarrow> d = a + b + c \<and> a \<bar> b \<and> (a + b) \<bar> c \<and> a \<le> d"
-  nitpick*)
+
+  lemma plus_fzeros: "(fzero(a) \<bar> b) \<and> ((fzero(a) + b) \<bar> c) \<and> a \<bar> (fzero(a) + b + c) \<longleftrightarrow> a \<bar> b \<and> (a + b) \<bar> c"
+    by (meson local.disjoint_rel_dist(1) local.disjoint_rel_fzeros)
+
   (* Sadd:unit *)
   lemma 
   assumes "a \<bar> b"
@@ -703,6 +704,8 @@ proof
     by (auto simp add:plus_is_lub fzero_is_bot)
   show "((c \<bar> a) \<and> c \<bar> b) \<longrightarrow> c \<bar> (a + b)"
     by (auto simp add:disjoint_rel_is_glb_no_bot plus_is_lub inf_sup_distrib1) 
+  show "(f\<^sub>0(a) \<bar> b \<and> f\<^sub>0(a) \<bar> c \<and> a \<bar> (f\<^sub>0(a) + b + c)) = (a \<bar> b \<and> a \<bar> c)"
+    by (simp add: disjoint_rel_is_glb_no_bot fzero_is_bot inf_sup_distrib1 plus_is_lub)
 qed
 
 instance boolean_fzero_algebra \<subseteq> fzero_weak_left_cancel

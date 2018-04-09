@@ -23,20 +23,7 @@ lemma
   apply blast
   done
 
-instantiation uexpr :: (fzero, type) fzero
-begin
-  definition fzero_uexpr_def: "fzero u = uop fzero u"
-instance ..
-end
 
-syntax 
-   "_uprefix_rel"      :: "('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> ('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<bar>\<^sub>u" 50)
-
-translations
-   "x \<bar>\<^sub>u y"   == "CONST bop (CONST disjoint_rel) x y"
-
-instance uexpr :: (fzero_add_zero, type) fzero_add_zero
-  by (intro_classes) (simp add: fzero_uexpr_def plus_uexpr_def, transfer, simp)+
 
 (*
 instance uexpr :: (fzero_sum_zero, type) fzero_sum_zero
@@ -378,9 +365,8 @@ lemma fzero_unrest [unrest]:
   assumes "y \<sharp> x"
   shows "y \<sharp> (fzero x)"
   using assms
-  apply pred_auto
-  by (simp add: fzero_uexpr_def uop.rep_eq)
-
+  by pred_auto
+  
 lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
   by (simp add: R2s_def unrest)
 
@@ -421,32 +407,26 @@ lemma R2_subst_wait'_false [usubst]:
   by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
-  apply rel_auto
-  by (simp add: fst_conv fzero_uexpr_def uop.rep_eq var.rep_eq)+
- 
+  by rel_auto
+  
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
   apply rel_auto
-   apply (simp_all add: des_vars.select_convs(2) fst_conv fzero_uexpr_def lit.rep_eq uop.rep_eq var.rep_eq)
   by (metis disjoint_rel_zero(1) fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left fzero_weak_left_cancel_minus_ord_class.le_iff_add fzero_weak_left_cancel_minus_ord_class.not_le_minus)
   
 lemma R2s_R2a: "R2s(R2a(P)) = R2a(P)"
-  apply rel_auto
-  apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def lens.simps(1) lit.rep_eq minus_minus_fzero rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
-  by (smt comp_def des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.diff_zero lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  by rel_auto
   
 lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
   by (metis Healthy_def' R2a_R2s R2s_R2a)
 
 lemma R2a_idem: "R2a(R2a(P)) = R2a(P)"
-  apply rel_auto
-   apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_uexpr_def lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
-  by (smt comp_def des_vars.select_convs(2) fst_conv fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  apply pred_auto
+  by force
 
 lemma R2a'_idem: "R2a'(R2a'(P)) = R2a'(P)"
   apply rel_auto
-   apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_uexpr_def lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
-      by (smt comp_def des_vars.select_convs(2) fst_conv fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
-    
+  by force
+
 lemma R2a_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a(P) \<sqsubseteq> R2a(Q)"
   by (rel_blast)
 
@@ -455,8 +435,6 @@ lemma R2a'_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a'(P) \<sqsubseteq> R2a'
 
 lemma R2a'_weakening: "R2a'(P) \<sqsubseteq> P"
   apply (rel_simp)
-  apply (simp add:fzero_uexpr_def)
-  apply rel_simp
   apply (rename_tac ok wait tr more ok' wait' tr' more')
   apply (rule_tac x="tr" in exI)
   apply (simp add: diff_add_cancel_left' fzero_uexpr_def uop_ueval var.rep_eq)
@@ -467,21 +445,17 @@ lemma fzero_fzero_tr: "fzero (fzero $tr) = fzero $tr"
     
 lemma fzero_fzero_tr_subst:
   "(fzero $tr)\<lbrakk>(fzero $tr)/$tr\<rbrakk> = fzero $tr"
-  apply pred_simp
-  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)
-
+  by pred_simp
+  
 lemma fzero_subst:
   "(fzero $tr)\<lbrakk>e/$tr\<rbrakk> = fzero e"
-  apply pred_simp
-  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)
-
+  by pred_simp
+  
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
-  apply pred_auto
-  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
+  by pred_auto
   
 lemma R2_idem: "R2(R2(P)) = R2(P)"
   apply (pred_auto)
-    apply (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+ (* TODO: add theorem to simplifier *)
   using fzero_weak_left_cancel_minus_ord_class.not_le_minus by fastforce
 
 lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
@@ -605,13 +579,11 @@ lemma R2c_wait': "R2c($wait\<acute>) = $wait\<acute>"
   by (rel_auto)
 
 lemma R2c_wait'_true [usubst]: "(R2c P)\<lbrakk>true/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  apply rel_auto
-  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
-
+  by rel_auto
+  
 lemma R2c_wait'_false [usubst]: "(R2c P)\<lbrakk>false/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
-  apply (rel_auto)
-  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
-
+  by (rel_auto)
+  
 lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   apply (rel_auto) using minus_zero_eq 
   by (simp add: fzero_weak_left_cancel_minus_ord_class.minus_zero_eq comp_def fzero_uexpr_def uop_ueval var.rep_eq)+
@@ -623,7 +595,6 @@ lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^
 
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
   apply (rel_simp)
-  apply (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
   using le_iff_zero_leq_minus by blast
 
 lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
@@ -685,14 +656,17 @@ lemma R2_form:
   using fzero_weak_left_cancel_minus_ord_class.le_iff_add by force
 
 lemma R2_subst_tr: 
-  assumes "P is R2" 
-  shows "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> P = [$tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> P"
+  assumes "P is R2" "`tr\<^sub>0 \<bar>\<^sub>u t`"
+  shows "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> P = [$tr \<mapsto>\<^sub>s fzero tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> P"
 proof -
-  have "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> R2 P = [$tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> R2 P"
-    by (rel_auto)
+  have "[$tr \<mapsto>\<^sub>s tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s tr\<^sub>0 + t] \<dagger> R2 P = [$tr \<mapsto>\<^sub>s fzero tr\<^sub>0, $tr\<acute> \<mapsto>\<^sub>s t] \<dagger> R2 P"
+    unfolding R2_def R1_def R2s_def
+    apply subst_tac
+    apply rel_simp
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+  oops
 
 lemma R2_seqr_form:
   shows "(R2(P) ;; R2(Q)) =
@@ -829,26 +803,17 @@ proof -
   also have "... =
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> =\<^sub>u $tr + fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-    apply (rel_auto)
-    using minus_prefix_disjoint 
-     apply (smt add.assoc fzero_weak_left_cancel_minus_ord_class.diff_add_cancel_left')
-    by (smt add.assoc fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left fzero_weak_left_cancel_minus_ord_class.le_add)
-(*    
   proof -
     have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
            = ($tr\<acute> =\<^sub>u $tr + fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-      apply (simp add:fzero_uexpr_def)
-      apply (rel_auto)
-     
+      apply (rel_simp)
+      apply (auto simp add:minus_prefix_disjoint)
          apply (metis add.assoc add_fzero_right fzero_weak_left_cancel_minus_ord_class.diff_add_cancel_left')
-      
-         apply (metis add.assoc add_fzero_right semigroup_weak_add_left_cancel_minus_ord_class.diff_add_cancel_left')
-         apply (metis prefix_sum semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_weak_add_left_cancel_minus_ord_class.diff_add_cancel_left')
-     (*   apply (metis add.assoc diff_add_cancel_left')*)
-          apply (metis (no_types, lifting) add.assoc add_fzero_right semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left)
-          by (simp add: add.assoc)
+      using minus_prefix_disjoint apply blast
+     apply (metis fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left fzero_weak_left_cancel_minus_ord_class.diff_zero fzero_weak_left_cancel_minus_ord_class.le_add fzero_weak_left_cancel_minus_ord_class.sum_minus_left plus_fzeros)
+    by (simp add: add.assoc fzero_le_add)
     thus ?thesis by rel_auto
-  qed*)
+  qed
   also have "... =
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -860,13 +825,11 @@ proof -
   qed
   also have "... =
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
-      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     apply (simp add:fzero_uexpr_def)
-    apply rel_auto    
-    nitpick
-    sledgehammer[debug=true]
-    using semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left by fastforce+
-  also have "... =
+    apply rel_simp    
+    using plus_fzeros by blast
+  (*also have "... =
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
       \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     apply (simp add:fzero_uexpr_def)
@@ -891,7 +854,7 @@ proof -
     apply (simp add:fzero_uexpr_def)
     apply rel_auto
     using prefix_rel_dist prefix_rel_sym 
-    by blast+
+    by blast+*)
   also have "... = (R2(P) ;; R2(Q))"
     by (simp add: R2_seqr_form)
   finally show ?thesis .
@@ -907,13 +870,11 @@ lemma false_R2 [closure]: "false is R2"
     
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
-  apply pred_auto
-  apply (simp add:fzero_uexpr_def)
+  apply rel_auto
   by (metis comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
 
 lemma R2_R1_form: "R2(R1(P)) = R1(R2s(P))"
   apply rel_auto
-  apply (simp add:fzero_uexpr_def)
   by (metis comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
   
 lemma R2s_H1_commute:
@@ -924,7 +885,7 @@ lemma R2s_H2_commute:
   "R2s(H2(P)) = H2(R2s(P))"
   by (simp add: H2_split R2s_def usubst fzero_uexpr_def)
 
-(* TODO: sadly no longer holds but it isn't used anywhere else either
+(* TODO: sadly no longer holds but it isn't used anywhere else either 
 lemma R2_R1_seq_drop_left:
   "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"
   apply rel_auto
@@ -934,8 +895,7 @@ lemma R2_R1_seq_drop_left:
   by (rel_auto) *)
 
 lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
-  apply rel_auto
-  by (simp add: fzero_uexpr_def uop.rep_eq var.rep_eq)+
+  by rel_auto
   
 lemma R2c_Idempotent [closure]: "Idempotent R2c"
   by (simp add: Idempotent_def R2c_idem)

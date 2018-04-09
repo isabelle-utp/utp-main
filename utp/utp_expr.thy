@@ -620,6 +620,21 @@ translations
   "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda> x \<bullet> e)"
   "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 
+instantiation uexpr :: (fzero, type) fzero
+begin
+  definition fzero_uexpr_def: "fzero u = uop fzero u"
+instance ..
+end
+
+syntax 
+   "_uprefix_rel"      :: "('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> ('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<bar>\<^sub>u" 50)
+
+translations
+   "x \<bar>\<^sub>u y"   == "CONST bop (CONST disjoint_rel) x y"
+
+instance uexpr :: (fzero_add_zero, type) fzero_add_zero
+  by (intro_classes) (simp add: fzero_uexpr_def plus_uexpr_def, transfer, simp)+
+
 subsection \<open> Evaluation laws for expressions \<close>
 
 text \<open> We now collect together all the definitional theorems for expression constructs, and use
@@ -643,6 +658,7 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
+  fzero_uexpr_def
 (*  plus_list_def *)
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
