@@ -72,7 +72,7 @@ class disjoint_rel = disjoint_rel_def + plus + fzero +
       -- \<open> A sum of related elements is related to another element iff. each component
            of the sum is also related to that other element. This holds for sets as well. \<close>
       and disjoint_rel_dist : "((a + b) \<bar> c) \<longleftrightarrow> ((a \<bar> c) \<and> (b \<bar> c))" "((c \<bar> a) \<and> (c \<bar> b)) \<longrightarrow> c \<bar> (a + b)"
-
+      and disjoint_rel_fzeros : "(f\<^sub>0(a) \<bar> b) \<and> (f\<^sub>0(a) \<bar> c) \<and> (a \<bar> (f\<^sub>0(a) + b + c)) \<longleftrightarrow> ((a \<bar> b) \<and> a \<bar> c)"
 text \<open> For disjoint relations where no two elements are ever non-disjoint we have
        a universal relation. \<close>
 
@@ -397,6 +397,14 @@ qed
   lemma minus_zero_eq: "\<lbrakk> b \<le> a; a - b = f\<^sub>0(b) \<rbrakk> \<Longrightarrow> a = b"
     using local.le_iff_add by auto
 
+  lemma minus_minus_fzero [simp]: "a - b - f\<^sub>0(b) = a - b"
+    by (metis local.add_fzero_right local.diff_diff_add local.diff_zero local.disjoint_rel_zero(1) local.not_le_minus)
+
+  lemma minus_prefix_disjoint: "b \<le> a \<and> a - b = c \<longleftrightarrow> a = b + c \<and> b \<bar> c"
+    using local.diff_add_cancel_left' local.disjoint_rel_sum by fastforce
+(*
+lemma "d = a + b + c \<and> (fzero(a) \<bar> b) \<and> ((fzero(a) + b) \<bar> c) \<and> a \<bar> (fzero(a) + b + c) \<and> a \<le> d \<longleftrightarrow> d = a + b + c \<and> a \<bar> b \<and> (a + b) \<bar> c \<and> a \<le> d"
+  nitpick*)
   (* Sadd:unit *)
   lemma 
   assumes "a \<bar> b"

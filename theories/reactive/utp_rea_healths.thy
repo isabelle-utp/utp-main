@@ -4,9 +4,156 @@ theory utp_rea_healths
   imports utp_rea_core
 begin
 
-subsection \<open> R1: Events cannot be undone \<close>
+lemma typi: 
+  "a A + (b A) = a A + (d A) \<Longrightarrow> \<exists>d. (\<lambda>ba. a ba + b ba) = (\<lambda>b. a b + d b)"
+  by auto
 
-definition R1 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+lemma typi2:
+  "(\<exists>d. (\<lambda>ba. a ba + b ba) = (\<lambda>b. a b + d b) \<and> (\<forall>A. prefix_rel (a A) (d A)))
+   =
+   (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A))"
+  apply auto
+  by metis
+
+lemma
+  "(\<not> (\<forall>A. prefix_rel (a A) (b A)) \<longrightarrow> (\<exists>d. (\<lambda>ba. a ba + b ba) = (\<lambda>b. a b + d b) \<and> (\<forall>A. prefix_rel (a A) (d A))))
+   =
+   ((\<forall>A. prefix_rel (a A) (b A)) \<or> (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A)))"
+  using typi2 
+  apply blast
+  done
+
+instantiation uexpr :: (fzero, type) fzero
+begin
+  definition fzero_uexpr_def: "fzero u = uop fzero u"
+instance ..
+end
+
+syntax 
+   "_uprefix_rel"      :: "('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> ('a::disjoint_rel, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<bar>\<^sub>u" 50)
+
+translations
+   "x \<bar>\<^sub>u y"   == "CONST bop (CONST disjoint_rel) x y"
+
+instance uexpr :: (fzero_add_zero, type) fzero_add_zero
+  by (intro_classes) (simp add: fzero_uexpr_def plus_uexpr_def, transfer, simp)+
+
+(*
+instance uexpr :: (fzero_sum_zero, type) fzero_sum_zero
+  apply (intro_classes) 
+  apply (simp add: fzero_uexpr_def plus_uexpr_def, transfer, auto)
+  sledgehammer[debug=true]*)
+
+(*
+lemma
+  "(\<forall>A. prefix_rel (a A) (b A))
+    \<longrightarrow>
+   (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A))"
+  apply auto
+  sledgehammer[debug=true]
+*)
+(*
+lemma "(\<not> (\<forall>A. (a A) \<inter> (b A) = {}) \<longrightarrow> (\<exists>d. (\<lambda>ba. a ba \<union> b ba) = (\<lambda>b. a b \<union> d b) \<and> (\<forall>A. (a A) \<inter> (d A) = {})))
+        =
+        ((\<forall>A. (a A) \<inter> (b A) = {}) \<or> (\<exists>d. \<forall>A. a A \<union> b A = a A \<union> d A \<and> (a A) \<inter> (d A) = {}))"
+  apply simp
+  also have "... = ((\<forall>A. prefix_rel (a A) (b A)) \<or> (\<forall>A. \<exists>d. a A + b A = a A + d A \<and> prefix_rel (a A) (d A)))"
+*)
+(*
+lemma opo: "\<not>prefix_rel a b \<longrightarrow> (\<exists>d. (a + b) = (a + d) \<and> (prefix_rel (a) (d)))"
+  using prefix_sum by blast
+
+lemma
+  assumes "\<forall>a b. \<exists>d. a + d = b \<and> R d b"
+  shows "\<exists>f d. a + (f d) = b \<and> R (f d) b"
+proof -
+  have "(\<exists>f d. a + (f d) = b \<and> R (f d) b)
+        =
+        (\<exists>x. a + x = b \<and> R x b)"
+    by auto
+  then show ?thesis
+  using assms 
+  by auto
+qed
+
+lemma
+  shows "(\<exists>d. \<exists>A. a A + b A = a A + d A)
+          =
+         (\<exists>d. \<exists>A. a A + b A = a A + d)"
+  apply auto
+  nitpick
+
+lemma 
+  fixes a :: "'b::{plus}"
+  assumes "\<forall>a b. (\<exists>d. ((a::'b) + b) = (a + d) \<longrightarrow> b = d \<and> R d b)" 
+  shows "(\<exists>d x. (a + b) = (a + d x) \<longrightarrow> b = d x \<and> R (d x) b)"
+  using assms 
+
+
+lemma 
+  fixes a :: "'b::{plus,prefix_rel}"
+  assumes "\<forall>a b. (\<exists>d. ((a::'b) + b) = (a + d) \<and> (prefix_rel (a) (d)))" "\<not>prefix_rel a b"
+  shows "\<exists>d x. (a + b) = (a + d x) \<and> (prefix_rel (a) (d x))"
+  apply (rule exI)
+  using assms apply auto
+
+lemma opo: "\<exists>f. (a A) + (b A) = (a A) + (f A) \<and> (prefix_rel (a A) (f A))"
+  using prefix_sum apply (simp only:Ex_def)
+  apply auto
+
+lemma "\<exists>d. \<forall>A. (a A) + (b A) = (a A) + (d A) \<and> (prefix_rel (a A) (d A))"
+  using opo 
+
+instantiation uexpr :: (prefix_rel, type) prefix_rel
+begin
+
+definition prefix_rel_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> (bool, 'b) uexpr" where
+"prefix_rel_uexpr a b = true"
+
+lift_definition prefix_rel_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool"
+  is "\<lambda> P Q. \<exists>A. prefix_rel (P A) (Q A)" .
+(*  is "\<lambda> P Q A. (prefix_rel (P A) (Q A))" . *)
+ 
+instance apply intro_classes
+        apply (simp_all add:fzero_uexpr_def  )
+     apply (simp add: prefix_rel_sym utp_rea_healths.prefix_rel_uexpr.rep_eq)
+    apply (simp add: prefix_rel_zero uop_ueval utp_rea_healths.prefix_rel_uexpr.rep_eq)
+  
+   apply (simp add: plus_uexpr_def)
+   apply (transfer)
+  sledgehammer[debug=true]
+proof -
+  have "(\<not> (\<forall>A. prefix_rel (a A) (b A)) \<longrightarrow> (\<exists>d. (\<lambda>ba. a ba + b ba) = (\<lambda>b. a b + d b) \<and> (\<forall>A. prefix_rel (a A) (d A))))
+        =
+        ((\<forall>A. prefix_rel (a A) (b A)) \<or> (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A)))"
+    using typi2 by blast
+  also have "... = (((\<forall>A. prefix_rel (a A) (b A)) \<and> (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A))) 
+                    \<or> (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A)))"
+    by auto
+  also have "... = (\<exists>d. \<forall>A. a A + b A = a A + d A \<and> prefix_rel (a A) (d A))"
+    by auto
+  also have "... = True"
+    apply auto
+  proof -
+    have "(\<forall>A. \<exists>d.  a A + b A = a A + d A \<and> prefix_rel (a A) (d A))
+          =
+          True"
+    apply auto
+  
+  apply (rule typi2)
+  
+       apply (simp add: bop_ueval plus_uexpr_def uop_ueval)
+      
+      
+      
+  apply (simp add: plus_uexpr_def uop_ueval )
+  
+      apply auto
+end*)
+
+subsection \<open> R1: Events cannot be undone \<close> 
+
+definition R1 :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 R1_def [upred_defs]: "R1 (P) = (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
 
 lemma R1_idem: "R1(R1(P)) = R1(P)"
@@ -74,10 +221,11 @@ lemma UINF_ind_R1_closed [closure]:
 lemma UINF_R1_closed [closure]:
   "\<lbrakk> \<And> i. P i is R1 \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<in> A \<bullet> P i) is R1"
   by (rel_blast)
-    
+
+(* TODO: Why use a list here?
 lemma tr_ext_conj_R1 [closure]: 
   "$tr\<acute> =\<^sub>u $tr ^\<^sub>u e \<and> P is R1"
-  by (rel_auto, simp add: Prefix_Order.prefixI)
+  by (rel_auto, simp add: Prefix_Order.prefixI) *)
 
 lemma tr_id_conj_R1 [closure]: 
   "$tr\<acute> =\<^sub>u $tr \<and> P is R1"
@@ -132,17 +280,20 @@ lemma R1_by_refinement:
   "P is R1 \<longleftrightarrow> (($tr \<le>\<^sub>u $tr\<acute>) \<sqsubseteq> P)"
   by (rel_blast)
 
+(* TODO: Why use a list here? 
 lemma R1_trace_extension [closure]:
   "$tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u e is R1"
-  by (rel_auto)
+  by (rel_auto) *)
     
 lemma tr_le_trans:
   "(($tr \<le>\<^sub>u $tr\<acute>) ;; ($tr \<le>\<^sub>u $tr\<acute>)) = ($tr \<le>\<^sub>u $tr\<acute>)"
-  by (rel_auto)
+  apply (rel_simp)
+  using order_trans by auto
     
 lemma R1_seqr:
   "R1(R1(P) ;; R1(Q)) = (R1(P) ;; R1(Q))"
-  by (rel_auto)
+  apply (rel_simp)
+  using order_trans by blast
 
 lemma R1_seqr_closure [closure]:
   assumes "P is R1" "Q is R1"
@@ -154,7 +305,8 @@ lemma R1_power [closure]: "P is R1 \<Longrightarrow> P\<^bold>^n is R1"
   by (induct n, simp_all add: upred_semiring.power_Suc closure)
 
 lemma R1_true_comp [simp]: "(R1(true) ;; R1(true)) = R1(true)"
-  by (rel_auto)
+  apply (rel_simp)
+  using order_trans by auto
 
 lemma R1_ok'_true: "(R1(P))\<^sup>t = R1(P\<^sup>t)"
   by pred_auto
@@ -172,7 +324,8 @@ lemma seqr_R1_true_right: "((P ;; R1(true)) \<or> P) = (P ;; ($tr \<le>\<^sub>u 
   by (rel_auto)
 
 lemma conj_R1_true_right: "(P;;R1(true) \<and> Q;;R1(true)) ;; R1(true) = (P;;R1(true) \<and> Q;;R1(true))"
-  apply (rel_auto) using dual_order.trans by blast+
+  apply (rel_auto) using dual_order.trans
+  using order_trans by blast+
 
 lemma R1_extend_conj_unrest: "\<lbrakk> $tr \<sharp> Q; $tr\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> R1(P \<and> Q) = (R1(P) \<and> Q)"
   by pred_auto
@@ -184,10 +337,13 @@ lemma R1_tr'_eq_tr: "R1($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)
   by (rel_auto)
 
 lemma R1_tr_less_tr': "R1($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
-  by (rel_auto)
+  apply (rel_simp)
+  using less_le_not_le by blast
 
 lemma tr_strict_prefix_R1_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R1"
-  by (rel_auto)
+  apply (rel_simp)
+  using less_imp_le by blast
+
     
 lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
   by (simp add: H2_split R1_def usubst, rel_auto)
@@ -196,19 +352,19 @@ subsection \<open> R2: No dependence upon trace history \<close>
 
 text \<open> There are various ways of expressing $R2$, which are enumerated below. \<close>
 
-definition R2a :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
-[upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
+definition R2a :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+[upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk> \<and> (fzero $tr) =\<^sub>u (fzero \<guillemotleft>s\<guillemotright>) \<and> \<guillemotleft>s\<guillemotright> \<bar>\<^sub>u ($tr\<acute>-$tr))"
 
-definition R2a' :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+definition R2a' :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
 [upred_defs]: "R2a' P = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
 
-definition R2s :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
-[upred_defs]: "R2s (P) = (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
+definition R2s :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+[upred_defs]: "R2s (P) = (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 
-definition R2 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition R2 :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "R2(P) = R1(R2s(P))"
 
-definition R2c :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition R2c :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "R2c(P) = (R2s(P) \<triangleleft> R1(true) \<triangleright> P)"
 
 text \<open> @{term R2a} and @{term R2s} are the standard definitions from the UTP book~\cite{Hoare&98}.
@@ -217,6 +373,13 @@ text \<open> @{term R2a} and @{term R2s} are the standard definitions from the U
   We overcome this with our own version, @{term R2c}, which applies @{term R2s} if @{term R1} holds,
   and otherwise has no effect. This latter healthiness condition can therefore be reasoned about
   independently of @{term R1}, which is useful in some circumstances. \<close>
+
+lemma fzero_unrest [unrest]:
+  assumes "y \<sharp> x"
+  shows "y \<sharp> (fzero x)"
+  using assms
+  apply pred_auto
+  by (simp add: fzero_uexpr_def uop.rep_eq)
 
 lemma unrest_ok_R2s [unrest]: "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> R2s(P)"
   by (simp add: R2s_def unrest)
@@ -258,23 +421,32 @@ lemma R2_subst_wait'_false [usubst]:
   by (simp add: R2_def R1_def R2s_def usubst unrest)
 
 lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
-  by (rel_auto)
-
+  apply rel_auto
+  by (simp add: fst_conv fzero_uexpr_def uop.rep_eq var.rep_eq)+
+ 
 lemma R2a_R2s: "R2a(R2s(P)) = R2s(P)"
-  by (rel_auto)
-
+  apply rel_auto
+   apply (simp_all add: des_vars.select_convs(2) fst_conv fzero_uexpr_def lit.rep_eq uop.rep_eq var.rep_eq)
+  by (metis disjoint_rel_zero(1) fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left fzero_weak_left_cancel_minus_ord_class.le_iff_add fzero_weak_left_cancel_minus_ord_class.not_le_minus)
+  
 lemma R2s_R2a: "R2s(R2a(P)) = R2a(P)"
-  by (rel_auto)
-
+  apply rel_auto
+  apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def lens.simps(1) lit.rep_eq minus_minus_fzero rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  by (smt comp_def des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.diff_zero lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  
 lemma R2a_equiv_R2s: "P is R2a \<longleftrightarrow> P is R2s"
   by (metis Healthy_def' R2a_R2s R2s_R2a)
 
 lemma R2a_idem: "R2a(R2a(P)) = R2a(P)"
-  by (rel_auto)
+  apply rel_auto
+   apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_uexpr_def lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  by (smt comp_def des_vars.select_convs(2) fst_conv fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
 
 lemma R2a'_idem: "R2a'(R2a'(P)) = R2a'(P)"
-  by (rel_auto)
-
+  apply rel_auto
+   apply (smt comp_apply des_vars.select_convs(2) fst_conv fzero_uexpr_def lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+      by (smt comp_def des_vars.select_convs(2) fst_conv fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left lens.simps(1) lit.rep_eq rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+    
 lemma R2a_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a(P) \<sqsubseteq> R2a(Q)"
   by (rel_blast)
 
@@ -283,16 +455,34 @@ lemma R2a'_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2a'(P) \<sqsubseteq> R2a'
 
 lemma R2a'_weakening: "R2a'(P) \<sqsubseteq> P"
   apply (rel_simp)
+  apply (simp add:fzero_uexpr_def)
+  apply rel_simp
   apply (rename_tac ok wait tr more ok' wait' tr' more')
   apply (rule_tac x="tr" in exI)
-  apply (simp add: diff_add_cancel_left')
-  done
+  apply (simp add: diff_add_cancel_left' fzero_uexpr_def uop_ueval var.rep_eq)
+  using fzero_weak_left_cancel_minus_ord_class.le_iff_add by force
+
+lemma fzero_fzero_tr: "fzero (fzero $tr) = fzero $tr"
+  by (pred_auto)
+    
+lemma fzero_fzero_tr_subst:
+  "(fzero $tr)\<lbrakk>(fzero $tr)/$tr\<rbrakk> = fzero $tr"
+  apply pred_simp
+  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)
+
+lemma fzero_subst:
+  "(fzero $tr)\<lbrakk>e/$tr\<rbrakk> = fzero e"
+  apply pred_simp
+  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)
 
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
-  by (pred_auto)
-
+  apply pred_auto
+  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
+  
 lemma R2_idem: "R2(R2(P)) = R2(P)"
-  by (pred_auto)
+  apply (pred_auto)
+    apply (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+ (* TODO: add theorem to simplifier *)
+  using fzero_weak_left_cancel_minus_ord_class.not_le_minus by fastforce
 
 lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
   by (pred_auto)
@@ -307,7 +497,9 @@ lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<gui
   by (rel_auto)
 
 lemma tr_strict_prefix_R2c_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R2c"
-  by (rel_auto)
+  apply rel_auto
+   apply (simp add: fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.zero_le_minus_imp_le uop_ueval var.rep_eq)
+  by (simp add: fzero_uexpr_def le_imp_zero_le_minus uop_ueval var.rep_eq)
 
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
@@ -344,6 +536,8 @@ lemma R2s_condr: "R2s(P \<triangleleft> b \<triangleright> Q) = (R2s(P) \<triang
   by (rel_auto)
 
 lemma R2_condr: "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2(b) \<triangleright> R2(Q))"
+  unfolding R2_def R2s_def
+  apply subst_tac
   by (rel_auto)
 
 lemma R2_condr': "R2(P \<triangleleft> b \<triangleright> Q) = (R2(P) \<triangleleft> R2s(b) \<triangleright> R2(Q))"
@@ -411,19 +605,26 @@ lemma R2c_wait': "R2c($wait\<acute>) = $wait\<acute>"
   by (rel_auto)
 
 lemma R2c_wait'_true [usubst]: "(R2c P)\<lbrakk>true/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>true/$wait\<acute>\<rbrakk>)"
-  by (rel_auto)
+  apply rel_auto
+  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
 
 lemma R2c_wait'_false [usubst]: "(R2c P)\<lbrakk>false/$wait\<acute>\<rbrakk> = R2c(P\<lbrakk>false/$wait\<acute>\<rbrakk>)"
-  by (rel_auto)
+  apply (rel_auto)
+  by (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
 
 lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
-  apply (rel_auto) using minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq 
+  by (simp add: fzero_weak_left_cancel_minus_ord_class.minus_zero_eq comp_def fzero_uexpr_def uop_ueval var.rep_eq)+
+  
 
 lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^sub>u $tr)"
-  by (rel_auto)
+  apply (rel_simp)
+  by (metis (no_types, lifting) comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
 
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
-  by (rel_auto)
+  apply (rel_simp)
+  apply (simp add: fzero_uexpr_def uop_ueval var.rep_eq)+
+  using le_iff_zero_leq_minus by blast
 
 lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
   by (rel_auto)
@@ -447,8 +648,9 @@ proof -
 qed
 
 lemma R1_R2c_commute: "R1(R2c(P)) = R2c(R1(P))"
-  by (rel_auto)
-
+  apply rel_auto
+  by (metis (no_types, lifting) comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  
 lemma R1_R2c_is_R2: "R1(R2c(P)) = R2(P)"
   by (rel_auto)
 
@@ -457,25 +659,30 @@ lemma R1_R2s_R2c: "R1(R2s(P)) = R1(R2c(P))"
 
 lemma R1_R2s_tr_wait:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
-  apply rel_auto using minus_zero_eq by blast
+  apply rel_auto using minus_zero_eq
+  by (simp add: fzero_weak_left_cancel_minus_ord_class.minus_zero_eq fzero_uexpr_def uop.rep_eq var.rep_eq)+
 
 lemma R1_R2s_tr'_eq_tr:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr)) = ($tr\<acute> =\<^sub>u $tr)"
-  apply (rel_auto) using minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq
+  by (simp add: fzero_weak_left_cancel_minus_ord_class.minus_zero_eq fzero_uexpr_def uop.rep_eq var.rep_eq)+
 
+(* TODO: 
 lemma R1_R2s_tr'_extend_tr:
   "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr  ^\<^sub>u v)"
   apply (rel_auto)
    apply (metis append_minus)
   apply (simp add: Prefix_Order.prefixI)
-  done
+  done *)
 
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
-  by (pred_auto)
-
+  apply (rel_simp)
+  by (metis (no_types, lifting) comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  
 lemma R2_form:
-  "R2(P) = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
-  by (rel_auto, metis trace_class.add_diff_cancel_left trace_class.le_iff_add)
+  "R2(P) = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>)"
+  apply rel_auto
+  using fzero_weak_left_cancel_minus_ord_class.le_iff_add by force
 
 lemma R2_subst_tr: 
   assumes "P is R2" 
@@ -489,47 +696,83 @@ qed
 
 lemma R2_seqr_form:
   shows "(R2(P) ;; R2(Q)) =
-         (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
-                        \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+         (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                        \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
 proof -
   have "(R2(P) ;; R2(Q)) = (\<^bold>\<exists> tr\<^sub>0 \<bullet> (R2(P))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> ;; (R2(Q))\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>)"
     by (subst seqr_middle[of tr], simp_all)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((\<^bold>\<exists> tt\<^sub>1 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk>) ;; 
+                            ((\<^bold>\<exists> tt\<^sub>2 \<bullet> Q\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>)) "
+    by (simp add: R2_form)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((\<^bold>\<exists> tt\<^sub>1 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                            (\<^bold>\<exists> tt\<^sub>2 \<bullet> Q\<lbrakk>(fzero($tr)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"
+    by (rel_auto)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((\<^bold>\<exists> tt\<^sub>1 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                            (\<^bold>\<exists> tt\<^sub>2 \<bullet> Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<rbrakk>))"
+    by (simp add:fzero_subst)
+  also have "... = (\<^bold>\<exists> tr\<^sub>0 \<bullet> ((\<^bold>\<exists> tt\<^sub>1 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;; 
+                            (\<^bold>\<exists> tt\<^sub>2 \<bullet> Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> ($tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
+    by rel_auto
   also have "... =
-       (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
-                                (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
-    by (simp add: R2_form usubst unrest uquant_lift, rel_blast)
+       (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
+                                (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
+    apply (simp add: R2_form usubst unrest uquant_lift)
+    by pred_auto
   also have "... =
-       (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;;
-                                (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
-    by (simp add: conj_comm)
+       (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
+                                (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
+    by pred_auto
   also have "... =
-       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
-                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     by (rel_blast)
   also have "... =
-       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
-                        \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>  \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    by rel_blast
+  also have "... =
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>) =\<^sub>u fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:usubst unrest fzero_uexpr_def) (* TODO: Really need to incorporate fzero_uexpr_def in the tactic simp *)
     by (rel_auto)
   also have "... =
-       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
-                        \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-    by (rel_auto)
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> fzero(\<guillemotleft>tr\<^sub>0\<guillemotright>) =\<^sub>u fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>) \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:usubst unrest fzero_uexpr_def) (* TODO: Really need to incorporate fzero_uexpr_def in the tactic simp *)
+    apply (rel_simp robust)
+    using fzero_plus_right
+    by blast
+  also have "... =
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> \<^bold>\<exists> tr\<^sub>0 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                                \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:usubst unrest fzero_uexpr_def) (* TODO: Really need to incorporate fzero_uexpr_def in the tactic simp *)
+    apply (rel_auto)
+     apply blast
+    using fzero_plus_right by fastforce
+  also have "... =
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                        \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tr\<^sub>0\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    by rel_simp
+  also have "... =
+       (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                        \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    by pred_auto
   finally show ?thesis .
 qed
 
 lemma R2_seqr_form':
   assumes "P is R2" "Q is R2"
   shows "P ;; Q =
-         (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
-                        \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+         (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
+                        \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   using R2_seqr_form[of P Q] by (simp add: Healthy_if assms)
 
 lemma R2_seqr_form'':
   assumes "P is R2" "Q is R2"
   shows "P ;; Q =
-         (\<^bold>\<exists> (tt\<^sub>1, tt\<^sub>2) \<bullet> ((P\<lbrakk>0,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>0,\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr,$tr\<acute>\<rbrakk>))
-                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-  by (subst R2_seqr_form', simp_all add: assms, rel_auto)
+         (\<^bold>\<exists> (tt\<^sub>1, tt\<^sub>2) \<bullet> ((P\<lbrakk>fzero($tr),\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>),\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr,$tr\<acute>\<rbrakk>))
+                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+  by (subst R2_seqr_form', simp_all add: assms fzero_uexpr_def, rel_auto)
 
 lemma R2_tr_middle:
   assumes "P is R2" "Q is R2"
@@ -546,39 +789,109 @@ proof -
   finally show ?thesis ..
 qed
 
+lemma subst_prefix_rel: "($tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)\<lbrakk>e/$tr\<rbrakk> = (e \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)"
+  by subst_tac
+
 lemma R2_seqr_distribute:
-  fixes P :: "('t::trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  fixes P :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
   shows "R2(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
 proof -
-  have "R2(R2(P) ;; R2(Q)) =
-    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk>
-      \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
-    by (simp add: R2_seqr_form, simp add: R2s_def usubst unrest, rel_auto)
+   have "R2(R2(P) ;; R2(Q)) =
+    (R2s(\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+     apply (simp add: R2_seqr_form) 
+     by (simp add: R1_def R2_def)
+   also have "... =
+    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk> \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+     by (simp add:R2s_def)
+   also have "... =
+    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk> \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+     apply (simp add:usubst unrest fzero_uexpr_def)
+     by (rel_simp)
   also have "... =
-    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)/$tr\<acute>\<rbrakk>
-      \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
-      by (subst subst_eq_replace, simp)
+    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>($tr\<acute> - $tr)/$tr\<acute>\<rbrakk>
+      \<and> $tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+    by (simp add:usubst unrest)
   also have "... =
-    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
-      \<and> $tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)\<lbrakk>(fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)/$tr\<acute>\<rbrakk>
+      \<and> $tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
+    by rel_simp
+  also have "... =
+    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr)"
       by (rel_auto)
   also have "... =
-    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
-      \<and> ($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr\<acute> \<ge>\<^sub>u $tr))"
-    by pred_auto
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> ($tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr\<acute> \<ge>\<^sub>u $tr))"
+    by pred_auto (* goal: ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) *)
   also have "... =
-    ((\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
-      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    apply (rel_auto)
+    using minus_prefix_disjoint 
+     apply (smt add.assoc fzero_weak_left_cancel_minus_ord_class.diff_add_cancel_left')
+    by (smt add.assoc fzero_weak_left_cancel_minus_ord_class.add_diff_cancel_left fzero_weak_left_cancel_minus_ord_class.le_add)
+(*    
   proof -
-    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
-           = ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
+           = ($tr\<acute> =\<^sub>u $tr + fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+      apply (simp add:fzero_uexpr_def)
       apply (rel_auto)
-        apply (metis add.assoc diff_add_cancel_left')
-       apply (simp add: add.assoc)
-      apply (meson le_add order_trans)
-      done
-    thus ?thesis by simp
+     
+         apply (metis add.assoc add_fzero_right fzero_weak_left_cancel_minus_ord_class.diff_add_cancel_left')
+      
+         apply (metis add.assoc add_fzero_right semigroup_weak_add_left_cancel_minus_ord_class.diff_add_cancel_left')
+         apply (metis prefix_sum semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_weak_add_left_cancel_minus_ord_class.diff_add_cancel_left')
+     (*   apply (metis add.assoc diff_add_cancel_left')*)
+          apply (metis (no_types, lifting) add.assoc add_fzero_right semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left)
+          by (simp add: add.assoc)
+    thus ?thesis by rel_auto
+  qed*)
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+  proof -
+    have "$tr + fzero($tr) = $tr"
+    apply (simp add:fzero_uexpr_def)
+      by (rel_auto)
+    thus ?thesis by auto
   qed
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero(\<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u (\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    apply (simp add:fzero_uexpr_def)
+    apply rel_auto    
+    nitpick
+    sledgehammer[debug=true]
+    using semigroup_weak_add_left_cancel_minus_ord_class.add_diff_cancel_left by fastforce+
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:fzero_uexpr_def)
+    apply rel_auto
+    using prefix_rel_dist prefix_rel_sym by blast+
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> (fzero($tr) + $tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> (fzero($tr) + $tr) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:fzero_uexpr_def)
+    apply rel_auto
+    using prefix_rel_dist prefix_rel_sym 
+     apply blast
+    using prefix_rel_dist by force
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:fzero_uexpr_def)
+    by rel_auto
+  also have "... =
+    (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> (P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>)
+      \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright> \<and> $tr \<bar>\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> ($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>) \<bar>\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+    apply (simp add:fzero_uexpr_def)
+    apply rel_auto
+    using prefix_rel_dist prefix_rel_sym 
+    by blast+
   also have "... = (R2(P) ;; R2(Q))"
     by (simp add: R2_seqr_form)
   finally show ?thesis .
@@ -594,26 +907,36 @@ lemma false_R2 [closure]: "false is R2"
     
 lemma R1_R2_commute:
   "R1(R2(P)) = R2(R1(P))"
-  by pred_auto
+  apply pred_auto
+  apply (simp add:fzero_uexpr_def)
+  by (metis comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
 
 lemma R2_R1_form: "R2(R1(P)) = R1(R2s(P))"
-  by (rel_auto)
-
+  apply rel_auto
+  apply (simp add:fzero_uexpr_def)
+  by (metis comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  
 lemma R2s_H1_commute:
   "R2s(H1(P)) = H1(R2s(P))"
   by (rel_auto)
 
 lemma R2s_H2_commute:
   "R2s(H2(P)) = H2(R2s(P))"
-  by (simp add: H2_split R2s_def usubst)
+  by (simp add: H2_split R2s_def usubst fzero_uexpr_def)
 
+(* TODO: sadly no longer holds but it isn't used anywhere else either
 lemma R2_R1_seq_drop_left:
   "R2(R1(P) ;; R1(Q)) = R2(P ;; R1(Q))"
-  by (rel_auto)
+  apply rel_auto
+  apply (simp add:fzero_uexpr_def)
+    sledgehammer[debug=true]
+    nitpick
+  by (rel_auto) *)
 
 lemma R2c_idem: "R2c(R2c(P)) = R2c(P)"
-  by (rel_auto)
-
+  apply rel_auto
+  by (simp add: fzero_uexpr_def uop.rep_eq var.rep_eq)+
+  
 lemma R2c_Idempotent [closure]: "Idempotent R2c"
   by (simp add: Idempotent_def R2c_idem)
 
@@ -621,7 +944,7 @@ lemma R2c_Monotonic [closure]: "Monotonic R2c"
   by (rel_auto)
 
 lemma R2c_H2_commute: "R2c(H2(P)) = H2(R2c(P))"
-  by (simp add: H2_split R2c_disj R2c_def R2s_def usubst, rel_auto)
+  by (simp add: H2_split R2c_disj R2c_def R2s_def usubst fzero_uexpr_def, rel_auto)
 
 lemma R2c_seq: "R2c(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
   by (metis (no_types, lifting) R1_R2c_commute R1_R2c_is_R2 R2_seqr_distribute R2c_idem)
@@ -636,7 +959,7 @@ lemma R2c_R1_seq: "R2c(R1(R2c(P)) ;; R1(R2c(Q))) = (R1(R2c(P)) ;; R1(R2c(Q)))"
   using R2c_seq[of P Q] by (simp add: R2_R2c_def)
 
 lemma R1_R2c_seqr_distribute:
-  fixes P :: "('t::trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  fixes P :: "('t::fzero_weak_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
   assumes "P is R1" "P is R2c" "Q is R1" "Q is R2c"
   shows "R1(R2c(P ;; Q)) = P ;; Q"
   by (metis Healthy_if R1_seqr R2c_R1_seq assms)
@@ -646,18 +969,25 @@ lemma R2_R1_true:
   by (simp add: R2_R1_form R2s_true)
     
 lemma R1_true_R2 [closure]: "R1(true) is R2"
-  by (rel_auto)
-
+  apply (rel_auto)
+  by (metis (no_types, lifting) comp_apply des_vars.select_convs(2) fst_conv fzero_idem fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.not_le_minus lens.simps(1) minus_minus_fzero order_refl rp_vars.select_convs(2) uop.rep_eq var.rep_eq)
+  
+(* TODO: fix this 
 lemma R1_R2s_R1_true_lemma:
   "R1(R2s(R1 (\<not> R2s P) ;; R1 true)) = R1(R2s((\<not> P) ;; R1 true))"
-  by (rel_auto)
+  apply (rel_auto)
+  apply (simp add:fzero_uexpr_def)
+  apply (smt comp_apply comp_eq_dest_lhs des_vars.select_convs(2) fst_conv fzero_almost_trace_class.diff_cancel fzero_almost_trace_class.diff_zero fzero_uexpr_def fzero_uexpr_def lens.simps(1) rp_vars.select_convs(2) uop.rep_eq uop.rep_eq uop_ueval uop_ueval var.rep_eq)
+  sledgehammer[debug=true]
+  nitpick
+  by (simp add: fzero_uexpr_def uop.rep_eq var.rep_eq)+*)
 
 lemma R2c_healthy_R2s: "P is R2c \<Longrightarrow> R1(R2s(P)) = R1(P)"
   by (simp add: Healthy_def R1_R2s_R2c) 
 
 subsection \<open> R3: No activity while predecessor is waiting \<close>
 
-definition R3 :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
+definition R3 :: "('t::fzero_weak_trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
 [upred_defs]: "R3(P) = (II \<triangleleft> $wait \<triangleright> P)"
 
 lemma R3_idem: "R3(R3(P)) = R3(P)"
@@ -723,12 +1053,11 @@ lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
 
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   apply (rel_auto)
-  using minus_zero_eq apply blast+
-  done
+  by (simp add: fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.minus_zero_eq uop.rep_eq var.rep_eq)+
 
 subsection \<open> R4: The trace strictly increases \<close>
 
-definition R4 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition R4 :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "R4(P) = (P \<and> $tr <\<^sub>u $tr\<acute>)"
 
 lemma R4_implies_R1 [closure]: "P is R4 \<Longrightarrow> P is R1"
@@ -778,11 +1107,12 @@ lemma seq_R4_closed_2 [closure]:
 
 subsection \<open> R5: The trace does not increase \<close>
 
-definition R5 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+definition R5 :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "R5(P) = (P \<and> $tr =\<^sub>u $tr\<acute>)"
 
 lemma R5_implies_R1 [closure]: "P is R5 \<Longrightarrow> P is R1"
-  using eq_iff by rel_blast
+  using eq_iff 
+  apply rel_auto using eq_refl by smt
 
 lemma R5_iff_refine:
   "P is R5 \<longleftrightarrow> ($tr =\<^sub>u $tr\<acute>) \<sqsubseteq> P"
@@ -867,27 +1197,27 @@ qed
 subsection \<open> UTP theories \<close>
 
 typedecl REA
-abbreviation "REA \<equiv> UTHY(REA, ('t::trace,'\<alpha>) rp)"
+abbreviation "REA \<equiv> UTHY(REA, ('t::fzero_weak_trace,'\<alpha>) rp)"
 
 overloading
-  rea_hcond == "utp_hcond :: (REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  rea_unit == "utp_unit :: (REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+  rea_hcond == "utp_hcond :: (REA, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  rea_unit == "utp_unit :: (REA, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
 begin
-  definition rea_hcond :: "(REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  definition rea_hcond :: "(REA, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
   where [upred_defs]: "rea_hcond T = RP"
-  definition rea_unit :: "(REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+  definition rea_unit :: "(REA, ('t::fzero_weak_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
   where [upred_defs]: "rea_unit T = II"
 end
 
-interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::trace,'\<alpha>) rp)"
+interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::fzero_weak_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (simp_all add: rea_hcond_def utp_theory_def RP_idem)
 
-interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::trace,'\<alpha>) rp)"
+interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::fzero_weak_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: RP_Continuous rea_hcond_def)
 
-interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::trace,'\<alpha>) rp)"
+interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::fzero_weak_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: rea_hcond_def rea_unit_def RP_seq_closure RP_skip_closure)
 
@@ -896,7 +1226,8 @@ proof -
   have "\<^bold>\<top>\<^bsub>REA\<^esub> = RP(false)"
     by (simp add: rea_utp_theory_mono.healthy_top, simp add: rea_hcond_def)
   also have "... = ($wait \<and> II)"
-    by (rel_auto, metis minus_zero_eq)
+    apply rel_auto
+    by (simp add: fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.minus_zero_eq uop.rep_eq var.rep_eq)+
   finally show ?thesis .
 qed
 
@@ -920,7 +1251,8 @@ proof -
   have "\<^bold>\<bottom>\<^bsub>REA\<^esub> = RP(true)"
     by (simp add: rea_utp_theory_mono.healthy_bottom, simp add: rea_hcond_def)
   also have "... = R1($wait \<Rightarrow> II)"
-    by (rel_auto, metis minus_zero_eq)
+    apply rel_auto
+    by (simp add: fzero_uexpr_def fzero_weak_left_cancel_minus_ord_class.minus_zero_eq uop.rep_eq var.rep_eq)+
   finally show ?thesis .
 qed
 
