@@ -511,25 +511,49 @@ lemma refusal_rel_dist_2: "(c = \<bullet> \<or> c \<inter>\<^sub>\<R> a = [{}]\<
     then show ?case apply(case_tac c) 
        by (auto simp add: plus_refusal.rep_eq)+
    qed
-(*
+
 definition isok :: "'e refusal \<Rightarrow> 'e refusal \<Rightarrow> bool" where
   "isok a b = (a \<inter>\<^sub>\<R> b = [{}]\<^sub>\<R> \<or> (a = \<bullet>))"
 
+primrec fzerorefusal :: "'e refusal \<Rightarrow> 'e refusal" where 
+    "fzerorefusal \<bullet> = \<bullet>" | "fzerorefusal [_]\<^sub>\<R> = [{}]\<^sub>\<R>"
+
+lemma "(isok (fzerorefusal a) b) \<and> (isok (fzerorefusal a + b) c) \<and> isok a (fzerorefusal(a) + b + c) \<longleftrightarrow> isok a b \<and> isok (a + b) c"
+proof (induct a b rule:sup_refusal.induct)
+  case (1 R)
+  then show ?case apply auto 
+    using isok_def by blast
+next
+  case (2 v)
+  then show ?case apply (case_tac c)
+    by (simp add: isok_def refusal.distinct(1))+
+next
+  case (3 S R)
+  then show ?case apply (case_tac c)
+    
+     apply (simp add: isok_def plus_refusal.rep_eq)+
+    by blast
+qed
+
+lemma "(isok (fzerorefusal a) b) \<and> (isok (fzerorefusal a) c) \<and> isok a (fzerorefusal(a) + b + c) \<longleftrightarrow> isok a b \<and> isok a c"
+  
   lemma refusal_rel_refusal_cancel:
     "(isok a b \<and> isok a d \<and> a + b = a + d) \<longrightarrow> b = d"
-    nitpick
+    
     (** true **)
     oops
 
   lemma 
     
     shows"(isok (a + b) c) \<longleftrightarrow> (isok a c \<and> isok b c)"
-    nitpick
+    
 
 lemma 
     shows "(isok c a \<and> isok c b) \<longrightarrow> (isok c (a + b))"
-    nitpick *)
+  nitpick
 
+lemma "isok c (fzero a + b) \<longrightarrow> isok c (fzero a) \<and> isok c b"
+nitpick
 (* so: {} {} ok, \<bullet> {} ok, {} \<bullet> not-ok, \<bullet> \<bullet> ok, {a} \<bullet> not-ok, {a} {b} not-ok, 
     
    so (a \<inter> b \<noteq> {}) \<longrightarrow> (b \<noteq> \<bullet> \<longrightarrow> a \<noteq> \<bullet>) = (a \<inter> b = {} \<or> (b = \<bullet> \<or> a \<noteq> \<bullet>) *)
@@ -569,7 +593,7 @@ lemma
 
 lemma
   fixes a b :: "'e refusal"
-  assumes "c \<bar> a" "c + a \<le> c + b"
+  assumes "c \<bar> a" "c \<bar> b" "c + a \<le> c + b"
   shows "a \<le> b"
   nitpick
 

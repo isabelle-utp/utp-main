@@ -18,7 +18,7 @@ text \<open> The alphabet of reactive processes contains a boolean variable $wai
   the design alphabet, and thus includes the $ok$ variable. For more information on these, see
   the UTP book~\cite{Hoare&98}, or the associated tutorial~\cite{Cavalcanti&06}. \<close>
 
-alphabet 't::fzero_trace rp_vars = des_vars +
+alphabet 't::fzero_weak_trace rp_vars = des_vars +
   wait :: bool
   tr   :: "'t"
 
@@ -90,10 +90,10 @@ lemma rea_var_ords [usubst]:
   "$tr \<prec>\<^sub>v $wait" "$tr\<acute> \<prec>\<^sub>v $wait\<acute>" "$tr \<prec>\<^sub>v $wait\<acute>" "$tr\<acute> \<prec>\<^sub>v $wait"
   by (simp_all add: var_name_ord_def)
 
-abbreviation wait_f::"('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
+abbreviation wait_f::"('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
-abbreviation wait_t::"('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
+abbreviation wait_t::"('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
   
 syntax
@@ -107,7 +107,7 @@ translations
 abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
 "\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-abbreviation drop_rea :: "('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("\<lfloor>_\<rfloor>\<^sub>R") where
+abbreviation drop_rea :: "('t::fzero_weak_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("\<lfloor>_\<rfloor>\<^sub>R") where
 "\<lfloor>P\<rfloor>\<^sub>R \<equiv> P \<restriction>\<^sub>e (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
@@ -165,12 +165,12 @@ text \<open> The following lens represents the portion of the state-space that i
 
 consts g :: "'t \<Rightarrow> 't"
 
-definition tcontr :: "'t::fzero_trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("tt") where
+definition tcontr :: "'t::fzero_weak_trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("tt") where
   [lens_defs]:
   "tcontr = \<lparr> lens_get = (\<lambda> s. get\<^bsub>($tr\<acute>)\<^sub>v\<^esub> s - get\<^bsub>($tr)\<^sub>v\<^esub> s) , 
               lens_put = (\<lambda> s v. put\<^bsub>($tr\<acute>)\<^sub>v\<^esub> s (get\<^bsub>($tr)\<^sub>v\<^esub> s + v)) \<rparr>"
 
-definition itrace :: "'t::fzero_trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("\<^bold>i\<^bold>t") where
+definition itrace :: "'t::fzero_weak_trace \<Longrightarrow> ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp" ("\<^bold>i\<^bold>t") where
   [lens_defs]:
   "itrace = \<lparr> lens_get = get\<^bsub>($tr)\<^sub>v\<^esub>, 
               lens_put = (\<lambda> s v. put\<^bsub>($tr\<acute>)\<^sub>v\<^esub> (put\<^bsub>($tr)\<^sub>v\<^esub> s v) v) \<rparr>"
