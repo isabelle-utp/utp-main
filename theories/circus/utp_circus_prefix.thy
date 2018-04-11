@@ -87,8 +87,9 @@ syntax
   "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
 
 translations
-  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightleftharpoons> "CONST InputVarCSP c x A P"
-  "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (CONST UNIV) P"
+  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightharpoonup> "CONST InputVarCSP c x A P"
+  "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true) P"
+  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" <= "CONST InputVarCSP c x (\<lambda> x'. A) P"
   "c\<^bold>?$x \<^bold>\<rightarrow> P"   <= "c\<^bold>?$x:true \<^bold>\<rightarrow> P"
 
 lemma outp_constraint_prod:
