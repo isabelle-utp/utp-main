@@ -592,7 +592,7 @@ definition InputCSP ::
 [upred_defs]: "InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>u PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
 
 definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> ('a \<Longrightarrow> '\<sigma>) \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('\<sigma>, '\<theta>) action \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-"InputVarCSP c x A P = InputCSP c A (\<lambda> v. \<langle>[x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>]\<rangle>\<^sub>C) ;; CSP(P)"
+[upred_defs, rdes_def]: "InputVarCSP c x A P = InputCSP c A (\<lambda> v. \<langle>[x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>]\<rangle>\<^sub>C) ;; P"
 
 definition do\<^sub>I :: "
   ('a, '\<theta>) chan \<Rightarrow>

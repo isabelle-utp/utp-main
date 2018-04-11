@@ -229,8 +229,8 @@ syntax
   "_altindR_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
   "_altindR"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
   (* We reuse part of the parsing infrastructure for design alternation over a (finite) list of branches *)
-  "_altgcommR_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R _ else _ fi")
-  "_altgcommR"     :: "gcomms \<Rightarrow> logic" ("if\<^sub>R _ fi")
+  "_altgcommR_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if\<^sub>R/ _ else _ /fi")
+  "_altgcommR"     :: "gcomms \<Rightarrow> logic" ("if\<^sub>R/ _ /fi")
 
 translations
   "if\<^sub>R i\<in>I \<bullet> g \<rightarrow> A else B fi"  \<rightharpoonup> "CONST AlternateR I (\<lambda>i. g) (\<lambda>i. A) B"
@@ -575,12 +575,20 @@ definition IterateR
   :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
 where "IterateR A g P = while\<^sub>R (\<Or> i\<in>A \<bullet> g(i)) do (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi) od"
 
+definition IterateR_list 
+  :: "('s upred \<times> ('s, 't::size_trace, '\<alpha>) hrel_rsp) list \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where 
+[upred_defs, ndes_simp]:
+  "IterateR_list xs = IterateR {0..<length xs} (\<lambda> i. map fst xs ! i) (\<lambda> i. map snd xs ! i)"
+
 syntax
-  "_iter_srd" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
-  
+  "_iter_srd"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_iter_gcommR" :: "gcomms \<Rightarrow> logic" ("do\<^sub>R/ _ /od")
+
 translations
   "_iter_srd x A g P" => "CONST IterateR A (\<lambda> x. g) (\<lambda> x. P)"
   "_iter_srd x A g P" <= "CONST IterateR A (\<lambda> x. g) (\<lambda> x'. P)"
+  "_iter_gcommR cs" \<rightharpoonup> "CONST IterateR_list cs"
+  "_iter_gcommR (_gcomm_show cs)" \<leftharpoondown> "CONST IterateR_list cs"
 
 lemma IterateR_NSRD_closed [closure]:
   assumes 

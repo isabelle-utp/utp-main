@@ -150,11 +150,11 @@ syntax
   "_altind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
   "_gcomm"        :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [65, 66] 65)
   "_gcomm_nil"    :: "gcomm \<Rightarrow> gcomms" ("_")
-  "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ | _" [60, 61] 61)
+  "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ |/ _" [60, 61] 61)
   "_gcomm_show"   :: "logic \<Rightarrow> logic"
-  "_altgcomm_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if _ else _ fi")
-  "_altgcomm"     :: "gcomms \<Rightarrow> logic" ("if _ fi")
-  
+  "_altgcomm_els" :: "gcomms \<Rightarrow> logic \<Rightarrow> logic" ("if/ _ /else _ /fi")
+  "_altgcomm"     :: "gcomms \<Rightarrow> logic" ("if/ _ /fi")
+
 translations
   "_altind_els x A g P Q" => "CONST ualtern A (\<lambda> x. g) (\<lambda> x. P) Q"
   "_altind_els x A g P Q" <= "CONST ualtern A (\<lambda> x. g) (\<lambda> x'. P) Q"
@@ -171,7 +171,7 @@ translations
   "_gcomm_cons (_gcomm_show c) (_gcomm_show (d # cs))" <= "_gcomm_show (c # d # cs)"
   "_gcomm_nil c" => "[c]"
   "_gcomm_nil (_gcomm_show c)" <= "_gcomm_show [c]"
-  
+
 lemma AlternateD_H1_H3_closed [closure]: 
   assumes "\<And> i. i \<in> A \<Longrightarrow> P i is \<^bold>N" "Q is \<^bold>N"
   shows "if i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi is \<^bold>N"
