@@ -637,6 +637,10 @@ declare rrel_thy.bottom_healthy [simp del]
 abbreviation rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
 "P\<^sup>\<star>\<^sup>r \<equiv> P\<^bold>\<star>\<^bsub>RREL\<^esub>"
 
+text \<open> The supernova tactic explodes conjectures using the Kleene star laws and relational calculus \<close>
+
+method supernova = ((safe intro!: rrel_thy.Star_inductr rrel_thy.Star_inductl, simp_all add: closure) ; rel_auto)[1]
+
 subsection \<open> Instantaneous Reactive Relations \<close>
 
 text \<open> Instantaneous Reactive Relations, where the trace stays the same. \<close>
