@@ -868,7 +868,7 @@ proof -
       case (Suc i)
       then show ?case
         by (simp add: upred_semiring.power_Suc)
-           (metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 resugar_cond upred_semiring.mult.left_neutral)
+           (metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 upred_semiring.mult.left_neutral)
     qed
   qed
   also have "... = (\<Sqinter>i\<in>{0..} \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; [\<not>b]\<^sup>\<top>)"

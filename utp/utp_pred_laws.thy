@@ -849,11 +849,6 @@ lemma cond_monotonic:
   "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X \<triangleleft> b \<triangleright> Q X)"
   by (simp add: mono_def, rel_blast)
 
-text \<open> Sometimes Isabelle desugars conditionals, and the following law undoes this \<close>
-
-lemma resugar_cond: "trop (\<lambda> b P Q. (b \<longrightarrow> P) \<and> (\<not> b \<longrightarrow> Q)) b P Q = cond P b Q"
-  by (transfer, auto simp add: fun_eq_iff)
-
 subsection {* Additional Expression Laws *}
 
 lemma le_pred_refl [simp]:

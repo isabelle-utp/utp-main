@@ -72,11 +72,14 @@ is "\<lambda> f A x. f x A" .
 
 text \<open> We set up syntax for the conditional. This is effectively an infix version of
   if-then-else where the condition is in the middle. \<close>
-  
+
+definition uIf :: "bool \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+"uIf = If"
+
 abbreviation cond ::
   "('a,'\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr \<Rightarrow> ('a,'\<alpha>) uexpr"
   ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
-where "P \<triangleleft> b \<triangleright> Q \<equiv> trop If b P Q"
+where "P \<triangleleft> b \<triangleright> Q \<equiv> trop uIf b P Q"
 
 text \<open> UTP expression is equality is simply HOL equality lifted using the @{term bop} binary 
   expression constructor. \<close>
@@ -643,6 +646,7 @@ lemmas uexpr_defs =
   ulim_left_def
   ulim_right_def
   ucont_on_def
+  uIf_def
 (*  plus_list_def *)
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
