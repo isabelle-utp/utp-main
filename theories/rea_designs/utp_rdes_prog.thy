@@ -614,6 +614,11 @@ proof -
   finally show ?thesis .
 qed
 
+declare IterateR_list_def [rdes_def]
+declare IterateR_def [rdes_def]
+
+method unfold_iteration = simp add: IterateR_list_def IterateR_def AlternateR_list_def AlternateR_def UINF_upto_expand_first
+
 subsection \<open> Substitution Laws \<close>
   
 lemma srd_subst_Chaos [usubst]:

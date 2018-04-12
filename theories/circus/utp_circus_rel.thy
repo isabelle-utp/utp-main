@@ -588,6 +588,10 @@ lemma csp_enable_cond [rpred]:
   "\<E>(s\<^sub>1, t\<^sub>1, E\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<E>(s\<^sub>2, t\<^sub>2, E\<^sub>2) = \<E>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2, E\<^sub>1 \<triangleleft> b \<triangleright> E\<^sub>2)"
   by (rel_auto)
 
+lemma csp_enable_rea_assm [rpred]: 
+  "[b]\<^sup>\<top>\<^sub>r ;; \<E>(s,t,E) = \<E>(b\<and>s,t,E)"
+  by (rel_auto)
+
 lemma csp_enable_tr_empty: "\<E>(true,\<langle>\<rangle>,{v}\<^sub>u) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>v\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   by (rel_auto)
 
@@ -692,6 +696,10 @@ lemma csp_do_assign_do [rpred]:
 
 lemma csp_do_cond [rpred]:
   "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, \<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2)"
+  by (rel_auto)
+
+lemma rea_assm_csp_do [rpred]: 
+  "[b]\<^sup>\<top>\<^sub>r ;; \<Phi>(s,\<sigma>,t) = \<Phi>(b\<and>s,\<sigma>,t)"
   by (rel_auto)
 
 lemma csp_do_skip [rpred]:

@@ -961,6 +961,10 @@ lemma RHS_tri_design_choice [rdes_def]:
   apply (rel_auto)
   done
 
+lemma RHS_tri_design_disj [rdes_def]: 
+  "(\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<or> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2) \<diamondop> (P\<^sub>3 \<or> Q\<^sub>3))"
+  by (simp add: RHS_tri_design_choice disj_upred_def)
+
 lemma RHS_tri_design_sup [rdes_def]: 
   "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<squnion> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = \<^bold>R\<^sub>s((P\<^sub>1 \<or> Q\<^sub>1) \<turnstile> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2)) \<diamondop> ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))"
   by (simp add: RHS_design_sup, rel_auto)

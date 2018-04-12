@@ -82,13 +82,20 @@ lemma P1_lemma:
   apply (simp add: closure)
   apply (rdes_refine_split)
     apply (simp_all add: rpred closure usubst)
+  apply (rule conjI)
    apply (rule rrel_thy.Star_inductl)
     apply (simp add: closure)
    apply (rule RR_refine_intro)
   apply (simp_all add: closure)
    apply (rel_auto)
-  apply (smt Prefix_Order.Cons_prefix_Cons Prefix_Order.prefix_Nil append_Cons append_Nil ch_buffer.simps(6) concat_map_maps hd_Cons_tl maps_simps(1) not_Cons_self2)
-  done 
+   apply (smt Prefix_Order.Cons_prefix_Cons Prefix_Order.prefix_Nil append_Cons append_Nil ch_buffer.simps(6) concat_map_maps hd_Cons_tl maps_simps(1) not_Cons_self2)
+   apply (rule rrel_thy.Star_inductl)
+    apply (simp add: closure)
+   apply (rule RR_refine_intro)
+  apply (simp_all add: closure)
+   apply (rel_auto)
+    apply (smt Prefix_Order.Cons_prefix_Cons append.left_neutral append_Cons ch_buffer.simps(6) concat_map_maps hd_Cons_tl less_eq_list_def maps_simps(1) prefix_code(2))
+done 
 
 lemma P1: "[true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C \<sqsubseteq> Buffer"
 proof -

@@ -10,6 +10,7 @@ lemmas rdes_rel_norms =
   prod.case_eq_if
   conj_assoc
   disj_assoc
+  conj_disj_distr
   conj_UINF_dist
   conj_UINF_ind_dist
   seqr_or_distl

@@ -451,9 +451,8 @@ lemma USUP_all_nats [simp]:
   by (pred_auto)
 
 lemma UINF_upto_expand_first:
-  "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = (P(0) \<or> (\<Sqinter> i \<in> {1..<Suc(n)} \<bullet> P(i)))"
-  apply (rel_auto)
-  using not_less by auto
+  "m < n \<Longrightarrow> (\<Sqinter> i \<in> {m..<n} \<bullet> P(i)) = ((P(m) :: '\<alpha> upred) \<or> (\<Sqinter> i \<in> {Suc m..<n} \<bullet> P(i)))"
+  apply (rel_auto) using Suc_leI le_eq_less_or_eq by auto
 
 lemma UINF_upto_expand_last:
   "(\<Sqinter> i \<in> {0..<Suc(n)} \<bullet> P(i)) = ((\<Sqinter> i \<in> {0..<n} \<bullet> P(i)) \<or> P(n))"
