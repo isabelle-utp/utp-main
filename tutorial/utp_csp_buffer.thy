@@ -79,6 +79,7 @@ abbreviation "outps t \<equiv> [x. outp x \<leftarrow> t]"
 
 lemma P1_lemma:
   "[true \<turnstile> \<guillemotleft>outps(trace)\<guillemotright> \<le>\<^sub>u &buff ^\<^sub>u \<guillemotleft>inps(trace)\<guillemotright> | true]\<^sub>C \<sqsubseteq> while\<^sub>R true do DoBuff od"
+  apply (simp add: closure)
   apply (rdes_refine_split)
     apply (simp_all add: rpred closure usubst)
    apply (rule rrel_thy.Star_inductl)
@@ -98,5 +99,9 @@ proof -
   thus ?thesis
     by (metis (no_types, lifting) Buffer_def P1_lemma dual_order.trans urel_dioid.mult_isol)
 qed
+
+lemma Buffer_deadlock_free: "CDF \<sqsubseteq> Buffer"
+  unfolding Buffer_def
+  by (rdes_refine; blast)
 
 end

@@ -641,8 +641,8 @@ lemma InputCSP_rdes_def [rdes_def]:
           "\<And> v. $st\<acute> \<sharp> Q(v)" "\<And> v. $ref\<acute> \<sharp> R(v)"
   shows "InputCSP a A (\<lambda> v. \<^bold>R\<^sub>s(P(v) \<turnstile> Q(v) \<diamondop> R(v))) = 
          \<^bold>R\<^sub>s( (\<Squnion> v \<bullet> ([A(v)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<I>(true,\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r (P v)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))
-           \<turnstile> (((\<Squnion> x \<bullet> [A(x)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<E>(true, \<langle>\<rangle>, {(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u))) 
-               \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright>
+           \<turnstile> (((\<Squnion> x \<bullet> R5([A(x)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<E>(true, \<langle>\<rangle>, {(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u)))) 
+               \<or>
                (\<Sqinter> x \<bullet> [A(x)]\<^sub>S\<^sub>< \<and> (P x \<and> Q x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))
            \<diamondop> (\<Sqinter> x \<bullet> [A x]\<^sub>S\<^sub>< \<and> (P x \<and> R x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t))" (is "?lhs = ?rhs")
 proof -

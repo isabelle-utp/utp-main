@@ -423,11 +423,21 @@ lemma traces_prefix:
   done
 
 subsection {* Deadlock Freedom *}
+
+text \<open> The following is a specification for deadlock free actions. In any intermediate observation,
+  there must be at least one enabled event. \<close>
+
+definition CDF :: "('s, 'e) action" where
+[rdes_def]: "CDF = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (\<Sqinter> (s, t, E, e) \<bullet> \<E>(\<guillemotleft>s\<guillemotright>, \<guillemotleft>t\<guillemotright>, \<guillemotleft>insert e E\<guillemotright>)) \<diamondop> true\<^sub>r)"
+
+lemma CDF_NCSP [closure]: "CDF is NCSP"
+  apply (simp add: CDF_def) 
+  apply (rule NCSP_rdes_intro)
+  apply (simp_all add: closure unrest)
+  apply (rel_auto)+
+  done
   
-definition DF :: "'e set \<Rightarrow> ('s, 'e) action" where
-"DF(A) = (\<mu>\<^sub>C X \<bullet> (\<Sqinter> a\<in>A \<bullet> a \<^bold>\<rightarrow> Skip) ;; X)"
- 
-lemma DF_CSP [closure]: "A \<noteq> {} \<Longrightarrow> DF(A) is CSP"
-  by (simp add: DF_def closure unrest)
+lemma Skip_deadlock_free: "CDF \<sqsubseteq> Skip"
+  by (rdes_refine)
 
 end
