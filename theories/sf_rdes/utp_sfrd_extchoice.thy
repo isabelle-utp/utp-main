@@ -1,9 +1,9 @@
 section \<open> External Choice \<close>
 
-theory utp_circus_extchoice
+theory utp_sfrd_extchoice
   imports 
-    utp_circus_healths
-    utp_circus_rel
+    utp_sfrd_healths
+    utp_sfrd_rel
 begin
 
 subsection \<open> Definitions and syntax \<close>

@@ -1,7 +1,7 @@
 section \<open> Linking to the Failures-Divergences Model \<close>
 
-theory utp_circus_fdsem
-  imports utp_circus_parallel utp_circus_recursion
+theory utp_sfrd_fdsem
+  imports utp_sfrd_recursion
 begin
 
 subsection \<open> Failures-Divergences Semantics \<close>
@@ -417,7 +417,7 @@ lemma Cons_minus [simp]: "(a # t) - [a] = t"
   
 lemma traces_prefix: 
   assumes "P is NCSP"
-  shows "tr\<lbrakk>a \<^bold>\<rightarrow> P\<rbrakk>s = {(a # t, s') | t s'. (t, s') \<in> tr\<lbrakk>P\<rbrakk>s}"
+  shows "tr\<lbrakk>\<guillemotleft>a\<guillemotright> \<rightarrow>\<^sub>C P\<rbrakk>s = {(a # t, s') | t s'. (t, s') \<in> tr\<lbrakk>P\<rbrakk>s}"
   apply (auto simp add: PrefixCSP_def traces_seq traces_do divergences_do lit.rep_eq assms closure Healthy_if trace_divergence_disj)
   apply (meson assms trace_divergence_disj)
   done

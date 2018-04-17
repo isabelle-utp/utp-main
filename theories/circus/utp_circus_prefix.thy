@@ -1,7 +1,7 @@
 section \<open> Syntax and Translations for Event Prefix \<close>
 
 theory utp_circus_prefix
-  imports utp_circus_actions
+  imports "UTP-Stateful-Failures.utp_sf_rdes"
 begin
 
 syntax

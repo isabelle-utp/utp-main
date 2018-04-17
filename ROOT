@@ -117,9 +117,19 @@ session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
     "root.tex"
     "document.sty"
 
+(* Stateful-Failure Reactive Designs *)
+
+session "UTP-Stateful-Failures" in "theories/sf_rdes" = "UTP-Reactive-Designs" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories utp_sf_rdes
+  document_files
+    "root.bib"
+    "root.tex"
+    "document.sty"
+
 (* Circus *)
 
-session "UTP-Circus" in "theories/circus" = "UTP-Reactive-Designs" +
+session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_circus
   document_files

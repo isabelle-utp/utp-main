@@ -1,7 +1,7 @@
-section {* Reactive Contracts for CSP/Circus with refusals *}
+section {* Stateful-Failure Reactive Contracts *}
 
-theory utp_circus_contracts
-  imports utp_circus_healths
+theory utp_sfrd_contracts
+  imports utp_sfrd_healths
 begin
 
 definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rightarrow> 's upred) \<Rightarrow> ('e list \<Rightarrow> 's hrel) \<Rightarrow> ('s, 'e) action" where

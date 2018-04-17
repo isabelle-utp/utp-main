@@ -1,10 +1,10 @@
-section \<open> Circus Core Types \<close>
+section \<open> Stateful-Failure Core Types \<close>
 
-theory utp_circus_core
+theory utp_sfrd_core
   imports "UTP-Reactive-Designs.utp_rea_designs"
 begin
 
-subsection \<open> Circus Alphabet \<close>
+subsection \<open> SFRD Alphabet \<close>
 
 alphabet '\<phi> csp_vars = "'\<sigma> rsp_vars" +
   ref :: "'\<phi> set"

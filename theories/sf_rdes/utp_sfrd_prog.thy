@@ -1,8 +1,8 @@
-section \<open> Circus and CSP Actions\<close>
+section \<open> Stateful-Failure Programs \<close>
 
-theory utp_circus_actions
+theory utp_sfrd_prog
   imports 
-    utp_circus_extchoice
+    utp_sfrd_extchoice
 begin
 
 subsection \<open> Conditionals \<close>

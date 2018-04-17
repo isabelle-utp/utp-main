@@ -1,7 +1,7 @@
 section {* Circus Trace Merge *}
 
 theory utp_circus_traces
-  imports "UTP-Stateful-Failures.utp_sf_rdes"
+  imports utp_circus_core
 begin
 
 subsection \<open> Function Definition \<close>

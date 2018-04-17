@@ -1,12 +1,12 @@
-section \<open> Circus and CSP Healthiness Conditions \<close>
+section \<open> Stateful-Failure Healthiness Conditions \<close>
 
-theory utp_circus_healths
-  imports utp_circus_rel
+theory utp_sfrd_healths
+  imports utp_sfrd_rel
 begin
 
 section \<open> Definitions \<close>
 
-text {* We here define extra healthiness conditions for Circus / CSP processes. *}
+text {* We here define extra healthiness conditions for stateful-failure reactive designs. *}
 
 abbreviation CSP1 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health"
 where "CSP1(P) \<equiv> RD1(P)"

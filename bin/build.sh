@@ -15,8 +15,8 @@ ROOT=$ISABELLE_UTP
 
 printf "\nBuilding Isabelle/UTP sessions... \n\n"
 
-dirs=( "toolkit" "utp" "theories/kleene" "theories/designs" "theories/reactive" "theories/rea_designs" "theories/circus" "tutorial" )
-heaps=( "UTP-Toolkit" "UTP" "UTP-KAT" "UTP-Designs" "UTP-Reactive" "UTP-Reactive-Designs" "UTP-Circus" "UTP-Tutorial" )
+dirs=( "toolkit" "utp" "theories/kleene" "theories/designs" "theories/reactive" "theories/rea_designs" "theories/sf_rdes" "theories/circus" "tutorial" )
+heaps=( "UTP-Toolkit" "UTP" "UTP-KAT" "UTP-Designs" "UTP-Reactive" "UTP-Reactive-Designs" "UTP-Stateful-Failures" "UTP-Circus" "UTP-Tutorial" )
 
 for ((i=0;i<${#heaps[@]};++i));
 do

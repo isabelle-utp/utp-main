@@ -1,7 +1,7 @@
-section \<open> Circus Reactive Relations \<close>
+section \<open> Stateful-Failure Reactive Relations \<close>
 
-theory utp_circus_rel
-  imports utp_circus_core
+theory utp_sfrd_rel
+  imports utp_sfrd_core
 begin
 
 subsection \<open> Healthiness Conditions \<close>
