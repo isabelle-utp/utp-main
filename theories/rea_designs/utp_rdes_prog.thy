@@ -214,7 +214,7 @@ lemma AssumeR_as_gcmd:
   "[b]\<^sup>\<top>\<^sub>R = b \<rightarrow>\<^sub>R II\<^sub>R"
   by (rdes_eq)
 
-section {* Generalised Alternation *}
+subsection {* Generalised Alternation *}
 
 definition AlternateR 
   :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where

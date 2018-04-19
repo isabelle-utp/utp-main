@@ -1,0 +1,78 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{fullpage}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{document}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+\usepackage[english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+\usepackage{stmaryrd}
+  %for \<Sqinter>
+
+\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+\begin{document}
+
+\title{Stateful-Failure Reactive Designs in Isabelle/UTP}
+
+\author{Simon Foster \and James Baxter \and Ana Cavalcanti \and Jim Woodcock}
+
+\maketitle
+
+\begin{abstract}
+  Stateful-Failure Reactive Designs specialise reactive design contracts with failures traces,
+  as present in languages like CSP and Circus. A failure trace consists of a sequence of events
+  and a refusal set. It intuitively represents a quiescent observation, where certain events have
+  previously occurred, and others are currently being accepted. Following the UTP book, we add 
+  an observational variable to represent refusal sets, and healthiness conditions that ensure 
+  their well-formedness. Using these, we also specialise our theory of reactive relations with 
+  operators to characterise both completed and quiescent interactions, and an accompanying
+  equational theory. We use these to define the core operators --- including assignment, event occurence, 
+  and external choice --- and specialise our proof strategy to support these. We also demonstrate 
+  a link with the CSP failures-divergences semantic model.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\section{Introduction}
+
+This document contains a mechanisation in Isabelle/UTP~\cite{Foster16a} of an specialisation of
+stateful reactive designs with refusal information, as present in languages like 
+Circus~\cite{Oliveira2005-PHD}.
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

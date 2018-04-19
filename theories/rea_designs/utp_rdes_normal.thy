@@ -690,6 +690,10 @@ begin
   [upred_defs]: "nsrdes_unit T = II\<^sub>R"
 end
 
+text \<open> Here, we show that normal stateful reactive designs form a Kleene UTP theory, and thus
+  a Kleene algebra~\cite{Kozen90,Armstrong2015}. This provides the basis for reasoning about 
+  iterative reactive contracts. \<close>
+
 interpretation nsrd_thy: utp_theory_kleene "UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order NSRDES) \<longleftrightarrow> P is NSRD"
   and "P is \<H>\<^bsub>NSRDES\<^esub> \<longleftrightarrow> P is NSRD"
@@ -717,6 +721,8 @@ abbreviation TestR ("test\<^sub>R") where
 
 abbreviation StarR :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_\<^sup>\<star>\<^sup>R" [999] 999) where
 "StarR P \<equiv> P\<^bold>\<star>\<^bsub>NSRDES\<^esub>"
+
+text \<open> We also show how to calculate the Kleene closure of a reactive design. \<close>
 
 lemma StarR_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
