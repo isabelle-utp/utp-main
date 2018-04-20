@@ -24,7 +24,6 @@ theory utp_toolkit
   "HOL-Algebra.Galois_Connection"
   "HOL-Eisbach.Eisbach"
   "Optics.Lenses"
-  Lens_Extra
   Countable_Set_Extra
   FSet_Extra
   Map_Extra

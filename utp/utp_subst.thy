@@ -210,7 +210,7 @@ proof (rule injI)
   then show "b\<^sub>1 = b\<^sub>2"
     by (metis a assms(1) assms(2) pr_var_def var.rep_eq vwb_lens.source_determination vwb_lens_def wb_lens_def weak_lens.put_get)   
 qed
-  
+
 lemma usubst_upd_var_id [usubst]:
   "vwb_lens x \<Longrightarrow> [x \<mapsto>\<^sub>s var x] = id"
   apply (simp add: subst_upd_uvar_def)
@@ -251,7 +251,7 @@ lemma usubst_lookup_upd_indep [usubst]:
   by (simp add: subst_upd_uvar_def, transfer, simp)
     
 text {* If a variable is unrestricted in a substitution then it's application has no effect. *}
-    
+
 lemma usubst_apply_unrest [usubst]:
   "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
   by (simp add: unrest_usubst_def, transfer, auto simp add: fun_eq_iff, metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)

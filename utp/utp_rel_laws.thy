@@ -318,6 +318,14 @@ lemma assign_vacuous_skip:
   shows "(x := &x) = II"
   using assms by rel_auto
 
+text \<open> The following law shows the case for the above law when $x$ is only mainly-well behaved. We
+  require that the state is one of those in which $x$ is well defined using and assumption. \<close>
+
+lemma assign_vacuous_assume:
+  assumes "mwb_lens x"
+  shows "[&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top> ;; (x := &x) = [&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top>"
+  using assms by rel_auto
+
 lemma assign_simultaneous:
   assumes "vwb_lens y" "x \<bowtie> y"
   shows "(x,y) := (e, &y) = (x := e)"
