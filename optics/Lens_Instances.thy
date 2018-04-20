@@ -283,6 +283,8 @@ declare meta_interp_law [lens_interp_laws]
 declare all_interp_law [lens_interp_laws]
 declare exists_interp_law [lens_interp_laws]
 
+end
+
 subsection \<open> Tactic \<close>
 
 text \<open> A simple tactic for simplifying lens expressions \<close>
@@ -291,5 +293,4 @@ declare split_paired_all [alpha_splits]
 
 method lens_simp = (simp add: alpha_splits lens_defs prod.case_eq_if)
 
-end
 end
