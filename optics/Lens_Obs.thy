@@ -11,8 +11,26 @@ lemma equiv_UNIV [simp]: "equiv UNIV UNIV"
 lemma equiv_Id [simp]: "equiv UNIV Id"
   by (auto intro!: equivI refl_Id symI transI)
 
-typedef 's obs = "{(R :: 's rel, C :: 's rel). equiv UNIV R \<and> equiv UNIV C \<and> R \<inter> C = Id}"
-  by (rule_tac x="(Id, UNIV)" in exI, auto simp add: equiv_def refl_Id refl_on_def sym_def trans_def)
+thm Ex_def
+
+abbreviation "ovr_fun R C F \<equiv> \<forall> S\<^sub>1 S\<^sub>2. (F S\<^sub>1 S\<^sub>2, S\<^sub>1) \<in> C \<and> (F S\<^sub>1 S\<^sub>2, S\<^sub>2) \<in> R"
+
+lemma ovr_fun_swap: 
+  "ovr_fun R C F \<Longrightarrow> ovr_fun C R (\<lambda> x y. F y x)"
+  by (auto)
+
+definition is_override :: "'s rel \<Rightarrow> 's rel \<Rightarrow> ('s \<Rightarrow> 's \<Rightarrow> 's) \<Rightarrow> bool" where
+"is_override R C F = (ovr_fun R C F \<and> (\<forall> G. ovr_fun R C G \<longrightarrow> G = F))"
+
+lemma is_override_fst [simp]: "Ex (is_override UNIV Id)"
+  by (rule_tac x="\<lambda> x y. x" in exI, auto simp add: is_override_def)
+
+lemma is_override_snd [simp]: "Ex (is_override Id UNIV)"
+  by (rule_tac x="\<lambda> x y. y" in exI, auto simp add: is_override_def)
+
+typedef 's obs = 
+  "{(R :: 's rel, C :: 's rel). equiv UNIV R \<and> equiv UNIV C \<and> R \<inter> C = Id \<and> (\<exists> F. is_override R C F)}"
+  by (rule_tac x="(Id, UNIV)" in exI, auto simp add: equiv_def refl_Id refl_on_def sym_def trans_def is_override_def fun_eq_iff)
     
 setup_lifting type_definition_obs
   
@@ -26,8 +44,57 @@ lemma state_eq_iff:
 lemma state_dist_either:
   "\<lbrakk> (x, y) \<in> region S; x \<noteq> y \<rbrakk> \<Longrightarrow> (x, y) \<notin> coregion S"
   by (meson state_eq_iff)
-    
-    
+
+lemma equiv_region [simp]: "equiv UNIV (region S)"
+  by (transfer, auto)
+
+lemma equiv_coregion [simp]: "equiv UNIV (coregion S)"
+  by (transfer, auto)
+
+lemma ovr_ex_region_coregion: 
+  obtains F where "is_override (region S) (coregion S) F"
+  by (transfer, auto)
+
+definition obs_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('a obs) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>O _ on _" [95,0,96] 95) where
+[lens_defs]: "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X = (THE S. (S, S\<^sub>1) \<in> coregion X \<and> (S, S\<^sub>2) \<in> region X)"
+
+lemma obs_override:
+  assumes "is_override (region X) (coregion X) F"
+  shows "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X = F S\<^sub>1 S\<^sub>2"
+  using assms
+  apply (simp add: obs_override_def)
+  apply (rule the_equality)
+   apply (simp_all add: is_override_def)
+   apply (safe)
+  apply (metis equiv_coregion equiv_def equiv_region state_eq_iff trans_def)
+  done
+
+lemma obs_override_is_override:
+  "is_override (region X) (coregion X) (\<lambda> S\<^sub>1 S\<^sub>2. S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X)"
+proof -
+  obtain F :: "'a obs \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" where
+    f1: "\<And>z. is_override (region z) (coregion z) (F z)"
+    by (meson ovr_ex_region_coregion)
+  then have "\<And>z. (\<lambda> S\<^sub>1 S\<^sub>2. S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on z) = F z"
+    using obs_override by fastforce
+then show ?thesis
+    using f1 by simp
+qed
+
+lemma obs_override_region: "(S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X, S\<^sub>2) \<in> region X"
+  by (metis (full_types) is_override_def obs_override ovr_ex_region_coregion)
+
+lemma obs_override_coregion: "(S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X, S\<^sub>1) \<in> coregion X"
+  by (metis (full_types) is_override_def obs_override ovr_ex_region_coregion)
+
+lemma obs_override_idem [simp]:
+  "s \<oplus>\<^sub>O s on V = s"
+  apply (auto simp add: obs_override_def)
+  apply (rule the_equality)
+  apply (auto)
+  apply (meson state_eq_iff)+
+  done
+
 lift_definition lens_obs :: "('v \<Longrightarrow> 's) \<Rightarrow> 's obs" ("\<lbrakk>_\<rbrakk>\<^sub>\<sim>") is
 "\<lambda> X. if (vwb_lens X) 
          then ({(s\<^sub>1, s\<^sub>2). s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X = s\<^sub>1}, {(s\<^sub>1, s\<^sub>2). s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X = s\<^sub>2})
@@ -35,14 +102,33 @@ lift_definition lens_obs :: "('v \<Longrightarrow> 's) \<Rightarrow> 's obs" ("\
   apply (auto intro!:equivI refl_onI symI transI)
   apply (metis lens_override_def lens_override_idem mwb_lens_weak vwb_lens_mwb weak_lens.put_get)
   apply (metis lens_override_def mwb_lens_weak vwb_lens_mwb weak_lens.put_get)
-   apply (metis lens_override_def vwb_lens.put_eq)+
-done
+     apply (metis lens_override_def vwb_lens.put_eq)
+    apply (metis lens_override_def vwb_lens.put_eq)
+  apply (rename_tac X)
+   apply (rule_tac x="(\<lambda> S\<^sub>1 S\<^sub>2. lens_override S\<^sub>1 S\<^sub>2 X)" in exI)
+   apply (simp add: is_override_def)
+  apply (auto)
+  apply (simp_all add: lens_override_overshadow sublens_refl)
+   apply (metis lens_override_def mwb_lens_axioms_def mwb_lens_def vwb_lens_mwb)
+  done
 
-lemma "\<lbrakk> equiv UNIV A; equiv UNIV B; A \<inter> B = Id \<rbrakk> \<Longrightarrow> equiv UNIV (A \<union> B)"
-  apply (auto intro!: equivI symI refl_onI transI elim!: equivE dest: refl_onD)
-  apply (meson symE)+
-     apply (meson transE)+
-oops
+lemma lens_override_is_obs_override:
+  "vwb_lens X \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
+  apply (simp add: lens_override_def obs_override_def, transfer)
+  apply (auto)
+  apply (rule sym)
+  apply (rule the_equality)
+  apply (auto simp add: lens_override_def)
+  apply (metis mwb_lens.put_put vwb_lens_mwb)
+  done
+
+definition obs_indep :: "'a obs \<Rightarrow> 'a obs \<Rightarrow> bool" (infix "\<bowtie>\<^sub>O" 50) where
+[lens_defs]: "X \<bowtie>\<^sub>O Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>O s\<^sub>2 on X \<oplus>\<^sub>O s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>O s\<^sub>3 on Y \<oplus>\<^sub>O s\<^sub>2 on X)"
+
+lemma lens_indep_as_obs_indep:
+  assumes "vwb_lens X" "vwb_lens Y"
+  shows "X \<bowtie> Y \<longleftrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<bowtie>\<^sub>O \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  by (simp add: assms lens_indep_override_def lens_override_is_obs_override obs_indep_def)
 
 instantiation obs :: (type) order
 begin
@@ -57,29 +143,119 @@ instance
 done
 end
   
-lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> coregion \<lbrakk>Y\<rbrakk>\<^sub>\<sim> \<subseteq> region \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
-  apply (transfer, auto)
-  
-lemma "region \<lbrakk>fst\<^sub>L\<rbrakk>\<^sub>\<sim> \<subseteq> coregion \<lbrakk>snd\<^sub>L\<rbrakk>\<^sub>\<sim>"
-  by (transfer, simp add: fst_vwb_lens snd_vwb_lens, auto simp add: lens_defs)
-  by (simp add: fst_lens_def lens_override_def snd_lens_def)
-  
-instantiation obs :: (type) "{zero, one, uminus, plus}"
+instantiation obs :: (type) "{zero, one, uminus}"
 begin
   lift_definition zero_obs :: "'s obs" is "(UNIV, Id)"by (auto)  
   lift_definition one_obs :: "'s obs" is "(Id, UNIV)" by (auto)
-  lift_definition uminus_obs :: "'s obs \<Rightarrow> 's obs" is "\<lambda> (R,C). (C,R)" by (auto)
-  lift_definition plus_obs :: "'s obs \<Rightarrow> 's obs \<Rightarrow> 's obs" is 
-   "\<lambda> (X\<^sub>1, X\<^sub>2) (Y\<^sub>1, Y\<^sub>2). (X\<^sub>1 \<inter> Y\<^sub>1, X\<^sub>2 \<union> Y\<^sub>2)" (* - ((X\<^sub>2 \<inter> Y\<^sub>2) - Id) *)
+  lift_definition uminus_obs :: "'s obs \<Rightarrow> 's obs" is "\<lambda> (R,C). (C,R)"
     apply (auto)
-     apply (metis Int_UNIV equiv_def refl_on_Int sym_Int trans_Int)
-    apply (auto intro!: equivI refl_onI symI elim!: equivE)
-    apply (meson symE)
-    apply (meson symE)  
+    apply (simp add: is_override_def)
+    apply (rename_tac R C F)
+    apply (rule_tac x="(\<lambda> x y . F y x)" in exI)
+    apply (simp add: is_override_def fun_eq_iff)
+    apply (safe)
+    apply meson
+    done
+instance ..
+end
+
+lemma obs_override_id: "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on 1 = S\<^sub>2"
+  unfolding obs_override_def
+  by (rule the_equality; transfer, simp)+
+
+lemma obs_override_unit: "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on 0 = S\<^sub>1"
+  unfolding obs_override_def
+  by (rule the_equality; transfer, simp)+
+
+
+lemma obs_override_commute: "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X = S\<^sub>2 \<oplus>\<^sub>O S\<^sub>1 on (- X)"
+  by (smt coregion.rep_eq equiv_coregion equiv_def obs_override_coregion obs_override_region prod.exhaust_sel prod.sel(1) region.rep_eq snd_conv split_conv state_eq_iff symE trans_def uminus_obs.rep_eq)
+
+lemma obs_override_commute_indep:
+  assumes "X \<bowtie>\<^sub>O Y"
+  shows "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X \<oplus>\<^sub>O S\<^sub>3 on Y = S\<^sub>1 \<oplus>\<^sub>O S\<^sub>3 on Y \<oplus>\<^sub>O S\<^sub>2 on X"
+  using assms
+  unfolding obs_override_def obs_indep_def by (auto)
+
+lemma obs_override_overshadow:
+  "S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X \<oplus>\<^sub>O S\<^sub>3 on X = S\<^sub>1 \<oplus>\<^sub>O S\<^sub>3 on X"
+  by (metis equiv_coregion equiv_def equiv_region obs_override_coregion obs_override_region state_dist_either trans_def)
+
+lemma obs_override_lemma1:
+  assumes "X \<bowtie>\<^sub>O Y"
+  shows "(S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X \<oplus>\<^sub>O S\<^sub>2 on Y) \<oplus>\<^sub>O S\<^sub>1 on X \<oplus>\<^sub>O S\<^sub>1 on Y = S\<^sub>1"
+  using assms
+  by (simp add: obs_indep_def obs_override_overshadow)
+
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> coregion \<lbrakk>Y\<rbrakk>\<^sub>\<sim> \<subseteq> region \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
+  apply (transfer, auto)
+  by (metis lens_indep_get lens_override_def vwb_lens.put_eq)
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> region \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim> \<subseteq> region \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
+  apply (transfer, auto)
+  apply (metis lens_override_def lens_override_put_right_in lens_plus_ub vwb_lens_wb wb_lens.get_put)
+  using plus_vwb_lens by blast
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> coregion \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<subseteq> coregion \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim>"
+  apply (transfer, auto)
+  apply (simp add: lens_override_plus)
+  using plus_vwb_lens by blast
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> region \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim> = region \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<inter> region \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  apply (transfer, auto)
+  apply (metis lens_override_def lens_override_put_right_in lens_plus_ub vwb_lens_wb wb_lens.get_put)
+  apply (metis lens_override_def lens_override_plus mwb_lens.put_put vwb_lens_mwb)
+  apply (simp add: lens_override_plus)
+  using plus_vwb_lens apply blast
+  using plus_vwb_lens by blast
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> coregion \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim> = {(s\<^sub>1, s\<^sub>2). (s\<^sub>1 \<oplus>\<^sub>O s\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim>) \<oplus>\<^sub>O s\<^sub>2 on \<lbrakk>Y\<rbrakk>\<^sub>\<sim> = s\<^sub>2}"
+  apply (simp add: lens_override_is_obs_override[THEN sym])
+  apply (transfer)
+  apply (auto)
+  apply (simp add: lens_override_plus)
+  apply (simp add: lens_override_plus)
+  using plus_vwb_lens by blast
+
+lemma plus_override_equiv:
+  "X \<bowtie>\<^sub>O Y \<Longrightarrow> equiv UNIV {(s\<^sub>1, s\<^sub>2). s\<^sub>1 \<oplus>\<^sub>O s\<^sub>2 on X \<oplus>\<^sub>O s\<^sub>2 on Y = s\<^sub>2}"
+  apply (rule equivI)
+    apply (rule refl_onI)
+     apply (auto)
+   apply (rule symI)
+   apply (auto)
+  apply (metis obs_override_lemma1)
+  apply (smt mem_Collect_eq obs_override_commute_indep obs_override_overshadow prod.simps(2) trans_def)
+done
+
+lemma "region \<lbrakk>fst\<^sub>L\<rbrakk>\<^sub>\<sim> \<subseteq> coregion \<lbrakk>snd\<^sub>L\<rbrakk>\<^sub>\<sim>"
+  by (transfer, simp add: fst_vwb_lens snd_vwb_lens, auto simp add: lens_defs)
+  
+instantiation obs :: (type) "{plus}"
+begin
+  lift_definition plus_obs :: "'s obs \<Rightarrow> 's obs \<Rightarrow> 's obs" is 
+  "\<lambda> O\<^sub>1 O\<^sub>2. if (O\<^sub>1 \<bowtie>\<^sub>O O\<^sub>2) 
+            then (region O\<^sub>1 \<inter> region O\<^sub>2, {(s\<^sub>1, s\<^sub>2). (s\<^sub>1 \<oplus>\<^sub>O s\<^sub>2 on O\<^sub>1) \<oplus>\<^sub>O s\<^sub>2 on O\<^sub>2 = s\<^sub>2})
+            else (UNIV, Id)"
+    apply (auto)
+    apply (smt IntE IntI equalityI equiv_UNIV equiv_def equiv_region refl_on_def sym_def top.extremum trans_def)
+    apply (simp add: plus_override_equiv)
+    apply (metis equiv_def equiv_region obs_override_coregion obs_override_region state_dist_either trans_def)
+    apply (meson state_eq_iff)
+    apply (meson state_eq_iff)
+    apply (rename_tac X Y)
+        apply (rule_tac x="\<lambda> S\<^sub>1 S\<^sub>2. S\<^sub>1 \<oplus>\<^sub>O S\<^sub>2 on X \<oplus>\<^sub>O S\<^sub>2 on Y" in exI)
+    apply (auto simp add: is_override_def)
+    apply (simp add: obs_override_lemma1)
+    using obs_override_commute_indep obs_override_region apply fastforce
+    apply (simp add: obs_override_region)
+    apply (metis (no_types, hide_lams) equiv_def equiv_region obs_override_coregion obs_override_lemma1 obs_override_overshadow obs_override_region state_eq_iff trans_def)
+    done
      
   instance ..
 end
-  
+
 lemma "(0::'a obs) \<le> X"
   by (transfer, auto)
     
@@ -90,7 +266,7 @@ lemma fst_lens_inv_snd: "- \<lbrakk>fst\<^sub>L\<rbrakk>\<^sub>\<sim> = \<lbrakk
   by (transfer, auto simp add: fst_vwb_lens snd_vwb_lens, simp_all add: lens_defs)
     
 lemma "\<lbrakk>fst\<^sub>L\<rbrakk>\<^sub>\<sim> + \<lbrakk>snd\<^sub>L\<rbrakk>\<^sub>\<sim> = 1"
-  by (transfer, auto)
+  apply (transfer)
     
 lemma 
   fixes X :: "'s obs"

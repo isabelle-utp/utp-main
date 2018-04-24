@@ -485,4 +485,20 @@ lemma lens_override_put_right_out:
   "\<lbrakk> vwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
   by (simp add: lens_override_def  lens_indep.lens_put_irr2)
 
+lemma lens_indep_overrideI:
+  assumes "vwb_lens X" "vwb_lens Y" "(\<And> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X \<oplus>\<^sub>L s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>3 on Y \<oplus>\<^sub>L s\<^sub>2 on X)"
+  shows "X \<bowtie> Y"
+  using assms
+  apply (unfold_locales)
+  apply (simp_all add: lens_override_def)
+  apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+  apply (metis lens_override_def lens_override_idem mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+  apply (metis mwb_lens_weak vwb_lens_mwb vwb_lens_wb wb_lens.get_put weak_lens.put_get)
+  done  
+
+lemma lens_indep_override_def:
+  assumes "vwb_lens X" "vwb_lens Y"
+  shows "X \<bowtie> Y \<longleftrightarrow> (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X \<oplus>\<^sub>L s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>3 on Y \<oplus>\<^sub>L s\<^sub>2 on X)"
+  by (metis assms(1) assms(2) lens_indep_comm lens_indep_overrideI lens_override_def)
+
 end
