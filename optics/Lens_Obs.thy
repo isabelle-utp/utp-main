@@ -13,6 +13,166 @@ lemma equiv_Id [simp]: "equiv UNIV Id"
 
 thm Ex_def
 
+locale overrider =
+  fixes F :: "'s \<Rightarrow> 's \<Rightarrow> 's"
+  assumes 
+    ovr_overshadow_left: "F (F x y) z = F x z" and
+    ovr_overshadow_right: "F x (F y z) = F x z" and
+    ovr_idem: "F x x = x"
+
+declare overrider.ovr_overshadow_left [simp]
+declare overrider.ovr_overshadow_right [simp]
+declare overrider.ovr_idem [simp]
+
+typedef 's scene = "{F :: 's \<Rightarrow> 's \<Rightarrow> 's. overrider F}"
+  by (rule_tac x="\<lambda> x y. x" in exI, simp, unfold_locales, simp_all)
+
+setup_lifting type_definition_scene
+
+lift_definition region :: "'s scene \<Rightarrow> 's rel" 
+is "\<lambda> F. {(s\<^sub>1, s\<^sub>2). (\<forall> s. F s s\<^sub>1 = F s s\<^sub>2)}" .
+
+lift_definition coregion :: "'s scene \<Rightarrow> 's rel" 
+is "\<lambda> F. {(s\<^sub>1, s\<^sub>2). (\<forall> s. F s\<^sub>1 s = F s\<^sub>2 s)}" .
+
+lemma equiv_region: "equiv UNIV (region X)"
+  apply (transfer)
+  apply (rule equivI)
+    apply (rule refl_onI)
+     apply (auto)
+   apply (rule symI)
+   apply (auto)
+  apply (rule transI)
+  apply (auto)
+  done
+
+lemma equiv_coregion: "equiv UNIV (coregion X)"
+  apply (transfer)
+  apply (rule equivI)
+    apply (rule refl_onI)
+     apply (auto)
+   apply (rule symI)
+   apply (auto)
+  apply (rule transI)
+  apply (auto)
+  done
+
+lemma region_coregion_Id:
+  "region X \<inter> coregion X = Id"
+  by (transfer, auto, metis overrider.ovr_idem)
+
+lemma state_eq_iff: "x = y \<longleftrightarrow> (x, y) \<in> region S \<and> (x, y) \<in> coregion S"
+  by (metis IntE IntI pair_in_Id_conv region_coregion_Id)
+
+lift_definition scene_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('a scene) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>S _ on _" [95,0,96] 95)
+is "\<lambda> s\<^sub>1 s\<^sub>2 F. F s\<^sub>1 s\<^sub>2" .
+
+lemma scene_override_idem: "s \<oplus>\<^sub>S s on X = s"
+  by (transfer, simp)
+
+lemma lens_override_idem [simp]:
+  "\<lbrakk> mwb_lens X; S \<in> \<S>\<^bsub>X\<^esub> \<rbrakk> \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
+  by (simp add: lens_override_def)
+
+lemma obs_override_overshadow_left [simp]:
+  "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X \<oplus>\<^sub>S S\<^sub>3 on X = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>3 on X"
+  by (transfer, simp)
+
+lift_definition lens_scene :: "('v \<Longrightarrow> 's) \<Rightarrow> 's scene" ("\<lbrakk>_\<rbrakk>\<^sub>\<sim>") is
+"\<lambda> X. if (vwb_lens X) then (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X) else (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1)"
+  by (unfold_locales, auto simp add: lens_override_def)
+
+lemma lens_scene_override: 
+  "vwb_lens X \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
+  by (transfer, simp)
+
+lift_definition scene_indep :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" (infix "\<bowtie>\<^sub>S" 50)
+is "\<lambda> F G. (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. G (F s\<^sub>1 s\<^sub>2) s\<^sub>3 = F (G s\<^sub>1 s\<^sub>3) s\<^sub>2)" .
+
+lemma scene_indep_override:
+  "X \<bowtie>\<^sub>S Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on X \<oplus>\<^sub>S s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>3 on Y \<oplus>\<^sub>S s\<^sub>2 on X)"
+  by (transfer, auto)
+
+lemma scene_indep_commute:
+  "X \<bowtie>\<^sub>S Y \<Longrightarrow> Y \<bowtie>\<^sub>S X"
+  by (transfer, auto)
+
+lemma lens_indep_scene:
+  assumes "vwb_lens X" "vwb_lens Y"
+  shows "(X \<bowtie> Y) \<longleftrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<bowtie>\<^sub>S \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  using assms
+  by (auto, (simp add: scene_indep_override, transfer, simp add: lens_indep_override_def)+)
+
+lemma scene_override_commute_indep:
+  assumes "X \<bowtie>\<^sub>S Y"
+  shows "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X \<oplus>\<^sub>S S\<^sub>3 on Y = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>3 on Y \<oplus>\<^sub>S S\<^sub>2 on X"
+  using assms
+  by (transfer, auto)
+
+instantiation scene :: (type) "{zero, one, uminus, plus}"
+begin
+  lift_definition zero_scene   :: "'s scene" is "\<lambda> x y. x" by (unfold_locales, simp_all)
+  lift_definition one_scene    :: "'s scene" is "\<lambda> x y. y" by (unfold_locales, simp_all)
+  lift_definition uminus_scene :: "'s scene \<Rightarrow> 's scene" is "\<lambda> F x y. F y x"
+    by (unfold_locales, simp_all)
+  lift_definition plus_scene :: "'s scene \<Rightarrow> 's scene \<Rightarrow> 's scene" 
+    is "\<lambda> X Y. if (X \<bowtie>\<^sub>S Y) then (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on X \<oplus>\<^sub>S s\<^sub>2 on Y) else (\<lambda> x y. y)"
+    apply (unfold_locales, auto simp add: scene_indep_override scene_override_idem)
+    apply (metis (no_types, lifting) Rep_scene mem_Collect_eq overrider.ovr_overshadow_right scene_override.rep_eq)
+  done
+  instance ..
+end
+
+lemma uminus_scene_twice: "- (- (X :: 's scene)) = X"
+  by (transfer, simp)
+
+lemma scene_override_id: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on 1 = S\<^sub>2"
+  by (transfer, simp)
+
+lemma scene_override_unit: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on 0 = S\<^sub>1"
+  by (transfer, simp)
+
+lemma obs_override_commute: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X = S\<^sub>2 \<oplus>\<^sub>S S\<^sub>1 on (- X)"
+  by (transfer, simp)
+
+lemma "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim> = \<lbrakk>X\<rbrakk>\<^sub>\<sim> + \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  apply (simp add:  lens_indep_scene)
+  apply (simp add: scene_indep_def lens_scene_def Rep_scene_inverse)
+  apply (transfer)
+  oops
+
+lemma scene_plus_commute:
+  "X \<bowtie>\<^sub>S Y \<Longrightarrow> X + Y = Y + X"
+  by (transfer, simp_all add: scene_indep_commute scene_indep_override)
+
+lemma scene_plus_unit: "(X::'s scene) + 0 = X"
+  by (simp add: plus_scene_def scene_indep_override, transfer, auto simp add: scene_override_def Rep_scene_inverse)
+
+instantiation scene :: (type) preorder
+begin
+  lift_definition less_eq_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" is
+  "\<lambda> F G. (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. G (F s\<^sub>1 s\<^sub>2) s\<^sub>3 = G s\<^sub>1 s\<^sub>3)" .
+  definition less_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" where
+  "less_scene x y = (x \<le> y \<and> \<not> y \<le> x)"
+instance
+  apply (intro_classes)
+     apply (simp add: less_scene_def)
+  apply (transfer, simp)
+  apply (transfer, simp)
+   apply metis
+  done
+end
+
+lemma zero_scene_least: "0 \<le> (X :: 'a scene)"
+  by (transfer, simp_all)
+
+lemma one_scene_greatest: "(X :: 'a scene) \<le> 1"
+  by (transfer, simp_all)
+
+lemma "\<lbrakk> vwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<le> \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  by (transfer, auto simp add: lens_override_def sublens_put_put)
+
+(*
 abbreviation "ovr_fun R C F \<equiv> \<forall> S\<^sub>1 S\<^sub>2. (F S\<^sub>1 S\<^sub>2, S\<^sub>1) \<in> C \<and> (F S\<^sub>1 S\<^sub>2, S\<^sub>2) \<in> R"
 
 lemma ovr_fun_swap: 
@@ -329,5 +489,6 @@ lemma lens_equiv_obs:
 
 lemma "(\<lbrakk>fst\<^sub>L\<rbrakk>\<^sub>\<sim> - Id) \<inter> (\<lbrakk>snd\<^sub>L\<rbrakk>\<^sub>\<sim> - Id) = {}"
   by (auto simp add: lens_defs)
-    
+*) 
+ 
 end
