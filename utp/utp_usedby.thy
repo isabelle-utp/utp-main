@@ -32,7 +32,7 @@ lemma usedBy_sublens:
   assumes "x \<natural> P" "x \<subseteq>\<^sub>L y" "vwb_lens y"
   shows "y \<natural> P"
   using assms 
-  by (transfer, auto, metis lens_override_def lens_override_idem sublens_obs_get vwb_lens_mwb)
+  by (transfer, auto, metis Lens_Order.lens_override_idem lens_override_def sublens_obs_get vwb_lens_mwb)
 
 lemma usedBy_svar [unrest]: "x \<natural> P \<Longrightarrow> &x \<natural> P"
   by (transfer, simp add: lens_defs)
@@ -57,7 +57,7 @@ lemma usedBy_var [unrest]:
   shows "x \<natural> var y"
   using assms
   by (transfer, simp add: uexpr_defs pr_var_def)
-     (metis lens_override_def lens_override_idem sublens_obs_get vwb_lens_mwb)    
+     (metis lens_override_def sublens_obs_get vwb_lens_def wb_lens.get_put)    
   
 lemma usedBy_uop [unrest]: "x \<natural> e \<Longrightarrow> x \<natural> uop f e"
   by (transfer, simp)

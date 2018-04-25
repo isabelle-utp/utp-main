@@ -1,7 +1,7 @@
 section \<open> Scenes \<close>
 
-theory Lens_Obs
-  imports Lenses
+theory Scenes
+  imports Lens_Order
 begin
   
 subsection \<open> Overriding Functions \<close>

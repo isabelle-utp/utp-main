@@ -5,4 +5,5 @@ theory Lenses
     Lens_Order
     Lens_Instances
     Prisms
+    Scenes
 begin end
