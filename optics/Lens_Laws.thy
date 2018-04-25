@@ -154,6 +154,11 @@ begin
      shows "put \<rho> k = \<sigma>"
      by (metis assms put_put weak_get_put)
 
+  text \<open> Provides $s$ is constructible, then @{term get} can be uniquely determined from @{term put} \<close>
+
+  lemma weak_get_via_put: "s \<in> \<S> \<Longrightarrow> get s = (THE v. put s v = s)"
+    by (rule sym, auto intro!: the_equality weak_get_put, metis put_get)
+
 end
 
 declare mwb_lens.put_put [simp]
@@ -179,6 +184,11 @@ begin
    assumes "get \<sigma> = k" "put \<sigma> u = put \<rho> v"
    shows "put \<rho> k = \<sigma>"
    using assms weak_put_eq[of \<sigma> k u \<rho> v] by (simp)
+
+  text \<open> @{term get} can be uniquely determined from @{term put} \<close>
+
+  lemma get_via_put: "get s = (THE v. put s v = s)"
+    by (simp add: weak_get_via_put)
 
 end
 
