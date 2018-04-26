@@ -22,6 +22,7 @@ session "Optics" (AFP) = "HOL-Eisbach" +
     Lens_Instances
     Lenses
     Prisms
+    Scenes
   theories [document = false]
     Lens_Record_Example
     "HOL-Library.State_Monad"

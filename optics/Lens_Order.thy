@@ -78,7 +78,7 @@ text \<open>Well-behavedness of lens quotient has sublens as a proviso. This is 
 lemma lens_quotient_mwb:
   "\<lbrakk> mwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> mwb_lens (X /\<^sub>L Y)"
   by (unfold_locales, auto simp add: lens_quotient_def lens_create_def sublens_def lens_comp_def comp_def)
-    
+
 subsection \<open>Lens Equivalence\<close>
     
 text \<open>Using our preorder, we can also derive an equivalence on lenses as follows. It should be
@@ -500,5 +500,63 @@ lemma lens_indep_override_def:
   assumes "vwb_lens X" "vwb_lens Y"
   shows "X \<bowtie> Y \<longleftrightarrow> (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X \<oplus>\<^sub>L s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>3 on Y \<oplus>\<^sub>L s\<^sub>2 on X)"
   by (metis assms(1) assms(2) lens_indep_comm lens_indep_overrideI lens_override_def)
+
+subsection \<open> Alternative Sublens Characterisation \<close>
+
+text \<open> The following definition is equivalent to the above when the two lenses are very well behaved. \<close>
+
+definition sublens' :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> bool" (infix "\<subseteq>\<^sub>L''" 55) where
+[lens_defs]: "sublens' X Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on Y \<oplus>\<^sub>L s\<^sub>3 on X = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on X on Y)"
+
+text \<open> We next prove some characteristic properties of our alternative definition of sublens. \<close>
+
+lemma sublens'_prop1:
+  assumes "vwb_lens X" "X \<subseteq>\<^sub>L' Y"
+  shows "put\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> s\<^sub>1 (get\<^bsub>Y\<^esub> s\<^sub>2)) s\<^sub>3 = put\<^bsub>Y\<^esub> s\<^sub>1 (get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> s\<^sub>2 s\<^sub>3))"
+  using assms
+  by (simp add: sublens'_def, metis lens_override_def mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+
+lemma sublens'_prop2:
+  assumes "vwb_lens X" "X \<subseteq>\<^sub>L' Y"
+  shows "get\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> s\<^sub>1 (get\<^bsub>Y\<^esub> s\<^sub>2)) = get\<^bsub>X\<^esub> s\<^sub>2"
+  using assms unfolding sublens'_def
+  by (metis lens_override_def vwb_lens_wb wb_lens_axioms_def wb_lens_def weak_lens.put_get)
+
+lemma sublens'_prop3:
+  assumes "vwb_lens X" "vwb_lens Y" "X \<subseteq>\<^sub>L' Y"
+  shows "put\<^bsub>Y\<^esub> \<sigma> (get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> \<rho> (get\<^bsub>Y\<^esub> \<sigma>)) v)) = put\<^bsub>X\<^esub> \<sigma> v"
+  by (metis assms(1) assms(2) assms(3) mwb_lens_def sublens'_prop1 vwb_lens.put_eq vwb_lens_mwb weak_lens.put_get)
+
+text \<open> Finally we show our two definitions of sublens are equivalent, assuming very well behaved lenses. \<close>
+
+lemma sublens'_implies_sublens:
+  assumes "vwb_lens X" "vwb_lens Y" "X \<subseteq>\<^sub>L' Y"
+  shows "X \<subseteq>\<^sub>L Y"
+proof -
+  have "vwb_lens (X /\<^sub>L Y)"
+    by (unfold_locales
+       ,auto simp add: assms lens_quotient_def lens_comp_def lens_create_def sublens'_prop1 sublens'_prop2)
+  moreover have "X = X /\<^sub>L Y ;\<^sub>L Y"
+  proof -
+    have "get\<^bsub>X\<^esub> = (\<lambda>\<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>)) \<circ> get\<^bsub>Y\<^esub>"
+      by (rule ext, simp add: assms(1) assms(3) lens_create_def sublens'_prop2)
+    moreover have "put\<^bsub>X\<^esub> = (\<lambda>\<sigma> v. put\<^bsub>Y\<^esub> \<sigma> (get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> (get\<^bsub>Y\<^esub> \<sigma>)) v)))"
+      by (rule ext, rule ext, simp add: assms(1) assms(2) assms(3) lens_create_def sublens'_prop3)
+    ultimately show ?thesis
+      by (simp add: lens_quotient_def lens_comp_def)
+  qed
+  ultimately show ?thesis
+    using sublens_def by blast
+qed
+
+lemma sublens_implies_sublens':
+  assumes "vwb_lens Y" "X \<subseteq>\<^sub>L Y"
+  shows "X \<subseteq>\<^sub>L' Y"
+  by (metis assms lens_override_def lens_override_put_right_in sublens'_def)
+
+lemma sublens_iff_sublens':
+  assumes "vwb_lens X" "vwb_lens Y"
+  shows "X \<subseteq>\<^sub>L Y \<longleftrightarrow> X \<subseteq>\<^sub>L' Y"
+  using assms sublens'_implies_sublens sublens_implies_sublens' by blast
 
 end
