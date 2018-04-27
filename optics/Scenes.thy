@@ -196,7 +196,7 @@ begin
   -- {* $X$ is a subscene of $Y$ provided that overriding with first $Y$ and then $X$ can
         be rewritten using the complement of $X$. *}
   definition less_eq_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" where
-  "less_eq_scene X Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on Y \<oplus>\<^sub>S s\<^sub>3 on X = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>3 \<oplus>\<^sub>S s\<^sub>2 on (- X)) on Y)"
+  "less_eq_scene X Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on Y \<oplus>\<^sub>S s\<^sub>3 on X = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>S s\<^sub>3 on X) on Y)"
   definition less_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" where
   "less_scene x y = (x \<le> y \<and> \<not> y \<le> x)"
 instance
@@ -284,6 +284,17 @@ next
   show "X \<approx>\<^sub>L Y"
     by (simp add: assms b lens_equiv_def sublens_iff_subscene)
 qed
+
+text \<open> Membership operations\<close>
+
+definition lens_in_scene :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<in>\<^sub>S" 50) where
+"lens_in_scene x A = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on A \<oplus>\<^sub>L s\<^sub>3 on x = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on x) on A)"
+
+lemma lens_in_scene_top: "x \<in>\<^sub>S \<top>\<^sub>S"
+  by (auto simp add: lens_in_scene_def)
+
+abbreviation lens_out_scene :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<notin>\<^sub>S" 50) where
+"x \<notin>\<^sub>S A \<equiv> (x \<in>\<^sub>S - A)" 
 
 text \<open> Hide implementation details for scenes \<close>
 
