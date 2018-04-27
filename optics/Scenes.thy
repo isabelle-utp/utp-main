@@ -285,16 +285,25 @@ next
     by (simp add: assms b lens_equiv_def sublens_iff_subscene)
 qed
 
-text \<open> Membership operations\<close>
+text \<open> Membership operations. These have slightly hacky definitions at the moment in order to
+  cater for @{term mwb_lens}. See if they can be generalised? \<close>
 
-definition lens_in_scene :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<in>\<^sub>S" 50) where
-"lens_in_scene x A = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on A \<oplus>\<^sub>L s\<^sub>3 on x = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on x) on A)"
+definition lens_member :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<in>\<^sub>S" 50) where
+[lens_defs]:
+"lens_member x A = ((\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on A \<oplus>\<^sub>L s\<^sub>3 on x = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on x) on A) \<and>
+                      (\<forall> b b'. get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on A) = get\<^bsub>x\<^esub> b'))"
 
-lemma lens_in_scene_top: "x \<in>\<^sub>S \<top>\<^sub>S"
-  by (auto simp add: lens_in_scene_def)
+lemma lens_member_top: "x \<in>\<^sub>S \<top>\<^sub>S"
+  by (auto simp add: lens_member_def)
 
-abbreviation lens_out_scene :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<notin>\<^sub>S" 50) where
+abbreviation lens_not_member :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<notin>\<^sub>S" 50) where
 "x \<notin>\<^sub>S A \<equiv> (x \<in>\<^sub>S - A)" 
+
+lemma lens_member_get_override [simp]: "x \<in>\<^sub>S a \<Longrightarrow> get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on a) = get\<^bsub>x\<^esub> b'"
+  by (simp add: lens_member_def)
+
+lemma lens_not_member_get_override [simp]: "x \<notin>\<^sub>S a \<Longrightarrow> get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on a) = get\<^bsub>x\<^esub> b"
+  by (simp add: lens_member_def scene_override_commute)
 
 text \<open> Hide implementation details for scenes \<close>
 
