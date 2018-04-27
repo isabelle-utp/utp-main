@@ -170,17 +170,16 @@ lemma scene_union_assoc:
   using assms
   by (transfer, auto)
 
-lemma scene_union_idem: "(X :: 's scene) \<squnion>\<^sub>S X = X"
+lemma scene_union_idem: "X \<squnion>\<^sub>S X = X"
   by (transfer, simp)
 
 lemma scene_union_compl: "X \<squnion>\<^sub>S - X = \<top>\<^sub>S"
   by (transfer, auto)
 
-lemma scene_inter_idem: "(X :: 's scene) \<sqinter>\<^sub>S X = X"
+lemma scene_inter_idem: "X \<sqinter>\<^sub>S X = X"
   by (simp add: inf_scene_def, transfer, auto)
 
-lemma scene_union_commute:
-  "X ##\<^sub>S Y \<Longrightarrow> X \<squnion>\<^sub>S Y = Y \<squnion>\<^sub>S X"
+lemma scene_union_commute: "X \<squnion>\<^sub>S Y = Y \<squnion>\<^sub>S X"
   by (transfer, auto)
   
 lemma scene_inter_compl: "X \<sqinter>\<^sub>S - X = \<bottom>\<^sub>S"
@@ -231,7 +230,7 @@ subsection \<open> Linking Scenes and Lenses \<close>
 text \<open> The following function extracts a scene from a very well behaved lens \<close>
 
 lift_definition lens_scene :: "('v \<Longrightarrow> 's) \<Rightarrow> 's scene" ("\<lbrakk>_\<rbrakk>\<^sub>\<sim>") is
-"\<lambda> X. if (vwb_lens X) then (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X) else (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1)"
+"\<lambda> X s\<^sub>1 s\<^sub>2. if (vwb_lens X) then s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X else s\<^sub>1"
   by (unfold_locales, auto simp add: lens_override_def)
 
 text \<open> Next we show some important congruence properties \<close>

@@ -469,6 +469,16 @@ lemma lens_override_overshadow:
   shows "(S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>3 on Y = S\<^sub>1 \<oplus>\<^sub>L S\<^sub>3 on Y"
   using assms by (simp add: lens_override_def sublens_put_put)
 
+lemma lens_override_overshadow_left:
+  assumes "mwb_lens X"
+  shows "(S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>3 on X = S\<^sub>1 \<oplus>\<^sub>L S\<^sub>3 on X"
+  by (simp add: assms lens_override_def)
+
+lemma lens_override_overshadow_right:
+  assumes "mwb_lens X"
+  shows "S\<^sub>1 \<oplus>\<^sub>L (S\<^sub>2  \<oplus>\<^sub>L S\<^sub>3 on X) on X = S\<^sub>1 \<oplus>\<^sub>L S\<^sub>3 on X"
+  by (simp add: assms lens_override_def)
+
 lemma lens_override_plus:
   "X \<bowtie> Y \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on (X +\<^sub>L Y) = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X) \<oplus>\<^sub>L S\<^sub>2 on Y"
   by (simp add: lens_indep_comm lens_override_def lens_plus_def)
