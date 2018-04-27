@@ -69,15 +69,15 @@ lemma state_eq_iff: "x = y \<longleftrightarrow> (x, y) \<in> region S \<and> (x
 lift_definition scene_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('a scene) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>S _ on _" [95,0,96] 95)
 is "\<lambda> s\<^sub>1 s\<^sub>2 F. F s\<^sub>1 s\<^sub>2" .
 
-lemma scene_override_idem: "s \<oplus>\<^sub>S s on X = s"
+lemma scene_override_idem [simp]: "s \<oplus>\<^sub>S s on X = s"
   by (transfer, simp)
 
-lemma lens_override_idem [simp]:
-  "\<lbrakk> mwb_lens X; S \<in> \<S>\<^bsub>X\<^esub> \<rbrakk> \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
-  by (simp add: lens_override_def)
-
-lemma obs_override_overshadow_left [simp]:
+lemma scene_override_overshadow_left [simp]:
   "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X \<oplus>\<^sub>S S\<^sub>3 on X = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>3 on X"
+  by (transfer, simp)
+
+lemma scene_override_overshadow_right [simp]:
+  "S\<^sub>1 \<oplus>\<^sub>S (S\<^sub>2 \<oplus>\<^sub>S S\<^sub>3 on X) on X = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>3 on X"
   by (transfer, simp)
 
 lift_definition scene_indep :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" (infix "\<bowtie>\<^sub>S" 50)
@@ -93,9 +93,12 @@ lemma scene_indep_sym:
 
 text \<open> Compatibility is a weaker notion than independence; the scenes can overlap but they must
   agree when they do. \<close>
-
+                                                  
 lift_definition scene_compat :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" (infix "##\<^sub>S" 50)
 is "\<lambda> F G. (\<forall> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2 = F (G s\<^sub>1 s\<^sub>2) s\<^sub>2)" .
+
+lemma scene_indep_compat [simp]: "X \<bowtie>\<^sub>S Y \<Longrightarrow> X ##\<^sub>S Y"
+  by (transfer, auto)
 
 lemma scene_compat_refl: "X ##\<^sub>S X"
   by (transfer, simp)
@@ -115,8 +118,10 @@ begin
   lift_definition top_scene    :: "'s scene" is "\<lambda> x y. y" by (unfold_locales, simp_all)
   lift_definition uminus_scene :: "'s scene \<Rightarrow> 's scene" is "\<lambda> F x y. F y x"
     by (unfold_locales, simp_all)
+  -- {* Scene union requires that the two scenes are at least compatible. If they are not, the
+        result is the bottom scene. *}
   lift_definition sup_scene :: "'s scene \<Rightarrow> 's scene \<Rightarrow> 's scene" 
-    is "\<lambda> F G. if (\<forall> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2 = F (G s\<^sub>1 s\<^sub>2) s\<^sub>2) then (\<lambda> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2) else (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>2)"
+    is "\<lambda> F G. if (\<forall> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2 = F (G s\<^sub>1 s\<^sub>2) s\<^sub>2) then (\<lambda> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2) else (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1)"
     by (unfold_locales, auto, metis overrider.ovr_overshadow_right)
   definition inf_scene :: "'s scene \<Rightarrow> 's scene \<Rightarrow> 's scene" where
     "inf_scene X Y = - (sup (- X) (- Y))"
@@ -138,14 +143,20 @@ where "bot_scene \<equiv> bot"
 lemma uminus_scene_twice: "- (- (X :: 's scene)) = X"
   by (transfer, simp)
 
-lemma scene_override_id: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on \<top>\<^sub>S = S\<^sub>2"
+lemma scene_override_id [simp]: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on \<top>\<^sub>S = S\<^sub>2"
   by (transfer, simp)
 
-lemma scene_override_unit: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on \<bottom>\<^sub>S = S\<^sub>1"
+lemma scene_override_unit [simp]: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on \<bottom>\<^sub>S = S\<^sub>1"
   by (transfer, simp)
 
-lemma obs_override_commute: "S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X = S\<^sub>2 \<oplus>\<^sub>S S\<^sub>1 on (- X)"
+lemma scene_override_commute: "S\<^sub>2 \<oplus>\<^sub>S S\<^sub>1 on (- X) = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X"
   by (transfer, simp)
+
+lemma scene_union_incompat: "\<not> X ##\<^sub>S Y \<Longrightarrow> X \<squnion>\<^sub>S Y = \<bottom>\<^sub>S"
+  by (transfer, auto)
+
+lemma scene_override_union: "X ##\<^sub>S Y \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on (X \<squnion>\<^sub>S Y) = (S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X) \<oplus>\<^sub>S S\<^sub>2 on Y"
+  by (transfer, auto)
 
 lemma scene_union_unit: "X \<squnion>\<^sub>S \<bottom>\<^sub>S = X"
   by (transfer, simp)
@@ -167,10 +178,6 @@ lemma scene_union_compl: "X \<squnion>\<^sub>S - X = \<top>\<^sub>S"
 
 lemma scene_inter_idem: "(X :: 's scene) \<sqinter>\<^sub>S X = X"
   by (simp add: inf_scene_def, transfer, auto)
-
-lemma scene_indep_compat: 
-  "X \<bowtie>\<^sub>S Y \<Longrightarrow> X ##\<^sub>S Y"
-  by (transfer, auto)
 
 lemma scene_union_commute:
   "X ##\<^sub>S Y \<Longrightarrow> X \<squnion>\<^sub>S Y = Y \<squnion>\<^sub>S X"
@@ -208,7 +215,7 @@ end
 
 lemma subscene_eliminate:
   "X \<le> Y \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on X \<oplus>\<^sub>S s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>3 on Y"
-  by (metis less_eq_scene_def obs_override_overshadow_left scene_override_idem)
+  by (metis less_eq_scene_def scene_override_overshadow_left scene_override_idem)
     
 lemma scene_bot_least: "\<bottom>\<^sub>S \<le> X"
   unfolding less_eq_scene_def by (transfer, auto)
@@ -245,6 +252,10 @@ lemma lens_indep_scene:
   using assms
   by (auto, (simp add: scene_indep_override, transfer, simp add: lens_indep_override_def)+)
 
+lemma lens_indep_impl_scene_indep [simp]:
+  "(X \<bowtie> Y) \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<bowtie>\<^sub>S \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  by (transfer, auto simp add: lens_indep_comm lens_override_def)
+
 lemma lens_plus_scene:
   "\<lbrakk> vwb_lens X; vwb_lens Y; X \<bowtie> Y \<rbrakk> \<Longrightarrow> \<lbrakk>X +\<^sub>L Y\<rbrakk>\<^sub>\<sim> = \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
   by (transfer, auto simp add: lens_override_plus lens_indep_override_def lens_indep_overrideI plus_vwb_lens)
@@ -253,7 +264,7 @@ lemma subscene_implies_sublens': "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<L
   by (simp add: lens_defs less_eq_scene_def, transfer, simp add: lens_override_def)
 
 lemma sublens'_implies_subscene: "\<lbrakk> vwb_lens X; vwb_lens Y; X \<subseteq>\<^sub>L' Y \<rbrakk> \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<le> \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
-  by (simp add: lens_defs less_eq_scene_def, auto, metis lens_override_def lens_scene_override obs_override_commute)
+  by (simp add: lens_defs less_eq_scene_def, auto, metis lens_override_def lens_scene_override scene_override_commute)
 
 lemma sublens_iff_subscene:
   assumes "vwb_lens X" "vwb_lens Y"
@@ -274,5 +285,10 @@ next
   show "X \<approx>\<^sub>L Y"
     by (simp add: assms b lens_equiv_def sublens_iff_subscene)
 qed
+
+text \<open> Hide implementation details for scenes \<close>
+
+lifting_update scene.lifting
+lifting_forget scene.lifting
 
 end

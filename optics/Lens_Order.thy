@@ -476,7 +476,11 @@ lemma lens_override_plus:
 lemma lens_override_idem [simp]:
   "vwb_lens X \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
   by (simp add: lens_override_def)
-        
+
+lemma lens_override_mwb_idem [simp]:
+  "\<lbrakk> mwb_lens X; S \<in> \<S>\<^bsub>X\<^esub> \<rbrakk> \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
+  by (simp add: lens_override_def)
+
 lemma lens_override_put_right_in:
   "\<lbrakk> vwb_lens A; X \<subseteq>\<^sub>L A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = put\<^bsub>X\<^esub> (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A) v"
   by (simp add: lens_override_def lens_get_put_quasi_commute lens_put_of_quotient)
