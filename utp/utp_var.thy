@@ -227,13 +227,16 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
   a dollar to indicate its an unprimed relational variable, or a dollar and ``acute'' symbol to 
   indicate its a primed relational variable. Isabelle's parser is extensible so additional
   decorations can be and are added later. \<close>
-  
+
+term uminus
+
 syntax -- \<open> Variable sets \<close>
   "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [990] 990)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [990] 990)
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
   "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
   "_salphaprod"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<times>" 85)
+  "_salphaneg"   :: "salpha \<Rightarrow> salpha" ("- _" [81] 80)
   "_salpha_all"  :: "salpha" ("\<Sigma>")
   "_salpha_none" :: "salpha" ("\<emptyset>")
   "_svar_nil"    :: "svar \<Rightarrow> svars" ("_")
@@ -296,11 +299,12 @@ translations
   -- \<open> Alphabets \<close>
   "_salphaparen a" \<rightharpoonup> "a"
   "_salphaid x" \<rightharpoonup> "x"
-  "_salphacomp x y" \<rightharpoonup> "x +\<^sub>L y"
+  "_salphacomp x y" \<rightharpoonup> "x \<squnion>\<^sub>S y"
   "_salphaprod a b" \<rightleftharpoons> "a \<times>\<^sub>L b"
+  "_salphaneg a" \<rightleftharpoons> "CONST uminus a"
   "_salphavar x" \<rightharpoonup> "x"
-  "_svar_nil x" \<rightharpoonup> "x"
-  "_svar_cons x xs" \<rightharpoonup> "x +\<^sub>L xs"
+  "_svar_nil x" \<rightharpoonup> "\<lbrakk>x\<rbrakk>\<^sub>\<sim>"
+  "_svar_cons x xs" \<rightharpoonup> "\<lbrakk>x\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S xs"
   "_salphaset A" \<rightharpoonup> "A"  
   "(_svar_cons x (_salphamk y))" \<leftharpoondown> "_salphamk (x +\<^sub>L y)" 
   "x" \<leftharpoondown> "_salphamk x"
@@ -328,5 +332,5 @@ let
     | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
 in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 \<close>
-  
+
 end

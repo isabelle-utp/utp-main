@@ -67,8 +67,8 @@ text {* Substitutions also exhibit a natural notion of unrestriction which state
   does not restrict $x$ if application of $\sigma$ to an arbitrary state $\rho$ will not effect
   the valuation of $x$. Put another way, it requires that \emph{put} and the substitution commute. *}
   
-definition unrest_usubst :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
-where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
+definition unrest_usubst :: "'\<alpha> scene \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
+where "unrest_usubst x \<sigma> = (\<forall> b b'. \<sigma> (b \<oplus>\<^sub>S b' on x) = (\<sigma> b) \<oplus>\<^sub>S b' on x)"
 
 adhoc_overloading
   unrest unrest_usubst
@@ -253,8 +253,9 @@ lemma usubst_lookup_upd_indep [usubst]:
 text {* If a variable is unrestricted in a substitution then it's application has no effect. *}
 
 lemma usubst_apply_unrest [usubst]:
-  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
-  by (simp add: unrest_usubst_def, transfer, auto simp add: fun_eq_iff, metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
+  "\<lbrakk> vwb_lens x; {&x} \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
+  by (simp add: unrest_usubst_def lens_scene_override pr_var_def, transfer, auto simp add: fun_eq_iff)
+     (metis lens_override_def lens_override_idem mwb_lens_def vwb_lens_def weak_lens.put_get)
 
 text {* There follows various laws about deleting variables from a substitution. *}
     
@@ -272,40 +273,53 @@ lemma subst_del_upd_diff [usubst]:
 
 text {* If a variable is unrestricted in an expression, then any substitution of that variable
   has no effect on the expression .*}
-    
-lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
-  by (simp add: subst_upd_uvar_def, transfer, auto)
+
+lemma subst_unrest [usubst]: "\<lbrakk> mwb_lens x; {&x} \<sharp> P \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
+  by (simp add: subst_upd_uvar_def, transfer, auto simp add: pr_var_def lens_scene_override)
+     (metis (no_types, hide_lams) lens_override_def mwb_lens.put_put)
 
 lemma subst_unrest_2 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<sharp> P" "x \<bowtie> y"
+  assumes "mwb_lens x" "{&x} \<sharp> P" "x \<bowtie> y"
   shows "\<sigma>(x \<mapsto>\<^sub>s u,y \<mapsto>\<^sub>s v) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s v) \<dagger> P"
   using assms
-  by (simp add: subst_upd_uvar_def, transfer, auto, metis lens_indep.lens_put_comm)
+  by (simp add: subst_upd_uvar_def, transfer, auto simp add: pr_var_def lens_scene_override)
+     (metis (no_types, hide_lams) lens_indep_comm lens_override_def mwb_lens.put_put)
 
 lemma subst_unrest_3 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z"
+  assumes "mwb_lens x" "{&x} \<sharp> P" "x \<bowtie> y" "x \<bowtie> z"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P"
   using assms
-  by (simp add: subst_upd_uvar_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  by (simp add: subst_upd_uvar_def, transfer, auto simp add: pr_var_def lens_scene_override)
+     (metis (no_types, hide_lams) lens_indep_comm lens_override_def mwb_lens.put_put)
 
 lemma subst_unrest_4 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u"
+  assumes "mwb_lens x" "{&x} \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u"
   shows "\<sigma>(x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h) \<dagger> P"
   using assms
-  by (simp add: subst_upd_uvar_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  apply (simp add: subst_upd_uvar_def, transfer, auto simp add: pr_var_def lens_scene_override)
+  apply (unfold lens_override_def)
+  apply (rule ext)
+  apply (metis lens_indep_comm mwb_lens_def weak_lens.put_get)
+  done
 
 lemma subst_unrest_5 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u" "x \<bowtie> v"
+  assumes "mwb_lens x" "{&x} \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u" "x \<bowtie> v"
   shows "\<sigma>(x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h, v \<mapsto>\<^sub>s i) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h, v \<mapsto>\<^sub>s i) \<dagger> P"
   using assms
-  by (simp add: subst_upd_uvar_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  apply (simp add: subst_upd_uvar_def, transfer, auto simp add: pr_var_def lens_scene_override)
+  apply (unfold lens_override_def)
+  apply (rule ext)
+  apply (metis lens_indep_comm mwb_lens_def weak_lens.put_get)
+done
 
-lemma subst_compose_upd [usubst]: "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
-  by (simp add: subst_upd_uvar_def, transfer, auto simp add: unrest_usubst_def)
+lemma subst_compose_upd [usubst]: 
+  "\<lbrakk> mwb_lens x; {&x} \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<circ> \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ> \<rho>)(x \<mapsto>\<^sub>s v) "
+  by (simp add: subst_upd_uvar_def , transfer, auto simp add: unrest_usubst_def lens_scene_override comp_def pr_var_def fun_eq_iff)
+     (metis lens_override_def mwb_lens_def weak_lens.put_get)
 
 text {* Any substitution is a monotonic function. *}
     
@@ -331,9 +345,11 @@ lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>
 lemma usubst_ulambda [usubst]: "\<sigma> \<dagger> (\<lambda> x \<bullet> P(x)) = (\<lambda> x \<bullet> \<sigma> \<dagger> P(x))"
   by (transfer, simp)
 
-lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"
-  by (simp add: subst_del_def subst_upd_uvar_def unrest_uexpr_def unrest_usubst_def subst.rep_eq usubst_lookup.rep_eq)
-     (metis vwb_lens.put_eq)
+lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; {&x} \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); {&x} \<sharp> \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow> {&x} \<sharp> (\<sigma> \<dagger> P)"
+  apply (simp add: subst_del_def unrest_usubst_def subst_upd_uvar_def  )
+  apply (transfer, auto simp add: lens_scene_override pr_var_def)
+  apply (metis lens_override_def lens_override_idem mwb_lens.put_put vwb_lens_def)
+  done
 
 text {* We add the symmetric definition of input and output variables to substitution laws
         so that the variables are correctly normalised after substitution. *}
@@ -404,7 +420,7 @@ lemma subst_upd_comp [usubst]:
 
 lemma subst_singleton:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  assumes "x \<sharp> \<sigma>"
+  assumes "mwb_lens x" "{&x} \<sharp> \<sigma>"
   shows "\<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = (\<sigma> \<dagger> P)\<lbrakk>v/x\<rbrakk>"
   using assms
   by (simp add: usubst)
@@ -453,8 +469,8 @@ subsection {* Unrestriction laws *}
 text {* These are the key unrestriction theorems for substitutions and expressions involving substitutions. *}
   
 lemma unrest_usubst_single [unrest]:
-  "\<lbrakk> mwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> P\<lbrakk>v/x\<rbrakk>"
-  by (transfer, auto simp add: subst_upd_uvar_def unrest_uexpr_def)
+  "\<lbrakk> mwb_lens x; {&x} \<sharp> v \<rbrakk> \<Longrightarrow> {&x} \<sharp> P\<lbrakk>v/x\<rbrakk>"
+  apply (transfer, auto simp add: subst_upd_uvar_def unrest_uexpr_def)
 
 lemma unrest_usubst_id [unrest]:
   "mwb_lens x \<Longrightarrow> x \<sharp> id"

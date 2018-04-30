@@ -19,13 +19,16 @@ translations
   "_usedBy x p" == "CONST usedBy x p"                                           
   "_usedBy (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_usedBy (x +\<^sub>L y) P"
 
-lift_definition usedBy_uexpr :: "('b \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> bool" 
-is "\<lambda> x e. (\<forall> b b'. e (b' \<oplus>\<^sub>L b on x) = e b)" .
+lift_definition usedBy_uexpr :: "('\<alpha> scene) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> bool" 
+is "\<lambda> x e. (\<forall> b b'. e (b' \<oplus>\<^sub>S b on x) = e b)" .
 
 adhoc_overloading usedBy usedBy_uexpr
   
-lemma usedBy_lit [unrest]: "x \<natural> \<guillemotleft>v\<guillemotright>"
+lemma usedBy_lit [unrest]: "a \<natural> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
+
+lemma usedby_is_unrest: "(a \<natural> e) = (-a \<sharp> e)"
+  by (transfer, simp add: scene_override_commute)
 
 lemma usedBy_sublens:
   fixes P :: "('a, '\<alpha>) uexpr"

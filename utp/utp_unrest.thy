@@ -47,15 +47,11 @@ text {* Unrestriction for expressions is defined as a lifted construct using the
   of $e$ by changing $x$. Thus $e$ does not observe the portion of state-space characterised
   by $x$. We add this definition to our overloaded constant. *}
   
-lift_definition unrest_uexpr :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
-is "\<lambda> x e. \<forall> b v. e (put\<^bsub>x\<^esub> b v) = e b" .
+lift_definition unrest_uexpr :: "'\<alpha> scene \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
+is "\<lambda> x e. \<forall> b b'. e (b \<oplus>\<^sub>S b' on x) = e b" .
 
 adhoc_overloading
   unrest unrest_uexpr
-
-lemma unrest_expr_alt_def:
-  "weak_lens x \<Longrightarrow> (x \<sharp> P) = (\<forall> b b'. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>L b' on x) = \<lbrakk>P\<rbrakk>\<^sub>e b)"
-  by (transfer, metis lens_override_def weak_lens.put_get)
   
 subsection {* Unrestriction laws *}
   
@@ -66,77 +62,56 @@ text {* We now prove unrestriction laws for the key constructs of our expression
   Firstly, we prove a general property -- if $x$ and $y$ are both unrestricted in $P$, then their composition
   is also unrestricted in $P$. One can interpret the composition here as a union -- if the two sets
   of variables $x$ and $y$ are unrestricted, then so is their union. *}
-  
+
 lemma unrest_var_comp [unrest]:
-  "\<lbrakk> x \<sharp> P; y \<sharp> P \<rbrakk> \<Longrightarrow> x;y \<sharp> P"
-  by (transfer, simp add: lens_defs)
+  "\<lbrakk> a \<sharp> P; b \<sharp> P \<rbrakk> \<Longrightarrow> a;b \<sharp> P"
+  apply (case_tac "a ##\<^sub>S b")
+  apply (transfer, simp add: scene_override_union)
+  apply (transfer, simp add: scene_union_incompat)
+  done
 
 lemma unrest_svar [unrest]: "(&x \<sharp> P) \<longleftrightarrow> (x \<sharp> P)"
   by (transfer, simp add: lens_defs)
 
 text {* No lens is restricted by a literal, since it returns the same value for any state binding. *}
     
-lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"
+lemma unrest_lit [unrest]: "a \<sharp> \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 
-text {* If one lens is smaller than another, then any unrestriction on the larger lens implies
+text {* If one scene is smaller than another, then any unrestriction on the larger scene implies
   unrestriction on the smaller. *}
     
-lemma unrest_sublens:
+lemma unrest_subscene:
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<sharp> P" "y \<subseteq>\<^sub>L x"
-  shows "y \<sharp> P" 
-  using assms
-  by (transfer, metis (no_types, lifting) lens.select_convs(2) lens_comp_def sublens_def)
+  assumes "idem_scene a" "a \<sharp> P" "b \<le> a"
+  shows "b \<sharp> P" 
+  using assms unfolding less_eq_scene_def
+  by (transfer, metis scene_override_idem)
     
-text {* If two lenses are equivalent, and thus they characterise the same state-space regions,
-  then clearly unrestrictions over them are equivalent. *}
-    
-lemma unrest_equiv:
-  fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "mwb_lens y" "x \<approx>\<^sub>L y" "x \<sharp> P"
-  shows "y \<sharp> P"
-  by (metis assms lens_equiv_def sublens_pres_mwb sublens_put_put unrest_uexpr.rep_eq)
-
-text \<open> If we can show that an expression is unrestricted on a bijective lens, then is unrestricted
-  on the entire state-space. \<close>
-
-lemma bij_lens_unrest_all:
-  fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "bij_lens X" "X \<sharp> P"
-  shows "\<Sigma> \<sharp> P"
-  using assms bij_lens_equiv_id lens_equiv_def unrest_sublens by blast
-
-lemma bij_lens_unrest_all_eq:
-  fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "bij_lens X"
-  shows "(\<Sigma> \<sharp> P) \<longleftrightarrow> (X \<sharp> P)"
-  by (meson assms bij_lens_equiv_id lens_equiv_def unrest_sublens)
-
 text \<open> If an expression is unrestricted by all variables, then it is unrestricted by any variable \<close>
 
 lemma unrest_all_var:
   fixes e :: "('a, '\<alpha>) uexpr"
   assumes "\<Sigma> \<sharp> e"
   shows "x \<sharp> e"
-  by (metis assms id_lens_def lens.simps(2) unrest_uexpr.rep_eq)
-
+  using assms scene_top_greatest unrest_subscene by blast
+  
 text \<open> We can split an unrestriction composed by lens plus \<close>
 
 lemma unrest_plus_split:
   fixes P :: "('a, '\<alpha>) uexpr"
-  assumes "x \<bowtie> y" "vwb_lens x" "vwb_lens y"
-  shows "unrest (x +\<^sub>L y) P \<longleftrightarrow> (x \<sharp> P) \<and> (y \<sharp> P)"
+  assumes "a ##\<^sub>S b"
+  shows "(a;b \<sharp> P) \<longleftrightarrow> (a \<sharp> P) \<and> (b \<sharp> P)"
   using assms
-  by (meson lens_plus_right_sublens lens_plus_ub sublens_refl unrest_sublens unrest_var_comp vwb_lens_wb)
+  by (transfer, simp, metis scene_compat.rep_eq scene_override.rep_eq scene_override_overshadow_left scene_override_union)
 
 text {* The following laws demonstrate the primary motivation for lens independence: a variable
   expression is unrestricted by another variable only when the two variables are independent. 
   Lens independence thus effectively allows us to semantically characterise when two variables,
   or sets of variables, are different. *}
 
-lemma unrest_var [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y \<sharp> var x"
-  by (transfer, auto)
+lemma unrest_var [unrest]: "\<lbrakk> mwb_lens x; x \<notin>\<^sub>S a \<rbrakk> \<Longrightarrow> a \<sharp> var x"
+  by (transfer, simp)
     
 lemma unrest_iuvar [unrest]: "\<lbrakk> mwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> $y \<sharp> $x"
   by (simp add: unrest_var)
@@ -161,16 +136,16 @@ lemma unrest_ouvar_iuvar [unrest]:
 text {* Unrestriction distributes through the various function lifting expression constructs;
   this allows us to prove unrestrictions for the majority of the expression language. *}
     
-lemma unrest_uop [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> uop f e"
+lemma unrest_uop [unrest]: "a \<sharp> e \<Longrightarrow> a \<sharp> uop f e"
   by (transfer, simp)
 
-lemma unrest_bop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> bop f u v"
+lemma unrest_bop [unrest]: "\<lbrakk> a \<sharp> u; a \<sharp> v \<rbrakk> \<Longrightarrow> a \<sharp> bop f u v"
   by (transfer, simp)
 
-lemma unrest_trop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w \<rbrakk> \<Longrightarrow> x \<sharp> trop f u v w"
+lemma unrest_trop [unrest]: "\<lbrakk> a \<sharp> u; a \<sharp> v; a \<sharp> w \<rbrakk> \<Longrightarrow> a \<sharp> trop f u v w"
   by (transfer, simp)
 
-lemma unrest_qtop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w; x \<sharp> y \<rbrakk> \<Longrightarrow> x \<sharp> qtop f u v w y"
+lemma unrest_qtop [unrest]: "\<lbrakk> a \<sharp> u; a \<sharp> v; a \<sharp> w; a \<sharp> y \<rbrakk> \<Longrightarrow> a \<sharp> qtop f u v w y"
   by (transfer, simp)
 
 text {* For convenience, we also prove unrestriction rules for the bespoke operators on equality,
