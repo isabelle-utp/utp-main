@@ -1,7 +1,7 @@
 section \<open> Scenes \<close>
 
 theory Scenes
-  imports Lens_Order
+  imports Lens_Instances
 begin
   
 subsection \<open> Overriding Functions \<close>
@@ -264,7 +264,7 @@ lemma one_lens_scene: "\<lbrakk>1\<^sub>L\<rbrakk>\<^sub>\<sim> = \<top>\<^sub>S
   by (transfer, simp)
 
 lemma lens_scene_override: 
-  "vwb_lens X \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim>"
+  "mwb_lens X \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim> = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X"
   by (transfer, simp)
 
 lemma lens_indep_scene:
@@ -285,7 +285,7 @@ lemma subscene_implies_sublens': "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<L
   by (simp add: lens_defs less_eq_scene_def, transfer, simp add: lens_override_def)
 
 lemma sublens'_implies_subscene: "\<lbrakk> vwb_lens X; vwb_lens Y; X \<subseteq>\<^sub>L' Y \<rbrakk> \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<le> \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
-  by (simp add: lens_defs less_eq_scene_def, auto, metis lens_override_def lens_scene_override scene_override_commute)
+  by (simp add: lens_defs less_eq_scene_def, auto simp add: lens_override_def lens_scene_override)
 
 lemma sublens_iff_subscene:
   assumes "vwb_lens X" "vwb_lens Y"
