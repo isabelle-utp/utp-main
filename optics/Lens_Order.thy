@@ -515,6 +515,12 @@ lemma lens_indep_override_def:
   shows "X \<bowtie> Y \<longleftrightarrow> (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X \<oplus>\<^sub>L s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>3 on Y \<oplus>\<^sub>L s\<^sub>2 on X)"
   by (metis assms(1) assms(2) lens_indep_comm lens_indep_overrideI lens_override_def)
 
+text \<open> Alternative characterisation of very-well behaved lenses: override is idempotent. \<close>
+
+lemma override_idem_implies_vwb:
+  "\<lbrakk> mwb_lens X; \<And> s. s \<oplus>\<^sub>L s on X = s \<rbrakk> \<Longrightarrow> vwb_lens X"
+  by (unfold_locales, simp_all add: lens_defs)
+
 subsection \<open> Alternative Sublens Characterisation \<close>
 
 text \<open> The following definition is equivalent to the above when the two lenses are very well behaved. \<close>
