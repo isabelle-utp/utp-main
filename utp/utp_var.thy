@@ -231,10 +231,10 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
 term uminus
 
 syntax -- \<open> Variable sets \<close>
-  "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [990] 990)
+  "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [990] 990)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [990] 990)
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
-  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr ";" 75)
+  "_salphacomp"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<union>" 75)
   "_salphaprod"  :: "salpha \<Rightarrow> salpha \<Rightarrow> salpha" (infixr "\<times>" 85)
   "_salphaneg"   :: "salpha \<Rightarrow> salpha" ("- _" [81] 80)
   "_salpha_all"  :: "salpha" ("\<Sigma>")
@@ -243,6 +243,7 @@ syntax -- \<open> Variable sets \<close>
   "_svar_cons"   :: "svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
   "_salphaset"   :: "svars \<Rightarrow> salpha" ("{_}")
   "_salphamk"    :: "logic \<Rightarrow> salpha"
+  "_salphamk_set" :: "logic \<Rightarrow> salpha"
 
 text \<open> The terminals of an alphabet are either HOL identifiers or UTP variable identifiers. 
   We support two ways of constructing alphabets; by composition of smaller alphabets using
@@ -251,7 +252,7 @@ text \<open> The terminals of an alphabet are either HOL identifiers or UTP vari
 syntax -- \<open> Quotations \<close>
   "_ualpha_set"  :: "svars \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")  
   "_svar"        :: "svar \<Rightarrow> logic" ("'(_')\<^sub>v")
-  
+
 text \<open> For various reasons, the syntax constructors above all yield specific grammar categories and
   will not parser at the HOL top level (basically this is to do with us wanting to reuse the syntax
   for expressions). As a result we provide some quotation constructors above. 
@@ -302,14 +303,18 @@ translations
   "_salphacomp x y" \<rightharpoonup> "x \<squnion>\<^sub>S y"
   "_salphaprod a b" \<rightleftharpoons> "a \<times>\<^sub>L b"
   "_salphaneg a" \<rightleftharpoons> "CONST uminus a"
-  "_salphavar x" \<rightharpoonup> "x"
+  "_salphavar x" \<rightharpoonup> "\<lbrakk>x\<rbrakk>\<^sub>\<sim>"
   "_svar_nil x" \<rightharpoonup> "\<lbrakk>x\<rbrakk>\<^sub>\<sim>"
   "_svar_cons x xs" \<rightharpoonup> "\<lbrakk>x\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S xs"
   "_salphaset A" \<rightharpoonup> "A"  
-  "(_svar_cons x (_salphamk y))" \<leftharpoondown> "_salphamk (x +\<^sub>L y)" 
-  "x" \<leftharpoondown> "_salphamk x"
-  "_salpha_all" \<rightleftharpoons> "1\<^sub>L"
-  "_salpha_none" \<rightleftharpoons> "0\<^sub>L"
+  "_salphaset (_svar_cons x (_salphamk y))" \<leftharpoondown> "_salphamk_set (\<lbrakk>x\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S y)"
+  "_salphacomp (_salphamk_set x) (_salphamk_set y)" \<leftharpoondown> "_salphamk_set (x \<squnion>\<^sub>S y)"
+  "(_svar_cons x (_salphamk y))" \<leftharpoondown> "_salphamk (\<lbrakk>x\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S y)" 
+  "x" \<leftharpoondown> "_salphamk \<lbrakk>x\<rbrakk>\<^sub>\<sim>"
+  "_salphaset x" \<leftharpoondown> "_salphamk_set \<lbrakk>x\<rbrakk>\<^sub>\<sim>"
+  "x" \<leftharpoondown> "_salphamk_set x"
+  "_salpha_all" \<rightleftharpoons> "\<top>\<^sub>S"
+  "_salpha_none" \<rightleftharpoons> "\<bottom>\<^sub>S"
 
   -- \<open> Quotations \<close>
   "_ualpha_set A" \<rightharpoonup> "A"

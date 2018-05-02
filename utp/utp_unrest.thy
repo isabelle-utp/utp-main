@@ -30,7 +30,8 @@ syntax
   
 translations
   "_unrest x p" == "CONST unrest x p"                                           
-  "_unrest (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_unrest (x +\<^sub>L y) P"
+  "_unrest (_salphamk_set (x \<squnion>\<^sub>S y)) P"  <= "_unrest (x \<squnion>\<^sub>S y) P"
+  "_unrest x p" <= "_unrest \<lbrakk>x\<rbrakk>\<^sub>\<sim> p"
 
 text {* Our syntax translations support both variables and variable sets such that we can write down 
   predicates like @{term "&x \<sharp> P"} and also @{term "{&x,&y,&z} \<sharp> P"}. 
@@ -46,13 +47,13 @@ text {* Unrestriction for expressions is defined as a lifted construct using the
   to is unaltered if we set $x$ to $v$ in $b$. In other words, we cannot effect the behaviour
   of $e$ by changing $x$. Thus $e$ does not observe the portion of state-space characterised
   by $x$. We add this definition to our overloaded constant. *}
-  
+
 lift_definition unrest_uexpr :: "'\<alpha> scene \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> bool"
 is "\<lambda> x e. \<forall> b b'. e (b \<oplus>\<^sub>S b' on x) = e b" .
 
 adhoc_overloading
   unrest unrest_uexpr
-  
+
 subsection {* Unrestriction laws *}
   
 text {* We now prove unrestriction laws for the key constructs of our expression model. Many
@@ -64,7 +65,7 @@ text {* We now prove unrestriction laws for the key constructs of our expression
   of variables $x$ and $y$ are unrestricted, then so is their union. *}
 
 lemma unrest_var_comp [unrest]:
-  "\<lbrakk> a \<sharp> P; b \<sharp> P \<rbrakk> \<Longrightarrow> a;b \<sharp> P"
+  "\<lbrakk> a \<sharp> P; b \<sharp> P \<rbrakk> \<Longrightarrow> a\<union>b \<sharp> P"
   apply (case_tac "a ##\<^sub>S b")
   apply (transfer, simp add: scene_override_union)
   apply (transfer, simp add: scene_union_incompat)
@@ -94,14 +95,14 @@ lemma unrest_all_var:
   fixes e :: "('a, '\<alpha>) uexpr"
   assumes "\<Sigma> \<sharp> e"
   shows "x \<sharp> e"
-  using assms scene_top_greatest unrest_subscene by blast
+  by (metis assms scene_override_id unrest_uexpr.rep_eq)
   
 text \<open> We can split an unrestriction composed by lens plus \<close>
 
 lemma unrest_plus_split:
   fixes P :: "('a, '\<alpha>) uexpr"
   assumes "a ##\<^sub>S b"
-  shows "(a;b \<sharp> P) \<longleftrightarrow> (a \<sharp> P) \<and> (b \<sharp> P)"
+  shows "(a \<union> b \<sharp> P) \<longleftrightarrow> (a \<sharp> P) \<and> (b \<sharp> P)"
   using assms
   by (transfer, simp, metis scene_compat.rep_eq scene_override.rep_eq scene_override_overshadow_left scene_override_union)
 

@@ -547,7 +547,7 @@ translations
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
   "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
-  "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
+  "A \<union>\<^sub>u B"   == "CONST bop (CONST Set.union) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
