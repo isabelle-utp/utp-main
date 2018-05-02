@@ -327,6 +327,38 @@ lemma lens_member_get_override [simp]: "x \<in>\<^sub>S a \<Longrightarrow> get\
 lemma lens_not_member_get_override [simp]: "x \<notin>\<^sub>S a \<Longrightarrow> get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on a) = get\<^bsub>x\<^esub> b"
   by (simp add: lens_member_def scene_override_commute)
 
+lemma put_scene_override_in [simp]:
+  assumes "mwb_lens x" "x \<in>\<^sub>S a"
+  shows "put\<^bsub>x\<^esub> (s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a) v = s\<^sub>1 \<oplus>\<^sub>S put\<^bsub>x\<^esub> s\<^sub>2 v on a"
+  using assms unfolding lens_defs
+  by (transfer, auto, metis mwb_lens_weak weak_lens.put_get)
+
+lemma scene_override_put_in [simp]:
+  assumes "mwb_lens x" "idem_scene a" "x \<in>\<^sub>S a"
+  shows "put\<^bsub>x\<^esub> s\<^sub>1 v \<oplus>\<^sub>S s\<^sub>2 on a = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a"
+  using assms unfolding lens_defs
+  by (transfer; auto)
+     (metis (no_types, hide_lams) idem_overrider.ovr_idem mwb_lens.put_put overrider.ovr_overshadow_left)
+
+lemma put_scene_override_not_in [simp]:
+  assumes "mwb_lens x" "x \<notin>\<^sub>S a"
+  shows "put\<^bsub>x\<^esub> (s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a) v = put\<^bsub>x\<^esub> s\<^sub>1 v \<oplus>\<^sub>S s\<^sub>2 on a"
+  using assms unfolding lens_defs
+  by (transfer, auto, metis mwb_lens_weak weak_lens.put_get)
+
+lemma scene_override_put_not_in [simp]:
+  assumes "mwb_lens x" "idem_scene a" "x \<notin>\<^sub>S a"
+  shows "s\<^sub>1 \<oplus>\<^sub>S put\<^bsub>x\<^esub> s\<^sub>2 v on a = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a"
+  using assms unfolding lens_defs
+  by (transfer, auto)
+     (metis (full_types) idem_overrider.ovr_idem mwb_lens_def overrider.ovr_overshadow_right weak_lens.put_get)
+
+lemma lens_not_member_lens [simp]: "x \<bowtie> y \<Longrightarrow> x \<notin>\<^sub>S \<lbrakk>y\<rbrakk>\<^sub>\<sim>"
+  apply (unfold lens_member_def, auto, transfer, auto)
+   apply (simp add: lens_indep.lens_put_comm lens_override_def)
+  apply (transfer, auto simp add: lens_override_def)
+done
+
 text \<open> Hide implementation details for scenes \<close>
 
 lifting_update scene.lifting
