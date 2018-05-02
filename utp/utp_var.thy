@@ -198,7 +198,7 @@ subsection \<open> Syntax translations \<close>
 text \<open> In order to support nice syntax for variables, we here set up some translations. The first
   step is to introduce a collection of non-terminals. \<close>
   
-nonterminal svid and svids and svar and svars and salpha
+nonterminal svid and svids and svar and svars and svid_svar and salpha
 
 text \<open> These non-terminals correspond to the following syntactic entities. Non-terminal 
   @{typ "svid"} is an atomic variable identifier, and @{typ "svids"} is a list of identifier. 
@@ -208,6 +208,8 @@ text \<open> These non-terminals correspond to the following syntactic entities.
   syntax constructors. \<close>
    
 syntax -- \<open> Identifiers \<close>
+  "_svid_svid"   :: "svid \<Rightarrow> svid_svar" ("_")
+  "_svid_svar"   :: "svar \<Rightarrow> svid_svar" ("_")
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_unit"   :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"   :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
@@ -228,8 +230,6 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
   indicate its a primed relational variable. Isabelle's parser is extensible so additional
   decorations can be and are added later. \<close>
 
-term uminus
-
 syntax -- \<open> Variable sets \<close>
   "_salphaid"    :: "id \<Rightarrow> salpha" ("_" [990] 990)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [990] 990)
@@ -239,8 +239,8 @@ syntax -- \<open> Variable sets \<close>
   "_salphaneg"   :: "salpha \<Rightarrow> salpha" ("- _" [81] 80)
   "_salpha_all"  :: "salpha" ("\<Sigma>")
   "_salpha_none" :: "salpha" ("\<emptyset>")
-  "_svar_nil"    :: "svar \<Rightarrow> svars" ("_")
-  "_svar_cons"   :: "svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
+  "_svar_nil"    :: "svid_svar \<Rightarrow> svars" ("_")
+  "_svar_cons"   :: "svid_svar \<Rightarrow> svars \<Rightarrow> svars" ("_,/ _")
   "_salphaset"   :: "svars \<Rightarrow> salpha" ("{_}")
   "_salphamk"    :: "logic \<Rightarrow> salpha"
   "_salphamk_set" :: "logic \<Rightarrow> salpha"
@@ -281,6 +281,8 @@ text \<open> The functions above turn a representation of a variable (type @{typ
 translations
   -- \<open> Identifiers \<close>
   "_svid x" \<rightharpoonup> "x"
+  "_svid_svid x" \<rightharpoonup> "x"
+  "_svid_svar x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
 

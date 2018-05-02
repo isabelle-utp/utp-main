@@ -416,7 +416,7 @@ lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> 
 text {* The sublens proviso can be thought of as membership below. *}
 
 lemma unrest_ex_in [unrest]:
-  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> {x} \<sharp> (\<exists> y \<bullet> P)"
   by (pred_auto)
 
 declare sublens_refl [simp]

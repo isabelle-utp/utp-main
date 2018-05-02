@@ -71,9 +71,6 @@ lemma unrest_var_comp [unrest]:
   apply (transfer, simp add: scene_union_incompat)
   done
 
-lemma unrest_svar [unrest]: "(&x \<sharp> P) \<longleftrightarrow> (x \<sharp> P)"
-  by (transfer, simp add: lens_defs)
-
 text {* No lens is restricted by a literal, since it returns the same value for any state binding. *}
     
 lemma unrest_lit [unrest]: "a \<sharp> \<guillemotleft>v\<guillemotright>"
@@ -126,13 +123,13 @@ lemma unrest_iuvar_ouvar [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "mwb_lens y"
   shows "$x \<sharp> $y\<acute>"
-  by (metis prod.collapse unrest_uexpr.rep_eq var.rep_eq var_lookup_out var_update_in)
-
+  by (simp add: assms unrest_var)
+  
 lemma unrest_ouvar_iuvar [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "mwb_lens y"
   shows "$x\<acute> \<sharp> $y"
-  by (metis prod.collapse unrest_uexpr.rep_eq var.rep_eq var_lookup_in var_update_out)
+  by (simp add: assms unrest_var)
 
 text {* Unrestriction distributes through the various function lifting expression constructs;
   this allows us to prove unrestrictions for the majority of the expression language. *}
