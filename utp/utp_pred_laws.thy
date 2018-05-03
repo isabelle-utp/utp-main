@@ -646,50 +646,34 @@ lemma subst_eq_replace:
 subsection {* UTP Quantifiers *}
     
 lemma one_point:
-  assumes "mwb_lens x" "x \<sharp> v"
-  shows "(\<exists> x \<bullet> P \<and> var x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
+  assumes "mwb_lens x" "{x} \<sharp> v"
+  shows "(\<exists> {x} \<bullet> P \<and> var x =\<^sub>u v) = P\<lbrakk>v/x\<rbrakk>"
   using assms
+  by (pred_auto, metis mwb_lens_weak weak_lens.put_get)
+
+lemma exists_twice: "(\<exists> a \<bullet> \<exists> a \<bullet> P) = (\<exists> a \<bullet> P)"
   by (pred_auto)
 
-lemma exists_twice: "mwb_lens x \<Longrightarrow> (\<exists> x \<bullet> \<exists> x \<bullet> P) = (\<exists> x \<bullet> P)"
+lemma all_twice: "(\<forall> a \<bullet> \<forall> a \<bullet> P) = (\<forall> a \<bullet> P)"
   by (pred_auto)
 
-lemma all_twice: "mwb_lens x \<Longrightarrow> (\<forall> x \<bullet> \<forall> x \<bullet> P) = (\<forall> x \<bullet> P)"
+lemma exists_sub: "\<lbrakk> idem_scene y; x \<subseteq>\<^sub>S y \<rbrakk> \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> P)"
   by (pred_auto)
 
-lemma exists_sub: "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> P)"
-  by (pred_auto)
-
-lemma all_sub: "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> (\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> P)"
+lemma all_sub: "\<lbrakk> idem_scene y; x \<subseteq>\<^sub>S y \<rbrakk> \<Longrightarrow> (\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> P)"
   by (pred_auto)
 
 lemma ex_commute:
-  assumes "x \<bowtie> y"
+  assumes "x \<bowtie>\<^sub>S y"
   shows "(\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
   using assms
-  apply (pred_auto)
-  using lens_indep_comm apply fastforce+
-  done
+  by (pred_auto, (metis scene_indep_override)+)
 
 lemma all_commute:
-  assumes "x \<bowtie> y"
+  assumes "x \<bowtie>\<^sub>S y"
   shows "(\<forall> x \<bullet> \<forall> y \<bullet> P) = (\<forall> y \<bullet> \<forall> x \<bullet> P)"
   using assms
-  apply (pred_auto)
-  using lens_indep_comm apply fastforce+
-  done
-
-lemma ex_equiv:
-  assumes "x \<approx>\<^sub>L y"
-  shows "(\<exists> x \<bullet> P) = (\<exists> y \<bullet> P)"
-  using assms
-  by (pred_simp, metis (no_types, lifting) lens.select_convs(2))
-
-lemma all_equiv:
-  assumes "x \<approx>\<^sub>L y"
-  shows "(\<forall> x \<bullet> P) = (\<forall> y \<bullet> P)"
-  using assms
-  by (pred_simp, metis (no_types, lifting) lens.select_convs(2))
+  by (pred_auto, simp_all add: scene_indep_override)
 
 lemma ex_zero:
   "(\<exists> \<emptyset> \<bullet> P) = P"
@@ -699,12 +683,14 @@ lemma all_zero:
   "(\<forall> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
-lemma ex_plus:
-  "(\<exists> y;x \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
-  by (pred_auto)
+lemma ex_union:
+  "\<lbrakk> x ##\<^sub>S y \<rbrakk> \<Longrightarrow> (\<exists> x\<union>y \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
+  apply (pred_auto)
+   apply (metis scene_override_union scene_union_commute)
+  oops
 
 lemma all_plus:
-  "(\<forall> y;x \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
+  "x ##\<^sub>S y \<Longrightarrow>  (\<forall> x\<union>y \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
   by (pred_auto)
 
 lemma closure_all:
@@ -712,8 +698,8 @@ lemma closure_all:
   by (pred_auto)
 
 lemma unrest_as_exists:
-  "vwb_lens x \<Longrightarrow> (x \<sharp> P) \<longleftrightarrow> ((\<exists> x \<bullet> P) = P)"
-  by (pred_simp, metis vwb_lens.put_eq)
+  "(x \<sharp> P) \<longleftrightarrow> ((\<exists> x \<bullet> P) = P)"
+  by (pred_auto, metis (full_types) scene_override_overshadow_left)
 
 lemma ex_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> (\<exists> x \<bullet> Q)"
   by (pred_auto)

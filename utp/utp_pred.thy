@@ -40,8 +40,8 @@ consts
   uimpl  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<Rightarrow>" 25)
   uiff   :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<Leftrightarrow>" 25)
   unot   :: "'a \<Rightarrow> 'a" ("\<not> _" [40] 40)
-  uex    :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
-  uall   :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
+  uex    :: "'v \<Rightarrow> 'p \<Rightarrow> 'p"
+  uall   :: "'v \<Rightarrow> 'p \<Rightarrow> 'p"
   ushEx  :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   ushAll :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   
@@ -291,14 +291,14 @@ lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarro
 lift_definition iff_upred ::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P Q A. P A \<longleftrightarrow> Q A" .
 
-lift_definition ex :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
-"\<lambda> x P b. (\<exists> v. P(put\<^bsub>x\<^esub> b v))" .
+lift_definition ex :: "'\<alpha> scene \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
+"\<lambda> x P b. (\<exists> b'. P(b \<oplus>\<^sub>S b' on x))" .
 
 lift_definition shEx ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<exists> x. (P x) A" .
 
-lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
-"\<lambda> x P b. (\<forall> v. P(put\<^bsub>x\<^esub> b v))" .
+lift_definition all :: "'\<alpha> scene \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
+"\<lambda> x P b. (\<forall> b'. P(b \<oplus>\<^sub>S b' on x))" .
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
@@ -415,8 +415,10 @@ lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> 
 
 text {* The sublens proviso can be thought of as membership below. *}
 
+declare sublens_def [lens_defs del]
+
 lemma unrest_ex_in [unrest]:
-  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> {x} \<sharp> (\<exists> y \<bullet> P)"
+  "\<lbrakk> idem_scene b; a \<subseteq>\<^sub>S b \<rbrakk> \<Longrightarrow> a \<sharp> (\<exists> b \<bullet> P)"
   by (pred_auto)
 
 declare sublens_refl [simp]
@@ -427,34 +429,30 @@ declare comp_mwb_lens [simp]
 declare plus_mwb_lens [simp]
 
 lemma unrest_ex_diff [unrest]:
-  assumes "x \<bowtie> y" "y \<sharp> P"
-  shows "y \<sharp> (\<exists> x \<bullet> P)"
-  using assms lens_indep_comm 
-  by (rel_simp', fastforce)
+  assumes "a \<bowtie>\<^sub>S b" "a \<sharp> P"
+  shows "a \<sharp> (\<exists> b \<bullet> P)"
+  using assms scene_override_commute_indep by (pred_auto; fastforce)
   
 lemma unrest_all_in [unrest]:
-  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"
+  "\<lbrakk> idem_scene b; a \<subseteq>\<^sub>S b \<rbrakk> \<Longrightarrow> a \<sharp> (\<forall> b \<bullet> P)"
   by (pred_auto)
 
 lemma unrest_all_diff [unrest]:
-  assumes "x \<bowtie> y" "y \<sharp> P"
-  shows "y \<sharp> (\<forall> x \<bullet> P)"
+  assumes "a \<bowtie>\<^sub>S b" "a \<sharp> P"
+  shows "a \<sharp> (\<forall> b \<bullet> P)"
   using assms
-  by (pred_simp, simp_all add: lens_indep_comm)
+  by (pred_auto, simp_all add: scene_indep_override)
 
 lemma unrest_var_res_diff [unrest]:
-  assumes "x \<bowtie> y"
-  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
-  using assms by (pred_auto)
+  assumes "idem_scene b" "a \<bowtie>\<^sub>S b"
+  shows "a \<sharp> (\<exists> (- b) \<bullet> P)"
+  using assms by (pred_auto; auto simp add: scene_indep_iff_outside)
 
 lemma unrest_var_res_in [unrest]:
-  assumes "mwb_lens x" "y \<subseteq>\<^sub>L x" "y \<sharp> P"
-  shows "y \<sharp> (P \<restriction>\<^sub>v x)"
+  assumes "idem_scene b" "a \<subseteq>\<^sub>S b" "a \<sharp> P"
+  shows "a \<sharp> (\<exists> (- b) \<bullet> P)"
   using assms 
-  apply (pred_auto)
-   apply fastforce
-  apply (metis (no_types, lifting) mwb_lens_weak weak_lens.put_get)
-  done
+  by (pred_auto, (metis less_eq_scene_def scene_override_commute)+)
 
 lemma unrest_shEx [unrest]:
   assumes "\<And> y. x \<sharp> P(y)"
@@ -469,28 +467,6 @@ lemma unrest_shAll [unrest]:
 lemma unrest_closure [unrest]:
   "x \<sharp> [P]\<^sub>u"
   by (pred_auto)
-
-subsection {* Used-by laws *}
-
-lemma usedBy_not [unrest]:
-  "\<lbrakk> x \<natural> P \<rbrakk> \<Longrightarrow> x \<natural> (\<not> P)"
-  by (pred_simp)
-    
-lemma usedBy_conj [unrest]:
-  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<and> Q)"
-  by (pred_simp)
-
-lemma usedBy_disj [unrest]:
-  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<or> Q)"
-  by (pred_simp)
-
-lemma usedBy_impl [unrest]:
-  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Rightarrow> Q)"
-  by (pred_simp)
-
-lemma usedBy_iff [unrest]:
-  "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Leftrightarrow> Q)"
-  by (pred_simp)
     
 subsection {* Substitution Laws *}
 
@@ -544,7 +520,7 @@ lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P
 text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
 
 lemma subst_ex_same [usubst]:
-  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> {x} \<bullet> P) = \<sigma> \<dagger> (\<exists> {x} \<bullet> P)"
   by (pred_auto)
 
 lemma subst_ex_same' [usubst]:
@@ -552,26 +528,23 @@ lemma subst_ex_same' [usubst]:
   by (pred_auto)
     
 lemma subst_ex_indep [usubst]:
-  assumes "x \<bowtie> y" "y \<sharp> v"
-  shows "(\<exists> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
-  using assms
-  apply (pred_auto)
-  using lens_indep_comm apply fastforce+
-  done
+  assumes "mwb_lens x" "x \<notin>\<^sub>S a" "a \<sharp> v"
+  shows "(\<exists> a \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<exists> a \<bullet> P\<lbrakk>v/x\<rbrakk>)"
+  using assms by (pred_auto)
+  
 
 lemma subst_ex_unrest [usubst]:
   "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
   by (pred_auto)
 
 lemma subst_all_same [usubst]:
-  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<forall> x \<bullet> P) = \<sigma> \<dagger> (\<forall> x \<bullet> P)"
-  by (simp add: id_subst subst_unrest unrest_all_in)
+  "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<forall> {x} \<bullet> P) = \<sigma> \<dagger> (\<forall> {x} \<bullet> P)"
+  by (pred_auto)
 
 lemma subst_all_indep [usubst]:
-  assumes "x \<bowtie> y" "y \<sharp> v"
-  shows "(\<forall> y \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> y \<bullet> P\<lbrakk>v/x\<rbrakk>)"
-  using assms
-  by (pred_simp, simp_all add: lens_indep_comm)
+  assumes "mwb_lens x" "x \<notin>\<^sub>S a" "a \<sharp> v"
+  shows "(\<forall> a \<bullet> P)\<lbrakk>v/x\<rbrakk> = (\<forall> a \<bullet> P\<lbrakk>v/x\<rbrakk>)"
+  using assms by (pred_auto)
 
 lemma msubst_true [usubst]: "true\<lbrakk>x\<rightarrow>v\<rbrakk> = true"
   by (pred_auto)
