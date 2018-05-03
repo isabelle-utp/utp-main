@@ -491,13 +491,29 @@ lemma lens_override_mwb_idem [simp]:
   "\<lbrakk> mwb_lens X; S \<in> \<S>\<^bsub>X\<^esub> \<rbrakk> \<Longrightarrow> S \<oplus>\<^sub>L S on X = S"
   by (simp add: lens_override_def)
 
-lemma lens_override_put_right_in:
-  "\<lbrakk> vwb_lens A; X \<subseteq>\<^sub>L A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = put\<^bsub>X\<^esub> (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A) v"
-  by (simp add: lens_override_def lens_get_put_quasi_commute lens_put_of_quotient)
+lemma lens_override_put_left_in [simp]:
+  "\<lbrakk> mwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> put\<^bsub>X\<^esub> (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A) v = (put\<^bsub>X\<^esub> S\<^sub>1 v) \<oplus>\<^sub>L S\<^sub>2 on A"
+  by (auto simp add: lens_defs lens_indep_comm)
+
+lemma lens_override_put_right_in [simp]:
+  "\<lbrakk> mwb_lens A; X \<subseteq>\<^sub>L A \<rbrakk> \<Longrightarrow> put\<^bsub>X\<^esub> (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A) v = S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A"
+  by (auto simp add: lens_defs)
+
+lemma lens_override_put_overshadow [simp]:
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> put\<^bsub>y\<^esub> (s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on x) v = put\<^bsub>y\<^esub> s\<^sub>1 v"
+  by (auto simp add: lens_defs)
 
 lemma lens_override_put_right_out:
-  "\<lbrakk> vwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
+  "\<lbrakk> mwb_lens A; X \<bowtie> A \<rbrakk> \<Longrightarrow> S\<^sub>1 \<oplus>\<^sub>L (put\<^bsub>X\<^esub> S\<^sub>2 v) on A = (S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on A)"
   by (simp add: lens_override_def  lens_indep.lens_put_irr2)
+
+lemma lens_override_sublens_commute:
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on y \<oplus>\<^sub>L s\<^sub>3 on x = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on x on y"
+  by (auto simp add: lens_defs)
+
+lemma lens_get_override_sublens [simp]:
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> get\<^bsub>x\<^esub> (b \<oplus>\<^sub>L b' on y) = get\<^bsub>x\<^esub> b'"
+  by (auto simp add: lens_defs)
 
 lemma lens_indep_overrideI:
   assumes "vwb_lens X" "vwb_lens Y" "(\<And> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X \<oplus>\<^sub>L s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>3 on Y \<oplus>\<^sub>L s\<^sub>2 on X)"

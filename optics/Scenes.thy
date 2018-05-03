@@ -144,6 +144,20 @@ where "top_scene \<equiv> top"
 abbreviation bot_scene :: "'s scene" ("\<bottom>\<^sub>S")
 where "bot_scene \<equiv> bot"
 
+lemma bot_idem_scene [simp]: "idem_scene \<bottom>\<^sub>S"
+  by (transfer, unfold_locales, simp_all)
+
+lemma top_idem_scene: "idem_scene \<top>\<^sub>S"
+  by (transfer, unfold_locales, simp_all)
+
+lemma uminus_idem_scene_closed [simp]: 
+  "idem_scene X \<Longrightarrow> idem_scene (- X)"
+  by (transfer, unfold_locales, simp_all)
+
+lemma scene_union_idem_closed [simp]:
+  "\<lbrakk> idem_scene X; idem_scene Y \<rbrakk> \<Longrightarrow> idem_scene (X \<squnion>\<^sub>S Y)"
+  by (transfer, unfold_locales, auto, metis overrider.ovr_overshadow_right)
+
 lemma uminus_scene_twice: "- (- (X :: 's scene)) = X"
   by (transfer, simp)
 
@@ -222,19 +236,25 @@ lemma subscene_antisym: "\<lbrakk> idem_scene Y; X \<subseteq>\<^sub>S Y; Y \<su
   apply (metis (full_types) idem_overrider.ovr_idem overrider.ovr_overshadow_left)
   done
 
-lemma subscene_eliminate:
+lemma subscene_eliminate [simp]:
   "\<lbrakk> idem_scene Y; X \<le> Y \<rbrakk> \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on X \<oplus>\<^sub>S s\<^sub>3 on Y = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>3 on Y"
   by (metis less_eq_scene_def scene_override_overshadow_left scene_override_idem)
     
-lemma scene_bot_least: "\<bottom>\<^sub>S \<le> X"
+lemma scene_bot_least [simp]: "\<bottom>\<^sub>S \<le> X"
   unfolding less_eq_scene_def by (transfer, auto)
 
-lemma scene_top_greatest: "X \<le> \<top>\<^sub>S"
+lemma scene_top_greatest [simp]: "X \<le> \<top>\<^sub>S"
   unfolding less_eq_scene_def by (transfer, auto)
 
 lemma scene_union_ub: "\<lbrakk> idem_scene Y; X \<bowtie>\<^sub>S Y \<rbrakk> \<Longrightarrow> X \<le> (X \<squnion>\<^sub>S Y)"
   by (simp add: less_eq_scene_def, transfer, auto)
      (metis (no_types, hide_lams) idem_overrider.ovr_idem overrider.ovr_overshadow_right)
+
+text \<open> The following property links independence and subscene \<close>
+
+lemma scene_indep_iff_outside:
+  "a \<bowtie>\<^sub>S b \<longleftrightarrow> a \<subseteq>\<^sub>S (- b)"
+  by (simp add: less_eq_scene_def, transfer, auto)
 
 subsection \<open> Linking Scenes and Lenses \<close>
 
@@ -257,13 +277,13 @@ lemma idem_scene_impl_vwb:
 
 text \<open> Next we show some important congruence properties \<close>
 
-lemma zero_lens_scene: "\<lbrakk>0\<^sub>L\<rbrakk>\<^sub>\<sim> = \<bottom>\<^sub>S"
+lemma zero_lens_scene [simp]: "\<lbrakk>0\<^sub>L\<rbrakk>\<^sub>\<sim> = \<bottom>\<^sub>S"
   by (transfer, simp)
 
-lemma one_lens_scene: "\<lbrakk>1\<^sub>L\<rbrakk>\<^sub>\<sim> = \<top>\<^sub>S"
+lemma one_lens_scene [simp]: "\<lbrakk>1\<^sub>L\<rbrakk>\<^sub>\<sim> = \<top>\<^sub>S"
   by (transfer, simp)
 
-lemma lens_scene_override: 
+lemma lens_scene_override [simp]: 
   "mwb_lens X \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on \<lbrakk>X\<rbrakk>\<^sub>\<sim> = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X"
   by (transfer, simp)
 
@@ -282,10 +302,10 @@ lemma lens_plus_scene:
   by (transfer, auto simp add: lens_override_plus lens_indep_override_def lens_indep_overrideI plus_vwb_lens)
 
 lemma subscene_implies_sublens': "\<lbrakk> vwb_lens X; vwb_lens Y \<rbrakk> \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<le> \<lbrakk>Y\<rbrakk>\<^sub>\<sim> \<longleftrightarrow> X \<subseteq>\<^sub>L' Y"
-  by (simp add: lens_defs less_eq_scene_def, transfer, simp add: lens_override_def)
+  by (simp add: lens_defs less_eq_scene_def)
 
 lemma sublens'_implies_subscene: "\<lbrakk> vwb_lens X; vwb_lens Y; X \<subseteq>\<^sub>L' Y \<rbrakk> \<Longrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> \<le> \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
-  by (simp add: lens_defs less_eq_scene_def, auto simp add: lens_override_def lens_scene_override)
+  by (simp add: lens_defs less_eq_scene_def)
 
 lemma sublens_iff_subscene:
   assumes "vwb_lens X" "vwb_lens Y"
@@ -311,7 +331,6 @@ text \<open> Membership operations. These have slightly hacky definitions at the
   cater for @{term mwb_lens}. See if they can be generalised? \<close>
 
 definition lens_member :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> bool" (infix "\<in>\<^sub>S" 50) where
-[lens_defs]:
 "lens_member x A = ((\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on A \<oplus>\<^sub>L s\<^sub>3 on x = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>L s\<^sub>3 on x) on A) \<and>
                       (\<forall> b b'. get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on A) = get\<^bsub>x\<^esub> b'))"
 
@@ -330,28 +349,33 @@ lemma lens_not_member_get_override [simp]: "x \<notin>\<^sub>S a \<Longrightarro
 lemma put_scene_override_in [simp]:
   assumes "mwb_lens x" "x \<in>\<^sub>S a"
   shows "put\<^bsub>x\<^esub> (s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a) v = s\<^sub>1 \<oplus>\<^sub>S put\<^bsub>x\<^esub> s\<^sub>2 v on a"
-  using assms unfolding lens_defs
+  using assms unfolding lens_member_def lens_defs
   by (transfer, auto, metis mwb_lens_weak weak_lens.put_get)
 
 lemma scene_override_put_in [simp]:
   assumes "mwb_lens x" "idem_scene a" "x \<in>\<^sub>S a"
   shows "put\<^bsub>x\<^esub> s\<^sub>1 v \<oplus>\<^sub>S s\<^sub>2 on a = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a"
-  using assms unfolding lens_defs
+  using assms unfolding  lens_member_def lens_defs
   by (transfer; auto)
      (metis (no_types, hide_lams) idem_overrider.ovr_idem mwb_lens.put_put overrider.ovr_overshadow_left)
 
 lemma put_scene_override_not_in [simp]:
   assumes "mwb_lens x" "x \<notin>\<^sub>S a"
   shows "put\<^bsub>x\<^esub> (s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a) v = put\<^bsub>x\<^esub> s\<^sub>1 v \<oplus>\<^sub>S s\<^sub>2 on a"
-  using assms unfolding lens_defs
+  using assms unfolding lens_member_def lens_defs
   by (transfer, auto, metis mwb_lens_weak weak_lens.put_get)
 
 lemma scene_override_put_not_in [simp]:
   assumes "mwb_lens x" "idem_scene a" "x \<notin>\<^sub>S a"
   shows "s\<^sub>1 \<oplus>\<^sub>S put\<^bsub>x\<^esub> s\<^sub>2 v on a = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on a"
-  using assms unfolding lens_defs
+  using assms unfolding lens_member_def lens_defs
   by (transfer, auto)
      (metis (full_types) idem_overrider.ovr_idem mwb_lens_def overrider.ovr_overshadow_right weak_lens.put_get)
+
+lemma lens_member_via_sublens [simp]: 
+  "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<in>\<^sub>S \<lbrakk>y\<rbrakk>\<^sub>\<sim>"
+  unfolding lens_member_def
+  by (auto simp add: sublens_pres_mwb lens_override_sublens_commute)
 
 lemma lens_not_member_lens [simp]: "x \<bowtie> y \<Longrightarrow> x \<notin>\<^sub>S \<lbrakk>y\<rbrakk>\<^sub>\<sim>"
   apply (unfold lens_member_def, auto, transfer, auto)
