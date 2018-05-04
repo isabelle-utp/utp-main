@@ -71,7 +71,6 @@ syntax
   "_ushGAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
   "_ushGtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ > _ \<bullet> _" [0, 0, 10] 10)
   "_ushLtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ < _ \<bullet> _" [0, 0, 10] 10)
-  "_uvar_res" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>v" 90)
   
 translations
   "_uex x P"                   == "CONST uex x P"
@@ -302,15 +301,6 @@ lift_definition all :: "'\<alpha> scene \<Rightarrow> '\<alpha> upred \<Rightarr
 
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
-    
-text {* We define the following operator which is dual of existential quantification. It hides the
-  valuation of variables other than $x$ through existential quantification. *}
-    
-lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred" is
-"\<lambda> P x b. \<exists> b'. P (b' \<oplus>\<^sub>L b on x)" .
-    
-translations
-  "_uvar_res P a" \<rightleftharpoons> "CONST var_res P a"
 
 text {* We have to add a u subscript to the closure operator as I don't want to override the syntax
         for HOL lists (we'll be using them later). *}
@@ -446,7 +436,8 @@ lemma unrest_all_diff [unrest]:
 lemma unrest_var_res_diff [unrest]:
   assumes "idem_scene b" "a \<bowtie>\<^sub>S b"
   shows "a \<sharp> (\<exists> (- b) \<bullet> P)"
-  using assms by (pred_auto; auto simp add: scene_indep_iff_outside)
+  by (pred_auto)
+     (metis assms(1) assms(2) scene_indep_iff_outside scene_override_commute subscene_eliminate uminus_idem_scene_closed)+
 
 lemma unrest_var_res_in [unrest]:
   assumes "idem_scene b" "a \<subseteq>\<^sub>S b" "a \<sharp> P"

@@ -683,15 +683,24 @@ lemma all_zero:
   "(\<forall> \<emptyset> \<bullet> P) = P"
   by (pred_auto)
 
+(*
+lemma scene_indep_override_1: "x \<bowtie>\<^sub>S y \<Longrightarrow> s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 \<oplus>\<^sub>S s\<^sub>3 on x \<oplus>\<^sub>S s\<^sub>4 on y on x = s\<^sub>1 \<oplus>\<^sub>S s\<^sub>3 on x"
+  by (simp add: scene_indep_override)
+*)
+
 lemma ex_union:
-  "\<lbrakk> x ##\<^sub>S y \<rbrakk> \<Longrightarrow> (\<exists> x\<union>y \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
+  "x \<bowtie>\<^sub>S y \<Longrightarrow> (\<exists> x\<union>y \<bullet> P) = (\<exists> x \<bullet> \<exists> y \<bullet> P)"
   apply (pred_auto)
-   apply (metis scene_override_union scene_union_commute)
-  oops
+  apply (auto simp add: scene_override_union)
+  apply (metis scene_override_commute_indep scene_override_overshadow_right)
+  done
 
 lemma all_plus:
-  "x ##\<^sub>S y \<Longrightarrow>  (\<forall> x\<union>y \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
-  by (pred_auto)
+  "x \<bowtie>\<^sub>S y \<Longrightarrow> (\<forall> x\<union>y \<bullet> P) = (\<forall> x \<bullet> \<forall> y \<bullet> P)"
+  apply (pred_auto)
+  apply (simp_all add: scene_override_union)
+  apply (metis scene_override_commute_indep scene_override_overshadow_right)
+  done
 
 lemma closure_all:
   "[P]\<^sub>u = (\<forall> \<Sigma> \<bullet> P)"
@@ -704,14 +713,14 @@ lemma unrest_as_exists:
 lemma ex_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> (\<exists> x \<bullet> Q)"
   by (pred_auto)
 
-lemma ex_weakens: "wb_lens x \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> P"
-  by (pred_simp, metis wb_lens.get_put)
+lemma ex_weakens: "idem_scene x \<Longrightarrow> (\<exists> x \<bullet> P) \<sqsubseteq> P"
+  by (pred_simp, metis scene_override_idem)
 
 lemma all_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<forall> x \<bullet> P) \<sqsubseteq> (\<forall> x \<bullet> Q)"
   by (pred_auto)
 
-lemma all_strengthens: "wb_lens x \<Longrightarrow> P \<sqsubseteq> (\<forall> x \<bullet> P)"
-  by (pred_simp, metis wb_lens.get_put)
+lemma all_strengthens: "idem_scene x \<Longrightarrow> P \<sqsubseteq> (\<forall> x \<bullet> P)"
+  by (pred_simp, metis scene_override_idem)
 
 lemma ex_unrest: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet> P) = P"
   by (pred_auto)
@@ -729,16 +738,6 @@ lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet>
   by (pred_auto)
 
 lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
-  by (pred_auto)
-
-subsection {* Variable Restriction *}    
-  
-lemma var_res_all: 
-  "P \<restriction>\<^sub>v \<Sigma> = P"
-  by (rel_auto)
-  
-lemma var_res_twice: 
-  "mwb_lens x \<Longrightarrow> P \<restriction>\<^sub>v x \<restriction>\<^sub>v x = P \<restriction>\<^sub>v x"
   by (pred_auto)
     
 subsection {* Conditional laws *}
@@ -905,15 +904,17 @@ text {* A refinement can be demonstrated by considering only the observations of
   only $x$ need be considered when checking for observations. *}
     
 lemma refine_by_obs:
-  assumes "x \<bowtie> y" "bij_lens (x +\<^sub>L y)" "y \<sharp> P" "y \<sharp> Q" "{v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`} \<subseteq> {v. `Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`}"
+  assumes 
+      "mwb_lens y"  "x \<bowtie> y" "bij_lens (x +\<^sub>L y)" "{y} \<sharp> P" "{y} \<sharp> Q" 
+      "{v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`} \<subseteq> {v. `Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`}"
   shows "Q \<sqsubseteq> P"
-  using assms(3-5)
+  using assms(4-6)
   apply (simp add: obs_upred_refine_iff subset_eq)
   apply (pred_simp)
   apply (rename_tac b)
   apply (drule_tac x="get\<^bsub>x\<^esub>b" in spec)
   apply (auto simp add: assms)
-   apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
+  apply (metis assms(2) assms(3) bij_lens.strong_get_put lens_override_def lens_override_plus)+
   done
     
 subsection {* Cylindric Algebra *}
@@ -921,16 +922,16 @@ subsection {* Cylindric Algebra *}
 lemma C1: "(\<exists> x \<bullet> false) = false"
   by (pred_auto)
 
-lemma C2: "wb_lens x \<Longrightarrow> `P \<Rightarrow> (\<exists> x \<bullet> P)`"
-  by (pred_simp, metis wb_lens.get_put)
+lemma C2: "idem_scene x \<Longrightarrow> `P \<Rightarrow> (\<exists> x \<bullet> P)`"
+  by (pred_simp, metis scene_override_idem)
 
-lemma C3: "mwb_lens x \<Longrightarrow> (\<exists> x \<bullet> (P \<and> (\<exists> x \<bullet> Q))) = ((\<exists> x \<bullet> P) \<and> (\<exists> x \<bullet> Q))"
+lemma C3: "(\<exists> x \<bullet> (P \<and> (\<exists> x \<bullet> Q))) = ((\<exists> x \<bullet> P) \<and> (\<exists> x \<bullet> Q))"
   by (pred_auto)
 
-lemma C4a: "x \<approx>\<^sub>L y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
-  by (pred_simp, metis (no_types, lifting) lens.select_convs(2))+
+lemma C4a: "x = y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+  by (pred_simp)
 
-lemma C4b: "x \<bowtie> y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
+lemma C4b: "x \<bowtie>\<^sub>S y \<Longrightarrow> (\<exists> x \<bullet> \<exists> y \<bullet> P) = (\<exists> y \<bullet> \<exists> x \<bullet> P)"
   using ex_commute by blast
 
 lemma C5:
@@ -939,14 +940,14 @@ lemma C5:
   by (pred_auto)
 
 lemma C6:
-  assumes "wb_lens x" "x \<bowtie> y" "x \<bowtie> z"
-  shows "(&y =\<^sub>u &z) = (\<exists> x \<bullet> &y =\<^sub>u &x \<and> &x =\<^sub>u &z)"
+  assumes "vwb_lens x" "x \<bowtie> y" "x \<bowtie> z"
+  shows "(&y =\<^sub>u &z) = (\<exists> {x} \<bullet> &y =\<^sub>u &x \<and> &x =\<^sub>u &z)"
   using assms
-  by (pred_simp, (metis lens_indep_def)+)
+  by (pred_simp, metis (no_types, hide_lams) lens_indep_def mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 
 lemma C7:
-  assumes "weak_lens x" "x \<bowtie> y"
-  shows "((\<exists> x \<bullet> &x =\<^sub>u &y \<and> P) \<and> (\<exists> x \<bullet> &x =\<^sub>u &y \<and> \<not> P)) = false"
+  assumes "vwb_lens x" "x \<bowtie> y"
+  shows "((\<exists> {x} \<bullet> &x =\<^sub>u &y \<and> P) \<and> (\<exists> {x} \<bullet> &x =\<^sub>u &y \<and> \<not> P)) = false"
   using assms
   by (pred_simp, simp add: lens_indep_sym)
 

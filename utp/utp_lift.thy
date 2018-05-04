@@ -59,8 +59,8 @@ text {* Crucially, the lifting operators allow us to demonstrate unrestriction p
   first element of the state-space product type. *}
   
 lemma unrest_dash_var_pre [unrest]:
-  fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
-  by (pred_auto)
+  assumes "mwb_lens x"
+  shows "{$x\<acute>} \<sharp> \<lceil>p\<rceil>\<^sub><"
+  using assms by (pred_auto)
 
 end

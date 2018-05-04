@@ -374,7 +374,7 @@ text \<open> The follows a large number of translations that lift HOL functions 
   using the various expression constructors defined above. Much of the time we try to keep
   the HOL syntax but add a "u" subscript. \<close>
   
-abbreviation (input) "ulens_override x f g \<equiv> lens_override f g x"
+abbreviation (input) "uscene_override x f g \<equiv> scene_override f g x"
 
 text \<open> This operator allows us to get the characteristic set of a type. Essentially this is 
   @{term "UNIV"}, but it retains the type syntactically for pretty printing. \<close>
@@ -392,14 +392,14 @@ nonterminal utuple_args and umaplet and umaplets
 syntax -- \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
   "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
-  "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
+  "_uscene_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
 
 translations
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
-  "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
-  "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
+  "_uscene_ovrd f g a" => "CONST bop (CONST uscene_override a) f g"
+  "_uscene_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST scene_override x1 y1 a) f g"
   "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
 
 syntax -- \<open> Tuples \<close>

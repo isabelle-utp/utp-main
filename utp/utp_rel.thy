@@ -18,11 +18,11 @@ text {* We set up convenient syntax to refer to the input and output parts of th
   common in UTP. Since we are in a product space, these are simply the lenses @{term "fst\<^sub>L"} and
   @{term "snd\<^sub>L"}. *}
   
-definition in\<alpha> :: "('\<alpha> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
-[lens_defs]: "in\<alpha> = fst\<^sub>L"
+definition in\<alpha> :: "('\<alpha> \<times> '\<beta>) scene" where
+[lens_defs]: "in\<alpha> = fst\<^sub>S"
 
-definition out\<alpha> :: "('\<beta> \<Longrightarrow> '\<alpha> \<times> '\<beta>)" where
-[lens_defs]: "out\<alpha> = snd\<^sub>L"
+definition out\<alpha> :: "('\<alpha> \<times> '\<beta>) scene" where
+[lens_defs]: "out\<alpha> = snd\<^sub>S"
 
 lemma in\<alpha>_uvar [simp]: "vwb_lens in\<alpha>"
   by (unfold_locales, auto simp add: in\<alpha>_def)
@@ -36,38 +36,34 @@ lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = ivar x"
 lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
-lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
+lemma drop_pre_inv [simp]: "out\<alpha> \<sharp> p \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
   by (pred_simp)
 
 lemma usubst_lookup_ivar_unrest [usubst]:
   "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ivar x) = $x"
-  by (rel_simp, metis fstI)
+  by (rel_simp, metis fst_conv old.prod.exhaust scene_fst_override)
 
 lemma usubst_lookup_ovar_unrest [usubst]:
   "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ovar x) = $x\<acute>"
-  by (rel_simp, metis sndI)
+  by (rel_simp, metis eq_snd_iff scene_snd_override)
     
 lemma out_alpha_in_indep [simp]:
-  "out\<alpha> \<bowtie> in_var x" "in_var x \<bowtie> out\<alpha>"
-  by (simp_all add: in_var_def out\<alpha>_def lens_indep_def fst_lens_def snd_lens_def lens_comp_def)
+  "in_var x \<notin>\<^sub>S out\<alpha>"
+  by (metis fst_lens_scene_not_in_snd fst_vwb_lens in_var_def lens_comp_pres_not_in_scene out\<alpha>_def vwb_lens_mwb)
 
 lemma in_alpha_out_indep [simp]:
-  "in\<alpha> \<bowtie> out_var x" "out_var x \<bowtie> in\<alpha>"
-  by (simp_all add: in_var_def in\<alpha>_def lens_indep_def fst_lens_def lens_comp_def)
+  "out_var x \<notin>\<^sub>S in\<alpha>"
+  by (metis in\<alpha>_def lens_comp_pres_not_in_scene out_var_def snd_lens_scene_not_in_fst snd_vwb_lens vwb_lens.axioms(2))
 
 text {* The following two functions lift a predicate substitution to a relational one. *}
     
 abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<times> '\<beta>) usubst" ("\<lceil>_\<rceil>\<^sub>s") where
-"\<lceil>\<sigma>\<rceil>\<^sub>s \<equiv> \<sigma> \<oplus>\<^sub>s in\<alpha>"
+"\<lceil>\<sigma>\<rceil>\<^sub>s \<equiv> \<sigma> \<oplus>\<^sub>s fst\<^sub>L"
 
 abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
-"\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
+"\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s fst\<^sub>L"
     
 text {* The alphabet of a relation then consists wholly of the input and output portions. *}
-
-lemma alpha_in_out:
-  "\<Sigma> \<approx>\<^sub>L in\<alpha> +\<^sub>L out\<alpha>"
-  by (simp add: fst_snd_id_lens in\<alpha>_def lens_equiv_refl out\<alpha>_def)
 
 subsection {* Relational Types and Operators *}
 
@@ -244,24 +240,21 @@ text {* We next describe frames and antiframes with the help of lenses. A frame 
   antiframe describes the converse: all variables outside $a$ are specified by $P$, and all those in
   remain the same. For more information please see \cite{Morgan90a}.*}
 
-definition frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "frame a P = (P \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> $\<^bold>v\<acute> on &a)"
+definition frame :: "('\<alpha> scene) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "frame a P = (P \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> $\<^bold>v\<acute> on a)"
   
-definition antiframe :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "antiframe a P = (P \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<acute> \<oplus> $\<^bold>v on &a)"
-
 text {* Frame extension combines alphabet extension with the frame operator to both add additional 
   variables and then frame those. *}
 
 definition rel_frext :: "('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> hrel \<Rightarrow> '\<alpha> hrel"  where
-[upred_defs]: "rel_frext a P = frame a (rel_aext P a)"
+[upred_defs]: "rel_frext a P = frame \<lbrakk>a\<rbrakk>\<^sub>\<sim> (rel_aext P a)"
 
 text {* The nameset operator can be used to hide a portion of the after-state that lies outside
   the lens $a$. It can be useful to partition a relation's variables in order to conjoin it
   with another relation. *}
 
 definition nameset :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
-[urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>})" 
+[urel_defs]: "nameset a P = (\<exists> {$\<^bold>v,$a\<acute>} \<bullet> P)" 
 
 subsection {* Syntax Translations *}
     
@@ -306,8 +299,6 @@ translations
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
   "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
-  "_antiframe x P" => "CONST antiframe x P"
-  "_antiframe (_salphaset (_salphamk x)) P" <= "CONST antiframe x P"
   "_nameset x P" == "CONST nameset x P"
   "_rel_aext P a" == "CONST rel_aext P a"
   "_rel_ares P a" == "CONST rel_ares P a"

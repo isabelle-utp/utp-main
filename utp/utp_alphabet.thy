@@ -146,17 +146,17 @@ lemma aext_cont [alpha]: "vwb_lens a \<Longrightarrow> (\<Sqinter> A) \<oplus>\<
    
 text {* If a variable is unrestricted in a predicate, then the extended variable is unrestricted
   in the predicate with an alphabet extension. *}
-    
+
 lemma unrest_aext [unrest]:
-  "\<lbrakk> mwb_lens a; x \<sharp> p \<rbrakk> \<Longrightarrow> unrest (x ;\<^sub>L a) (p \<oplus>\<^sub>p a)"
-  by (transfer, simp add: lens_comp_def)
+  "\<lbrakk> mwb_lens a; mwb_lens x; {x} \<sharp> p \<rbrakk> \<Longrightarrow> {a:x} \<sharp> (p \<oplus>\<^sub>p a)"
+  by (pred_auto)
 
 text {* If a given variable (or alphabet) $b$ is independent of the extension lens $a$, that is, it is
   outside the original state-space of $p$, then it follows that once $p$ is extended by $a$ then
   $b$ cannot be restricted. *}
     
 lemma unrest_aext_indep [unrest]:
-  "a \<bowtie> b \<Longrightarrow> b \<sharp> (p \<oplus>\<^sub>p a)"
+  "a \<bowtie> b \<Longrightarrow> {b} \<sharp> (p \<oplus>\<^sub>p a)"
   by pred_auto
     
 subsection {* Expression Alphabet Restriction *}
@@ -176,22 +176,13 @@ lemma arestr_id [simp]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
 lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>e a = P"
   by (pred_auto)
 
-text {* If an expression's alphabet can be divided into two disjoint sections and the expression
-  does not depend on the second half then restricting the expression to the first half is
-  loss-less. *}
-
+text {* If an expression does not depend on anything outside of alphabet $a$, then restricting
+  it to $a$ and then inverting this loss-less. *}
+  
 lemma aext_arestr [alpha]:
-  assumes "mwb_lens a" "bij_lens (a +\<^sub>L b)" "a \<bowtie> b" "b \<sharp> P"
+  assumes "mwb_lens a" "-{a} \<sharp> P"
   shows "(P \<restriction>\<^sub>e a) \<oplus>\<^sub>p a = P"
-proof -
-  from assms(2) have "1\<^sub>L \<subseteq>\<^sub>L a +\<^sub>L b"
-    by (simp add: bij_lens_equiv_id lens_equiv_def)
-  with assms(1,3,4) show ?thesis
-    apply (auto simp add: id_lens_def lens_plus_def sublens_def lens_comp_def prod.case_eq_if)
-    apply (pred_simp)
-    apply (metis lens_indep_comm mwb_lens_weak weak_lens.put_get)
-    done
-qed
+  using assms by (pred_auto)
 
 lemma arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
@@ -236,7 +227,7 @@ text {* In order to restrict the variables of a predicate, we also need to exist
   from the alphabet type using expression restriction. *}
 
 definition upred_ares :: "'\<alpha> upred \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> upred" 
-where [upred_defs]: "upred_ares P a = (P \<restriction>\<^sub>v a) \<restriction>\<^sub>e a"
+where [upred_defs]: "upred_ares P a = (\<exists> - {a} \<bullet> P) \<restriction>\<^sub>e a"
     
 syntax
   "_upred_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>p" 90)
@@ -246,10 +237,10 @@ translations
   
 lemma upred_aext_ares [alpha]: 
   "vwb_lens a \<Longrightarrow> P \<oplus>\<^sub>p a \<restriction>\<^sub>p a = P"
-  by (pred_auto)
+  by (pred_auto)     
     
 lemma upred_ares_aext [alpha]:
-  "a \<natural> P \<Longrightarrow> (P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
+  "\<lbrakk> mwb_lens a; (-{a}) \<sharp> P \<rbrakk> \<Longrightarrow> (P \<restriction>\<^sub>p a) \<oplus>\<^sub>p a = P"
   by (pred_auto)
 
 lemma upred_arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
@@ -332,6 +323,6 @@ lemma subst_ext_res [usubst]:
   by (pred_auto)
 
 lemma unrest_subst_alpha_ext [unrest]:
-  "x \<bowtie> y \<Longrightarrow> x \<sharp> (P \<oplus>\<^sub>s y)"
-  by (pred_simp robust, metis lens_indep_def)
+  "\<lbrakk> mwb_lens y; y \<notin>\<^sub>S a \<rbrakk> \<Longrightarrow> a \<sharp> (P \<oplus>\<^sub>s y)"
+  by (pred_auto)
 end
