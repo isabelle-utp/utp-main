@@ -588,8 +588,8 @@ qed
 lemma sublens_implies_sublens':
   assumes "vwb_lens Y" "X \<subseteq>\<^sub>L Y"
   shows "X \<subseteq>\<^sub>L' Y"
-  by (metis assms lens_override_def lens_override_put_right_in sublens'_def)
-
+  by (simp add: assms lens_override_sublens_commute sublens'_def)
+ 
 lemma sublens_iff_sublens':
   assumes "vwb_lens X" "vwb_lens Y"
   shows "X \<subseteq>\<^sub>L Y \<longleftrightarrow> X \<subseteq>\<^sub>L' Y"
