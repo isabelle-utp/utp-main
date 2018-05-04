@@ -359,11 +359,11 @@ lemma urel_eq_ext:
 subsection {* Unrestriction Laws *}
 
 lemma unrest_iuvar [unrest]: "out\<alpha> \<sharp> $x"
-  by (metis fst_snd_lens_indep lift_pre_var out\<alpha>_def unrest_aext_indep)
+  by (metis (full_types) aext_var fst_snd_lens_indep in_var_def out\<alpha>_def snd_lens_scene unrest_aext_indep)
 
 lemma unrest_ouvar [unrest]: "in\<alpha> \<sharp> $x\<acute>"
-  by (metis in\<alpha>_def lift_post_var snd_fst_lens_indep unrest_aext_indep)
-
+  by (metis aext_var fst_lens_scene in\<alpha>_def out_var_def snd_fst_lens_indep unrest_aext_indep)
+  
 lemma unrest_semir_undash [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   assumes "$x \<sharp> P"

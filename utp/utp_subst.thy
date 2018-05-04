@@ -124,6 +124,7 @@ translations
   "_subst P es vs" => "CONST subst (_psubst (CONST id) vs es) P"
   "_psubst m (_svar_cons x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
   "_psubst m (_svar_nil x) v"  => "CONST subst_upd m x v"
+  "_psubst m f v"  => "CONST subst_upd m f v"
   "_subst P v x" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
   "_subst P v x" <= "_subst P (_spvar x) v"
   "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
