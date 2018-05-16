@@ -378,10 +378,10 @@ abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
   
 subsubsection \<open> Reactive Frames and Extensions \<close>
   
-definition rea_frame :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<alpha>, 't) rdes" where
-[upred_defs]: "rea_frame x P = frame (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st)) P"
+definition rea_frame :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<beta>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
+[upred_defs]: "rea_frame x P = frame (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st) +\<^sub>L \<Sigma>\<^sub>S) P"
 
-definition rea_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace) rdes \<Rightarrow> ('\<beta>, 't) rdes" where
+definition rea_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
 [upred_defs]: "rea_frame_ext a P = rea_frame a (rel_aext P (map_st\<^sub>L a))"
 
 syntax
@@ -394,6 +394,26 @@ translations
   "_rea_frame_ext x P" => "CONST rea_frame_ext x P"
   "_rea_frame_ext (_salphaset (_salphamk x)) P" <= "CONST rea_frame_ext x P"
 
+lemma rea_frame_R1_closed [closure]: 
+  assumes "P is R1"
+  shows "x:[P]\<^sub>r is R1"
+proof -
+  have "R1(x:[R1 P]\<^sub>r) = x:[R1 P]\<^sub>r"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if Healthy_intro assms)
+qed
+
+lemma rea_frame_R2_closed [closure]: 
+  assumes "P is R2"
+  shows "x:[P]\<^sub>r is R2"
+proof -
+  have "R2(x:[R2 P]\<^sub>r) = x:[R2 P]\<^sub>r"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if Healthy_intro assms)
+qed
+
 lemma rea_frame_RR_closed [closure]: 
   assumes "P is RR"
   shows "x:[P]\<^sub>r is RR"
@@ -403,7 +423,27 @@ proof -
   thus ?thesis
     by (metis Healthy_if Healthy_intro assms)
 qed
-  
+
+lemma rea_aext_R1 [closure]:
+  assumes "P is R1"
+  shows "rel_aext P (map_st\<^sub>L x) is R1"
+proof -
+  have "rel_aext (R1 P) (map_st\<^sub>L x) is R1"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma rea_aext_R2 [closure]:
+  assumes "P is R2"
+  shows "rel_aext P (map_st\<^sub>L x) is R2"
+proof -
+  have "rel_aext (R2 P) (map_st\<^sub>L x) is R2"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma rea_aext_RR [closure]:
   assumes "P is RR"
   shows "rel_aext P (map_st\<^sub>L x) is RR"
@@ -413,7 +453,15 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
-  
+
+lemma rea_frame_ext_R1_closed [closure]:
+  "P is R1 \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is R1"
+  by (simp add: rea_frame_ext_def closure)
+
+lemma rea_frame_ext_R2_closed [closure]:
+  "P is R2 \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is R2"
+  by (simp add: rea_frame_ext_def closure)
+
 lemma rea_frame_ext_RR_closed [closure]:
   "P is RR \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is RR"
   by (simp add: rea_frame_ext_def closure)

@@ -361,6 +361,56 @@ lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
   by (rel_auto)
 
+subsection \<open> Reactive Frames \<close>
+
+term rea_frame_ext
+
+definition rdes_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
+[upred_defs]: "rdes_frame_ext a P = \<^bold>R\<^sub>s(rel_aext (pre\<^sub>R(P)) (map_st\<^sub>L a) \<turnstile> rel_aext (peri\<^sub>R(P)) (map_st\<^sub>L a) \<diamondop> a:[post\<^sub>R(P)]\<^sub>r\<^sup>+)"
+
+syntax
+  "_rdes_frame_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>R\<^sup>+" [99,0] 100)
+
+translations
+  "_rdes_frame_ext x P" => "CONST rdes_frame_ext x P"
+  "_rdes_frame_ext (_salphaset (_salphamk x)) P" <= "CONST rdes_frame_ext x P"
+
+lemma RC_rel_aext_st_closed [closure]:
+  assumes "P is RC"
+  shows "rel_aext P (map_st\<^sub>L a) is RC"
+proof -
+  have "RC(rel_aext (RC(P)) (map_st\<^sub>L a)) = rel_aext (RC(P)) (map_st\<^sub>L a)"
+    by (rel_auto)
+      (metis (no_types, hide_lams) diff_add_cancel_left' dual_order.trans le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
+  thus ?thesis
+    by (rule_tac Healthy_intro, simp add: assms Healthy_if)
+qed
+
+lemma rdes_frame_ext_SRD_closed:
+  "\<lbrakk> P is SRD; $wait\<acute> \<sharp> pre\<^sub>R(P) \<rbrakk> \<Longrightarrow> a:[P]\<^sub>R\<^sup>+ is SRD"
+  unfolding rdes_frame_ext_def
+  apply (rule SRD_rdes_intro)
+  apply (simp_all add: closure unrest )
+  apply (simp add: RR_R2_intro ok'_pre_unrest ok_pre_unrest preR_R2_closed rea_aext_RR wait_pre_unrest)
+  done
+
+lemma preR_rdes_frame_ext: 
+  "P is NSRD \<Longrightarrow> pre\<^sub>R(a:[P]\<^sub>R\<^sup>+) = rel_aext (pre\<^sub>R(P)) (map_st\<^sub>L a)"
+  by (simp add: preR_RR preR_rdes rdes_frame_ext_def rea_aext_RR)
+  
+lemma unrest_rel_aext_st' [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp>  rel_aext P (map_st\<^sub>L a)"
+  by (rel_auto)
+
+lemma rdes_frame_ext_NSRD_closed:
+  "P is NSRD \<Longrightarrow> a:[P]\<^sub>R\<^sup>+ is NSRD"
+  apply (rule NSRD_RC_intro)
+    apply (rule rdes_frame_ext_SRD_closed)
+  apply (simp_all add: closure unrest rdes)
+   apply (simp add: NSRD_neg_pre_RC RC_rel_aext_st_closed preR_RR preR_rdes rdes_frame_ext_def rea_aext_RR)
+  apply (simp add: rdes_frame_ext_def)
+  apply (simp add: rdes closure unrest)
+  done
+
 subsection \<open> While Loop \<close>
 
 definition WhileR :: "'s upred \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("while\<^sub>R _ do _ od") where
@@ -581,7 +631,7 @@ definition IterateR_list
   "IterateR_list xs = IterateR {0..<length xs} (\<lambda> i. map fst xs ! i) (\<lambda> i. map snd xs ! i)"
 
 syntax
-  "_iter_srd"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_iter_srd"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>R _\<in>_ \<bullet> _ \<rightarrow> _ od")
   "_iter_gcommR" :: "gcomms \<Rightarrow> logic" ("do\<^sub>R/ _ /od")
 
 translations
@@ -594,16 +644,16 @@ lemma IterateR_NSRD_closed [closure]:
   assumes 
     "\<And> i. i \<in> I \<Longrightarrow> P(i) is NSRD" 
     "\<And> i. i \<in> I \<Longrightarrow> P(i) is Productive"
-  shows "do\<^sub>R i\<in>I \<bullet> g(i) \<rightarrow> P(i) fi is NSRD"
+  shows "do\<^sub>R i\<in>I \<bullet> g(i) \<rightarrow> P(i) od is NSRD"
   by (simp add: IterateR_def closure assms)
 
 lemma IterateR_empty: 
-  "do\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) fi = II\<^sub>R"
+  "do\<^sub>R i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = II\<^sub>R"
   by (simp add: IterateR_def srd_mu_equiv closure rpred gfp_const WhileR_false)
 
 lemma IterateR_singleton: 
   assumes "P k is NSRD" "P k is Productive"
-  shows "do\<^sub>R i\<in>{k} \<bullet> g(i) \<rightarrow> P(i) fi = while\<^sub>R g(k) do P(k) od" (is "?lhs = ?rhs")
+  shows "do\<^sub>R i\<in>{k} \<bullet> g(i) \<rightarrow> P(i) od = while\<^sub>R g(k) do P(k) od" (is "?lhs = ?rhs")
 proof -
   have "?lhs = while\<^sub>R g k do P k \<triangleleft> g k \<triangleright>\<^sub>R Chaos od"
     by (simp add: IterateR_def AlternateR_singleton assms closure)
