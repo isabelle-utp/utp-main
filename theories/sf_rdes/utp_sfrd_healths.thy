@@ -74,6 +74,9 @@ lemma Skip_RHS_tri_design' [rdes_def]:
   "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (false \<diamondop> \<Phi>(true,id,\<langle>\<rangle>)))"
   by (rel_auto)
 
+lemma Skip_frame [frame]: "vwb_lens a \<Longrightarrow> a:[Skip]\<^sub>R\<^sup>+ = Skip"
+  by (rdes_eq)
+
 lemma Stop_is_CSP [closure]:
   "Stop is CSP"
   by (simp add: Stop_def RHS_design_is_SRD unrest)
@@ -493,6 +496,11 @@ lemma CSP4_Idempotent: "Idempotent CSP4"
 
 lemma CSP4_Continuous: "Continuous CSP4"
   by (simp add: Continuous_def CSP4_def seq_Sup_distr)
+
+lemma rdes_frame_ext_NCSP_closed [closure]:
+  assumes "vwb_lens a" "P is NCSP"
+  shows "a:[P]\<^sub>R\<^sup>+ is NCSP"
+  by (metis (no_types, lifting) CSP3_def CSP4_def Healthy_intro NCSP_Skip NCSP_implies_NSRD NCSP_intro NSRD_is_SRD Skip_frame Skip_left_unit Skip_right_unit assms(1) assms(2) rdes_frame_ext_NSRD_closed seq_srea_frame)
 
 lemma preR_Stop [rdes]: "pre\<^sub>R(Stop) = true\<^sub>r"
   by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_true)

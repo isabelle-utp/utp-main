@@ -371,18 +371,28 @@ lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L
    apply (metis des_vars.surjective rp_vars.surjective rsp_vars.surjective)+
   done
 
+syntax
+  "_map_st_lens" :: "logic \<Rightarrow> salpha" ("map'_st\<^sub>L[_]")
+
+translations
+  "_map_st_lens a" => "CONST map_st_lens a"
+
 abbreviation "abs_st\<^sub>L \<equiv> (map_st\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_st\<^sub>L 0\<^sub>L)"
   
 abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
 "abs_st P \<equiv> P \<restriction>\<^sub>e abs_st\<^sub>L"
-  
+
+lemma rea_impl_aext_st [alpha]:
+  "(P \<Rightarrow>\<^sub>r Q) \<oplus>\<^sub>r map_st\<^sub>L[a] = (P \<oplus>\<^sub>r map_st\<^sub>L[a] \<Rightarrow>\<^sub>r Q \<oplus>\<^sub>r map_st\<^sub>L[a])"
+  by (rel_auto)
+
 subsubsection \<open> Reactive Frames and Extensions \<close>
   
 definition rea_frame :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<beta>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
 [upred_defs]: "rea_frame x P = frame (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (x ;\<^sub>L st) +\<^sub>L \<Sigma>\<^sub>S) P"
 
 definition rea_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
-[upred_defs]: "rea_frame_ext a P = rea_frame a (rel_aext P (map_st\<^sub>L a))"
+[upred_defs]: "rea_frame_ext a P = rea_frame a (P \<oplus>\<^sub>r map_st\<^sub>L[a])"
 
 syntax
   "_rea_frame"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>r" [99,0] 100)

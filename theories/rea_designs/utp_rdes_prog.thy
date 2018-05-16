@@ -363,10 +363,8 @@ lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<
 
 subsection \<open> Reactive Frames \<close>
 
-term rea_frame_ext
-
 definition rdes_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where
-[upred_defs]: "rdes_frame_ext a P = \<^bold>R\<^sub>s(rel_aext (pre\<^sub>R(P)) (map_st\<^sub>L a) \<turnstile> rel_aext (peri\<^sub>R(P)) (map_st\<^sub>L a) \<diamondop> a:[post\<^sub>R(P)]\<^sub>r\<^sup>+)"
+[upred_defs, rdes_def]: "rdes_frame_ext a P = \<^bold>R\<^sub>s(rel_aext (pre\<^sub>R(P)) (map_st\<^sub>L a) \<turnstile> rel_aext (peri\<^sub>R(P)) (map_st\<^sub>L a) \<diamondop> a:[post\<^sub>R(P)]\<^sub>r\<^sup>+)"
 
 syntax
   "_rdes_frame_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>R\<^sup>+" [99,0] 100)
@@ -410,6 +408,33 @@ lemma rdes_frame_ext_NSRD_closed:
   apply (simp add: rdes_frame_ext_def)
   apply (simp add: rdes closure unrest)
   done
+
+lemma skip_srea_frame [frame]:
+  "vwb_lens a \<Longrightarrow> a:[II\<^sub>R]\<^sub>R\<^sup>+ = II\<^sub>R"
+  by (rdes_eq)
+
+lemma seq_srea_frame [frame]:
+  assumes "vwb_lens a" "P is NSRD" "Q is NSRD"
+  shows "a:[P ;; Q]\<^sub>R\<^sup>+ = a:[P]\<^sub>R\<^sup>+ ;; a:[Q]\<^sub>R\<^sup>+" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<oplus>\<^sub>r map_st\<^sub>L[a] \<turnstile>
+                   ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<oplus>\<^sub>r map_st\<^sub>L[a] \<Rightarrow>\<^sub>r (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q) \<oplus>\<^sub>r map_st\<^sub>L[a]) \<diamondop>
+                   a:[pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r post\<^sub>R P ;; post\<^sub>R Q]\<^sub>r\<^sup>+)"
+    using assms(1) by (rdes_simp cls: assms(2-3))
+  also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<oplus>\<^sub>r map_st\<^sub>L[a] \<turnstile>
+                   ((peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q) \<oplus>\<^sub>r map_st\<^sub>L[a]) \<diamondop>
+                   a:[post\<^sub>R P ;; post\<^sub>R Q]\<^sub>r\<^sup>+)"
+    by (rel_auto)
+  also from assms(1) have "... = ?rhs"
+    apply (rdes_eq_split cls: assms(2-3))
+    apply (rel_auto)
+      apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+     apply (rel_auto)
+      apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+    apply (simp add: rea_frame_ext_seq)
+    done
+  finally show ?thesis .
+qed
 
 subsection \<open> While Loop \<close>
 

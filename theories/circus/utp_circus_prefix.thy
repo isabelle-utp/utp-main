@@ -83,14 +83,14 @@ term "x!(\<langle>1\<rangle>)!(2)?(v:true) \<^bold>\<rightarrow> P"
 text {* Basic translations for state variable communications *}
 
 syntax
-  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_ \<^bold>\<rightarrow> _" [81, 0, 0, 80] 80)
-  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_ \<^bold>\<rightarrow> _" [81, 0, 80] 80)
+  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_" [81, 0, 80] 80)
+  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_\<^bold>?$_" [81, 80] 80)
 
 translations
-  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" \<rightharpoonup> "CONST InputVarCSP c x A P"
-  "c\<^bold>?$x \<^bold>\<rightarrow> P"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true) P"
-  "c\<^bold>?$x:A \<^bold>\<rightarrow> P" <= "CONST InputVarCSP c x (\<lambda> x'. A) P"
-  "c\<^bold>?$x \<^bold>\<rightarrow> P"   <= "c\<^bold>?$x:true \<^bold>\<rightarrow> P"
+  "c\<^bold>?$x:A" \<rightharpoonup> "CONST InputVarCSP c x A"
+  "c\<^bold>?$x"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true)"
+  "c\<^bold>?$x:A" <= "CONST InputVarCSP c x (\<lambda> x'. A)"
+  "c\<^bold>?$x"   <= "c\<^bold>?$x:true"
 
 lemma outp_constraint_prod:
   "(outp_constraint \<guillemotleft>a\<guillemotright> x \<and> outp_constraint \<guillemotleft>b\<guillemotright> y) =
