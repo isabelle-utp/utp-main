@@ -262,6 +262,12 @@ session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
     "root.tex"
     "document.sty"
 
+(* Untimed RoboChart *)
+
+session "RoboChart-Untimed" in "robochart/untimed" = "UTP-Circus" +
+  theories
+    MetaModel
+    StateMachine
 
 (* FMI Mechanisation *)
 
