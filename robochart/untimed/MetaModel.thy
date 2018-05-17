@@ -50,6 +50,7 @@ record ('s, 'e) NodeBody =
 type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody"
 
 record ('s, 'e) StateMachine =
+  sm_initial     :: "string"
   sm_nodes       :: "('s, 'e) Node list"
   sm_transitions :: "('s, 'e) Transition list"
 
@@ -57,13 +58,26 @@ abbreviation "sm_node_names sm \<equiv> map fst (sm_nodes sm)"
 
 subsection \<open> State Machine Semantics \<close>
 
-definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" where
-"tr_semantics t null_event = 
+definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
+"tr_semantics t null_event \<equiv> 
   tn_condition t \<oplus>\<^sub>p rc_state &\<^sub>u 
   rc_state:[(case tn_trigger t of Some e \<Rightarrow> e | None \<Rightarrow> null_event \<^bold>\<rightarrow> Skip) ;; tn_action t]\<^sub>R\<^sup>+ ;; rc_ctrl :=\<^sub>C \<guillemotleft>tn_target t\<guillemotright>"
 
-definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" where
+abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
+"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) (sm_nodes sm)"
+
+definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
+    rc_ctrl :=\<^sub>C \<guillemotleft>sm_initial sm\<guillemotright> ;;
+    IterateR_list 
+       (map (\<lambda> ((n, b), ts). 
+              ( &rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>
+              , rc_state:[n_entry b]\<^sub>R\<^sup>+ ;; 
+                (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts Stop) ;; 
+                rc_state:[n_exit b]\<^sub>R\<^sup>+)) (sm_tree sm))"
+
+definition sm_semantics_alt :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" where
+"sm_semantics_alt sm null_event \<equiv> 
   (do\<^sub>R i\<in>{0..<length(sm_nodes sm)} 
        \<bullet> &rc_ctrl =\<^sub>u \<guillemotleft>sm_node_names sm ! i\<guillemotright> 
        \<rightarrow> rc_state:[n_entry (snd (sm_nodes sm ! i))]\<^sub>R\<^sup>+ ;;
