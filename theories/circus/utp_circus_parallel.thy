@@ -837,6 +837,9 @@ proof -
     by (metis Healthy_def assms)
 qed
 
+lemma rea_st_cond_CDC [closure]: "[g]\<^sub>S\<^sub>< is CDC"
+  by (rel_auto)
+
 lemma csp_enable_CDC [closure]: "\<E>(s,t,E) is CDC"
   by (rel_auto)
 
@@ -903,6 +906,91 @@ lemma seq_C2_closed [closure]:
   assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
   shows "P ;; Q is C2"
   by (rdes_simp cls: assms(1,3), rule C2_rdes_intro, simp_all add: closure assms unrest)
+
+lemma AssignsCSP_C2 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is C2"
+  by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma map_st_ext_CDC_closed [closure]:
+  assumes "P is CDC"
+  shows "P \<oplus>\<^sub>r map_st\<^sub>L[a] is CDC"
+proof -
+  have "CDC P \<oplus>\<^sub>r map_st\<^sub>L[a] is CDC"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+
+lemma rdes_frame_ext_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "a:[P]\<^sub>R\<^sup>+ is C2"
+  by (rdes_simp cls:assms(2), rule C2_rdes_intro, simp_all add: closure assms unrest)
+
+lemma UINF_C2_closed [closure]:
+  assumes "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> A \<Longrightarrow> P(i) is C2"
+  shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is C2"
+proof -
+  have "(\<Sqinter> i\<in>A \<bullet> P(i)) = (\<Sqinter> i\<in>A \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(P(i)) \<turnstile> peri\<^sub>R(P(i)) \<diamondop> post\<^sub>R(P(i))))"
+    by (simp add: closure SRD_reactive_tri_design assms cong: UINF_cong)
+  also have "... is C2"
+    by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
+  finally show ?thesis .
+qed
+
+lemma inf_C2_closed [closure]: 
+  assumes "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
+  shows "P \<sqinter> Q is C2"
+  by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
+
+lemma cond_CDC_closed [closure]:
+  assumes "P is CDC" "Q is CDC"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is CDC"
+proof -
+  have "CDC P \<triangleleft> b \<triangleright>\<^sub>R CDC Q is CDC"
+    by (rel_auto)
+  thus ?thesis 
+    by (simp add: Healthy_if assms)
+qed
+
+lemma cond_C2_closed [closure]:
+  assumes "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is C2"
+  by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
+
+lemma gcomm_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "b \<rightarrow>\<^sub>R P is C2"
+  by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
+
+lemma AlternateR_C2_closed [closure]:
+  assumes 
+    "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
+    "\<And> i. i \<in> A \<Longrightarrow> P(i) is C2" "Q is C2"
+  shows "(if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi) is C2"
+proof (cases "A = {}")
+  case True
+  then show ?thesis
+    by (simp add: assms(4))
+next
+  case False
+  then show ?thesis
+    by (simp add: AlternateR_def closure assms)
+qed
+
+lemma AlternateR_list_C2_closed [closure]:
+  assumes 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP" "Q is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is C2" "Q is C2"
+  shows "(AlternateR_list A Q) is C2"
+  apply (simp add: AlternateR_list_def)
+  apply (rule AlternateR_C2_closed)
+  apply (auto simp add: assms closure)
+   apply (metis assms nth_mem prod.collapse)+
+  done
+
+lemma GuardCSP_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "g &\<^sub>u P is C2"
+  by (rdes_simp cls: assms(1), rule C2_rdes_intro, simp_all add: closure assms unrest)
 
 lemma DoCSP_C2 [closure]:
   "do\<^sub>C(a) is C2"

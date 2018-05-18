@@ -98,7 +98,7 @@ proof -
   thus ?thesis
     by (simp add: CRC_implies_RR Healthy_if RC1_def RC_intro assms)
 qed
-  
+
 lemma CRR_unrest_ref [unrest]: "P is CRR \<Longrightarrow> $ref \<sharp> P"
   by (metis CRR_def CRR_implies_RR Healthy_def in_var_uvar ref_vwb_lens unrest_as_exists)
   
@@ -148,6 +148,50 @@ lemma conj_CRC_closed [closure]:
 lemma disj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<or> Q) is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma st_cond_left_impl_CRC_closed [closure]: 
+  "P is CRC \<Longrightarrow> ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) is CRC"
+  by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma unrest_ref_map_st [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> P \<oplus>\<^sub>r map_st\<^sub>L[a]"
+  by (rel_auto)
+
+lemma unrest_ref'_map_st [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> P \<oplus>\<^sub>r map_st\<^sub>L[a]"
+  by (rel_auto)
+
+lemma unrest_ref_rdes_frame_ext [unrest]: 
+  "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> a:[P]\<^sub>r\<^sup>+"
+  by (rel_blast)
+
+lemma unrest_ref'_rdes_frame_ext [unrest]: 
+  "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> a:[P]\<^sub>r\<^sup>+"
+  by (rel_blast)
+
+lemma map_st_ext_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "P \<oplus>\<^sub>r map_st\<^sub>L[a] is CRR"
+  by (rule CRR_intro, simp_all add: closure unrest assms)
+
+lemma map_st_ext_CRC_closed [closure]:
+  assumes "P is CRC"
+  shows "P \<oplus>\<^sub>r map_st\<^sub>L[a] is CRC"
+  by (rule CRC_intro, simp_all add: closure unrest assms)
+
+ lemma rdes_frame_ext_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "a:[P]\<^sub>r\<^sup>+ is CRR"
+  by (rule CRR_intro, simp_all add: closure unrest assms)
+
+lemma USUP_CRC_closed [closure]: "\<lbrakk> A \<noteq> {}; \<And> i. i \<in> A \<Longrightarrow> P i is CRC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<in> A \<bullet> P i) is CRC"
+  by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma UINF_CRR_closed [closure]: "\<lbrakk> \<And> i. i \<in> A \<Longrightarrow> P i is CRR \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<in> A \<bullet> P i) is CRR"
+  by (rule CRR_intro, simp_all add: unrest closure)
+
+lemma cond_CRC_closed [closure]:
+  assumes "P is CRC" "Q is CRC"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is CRC"
+  by (rule CRC_intro, simp_all add: closure assms unrest)
 
 lemma shEx_CRR_closed [closure]: 
   assumes "\<And> x. P x is CRR"

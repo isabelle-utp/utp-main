@@ -34,6 +34,15 @@ next
     by (simp add: AlternateR_def closure assms)
 qed
 
+lemma AlternateR_list_NCSP_closed [closure]:
+  assumes "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP" "Q is NCSP"
+  shows "(AlternateR_list A Q) is NCSP"
+  apply (simp add: AlternateR_list_def)
+  apply (rule AlternateR_NCSP_closed)
+  apply (auto simp add: assms)
+  apply (metis assms(1) eq_snd_iff nth_mem)
+  done
+
 subsection \<open> While Loops \<close>
 
 lemma NSRD_coerce_NCSP:

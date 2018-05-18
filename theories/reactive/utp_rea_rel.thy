@@ -268,13 +268,13 @@ lemma USUP_ind_RR_closed [closure]:
   using USUP_mem_RR_closed[of UNIV P] by (simp add: assms)
 
 lemma UINF_mem_RR_closed [closure]:
-  assumes "\<And> i. P i is RR"
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RR"
   shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is RR"
 proof -
   have 1:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R1"
-    by (unfold Healthy_def, subst R1_USUP, simp_all add: Healthy_if assms closure)
+    by (unfold Healthy_def, subst R1_USUP, simp add: Healthy_if RR_implies_R1 assms cong: UINF_cong)
   have 2:"(\<Sqinter> i\<in>A \<bullet> P(i)) is R2c"
-    by (unfold Healthy_def, subst R2c_USUP, simp_all add: Healthy_if assms RR_implies_R2c closure)
+    by (unfold Healthy_def, subst R2c_USUP, simp add: Healthy_if RR_implies_R2c assms cong: UINF_cong)
   show ?thesis
     using 1 2 by (rule_tac RR_intro, simp_all add: unrest assms)
 qed
@@ -282,7 +282,7 @@ qed
 lemma UINF_ind_RR_closed [closure]:
   assumes "\<And> i. P i is RR"
   shows "(\<Sqinter> i \<bullet> P(i)) is RR"
-  using UINF_mem_RR_closed[of P UNIV] by (simp add: assms)
+  by (simp add: assms closure)
     
 lemma USUP_elem_RR [closure]: 
   assumes "\<And> i. P i is RR" "A \<noteq> {}"
