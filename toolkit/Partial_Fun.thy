@@ -40,6 +40,9 @@ lift_definition pId_on :: "'a set \<Rightarrow> ('a, 'a) pfun" is "\<lambda> A x
 abbreviation pId :: "('a, 'a) pfun" where
 "pId \<equiv> pId_on UNIV"
 
+lift_definition plambda :: "('a \<Rightarrow> bool) \<Rightarrow> ('a \<Rightarrow> 'b) \<Rightarrow> ('a, 'b) pfun"
+is "\<lambda> P f x. if (P x) then Some (f x) else None" .
+
 lift_definition pdom_res :: "'a set \<Rightarrow> ('a, 'b) pfun \<Rightarrow> ('a, 'b) pfun" (infixl "\<lhd>\<^sub>p" 85)
 is "\<lambda> A f. restrict_map f A" .
 
@@ -116,6 +119,7 @@ lemma pfun_subset_eq_least [simp]:
 syntax
   "_PfunUpd"  :: "[('a, 'b) pfun, maplets] => ('a, 'b) pfun" ("_'(_')\<^sub>p" [900,0]900)
   "_Pfun"     :: "maplets => ('a, 'b) pfun"            ("(1{_}\<^sub>p)")
+  "_plam"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ | _ . _" [0,0,10] 10)
 
 translations
   "_PfunUpd m (_Maplets xy ms)"  == "_PfunUpd (_PfunUpd m xy) ms"
@@ -123,6 +127,10 @@ translations
   "_Pfun ms"                     => "_PfunUpd (CONST pempty) ms"
   "_Pfun (_Maplets ms1 ms2)"     <= "_PfunUpd (_Pfun ms1) ms2"
   "_Pfun ms"                     <= "_PfunUpd (CONST pempty) ms"
+  "\<lambda> x | P . e"                  => "CONST plambda (\<lambda> x. P) (\<lambda> x. e)"
+  "\<lambda> x | P . e"                  <= "CONST plambda (\<lambda> x. P) (\<lambda> y. e)"
+  "\<lambda> y | P . e"                  <= "CONST plambda (\<lambda> x. P) (\<lambda> y. e)"
+  "\<lambda> y | f v y . e"              <= "CONST plambda (f v) (\<lambda> y. e)"
 
 subsection \<open> Algebraic laws \<close>
 
@@ -179,6 +187,17 @@ lemma pfun_minus_plus:
   "pdom(f) \<inter> pdom(g) = {} \<Longrightarrow> (f + g) - g = f"
   by (transfer, simp add: map_add_def map_minus_def option.case_eq_if, rule ext, auto)
      (metis Int_commute domIff insert_disjoint(1) insert_dom)
+
+subsection \<open> Lambda abstraction \<close>
+
+lemma plambda_app [simp]: "(\<lambda> x | P x . f x)(v)\<^sub>p = (if (P v) then (f v) else undefined)"
+  by (transfer, auto)
+
+lemma plambda_eta [simp]: "(\<lambda> x | x \<in> pdom(f). f(x)\<^sub>p) = f"
+  by (transfer; auto simp add: domIff)
+
+lemma plambda_id [simp]: "(\<lambda> x | P x . x) = pId_on {x. P x}"
+  by (transfer, simp)
 
 subsection \<open> Membership, application, and update \<close>
 
@@ -278,6 +297,9 @@ lemma pdom_comp [simp]: "pdom (g \<circ>\<^sub>p f) = pdom (f \<rhd>\<^sub>p pdo
 lemma pdom_upd [simp]: "pdom (f(k \<mapsto> v)\<^sub>p) = insert k (pdom f)"
   by (transfer, simp)
 
+lemma pdom_plamda [simp]: "pdom (\<lambda> x | P x . f x) = {x. P x}"
+  by (transfer, auto)
+
 lemma pdom_pdom_res [simp]: "pdom (A \<lhd>\<^sub>p f) = A \<inter> pdom(f)"
   by (transfer, auto)
 
@@ -302,6 +324,9 @@ lemma pran_pId_on [simp]: "pran (pId_on A) = A"
 
 lemma pran_upd [simp]: "pran (f(k \<mapsto> v)\<^sub>p) = insert v (pran ((- {k}) \<lhd>\<^sub>p f))"
   by (transfer, auto simp add: ran_def restrict_map_def)
+
+lemma pran_plamda [simp]: "pran (\<lambda> x | P x . f x) = {f x | x. P x}"
+  by (transfer, auto simp add: ran_def)
 
 lemma pran_pran_res [simp]: "pran (f \<rhd>\<^sub>p A) = pran(f) \<inter> A"
   by (transfer, auto)
