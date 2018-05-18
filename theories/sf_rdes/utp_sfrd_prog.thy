@@ -50,12 +50,59 @@ lemma NSRD_coerce_NCSP:
   by (metis (no_types, hide_lams) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
 
 definition WhileC :: "'s upred \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" ("while\<^sub>C _ do _ od") where
-"while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
+[rdes_def]: "while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
 
 lemma WhileC_NCSP_closed [closure]:
   assumes "P is NCSP" "P is Productive"
   shows "while\<^sub>C b do P od is NCSP"
   by (simp add: WhileC_def NSRD_coerce_NCSP assms closure)
+
+subsection \<open> Iteration Construction \<close>
+
+definition IterateC :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 'e) action) \<Rightarrow> ('s, 'e) action"
+where [upred_defs, ndes_simp]: "IterateC A g P = while\<^sub>C (\<Or> i\<in>A \<bullet> g(i)) do (if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) fi) od"
+
+lemma IterateC_IterateR_def: "IterateC A g P = Skip ;; IterateR A g P ;; Skip"
+  by (simp add: IterateC_def IterateR_def WhileC_def)
+
+definition IterateC_list :: "('s upred \<times> ('s, 'e) action) list \<Rightarrow> ('s, 'e) action" where 
+[upred_defs, ndes_simp]:
+  "IterateC_list xs = IterateC {0..<length xs} (\<lambda> i. map fst xs ! i) (\<lambda> i. map snd xs ! i)"
+
+syntax
+  "_iter_C"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do\<^sub>C _\<in>_ \<bullet> _ \<rightarrow> _ od")
+  "_iter_gcommC" :: "gcomms \<Rightarrow> logic" ("do\<^sub>C/ _ /od")
+
+translations
+  "_iter_C x A g P" => "CONST IterateC A (\<lambda> x. g) (\<lambda> x. P)"
+  "_iter_C x A g P" <= "CONST IterateC A (\<lambda> x. g) (\<lambda> x'. P)"
+  "_iter_gcommC cs" \<rightharpoonup> "CONST IterateC_list cs"
+  "_iter_gcommC (_gcomm_show cs)" \<leftharpoondown> "CONST IterateC_list cs"
+
+lemma IterateC_NCSP_closed [closure]:
+  assumes 
+    "\<And> i. i \<in> I \<Longrightarrow> P(i) is NCSP" 
+    "\<And> i. i \<in> I \<Longrightarrow> P(i) is Productive"
+  shows "do\<^sub>C i\<in>I \<bullet> g(i) \<rightarrow> P(i) od is NCSP"
+  by (simp add: IterateC_IterateR_def IterateR_NSRD_closed NCSP_implies_NSRD NSRD_coerce_NCSP assms(1) assms(2))
+
+lemma IterateC_list_NCSP_closed [closure]:
+  assumes 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
+  shows "IterateC_list A is NCSP"
+  apply (simp add: IterateC_list_def, rule IterateC_NCSP_closed)
+   apply (metis assms atLeastLessThan_iff nth_map nth_mem prod.collapse)+
+  done
+
+lemma IterateC_empty: 
+  "do\<^sub>C i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = Skip"
+  by (simp add: IterateC_IterateR_def IterateR_empty closure Skip_srdes_left_unit)
+
+lemma IterateC_singleton: 
+  assumes "P k is NCSP" "P k is Productive"
+  shows "do\<^sub>C i\<in>{k} \<bullet> g(i) \<rightarrow> P(i) od = while\<^sub>C g(k) do P(k) od" (is "?lhs = ?rhs")
+  by (simp add: IterateC_IterateR_def IterateR_singleton NCSP_implies_NSRD WhileC_def assms)
 
 subsection \<open> Assignment \<close>
 

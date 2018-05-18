@@ -987,6 +987,36 @@ lemma AlternateR_list_C2_closed [closure]:
    apply (metis assms nth_mem prod.collapse)+
   done
 
+lemma USUP_ind_RC_closed [closure]: 
+  "\<lbrakk> \<And> i. P i is RC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is RC"
+  by (metis UNIV_not_empty USUP_mem_RC_closed USUP_mem_UNIV)
+
+lemma USUP_ind_CRC_closed [closure]: 
+  "\<lbrakk> \<And> i. P i is CRC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is CRC"
+  by (metis CRC_implies_CRR CRC_implies_RC USUP_ind_CRR_closed USUP_ind_RC_closed false_CRC rea_not_CRR_closed wp_rea_CRC wp_rea_RC_false)
+
+lemma R4_CRR_closed [closure]: "P is CRR \<Longrightarrow> R4(P) is CRR"
+  by (rule CRR_intro, simp_all add: closure unrest R4_def)
+
+lemma WhileC_C2_closed [closure]:
+  assumes "P is NCSP" "P is Productive" "P is C2"
+  shows "while\<^sub>C b do P od is C2"
+proof -
+  have "while\<^sub>C b do P od = while\<^sub>C b do Productive(\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)) od"
+    by (simp add: assms Healthy_if SRD_reactive_tri_design closure)
+  also have "... = while\<^sub>C b do \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> R4(post\<^sub>R P)) od"
+    by (simp add: Productive_RHS_design_form unrest assms rdes closure R4_def)
+  also have "... is C2"
+    apply (simp add: WhileC_def WhileR_rdes_def closure assms unrest rdes_def)
+    apply (rule C2_rdes_intro)
+         apply (simp_all add: closure unrest assms rpred)
+    apply (rule closure)
+     apply (simp_all add: closure)
+    apply (rule closure)
+     apply (rule closure)
+     apply (simp_all add: closure assms unrest)
+    oops
+
 lemma GuardCSP_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
   shows "g &\<^sub>u P is C2"
