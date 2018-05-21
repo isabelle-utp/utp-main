@@ -100,7 +100,7 @@ fun nodeBodyT state event = Type (@{type_name NodeBody_ext}, [state, event, unit
 fun nodeT state event = mk_prodT (HOLogic.stringT, nodeBodyT state event);
 fun transitionT state event = Type (@{type_name "Transition_ext"}, [state, event, unitT]);
 fun statemachineT state event = Type (@{type_name "StateMachine_ext"}, [state, event, unitT]);
-fun actionT state event = Type ("utp_sfrd_core.action", [state, event]); 
+fun actionT state event = Type ("Actions.Action", [state, event]); 
 
 val mk_StateMachine = Const (fst (dest_Const @{term StateMachine.make}), dummyT);
 val sm_semantics = Const (fst (dest_Const @{term sm_semantics}), dummyT);

@@ -1,30 +1,9 @@
 section \<open> RoboChart Meta-Model \<close>
 
 theory MetaModel
-  imports "UTP-Circus.utp_circus"
+  imports Actions
 begin
 
-subsection \<open> Action Syntax and Semantics\<close>
-
-nonterminal raction
-
-syntax
-  "_skip_raction"      :: "raction" ("skip")
-  "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";" 71)
-  "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
-  "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
-  "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
-  "_rcv_ev_raction"    :: "id \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
-  "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
-
-translations
-  "_skip_raction"          => "CONST Skip"
-  "_seq_raction P Q"       => "P ;; Q"
-  "_if_raction b P Q"      => "P \<triangleleft> b \<triangleright>\<^sub>R Q"
-  "_assign_raction x v"    => "x :=\<^sub>C v"
-  "_basic_ev_raction e"    => "e \<^bold>\<rightarrow> CONST Skip"
-  "_rcv_ev_raction c x"    => "CONST InputVarCSP c x (\<lambda> x. true)"
-  "_send_ev_raction c v"   => "CONST OutputCSP c v (CONST Skip)"
 
 subsection \<open> State Machine Syntax \<close>
 
@@ -35,17 +14,19 @@ alphabet robochart_ctrl =
 
 abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
 
+notation rc_state ("\<^bold>r")
+
 record ('s, 'e) Transition = 
   tn_source    :: string
   tn_target    :: string
-  tn_trigger   :: "('s, 'e) action option"
+  tn_trigger   :: "('s, 'e) Action option"
   tn_condition :: "'s upred"
-  tn_action    :: "('s, 'e) action"
+  tn_action    :: "('s, 'e) Action"
 
 record ('s, 'e) NodeBody =
-  n_entry  :: "('s, 'e) action"
-  n_during :: "('s, 'e) action"
-  n_exit   :: "('s, 'e) action"
+  n_entry  :: "('s, 'e) Action"
+  n_during :: "('s, 'e) Action"
+  n_exit   :: "('s, 'e) Action"
 
 type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody"
 
@@ -58,33 +39,23 @@ abbreviation "sm_node_names sm \<equiv> map fst (sm_nodes sm)"
 
 subsection \<open> State Machine Semantics \<close>
 
-definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
+definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
 "tr_semantics t null_event \<equiv> 
-  tn_condition t \<oplus>\<^sub>p rc_state &\<^sub>u 
-  rc_state:[(case tn_trigger t of Some e \<Rightarrow> e | None \<Rightarrow> null_event \<^bold>\<rightarrow> Skip) ;; tn_action t]\<^sub>R\<^sup>+ ;; rc_ctrl :=\<^sub>C \<guillemotleft>tn_target t\<guillemotright>"
+  tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
+  rc_state:[(case tn_trigger t of Some e \<Rightarrow> e | None \<Rightarrow> sync null_event) ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
 
 abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
 "sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) (sm_nodes sm)"
 
-definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
+definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
-    rc_ctrl :=\<^sub>C \<guillemotleft>sm_initial sm\<guillemotright> ;;
-    IterateR_list 
+    rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
+    iteration 
        (map (\<lambda> ((n, b), ts). 
               ( &rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>
-              , rc_state:[n_entry b]\<^sub>R\<^sup>+ ;; 
-                (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts Stop) ;; 
-                rc_state:[n_exit b]\<^sub>R\<^sup>+)) (sm_tree sm))"
-
-definition sm_semantics_alt :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) action" where
-"sm_semantics_alt sm null_event \<equiv> 
-  (do\<^sub>R i\<in>{0..<length(sm_nodes sm)} 
-       \<bullet> &rc_ctrl =\<^sub>u \<guillemotleft>sm_node_names sm ! i\<guillemotright> 
-       \<rightarrow> rc_state:[n_entry (snd (sm_nodes sm ! i))]\<^sub>R\<^sup>+ ;;
-          (let ts = filter (\<lambda> t. tn_source t = fst(sm_nodes sm ! i)) (sm_transitions sm) in
-           \<box> j\<in>{0..<length(ts)} \<bullet> tr_semantics (ts ! j) null_event) ;;
-          rc_state:[n_exit (snd (sm_nodes sm ! i))]\<^sub>R\<^sup>+
-   od)"
+              , rc_state:[n_entry b]\<^sub>A\<^sup>+ ;
+                (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
+                rc_state:[n_exit b]\<^sub>A\<^sup>+)) (sm_tree sm))"
 
 subsection \<open> Transition and State Parsers \<close>
 
@@ -113,11 +84,11 @@ translations
 
   "_transition_action s1 s2 a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) true a"
 
-  "_transition_condition s1 s2 b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b (CONST Skip)"
+  "_transition_condition s1 s2 b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b (CONST Actions.skips)"
 
   "_transition_condition_action s1 s2 b a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b a"
 
-  "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Skip)"
+  "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
 
   "_state e d x" =>
   "CONST NodeBody.make e d x"
