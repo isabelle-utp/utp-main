@@ -144,7 +144,7 @@ lemma UINF_ind_RC_closed [closure]:
   assumes "\<And> i. P i is RC"
   shows "(\<Sqinter> i \<bullet> P i) is RC"
   by (metis (no_types) UINF_as_Sup_collect' UINF_as_Sup_image UINF_mem_RC_closed assms)
-  
+
 lemma USUP_mem_RC1_closed [closure]:
   assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RC1" "A \<noteq> {}"
   shows "(\<Squnion> i\<in>A \<bullet> P i) is RC1"
@@ -163,6 +163,10 @@ lemma USUP_mem_RC_closed [closure]:
   assumes "\<And> i. i \<in> A \<Longrightarrow> P i is RC" "A \<noteq> {}"
   shows "(\<Squnion> i\<in>A \<bullet> P i) is RC"
   by (rule RC_intro', simp_all add: closure assms RC_implies_RC1)
+
+lemma USUP_ind_RC_closed [closure]:
+  "\<lbrakk> \<And> i. P i is RC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is RC"
+  by (metis UNIV_not_empty USUP_mem_RC_closed USUP_mem_UNIV)
 
 lemma neg_trace_ext_prefix_RC [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> \<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"

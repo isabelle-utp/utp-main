@@ -257,6 +257,13 @@ lemma seq_CRR_closed [closure]:
   shows "(P ;; Q) is CRR"
   by (rule CRR_intro, simp_all add: unrest assms closure)
 
+lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
+  by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma USUP_ind_CRC_closed [closure]: 
+  "\<lbrakk> \<And> i. P i is CRC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is CRC"
+  by (metis CRC_implies_CRR CRC_implies_RC USUP_ind_CRR_closed USUP_ind_RC_closed false_CRC rea_not_CRR_closed wp_rea_CRC wp_rea_RC_false)
+
 lemma tr_extend_seqr_lit [rdes]:
   fixes P :: "('s, 'e) action"
   assumes "$ok \<sharp> P" "$wait \<sharp> P" "$ref \<sharp> P"

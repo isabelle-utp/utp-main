@@ -899,9 +899,6 @@ lemma Skip_C2_closed [closure]: "Skip is C2"
 lemma Stop_C2_closed [closure]: "Stop is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
 
-lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is CRC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
-  by (rule CRC_intro, simp_all add: unrest closure)
-
 lemma seq_C2_closed [closure]:
   assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
   shows "P ;; Q is C2"
@@ -987,14 +984,6 @@ lemma AlternateR_list_C2_closed [closure]:
    apply (metis assms nth_mem prod.collapse)+
   done
 
-lemma USUP_ind_RC_closed [closure]: 
-  "\<lbrakk> \<And> i. P i is RC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is RC"
-  by (metis UNIV_not_empty USUP_mem_RC_closed USUP_mem_UNIV)
-
-lemma USUP_ind_CRC_closed [closure]: 
-  "\<lbrakk> \<And> i. P i is CRC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is CRC"
-  by (metis CRC_implies_CRR CRC_implies_RC USUP_ind_CRR_closed USUP_ind_RC_closed false_CRC rea_not_CRR_closed wp_rea_CRC wp_rea_RC_false)
-
 lemma R4_CRR_closed [closure]: "P is CRR \<Longrightarrow> R4(P) is CRR"
   by (rule CRR_intro, simp_all add: closure unrest R4_def)
 
@@ -1007,15 +996,24 @@ proof -
   also have "... = while\<^sub>C b do \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> R4(post\<^sub>R P)) od"
     by (simp add: Productive_RHS_design_form unrest assms rdes closure R4_def)
   also have "... is C2"
-    apply (simp add: WhileC_def WhileR_rdes_def closure assms unrest rdes_def)
-    apply (rule C2_rdes_intro)
-         apply (simp_all add: closure unrest assms rpred)
-    apply (rule closure)
-     apply (simp_all add: closure)
-    apply (rule closure)
-     apply (rule closure)
-     apply (simp_all add: closure assms unrest)
-    oops
+    by (simp add: closure assms unrest rdes_def C2_rdes_intro)
+  finally show ?thesis .
+qed
+
+lemma IterateC_C2_closed [closure]:
+  assumes 
+    "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> A \<Longrightarrow> P(i) is Productive" "\<And> i. i \<in> A \<Longrightarrow> P(i) is C2" 
+  shows "(do\<^sub>C i\<in>A \<bullet> g(i) \<rightarrow> P(i) od) is C2"
+  unfolding IterateC_def by (simp add: closure assms)
+
+lemma IterateC_list_C2_closed [closure]:
+  assumes 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP" 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is C2"
+  shows "(IterateC_list A) is C2"
+  unfolding IterateC_list_def 
+  by (rule IterateC_C2_closed, (metis assms atLeastLessThan_iff nth_map nth_mem prod.collapse)+)
 
 lemma GuardCSP_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
