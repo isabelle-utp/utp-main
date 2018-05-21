@@ -68,6 +68,9 @@ begin
   lemma put_closure: "put \<sigma> v \<in> \<S>"
     by (auto simp add: lens_source_def)
 
+  lemma create_closure: "create v \<in> \<S>"
+    by (simp add: lens_create_def put_closure)
+
   lemma src_source [simp]: "src \<in> \<S>"
     using some_in_eq source_nonempty by auto
 
