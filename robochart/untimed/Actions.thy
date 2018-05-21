@@ -90,31 +90,33 @@ purge_notation
 notation
   ext_choice (infixl "\<box>" 65)
 
-lemma seq_assoc [simp]: "(P ; Q) ; R = P ; Q ; R"
+named_theorems action_simp
+
+lemma seq_assoc [simp, action_simp]: "(P ; Q) ; R = P ; Q ; R"
   by (transfer, simp add: seqr_assoc)
 
-lemma ext_choice_idem [simp]: "P \<box> P = P"
+lemma ext_choice_idem [simp, action_simp]: "P \<box> P = P"
   by (transfer, simp add: NCSP_implies_CSP extChoice_idem)
 
-lemma skip_left_unit [simp]: "skips ; P = P"
+lemma skip_left_unit [simp, action_simp]: "skips ; P = P"
   by (transfer, metis Skip_left_unit)
 
-lemma skip_right_unit [simp]: "P ; skips = P"
+lemma skip_right_unit [simp, action_simp]: "P ; skips = P"
   by (transfer, metis Skip_right_unit)
 
-lemma stop_choice_left_zero [simp]: "stop \<box> P = P"
+lemma stop_choice_left_zero [simp, action_simp]: "stop \<box> P = P"
   by (transfer, simp add: extChoice_Stop closure)
 
-lemma stop_choice_right_zero [simp]: "P \<box> stop = P"
+lemma stop_choice_right_zero [simp, action_simp]: "P \<box> stop = P"
   by (transfer, subst extChoice_comm, simp add: extChoice_Stop closure)
 
-lemma stop_seq_left_zero [simp]: "stop ; P = stop"
+lemma stop_seq_left_zero [simp, action_simp]: "stop ; P = stop"
   by (transfer, simp add: NCSP_implies_CSP Stop_left_zero)
 
-lemma true_guard [simp]: "true \<^bold>& P = P"
+lemma true_guard [simp, action_simp]: "true \<^bold>& P = P"
   by (transfer, simp add: NCSP_implies_CSP)
 
-lemma false_guard [simp]: "false \<^bold>& P = stop"
+lemma false_guard [simp, action_simp]: "false \<^bold>& P = stop"
   by (transfer, simp add: NCSP_implies_CSP)
 
 lemma frame_seq [simp]: "vwb_lens a \<Longrightarrow> a:[P ; Q]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; a:[Q]\<^sub>A\<^sup>+"

@@ -32,6 +32,7 @@ type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody"
 
 record ('s, 'e) StateMachine =
   sm_initial     :: "string"
+  sm_finals      :: "string list"
   sm_nodes       :: "('s, 'e) Node list"
   sm_transitions :: "('s, 'e) Transition list"
 
@@ -44,8 +45,13 @@ definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> (
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
   rc_state:[(case tn_trigger t of Some e \<Rightarrow> e | None \<Rightarrow> sync null_event) ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
 
+text \<open> The following function extracts a tree representation of nodes and the transitions for each state
+  in the state machine. We exclude final states as reaching these should lead to termination even though
+  there is no outgoing edges. \<close>
+
 abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
-"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) (sm_nodes sm)"
+"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) 
+                   (filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm))"
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 

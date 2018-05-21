@@ -2,7 +2,7 @@ subsection \<open> RoboChart State Machine Compiler \<close>
 
 theory StateMachine
   imports MetaModel
-  keywords "statemachine" :: "thy_decl_block" and "states" "initial" "transitions" "vars" "events"
+  keywords "statemachine" :: "thy_decl_block" and "states" "initial" "finals" "transitions" "vars" "events"
 begin
 
 subsection \<open> Interface to Algebraic Datatypes \<close>
@@ -27,12 +27,16 @@ ML \<open>
 signature STATEMACHINE_COMPILER =
 sig
   val statemachineParser:
-         (binding *
-          (((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
-           (binding * string) list option)) parser
+     (binding *
+       ((((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
+         binding list option)
+        *
+        (binding * string) list option)) parser
   val compileStatemachine:
        binding *
-       (((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
+       ((((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
+         binding list option)
+        *
         (binding * string) list option)
          -> theory -> theory
 end;
@@ -63,6 +67,8 @@ val stateDeclParser = @{keyword "states"} |-- repeat1 (binding -- optional ($$$ 
 
 val initStateParser = @{keyword "initial"} |-- binding;
 
+val finalsStateParser = @{keyword "finals"} |-- repeat1 binding;
+
 val transDeclParser = @{keyword "transitions"} |-- repeat1 ((binding --| $$$ ":") -- term);
 
 val statemachineParser = 
@@ -72,6 +78,7 @@ val statemachineParser =
       Scan.option eventsParser -- 
       stateDeclParser --
       initStateParser --
+      Scan.option finalsStateParser --
       Scan.option transDeclParser
     --| Parse.$$$ "]");
 
@@ -134,14 +141,14 @@ fun compileTransSem null_event def_thms tds ctx =
       map (fn (term, (n, thm)) =>
         (* Use simplifier with definitional theorems and Circus laws to calculate semantics *)
         let val thms = (def_thms @ @{thms Transition.defs} @ [@{thm tr_semantics_def}]);
-            val thms_raw = @{thms sc_rewrites} @ @{thms Transition.select_convs[THEN eq_reflection]} @ thms
+            val thms_raw = @{thms action_simp[THEN eq_reflection]} @ @{thms sc_rewrites} @ @{thms Transition.select_convs[THEN eq_reflection]} @ thms
             val ft = Syntax.check_term ctx (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) (* (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) *);
             val semt = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) thms_raw [] ft;
         in prove_eq_simplify ctx ft semt thms end) tds;
   in Local_Theory.note ((Binding.name "semantics", []), sem_thms) ctx end;
 
 
-fun compileStatemachine (n, ((((vs, es), ss), ins), ts)) thy0 =
+fun compileStatemachine (n, (((((vs, es), ss), ins), fins), ts)) thy0 =
   let val thy1 = compileVarDecls (n, vs) thy0;
       val (loc, ctx0) = Expression.add_locale_cmd n Binding.empty ([],[]) [] thy1;
       val ctx1 = compileEventDecls es ctx0;
@@ -157,7 +164,8 @@ fun compileStatemachine (n, ((((vs, es), ss), ins), ts)) thy0 =
       val (sds, ctx4) = compileStateDecls ss stateT ctx3;
       val statesDef = mk_def (listT stateT) $ Free ("states", (listT stateT)) $ mk_list stateT (map fst sds)
       val ((st_term, (_, st_thm)), ctx5) = Specification.definition NONE [] [] ((Binding.empty, []), statesDef) ctx4;
-      val machineDef = mk_def machineT $ Free ("machine", machineT) $ (mk_StateMachine $ mk_string (Binding.name_of ins) $ st_term $ tr_term)
+      val fins' = (case fins of NONE => [] | SOME ss => map (mk_string o Binding.name_of) ss);
+      val machineDef = mk_def machineT $ Free ("machine", machineT) $ (mk_StateMachine $ mk_string (Binding.name_of ins) $ mk_list @{typ string} fins' $ st_term $ tr_term)
       val ((mch_term, (_, mch_thm)), ctx6) = Specification.definition NONE [] [] ((Binding.empty, []), machineDef) ctx5;
       val null_event = Syntax.read_term ctx6 "null_event";
       val semDef = mk_def actT $ Free ("action", actT) $ (sm_semantics $ mch_term $ null_event);
