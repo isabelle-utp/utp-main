@@ -7,6 +7,13 @@ begin
 typedef ('s, 'e) Action = "{P :: ('s, 'e) action. (P is C2) \<and> (P is NCSP)}"
   by (rule_tac x="Skip" in exI, simp add: closure)
 
+notation Rep_Action ("\<lbrakk>_\<rbrakk>\<^sub>A")
+
+type_synonym 'e Process = "(unit, 'e) Action"
+
+translations
+  (type) "'e Process" <= (type) "(unit, 'e) Action"
+
 setup_lifting type_definition_Action
 
 lift_definition chaos :: "('s, 'e) Action" is Chaos by (simp add: closure)
@@ -34,10 +41,10 @@ lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> (
 
 lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
-lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action"
+lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')")
   is "\<lambda> c v. c!(v) \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
-lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action"
+lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')")
   is "\<lambda> c x. c?(v) \<^bold>\<rightarrow> x :=\<^sub>C \<guillemotleft>v\<guillemotright>" by (simp add: InputCSP_def closure)
 
 lift_definition ext_choice :: "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is "op \<box>"
@@ -84,11 +91,55 @@ adhoc_overloading uiterate_list iteration
 
 lift_definition productive :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. P is Productive" .
 
+lift_definition deadlock_free :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. CDF \<sqsubseteq> P" .
+
 purge_notation
   extChoice (infixl "\<box>" 65)
 
 notation
-  ext_choice (infixl "\<box>" 65)
+  ext_choice (infixl "\<box>" 85)
+
+lemma state_srea_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR"
+  shows "state 'a \<bullet> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(\<langle>\<forall> {$st,$st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> (state 'a \<bullet> Q) \<diamondop> (state 'a \<bullet> R))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<^bold>R\<^sub>s(pre\<^sub>R(?lhs) \<turnstile> peri\<^sub>R(?lhs) \<diamondop> post\<^sub>R(?lhs))"
+    by (simp add: RC_implies_RR SRD_rdes_intro SRD_reactive_tri_design SRD_state_srea assms)
+  also have "... =  \<^bold>R\<^sub>s (\<langle>\<forall> {$st, $st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> state 'a \<bullet> (P \<Rightarrow>\<^sub>r Q) \<diamondop> state 'a \<bullet> (P \<Rightarrow>\<^sub>r R))"
+    by (simp add: rdes closure assms)
+  also have "... = ?rhs"
+    by (rel_auto)
+  finally show ?thesis .
+qed
+
+lemma state_srea_CDC_closed [closure]:
+  assumes "P is CDC"
+  shows "state 'a \<bullet> P is CDC"
+proof -
+  have "state 'a \<bullet> CDC(P) is CDC"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+  
+lemma state_srea_C2_closed [closure]: 
+  assumes "P is NCSP" "P is C2"
+  shows "state 'a \<bullet> P is C2"
+  by (rule C2_NCSP_intro, simp_all add: closure rdes assms)
+
+lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
+  by (simp add: closure)
+
+term state_decl
+
+syntax
+  "_action_state" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
+
+translations
+  "decl x \<bullet> P" == "CONST state_decl (LOCAL x \<bullet> P)"
+
+subsection \<open> Algebraic Laws \<close>
 
 named_theorems action_simp
 
@@ -128,13 +179,17 @@ lemma frame_skip [simp]: "vwb_lens a \<Longrightarrow> a:[skips]\<^sub>A\<^sup>+
 lemma frame_sync [simp]: "vwb_lens a \<Longrightarrow> a:[sync e]\<^sub>A\<^sup>+ = sync e"
   by (transfer, rdes_eq)
 
+lemma decl_Skip [simp]: "(decl x \<bullet> skips) = skips"
+  by (simp add: state_block_def, transfer, rdes_eq)
+
 subsection \<open> Action Syntax \<close>
 
 nonterminal raction
 
 syntax
+  "_bracket_raction"   :: "raction \<Rightarrow> raction" ("'(_')")
   "_skip_raction"      :: "raction" ("skip")
-  "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";" 71)
+  "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";/" 71)
   "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
   "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
   "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
@@ -142,6 +197,7 @@ syntax
   "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
 
 translations
+  "_bracket_raction P"     => "P"
   "_skip_raction"          == "CONST skips"
   "_seq_raction P Q"       => "P ; Q"
   "_if_raction b P Q"      == "CONST cond P b Q"
@@ -149,7 +205,5 @@ translations
   "_basic_ev_raction e"    == "CONST sync e"
   "_rcv_ev_raction c x"    == "CONST receive c x"
   "_send_ev_raction c v"   == "CONST send c v"
-
-
 
 end

@@ -67,22 +67,22 @@ subsection \<open> Transition and State Parsers \<close>
 
 syntax
   "_transition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
-  ("from _ to _ trigger _ condition _ action _")
+  ("from _ to _ trigger _ condition _ action _" [0,0,0,0,10] 10)
 
   "_transition_action" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
-  ("from _ to _ action _")
+  ("from _ to _ action _" [0,0,10] 10)
 
   "_transition_condition" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic"
-  ("from _ to _ condition _")
+  ("from _ to _ condition _" [0,0,10] 10)
 
   "_transition_condition_action" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
-  ("from _ to _ condition _ action _")
+  ("from _ to _ condition _ action _" [0,0,0,10] 10)
 
   "_transition_trigger" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
-  ("from _ to _ trigger _")
+  ("from _ to _ trigger _" [0,0,10] 10)
 
   "_state" :: "raction \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> logic"
-  ("entry _ during _ exit _")
+  ("entry _ during _ exit _" [0,0,10] 10)
 
 translations
   "_transition s1 s2 e b a" =>

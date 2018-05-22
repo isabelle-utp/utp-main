@@ -98,8 +98,7 @@ fun compileEventDecls (SOME defs) =
                   map (fn (b, SOME t) => (((Binding.empty, b), [(Binding.empty, t)]), Mixfix.NoSyn) |
                           (b, NONE) => (((Binding.empty, b), []), Mixfix.NoSyn)) defs) |
 
-compileEventDecls NONE =
-  snd o Typedecl.abbrev_cmd (Binding.name "events", [], Mixfix.NoSyn) "unit";
+compileEventDecls NONE = compileEventDecls (SOME []);
 
 fun mk_def ty = Const ("Pure.eq", ty --> ty --> Term.propT);
 
