@@ -23,6 +23,7 @@ imports
   utp_deduct
   utp_rel
   utp_rel_laws
+  utp_state_parser
   utp_tactics
   utp_hoare
   utp_wp
