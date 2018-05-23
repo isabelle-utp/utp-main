@@ -156,11 +156,6 @@ proof -
     by (rule_tac CRR_intro, simp_all add: closure Healthy_if assms)
 qed
 
-lemma rea_rename_CRR_closed [closure]: 
-  assumes "additive f" "P is CRC"
-  shows "P\<lparr>f\<rparr>\<^sub>r is CRC"
-  oops
-
 lemma conj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
@@ -318,6 +313,19 @@ proof -
     done
   thus ?thesis
     by (metis Healthy_def assms)
+qed
+
+lemma R4_CRR_closed [closure]: "P is CRR \<Longrightarrow> R4(P) is CRR"
+  by (simp add: R4_def conj_less_tr_RR_closed)
+
+lemma R5_CRR_closed [closure]: 
+  assumes "P is CRR"
+  shows "R5(P) is CRR"
+proof -
+  have "R5(CRR(P)) is CRR"
+    by (rel_auto; blast)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
 qed
 
 lemma conj_eq_tr_RR_closed [closure]:
@@ -823,6 +831,163 @@ qed
 
 lemma msubst_csp_do [usubst]: 
   "\<Phi>(s(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk> = \<Phi>(s(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+
+subsection \<open> Downward closure of refusals \<close>
+
+text \<open> We define downward closure of the pericondition by the following healthiness condition \<close>
+
+definition CDC :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
+[upred_defs]: "CDC(P) = (\<^bold>\<exists> ref\<^sub>0 \<bullet> P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)"
+
+lemma CDC_idem: "CDC(CDC(P)) = CDC(P)"
+  by (rel_auto)
+
+lemma CDC_RR_commute: "CDC(RR(P)) = RR(CDC(P))"
+  by (rel_blast)
+
+lemma CDC_RR_closed [closure]: "P is RR \<Longrightarrow> CDC(P) is RR"
+  by (metis CDC_RR_commute Healthy_def)
+
+lemma CDC_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "CDC(P) is CRR"
+  by (rule CRR_intro, simp add: CDC_def unrest assms closure, simp add: unrest assms closure)
+
+lemma CDC_unrest [unrest]: "\<lbrakk> vwb_lens x; ($ref\<acute>)\<^sub>v \<bowtie> x; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> CDC(P)"
+  by (simp add: CDC_def unrest usubst lens_indep_sym)
+
+lemma CDC_R4_commute: "CDC(R4(P)) = R4(CDC(P))"
+  by (rel_auto)
+
+lemma R4_CDC_closed [closure]: "P is CDC \<Longrightarrow> R4(P) is CDC"
+  by (simp add: CDC_R4_commute Healthy_def)
+
+lemma CDC_R5_commute: "CDC(R5(P)) = R5(CDC(P))"
+  by (rel_auto)
+
+lemma R5_CDC_closed [closure]: "P is CDC \<Longrightarrow> R5(P) is CDC"
+  by (simp add: CDC_R5_commute Healthy_def)
+
+lemma rea_true_CDC [closure]: "true\<^sub>r is CDC"
+  by (rel_auto)
+
+lemma false_CDC [closure]: "false is CDC"
+  by (rel_auto)
+
+lemma CDC_UINF_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
+  shows "(\<Sqinter> i \<in> I \<bullet> P i) is CDC"
+  using assms by (rel_blast)
+
+lemma CDC_disj_closed [closure]:
+  assumes "P is CDC" "Q is CDC"
+  shows "(P \<or> Q) is CDC"
+proof -
+  have "CDC(P \<or> Q) = (CDC(P) \<or> CDC(Q))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms(1) assms(2))
+qed
+
+lemma CDC_USUP_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
+  shows "(\<Squnion> i \<in> I \<bullet> P i) is CDC"
+  using assms by (rel_blast)
+
+lemma CDC_conj_closed [closure]:
+  assumes "P is CDC" "Q is CDC"
+  shows "(P \<and> Q) is CDC"
+  using assms by (rel_auto, blast, meson)
+
+lemma CDC_rea_impl [rpred]:
+  "$ref\<acute> \<sharp> P \<Longrightarrow> CDC(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r CDC(Q))"
+  by (rel_auto)
+
+lemma rea_impl_CDC_closed [closure]:
+  assumes "$ref\<acute> \<sharp> P" "Q is CDC"
+  shows "(P \<Rightarrow>\<^sub>r Q) is CDC"
+  using assms by (simp add: CDC_rea_impl Healthy_def)
+
+lemma seq_CDC_closed [closure]:
+  assumes "Q is CDC"
+  shows "(P ;; Q) is CDC"
+proof -
+  have "CDC(P ;; Q) = P ;; CDC(Q)"
+    by (rel_blast)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma rea_st_cond_CDC [closure]: "[g]\<^sub>S\<^sub>< is CDC"
+  by (rel_auto)
+
+lemma csp_enable_CDC [closure]: "\<E>(s,t,E) is CDC"
+  by (rel_auto)
+
+subsection \<open> Renaming \<close>
+
+abbreviation "pre_image f B \<equiv> {x. f(x) \<in> B}"
+
+definition csp_rename :: "('s, 'e) action \<Rightarrow> ('e \<Rightarrow> 'f) \<Rightarrow> ('s, 'f) action" ("(_)\<lparr>_\<rparr>\<^sub>c" [999, 0] 999) where
+[upred_defs]: "P\<lparr>f\<rparr>\<^sub>c = R2(($tr\<acute> =\<^sub>u \<langle>\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P ;; ($tr\<acute> =\<^sub>u map\<^sub>u \<guillemotleft>f\<guillemotright> $tr \<and> $st\<acute> =\<^sub>u $st \<and> \<guillemotleft>pre_image f\<guillemotright>($ref\<acute>)\<^sub>a \<subseteq>\<^sub>u $ref))"
+
+lemma csp_rename_CRR_closed [closure]: 
+  assumes "P is CRR"
+  shows "P\<lparr>f\<rparr>\<^sub>c is CRR"
+proof -
+  have "(CRR P)\<lparr>f\<rparr>\<^sub>c is CRR"
+    by (rel_auto)
+  thus ?thesis by (simp add: assms Healthy_if)
+qed
+
+lemma csp_rename_disj [rpred]: "(P \<or> Q)\<lparr>f\<rparr>\<^sub>c = (P\<lparr>f\<rparr>\<^sub>c \<or> Q\<lparr>f\<rparr>\<^sub>c)"
+  by (rel_blast)
+
+lemma csp_rename_UINF_ind [rpred]: "(\<Sqinter> i \<bullet> P i)\<lparr>f\<rparr>\<^sub>c = (\<Sqinter> i \<bullet> (P i)\<lparr>f\<rparr>\<^sub>c)"
+  by (rel_blast)
+
+lemma csp_rename_UINF_mem [rpred]: "(\<Sqinter> i \<in> A \<bullet> P i)\<lparr>f\<rparr>\<^sub>c = (\<Sqinter> i \<in> A \<bullet> (P i)\<lparr>f\<rparr>\<^sub>c)"
+  by (rel_blast)
+
+text \<open> Renaming distributes through conjunction only when both sides are downward closed \<close>
+
+lemma csp_rename_conj [rpred]: 
+  assumes "inj f" "P is CRR" "Q is CRR" "P is CDC" "Q is CDC"
+  shows "(P \<and> Q)\<lparr>f\<rparr>\<^sub>c = (P\<lparr>f\<rparr>\<^sub>c \<and> Q\<lparr>f\<rparr>\<^sub>c)"
+proof -
+  from assms(1) have "((CDC (CRR P)) \<and> (CDC (CRR Q)))\<lparr>f\<rparr>\<^sub>c = ((CDC (CRR P))\<lparr>f\<rparr>\<^sub>c \<and> (CDC (CRR Q))\<lparr>f\<rparr>\<^sub>c)"
+    apply (rel_auto)
+    apply blast
+    apply blast
+    apply (meson order_refl order_trans)
+    done
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+  
+lemma csp_rename_seq [rpred]:
+  assumes "P is CRR" "Q is CRR"
+  shows "(P ;; Q)\<lparr>f\<rparr>\<^sub>c = P\<lparr>f\<rparr>\<^sub>c ;; Q\<lparr>f\<rparr>\<^sub>c"
+  oops
+
+lemma csp_rename_R4 [rpred]:
+  "(R4(P))\<lparr>f\<rparr>\<^sub>c = R4(P\<lparr>f\<rparr>\<^sub>c)"
+  apply (rel_auto, blast)
+  using less_le apply fastforce
+  apply (metis (mono_tags, lifting) Prefix_Order.Nil_prefix append_Nil2 diff_add_cancel_left' less_le list.simps(8) plus_list_def)
+  done
+
+lemma csp_rename_R5 [rpred]:
+  "(R5(P))\<lparr>f\<rparr>\<^sub>c = R5(P\<lparr>f\<rparr>\<^sub>c)"
+  apply (rel_auto, blast)
+  using less_le apply fastforce
+  done
+
+lemma csp_rename_do [rpred]: "\<Phi>(s,\<sigma>,t)\<lparr>f\<rparr>\<^sub>c = \<Phi>(s,\<sigma>,map\<^sub>u \<guillemotleft>f\<guillemotright> t)"
+  by (rel_auto)
+
+lemma csp_rename_enable [rpred]: "\<E>(s,t,E)\<lparr>f\<rparr>\<^sub>c = \<E>(s,map\<^sub>u \<guillemotleft>f\<guillemotright> t, \<guillemotleft>image f\<guillemotright>(E)\<^sub>a)"
   by (rel_auto)
 
 end

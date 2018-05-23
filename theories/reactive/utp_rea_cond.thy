@@ -183,14 +183,4 @@ lemma RC_unrest_dashed [unrest]:
 lemma RC1_RR_closed: "P is RR \<Longrightarrow> RC1(P) is RR"
   by (simp add: RC1_def closure)
 
-lemma rea_rename_RC_closed [closure]: 
-  assumes "additive f" "P is RC"
-  shows "P\<lparr>f\<rparr>\<^sub>r is RC"
-proof -
-  have "(RC P)\<lparr>f\<rparr>\<^sub>r is RC1"
-    by (rel_auto, metis (mono_tags, hide_lams) dual_order.antisym eq_iff_diff_eq_0 not_le_minus)
-  thus ?thesis
-    by (rule_tac RC_intro', simp_all add: Healthy_if assms closure)
-qed
-
 end

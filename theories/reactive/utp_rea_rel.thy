@@ -118,23 +118,39 @@ where [upred_defs]: "II\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^
 definition rea_assert :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
 where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
 
-text \<open> Convert from one trace algebra to another using additive functions \<close>
+text \<open> Convert from one trace algebra to another using renamer functions, which are a kind of
+  monoid homomorphism. \<close>
 
-locale renaming =
+locale renamer =
   fixes f :: "'a::trace \<Rightarrow> 'b::trace"
-  assumes injective: "inj f"
-  and add: "f (x + y) = f x + f y"
-  and zero: "f 0 = 0"
+  assumes 
+    injective: "inj f" and
+    add: "f (x + y) = f x + f y"
 begin
+  lemma zero: "f 0 = 0"
+    by (metis add add.right_neutral add_monoid_diff_cancel_left)
+
+  lemma monotonic: "mono f"
+    by (metis add monoI trace_class.le_iff_add)
+
   lemma minus: "x \<le> y \<Longrightarrow> f (y - x) = f(y) - f(x)"
     by (metis add diff_add_cancel_left' trace_class.add_diff_cancel_left)
 end
 
-declare renaming.add [simp]
-declare renaming.zero [simp]
-declare renaming.minus [simp]
+declare renamer.add [simp]
+declare renamer.zero [simp]
+declare renamer.minus [simp]
 
-definition rea_rename :: "('t\<^sub>1::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t\<^sub>1 \<Rightarrow> 't\<^sub>2) \<Rightarrow> ('t\<^sub>2::trace,'\<alpha>) hrel_rp" ("(_)\<lparr>_\<rparr>\<^sub>r" [999, 0] 999)  where
+lemma renamer_id: "renamer id"
+  by (unfold_locales, simp_all)
+
+lemma renamer_comp: "\<lbrakk> renamer f; renamer g \<rbrakk> \<Longrightarrow> renamer (f \<circ> g)"
+  by (unfold_locales, simp_all add: inj_comp renamer.injective)
+
+lemma renamer_map: "inj f \<Longrightarrow> renamer (map f)"
+  by (unfold_locales, simp_all add: plus_list_def)
+
+definition rea_rename :: "('t\<^sub>1::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t\<^sub>1 \<Rightarrow> 't\<^sub>2) \<Rightarrow> ('t\<^sub>2::trace,'\<alpha>) hrel_rp" ("(_)\<lparr>_\<rparr>\<^sub>r" [999, 0] 999) where
 [upred_defs]: "rea_rename P f = R2(($tr\<acute> =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P ;; ($tr\<acute> =\<^sub>u \<guillemotleft>f\<guillemotright>($tr)\<^sub>a \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
 
 text \<open> Trace contribution substitution: make a substitution for the trace contribution lens 
@@ -619,16 +635,9 @@ proof -
 qed
 
 lemma rea_rename_comp [rpred]: 
-  assumes "renaming f" "P is RR"
+  assumes "renamer f" "renamer g" "P is RR"
   shows "P\<lparr>g \<circ> f\<rparr>\<^sub>r = P\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
-proof -
-  have "(RR P)\<lparr>g \<circ> f\<rparr>\<^sub>r = (RR P)\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
-    apply (rel_auto)
-    
-    done
-  thus ?thesis by (simp add: Healthy_if assms)
-qed
-
+  oops
 
 lemma rea_rename_false [rpred]: "false\<lparr>f\<rparr>\<^sub>r = false"
   by (rel_auto)
@@ -646,55 +655,51 @@ lemma rea_rename_UINF_mem [rpred]:
   by (rel_blast)
 
 lemma rea_rename_conj [rpred]: 
-  assumes "renaming f" "P is RR" "Q is RR"
+  assumes "renamer f" "P is RR" "Q is RR"
   shows "(P \<and> Q)\<lparr>f\<rparr>\<^sub>r = (P\<lparr>f\<rparr>\<^sub>r \<and> Q\<lparr>f\<rparr>\<^sub>r)"
 proof -
+  interpret ren: renamer f by (simp add: assms)
   have "(RR P \<and> RR Q)\<lparr>f\<rparr>\<^sub>r = ((RR P)\<lparr>f\<rparr>\<^sub>r \<and> (RR Q)\<lparr>f\<rparr>\<^sub>r)"
-    apply (rel_auto)
-      apply blast
-    apply blast
-    
-    done
+    using injD[OF ren.injective]
+    by (rel_auto; blast)
   thus ?thesis by (simp add: Healthy_if assms)
 qed
 
 lemma rea_rename_USUP_ind [rpred]:
-  assumes "additive f" "\<And> i. P i is RR"
+  assumes "renamer f" "\<And> i. P i is RR"
   shows "(\<Squnion> i \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
 proof -
+  interpret ren: renamer f by (simp add: assms)
   have "(\<Squnion> i \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
-    apply (rel_auto)
-     apply (blast)
-    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
-    done
+    using injD[OF ren.injective]
+    by (rel_auto, blast, metis (mono_tags, hide_lams))
   thus ?thesis
     by (simp add: Healthy_if assms cong: USUP_all_cong)
 qed
 
 lemma rea_rename_USUP_mem [rpred]:
-  assumes "additive f" "\<And> i. i \<in> A \<Longrightarrow> P i is RR"
+  assumes "renamer f" "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P i is RR"
   shows "(\<Squnion> i\<in>A \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i\<in>A \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
 proof -
+  interpret ren: renamer f by (simp add: assms)
   have "(\<Squnion> i\<in>A \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i\<in>A \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
-    apply (rel_auto)
-     apply (blast)
-    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)+
-    done
+    using injD[OF ren.injective] assms(2)
+    by (rel_auto, blast, metis (no_types, hide_lams))
   thus ?thesis
     by (simp add: Healthy_if assms cong: USUP_cong)
 qed
 
-lemma rea_rename_skip_rea [rpred]: "additive f \<Longrightarrow> II\<^sub>r\<lparr>f\<rparr>\<^sub>r = II\<^sub>r"
-  by (rel_auto, simp_all add: additive.zero)
+lemma rea_rename_skip_rea [rpred]: "renamer f \<Longrightarrow> II\<^sub>r\<lparr>f\<rparr>\<^sub>r = II\<^sub>r"
+  using minus_zero_eq by (rel_auto)
 
 lemma rea_rename_seq [rpred]: 
-  assumes "additive f" "P is RR" "Q is RR"
+  assumes "renamer f" "P is RR" "Q is RR"
   shows "(P ;; Q)\<lparr>f\<rparr>\<^sub>r = P\<lparr>f\<rparr>\<^sub>r ;; Q\<lparr>f\<rparr>\<^sub>r"
 proof -
+  interpret ren: renamer f by (simp add: assms)
   from assms(1) have "(RR(P) ;; RR(Q))\<lparr>f\<rparr>\<^sub>r = (RR P)\<lparr>f\<rparr>\<^sub>r ;; (RR Q)\<lparr>f\<rparr>\<^sub>r"
     by (rel_auto)
-       (metis (mono_tags, lifting) add_cancel_left_left diff_add_cancel le_add le_zero_iff
-       ,metis (mono_tags, lifting) ab_group_add_class.ab_left_minus le_add zero_sum_right)
+       (metis (no_types, lifting) diff_add_cancel_left' le_add minus_assoc mono_def ren.minus ren.monotonic trace_class.add_diff_cancel_left trace_class.add_left_mono)+
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed

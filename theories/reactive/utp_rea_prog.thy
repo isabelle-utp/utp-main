@@ -165,15 +165,6 @@ lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<
 lemma R2c_lift_state_pre: "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
-lemma rea_rename_state_rel [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S"
-  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
-
-lemma rea_rename_state_pre [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<^sub><\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S\<^sub><"
-  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
-
-lemma rea_rename_state_post [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<^sub>>\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S\<^sub>>"
-  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
-
 subsection \<open> Reactive Program Operators \<close>
 
 subsubsection \<open> State Substitution \<close>
@@ -282,8 +273,8 @@ proof -
 qed
 
 lemma rea_assigns_rename [rpred]:
-  "additive f \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>r\<lparr>f\<rparr>\<^sub>r = \<langle>\<sigma>\<rangle>\<^sub>r"
-  by (rel_auto, simp_all add: additive.zero)
+  "renamer f \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>r\<lparr>f\<rparr>\<^sub>r = \<langle>\<sigma>\<rangle>\<^sub>r"
+  using minus_zero_eq by rel_auto
 
 lemma st_subst_RR [closure]:
   assumes "P is RR"

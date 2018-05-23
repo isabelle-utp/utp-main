@@ -758,91 +758,6 @@ proof -
   qed
 qed
 
-text \<open> We define downward closure of the pericondition by the following healthiness condition \<close>
-
-definition CDC :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
-[upred_defs]: "CDC(P) = (\<^bold>\<exists> ref\<^sub>0 \<bullet> P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)"
-
-lemma CDC_idem: "CDC(CDC(P)) = CDC(P)"
-  by (rel_auto)
-
-lemma CDC_RR_commute: "CDC(RR(P)) = RR(CDC(P))"
-  by (rel_blast)
-
-lemma CDC_RR_closed [closure]: "P is RR \<Longrightarrow> CDC(P) is RR"
-  by (metis CDC_RR_commute Healthy_def)
-
-lemma CDC_unrest [unrest]: "\<lbrakk> vwb_lens x; ($ref\<acute>)\<^sub>v \<bowtie> x; x \<sharp> P \<rbrakk> \<Longrightarrow> x \<sharp> CDC(P)"
-  by (simp add: CDC_def unrest usubst lens_indep_sym)
-
-lemma CDC_R4_commute: "CDC(R4(P)) = R4(CDC(P))"
-  by (rel_auto)
-
-lemma R4_CDC_closed [closure]: "P is CDC \<Longrightarrow> R4(P) is CDC"
-  by (simp add: CDC_R4_commute Healthy_def)
-
-lemma CDC_R5_commute: "CDC(R5(P)) = R5(CDC(P))"
-  by (rel_auto)
-
-lemma R5_CDC_closed [closure]: "P is CDC \<Longrightarrow> R5(P) is CDC"
-  by (simp add: CDC_R5_commute Healthy_def)
-
-lemma rea_true_CDC [closure]: "true\<^sub>r is CDC"
-  by (rel_auto)
-
-lemma false_CDC [closure]: "false is CDC"
-  by (rel_auto)
-
-lemma CDC_UINF_closed [closure]:
-  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
-  shows "(\<Sqinter> i \<in> I \<bullet> P i) is CDC"
-  using assms by (rel_blast)
-
-lemma CDC_disj_closed [closure]:
-  assumes "P is CDC" "Q is CDC"
-  shows "(P \<or> Q) is CDC"
-proof -
-  have "CDC(P \<or> Q) = (CDC(P) \<or> CDC(Q))"
-    by (rel_auto)
-  thus ?thesis
-    by (metis Healthy_def assms(1) assms(2))
-qed
-
-lemma CDC_USUP_closed [closure]:
-  assumes "\<And> i. i \<in> I \<Longrightarrow> P i is CDC"
-  shows "(\<Squnion> i \<in> I \<bullet> P i) is CDC"
-  using assms by (rel_blast)
-
-lemma CDC_conj_closed [closure]:
-  assumes "P is CDC" "Q is CDC"
-  shows "(P \<and> Q) is CDC"
-  using assms by (rel_auto, blast, meson)
-
-lemma CDC_rea_impl [rpred]:
-  "$ref\<acute> \<sharp> P \<Longrightarrow> CDC(P \<Rightarrow>\<^sub>r Q) = (P \<Rightarrow>\<^sub>r CDC(Q))"
-  by (rel_auto)
-
-lemma rea_impl_CDC_closed [closure]:
-  assumes "$ref\<acute> \<sharp> P" "Q is CDC"
-  shows "(P \<Rightarrow>\<^sub>r Q) is CDC"
-  using assms by (simp add: CDC_rea_impl Healthy_def)
-
-lemma seq_CDC_closed [closure]:
-  assumes "Q is CDC"
-  shows "(P ;; Q) is CDC"
-proof -
-  have "CDC(P ;; Q) = P ;; CDC(Q)"
-    by (rel_blast)
-  thus ?thesis
-    by (metis Healthy_def assms)
-qed
-
-lemma rea_st_cond_CDC [closure]: "[g]\<^sub>S\<^sub>< is CDC"
-  by (rel_auto)
-
-lemma csp_enable_CDC [closure]: "\<E>(s,t,E) is CDC"
-  by (rel_auto)
-
 lemma C2_CDC_form:
   assumes "P is NCSP"
   shows "C2(P) = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
@@ -1052,11 +967,13 @@ proof -
   finally show ?thesis .
 qed
 
-lemma CDC_CRR_closed [closure]:
-  assumes "P is CRR"
-  shows "CDC(P) is CRR"
-  by (rule CRR_intro, simp add: CDC_def unrest assms closure, simp add: unrest assms closure)
-  
+text \<open> This property depends on downward closure of the refusals \<close>
+
+lemma rename_extChoice:
+  assumes "inj f" "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
+  shows "(P \<box> Q)\<lparr>f\<rparr>\<^sub>C = (P\<lparr>f\<rparr>\<^sub>C \<box> Q\<lparr>f\<rparr>\<^sub>C)"
+  by (rdes_eq_split cls: assms)
+
 lemma C2_idem: 
   assumes "P is NCSP"
   shows "C2(C2(P)) = C2(P)" (is "?lhs = ?rhs")
