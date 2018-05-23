@@ -153,12 +153,26 @@ lemma R1_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acu
 
 lemma R2c_st'_unrest [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> R2c(P)"
   by (simp add: R2c_def unrest)
-  
+
+lemma unrest_st_rea_rename [unrest]: 
+  "$st \<sharp> P \<Longrightarrow> $st \<sharp> P\<lparr>f\<rparr>\<^sub>r"
+  "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>r" 
+  by (rel_blast)+
+
 lemma st_lift_R1_true_right: "\<lceil>b\<rceil>\<^sub>S\<^sub>< ;; R1(true) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
 
 lemma R2c_lift_state_pre: "R2c(\<lceil>b\<rceil>\<^sub>S\<^sub><) = \<lceil>b\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)
+
+lemma rea_rename_state_rel [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S"
+  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
+
+lemma rea_rename_state_pre [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<^sub><\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
+
+lemma rea_rename_state_post [rpred]: "additive f \<Longrightarrow> \<lceil>b\<rceil>\<^sub>S\<^sub>>\<lparr>f\<rparr>\<^sub>r = \<lceil>b\<rceil>\<^sub>S\<^sub>>"
+  by (rel_auto, (metis eq_iff_diff_eq_0 le_zero_iff not_le_minus)+)
 
 subsection \<open> Reactive Program Operators \<close>
 
@@ -266,7 +280,11 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
-  
+
+lemma rea_assigns_rename [rpred]:
+  "additive f \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>r\<lparr>f\<rparr>\<^sub>r = \<langle>\<sigma>\<rangle>\<^sub>r"
+  by (rel_auto, simp_all add: additive.zero)
+
 lemma st_subst_RR [closure]:
   assumes "P is RR"
   shows "(\<sigma> \<dagger>\<^sub>S P) is RR"
@@ -326,6 +344,9 @@ lemma R4_cond [rpred]: "R4(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (R4
   by (rel_auto)
 
 lemma R5_cond [rpred]: "R5(P \<triangleleft> b \<triangleright>\<^sub>R Q) = (R5(P) \<triangleleft> b \<triangleright>\<^sub>R R5(Q))"
+  by (rel_auto)
+
+lemma rea_rename_cond [rpred]: "(P \<triangleleft> b \<triangleright>\<^sub>R Q)\<lparr>f\<rparr>\<^sub>r = P\<lparr>f\<rparr>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R Q\<lparr>f\<rparr>\<^sub>r"
   by (rel_auto)
 
 subsubsection \<open> Assumptions \<close>

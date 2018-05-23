@@ -118,6 +118,11 @@ where [upred_defs]: "II\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> $\<Sigma>\<^
 definition rea_assert :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp" ("{_}\<^sub>r")
 where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
 
+text \<open> Convert from one trace algebra to another using additive functions \<close>
+
+definition rea_rename :: "('t\<^sub>1::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t\<^sub>1 \<Rightarrow> 't\<^sub>2) \<Rightarrow> ('t\<^sub>2::trace,'\<alpha>) hrel_rp" ("(_)\<lparr>_\<rparr>\<^sub>r" [999, 0] 999)  where
+[upred_defs]: "rea_rename P f = R2(($tr\<acute> =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P ;; ($tr\<acute> =\<^sub>u \<guillemotleft>f\<guillemotright>($tr)\<^sub>a \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+
 text \<open> Trace contribution substitution: make a substitution for the trace contribution lens 
   @{term tt}, and apply @{term R1} to make the resulting predicate healthy again. \<close>
   
@@ -153,6 +158,13 @@ lemma rea_impl_usubst [usubst]:
 lemma rea_true_usubst_tt [usubst]: 
   "R1(true)\<lbrakk>e/&tt\<rbrakk> = true"
   by (rel_simp)
+
+lemma unrests_rea_rename [unrest]: 
+  "$ok \<sharp> P \<Longrightarrow> $ok \<sharp> P\<lparr>f\<rparr>\<^sub>r"
+  "$ok\<acute> \<sharp> P \<Longrightarrow> $ok\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>r"
+  "$wait \<sharp> P \<Longrightarrow> $wait \<sharp> P\<lparr>f\<rparr>\<^sub>r"
+  "$wait\<acute> \<sharp> P \<Longrightarrow> $wait\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>r"
+  by (simp_all add: rea_rename_def R2_def unrest)
 
 lemma unrest_rea_subst [unrest]: 
   "\<lbrakk> mwb_lens x; x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<sharp> v; x \<sharp> P \<rbrakk> \<Longrightarrow>  x \<sharp> P\<lbrakk>v\<rbrakk>\<^sub>r"
@@ -435,6 +447,16 @@ proof -
     by (simp add: Healthy_if assms)
 qed
 
+lemma rea_rename_RR_closed [closure]: 
+  assumes "P is RR"
+  shows "P\<lparr>f\<rparr>\<^sub>r is RR"
+proof -
+  have "(RR P)\<lparr>f\<rparr>\<^sub>r is RR"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 subsection \<open> Reactive relational calculus \<close>
 
 lemma rea_skip_unit [rpred]:
@@ -572,6 +594,99 @@ lemma rea_assert_true:
 lemma rea_false_true:
   "{false}\<^sub>r = true\<^sub>r"
   by (rel_auto)
+
+lemma rea_rename_id [rpred]: 
+  assumes "P is RR"
+  shows "P\<lparr>id\<rparr>\<^sub>r = P"
+proof -
+  have "(RR P)\<lparr>id\<rparr>\<^sub>r = RR P"
+    by (rel_auto)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+lemma rea_rename_comp [rpred]: 
+  assumes "additive f" "P is RR"
+  shows "P\<lparr>g \<circ> f\<rparr>\<^sub>r = P\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
+proof -
+  have "(RR P)\<lparr>g \<circ> f\<rparr>\<^sub>r = (RR P)\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
+    apply (rel_auto)
+    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
+    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
+  done
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+lemma rea_rename_truer [rpred]: "additive f \<Longrightarrow> true\<^sub>r\<lparr>f\<rparr>\<^sub>r = true\<^sub>r"
+  by (rel_auto, metis add.commute antisym_conv diff_add_cancel le_add)
+
+lemma rea_rename_false [rpred]: "false\<lparr>f\<rparr>\<^sub>r = false"
+  by (rel_auto)
+
+lemma rea_rename_disj [rpred]: 
+  "(P \<or> Q)\<lparr>f\<rparr>\<^sub>r = (P\<lparr>f\<rparr>\<^sub>r \<or> Q\<lparr>f\<rparr>\<^sub>r)"
+  by (rel_blast)
+
+lemma rea_rename_UINF_ind [rpred]:
+  "(\<Sqinter> i \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Sqinter> i \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
+  by (rel_blast)
+
+lemma rea_rename_UINF_mem [rpred]:
+  "(\<Sqinter> i\<in>A \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Sqinter> i\<in>A \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
+  by (rel_blast)
+
+lemma rea_rename_conj [rpred]: 
+  assumes "additive f" "P is RR" "Q is RR"
+  shows "(P \<and> Q)\<lparr>f\<rparr>\<^sub>r = (P\<lparr>f\<rparr>\<^sub>r \<and> Q\<lparr>f\<rparr>\<^sub>r)"
+proof -
+  have "(RR P \<and> RR Q)\<lparr>f\<rparr>\<^sub>r = ((RR P)\<lparr>f\<rparr>\<^sub>r \<and> (RR Q)\<lparr>f\<rparr>\<^sub>r)"
+    apply (rel_auto)
+      apply blast
+    apply blast
+    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
+    done
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+lemma rea_rename_USUP_ind [rpred]:
+  assumes "additive f" "\<And> i. P i is RR"
+  shows "(\<Squnion> i \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
+proof -
+  have "(\<Squnion> i \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
+    apply (rel_auto)
+     apply (blast)
+    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
+    done
+  thus ?thesis
+    by (simp add: Healthy_if assms cong: USUP_all_cong)
+qed
+
+lemma rea_rename_USUP_mem [rpred]:
+  assumes "additive f" "\<And> i. i \<in> A \<Longrightarrow> P i is RR"
+  shows "(\<Squnion> i\<in>A \<bullet> P i)\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i\<in>A \<bullet> (P i)\<lparr>f\<rparr>\<^sub>r)"
+proof -
+  have "(\<Squnion> i\<in>A \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i\<in>A \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
+    apply (rel_auto)
+     apply (blast)
+    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)+
+    done
+  thus ?thesis
+    by (simp add: Healthy_if assms cong: USUP_cong)
+qed
+
+lemma rea_rename_skip_rea [rpred]: "additive f \<Longrightarrow> II\<^sub>r\<lparr>f\<rparr>\<^sub>r = II\<^sub>r"
+  by (rel_auto, simp_all add: additive.zero)
+
+lemma rea_rename_seq [rpred]: 
+  assumes "additive f" "P is RR" "Q is RR"
+  shows "(P ;; Q)\<lparr>f\<rparr>\<^sub>r = P\<lparr>f\<rparr>\<^sub>r ;; Q\<lparr>f\<rparr>\<^sub>r"
+proof -
+  from assms(1) have "(RR(P) ;; RR(Q))\<lparr>f\<rparr>\<^sub>r = (RR P)\<lparr>f\<rparr>\<^sub>r ;; (RR Q)\<lparr>f\<rparr>\<^sub>r"
+    by (rel_auto)
+       (metis (mono_tags, lifting) add_cancel_left_left diff_add_cancel le_add le_zero_iff
+       ,metis (mono_tags, lifting) ab_group_add_class.ab_left_minus le_add zero_sum_right)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
 
 declare R4_idem [rpred]
 declare R4_false [rpred]
