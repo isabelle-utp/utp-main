@@ -32,6 +32,11 @@ lemma CRC_intro:
   shows "P is CRC"
   by (simp add: CRC_def Healthy_def, simp add: Healthy_if assms ex_unrest)
 
+lemma CRC_intro':
+  assumes "P is CRR" "P is RC"
+  shows "P is CRC"
+  by (metis CRC_def CRR_def Healthy_def RC_implies_RR assms)
+
 lemma ref_unrest_RR [unrest]: "$ref \<sharp> P \<Longrightarrow> $ref \<sharp> RR P"
   by (rel_auto, blast+)
 
@@ -140,6 +145,21 @@ lemma st_pred_CRR [closure]: "[P]\<^sub>S\<^sub>< is CRR"
 
 lemma st_cond_CRC [closure]: "[P]\<^sub>S\<^sub>< is CRC"
   by (rel_auto)
+
+lemma rea_rename_CRR_closed [closure]: 
+  assumes "P is CRR"
+  shows "P\<lparr>f\<rparr>\<^sub>r is CRR"
+proof -
+  have "$ref \<sharp> (CRR P)\<lparr>f\<rparr>\<^sub>r"
+    by (rel_auto)
+  thus ?thesis
+    by (rule_tac CRR_intro, simp_all add: closure Healthy_if assms)
+qed
+
+lemma rea_rename_CRR_closed [closure]: 
+  assumes "additive f" "P is CRC"
+  shows "P\<lparr>f\<rparr>\<^sub>r is CRC"
+  oops
 
 lemma conj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRC"

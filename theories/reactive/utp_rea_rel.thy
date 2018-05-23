@@ -120,6 +120,20 @@ where [upred_defs]: "{b}\<^sub>r = (II\<^sub>r \<or> \<not>\<^sub>r b)"
 
 text \<open> Convert from one trace algebra to another using additive functions \<close>
 
+locale renaming =
+  fixes f :: "'a::trace \<Rightarrow> 'b::trace"
+  assumes injective: "inj f"
+  and add: "f (x + y) = f x + f y"
+  and zero: "f 0 = 0"
+begin
+  lemma minus: "x \<le> y \<Longrightarrow> f (y - x) = f(y) - f(x)"
+    by (metis add diff_add_cancel_left' trace_class.add_diff_cancel_left)
+end
+
+declare renaming.add [simp]
+declare renaming.zero [simp]
+declare renaming.minus [simp]
+
 definition rea_rename :: "('t\<^sub>1::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t\<^sub>1 \<Rightarrow> 't\<^sub>2) \<Rightarrow> ('t\<^sub>2::trace,'\<alpha>) hrel_rp" ("(_)\<lparr>_\<rparr>\<^sub>r" [999, 0] 999)  where
 [upred_defs]: "rea_rename P f = R2(($tr\<acute> =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P ;; ($tr\<acute> =\<^sub>u \<guillemotleft>f\<guillemotright>($tr)\<^sub>a \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
 
@@ -605,19 +619,16 @@ proof -
 qed
 
 lemma rea_rename_comp [rpred]: 
-  assumes "additive f" "P is RR"
+  assumes "renaming f" "P is RR"
   shows "P\<lparr>g \<circ> f\<rparr>\<^sub>r = P\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
 proof -
   have "(RR P)\<lparr>g \<circ> f\<rparr>\<^sub>r = (RR P)\<lparr>g\<rparr>\<^sub>r\<lparr>f\<rparr>\<^sub>r"
     apply (rel_auto)
-    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
-    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
-  done
+    
+    done
   thus ?thesis by (simp add: Healthy_if assms)
 qed
 
-lemma rea_rename_truer [rpred]: "additive f \<Longrightarrow> true\<^sub>r\<lparr>f\<rparr>\<^sub>r = true\<^sub>r"
-  by (rel_auto, metis add.commute antisym_conv diff_add_cancel le_add)
 
 lemma rea_rename_false [rpred]: "false\<lparr>f\<rparr>\<^sub>r = false"
   by (rel_auto)
@@ -635,14 +646,14 @@ lemma rea_rename_UINF_mem [rpred]:
   by (rel_blast)
 
 lemma rea_rename_conj [rpred]: 
-  assumes "additive f" "P is RR" "Q is RR"
+  assumes "renaming f" "P is RR" "Q is RR"
   shows "(P \<and> Q)\<lparr>f\<rparr>\<^sub>r = (P\<lparr>f\<rparr>\<^sub>r \<and> Q\<lparr>f\<rparr>\<^sub>r)"
 proof -
   have "(RR P \<and> RR Q)\<lparr>f\<rparr>\<^sub>r = ((RR P)\<lparr>f\<rparr>\<^sub>r \<and> (RR Q)\<lparr>f\<rparr>\<^sub>r)"
     apply (rel_auto)
       apply blast
     apply blast
-    apply (metis (mono_tags, hide_lams) eq_iff_diff_eq_0 le_zero_iff not_le_minus)
+    
     done
   thus ?thesis by (simp add: Healthy_if assms)
 qed
