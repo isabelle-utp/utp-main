@@ -45,12 +45,12 @@ adhoc_overloading uassigns assigns
 lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr "\<^bold>&" 70) is "GuardCSP"
   by (simp add: closure)
 
-lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
+lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" ("\<^bold>s'(_')") is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
-lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')")
+lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')" [999,0] 999)
   is "\<lambda> c v. c!(v) \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
-lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')")
+lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')" [999,0] 999)
   is "\<lambda> c x. c?(v) \<^bold>\<rightarrow> x :=\<^sub>C \<guillemotleft>v\<guillemotright>" by (simp add: InputCSP_def closure)
 
 lift_definition ext_choice :: "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is "op \<box>"
@@ -119,11 +119,31 @@ notation
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
 
+subsection \<open> Action Syntax \<close>
+
+nonterminal raction
+
 syntax
-  "_action_state" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
+  "_bracket_raction"   :: "raction \<Rightarrow> raction" ("'(_')")
+  "_skip_raction"      :: "raction" ("skip")
+  "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";/" 71)
+  "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
+  "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
+  "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
+  "_rcv_ev_raction"    :: "id \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
+  "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
+  "_action_state"      :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
 
 translations
-  "decl x \<bullet> P" == "CONST state_decl (LOCAL x \<bullet> P)"
+  "_bracket_raction P"     => "P"
+  "_skip_raction"          == "CONST skips"
+  "_seq_raction P Q"       => "P ; Q"
+  "_if_raction b P Q"      == "CONST cond P b Q"
+  "_assign_raction x v"    => "x := v"
+  "_basic_ev_raction e"    == "CONST sync e"
+  "_rcv_ev_raction c x"    == "CONST receive c x"
+  "_send_ev_raction c v"   == "CONST send c v"
+  "decl x \<bullet> P"             == "CONST state_decl (LOCAL x \<bullet> P)"
 
 subsection \<open> Algebraic Laws \<close>
 
@@ -135,10 +155,10 @@ lemma seq_assoc [simp, action_simp]: "(P ; Q) ; R = P ; Q ; R"
 lemma ext_choice_idem [simp, action_simp]: "P \<box> P = P"
   by (transfer, simp add: extChoice_idem closure)
 
-lemma skip_left_unit [simp, action_simp]: "skips ; P = P"
+lemma skip_left_unit [simp, action_simp]: "skip ; P = P"
   by (transfer, simp add: Skip_left_unit closure)
 
-lemma skip_right_unit [simp, action_simp]: "P ; skips = P"
+lemma skip_right_unit [simp, action_simp]: "P ; skip = P"
   by (transfer, simp add: Skip_right_unit closure)
 
 lemma stop_choice_left_zero [simp, action_simp]: "stop \<box> P = P"
@@ -183,28 +203,12 @@ lemma sync_commute: "P || Q = Q || P"
 lemma rename_skip: "skips\<lparr>f\<rparr>\<^sub>A = skips"
   by (transfer, simp add: rename_Skip)
 
-subsection \<open> Action Syntax \<close>
+subsection \<open> Proof Tactics \<close>
 
-nonterminal raction
+lemmas action_rep_eq = state_block_def deadlock_free_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
 
-syntax
-  "_bracket_raction"   :: "raction \<Rightarrow> raction" ("'(_')")
-  "_skip_raction"      :: "raction" ("skip")
-  "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";/" 71)
-  "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
-  "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
-  "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
-  "_rcv_ev_raction"    :: "id \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
-  "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
+method action_refine = (simp add: action_rep_eq, rdes_refine)
 
-translations
-  "_bracket_raction P"     => "P"
-  "_skip_raction"          == "CONST skips"
-  "_seq_raction P Q"       => "P ; Q"
-  "_if_raction b P Q"      == "CONST cond P b Q"
-  "_assign_raction x v"    => "x := v"
-  "_basic_ev_raction e"    == "CONST sync e"
-  "_rcv_ev_raction c x"    == "CONST receive c x"
-  "_send_ev_raction c v"   == "CONST send c v"
+method action_eq = (simp add: action_rep_eq, rdes_eq)
 
 end

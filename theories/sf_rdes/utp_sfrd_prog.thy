@@ -95,6 +95,15 @@ lemma IterateC_list_NCSP_closed [closure]:
    apply (metis assms atLeastLessThan_iff nth_map nth_mem prod.collapse)+
   done
 
+lemma IterateC_list_alt_def:
+  "IterateC_list xs = while\<^sub>C (\<Or> b \<in> set(map fst xs) \<bullet> b) do AlternateR_list xs Chaos od"
+proof -
+  have "(\<Or> i \<in> {0..<length(xs)} \<bullet> (map fst xs) ! i) = (\<Or> b \<in> set(map fst xs) \<bullet> b)"
+    by (rel_auto, metis nth_mem prod.collapse, metis fst_conv in_set_conv_nth nth_map)
+  thus ?thesis
+    by (simp add: IterateC_list_def IterateC_def AlternateR_list_def)
+qed
+
 lemma IterateC_empty: 
   "do\<^sub>C i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = Skip"
   by (simp add: IterateC_IterateR_def IterateR_empty closure Skip_srdes_left_unit)

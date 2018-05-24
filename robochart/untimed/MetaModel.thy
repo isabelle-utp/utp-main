@@ -55,13 +55,14 @@ abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<ti
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
+  state_decl (
     rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
     iteration 
        (map (\<lambda> ((n, b), ts). 
               ( &rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>
               , rc_state:[n_entry b]\<^sub>A\<^sup>+ ;
                 (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
-                rc_state:[n_exit b]\<^sub>A\<^sup>+)) (sm_tree sm))"
+                rc_state:[n_exit b]\<^sub>A\<^sup>+)) (sm_tree sm)))"
 
 subsection \<open> Transition and State Parsers \<close>
 
