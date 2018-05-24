@@ -53,7 +53,7 @@ abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<ti
 "sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) 
                    (filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm))"
 
-definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
+definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> 'e Process" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
   state_decl (
     rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
