@@ -599,7 +599,35 @@ qed
 lemma nmerge_rd_merge3:
   "\<^bold>M3(N\<^sub>R(M)) = (\<exists> $st\<^sub>< \<bullet> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright> \<^bold>M3(N\<^sub>1 M) \<triangleleft> $ok\<^sub>< \<triangleright> ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
   by (rel_blast) (* 15 seconds *)
-    
+
+lemma AssocMerge_nmerge_rd:
+  assumes "M is RDM" "AssocMerge M"
+  shows "AssocMerge(N\<^sub>R(M))"
+proof -
+  have 1:"\<^bold>M3(M) = rotate\<^sub>m ;; \<^bold>M3(M)"
+    using assms by (simp add: AssocMerge_def)
+  have "rotate\<^sub>m ;; (\<^bold>M3(N\<^sub>R(M))) = 
+        rotate\<^sub>m ;;
+        ((\<exists> $st\<^sub>< \<bullet> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright>
+            ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> \<^bold>M3(M)) \<triangleleft> $ok\<^sub>< \<triangleright>
+            ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
+    by (simp add: AssocMerge_def nmerge_rd_merge3 nmerge_rd1_merge3 assms)
+  also have "... = 
+        ((\<exists> $st\<^sub>< \<bullet> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright>
+            ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> (rotate\<^sub>m ;; \<^bold>M3(M))) \<triangleleft> $ok\<^sub>< \<triangleright>
+            ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
+    by (rel_blast)
+  also have "... = 
+        ((\<exists> $st\<^sub>< \<bullet> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><) \<triangleleft> $wait\<^sub>< \<triangleright>
+            ($ok\<acute> =\<^sub>u ($0-ok \<and> $1-0-ok \<and> $1-1-ok) \<and> $wait\<acute> =\<^sub>u ($0-wait \<or> $1-0-wait \<or> $1-1-wait) \<and> \<^bold>M3(M)) \<triangleleft> $ok\<^sub>< \<triangleright>
+            ($tr\<^sub>< \<le>\<^sub>u $tr\<acute>))"
+    using "1" by auto
+  also have "... = \<^bold>M3(N\<^sub>R(M))"
+    by (simp add: AssocMerge_def nmerge_rd_merge3 nmerge_rd1_merge3 assms)
+  finally show ?thesis
+    using AssocMerge_def by blast
+qed
+
 lemma swap_merge_RDM_closed [closure]:
   assumes "M is RDM" 
   shows "swap\<^sub>m ;; M is RDM"

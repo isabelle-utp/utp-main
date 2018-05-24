@@ -62,6 +62,7 @@ proof -
     by (metis Healthy_def assms)
 qed
 
+
 lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
   apply (simp add: CRC_def ex_unrest  unrest)
   apply (simp add: RC_def RR_ex_ref)
@@ -337,6 +338,22 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
+
+lemma all_ref_CRC_closed [closure]: 
+  "P is CRC \<Longrightarrow> (\<forall> $ref \<bullet> P) is CRC"
+  by (simp add: CRC_implies_CRR CRR_unrest_ref all_unrest)
+
+lemma ex_ref_CRR_closed [closure]: 
+  "P is CRR \<Longrightarrow> (\<exists> $ref \<bullet> P) is CRR"
+  by (simp add: CRR_unrest_ref ex_unrest)
+
+lemma ex_st'_CRR_closed [closure]: 
+  "P is CRR \<Longrightarrow> (\<exists> $st\<acute> \<bullet> P) is CRR"
+  by (rule CRR_intro, simp_all add: closure unrest)
+
+lemma ex_ref'_CRR_closed [closure]: 
+  "P is CRR \<Longrightarrow> (\<exists> $ref\<acute> \<bullet> P) is CRR"
+  using CRR_implies_RR CRR_intro CRR_unrest_ref ex_ref'_RR_closed out_in_indep unrest_ex_diff by blast
 
 subsection \<open> Introduction laws \<close>
 

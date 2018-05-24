@@ -47,7 +47,7 @@ lemma circus_var_ords [usubst]:
 type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi> list, ('\<phi>, unit) csp_vars_scheme) rsp"
 type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>,'\<phi>) st_csp hrel"
 type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
-type_synonym '\<phi> rel_csp  = "'\<phi> csp hrel"
+type_synonym '\<phi> process  = "'\<phi> csp hrel"
   
 text \<open> There is some slight imprecision with the translations, in that we don't bother to check
   if the trace event type and refusal set event types are the same. Essentially this is because
@@ -57,7 +57,8 @@ text \<open> There is some slight imprecision with the translations, in that we 
 translations
   (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<sigma>, '\<phi> list, '\<phi>1 csp_vars) rsp"
   (type) "('\<sigma>,'\<phi>) action" <= (type) "('\<sigma>, '\<phi>) st_csp hrel"
-  
+  (type) "'\<phi> process" <= (type) "(unit,'\<phi>) action"
+
 notation csp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>c")
 notation csp_vars_child_lens ("\<Sigma>\<^sub>C")
 

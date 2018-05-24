@@ -17,10 +17,10 @@ where "CSP2(P) \<equiv> RD2(P)"
 abbreviation CSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health"
 where "CSP(P) \<equiv> SRD(P)"
 
-definition STOP :: "'\<phi> rel_csp" where
+definition STOP :: "'\<phi> process" where
 [upred_defs]: "STOP = CSP1($ok\<acute> \<and> R3c($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
-definition SKIP :: "'\<phi> rel_csp" where
+definition SKIP :: "'\<phi> process" where
 [upred_defs]: "SKIP = \<^bold>R\<^sub>s(\<exists> $ref \<bullet> CSP1(II))"
 
 definition Stop :: "('\<sigma>, '\<phi>) action" where
@@ -53,10 +53,10 @@ text {* @{term SKIP} is the same as @{term Skip}, and @{term STOP} is the same a
   variable degenerates when the alphabet type coerces its type to be empty. We therefore
   need not consider @{term SKIP} and @{term STOP} actions. *}
 
-theorem SKIP_is_Skip: "SKIP = Skip"
+theorem SKIP_is_Skip [simp]: "SKIP = Skip"
   by (rel_auto)
 
-theorem STOP_is_Stop: "STOP = Stop"
+theorem STOP_is_Stop [simp]: "STOP = Stop"
   by (rel_auto)
 
 theorem Skip_UTP_form: "Skip = \<^bold>R\<^sub>s(\<exists> $ref \<bullet> CSP1(II))"

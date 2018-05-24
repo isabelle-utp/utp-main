@@ -110,7 +110,6 @@ lemma SymMerge_CSPInnerInterleave [closure]:
   apply (rename_tac tr tr\<^sub>2' ref\<^sub>0 tr\<^sub>0' ref\<^sub>0' tr\<^sub>1' ref\<^sub>1' tr' ref\<^sub>2' tr\<^sub>i' ref\<^sub>3')
 oops
     
-    
 lemma CSPInterMerge_false [rpred]: "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I false = false"
   by (simp add: CSPInterMerge_def)
 
@@ -274,6 +273,9 @@ proof -
     by (simp add: ex_unrest assms)
   finally show ?thesis .
 qed
+
+lemma CSPInterleave_merge: "M\<^sub>I ns1 ns2 = M\<^sub>C ns1 {} ns2"
+  by (rel_auto)
 
 lemma merge_csp_do_left:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RR"
@@ -572,18 +574,26 @@ syntax
   "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<lbrakk>_\<rbrakk>\<^sub>C _" [75,0,76] 76)
   "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
   "_inter_csp"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "|||" 75)
-    
+  "_sync_csp"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "||" 75)
+  
 translations
   "_par_circus P ns1 cs ns2 Q" == "P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
   "_par_csp P cs Q" == "_par_circus P 0\<^sub>L cs 0\<^sub>L Q"
   "_inter_circus P ns1 ns2 Q" == "_par_circus P ns1 {} ns2 Q"
   "_inter_csp P Q" == "_par_csp P {} Q"
-  
-definition CSP5 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+  "_sync_csp P Q" == "_par_csp P (CONST UNIV) Q"
+
+definition CSP5 :: "'\<phi> process \<Rightarrow> '\<phi> process" where
 [upred_defs]: "CSP5(P) = (P ||| Skip)"
 
 definition C2 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" where
 [upred_defs]: "C2(P) = (P \<lbrakk>\<Sigma>\<parallel>{}\<parallel>\<emptyset>\<rbrakk> Skip)"
+
+definition CACT :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
+[upred_defs]: "CACT(P) = C2(NCSP(P))"
+
+definition CPROC :: "'e process \<Rightarrow> 'e process" where
+[upred_defs]: "CPROC(P) = CSP5(NCSP(P))"
 
 lemma Skip_right_form:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "$st\<acute> \<sharp> P\<^sub>2"
@@ -690,9 +700,18 @@ proof -
   finally show ?thesis .
 qed
 
-lemma interleave_commute:
-  "P ||| Q = Q ||| P"
-  using parallel_commutative zero_lens_indep by blast
+text \<open> @{term CSP5} is precisely @{term C2} when applied to a process \<close>
+
+lemma CSP5_is_C2:
+  fixes P :: "'e process"
+  assumes "P is NCSP"
+  shows "CSP5(P) = C2(P)"
+  unfolding CSP5_def C2_def by (rdes_eq cls: assms)
+
+lemma CACT_corr_CPROC:
+  fixes P :: "'e process"
+  shows "P is CACT \<longleftrightarrow> P is CPROC"
+  by (metis CACT_def CPROC_def CSP5_is_C2 Healthy_Idempotent Healthy_def NCSP_Idempotent)
 
 text {* The form of C2 tells us that a normal CSP process has a downward closed set of refusals *}
   
@@ -802,6 +821,62 @@ proof -
     by (simp add: Healthy_def)
 qed
 
+lemma CACT_intro:
+  assumes "P is NCSP" "P is C2"
+  shows "P is CACT"
+  by (metis CACT_def Healthy_def assms(1) assms(2))
+
+lemma C2_NCSP_quasi_commute:
+  assumes "P is NCSP"
+  shows "C2(NCSP(P)) = NCSP(C2(P))"
+proof -
+  have 1: "C2(NCSP(P)) = C2(P)"
+    by (simp add: assms Healthy_if)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: C2_CDC_form assms)
+  also have "... is NCSP"
+    by (rule NCSP_rdes_intro, simp_all add: closure assms unrest)
+  finally show ?thesis
+    by (simp add: Healthy_if 1)
+qed
+
+lemma C2_quasi_idem:
+  assumes "P is NCSP"
+  shows "C2(C2(P)) = C2(P)"
+proof -
+  have "C2(C2(P)) = C2(C2(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))))"
+    by (simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms)
+  also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC (peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
+    by (simp add: C2_rdes_def closure assms unrest CDC_idem)
+  also have "... = C2(P)"
+    by (simp add: C2_CDC_form assms)
+  finally show ?thesis .
+qed
+
+lemma CACT_implies_NCSP [closure]:
+  assumes "P is CACT"
+  shows "P is NCSP"
+proof - 
+  have "P = C2(NCSP(NCSP(P)))"
+    by (metis CACT_def Healthy_Idempotent Healthy_if NCSP_Idempotent assms)
+  also have "... = NCSP(C2(NCSP(P)))"
+    by (simp add: C2_NCSP_quasi_commute Healthy_Idempotent NCSP_Idempotent)
+  also have "... is NCSP"
+    by (metis CACT_def Healthy_def assms calculation)
+  finally show ?thesis .
+qed
+
+lemma CACT_implies_C2 [closure]:
+  assumes "P is CACT"
+  shows "P is C2"
+  by (metis CACT_def CACT_implies_NCSP Healthy_def assms)
+
+lemma CACT_idem: "CACT(CACT(P)) = CACT(P)"
+  by (simp add: CACT_def C2_NCSP_quasi_commute[THEN sym] C2_quasi_idem Healthy_Idempotent Healthy_if NCSP_Idempotent)
+
+lemma CACT_Idempotent: "Idempotent CACT"
+  by (simp add: CACT_idem Idempotent_def)
+
 lemma Miracle_C2_closed [closure]: "Miracle is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
 
@@ -814,13 +889,33 @@ lemma Skip_C2_closed [closure]: "Skip is C2"
 lemma Stop_C2_closed [closure]: "Stop is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
 
+lemma Miracle_CACT_closed [closure]: "Miracle is CACT"
+  by (simp add: CACT_intro Miracle_C2_closed csp_theory.top_closed)
+
+lemma Chaos_CACT_closed [closure]: "Chaos is CACT"
+  by (simp add: CACT_intro closure)
+
+lemma Skip_CACT_closed [closure]: "Skip is CACT"
+  by (simp add: CACT_intro closure)
+
+lemma Stop_CACT_closed [closure]: "Stop is CACT"
+  by (simp add: CACT_intro closure)
+
 lemma seq_C2_closed [closure]:
   assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
   shows "P ;; Q is C2"
   by (rdes_simp cls: assms(1,3), rule C2_rdes_intro, simp_all add: closure assms unrest)
 
+lemma seq_CACT_closed [closure]:
+  assumes "P is CACT" "Q is CACT"
+  shows "P ;; Q is CACT"
+  by (meson CACT_implies_C2 CACT_implies_NCSP CACT_intro assms csp_theory.Healthy_Sequence seq_C2_closed)
+
 lemma AssignsCSP_C2 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma AssignsCSP_CACT [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is CACT"
+  by (simp add: CACT_intro closure)
 
 lemma map_st_ext_CDC_closed [closure]:
   assumes "P is CDC"
@@ -837,6 +932,11 @@ lemma rdes_frame_ext_C2_closed [closure]:
   shows "a:[P]\<^sub>R\<^sup>+ is C2"
   by (rdes_simp cls:assms(2), rule C2_rdes_intro, simp_all add: closure assms unrest)
 
+lemma rdes_frame_ext_CACT_closed [closure]:
+  assumes "vwb_lens a" "P is CACT"
+  shows "a:[P]\<^sub>R\<^sup>+ is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 lemma UINF_C2_closed [closure]:
   assumes "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> A \<Longrightarrow> P(i) is C2"
   shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is C2"
@@ -847,6 +947,11 @@ proof -
     by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
   finally show ?thesis .
 qed
+
+lemma UINF_CACT_closed [closure]:
+  assumes "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P(i) is CACT"
+  shows "(\<Sqinter> i\<in>A \<bullet> P(i)) is CACT"
+  by (rule CACT_intro, simp_all add: assms closure)
 
 lemma inf_C2_closed [closure]: 
   assumes "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
@@ -868,6 +973,11 @@ lemma cond_C2_closed [closure]:
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is C2"
   by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
 
+lemma cond_CACT_closed [closure]:
+  assumes "P is CACT" "Q is CACT"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q is CACT"
+  by (rule CACT_intro, simp_all add: assms closure)
+
 lemma gcomm_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
   shows "b \<rightarrow>\<^sub>R P is C2"
@@ -888,6 +998,11 @@ next
     by (simp add: AlternateR_def closure assms)
 qed
 
+lemma AlternateR_CACT_closed [closure]:
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P(i) is CACT" "Q is CACT"
+  shows "(if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi) is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 lemma AlternateR_list_C2_closed [closure]:
   assumes 
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP" "Q is NCSP"
@@ -898,6 +1013,11 @@ lemma AlternateR_list_C2_closed [closure]:
   apply (auto simp add: assms closure)
    apply (metis assms nth_mem prod.collapse)+
   done
+
+lemma AlternateR_list_CACT_closed [closure]:
+  assumes "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is CACT" "Q is CACT"
+  shows "(AlternateR_list A Q) is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
 
 lemma R4_CRR_closed [closure]: "P is CRR \<Longrightarrow> R4(P) is CRR"
   by (rule CRR_intro, simp_all add: closure unrest R4_def)
@@ -915,12 +1035,23 @@ proof -
   finally show ?thesis .
 qed
 
+lemma WhileC_CACT_closed [closure]:
+  assumes "P is CACT" "P is Productive"
+  shows "while\<^sub>C b do P od is CACT"
+  using CACT_implies_C2 CACT_implies_NCSP CACT_intro WhileC_C2_closed WhileC_NCSP_closed assms by blast
+
 lemma IterateC_C2_closed [closure]:
   assumes 
     "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> A \<Longrightarrow> P(i) is Productive" "\<And> i. i \<in> A \<Longrightarrow> P(i) is C2" 
   shows "(do\<^sub>C i\<in>A \<bullet> g(i) \<rightarrow> P(i) od) is C2"
   unfolding IterateC_def by (simp add: closure assms)
 
+lemma IterateC_CACT_closed [closure]:
+  assumes 
+    "\<And> i. i \<in> A \<Longrightarrow> P(i) is CACT" "\<And> i. i \<in> A \<Longrightarrow> P(i) is Productive" 
+  shows "(do\<^sub>C i\<in>A \<bullet> g(i) \<rightarrow> P(i) od) is CACT"
+  by (metis CACT_implies_C2 CACT_implies_NCSP CACT_intro IterateC_C2_closed IterateC_NCSP_closed assms)
+  
 lemma IterateC_list_C2_closed [closure]:
   assumes 
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP" 
@@ -930,19 +1061,40 @@ lemma IterateC_list_C2_closed [closure]:
   unfolding IterateC_list_def 
   by (rule IterateC_C2_closed, (metis assms atLeastLessThan_iff nth_map nth_mem prod.collapse)+)
 
+lemma IterateC_list_CACT_closed [closure]:
+  assumes 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is CACT" 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
+  shows "(IterateC_list A) is CACT"
+  by (metis CACT_implies_C2 CACT_implies_NCSP CACT_intro IterateC_list_C2_closed IterateC_list_NCSP_closed assms)
+
 lemma GuardCSP_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
   shows "g &\<^sub>u P is C2"
   by (rdes_simp cls: assms(1), rule C2_rdes_intro, simp_all add: closure assms unrest)
 
+lemma GuardCSP_CACT_closed [closure]:
+  assumes "P is CACT"
+  shows "g &\<^sub>u P is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 lemma DoCSP_C2 [closure]:
   "do\<^sub>C(a) is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
+
+lemma DoCSP_CACT [closure]:
+  "do\<^sub>C(a) is CACT"
+  by (rule CACT_intro, simp_all add: closure)
 
 lemma PrefixCSP_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
   shows "a \<rightarrow>\<^sub>C P is C2"
   unfolding PrefixCSP_def by (metis DoCSP_C2 Healthy_def NCSP_DoCSP NCSP_implies_CSP assms seq_C2_closed)
+
+lemma PrefixCSP_CACT_closed [closure]:
+  assumes "P is CACT"
+  shows "a \<rightarrow>\<^sub>C P is CACT"
+  using CACT_implies_C2 CACT_implies_NCSP CACT_intro NCSP_PrefixCSP PrefixCSP_C2_closed assms by blast
 
 lemma ExtChoice_C2_closed [closure]:
   assumes "\<And> i. i \<in> I \<Longrightarrow> P(i) is NCSP" "\<And> i. i \<in> I \<Longrightarrow> P(i) is C2"
@@ -956,6 +1108,11 @@ next
     by (rule C2_NCSP_intro, simp_all add: assms closure unrest periR_ExtChoice_ind' False)
 qed
 
+lemma ExtChoice_CACT_closed [closure]:
+  assumes "\<And> i. i \<in> I \<Longrightarrow> P(i) is CACT"
+  shows "(\<box> i\<in>I \<bullet> P(i)) is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 lemma extChoice_C2_closed [closure]:
   assumes "P is NCSP" "P is C2" "Q is NCSP" "Q is C2"
   shows "P \<box> Q is C2"
@@ -967,29 +1124,32 @@ proof -
   finally show ?thesis .
 qed
 
+lemma extChoice_CACT_closed [closure]:
+  assumes "P is CACT" "Q is CACT"
+  shows "P \<box> Q is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 text \<open> This property depends on downward closure of the refusals \<close>
 
-lemma rename_extChoice:
+lemma rename_extChoice_pre:
   assumes "inj f" "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
   shows "(P \<box> Q)\<lparr>f\<rparr>\<^sub>C = (P\<lparr>f\<rparr>\<^sub>C \<box> Q\<lparr>f\<rparr>\<^sub>C)"
   by (rdes_eq_split cls: assms)
 
-lemma C2_idem: 
-  assumes "P is NCSP"
-  shows "C2(C2(P)) = C2(P)" (is "?lhs = ?rhs")
-proof -
-  have "?lhs = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> (pre\<^sub>R P \<Rightarrow>\<^sub>r CDC (peri\<^sub>R P)) \<diamondop> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P))"
-    by (simp add: C2_CDC_form assms closure unrest rdes rpred CDC_idem)
-  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> CDC (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
-    by (simp add: rpred unrest SRD_post_under_pre assms closure)
-  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> CDC (peri\<^sub>R P) \<diamondop> post\<^sub>R P)"
-    by (simp add: unrest SRD_peri_under_pre assms closure)
-  also have "... = C2(P)"
-    by (simp add: C2_CDC_form assms)
-  finally show ?thesis .
-qed
-  
-  
+lemma rename_extChoice:
+  assumes "inj f" "P is CACT" "Q is CACT"
+  shows "(P \<box> Q)\<lparr>f\<rparr>\<^sub>C = (P\<lparr>f\<rparr>\<^sub>C \<box> Q\<lparr>f\<rparr>\<^sub>C)"
+  by (simp add: CACT_implies_C2 CACT_implies_NCSP assms rename_extChoice_pre)
+
+lemma interleave_commute:
+  "P ||| Q = Q ||| P"
+  using parallel_commutative zero_lens_indep by blast
+
+lemma interleave_unit:
+  assumes "P is CPROC"
+  shows "P ||| Skip = P"
+  by (metis CACT_corr_CPROC CACT_implies_NCSP CPROC_def CSP5_def Healthy_if assms)
+
 (* An attempt at proving that the precondition of Chaos is false *)
   
 lemma 
