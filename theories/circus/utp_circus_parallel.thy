@@ -69,15 +69,45 @@ lemma CSPInterMerge_RR_closed [closure]:
   shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q is RR"
   by (simp add: CSPInterMerge_def parallel_RR_closed assms closure unrest)
 
+lemma CSPInterMerge_unrest_ref [unrest]:
+  assumes "P is CRR" "Q is CRR"
+  shows "$ref \<sharp> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q"
+proof -
+  have "$ref \<sharp> CRR(P) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I CRR(Q)"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma CSPInterMerge_unrest_st' [unrest]:
   "$st\<acute> \<sharp> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q"
   by (rel_auto)
-    
+
+lemma CSPInterMerge_CRR_closed [closure]: 
+  assumes "P is CRR" "Q is CRR"
+  shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q is CRR"
+  by (simp add: CRR_implies_RR CRR_intro CSPInterMerge_RR_closed CSPInterMerge_unrest_ref assms)
+
 lemma CSPFinalMerge_RR_closed [closure]: 
   assumes "P is RR" "Q is RR"
   shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q is RR"
   by (simp add: CSPFinalMerge_def parallel_RR_closed assms closure unrest)
-    
+
+lemma CSPFinalMerge_unrest_ref [unrest]:
+  assumes "P is CRR" "Q is CRR"
+  shows "$ref \<sharp> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q"
+proof -
+  have "$ref \<sharp> CRR(P) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F CRR(Q)"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma CSPFinalMerge_CRR_closed [closure]: 
+  assumes "P is CRR" "Q is CRR"
+  shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q is CRR"
+  by (simp add: CRR_implies_RR CRR_intro CSPFinalMerge_RR_closed CSPFinalMerge_unrest_ref assms)
+
 lemma CSPInnerMerge_empty_Interleave:
   "N\<^sub>C ns1 {} ns2 = N\<^sub>I ns1 ns2"
   by (rel_auto)
@@ -276,6 +306,28 @@ qed
 
 lemma CSPInterleave_merge: "M\<^sub>I ns1 ns2 = M\<^sub>C ns1 {} ns2"
   by (rel_auto)
+
+lemma csp_wrR_def:
+  "P wr[ns1|cs|ns2]\<^sub>C Q = (\<not>\<^sub>r ((\<not>\<^sub>r Q) ;; U0 \<and> P ;; U1 \<and> $st\<^sub><\<acute> =\<^sub>u $st \<and> $tr\<^sub><\<acute> =\<^sub>u $tr) ;; N\<^sub>C ns1 cs ns2 ;; R1 true)"
+  by (rel_auto, metis+)
+
+lemma csp_wrR_CRC_closed [closure]:
+  assumes "P is CRR" "Q is CRR"
+  shows "P wr[ns1|cs|ns2]\<^sub>C Q is CRC"
+proof -
+  have "$ref \<sharp> P wr[ns1|cs|ns2]\<^sub>C Q"
+    by (simp add: csp_wrR_def rpred closure assms unrest)
+  thus ?thesis
+    by (rule CRC_intro, simp_all add: closure assms)
+qed
+
+lemma ref'_unrest_final_merge [unrest]: 
+  "$ref\<acute> \<sharp> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q"
+  by (rel_auto)
+
+lemma inter_merge_CDC_closed [closure]:
+  "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>I Q is CDC"
+  using le_less_trans by (rel_blast)
 
 lemma merge_csp_do_left:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RR"
@@ -592,8 +644,8 @@ definition C2 :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>)
 definition CACT :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
 [upred_defs]: "CACT(P) = C2(NCSP(P))"
 
-definition CPROC :: "'e process \<Rightarrow> 'e process" where
-[upred_defs]: "CPROC(P) = CSP5(NCSP(P))"
+abbreviation CPROC :: "'e process \<Rightarrow> 'e process" where
+"CPROC(P) \<equiv> CACT(P)"
 
 lemma Skip_right_form:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "$st\<acute> \<sharp> P\<^sub>2"
@@ -677,17 +729,17 @@ proof -
   thus ?thesis
     by (simp add: CSPMerge_def par_by_merge_seq_add)
 qed  
-      
-lemma parallel_is_CSP3 [closure]:
-  assumes "P is CSP" "P is CSP3" "Q is CSP" "Q is CSP3"
-  shows "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) is CSP3"
+
+lemma parallel_is_NCSP [closure]:
+  assumes "ns1 \<bowtie> ns2" "P is NCSP" "Q is NCSP"
+  shows "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) is NCSP"
 proof -
-  have "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) is CSP"
-    by (simp add: closure assms)
-  hence "(P \<parallel>\<^bsub>M\<^sub>R(N\<^sub>C ns1 cs ns2)\<^esub> Q) ;; Skip is CSP"
-    by (simp add: closure)
-  thus ?thesis
-    oops
+  have "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) = (\<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> \<^bold>R\<^sub>s(pre\<^sub>R Q \<turnstile> peri\<^sub>R Q \<diamondop> post\<^sub>R Q))"
+    by (metis NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_design_alt assms wait'_cond_peri_post_cmt)
+  also have "... is NCSP"
+    by (simp add: ParCSP_rdes_def assms closure unrest)
+  finally show ?thesis .
+qed
 
 theorem parallel_commutative:
   assumes "ns1 \<bowtie> ns2"
@@ -707,11 +759,6 @@ lemma CSP5_is_C2:
   assumes "P is NCSP"
   shows "CSP5(P) = C2(P)"
   unfolding CSP5_def C2_def by (rdes_eq cls: assms)
-
-lemma CACT_corr_CPROC:
-  fixes P :: "'e process"
-  shows "P is CACT \<longleftrightarrow> P is CPROC"
-  by (metis CACT_def CPROC_def CSP5_is_C2 Healthy_Idempotent Healthy_def NCSP_Idempotent)
 
 text {* The form of C2 tells us that a normal CSP process has a downward closed set of refusals *}
   
@@ -1143,6 +1190,32 @@ lemma state_srea_CACT_closed [closure]:
   shows "state 'a \<bullet> P is CACT"
   by (rule CACT_intro, simp_all add: closure assms)
 
+lemma parallel_C2_closed [closure]:
+  assumes "ns1 \<bowtie> ns2" "P is NCSP" "Q is NCSP" "P is C2" "Q is C2"
+  shows "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) is C2"
+proof -
+  have "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) = (\<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> \<^bold>R\<^sub>s(pre\<^sub>R Q \<turnstile> peri\<^sub>R Q \<diamondop> post\<^sub>R Q))"
+    by (metis NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_design_alt assms wait'_cond_peri_post_cmt)
+  also have "... is C2"
+    by (simp add: ParCSP_rdes_def C2_rdes_intro assms closure unrest)
+  finally show ?thesis .
+qed
+
+lemma parallel_CACT_closed [closure]:
+  assumes "ns1 \<bowtie> ns2" "P is CACT" "Q is CACT"
+  shows "(P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q) is CACT"
+  by (meson CACT_implies_C2 CACT_implies_NCSP CACT_intro assms parallel_C2_closed parallel_is_NCSP)
+
+lemma RenameCSP_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "P\<lparr>f\<rparr>\<^sub>C is C2"
+  by (simp add: RenameCSP_def C2_rdes_intro RenameCSP_pre_CRC_closed closure assms unrest)
+
+lemma RenameCSP_CACT_closed [closure]:
+  assumes "P is CACT"
+  shows "P\<lparr>f\<rparr>\<^sub>C is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
 text \<open> This property depends on downward closure of the refusals \<close>
 
 lemma rename_extChoice_pre:
@@ -1162,7 +1235,7 @@ lemma interleave_commute:
 lemma interleave_unit:
   assumes "P is CPROC"
   shows "P ||| Skip = P"
-  by (metis CACT_corr_CPROC CACT_implies_NCSP CPROC_def CSP5_def Healthy_if assms)
+  by (metis CACT_implies_C2 CACT_implies_NCSP CSP5_def CSP5_is_C2 Healthy_if assms)
 
 (* An attempt at proving that the precondition of Chaos is false *)
   

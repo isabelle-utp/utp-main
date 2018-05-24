@@ -84,6 +84,11 @@ proof -
     by (metis Healthy_def' assms)
 qed
 
+lemma CRC_intro'':
+  assumes "P is CRR" "P is RC1"
+  shows "P is CRC"
+  by (simp add: CRC_intro' CRR_implies_RR RC_intro' assms)
+
 lemma CRC_implies_RR [closure]: 
   assumes "P is CRC" 
   shows "P is RR"
@@ -1016,5 +1021,15 @@ lemma csp_rename_do [rpred]: "\<Phi>(s,\<sigma>,t)\<lparr>f\<rparr>\<^sub>c = \<
 
 lemma csp_rename_enable [rpred]: "\<E>(s,t,E)\<lparr>f\<rparr>\<^sub>c = \<E>(s,map\<^sub>u \<guillemotleft>f\<guillemotright> t, \<guillemotleft>image f\<guillemotright>(E)\<^sub>a)"
   by (rel_auto)
+
+lemma st'_unrest_csp_rename [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>c"
+  by (rel_blast)
+
+lemma ref'_unrest_csp_rename [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>c"
+  by (rel_blast)
+
+lemma csp_rename_CDC_closed [closure]:
+  "P is CDC \<Longrightarrow> P\<lparr>f\<rparr>\<^sub>c is CDC"
+  by (rel_blast)
 
 end

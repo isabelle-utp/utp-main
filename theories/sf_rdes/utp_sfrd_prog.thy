@@ -736,7 +736,20 @@ proof -
     by (simp add: Healthy_if assms)
   finally show ?thesis .
 qed
+
+lemma RenameCSP_pre_CRC_closed:
+  assumes "P is CRR"
+  shows "\<not>\<^sub>r (\<not>\<^sub>r P)\<lparr>f\<rparr>\<^sub>c ;; R1 true is CRC"
+  apply (rule CRC_intro'')
+   apply (simp add: unrest closure assms)
+  apply (simp add: Healthy_def, simp add: RC1_def rpred closure CRC_idem assms seqr_assoc) 
+  done
   
+lemma RenameCSP_NCSP_closed [closure]:
+  assumes "P is NCSP"
+  shows "P\<lparr>f\<rparr>\<^sub>C is NCSP"
+  by (simp add: RenameCSP_def RenameCSP_pre_CRC_closed closure assms unrest)
+
 lemma csp_rename_false [rpred]: 
   "false\<lparr>f\<rparr>\<^sub>c = false"
   by (rel_auto)
