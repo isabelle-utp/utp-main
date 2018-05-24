@@ -361,6 +361,20 @@ lemma periR_state_srea [rdes]: "peri\<^sub>R(state 'a \<bullet> P) = state 'a \<
 lemma postR_state_srea [rdes]: "post\<^sub>R(state 'a \<bullet> P) = state 'a \<bullet> post\<^sub>R(P)"
   by (rel_auto)
 
+lemma state_srea_rdes_def [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR"
+  shows "state 'a \<bullet> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(\<langle>\<forall> {$st,$st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> (state 'a \<bullet> Q) \<diamondop> (state 'a \<bullet> R))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<^bold>R\<^sub>s(pre\<^sub>R(?lhs) \<turnstile> peri\<^sub>R(?lhs) \<diamondop> post\<^sub>R(?lhs))"
+    by (simp add: RC_implies_RR SRD_rdes_intro SRD_reactive_tri_design SRD_state_srea assms)
+  also have "... =  \<^bold>R\<^sub>s (\<langle>\<forall> {$st, $st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> state 'a \<bullet> (P \<Rightarrow>\<^sub>r Q) \<diamondop> state 'a \<bullet> (P \<Rightarrow>\<^sub>r R))"
+    by (simp add: rdes closure assms)
+  also have "... = ?rhs"
+    by (rel_auto)
+  finally show ?thesis .
+qed
+
 subsection \<open> Reactive Frames \<close>
 
 definition rdes_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where

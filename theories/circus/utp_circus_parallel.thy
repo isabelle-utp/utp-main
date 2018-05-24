@@ -877,6 +877,10 @@ lemma CACT_idem: "CACT(CACT(P)) = CACT(P)"
 lemma CACT_Idempotent: "Idempotent CACT"
   by (simp add: CACT_idem Idempotent_def)
 
+lemma PACT_elim [RD_elim]: 
+  "\<lbrakk> X is CACT; P(\<^bold>R\<^sub>s(pre\<^sub>R(X) \<turnstile> peri\<^sub>R(X) \<diamondop> post\<^sub>R(X))) \<rbrakk> \<Longrightarrow> P(X)"
+  using CACT_implies_NCSP NCSP_elim by blast
+
 lemma Miracle_C2_closed [closure]: "Miracle is C2"
   by (rdes_simp, rule C2_rdes_intro, simp_all add: closure unrest)
 
@@ -1127,6 +1131,16 @@ qed
 lemma extChoice_CACT_closed [closure]:
   assumes "P is CACT" "Q is CACT"
   shows "P \<box> Q is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
+lemma state_srea_C2_closed [closure]: 
+  assumes "P is NCSP" "P is C2"
+  shows "state 'a \<bullet> P is C2"
+  by (rule C2_NCSP_intro, simp_all add: closure rdes assms)
+
+lemma state_srea_CACT_closed [closure]: 
+  assumes "P is CACT"
+  shows "state 'a \<bullet> P is CACT"
   by (rule CACT_intro, simp_all add: closure assms)
 
 text \<open> This property depends on downward closure of the refusals \<close>

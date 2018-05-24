@@ -4,7 +4,7 @@ theory Actions
   imports "UTP-Circus.utp_circus"
 begin
 
-typedef ('s, 'e) Action = "{P :: ('s, 'e) action. (P is C2) \<and> (P is NCSP)}"
+typedef ('s, 'e) Action = "{P :: ('s, 'e) action. P is CACT}"
   by (rule_tac x="Skip" in exI, simp add: closure)
 
 notation Rep_Action ("\<lbrakk>_\<rbrakk>\<^sub>A")
@@ -61,12 +61,7 @@ translations
   "_rea_frame_ext (_salphaset (_salphamk x)) P" <= "CONST frame_ext_Action x P"
 
 lift_definition alternate :: "('s upred \<times> ('s, 'e) Action) list \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is AlternateR_list
-  apply (auto)
-  apply (rule AlternateR_list_C2_closed)
-  apply (simp_all add: closure)
-  apply (metis (no_types, lifting) list.pred_set pred_prod_inject)
-  apply (metis (no_types, lifting) Ball_set pred_prod_inject)
-  apply (rule AlternateR_list_NCSP_closed)
+  apply (rule AlternateR_list_CACT_closed)
   apply (metis (no_types, lifting) list.pred_set pred_prod_inject)
   apply (metis (no_types, lifting))
   done
@@ -79,12 +74,11 @@ text \<open> For the time being, we assume that all branches of an iteration mus
 
 lift_definition iteration :: "('s upred \<times> ('s, 'e) Action) list \<Rightarrow> ('s, 'e) Action" 
 is "\<lambda> A. (if (\<forall> (b, P) \<in> set A. P is Productive) then IterateC_list A else Chaos)"
-  apply (auto simp add: closure)
-  apply (rule IterateC_list_C2_closed)
-  apply (metis (no_types, lifting) list.pred_set pred_prod_inject)
+  apply (rename_tac A)
+  apply (case_tac "\<forall>(b, P)\<in>set(A). P is Productive")
+  apply (simp_all add: closure)
+  apply (metis (no_types, lifting) IterateC_list_CACT_closed case_prodD list.pred_set pred_prod_inject)
   apply blast
-  apply (metis (no_types, lifting) Ball_set pred_prod_inject)
-  apply (metis (no_types, lifting) Ball_set IterateC_list_NCSP_closed case_prodD pred_prod_inject)
   done
 
 adhoc_overloading uiterate_list iteration
@@ -98,35 +92,6 @@ purge_notation
 
 notation
   ext_choice (infixl "\<box>" 85)
-
-lemma state_srea_rdes_def [rdes_def]:
-  assumes "P is RC" "Q is RR" "R is RR"
-  shows "state 'a \<bullet> \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s(\<langle>\<forall> {$st,$st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> (state 'a \<bullet> Q) \<diamondop> (state 'a \<bullet> R))"
-  (is "?lhs = ?rhs")
-proof -
-  have "?lhs = \<^bold>R\<^sub>s(pre\<^sub>R(?lhs) \<turnstile> peri\<^sub>R(?lhs) \<diamondop> post\<^sub>R(?lhs))"
-    by (simp add: RC_implies_RR SRD_rdes_intro SRD_reactive_tri_design SRD_state_srea assms)
-  also have "... =  \<^bold>R\<^sub>s (\<langle>\<forall> {$st, $st\<acute>} \<bullet> P\<rangle>\<^sub>S \<turnstile> state 'a \<bullet> (P \<Rightarrow>\<^sub>r Q) \<diamondop> state 'a \<bullet> (P \<Rightarrow>\<^sub>r R))"
-    by (simp add: rdes closure assms)
-  also have "... = ?rhs"
-    by (rel_auto)
-  finally show ?thesis .
-qed
-
-lemma state_srea_CDC_closed [closure]:
-  assumes "P is CDC"
-  shows "state 'a \<bullet> P is CDC"
-proof -
-  have "state 'a \<bullet> CDC(P) is CDC"
-    by (rel_blast)
-  thus ?thesis
-    by (simp add: Healthy_if assms)
-qed
-  
-lemma state_srea_C2_closed [closure]: 
-  assumes "P is NCSP" "P is C2"
-  shows "state 'a \<bullet> P is C2"
-  by (rule C2_NCSP_intro, simp_all add: closure rdes assms)
 
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
@@ -147,13 +112,13 @@ lemma seq_assoc [simp, action_simp]: "(P ; Q) ; R = P ; Q ; R"
   by (transfer, simp add: seqr_assoc)
 
 lemma ext_choice_idem [simp, action_simp]: "P \<box> P = P"
-  by (transfer, simp add: NCSP_implies_CSP extChoice_idem)
+  by (transfer, simp add: extChoice_idem closure)
 
 lemma skip_left_unit [simp, action_simp]: "skips ; P = P"
-  by (transfer, metis Skip_left_unit)
+  by (transfer, simp add: Skip_left_unit closure)
 
 lemma skip_right_unit [simp, action_simp]: "P ; skips = P"
-  by (transfer, metis Skip_right_unit)
+  by (transfer, simp add: Skip_right_unit closure)
 
 lemma stop_choice_left_zero [simp, action_simp]: "stop \<box> P = P"
   by (transfer, simp add: extChoice_Stop closure)
@@ -162,16 +127,16 @@ lemma stop_choice_right_zero [simp, action_simp]: "P \<box> stop = P"
   by (transfer, subst extChoice_comm, simp add: extChoice_Stop closure)
 
 lemma stop_seq_left_zero [simp, action_simp]: "stop ; P = stop"
-  by (transfer, simp add: NCSP_implies_CSP Stop_left_zero)
+  by (transfer, simp add: closure Stop_left_zero)
 
 lemma true_guard [simp, action_simp]: "true \<^bold>& P = P"
-  by (transfer, simp add: NCSP_implies_CSP)
+  by (transfer, simp add: closure)
 
 lemma false_guard [simp, action_simp]: "false \<^bold>& P = stop"
   by (transfer, simp add: NCSP_implies_CSP)
 
 lemma frame_seq [simp]: "vwb_lens a \<Longrightarrow> a:[P ; Q]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; a:[Q]\<^sub>A\<^sup>+"
-  by (transfer, clarsimp simp add: NCSP_implies_NSRD seq_srea_frame)
+  by (transfer, clarsimp simp add: closure seq_srea_frame)
 
 lemma frame_skip [simp]: "vwb_lens a \<Longrightarrow> a:[skips]\<^sub>A\<^sup>+ = skips"
   by (transfer, simp add: Skip_frame)

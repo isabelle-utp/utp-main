@@ -942,6 +942,16 @@ lemma rea_st_cond_CDC [closure]: "[g]\<^sub>S\<^sub>< is CDC"
 lemma csp_enable_CDC [closure]: "\<E>(s,t,E) is CDC"
   by (rel_auto)
 
+lemma state_srea_CDC_closed [closure]:
+  assumes "P is CDC"
+  shows "state 'a \<bullet> P is CDC"
+proof -
+  have "state 'a \<bullet> CDC(P) is CDC"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 subsection \<open> Renaming \<close>
 
 abbreviation "pre_image f B \<equiv> {x. f(x) \<in> B}"
