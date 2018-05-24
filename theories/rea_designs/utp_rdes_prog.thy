@@ -706,6 +706,58 @@ qed
 declare IterateR_list_def [rdes_def]
 declare IterateR_def [rdes_def]
 
+lemma R4_Continuous [closure]: "Continuous R4"
+  by (rel_auto)
+
+lemma cond_rea_R4_closed [closure]:
+  "\<lbrakk> P is R4; Q is R4 \<rbrakk> \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R Q is R4"
+  by (simp add: Healthy_def R4_cond)
+
+lemma IterateR_lemma1:
+  "[\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>r ;; (\<Sqinter> i \<in> I \<bullet> P i \<triangleleft> b i \<triangleright>\<^sub>R false) = (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; P i)"
+  by (rel_auto; fastforce)
+
+
+lemma IterateR_lemma2:
+  assumes "I \<noteq> {}" "\<And> i. i\<in>I \<Longrightarrow> P(i) is RR"
+  shows "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> (P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> \<not> (\<Sqinter> i \<in> I \<bullet> b i) \<triangleright>\<^sub>R R1 true)
+       = (\<Squnion> i \<in> I \<bullet> (P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true)"
+proof -
+  from assms(1)
+  have "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> \<not> (\<Sqinter> i \<in> I \<bullet> b i) \<triangleright>\<^sub>R R1 true)
+       = (\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: assms Healthy_if cong: USUP_cong)
+qed
+
+lemma IterateR_lemma3: 
+  assumes "\<And> i. i\<in>I \<Longrightarrow> P(i) is RR"
+  shows "(\<Squnion> i \<in> I \<bullet> P i \<triangleleft> b i \<triangleright>\<^sub>R R1 true) = (\<Squnion> i \<in> I \<bullet> [b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P i)"
+proof -
+  have "(\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) = (\<Squnion> i \<in> I \<bullet> [b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r RR(P i))"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: assms Healthy_if cong: USUP_cong)
+qed
+
+theorem IterateR_refine_intro:
+  assumes 
+    -- {* Closure conditions *}
+    "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>1(i) is RC" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>2(i) is RR" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>3(i) is RR" 
+    "\<And> i. i\<in>I \<Longrightarrow> $st\<acute> \<sharp> Q\<^sub>2(i)" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>3(i) is R4" "I \<noteq> {}"
+    "(\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 i)\<^sup>\<star>\<^sup>r wp\<^sub>r (\<Squnion> i \<in> I \<bullet> [b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r Q\<^sub>1 i) \<sqsubseteq> P\<^sub>1"
+    "P\<^sub>2 \<sqsubseteq> (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2 i)"
+    "P\<^sub>2 \<sqsubseteq> (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 i) ;; P\<^sub>2"
+    "P\<^sub>3 \<sqsubseteq> [\<not> (\<Sqinter> i \<in> I \<bullet> b i)]\<^sup>\<top>\<^sub>r"
+    "P\<^sub>3 \<sqsubseteq> (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 i) ;; P\<^sub>3"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> do\<^sub>R i\<in>I \<bullet> b(i) \<rightarrow> \<^bold>R\<^sub>s(Q\<^sub>1(i) \<turnstile> Q\<^sub>2(i) \<diamondop> Q\<^sub>3(i)) od"
+  apply (simp add: rdes_def closure assms unrest del: WhileR_rdes_def)
+  apply (rule WhileR_refine_intro)
+  apply (simp_all add: closure assms unrest IterateR_lemma1 IterateR_lemma2 seqr_assoc[THEN sym])
+  apply (simp add: IterateR_lemma3 closure assms unrest)
+  done  
+
 method unfold_iteration = simp add: IterateR_list_def IterateR_def AlternateR_list_def AlternateR_def UINF_upto_expand_first
 
 subsection \<open> Substitution Laws \<close>
