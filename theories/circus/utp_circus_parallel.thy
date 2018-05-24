@@ -625,15 +625,17 @@ syntax
   "_par_circus"   :: "logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76)
   "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<lbrakk>_\<rbrakk>\<^sub>C _" [75,0,76] 76)
   "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
-  "_inter_csp"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "|||" 75)
-  "_sync_csp"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "||" 75)
   
 translations
   "_par_circus P ns1 cs ns2 Q" == "P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
   "_par_csp P cs Q" == "_par_circus P 0\<^sub>L cs 0\<^sub>L Q"
   "_inter_circus P ns1 ns2 Q" == "_par_circus P ns1 {} ns2 Q"
-  "_inter_csp P Q" == "_par_csp P {} Q"
-  "_sync_csp P Q" == "_par_csp P (CONST UNIV) Q"
+
+abbreviation InterleaveCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "|||" 75)
+where "P ||| Q \<equiv> P \<lbrakk>\<emptyset>\<parallel>\<emptyset>\<rbrakk> Q"
+
+abbreviation SynchroniseCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "||" 75)
+where "P || Q \<equiv> P \<lbrakk>UNIV\<rbrakk>\<^sub>C Q"
 
 definition CSP5 :: "'\<phi> process \<Rightarrow> '\<phi> process" where
 [upred_defs]: "CSP5(P) = (P ||| Skip)"
@@ -1236,6 +1238,10 @@ lemma interleave_unit:
   assumes "P is CPROC"
   shows "P ||| Skip = P"
   by (metis CACT_implies_C2 CACT_implies_NCSP CSP5_def CSP5_is_C2 Healthy_if assms)
+
+lemma parallel_miracle:
+  "P is NCSP \<Longrightarrow> Miracle \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> P = Miracle"
+  by (simp add: CSPMerge_def par_by_merge_seq_add[THEN sym] Miracle_parallel_left_zero Skip_right_unit closure)
 
 (* An attempt at proving that the precondition of Chaos is false *)
   

@@ -22,6 +22,12 @@ lift_definition miracle :: "('s, 'e) Action" is Miracle by (simp add: closure)
 
 lift_definition skips :: "('s, 'e) Action" is Skip by (simp add: closure)
 
+syntax
+  "_skips" :: "logic" ("skip")
+
+translations
+  "_skips" == "CONST skips"
+
 lift_definition stop :: "('s, 'e) Action" is Stop by (simp add: closure)
 
 lift_definition seq :: 
@@ -83,6 +89,23 @@ is "\<lambda> A. (if (\<forall> (b, P) \<in> set A. P is Productive) then Iterat
 
 adhoc_overloading uiterate_list iteration
 
+lift_definition interleave :: "'e Process \<Rightarrow> 'e Process \<Rightarrow> 'e Process" is "InterleaveCSP"
+  by (simp add: closure)
+
+lift_definition synchronise :: "'e Process \<Rightarrow> 'e Process \<Rightarrow> 'e Process" is "SynchroniseCSP"
+  by (simp add: closure)
+
+purge_notation
+  InterleaveCSP (infixr "|||" 75) and
+  SynchroniseCSP (infixr "||" 75)
+
+notation
+  interleave (infixr "|||" 75) and
+  synchronise (infixr "||" 75)
+
+lift_definition rename :: "'e Process \<Rightarrow> ('e \<Rightarrow> 'f) \<Rightarrow> 'f Process" ("_\<lparr>_\<rparr>\<^sub>A" [999,0] 999) is "RenameCSP"
+  by (simp add: closure)
+
 lift_definition productive :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. P is Productive" .
 
 lift_definition deadlock_free :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. CDF \<sqsubseteq> P" .
@@ -95,8 +118,6 @@ notation
 
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
-
-term state_decl
 
 syntax
   "_action_state" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
@@ -146,6 +167,21 @@ lemma frame_sync [simp]: "vwb_lens a \<Longrightarrow> a:[sync e]\<^sub>A\<^sup>
 
 lemma decl_Skip [simp]: "(decl x \<bullet> skips) = skips"
   by (simp add: state_block_def, transfer, rdes_eq)
+
+lemma interleave_commute: "P ||| Q = Q ||| P"
+  by (transfer, simp add: interleave_commute)
+
+lemma interleave_unit: "P ||| skips = P"
+  by (transfer, simp add: interleave_unit)
+
+lemma interleave_miracle: "miracle ||| P = miracle"
+  by (transfer, simp add: parallel_miracle closure)
+
+lemma sync_commute: "P || Q = Q || P"
+  apply (transfer) using parallel_commutative zero_lens_indep' by blast
+
+lemma rename_skip: "skips\<lparr>f\<rparr>\<^sub>A = skips"
+  by (transfer, simp add: rename_Skip)
 
 subsection \<open> Action Syntax \<close>
 
