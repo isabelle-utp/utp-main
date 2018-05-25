@@ -113,6 +113,39 @@ lemma IterateC_singleton:
   shows "do\<^sub>C i\<in>{k} \<bullet> g(i) \<rightarrow> P(i) od = while\<^sub>C g(k) do P(k) od" (is "?lhs = ?rhs")
   by (simp add: IterateC_IterateR_def IterateR_singleton NCSP_implies_NSRD WhileC_def assms)
 
+lemma IterateC_outer_refine_intro:
+  assumes "I \<noteq> {}" "\<And> i. i \<in> I \<Longrightarrow> P i is NCSP" "\<And> i. i \<in> I \<Longrightarrow> P i is Productive"
+    "\<And> i. i \<in> I \<Longrightarrow> S \<sqsubseteq> (b i \<rightarrow>\<^sub>R P i ;; S)" "S is NCSP"
+    "S \<sqsubseteq> [\<not> (\<Sqinter> i \<in> I \<bullet> b i)]\<^sup>\<top>\<^sub>R"
+  shows "S \<sqsubseteq> do\<^sub>C i\<in>I \<bullet> b(i) \<rightarrow> P(i) od"
+proof -
+  have "S \<sqsubseteq> do\<^sub>R i\<in>I \<bullet> b(i) \<rightarrow> P(i) od"
+    by (simp add: IterateR_outer_refine_intro NCSP_implies_NSRD assms)
+  thus ?thesis
+    unfolding IterateC_IterateR_def
+    by (metis (full_types) Skip_left_unit Skip_right_unit assms(5) urel_dioid.mult_isol urel_dioid.mult_isor)
+qed
+
+lemma IterateC_list_outer_refine_intro:
+  assumes 
+    "A \<noteq> []" "S is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> (b \<rightarrow>\<^sub>R P ;; S)"
+    "S \<sqsubseteq> [\<not> (\<Sqinter> (b, P) \<in> set A \<bullet> b)]\<^sup>\<top>\<^sub>R" 
+  shows "S \<sqsubseteq> IterateC_list A"
+proof -
+  have "(\<Sqinter> i \<in> {0..<length(A)} \<bullet> (map fst A) ! i) = (\<Sqinter> (b, P) \<in> set A \<bullet> b)"
+    by (rel_auto, metis nth_mem prod.exhaust_sel, metis fst_conv in_set_conv_nth nth_map)
+  thus ?thesis
+    apply (simp add: IterateC_list_def)
+    apply (rule IterateC_outer_refine_intro)
+     apply (simp_all add: closure assms)
+    apply (metis assms(3) nth_mem prod.collapse)
+    apply (metis assms(4) nth_mem prod.collapse)
+    done
+qed
+  
 subsection \<open> Assignment \<close>
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -158,6 +191,17 @@ lemma AssignsCSP_ICSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is ICSP"
   apply (simp_all add: closure)
   apply (rel_auto)
 done
+
+lemma AssignsCSP_as_AssignsR: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Skip = \<langle>\<sigma>\<rangle>\<^sub>C"
+  by (rdes_eq)
+
+lemma AssignC_init_refine_intro:
+  assumes 
+    "vwb_lens x" "$st:x \<sharp> P\<^sub>2" "$st:x \<sharp> P\<^sub>3"
+    "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q is NCSP"
+    "\<^bold>R\<^sub>s([&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> Q"
+  shows "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> x :=\<^sub>C \<guillemotleft>k\<guillemotright> ;; Q"
+  by (simp add: AssignsCSP_as_AssignsR[THEN sym] assms seqr_assoc Skip_left_unit AssignR_init_refine_intro closure)
 
 subsection \<open> Assignment with update \<close>
 

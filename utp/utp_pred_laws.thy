@@ -487,7 +487,11 @@ lemma USUP_list_conv:
    apply (rel_auto)
   apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)
   done
-    
+
+lemma UINF_refines:
+  "\<lbrakk> \<And> i. i\<in>I \<Longrightarrow> P \<sqsubseteq> Q i \<rbrakk> \<Longrightarrow> P \<sqsubseteq> (\<Sqinter> i\<in>I \<bullet> Q i)"
+  by (simp add: UINF_as_Sup_collect, metis SUP_least)
+
 lemma UINF_refines':
   assumes "\<And> i. P \<sqsubseteq> Q(i)" 
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"

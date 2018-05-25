@@ -16,6 +16,13 @@ translations
 
 setup_lifting type_definition_Action
 
+instantiation Action :: (type, type) refine
+begin
+  lift_definition less_eq_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "less_eq" .
+  lift_definition less_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "less" .
+instance by (intro_classes; transfer, simp add: less_uexpr_def)
+end
+
 lift_definition chaos :: "('s, 'e) Action" is Chaos by (simp add: closure)
 
 lift_definition miracle :: "('s, 'e) Action" is Miracle by (simp add: closure)
@@ -108,7 +115,14 @@ lift_definition rename :: "'e Process \<Rightarrow> ('e \<Rightarrow> 'f) \<Righ
 
 lift_definition productive :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. P is Productive" .
 
-lift_definition deadlock_free :: "('s, 'e) Action \<Rightarrow> bool" is "\<lambda> P. CDF \<sqsubseteq> P" .
+lemma CDF_is_C2 [closure]: "CDF is C2"
+  unfolding CDF_def by (rule C2_rdes_intro, simp_all add: closure unrest, rel_auto+)
+
+lemma CDF_is_CACT [closure]: "CDF is CACT"
+  by (simp add: CACT_intro closure)
+
+lift_definition dlf :: "('s, 'e) Action" is "CDF"
+  by (simp add: closure)
 
 purge_notation
   extChoice (infixl "\<box>" 65)
@@ -205,7 +219,7 @@ lemma rename_skip: "skips\<lparr>f\<rparr>\<^sub>A = skips"
 
 subsection \<open> Proof Tactics \<close>
 
-lemmas action_rep_eq = state_block_def deadlock_free_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
+lemmas action_rep_eq = state_block_def dlf_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
 
 method action_refine = (simp add: action_rep_eq, rdes_refine)
 

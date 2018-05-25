@@ -103,6 +103,14 @@ lemma seqr_or_distr:
   "(P ;; (Q \<or> R)) = ((P ;; Q) \<or> (P ;; R))"
   by (rel_auto)
 
+lemma seqr_inf_distl:
+  "((P \<sqinter> Q) ;; R) = ((P ;; R) \<sqinter> (Q ;; R))"
+  by (rel_auto)
+
+lemma seqr_inf_distr:
+  "(P ;; (Q \<sqinter> R)) = ((P ;; Q) \<sqinter> (P ;; R))"
+  by (rel_auto)
+
 lemma seqr_and_distr_ufunc:
   "ufunctional P \<Longrightarrow> (P ;; (Q \<and> R)) = ((P ;; Q) \<and> (P ;; R))"
   by (rel_auto)

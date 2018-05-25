@@ -842,7 +842,12 @@ proof -
     by (simp add: usubst unrest assms)
   finally show ?thesis .
 qed
-  
+
+lemma RHS_tri_design_refine':
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<longleftrightarrow> (Q\<^sub>1 \<sqsubseteq> P\<^sub>1) \<and> (P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2)) \<and> (P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>3))"
+  by (simp add: RHS_tri_design_refine assms, rel_auto)
+
 lemma srdes_tri_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`" "`P\<^sub>1 \<and> R\<^sub>2 \<Rightarrow> R\<^sub>1`"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1 \<diamondop> R\<^sub>1) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2 \<diamondop> R\<^sub>2)"

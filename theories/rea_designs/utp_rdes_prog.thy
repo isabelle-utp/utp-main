@@ -73,6 +73,49 @@ lemma periR_assigns_srd [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
 lemma postR_assigns_srd [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = \<langle>\<sigma>\<rangle>\<^sub>r"
   by (simp add: rdes_def rdes closure rpred)
 
+lemma taut_eq_impl_property:
+  "\<lbrakk> vwb_lens x; $x \<sharp> P \<rbrakk> \<Longrightarrow> `($x =\<^sub>u \<guillemotleft>v\<guillemotright> \<and> Q) \<Rightarrow> P` = `Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk> \<Rightarrow> P`"
+  by (rel_auto, meson mwb_lens_weak vwb_lens_mwb weak_lens.put_get)
+
+lemma st_subst_taut_impl:
+  assumes "vwb_lens x" "$st:x \<sharp> Q" "P is RR" "Q is RR"
+  shows "`[&x \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger>\<^sub>S P \<Rightarrow> Q` = `[&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<and> P \<Rightarrow> Q`" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = `P\<lbrakk>\<guillemotleft>k\<guillemotright>/$st:x\<rbrakk> \<Rightarrow> Q`"
+    by (simp add: usubst_st_lift_def alpha usubst)
+  also have "... = `($st:x =\<^sub>u \<guillemotleft>k\<guillemotright>) \<and> RR(P) \<Rightarrow> RR(Q)`"
+    by (simp add: Healthy_if assms taut_eq_impl_property)
+  also have "... = `[&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<and> RR(P) \<Rightarrow> RR(Q)`"
+    by (rel_blast)
+  finally show ?thesis by (simp add: assms Healthy_if)
+qed
+
+text \<open> The following law explains how to refine a program $Q$ when it is first initialised by
+  an assignment. Would be good if it could be generalised to a more general precondition. \<close>
+
+lemma AssignR_init_refine_intro:
+  assumes 
+    "vwb_lens x" "$st:x \<sharp> P\<^sub>2" "$st:x \<sharp> P\<^sub>3"
+    "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q is NSRD"
+    "\<^bold>R\<^sub>s([&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> Q"
+  shows "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> x :=\<^sub>R \<guillemotleft>k\<guillemotright> ;; Q"
+proof -
+  have "\<^bold>R\<^sub>s([&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+    by (simp add: NSRD_is_SRD SRD_reactive_tri_design assms)
+  hence "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> x :=\<^sub>R \<guillemotleft>k\<guillemotright> ;; \<^bold>R\<^sub>s(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q))"
+  proof (clarsimp simp add: rdes_def assms closure unrest rpred wp RHS_tri_design_refine, safe)
+  assume a1:"`[&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<Rightarrow> pre\<^sub>R(Q)`" and a2:"`[&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<and> peri\<^sub>R(Q) \<Rightarrow> P\<^sub>2`" and a3:"`[&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<and> post\<^sub>R(Q) \<Rightarrow> P\<^sub>3`"  
+  from a1 assms(1) show "`R1 true \<Rightarrow> [&x \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger>\<^sub>S pre\<^sub>R(Q)`"
+    by (rel_simp)
+  show "`[&x \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger>\<^sub>S peri\<^sub>R(Q) \<Rightarrow> P\<^sub>2`"
+    by (simp add: a2 assms st_subst_taut_impl closure)
+  show "`[&x \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger>\<^sub>S post\<^sub>R(Q) \<Rightarrow> P\<^sub>3`"
+    by (simp add: a3 assms st_subst_taut_impl closure)
+  qed
+  thus ?thesis
+    by (simp add: NSRD_is_SRD SRD_reactive_tri_design assms)
+qed
+
 subsection \<open> Conditional \<close>
 
 lemma preR_cond_srea [rdes]:
@@ -214,6 +257,11 @@ lemma AssumeR_as_gcmd:
   "[b]\<^sup>\<top>\<^sub>R = b \<rightarrow>\<^sub>R II\<^sub>R"
   by (rdes_eq)
 
+lemma AssumeR_gcomm:
+  assumes "P is NSRD"
+  shows "[b]\<^sup>\<top>\<^sub>R ;; (c \<rightarrow>\<^sub>R P) = (b \<and> c) \<rightarrow>\<^sub>R P"
+  by (rdes_eq cls: assms)
+
 subsection {* Generalised Alternation *}
 
 definition AlternateR 
@@ -294,6 +342,28 @@ next
   from assms(4) show ?thesis
     by (simp add: AlternateR_def 1 False)
        (rdes_eq cls: assms(1-3) False cong: UINF_cong)
+qed
+
+lemma AlternateR_assume_branch: 
+  assumes "I \<noteq> {}" "\<And> i. i \<in> I \<Longrightarrow> P i is NSRD" "Q is NSRD"
+  shows "([\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>R ;; AlternateR I b P Q) = (\<Sqinter> i \<in> I \<bullet> b i \<rightarrow>\<^sub>R P i)" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = [\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>R ;; ((\<Sqinter> i \<in> I \<bullet> b i \<rightarrow>\<^sub>R P i) \<sqinter> (\<not> (\<Sqinter> i \<in> I \<bullet> b i)) \<rightarrow>\<^sub>R Q)"
+    by (simp add: AlternateR_def closure assms)
+  also have "... = [\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>R ;; (\<Sqinter> i \<in> I \<bullet> b i \<rightarrow>\<^sub>R P i) \<sqinter> Miracle"
+    by (simp add: seqr_inf_distr AssumeR_gcomm closure assms)
+  also have "... = (\<Sqinter> i \<in> I \<bullet> ((\<Sqinter> i \<in> I \<bullet> b i) \<and> b i) \<rightarrow>\<^sub>R P i) \<sqinter> Miracle"
+    by (simp add: seq_UINF_distl AssumeR_gcomm closure assms cong: UINF_cong)
+  also have "... = (\<Sqinter> i \<in> I \<bullet> b i \<rightarrow>\<^sub>R P i) \<sqinter> Miracle"
+  proof -
+    have "\<And> i. i \<in> I \<Longrightarrow> ((\<Sqinter> i \<in> I \<bullet> b i) \<and> b i) = b i"
+      by (rel_auto)
+    thus ?thesis
+      by (simp cong: UINF_cong)
+  qed
+  also have "... = (\<Sqinter> i \<in> I \<bullet> b i \<rightarrow>\<^sub>R P i)"
+    by (simp add: closure assms)
+  finally show ?thesis .
 qed
 
 subsection \<open> Choose \<close>
@@ -598,6 +668,42 @@ theorem WhileR_iter_form:
   shows "while\<^sub>R b do P od = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   by (simp add: WhileR_iter_form_lemma WhileR_star_expand assms)
 
+theorem WhileR_outer_refine_intro:
+  assumes 
+    "P is NSRD" "P is Productive"
+    "S \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>R ;; P) ;; S" "S \<sqsubseteq> [\<not> b]\<^sup>\<top>\<^sub>R"
+  shows "S \<sqsubseteq> while\<^sub>R b do P od"
+  apply (simp add: assms WhileR_iter_form)
+  apply (rule nsrd_thy.Star_inductl)
+  apply (simp_all add: closure assms)
+  done
+
+theorem WhileR_outer_refine_init_intro:
+  assumes 
+    "P is NSRD" "I is NSRD" "P is Productive" 
+    "S \<sqsubseteq> S ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+    "S \<sqsubseteq> I ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+    "S \<sqsubseteq> S ;; [b]\<^sup>\<top>\<^sub>R ;; P"
+    "S \<sqsubseteq> I ;; [b]\<^sup>\<top>\<^sub>R ;; P"
+    "S \<sqsubseteq> S ;; S"
+  shows "S \<sqsubseteq> I ;; while\<^sub>R b do P od"
+proof -
+  have "S \<sqsubseteq> I ;; (([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+  proof -
+    have "S \<sqsubseteq> (I ;; [b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R"
+      by (rule nsrd_thy.Star_inductr, simp_all add: closure assms)
+    thus ?thesis
+      by (metis (no_types, lifting) RA1 assms(4) semilattice_sup_class.sup.absorb_iff1 semilattice_sup_class.sup_assoc seqr_inf_distl)
+  qed
+  thus ?thesis
+    apply (simp add: assms WhileR_iter_form)
+    apply (subst nsrd_thy.Star_unfoldl_eq[THEN sym])
+     apply (auto simp add: closure assms seqr_inf_distr)
+    apply (simp add: AssumeR_NSRD assms nsrd_thy.Unit_Left)
+    done
+qed
+  
+
 theorem WhileR_false:
   assumes "P is NSRD"
   shows "while\<^sub>R false do P od = II\<^sub>R"
@@ -712,11 +818,20 @@ lemma R4_Continuous [closure]: "Continuous R4"
 lemma cond_rea_R4_closed [closure]:
   "\<lbrakk> P is R4; Q is R4 \<rbrakk> \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R Q is R4"
   by (simp add: Healthy_def R4_cond)
-
+  
+lemma IterateR_outer_refine_intro:
+  assumes "I \<noteq> {}" "\<And> i. i \<in> I \<Longrightarrow> P i is NSRD" "\<And> i. i \<in> I \<Longrightarrow> P i is Productive"
+    "\<And> i. i \<in> I \<Longrightarrow> S \<sqsubseteq> (b i \<rightarrow>\<^sub>R P i ;; S)"
+    "S \<sqsubseteq> [\<not> (\<Sqinter> i \<in> I \<bullet> b i)]\<^sup>\<top>\<^sub>R"
+  shows "S \<sqsubseteq> do\<^sub>R i\<in>I \<bullet> b(i) \<rightarrow> P(i) od"
+  apply (simp add: IterateR_def)
+  apply (rule WhileR_outer_refine_intro)
+     apply (simp_all add: assms closure AlternateR_assume_branch seq_UINF_distr UINF_refines)
+  done
+  
 lemma IterateR_lemma1:
   "[\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>r ;; (\<Sqinter> i \<in> I \<bullet> P i \<triangleleft> b i \<triangleright>\<^sub>R false) = (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; P i)"
   by (rel_auto; fastforce)
-
 
 lemma IterateR_lemma2:
   assumes "I \<noteq> {}" "\<And> i. i\<in>I \<Longrightarrow> P(i) is RR"
