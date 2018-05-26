@@ -832,8 +832,6 @@ lemma IterateR_outer_refine_intro:
      apply (simp_all add: assms closure AlternateR_assume_branch seq_UINF_distr UINF_refines)
   done
 
-thm WhileR_outer_refine_init_intro
-
 lemma IterateR_outer_refine_init_intro:
   assumes 
     "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P i is NSRD" 

@@ -126,6 +126,23 @@ proof -
     by (metis (full_types) Skip_left_unit Skip_right_unit assms(5) urel_dioid.mult_isol urel_dioid.mult_isor)
 qed
 
+lemma IterateC_outer_refine_init_intro:
+  assumes 
+    "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P i is NCSP" 
+    "\<And> i. i \<in> A \<Longrightarrow> P i is Productive" 
+    "S is NCSP" "I is NCSP"
+    "S \<sqsubseteq> I ;; [\<not> (\<Sqinter> i \<in> A \<bullet> b i)]\<^sup>\<top>\<^sub>R"
+    "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> S ;; b i \<rightarrow>\<^sub>R P i"
+    "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> I ;; b i \<rightarrow>\<^sub>R P i"
+  shows "S \<sqsubseteq> I ;; do\<^sub>C i\<in>A \<bullet> b(i) \<rightarrow> P(i) od"
+proof -
+  have "S \<sqsubseteq> I ;; do\<^sub>R i\<in>A \<bullet> b(i) \<rightarrow> P(i) od"
+    by (simp add: IterateR_outer_refine_init_intro NCSP_implies_NSRD assms)
+  thus ?thesis
+    unfolding IterateC_IterateR_def
+    by (metis (no_types, hide_lams) RA1 Skip_right_unit assms(4) assms(5) urel_dioid.mult_isor) 
+qed
+
 lemma IterateC_list_outer_refine_intro:
   assumes 
     "A \<noteq> []" "S is NCSP"
