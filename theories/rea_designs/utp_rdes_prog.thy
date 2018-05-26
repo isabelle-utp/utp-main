@@ -197,6 +197,11 @@ lemma Star_AssumeR: "[b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R = II\<^sub>R
 lemma AssumeR_choice_skip: "II\<^sub>R \<sqinter> [b]\<^sup>\<top>\<^sub>R = II\<^sub>R"
   by (rdes_eq)
 
+lemma AssumeR_seq_refines:
+  assumes "P is NSRD"
+  shows "P \<sqsubseteq> P ;; [b]\<^sup>\<top>\<^sub>R"
+  by (rdes_refine cls: assms)
+
 lemma cond_srea_AssumeR_form:
   assumes "P is NSRD" "Q is NSRD"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = ([b]\<^sup>\<top>\<^sub>R ;; P \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R ;; Q)"
@@ -681,29 +686,27 @@ theorem WhileR_outer_refine_intro:
 theorem WhileR_outer_refine_init_intro:
   assumes 
     "P is NSRD" "I is NSRD" "P is Productive" 
-    "S \<sqsubseteq> S ;; [\<not> b]\<^sup>\<top>\<^sub>R"
     "S \<sqsubseteq> I ;; [\<not> b]\<^sup>\<top>\<^sub>R"
     "S \<sqsubseteq> S ;; [b]\<^sup>\<top>\<^sub>R ;; P"
     "S \<sqsubseteq> I ;; [b]\<^sup>\<top>\<^sub>R ;; P"
-    "S \<sqsubseteq> S ;; S"
   shows "S \<sqsubseteq> I ;; while\<^sub>R b do P od"
 proof -
   have "S \<sqsubseteq> I ;; (([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   proof -
-    have "S \<sqsubseteq> (I ;; [b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R"
-      by (rule nsrd_thy.Star_inductr, simp_all add: closure assms)
+    have "S \<sqsubseteq> I ;; ([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R"
+      by (metis (no_types, hide_lams) AssumeR_NSRD NSRD_seqr_closure RA1 assms(1) assms(2) assms(5) assms(6) nsrd_thy.Star_inductr semilattice_sup_class.le_sup_iff)
     thus ?thesis
-      by (metis (no_types, lifting) RA1 assms(4) semilattice_sup_class.sup.absorb_iff1 semilattice_sup_class.sup_assoc seqr_inf_distl)
+      by (metis (no_types, lifting) AssumeR_NSRD AssumeR_refine_skip NSRD_right_unit NSRD_seqr_closure assms(1) dual_order.trans nsrd_thy.Star_Healthy urel_dioid.mult_isol)      
   qed
-  thus ?thesis
+  moreover have "S \<sqsubseteq> I ;; II\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
+    by (simp add: AssumeR_NSRD assms nsrd_thy.Unit_Left)
+  ultimately show ?thesis
     apply (simp add: assms WhileR_iter_form)
     apply (subst nsrd_thy.Star_unfoldl_eq[THEN sym])
      apply (auto simp add: closure assms seqr_inf_distr)
-    apply (simp add: AssumeR_NSRD assms nsrd_thy.Unit_Left)
     done
 qed
   
-
 theorem WhileR_false:
   assumes "P is NSRD"
   shows "while\<^sub>R false do P od = II\<^sub>R"
@@ -828,7 +831,23 @@ lemma IterateR_outer_refine_intro:
   apply (rule WhileR_outer_refine_intro)
      apply (simp_all add: assms closure AlternateR_assume_branch seq_UINF_distr UINF_refines)
   done
-  
+
+thm WhileR_outer_refine_init_intro
+
+lemma IterateR_outer_refine_init_intro:
+  assumes 
+    "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P i is NSRD" 
+    "\<And> i. i \<in> A \<Longrightarrow> P i is Productive" 
+    "I is NSRD"
+    "S \<sqsubseteq> I ;; [\<not> (\<Sqinter> i \<in> A \<bullet> b i)]\<^sup>\<top>\<^sub>R"
+    "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> S ;; b i \<rightarrow>\<^sub>R P i"
+    "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> I ;; b i \<rightarrow>\<^sub>R P i"
+  shows "S \<sqsubseteq> I ;; do\<^sub>R i\<in>A \<bullet> b(i) \<rightarrow> P(i) od"
+  apply (simp add: IterateR_def)
+  apply (rule_tac WhileR_outer_refine_init_intro)
+  apply (simp_all add: assms closure AlternateR_assume_branch seq_UINF_distl UINF_refines)
+  done
+
 lemma IterateR_lemma1:
   "[\<Sqinter> i \<in> I \<bullet> b i]\<^sup>\<top>\<^sub>r ;; (\<Sqinter> i \<in> I \<bullet> P i \<triangleleft> b i \<triangleright>\<^sub>R false) = (\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; P i)"
   by (rel_auto; fastforce)
