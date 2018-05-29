@@ -16,6 +16,9 @@ translations
 
 setup_lifting type_definition_Action
 
+lemma Action_eq_transfer: "P = Q \<longleftrightarrow> \<lbrakk>P\<rbrakk>\<^sub>A = \<lbrakk>Q\<rbrakk>\<^sub>A"
+  by (auto, metis Rep_Action_inverse)
+
 lemma Rep_Action_CACT_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>A is CACT"
   using Rep_Action by auto
 
@@ -158,6 +161,9 @@ lemmas action_rep_eq =
   send.rep_eq sync.rep_eq
   ext_choice.rep_eq
   frame_ext_Action.rep_eq
+  interleave.rep_eq
+  synchronise.rep_eq
+  Action_eq_transfer
   state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq  closure
 
 subsection \<open> Action Syntax \<close>
