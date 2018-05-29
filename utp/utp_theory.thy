@@ -465,7 +465,7 @@ begin
   lemma UINF_ind_Healthy [closure]:
     assumes "\<And> i. P(i) is \<H>"
     shows "(\<Sqinter> i \<bullet> P(i)) is \<H>"
-    by (simp add: HCond_Cont UINF_Continuous_closed assms)
+    by (simp add: closure assms)
 
 end
 

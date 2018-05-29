@@ -1036,6 +1036,9 @@ lemma gcomm_C2_closed [closure]:
   shows "b \<rightarrow>\<^sub>R P is C2"
   by (rdes_simp cls: assms, rule C2_rdes_intro, simp_all add: closure unrest assms)
 
+lemma AssumeCircus_CACT [closure]: "[b]\<^sub>C is CACT"
+  by (metis AssumeCircus_NCSP AssumeCircus_def CACT_intro NCSP_Skip Skip_C2_closed gcomm_C2_closed)
+ 
 lemma AlternateR_C2_closed [closure]:
   assumes 
     "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"

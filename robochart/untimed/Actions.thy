@@ -16,6 +16,17 @@ translations
 
 setup_lifting type_definition_Action
 
+lemma Rep_Action_CACT_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>A is CACT"
+  using Rep_Action by auto
+
+lemma map_prod_Rep_Action_CACT_closed [closure]:
+  "(b, P) \<in> map_prod id Rep_Action ` A \<Longrightarrow> P is CACT"
+  using Rep_Action_CACT_closed by blast
+
+lemma map_prod_memE:
+  "\<lbrakk> (x, y) \<in> map_prod f g ` A; \<And> i j. (i, j) \<in> A \<Longrightarrow> P (f i) (g j) \<rbrakk> \<Longrightarrow> P x y"
+  by blast
+
 instantiation Action :: (type, type) refine
 begin
   lift_definition less_eq_Action :: "('a, 'b) Action \<Rightarrow> ('a, 'b) Action \<Rightarrow> bool" is "less_eq" .
@@ -36,6 +47,9 @@ translations
   "_skips" == "CONST skips"
 
 lift_definition stop :: "('s, 'e) Action" is Stop by (simp add: closure)
+
+lift_definition assumption :: "'s upred \<Rightarrow> ('s, 'e) Action" ("[_]\<^sub>A") is "AssumeCircus"
+  by (simp add: closure)
 
 lift_definition seq :: 
   "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr ";" 71) is "op ;;"
@@ -133,6 +147,12 @@ notation
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
 
+lemmas action_rep_eq = 
+  less_eq_Action.rep_eq
+  productive.rep_eq
+  assumption.rep_eq
+  state_block_def dlf_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
+
 subsection \<open> Action Syntax \<close>
 
 nonterminal raction
@@ -217,9 +237,29 @@ lemma sync_commute: "P || Q = Q || P"
 lemma rename_skip: "skips\<lparr>f\<rparr>\<^sub>A = skips"
   by (transfer, simp add: rename_Skip)
 
-subsection \<open> Proof Tactics \<close>
+lemma iterate_refine_lemma:
+  "A \<noteq> {} \<Longrightarrow> (\<Or> (i, j) \<in> map_prod f g ` A \<bullet> P i j) = (\<Or> (i, j) \<in> A \<bullet> P (f i) (g j))"
+  apply (simp add: map_prod_def)
+  apply (rel_auto)
+  apply (smt Collect_cong fst_conv imageE pair_imageI prod.case_eq_if prod.collapse snd_conv)
+  done
 
-lemmas action_rep_eq = state_block_def dlf_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
+lemma iterate_refine_intro:
+  assumes 
+    "A \<noteq> []" 
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> productive P"
+    "S \<sqsubseteq> I ; [\<not> (\<Or> (b, P) \<in> set A \<bullet> b)]\<^sub>A"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> S ; [b]\<^sub>A ; P"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> I ; [b]\<^sub>A ; P" 
+  shows "S \<sqsubseteq> I ; iteration A"
+  using assms
+  apply (simp add: action_rep_eq)
+  apply (safe)
+  apply (rule IterateC_list_outer_refine_init_intro, simp_all add: closure prod.case_eq_if iterate_refine_lemma gcmd_AssumeCircus)
+  apply (auto elim: map_prod_memE simp add: AssumeR_comp_AssumeCircus closure)
+  done
+
+subsection \<open> Proof Tactics \<close>
 
 method action_refine = (simp add: action_rep_eq, rdes_refine)
 

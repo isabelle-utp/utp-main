@@ -209,6 +209,9 @@ lemma unrest_times [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<L
 lemma unrest_divide [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u / v"
   by (simp add: divide_uexpr_def unrest)
 
+lemma unrest_case_prod [unrest]: "\<lbrakk> \<And> i j. x \<sharp> P i j \<rbrakk> \<Longrightarrow> x \<sharp> case_prod P v"
+  by (simp add: prod.split_sel_asm)
+
 text {* For a $\lambda$-term we need to show that the characteristic function expression does
   not restrict $v$ for any input value $x$. *}
     

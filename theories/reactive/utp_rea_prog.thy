@@ -140,6 +140,9 @@ where "\<lceil>p\<rceil>\<^sub>S\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^su
 abbreviation drop_state_post ("\<lfloor>_\<rfloor>\<^sub>S\<^sub>>")
 where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>> \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub>>"
 
+lemma st_unrest_state_pre [unrest]: "&\<^bold>v \<sharp> s \<Longrightarrow> $st \<sharp> \<lceil>s\<rceil>\<^sub>S\<^sub><"
+  by (rel_auto)
+
 lemma st'_unrest_st_lift_pred [unrest]:
   "$st\<acute> \<sharp> \<lceil>a\<rceil>\<^sub>S\<^sub><"
   by (pred_auto)
@@ -396,6 +399,10 @@ abbreviation abs_st ("\<langle>_\<rangle>\<^sub>S") where
 
 lemma rea_impl_aext_st [alpha]:
   "(P \<Rightarrow>\<^sub>r Q) \<oplus>\<^sub>r map_st\<^sub>L[a] = (P \<oplus>\<^sub>r map_st\<^sub>L[a] \<Rightarrow>\<^sub>r Q \<oplus>\<^sub>r map_st\<^sub>L[a])"
+  by (rel_auto)
+
+lemma rea_true_ext_st [alpha]: 
+  "true\<^sub>r \<oplus>\<^sub>p abs_st\<^sub>L = true\<^sub>r"
   by (rel_auto)
 
 subsubsection \<open> Reactive Frames and Extensions \<close>

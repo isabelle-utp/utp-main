@@ -55,6 +55,10 @@ lemma Healthy_set_image_member:
   "\<lbrakk> P \<in> F ` A; \<And> x. F x is H \<rbrakk> \<Longrightarrow> P is H"
   by blast
 
+lemma Healthy_case_prod [closure]: 
+  "\<lbrakk> \<And> x y. P x y is H \<rbrakk> \<Longrightarrow> case_prod P v is H"
+  by (simp add: prod.case_eq_if)
+
 lemma Healthy_SUPREMUM:
   "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)
@@ -264,11 +268,41 @@ proof -
     by (metis (mono_tags) UINF_mem_Continuous_closed assms(1) assms(2) assms(3) prod.collapse)
   finally show ?thesis .
 qed
-    
-lemma UINF_Continuous_closed [closure]:
-  "\<lbrakk> Continuous H; \<And> i. P(i) is H \<rbrakk> \<Longrightarrow> (\<Sqinter> i \<bullet> P(i)) is H"
-  using UINF_mem_Continuous_closed[of H UNIV P]
-  by (simp add: UINF_mem_UNIV)
+
+lemma UINF_mem_Continuous_closed_quad [closure]:
+  assumes "Continuous H" "\<And> i j k l. (i, j, k, l) \<in> A \<Longrightarrow> P i j k l is H" "A \<noteq> {}"
+  shows "(\<Sqinter> (i,j,k,l)\<in>A \<bullet> P i j k l) is H"
+proof -
+  have "(\<Sqinter> (i,j,k,l)\<in>A \<bullet> P i j k l) = (\<Sqinter> x\<in>A \<bullet> P (fst x) (fst (snd x)) (fst (snd (snd x))) (snd (snd (snd x))))"
+    by (rel_auto)
+  also have "... is H"
+    by (metis (mono_tags) UINF_mem_Continuous_closed assms(1) assms(2) assms(3) prod.collapse)
+  finally show ?thesis .
+qed
+
+lemma UINF_mem_Continuous_closed_quint [closure]:
+  assumes "Continuous H" "\<And> i j k l m. (i, j, k, l, m) \<in> A \<Longrightarrow> P i j k l m is H" "A \<noteq> {}"
+  shows "(\<Sqinter> (i,j,k,l,m)\<in>A \<bullet> P i j k l m) is H"
+proof -
+  have "(\<Sqinter> (i,j,k,l,m)\<in>A \<bullet> P i j k l m) 
+         = (\<Sqinter> x\<in>A \<bullet> P (fst x) (fst (snd x)) (fst (snd (snd x))) (fst (snd (snd (snd x)))) (snd (snd (snd (snd x)))))"
+    by (rel_auto)
+  also have "... is H"
+    by (metis (mono_tags) UINF_mem_Continuous_closed assms(1) assms(2) assms(3) prod.collapse)
+  finally show ?thesis .
+qed
+
+lemma UINF_ind_closed [closure]:
+  assumes "Continuous H" "\<And> i. P i = true" "\<And> i. Q i is H"
+  shows "UINF P Q is H"
+proof -
+  from assms(2) have "UINF P Q = (\<Sqinter> i \<bullet> Q i)"
+    by (rel_auto)
+  also have "... is H"
+    using UINF_mem_Continuous_closed[of H UNIV P]
+    by (simp add: Sup_Continuous_closed UINF_as_Sup_collect' assms)
+  finally show ?thesis .
+qed
 
 text {* All continuous functions are also Scott-continuous *}
 

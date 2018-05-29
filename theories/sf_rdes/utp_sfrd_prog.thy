@@ -143,6 +143,7 @@ proof -
     by (metis (no_types, hide_lams) RA1 Skip_right_unit assms(4) assms(5) urel_dioid.mult_isor) 
 qed
 
+
 lemma IterateC_list_outer_refine_intro:
   assumes 
     "A \<noteq> []" "S is NCSP"
@@ -162,7 +163,28 @@ proof -
     apply (metis assms(4) nth_mem prod.collapse)
     done
 qed
-  
+
+lemma IterateC_list_outer_refine_init_intro:
+  assumes 
+    "A \<noteq> []" "S is NCSP" "I is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
+    "S \<sqsubseteq> I ;; [\<not> (\<Sqinter> (b, P) \<in> set A \<bullet> b)]\<^sup>\<top>\<^sub>R"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> S ;; b \<rightarrow>\<^sub>R P"
+    "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> I ;; b \<rightarrow>\<^sub>R P" 
+  shows "S \<sqsubseteq> I ;; IterateC_list A"
+proof -
+  have "(\<Sqinter> i \<in> {0..<length(A)} \<bullet> (map fst A) ! i) = (\<Sqinter> (b, P) \<in> set A \<bullet> b)"
+    by (rel_auto, metis nth_mem prod.exhaust_sel, metis fst_conv in_set_conv_nth nth_map)
+  thus ?thesis
+    apply (simp add: IterateC_list_def)
+    apply (rule IterateC_outer_refine_init_intro)
+     apply (simp_all add: closure assms)
+    apply (metis assms(4) nth_mem prod.collapse)
+    apply (metis assms(5) nth_mem prod.collapse)
+    done
+qed
+
 subsection \<open> Assignment \<close>
 
 definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) action" ("\<langle>_\<rangle>\<^sub>C") where
@@ -285,8 +307,21 @@ done
 
 subsection \<open> Assumptions \<close>
 
-definition AssumeCircus ("{_}\<^sub>C") where
-[rdes_def]: "{b}\<^sub>C = \<^bold>R\<^sub>s(\<I>(b,\<langle>\<rangle>) \<turnstile> (false \<diamondop> \<Phi>(true,id,\<langle>\<rangle>)))"
+definition AssumeCircus ("[_]\<^sub>C") where
+[rdes_def]: "[b]\<^sub>C = b \<rightarrow>\<^sub>R Skip"
+
+lemma AssumeCircus_NCSP [closure]: "[b]\<^sub>C is NCSP"
+  by (simp add: AssumeCircus_def GuardedCommR_NCSP_closed NCSP_Skip)
+
+lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b]\<^sup>\<top>\<^sub>R ;; Skip = [b]\<^sub>C"
+  by (rdes_eq)+
+
+lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
+  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
+
+lemma gcmd_AssumeCircus: 
+  "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
+  by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
 
 subsection \<open> Guards \<close>
 

@@ -440,4 +440,7 @@ lemma CDF_NCSP [closure]: "CDF is NCSP"
 lemma Skip_deadlock_free: "CDF \<sqsubseteq> Skip"
   by (rdes_refine)
 
+lemma CDF_ext_st [alpha]: "CDF \<oplus>\<^sub>p abs_st\<^sub>L = CDF"
+  by (rdes_eq) 
+
 end

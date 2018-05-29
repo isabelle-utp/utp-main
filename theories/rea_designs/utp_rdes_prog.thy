@@ -450,6 +450,14 @@ proof -
   finally show ?thesis .
 qed
 
+lemma ext_st_rdes_dist [rdes_def]:
+  "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) \<oplus>\<^sub>p abs_st\<^sub>L = \<^bold>R\<^sub>s(P \<oplus>\<^sub>p abs_st\<^sub>L \<turnstile> Q \<oplus>\<^sub>p abs_st\<^sub>L \<diamondop> R \<oplus>\<^sub>p abs_st\<^sub>L)"
+  by (rel_auto)
+
+lemma state_srea_refine:
+  "(P \<oplus>\<^sub>p abs_st\<^sub>L) \<sqsubseteq> Q \<Longrightarrow> P \<sqsubseteq> (state_srea TYPE('s) Q)"
+  by (rel_auto)
+
 subsection \<open> Reactive Frames \<close>
 
 definition rdes_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha>, 't::trace, 'r) hrel_rsp \<Rightarrow> ('\<beta>, 't, 'r) hrel_rsp" where

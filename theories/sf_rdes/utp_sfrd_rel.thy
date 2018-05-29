@@ -17,6 +17,9 @@ lemma CRR_idem: "CRR(CRR(P)) = CRR(P)"
 lemma Idempotent_CRR [closure]: "Idempotent CRR"
   by (simp add: CRR_idem Idempotent_def)
 
+lemma Continuous_CRR [closure]: "Continuous CRR"
+  by (rel_blast)
+
 lemma CRR_intro:
   assumes "$ref \<sharp> P" "P is RR"
   shows "P is CRR"
@@ -672,7 +675,10 @@ done
 lemma csp_enable_unrests [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($ref\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<E>(s,t,e)"
   by (simp add: csp_enable_def R1_def lens_indep_sym unrest)
-    
+
+lemma st_unrest_csp_enable [unrest]: "\<lbrakk> &\<^bold>v \<sharp> s; &\<^bold>v \<sharp> t; &\<^bold>v \<sharp> E \<rbrakk> \<Longrightarrow> $st \<sharp> \<E>(s, t, E)" 
+  by (simp add: csp_enable_def unrest)
+
 lemma csp_enable_tr'_eq_tr [rpred]: 
   "\<E>(s,\<langle>\<rangle>,r) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> false = \<E>(s,\<langle>\<rangle>,r)"
   by (rel_auto)
