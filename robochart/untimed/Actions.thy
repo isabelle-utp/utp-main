@@ -85,7 +85,7 @@ syntax
 
 translations
   "_act_frame_ext x P" => "CONST frame_ext_Action x P"
-  "_rea_frame_ext (_salphaset (_salphamk x)) P" <= "CONST frame_ext_Action x P"
+  "_act_frame_ext (_salphaset (_salphamk x)) P" <= "CONST frame_ext_Action x P"
 
 lift_definition alternate :: "('s upred \<times> ('s, 'e) Action) list \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is AlternateR_list
   apply (rule AlternateR_list_CACT_closed)
@@ -151,7 +151,14 @@ lemmas action_rep_eq =
   less_eq_Action.rep_eq
   productive.rep_eq
   assumption.rep_eq
-  state_block_def dlf_def state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq send.rep_eq sync.rep_eq closure
+  guard.rep_eq
+  stop.rep_eq
+  skips.rep_eq
+  receive.rep_eq
+  send.rep_eq sync.rep_eq
+  ext_choice.rep_eq
+  frame_ext_Action.rep_eq
+  state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq  closure
 
 subsection \<open> Action Syntax \<close>
 
@@ -180,6 +187,19 @@ translations
   "decl x \<bullet> P"             == "CONST state_decl (LOCAL x \<bullet> P)"
 
 subsection \<open> Algebraic Laws \<close>
+
+lemma productive_sync [simp]: "productive (sync e)"
+  by (transfer, simp add: closure)
+
+lemma productive_receive [simp]: "productive (receive e x)"
+  by (transfer, simp add: closure)
+
+lemma productive_send [simp]: "productive (send e v)"
+  by (transfer, simp add: closure)
+
+lemma productive_Productive:
+  "productive P \<Longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>A is Productive"  
+  by (simp add: productive.rep_eq)
 
 named_theorems action_simp
 
@@ -234,8 +254,11 @@ lemma interleave_miracle: "miracle ||| P = miracle"
 lemma sync_commute: "P || Q = Q || P"
   apply (transfer) using parallel_commutative zero_lens_indep' by blast
 
-lemma rename_skip: "skips\<lparr>f\<rparr>\<^sub>A = skips"
+lemma rename_skip: "skip\<lparr>f\<rparr>\<^sub>A = skip"
   by (transfer, simp add: rename_Skip)
+  
+lemma iterate_Nil: "iteration [] = skip"
+  by (transfer, simp add: IterateC_list_def IterateC_def WhileC_false closure)
 
 lemma iterate_refine_lemma:
   "A \<noteq> {} \<Longrightarrow> (\<Or> (i, j) \<in> map_prod f g ` A \<bullet> P i j) = (\<Or> (i, j) \<in> A \<bullet> P (f i) (g j))"
@@ -244,20 +267,38 @@ lemma iterate_refine_lemma:
   apply (smt Collect_cong fst_conv imageE pair_imageI prod.case_eq_if prod.collapse snd_conv)
   done
 
+lemma UINF_false: "\<lbrakk> \<And> i. P i = false \<rbrakk> \<Longrightarrow> UINF P Q = false"
+  by (rel_simp)
+
+lemma assumption_true [simp]: "[true]\<^sub>A = skip"
+  by (transfer, simp add: AssumeCircus_def)
+
 lemma iterate_refine_intro:
-  assumes 
-    "A \<noteq> []" 
+  assumes  
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> productive P"
     "S \<sqsubseteq> I ; [\<not> (\<Or> (b, P) \<in> set A \<bullet> b)]\<^sub>A"
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> S ; [b]\<^sub>A ; P"
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> S \<sqsubseteq> I ; [b]\<^sub>A ; P" 
   shows "S \<sqsubseteq> I ; iteration A"
+proof (cases "A = []")
+  case True
+  then show ?thesis
+    using assms(2)
+    by (simp add: iterate_Nil UINF_false)
+next
+  case False
+  then show ?thesis 
   using assms
   apply (simp add: action_rep_eq)
   apply (safe)
   apply (rule IterateC_list_outer_refine_init_intro, simp_all add: closure prod.case_eq_if iterate_refine_lemma gcmd_AssumeCircus)
   apply (auto elim: map_prod_memE simp add: AssumeR_comp_AssumeCircus closure)
   done
+qed
+
+lemma dlf_state_decl:
+  "dlf \<sqsubseteq> P \<Longrightarrow> dlf \<sqsubseteq> state_decl P"
+  by (transfer, simp add: state_srea_refine alpha)
 
 subsection \<open> Proof Tactics \<close>
 

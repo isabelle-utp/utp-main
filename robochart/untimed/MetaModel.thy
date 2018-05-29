@@ -38,31 +38,103 @@ record ('s, 'e) StateMachine =
 
 abbreviation "sm_node_names sm \<equiv> map fst (sm_nodes sm)"
 
+definition "sm_inters sm \<equiv> filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm)"
+
+definition "sm_inter_names sm \<equiv> map fst (sm_inters sm)"
+
 subsection \<open> State Machine Semantics \<close>
+
+abbreviation "trigger_semantics t null_event \<equiv> 
+  (case tn_trigger t of Some e \<Rightarrow> if productive e then e else sync null_event | None \<Rightarrow> sync null_event)"
 
 definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
 "tr_semantics t null_event \<equiv> 
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
-  rc_state:[(case tn_trigger t of Some e \<Rightarrow> e | None \<Rightarrow> sync null_event) ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
+  rc_state:[trigger_semantics t null_event ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
 
 text \<open> The following function extracts a tree representation of nodes and the transitions for each state
   in the state machine. We exclude final states as reaching these should lead to termination even though
   there is no outgoing edges. \<close>
 
-abbreviation sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
-"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) 
-                   (filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm))"
+definition sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
+"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) (sm_inters sm)"
+
+definition "state_action null_event b ts \<equiv>
+        rc_state:[n_entry b]\<^sub>A\<^sup>+ ;
+        (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
+        rc_state:[n_exit b]\<^sub>A\<^sup>+"
+
+definition state_semantics :: "'e \<Rightarrow> ('s, 'e) Node \<times> ('s, 'e) Transition list \<Rightarrow> 'a robochart_ctrl_scheme upred \<times> ('s robochart_ctrl_scheme, 'e) Action" where
+  "state_semantics null_event
+    = (\<lambda> ((n, b), ts). 
+       (&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>,
+        state_action null_event b ts
+       )
+      )"
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> 'e Process" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
   state_decl (
     rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
-    iteration 
-       (map (\<lambda> ((n, b), ts). 
-              ( &rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>
-              , rc_state:[n_entry b]\<^sub>A\<^sup>+ ;
-                (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
-                rc_state:[n_exit b]\<^sub>A\<^sup>+)) (sm_tree sm)))"
+    iteration (map (state_semantics null_event) (sm_tree sm)))"
+
+lemmas sm_sem_def = sm_semantics_def state_semantics_def state_action_def sm_inters_def sm_inter_names_def sm_tree_def Transition.defs StateMachine.defs NodeBody.defs
+
+subsection \<open> Theorems \<close>
+
+lemma productive_tr_semantics [closure]: "productive (\<lbrakk>t\<rbrakk>\<^sub>T null_event)"
+  by (cases "tn_trigger t", auto simp add: tr_semantics_def action_rep_eq closure unrest)
+
+lemma productive_state_semantics:
+  "productive (state_action null_event s ts)"
+proof -
+  have "productive (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop)"
+    by (induct ts, auto simp add: action_rep_eq, simp add: closure productive_Productive)
+  thus ?thesis
+    by (simp add: action_rep_eq state_semantics_def state_action_def)
+qed
+
+lemma Sup_Collect_2_as_UINF:
+  "\<Sqinter> {P x y | x y. (x, y) \<in> A} = (\<Sqinter> (x, y) \<in> A \<bullet> P x y)"
+  apply (simp add: UINF_as_Sup[THEN sym], rel_simp)
+  apply (rule cong[of Sup Sup])
+   apply (auto)
+  done
+  
+lemma guard_form_lemma:
+  "(\<Sqinter> (b, P) \<in> state_semantics null_event ` set(sm_tree M) \<bullet> b) = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)"
+  (is "?lhs = ?rhs")
+proof -
+  have 1:"fst ` state_semantics null_event ` set(sm_tree M) = {&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright> | n s. (n, s) \<in> set(sm_inters M)}"
+    apply (simp add: sm_tree_def)
+    apply (induct "sm_transitions M")
+     apply (auto simp add: state_semantics_def prod.case_eq_if)
+    apply (auto simp add: image_def)
+    done
+  have 2:"?lhs = (\<Sqinter> (fst ` state_semantics null_event ` set(sm_tree M)))"
+    by (pred_auto, metis fst_conv, metis imageI prod.exhaust_sel)
+  also have "... = (\<Sqinter> (n, s) \<in> set(sm_inters M) \<bullet> (&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>))"
+    by (simp only: 1 Sup_Collect_2_as_UINF)
+  also have "... = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)"
+    by (simp add: sm_inter_names_def, rel_auto, force)
+  finally show ?thesis .
+qed
+
+lemma StateMachine_dlf_intro:
+  fixes M :: "('s, 'e) StateMachine"
+  assumes 
+    "(dlf :: ('s robochart_ctrl_scheme, 'e) Action) \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A"
+    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> dlf \<sqsubseteq> dlf ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> dlf \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+  shows "dlf \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+  apply (simp add: sm_semantics_def)
+  apply (rule dlf_state_decl)
+  apply (rule iterate_refine_intro)
+     apply (auto simp add: prod.case_eq_if comp_def image_Collect) 
+  apply (simp add: state_semantics_def productive_state_semantics)
+    apply (simp add: guard_form_lemma assms)
+   apply (auto simp add: state_semantics_def assms)
+  done
 
 subsection \<open> Transition and State Parsers \<close>
 
