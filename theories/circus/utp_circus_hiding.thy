@@ -1,3 +1,5 @@
+subsection \<open> Hiding \<close>
+
 theory utp_circus_hiding
 imports utp_circus_parallel
 begin
@@ -5,15 +7,31 @@ begin
 definition hide_rea ("hide\<^sub>r") where
 [upred_defs]: "hide\<^sub>r P E = (\<^bold>\<exists> s \<bullet> (P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>)))"
 
-lemma hide_rea_RR_closed [closure]: 
-  assumes "P is RR"
-  shows "hide\<^sub>r P E is RR"
+lemma hide_rea_CRR_closed [closure]: 
+  assumes "P is CRR"
+  shows "hide\<^sub>r P E is CRR"
 proof -
-  have "RR(hide\<^sub>r (RR P) E) = hide\<^sub>r (RR P) E"
+  have "CRR(hide\<^sub>r (CRR P) E) = hide\<^sub>r (CRR P) E"
     by (rel_auto, fastforce+)
   thus ?thesis
     by (metis Healthy_def' assms)
 qed
+
+lemma hide_rea_CDC [closure]:
+  assumes "P is CDC"
+  shows "hide\<^sub>r P E is CDC"
+proof -
+  have "CDC(hide\<^sub>r (CDC P) E) = hide\<^sub>r (CDC P) E"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if Healthy_intro assms)
+qed
+
+lemma st'_unrest_hide_rea [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> hide\<^sub>r P E"
+  by (simp add: hide_rea_def unrest)
+
+lemma ref'_unrest_hide_rea [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> hide\<^sub>r P E"
+  by (simp add: hide_rea_def unrest usubst)
 
 typedef (overloaded) 't::trace tchain = "{f :: nat \<Rightarrow> 't. f(0) = 0 \<and> (\<forall> n. f(n) \<le> f(Suc n))}" 
   by (rule_tac x="\<lambda> n. 0" in exI, auto)
@@ -22,22 +40,46 @@ setup_lifting type_definition_tchain
 
 lift_definition infinite_tchain :: "'t::trace tchain \<Rightarrow> bool" is "\<lambda> f. (\<forall> n. f(n) < f(Suc n))" .
 
-definition abs_rea ("abs\<^sub>r") where
-[upred_defs]: "abs\<^sub>r P Q E = (\<not>\<^sub>r ((\<^bold>\<exists> s \<bullet> (\<not>\<^sub>r P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>))) ;; true\<^sub>r))"
+definition abs_rea :: "('s, 'e) action \<Rightarrow> 'e set \<Rightarrow> ('s, 'e) action" ("abs\<^sub>r") where
+[upred_defs]: "abs\<^sub>r P E = (\<not>\<^sub>r (hide\<^sub>r (\<not>\<^sub>r P) E ;; true\<^sub>r))"
 
 lemma abs_rea_false [rpred]: "abs\<^sub>r false E = false"
-  by (rel_simp, metis append.right_neutral order_refl seq_filter_Nil)
+  by (rel_simp, metis append.right_neutral seq_filter_Nil)
 
 lemma abs_rea_true [rpred]: "abs\<^sub>r true\<^sub>r E = true\<^sub>r"
   by (rel_auto)
 
-lemma hide_rea_RC_closed [closure]:
-  "RC(hide_rea (RC P) E) = hide_rea (RC P) E"
-  oops
+lemma abs_rea_RC_closed [closure]:
+  assumes "P is CRR"
+  shows "abs\<^sub>r P E is CRC"
+proof -
+  have "RC1 (abs\<^sub>r (CRR P) E) = abs\<^sub>r (CRR P) E"
+    apply (rel_auto)
+    apply (metis order_refl)
+    apply blast
+    done
+  hence "abs\<^sub>r P E is RC1"
+    by (simp add: assms Healthy_if Healthy_intro closure)
+  thus ?thesis
+    by (rule_tac CRC_intro'', simp_all add: abs_rea_def closure assms unrest)
+qed
 
 definition HidingCSP  :: "('s, 'e) action \<Rightarrow> 'e set \<Rightarrow> ('s, 'e) action" (infixl "\\\<^sub>C" 80) where 
   [upred_defs, rdes_def]: 
   "HidingCSP P E = \<^bold>R\<^sub>s(abs\<^sub>r(pre\<^sub>R(P)) E \<turnstile> hide\<^sub>r (peri\<^sub>R(P)) E \<diamondop> hide\<^sub>r (post\<^sub>R(P)) E)"
+
+lemma HidingCSP_NCSP_closed [closure]: "P is NCSP \<Longrightarrow> P \\\<^sub>C E is NCSP"
+  by (simp add: HidingCSP_def closure unrest)
+
+lemma HidingCSP_C2_closed [closure]: 
+  assumes "P is NCSP" "P is C2"
+  shows "P \\\<^sub>C E is C2"
+  by (rdes_simp cls: assms, simp add: C2_rdes_intro closure unrest assms)
+
+lemma HidingCSP_CACT_closed [closure]:
+  assumes "P is CACT"
+  shows "P \\\<^sub>C E is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
 
 lemma "Chaos \\\<^sub>C E = Chaos"
   by (rdes_simp, rel_auto)
@@ -55,7 +97,8 @@ lemma [rpred]: "hide\<^sub>r \<Phi>(true,id,\<langle>\<guillemotleft>a\<guillemo
 lemma 
   assumes "P is NCSP" 
   shows "P \\\<^sub>C A \\\<^sub>C B = P \\\<^sub>C (A \<union> B)"
-  apply (rdes_eq' cls: assms)
+  apply (rdes_simp cls: assms)
+  oops
 
 lemma "Stop \\\<^sub>C A = Stop"
   by (rdes_eq)
@@ -64,7 +107,7 @@ lemma "Miracle \\\<^sub>C A = Miracle"
   by (rdes_eq)
 
 lemma "(a \<^bold>\<rightarrow> Skip) \\\<^sub>C {a} = Skip"
-  apply (rdes_eq)
+  by (rdes_eq)
 
 lemma "a \<noteq> b \<Longrightarrow> (a \<^bold>\<rightarrow> Skip) \\\<^sub>C {b} = (a \<^bold>\<rightarrow> Skip)"
   by (rdes_eq)
