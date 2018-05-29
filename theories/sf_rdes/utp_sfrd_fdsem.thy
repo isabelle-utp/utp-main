@@ -434,7 +434,6 @@ lemma CDF_NCSP [closure]: "CDF is NCSP"
   apply (simp add: CDF_def) 
   apply (rule NCSP_rdes_intro)
   apply (simp_all add: closure unrest)
-  apply (rel_auto)+
   done
   
 lemma Skip_deadlock_free: "CDF \<sqsubseteq> Skip"

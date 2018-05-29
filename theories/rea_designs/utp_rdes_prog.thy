@@ -533,6 +533,16 @@ proof -
   finally show ?thesis .
 qed
 
+lemma rdes_frame_ext_Productive_closed [closure]:
+  assumes "P is NSRD" "P is Productive"
+  shows "x:[P]\<^sub>R\<^sup>+ is Productive"
+proof -
+  have "x:[Productive(P)]\<^sub>R\<^sup>+ is Productive"
+    by (rdes_simp cls: assms, rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 subsection \<open> While Loop \<close>
 
 definition WhileR :: "'s upred \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("while\<^sub>R _ do _ od") where

@@ -57,6 +57,10 @@ lemma WhileC_NCSP_closed [closure]:
   shows "while\<^sub>C b do P od is NCSP"
   by (simp add: WhileC_def NSRD_coerce_NCSP assms closure)
 
+lemma WhileC_false: 
+  "P is NCSP \<Longrightarrow> WhileC false P = Skip"
+  by (simp add: NCSP_implies_NSRD Skip_srdes_left_unit WhileC_def WhileR_false)
+
 subsection \<open> Iteration Construction \<close>
 
 definition IterateC :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 'e) action) \<Rightarrow> ('s, 'e) action"
