@@ -132,19 +132,24 @@ qed
 
 lemma IterateC_outer_refine_init_intro:
   assumes 
-    "A \<noteq> {}" "\<And> i. i \<in> A \<Longrightarrow> P i is NCSP" 
+    "\<And> i. i \<in> A \<Longrightarrow> P i is NCSP" 
     "\<And> i. i \<in> A \<Longrightarrow> P i is Productive" 
     "S is NCSP" "I is NCSP"
     "S \<sqsubseteq> I ;; [\<not> (\<Sqinter> i \<in> A \<bullet> b i)]\<^sup>\<top>\<^sub>R"
     "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> S ;; b i \<rightarrow>\<^sub>R P i"
     "\<And> i. i \<in> A \<Longrightarrow> S \<sqsubseteq> I ;; b i \<rightarrow>\<^sub>R P i"
   shows "S \<sqsubseteq> I ;; do\<^sub>C i\<in>A \<bullet> b(i) \<rightarrow> P(i) od"
-proof -
+proof (cases "A = {}")
+  case True
+  with assms(5) show ?thesis 
+    by (simp add: IterateC_empty assms closure Skip_right_unit AssumeR_true NSRD_right_unit)
+next
+  case False
   have "S \<sqsubseteq> I ;; do\<^sub>R i\<in>A \<bullet> b(i) \<rightarrow> P(i) od"
-    by (simp add: IterateR_outer_refine_init_intro NCSP_implies_NSRD assms)
+    by (simp add: IterateR_outer_refine_init_intro NCSP_implies_NSRD assms False)
   thus ?thesis
     unfolding IterateC_IterateR_def
-    by (metis (no_types, hide_lams) RA1 Skip_right_unit assms(4) assms(5) urel_dioid.mult_isor) 
+    by (metis (no_types, hide_lams) RA1 Skip_right_unit assms(3) assms(4) urel_dioid.mult_isor) 
 qed
 
 
@@ -170,7 +175,7 @@ qed
 
 lemma IterateC_list_outer_refine_init_intro:
   assumes 
-    "A \<noteq> []" "S is NCSP" "I is NCSP"
+    "S is NCSP" "I is NCSP"
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is NCSP"
     "\<And> b P. (b, P) \<in> set A \<Longrightarrow> P is Productive"
     "S \<sqsubseteq> I ;; [\<not> (\<Sqinter> (b, P) \<in> set A \<bullet> b)]\<^sup>\<top>\<^sub>R"
@@ -184,8 +189,8 @@ proof -
     apply (simp add: IterateC_list_def)
     apply (rule IterateC_outer_refine_init_intro)
      apply (simp_all add: closure assms)
+    apply (metis assms(3) nth_mem prod.collapse)
     apply (metis assms(4) nth_mem prod.collapse)
-    apply (metis assms(5) nth_mem prod.collapse)
     done
 qed
 

@@ -1,7 +1,7 @@
 section \<open> Action Languages \<close>
 
 theory Actions
-  imports "UTP-Circus.utp_circus"
+  imports ReactiveSpec
 begin
 
 typedef ('s, 'e) Action = "{P :: ('s, 'e) action. P is CACT}"
@@ -55,8 +55,10 @@ lift_definition assumption :: "'s upred \<Rightarrow> ('s, 'e) Action" ("[_]\<^s
   by (simp add: closure)
 
 lift_definition seq :: 
-  "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr ";" 71) is "op ;;"
+  "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is "op ;;"
   by (simp add: closure)
+
+adhoc_overloading seq_comp seq
 
 lift_definition cond :: "('s, 'e) Action \<Rightarrow> 's upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action"
   is "cond_srea" by (simp add: closure)
@@ -150,6 +152,18 @@ notation
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
 
+lift_definition contract :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) Action" ("[_\<turnstile>_|_]")
+is "\<lambda> P Q R. \<^bold>R\<^sub>s(RC1(P) \<turnstile> CDC(\<exists> $st\<acute> \<bullet> Q) \<diamondop> (\<exists> $ref\<acute> \<bullet> R))"
+  apply (rule CACT_intro)
+   apply (rule NCSP_rdes_intro)
+  apply (simp_all add: closure unrest)
+  apply (metis (no_types, lifting) CRC_intro'' Healthy_intro RC1_def RC1_idem rea_not_CRR_closed rea_true_RR seq_CRR_closed)
+  apply (rule C2_rdes_intro)
+       apply (simp_all add: closure unrest)
+  apply (metis (no_types, lifting) CRC_intro'' Healthy_intro RC1_def RC1_idem rea_not_CRR_closed rea_true_RR seq_CRR_closed)
+  using CDC_idem Healthy_def apply blast
+  done
+
 lemmas action_rep_eq = 
   less_eq_Action.rep_eq
   productive.rep_eq
@@ -209,7 +223,7 @@ lemma productive_Productive:
 
 named_theorems action_simp
 
-lemma seq_assoc [simp, action_simp]: "(P ; Q) ; R = P ; Q ; R"
+lemma seq_assoc [simp, action_simp]: "((P :: ('s, 'e) Action) ; Q) ; R = P ; Q ; R"
   by (transfer, simp add: seqr_assoc)
 
 lemma ext_choice_idem [simp, action_simp]: "P \<box> P = P"
@@ -305,6 +319,11 @@ qed
 lemma dlf_state_decl:
   "dlf \<sqsubseteq> P \<Longrightarrow> dlf \<sqsubseteq> state_decl P"
   by (transfer, simp add: state_srea_refine alpha)
+
+subsection \<open> Contract Theorems \<close>
+
+lemma chaos_contract: "chaos = [false \<turnstile> false | false]"
+  by (transfer, rdes_eq)
 
 subsection \<open> Proof Tactics \<close>
 

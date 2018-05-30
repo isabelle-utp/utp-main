@@ -658,7 +658,7 @@ proof -
   show ?thesis
     by (rdes_simp cls: assms, metis "1" Healthy_if assms(3))
 qed
-  
+
 lemma ParCSP_rdes_def [rdes_def]:
   fixes P\<^sub>1 :: "('s,'e) action"
   assumes "P\<^sub>1 is CRC" "Q\<^sub>1 is CRC" "P\<^sub>2 is CRR" "Q\<^sub>2 is CRR" "P\<^sub>3 is CRR" "Q\<^sub>3 is CRR" 

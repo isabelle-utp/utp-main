@@ -46,9 +46,6 @@ lemma filter_eval [simp]:
   "(bop Cons x xs) \<restriction>\<^sub>u E = (bop Cons x (xs \<restriction>\<^sub>u E) \<triangleleft> x \<in>\<^sub>u E \<triangleright> xs\<restriction>\<^sub>uE)"
   by (rel_simp)
 
-lemma bop_lit_eval [simp]: "bop f \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> = \<guillemotleft>f x y\<guillemotright>"
-  by (rel_auto)
-
 lemma hide_rea_seq [rpred]:
   assumes "P is CRR" "$ref\<acute> \<sharp> P" "Q is CRR" 
   shows "hide\<^sub>r (P ;; Q) E = hide\<^sub>r P E ;; hide\<^sub>r Q E"
