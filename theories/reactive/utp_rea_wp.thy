@@ -29,6 +29,11 @@ lemma wp_rea_impl_lemma:
   "((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(Q \<Rightarrow>\<^sub>r R))) = ((P wp\<^sub>r Q) \<Rightarrow>\<^sub>r (R1(P) ;; R1(R)))"
   by (rel_auto, blast)
 
+lemma wpR_impl_post_spec:
+  assumes "P is RR"
+  shows "(P wp\<^sub>r Q\<^sub>1 \<Rightarrow>\<^sub>r (P ;; (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2))) = (P ;; (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2))"
+  by (simp add: R1_seqr_closure RR_implies_R1 assms rea_impl_def rea_not_R1 rea_not_not seqr_or_distr wp_rea_def)
+
 lemma wpR_R1_right [wp]:
   "P wp\<^sub>r R1(Q) = P wp\<^sub>r Q"
   by (rel_auto)

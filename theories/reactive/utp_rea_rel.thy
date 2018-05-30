@@ -564,6 +564,10 @@ proof -
     by (simp add: assms Healthy_if)
 qed
 
+lemma rea_impl_disj:
+  "(P \<Rightarrow>\<^sub>r Q \<or> R) = (Q \<or> (P \<Rightarrow>\<^sub>r R))"
+  by (rel_auto)
+
 lemma rea_not_true [simp]: "(\<not>\<^sub>r true) = false"
   by (rel_auto)
     

@@ -230,6 +230,44 @@ proof -
   finally show ?thesis .
 qed
 
+lemma NSRD_peri_under_pre [rpred]:
+  "P is NSRD \<Longrightarrow> (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) = peri\<^sub>R P"
+  by (simp add: SRD_peri_under_pre unrest closure)
+
+lemma NSRD_post_under_pre [rpred]:
+  "P is NSRD \<Longrightarrow> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) = post\<^sub>R P"
+  by (simp add: SRD_post_under_pre unrest closure)
+
+lemma NSRD_peri_seq_under_pre:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q) = (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q)"
+  by (metis NSRD_peri_under_pre assms(1) rea_impl_def utp_pred_laws.disj_assoc)
+
+lemma NSRD_postR_seq_periR_impl:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r (post\<^sub>R P ;; peri\<^sub>R Q)) = (post\<^sub>R P ;; peri\<^sub>R Q)"
+  by (metis NSRD_is_SRD NSRD_peri_under_pre assms postR_RR wpR_impl_post_spec)
+  
+lemma NSRD_postR_seq_postR_impl:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r (post\<^sub>R P ;; post\<^sub>R Q)) = (post\<^sub>R P ;; post\<^sub>R Q)"
+  by (metis NSRD_is_SRD NSRD_post_under_pre assms postR_RR wpR_impl_post_spec)
+
+lemma NSRD_peri_under_assms:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q) = (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q)"
+  by (metis (no_types, lifting) NSRD_peri_seq_under_pre assms NSRD_postR_seq_periR_impl rea_impl_conj rea_impl_disj)
+
+lemma NSRD_peri_under_assms':
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q) = (peri\<^sub>R P \<or> post\<^sub>R P ;; peri\<^sub>R Q)"
+  by (simp add: NSRD_postR_seq_periR_impl assms rea_impl_disj)
+
+lemma NSRD_post_under_assms:
+  assumes "P is NSRD" "Q is NSRD"
+  shows "(pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r post\<^sub>R P ;; post\<^sub>R Q) = (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R P ;; post\<^sub>R Q))"
+  by (metis NSRD_postR_seq_postR_impl assms(1) assms(2) rea_impl_conj)
+
 lemma NSRD_alt_def: "NSRD(P) = RD3(SRD(P))"
   by (metis NSRD_def RD1_RD3_commute RD3_left_subsumes_RD2 SRD_def comp_eq_dest_lhs)
 

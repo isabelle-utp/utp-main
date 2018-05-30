@@ -863,7 +863,7 @@ proof -
   have "peri\<^sub>R(P) = peri\<^sub>R (\<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> CDC(peri\<^sub>R P) \<diamondop> post\<^sub>R P))"
     by (metis C2_CDC_form Healthy_if assms(1) assms(2))
   also have "... = CDC (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P)"
-    by (simp add: rdes rpred assms closure unrest)
+    by (simp add: rdes rpred assms closure unrest del: NSRD_peri_under_pre)
   also have "... = CDC (peri\<^sub>R P)"
     by (simp add: SRD_peri_under_pre closure unrest assms)
   finally show ?thesis

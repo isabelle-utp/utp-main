@@ -730,6 +730,12 @@ lemma seq_filter_empty [simp]: "xs \<restriction>\<^sub>l {} = []"
 lemma seq_filter_append: "(xs @ ys) \<restriction>\<^sub>l A = (xs \<restriction>\<^sub>l A) @ (ys \<restriction>\<^sub>l A)"
   by (simp add: seq_filter_def)
 
+lemma seq_filter_UNIV [simp]: "xs \<restriction>\<^sub>l UNIV = xs"
+  by (simp add: seq_filter_def)
+
+lemma seq_filter_twice [simp]: "(xs \<restriction>\<^sub>l A) \<restriction>\<^sub>l B = xs \<restriction>\<^sub>l (A \<inter> B)"
+  by (simp add: seq_filter_def)
+
 subsection {* Minus on lists *}
 
 instantiation list :: (type) minus
