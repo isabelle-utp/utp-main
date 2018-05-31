@@ -152,8 +152,11 @@ notation
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
 
+lemma ex_st'_CDC_closed [closure]: "P is CDC \<Longrightarrow> (\<exists> $st\<acute> \<bullet> P) is CDC"
+  by (rel_blast)
+
 lift_definition contract :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) Action" ("[_\<turnstile>_|_]")
-is "\<lambda> P Q R. \<^bold>R\<^sub>s(RC1(P) \<turnstile> CDC(\<exists> $st\<acute> \<bullet> Q) \<diamondop> (\<exists> $ref\<acute> \<bullet> R))"
+is "\<lambda> P Q R. \<^bold>R\<^sub>s(RC1(P) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> (\<exists> $ref\<acute> \<bullet> R))"
   apply (rule CACT_intro)
    apply (rule NCSP_rdes_intro)
   apply (simp_all add: closure unrest)
@@ -161,7 +164,6 @@ is "\<lambda> P Q R. \<^bold>R\<^sub>s(RC1(P) \<turnstile> CDC(\<exists> $st\<ac
   apply (rule C2_rdes_intro)
        apply (simp_all add: closure unrest)
   apply (metis (no_types, lifting) CRC_intro'' Healthy_intro RC1_def RC1_idem rea_not_CRR_closed rea_true_RR seq_CRR_closed)
-  using CDC_idem Healthy_def apply blast
   done
 
 lemmas action_rep_eq = 
@@ -347,9 +349,9 @@ qed
 
 lemma seq_lemma_2: 
   assumes "Q\<^sub>2 is CRR"
-  shows "(CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; CDC (\<exists> $st\<acute> \<bullet> Q\<^sub>2)) = CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; Q\<^sub>2)"
+  shows "((\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; (\<exists> $st\<acute> \<bullet> Q\<^sub>2)) = (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; Q\<^sub>2)"
 proof -
-  have "(CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; CDC (\<exists> $st\<acute> \<bullet> CRR(Q\<^sub>2))) = CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; CRR(Q\<^sub>2))"
+  have "((\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; (\<exists> $st\<acute> \<bullet> CRR(Q\<^sub>2))) = (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; CRR(Q\<^sub>2))"
     by (rel_blast)
   thus ?thesis
     by (simp add: Healthy_if assms)
@@ -370,19 +372,64 @@ lemma contract_choice [contract]:
   "[P\<^sub>1 \<turnstile> P\<^sub>2 | P\<^sub>3] \<sqinter> [Q\<^sub>1 \<turnstile> Q\<^sub>2 | Q\<^sub>3] = [P\<^sub>1 \<and> Q\<^sub>1 \<turnstile> P\<^sub>2 \<or> Q\<^sub>2 | P\<^sub>3 \<or> Q\<^sub>3]"
 *)
 
+lemma CDC_ex_st' [rpred]: "CDC(\<exists> $st\<acute> \<bullet> P) = (\<exists> $st\<acute> \<bullet> CDC(P))"
+  by (rel_auto)
+
+lemma CDC_disj [rpred]: "CDC(P \<or> Q) = (CDC P \<or> CDC Q)"
+  by (rel_auto)
+
+
+declare RC1_RR_closed [closure]
+
+lemma ex_disj:"(\<exists> x \<bullet> P \<or> Q) = ((\<exists> x \<bullet> P) \<or> (\<exists> x \<bullet> Q))"
+  by (rel_auto)
+
+lemma contract_extchoice [contract]:
+  assumes "$st\<acute> \<sharp> P\<^sub>2"
+  shows "[P\<^sub>1 \<turnstile> P\<^sub>2 | P\<^sub>3] \<box> [Q\<^sub>1 \<turnstile> Q\<^sub>2 | Q\<^sub>3] = [P\<^sub>1 \<and> Q\<^sub>1 \<turnstile> [P\<^sub>2 \<and> Q\<^sub>2]\<^sub>\<box> \<or> [P\<^sub>2 \<or> Q\<^sub>2]\<^sub>\<rhd> | P\<^sub>3 \<or> Q\<^sub>3]"
+  using assms
+  apply (transfer)
+  apply (simp_all add: rdes_def closure unrest rpred RC1_conj ex_disj)
+  apply (rule srdes_tri_eq_intro)
+  apply (simp_all add: unrest ex_unrest)
+  apply (rel_simp)
+  done
+
+
 lemma contract_seqr [contract]:
   "[P\<^sub>1 \<turnstile> P\<^sub>2 | P\<^sub>3] ; [Q\<^sub>1 \<turnstile> Q\<^sub>2 | Q\<^sub>3] = [P\<^sub>1 \<and> P\<^sub>3 wp Q\<^sub>1 \<turnstile> (P\<^sub>2 \<or> P\<^sub>3 ; Q\<^sub>2) | (P\<^sub>3 ; Q\<^sub>3)]"
   apply (transfer)
   apply (subst rdes_def)
   apply (simp_all add: closure unrest)
   apply (metis (no_types, lifting) CRR_implies_RR R1_seqr_closure R1_true_comp RA1 RC1_RR_closed RC1_def RC_intro rea_not_R1 rea_not_not rea_true_R1)
-  using CRR_implies_RR RC1_RR_closed apply blast
   apply (rule srdes_tri_eq_intro)
     apply (simp add: seq_lemma_1)
-  apply (metis (no_types, lifting) CRR_implies_RR R1_seqr_closure R2_implies_R1 RA1 RC1_conj RC1_def RR_implies_R2 rea_not_R2_closed rea_not_not rea_true_R1 wp_rea_def)
+    apply (metis (no_types, lifting) CRR_implies_RR R1_seqr_closure R2_implies_R1 RA1 RC1_conj RC1_def RR_implies_R2 rea_not_R2_closed rea_not_not rea_true_R1 wp_rea_def)
    apply (simp add: seq_lemma_2)
   apply (simp add: seq_lemma_3)
   done
+
+lemma [unrest]: "$st\<acute> \<sharp> \<^bold>\<E>(true,\<langle>\<rangle>,{\<guillemotleft>a\<guillemotright>}\<^sub>u)"
+  by (simp add: runrest.rep_eq rrel_rep_eq unrest)
+
+lemma [simp]: "[P \<and> Q]\<^sub>\<box> = ([P]\<^sub>\<box> \<and> [Q]\<^sub>\<box>)"
+  by (transfer; simp add: rpred)
+
+lemma [simp]: "[P \<or> Q]\<^sub>\<rhd> = ([P]\<^sub>\<rhd> \<or> [Q]\<^sub>\<rhd>)"
+  by (transfer; simp add: rpred)
+
+lemma [simp]: "[\<^bold>\<E>(s,\<langle>\<rangle>,E)]\<^sub>\<box> = \<^bold>\<E>(s,\<langle>\<rangle>,E)"
+  by (transfer; simp add: rpred)
+
+lemma [simp]: "[\<^bold>\<E>(s,\<langle>\<rangle>,E)]\<^sub>\<rhd> = false"
+  by (transfer; simp add: rpred)
+
+lemma [simp]: "(\<^bold>\<E>(s\<^sub>1,\<langle>\<rangle>,E\<^sub>1) \<and> \<^bold>\<E>(s\<^sub>2,\<langle>\<rangle>,E\<^sub>2)) = \<^bold>\<E>(s\<^sub>1 \<and> s\<^sub>2,\<langle>\<rangle>,(E\<^sub>1 \<union>\<^sub>u E\<^sub>2))"
+  by (simp add: rrel_rep_eq rpred)
+
+lemma "sync a \<box> sync b ; sync c = undefined"
+  apply (simp add: contract unrest)
+  oops
 
 subsection \<open> Proof Tactics \<close>
 

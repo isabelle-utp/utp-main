@@ -81,7 +81,7 @@ lemma RC1_trace_ext_prefix:
   "out\<alpha> \<sharp> e \<Longrightarrow> RC1(\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) = (\<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)
     
-lemma RC1_conj: "RC1(P \<and> Q) = (RC1(P) \<and> RC1(Q))"
+lemma RC1_conj [rpred]: "RC1(P \<and> Q) = (RC1(P) \<and> RC1(Q))"
   by (rel_blast)
     
 lemma conj_RC1_closed [closure]:
@@ -180,7 +180,7 @@ lemma RC_unrest_dashed [unrest]:
   "\<lbrakk> P is RC; mwb_lens x; x \<bowtie> tr \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P"
   by (metis Healthy_if RC1_unrest RC_implies_RC1)
 
-lemma RC1_RR_closed: "P is RR \<Longrightarrow> RC1(P) is RR"
+lemma RC1_RR_closed [closure]: "P is RR \<Longrightarrow> RC1(P) is RR"
   by (simp add: RC1_def closure)
 
 end
