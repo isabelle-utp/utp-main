@@ -178,6 +178,7 @@ lemmas action_rep_eq =
   interleave.rep_eq
   synchronise.rep_eq
   Action_eq_transfer
+  contract.rep_eq
   state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq  closure
 
 subsection \<open> Action Syntax \<close>
@@ -322,8 +323,66 @@ lemma dlf_state_decl:
 
 subsection \<open> Contract Theorems \<close>
 
-lemma chaos_contract: "chaos = [false \<turnstile> false | false]"
+named_theorems contract
+
+lemma chaos_contract [contract]: "chaos = [false \<turnstile> false | false]"
   by (transfer, rdes_eq)
+
+lemma stop_contract [contract]: "stop = [true \<turnstile> \<^bold>\<E>(true,\<langle>\<rangle>,{}\<^sub>u) | false]"
+  by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
+
+lemma sync_contract [contract]: "sync e = [true \<turnstile> \<^bold>\<E>(true,\<langle>\<rangle>,{\<guillemotleft>e\<guillemotright>}\<^sub>u) | \<^bold>\<Phi>(true,id,\<langle>\<guillemotleft>e\<guillemotright>\<rangle>)]"
+  by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
+
+lemma seq_lemma_1: 
+  assumes "Q\<^sub>1 is CRR"
+  shows "(\<exists> $ref\<acute> \<bullet> P\<^sub>3) wp\<^sub>r RC1 Q\<^sub>1 = P\<^sub>3 wp\<^sub>r RC1 Q\<^sub>1"
+proof -
+  have "(\<exists> $ref\<acute> \<bullet> P\<^sub>3) wp\<^sub>r CRC Q\<^sub>1 = P\<^sub>3 wp\<^sub>r CRC Q\<^sub>1"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: CRC_def CRR_implies_RR CRR_unrest_ref Healthy_if RC_def assms ex_unrest ref_unrest_RC1)
+  
+qed
+
+lemma seq_lemma_2: 
+  assumes "Q\<^sub>2 is CRR"
+  shows "(CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; CDC (\<exists> $st\<acute> \<bullet> Q\<^sub>2)) = CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; Q\<^sub>2)"
+proof -
+  have "(CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2) \<or> (\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; CDC (\<exists> $st\<acute> \<bullet> CRR(Q\<^sub>2))) = CDC (\<exists> $st\<acute> \<bullet> P\<^sub>2 \<or> P\<^sub>3 ;; CRR(Q\<^sub>2))"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma seq_lemma_3:
+  assumes "Q\<^sub>3 is CRR"
+  shows "(\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; (\<exists> $ref\<acute> \<bullet> Q\<^sub>3) = (\<exists> $ref\<acute> \<bullet> P\<^sub>3 ;; Q\<^sub>3)"
+proof -
+  have "(\<exists> $ref\<acute> \<bullet> P\<^sub>3) ;; (\<exists> $ref\<acute> \<bullet> CRR(Q\<^sub>3)) = (\<exists> $ref\<acute> \<bullet> P\<^sub>3 ;; CRR(Q\<^sub>3))"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+(*
+lemma contract_choice [contract]:
+  "[P\<^sub>1 \<turnstile> P\<^sub>2 | P\<^sub>3] \<sqinter> [Q\<^sub>1 \<turnstile> Q\<^sub>2 | Q\<^sub>3] = [P\<^sub>1 \<and> Q\<^sub>1 \<turnstile> P\<^sub>2 \<or> Q\<^sub>2 | P\<^sub>3 \<or> Q\<^sub>3]"
+*)
+
+lemma contract_seqr [contract]:
+  "[P\<^sub>1 \<turnstile> P\<^sub>2 | P\<^sub>3] ; [Q\<^sub>1 \<turnstile> Q\<^sub>2 | Q\<^sub>3] = [P\<^sub>1 \<and> P\<^sub>3 wp Q\<^sub>1 \<turnstile> (P\<^sub>2 \<or> P\<^sub>3 ; Q\<^sub>2) | (P\<^sub>3 ; Q\<^sub>3)]"
+  apply (transfer)
+  apply (subst rdes_def)
+  apply (simp_all add: closure unrest)
+  apply (metis (no_types, lifting) CRR_implies_RR R1_seqr_closure R1_true_comp RA1 RC1_RR_closed RC1_def RC_intro rea_not_R1 rea_not_not rea_true_R1)
+  using CRR_implies_RR RC1_RR_closed apply blast
+  apply (rule srdes_tri_eq_intro)
+    apply (simp add: seq_lemma_1)
+  apply (metis (no_types, lifting) CRR_implies_RR R1_seqr_closure R2_implies_R1 RA1 RC1_conj RC1_def RR_implies_R2 rea_not_R2_closed rea_not_not rea_true_R1 wp_rea_def)
+   apply (simp add: seq_lemma_2)
+  apply (simp add: seq_lemma_3)
+  done
 
 subsection \<open> Proof Tactics \<close>
 

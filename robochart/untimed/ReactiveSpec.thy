@@ -71,6 +71,12 @@ interpretation boolean_algebra rdiff rnot rconj "op \<le>" "op <" rdisj rfalse r
   apply (simp add: rdiff_def)
   done
 
+lift_definition rwp ::
+  "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "op wp\<^sub>r"
+  by (simp add: CRR_implies_RR rea_not_CRR_closed seq_CRR_closed wp_rea_def)
+
+adhoc_overloading
+  uwp rwp
 
 lift_definition rseq :: 
   "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel"  is "op ;;"
@@ -83,5 +89,37 @@ lift_definition rcondition :: "('s, 'e) rrel \<Rightarrow> bool" is "\<lambda> P
 
 lemma rcondition_true: "rcondition true"
   by (transfer, simp add: closure)
+
+lemma st_subst_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is CRR"
+  by (rule CRR_intro, simp_all add: unrest closure assms)
+
+lift_definition rsubst :: "'s usubst \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "st_subst"
+  by (simp add: closure)
+
+adhoc_overloading subst rsubst
+
+lift_definition rcsp_do :: "'s upred \<Rightarrow> 's usubst \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) rrel" ("\<^bold>\<Phi>'(_,_,_')") is csp_do
+  by (simp add: closure)
+
+lift_definition rcsp_enable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('e set, 's) uexpr \<Rightarrow> ('s, 'e) rrel" ("\<^bold>\<E>'(_,_,_')") is csp_enable
+  by (simp add: closure)
+
+
+lemmas rrel_rep_eq = rtrue.rep_eq rfalse.rep_eq rcsp_do.rep_eq rcsp_enable.rep_eq
+
+lemma [simp]: "P ; rfalse = rfalse"
+  by (transfer, simp)
+(*
+thm wp
+
+lemma wp_rcsp_do [wp]:
+  "\<^bold>\<Phi>(s,\<sigma>,t) wp P = (\<I>(s,t) \<Rightarrow> (\<sigma> \<dagger> ?P)\<lbrakk>?t\<rbrakk>\<^sub>t)"
+
+lemma
+  fixes P :: "('s, 'e) rrel"
+  shows "P wp false = "
+*)
 
 end
