@@ -106,7 +106,7 @@ fun nodeBodyT state event = Type (@{type_name NodeBody_ext}, [state, event, unit
 fun nodeT state event = mk_prodT (HOLogic.stringT, nodeBodyT state event);
 fun transitionT state event = Type (@{type_name "Transition_ext"}, [state, event, unitT]);
 fun statemachineT state event = Type (@{type_name "StateMachine_ext"}, [state, event, unitT]);
-fun actionT state event = Type ("Actions.Action", [state, event]); 
+fun actionT state event = Type ("MetaModel.RoboAction", [state, event]); 
 
 val mk_StateMachine = Const (fst (dest_Const @{term StateMachine.make}), dummyT);
 val sm_semantics = Const (fst (dest_Const @{term sm_semantics}), dummyT);
@@ -139,7 +139,7 @@ fun compileTransSem null_event def_thms tds ctx =
     val sem_thms = 
       map (fn (term, (n, thm)) =>
         (* Use simplifier with definitional theorems and Circus laws to calculate semantics *)
-        let val thms = (def_thms @ @{thms Transition.defs} @ [@{thm tr_semantics_def}]);
+        let val thms = (def_thms @ @{thms action_simp[THEN eq_reflection]} @ @{thms Transition.defs} @ [@{thm tr_semantics_def}]);
             val thms_raw = @{thms action_simp[THEN eq_reflection]} @ @{thms sc_rewrites} @ @{thms Transition.select_convs[THEN eq_reflection]} @ thms
             val ft = Syntax.check_term ctx (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) (* (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) *);
             val semt = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) thms_raw [] ft;
@@ -156,7 +156,7 @@ fun compileStatemachine (n, (((((vs, es), ss), ins), fins), ts)) thy0 =
       val stateT = nodeT alphaT evT;
       val tranT = transitionT alphaT evT;
       val machineT = statemachineT alphaT evT;
-      val actT = actionT @{typ unit} evT;
+      val actT = actionT alphaT evT;
       val (tds, ctx2) = compileTransDecls ts tranT ctx1;
       val transDef = mk_def (listT tranT) $ Free ("transitions", (listT tranT)) $ mk_list tranT (map fst tds);
       val ((tr_term, (_, tr_thm)), ctx3) = Specification.definition NONE [] [] ((Binding.empty, []), transDef) ctx2;

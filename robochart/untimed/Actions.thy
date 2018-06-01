@@ -68,6 +68,26 @@ lift_definition assigns :: "'s usubst \<Rightarrow> ('s, 'e) Action" is "Assigns
   
 adhoc_overloading uassigns assigns
 
+lemma st_subst_NCSP_closed [closure]:
+  assumes "P is NCSP"
+  shows "\<sigma> \<dagger>\<^sub>S P is NCSP"
+  by (rdes_simp cls: assms)
+
+lemma st_subst_C2_closed [closure]:
+  assumes "P is NCSP" "P is C2"
+  shows "\<sigma> \<dagger>\<^sub>S P is C2"
+  by (rdes_simp cls: assms, simp add: C2_rdes_intro closure assms unrest)
+
+lemma st_subst_CACT_closed [closure]:
+  assumes "P is CACT"
+  shows "\<sigma> \<dagger>\<^sub>S P is CACT"
+  by (rule CACT_intro, simp_all add: closure assms)
+
+lift_definition asubst :: "'s usubst \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is st_subst
+  by (simp add: closure)
+
+adhoc_overloading usubst asubst
+
 lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr "\<^bold>&" 70) is "GuardCSP"
   by (simp add: closure)
 
@@ -181,6 +201,8 @@ lemmas action_rep_eq =
   synchronise.rep_eq
   Action_eq_transfer
   contract.rep_eq
+  asubst.rep_eq
+  miracle.rep_eq
   state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq  closure
 
 subsection \<open> Action Syntax \<close>
@@ -226,31 +248,48 @@ lemma productive_Productive:
 
 named_theorems action_simp
 
-lemma seq_assoc [simp, action_simp]: "((P :: ('s, 'e) Action) ; Q) ; R = P ; Q ; R"
+lemma seq_assoc [action_simp]: "((P :: ('s, 'e) Action) ; Q) ; R = P ; Q ; R"
   by (transfer, simp add: seqr_assoc)
 
-lemma ext_choice_idem [simp, action_simp]: "P \<box> P = P"
+lemma miracle_left_anhil [action_simp]: "miracle ; P = miracle"
+  by (transfer, simp add: CACT_implies_NCSP csp_theory.Top_Left_Zero)
+
+lemma assigns_seq [action_simp]: 
+  fixes P :: "('s, 'e) Action"
+  shows "\<langle>\<sigma>\<rangle>\<^sub>a ; P = (\<sigma> \<dagger> P)"
+  by (transfer, metis (no_types, lifting) AssignsCSP_as_AssignsR CACT_implies_NCSP NCSP_implies_NSRD assigns_srd_left_seq csp_theory.Unit_Left seqr_assoc)
+
+lemma asubst_asm [action_simp]: "\<sigma> \<dagger> [b]\<^sub>A = [\<sigma> \<dagger> b]\<^sub>A ; \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma asm_false [action_simp]: "[false]\<^sub>A = miracle"
+  by (transfer, rdes_eq)
+
+lemma miracle_top: "P \<sqsubseteq> miracle"
+  by (simp add: action_rep_eq)
+
+lemma ext_choice_idem [action_simp]: "P \<box> P = P"
   by (transfer, simp add: extChoice_idem closure)
 
-lemma skip_left_unit [simp, action_simp]: "skip ; P = P"
+lemma skip_left_unit [action_simp]: "skip ; P = P"
   by (transfer, simp add: Skip_left_unit closure)
 
-lemma skip_right_unit [simp, action_simp]: "P ; skip = P"
+lemma skip_right_unit [action_simp]: "P ; skip = P"
   by (transfer, simp add: Skip_right_unit closure)
 
-lemma stop_choice_left_zero [simp, action_simp]: "stop \<box> P = P"
+lemma stop_choice_left_zero [action_simp]: "stop \<box> P = P"
   by (transfer, simp add: extChoice_Stop closure)
 
-lemma stop_choice_right_zero [simp, action_simp]: "P \<box> stop = P"
+lemma stop_choice_right_zero [action_simp]: "P \<box> stop = P"
   by (transfer, subst extChoice_comm, simp add: extChoice_Stop closure)
 
-lemma stop_seq_left_zero [simp, action_simp]: "stop ; P = stop"
+lemma stop_seq_left_zero [action_simp]: "stop ; P = stop"
   by (transfer, simp add: closure Stop_left_zero)
 
-lemma true_guard [simp, action_simp]: "true \<^bold>& P = P"
+lemma true_guard [action_simp]: "true \<^bold>& P = P"
   by (transfer, simp add: closure)
 
-lemma false_guard [simp, action_simp]: "false \<^bold>& P = stop"
+lemma false_guard [action_simp]: "false \<^bold>& P = stop"
   by (transfer, simp add: NCSP_implies_CSP)
 
 lemma frame_seq [simp]: "vwb_lens a \<Longrightarrow> a:[P ; Q]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; a:[Q]\<^sub>A\<^sup>+"
@@ -268,10 +307,10 @@ lemma decl_Skip [simp]: "(decl x \<bullet> skips) = skips"
 lemma interleave_commute: "P ||| Q = Q ||| P"
   by (transfer, simp add: interleave_commute)
 
-lemma interleave_unit: "P ||| skips = P"
+lemma interleave_unit [action_simp]: "P ||| skips = P"
   by (transfer, simp add: interleave_unit)
 
-lemma interleave_miracle: "miracle ||| P = miracle"
+lemma interleave_miracle [action_simp]: "miracle ||| P = miracle"
   by (transfer, simp add: parallel_miracle closure)
 
 lemma sync_commute: "P || Q = Q || P"

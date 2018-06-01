@@ -120,6 +120,11 @@ lemma st_subst_CRR_closed [closure]:
   shows "(\<sigma> \<dagger>\<^sub>S P) is CRR"
   by (rule CRR_intro, simp_all add: unrest closure assms)
 
+lemma st_subst_CRC_closed [closure]:
+  assumes "P is CRC"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is CRC"
+  by (rule CRC_intro, simp_all add: closure assms unrest)
+
 lemma st_subst_CDC_closed [closure]:
   assumes "P is CDC"
   shows "(\<sigma> \<dagger>\<^sub>S P) is CDC"
@@ -133,7 +138,7 @@ qed
 lift_definition rsubst :: "'s usubst \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "st_subst"
   by (simp add: closure)
 
-adhoc_overloading subst rsubst
+adhoc_overloading usubst rsubst
 
 lift_definition rR4 :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" ("[_]\<^sub>\<rhd>") is "R4" by (simp add: closure)
 
@@ -168,5 +173,6 @@ lemma
   fixes P :: "('s, 'e) rrel"
   shows "P wp false = "
 *)
+
 
 end

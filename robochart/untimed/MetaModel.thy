@@ -4,13 +4,17 @@ theory MetaModel
   imports Actions
 begin
 
-
 subsection \<open> State Machine Syntax \<close>
 
 text \<open> All state machine statespace types extend the following type which provides a state control variable \<close>
 
 alphabet robochart_ctrl =
   rc_ctrl :: string 
+
+type_synonym ('s, 'e) RoboAction = "('s robochart_ctrl_scheme, 'e) Action"
+
+translations
+  (type) "('s, 'e) RoboAction" <= (type) "('s robochart_ctrl_scheme, 'e) Action"
 
 abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
 
@@ -31,23 +35,42 @@ record ('s, 'e) NodeBody =
 type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody"
 
 record ('s, 'e) StateMachine =
-  sm_initial     :: "string"
-  sm_finals      :: "string list"
+  sm_initial     :: "string" ("init\<index>")
+  sm_finals      :: "string list" ("finals\<index>")
   sm_nodes       :: "('s, 'e) Node list"
-  sm_transitions :: "('s, 'e) Transition list"
+  sm_transitions :: "('s, 'e) Transition list" ("\<^bold>T\<index>")
 
-abbreviation "sm_node_names sm \<equiv> map fst (sm_nodes sm)"
+abbreviation sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string list" ("nodes\<index>") where
+"sm_node_names sm \<equiv> map fst (sm_nodes sm)"
 
-definition "sm_inters sm \<equiv> filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm)"
+definition sm_inters :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node list" where
+"sm_inters sm = filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm)"
 
-definition "sm_inter_names sm \<equiv> map fst (sm_inters sm)"
+definition sm_inter_names ("inters\<index>") where
+"sm_inter_names sm \<equiv> map fst (sm_inters sm)"
+
+subsection \<open> Well-Formedness \<close>
+
+locale WfStateMachine =
+  fixes M :: "('s, 'm) StateMachine" (structure)
+  assumes init_is_state: "init \<in> set(nodes)"
+  and init_not_final: "init \<notin> set(finals)"
+  and trans_wf: " \<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> tn_source t \<in> set(inters) \<and> tn_target t \<in> set(nodes)"
+begin
+  lemma init_is_inter: "init \<in> set(inters)"
+    using init_is_state init_not_final by (auto simp add: sm_inters_def sm_inter_names_def)
+end
+
+method check_machine uses defs = 
+  (unfold_locales, 
+   simp_all add: defs StateMachine.defs Transition.defs sm_inter_names_def sm_inters_def, safe, simp_all)
 
 subsection \<open> State Machine Semantics \<close>
 
 abbreviation "trigger_semantics t null_event \<equiv> 
   (case tn_trigger t of Some e \<Rightarrow> if productive e then e else sync null_event | None \<Rightarrow> sync null_event)"
 
-definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s robochart_ctrl_scheme, 'e) Action" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
+definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
 "tr_semantics t null_event \<equiv> 
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
   rc_state:[trigger_semantics t null_event ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
@@ -64,7 +87,7 @@ definition "state_action null_event b ts \<equiv>
         (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
         rc_state:[n_exit b]\<^sub>A\<^sup>+"
 
-definition state_semantics :: "'e \<Rightarrow> ('s, 'e) Node \<times> ('s, 'e) Transition list \<Rightarrow> 'a robochart_ctrl_scheme upred \<times> ('s robochart_ctrl_scheme, 'e) Action" where
+definition state_semantics :: "'e \<Rightarrow> ('s, 'e) Node \<times> ('s, 'e) Transition list \<Rightarrow> 'a robochart_ctrl_scheme upred \<times> ('s, 'e) RoboAction" where
   "state_semantics null_event
     = (\<lambda> ((n, b), ts). 
        (&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>,
@@ -72,10 +95,9 @@ definition state_semantics :: "'e \<Rightarrow> ('s, 'e) Node \<times> ('s, 'e) 
        )
       )"
 
-definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> 'e Process" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
+definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics sm null_event = 
-  state_decl (
-    rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
+    (rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
     iteration (map (state_semantics null_event) (sm_tree sm)))"
 
 lemmas sm_sem_def = sm_semantics_def state_semantics_def state_action_def sm_inters_def sm_inter_names_def sm_tree_def Transition.defs StateMachine.defs NodeBody.defs
@@ -121,20 +143,37 @@ proof -
 qed
 
 lemma StateMachine_dlf_intro:
-  fixes M :: "('s, 'e) StateMachine"
+  fixes 
+    S :: "('s, 'e) RoboAction" and
+    M :: "('s, 'e) StateMachine"
   assumes 
-    "(dlf :: ('s robochart_ctrl_scheme, 'e) Action) \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A"
-    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> dlf \<sqsubseteq> dlf ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
-    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> dlf \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
-  shows "dlf \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
-  apply (simp add: sm_semantics_def)
-  apply (rule dlf_state_decl)
+    "WfStateMachine M"
+    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+  shows "S \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+proof -
+  interpret wf: WfStateMachine M
+    by (simp add: assms)
+  have "S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A" (is "?lhs \<sqsubseteq> ?rhs")
+  proof -
+    have "?rhs = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>set(inters\<^bsub>M\<^esub>)\<guillemotright>]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
+      by (simp add: action_simp usubst)
+    also have "... = [false]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
+      by (literalise, simp add: wf.init_is_inter, unliteralise, simp)
+    also have "... = miracle"
+      by (simp add: action_simp)
+    finally
+    show ?thesis by (simp add: miracle_top)
+  qed
+  thus ?thesis
+    apply (simp add: sm_semantics_def)
   apply (rule iterate_refine_intro)
      apply (auto simp add: prod.case_eq_if comp_def image_Collect) 
   apply (simp add: state_semantics_def productive_state_semantics)
     apply (simp add: guard_form_lemma assms)
    apply (auto simp add: state_semantics_def assms)
-  done
+    done
+qed
 
 subsection \<open> Transition and State Parsers \<close>
 
