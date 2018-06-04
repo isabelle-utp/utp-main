@@ -262,6 +262,46 @@ lemma assigns_seq [action_simp]:
 lemma asubst_asm [action_simp]: "\<sigma> \<dagger> [b]\<^sub>A = [\<sigma> \<dagger> b]\<^sub>A ; \<langle>\<sigma>\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
 
+lemma asubst_twice [action_simp]: 
+  fixes P :: "('s, 'e) Action"
+  shows "\<sigma> \<dagger> \<rho> \<dagger> P = (\<rho> \<circ> \<sigma>) \<dagger> P"
+  by (simp add: action_rep_eq usubst)
+
+lemma asubst_seq [action_simp]:
+  fixes P Q :: "('s, 'e) Action"
+  shows "\<sigma> \<dagger> (P ; Q) = ((\<sigma> \<dagger> P) ; Q)"
+  by (simp add: action_rep_eq usubst)
+
+lemma asubst_skip [action_simp]:
+  "\<sigma> \<dagger> skip = \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma asubst_assigns [action_simp]:
+  "\<sigma> \<dagger> (\<langle>\<rho>\<rangle>\<^sub>a :: ('s, 'e) Action) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma GuardCSP_usubst:
+  assumes "P is NCSP"
+  shows "\<sigma> \<dagger>\<^sub>S (b &\<^sub>u P) = (\<sigma> \<dagger> b) &\<^sub>u (\<sigma> \<dagger>\<^sub>S P)"
+  by (rdes_eq cls: assms)
+
+lemma extChoice_usubst:
+  assumes "P is NCSP" "Q is NCSP"
+  shows "\<sigma> \<dagger>\<^sub>S (extChoice P Q) = extChoice (\<sigma> \<dagger>\<^sub>S P) (\<sigma> \<dagger>\<^sub>S Q)"
+  by (rdes_eq cls: assms)
+
+lemma asubst_extchoice [action_simp]:
+  "\<sigma> \<dagger> (P \<box> Q) = (\<sigma> \<dagger> P) \<box> (\<sigma> \<dagger> Q)"
+  by (simp add: action_rep_eq extChoice_usubst closure)
+
+lemma asubst_guard [action_simp]:
+  "\<sigma> \<dagger> (b \<^bold>& P) = (\<sigma> \<dagger> b) \<^bold>& (\<sigma> \<dagger> P)"
+  by (simp add: action_rep_eq GuardCSP_usubst closure)
+
+lemma asubst_sync [action_simp]:
+  "\<sigma> \<dagger> sync e = sync e ; \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
 lemma asm_false [action_simp]: "[false]\<^sub>A = miracle"
   by (transfer, rdes_eq)
 
@@ -334,6 +374,21 @@ lemma UINF_false: "\<lbrakk> \<And> i. P i = false \<rbrakk> \<Longrightarrow> U
 
 lemma assumption_true [simp]: "[true]\<^sub>A = skip"
   by (transfer, simp add: AssumeCircus_def)
+
+lemma asm_assign:
+  "vwb_lens x \<Longrightarrow> [&x =\<^sub>u k]\<^sub>A ; x := k =  [&x =\<^sub>u k]\<^sub>A"
+  apply (simp add: action_rep_eq)
+  apply (rdes_eq)
+  using vwb_lens.put_eq apply force+
+  done
+
+lemma rdes_assume_pre_refine:
+  assumes "P is NCSP"
+  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
+  by (rdes_refine cls: assms)
+
+lemma asm_pre_refine: "P \<sqsubseteq> [b]\<^sub>A ; P"
+  by (simp add: action_rep_eq rdes_assume_pre_refine closure)
 
 lemma iterate_refine_intro:
   assumes  
