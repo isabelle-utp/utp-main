@@ -216,8 +216,6 @@ lemma asubst_seq [action_simp]:
 lemma UINF_Collect: "(\<Sqinter> b \<in> {F(x)| x . x \<in> A} \<bullet> b) = (\<Sqinter> x \<in> A \<bullet> F(x))"
   by (simp add: Sup_Collect_as_UINF UINF_as_Sup)
 
-
-
 lemma ueq_literlise [lit_simps]: 
   "(\<guillemotleft>x = y\<guillemotright>) = (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>)"
   by (rel_auto)
@@ -244,7 +242,7 @@ lemma StateMachine_refine_intro:
   assumes 
     "WfStateMachine M"
     "S \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
-    "\<And> n. n \<in> set(sm_nodes M) \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+    "\<And> n. n \<in> set(nodes\<^bsub>M\<^esub>) \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>the(nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
   shows "S \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
 proof -
   interpret wf: WfStateMachine M
@@ -305,7 +303,7 @@ proof -
     fix n
     assume a:"n \<in> set(sm_nodes M)"
     have "S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
-      by (simp add: a assms(3))
+      using a assms(3) wf.nmap_name by fastforce
     moreover have "S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N) \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
       by (rule seq_refine_mono, simp_all add: asm_pre_refine)
     ultimately show "S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
