@@ -12,9 +12,11 @@ alphabet robochart_ctrl =
   rc_ctrl :: string 
 
 type_synonym ('s, 'e) RoboAction = "('s robochart_ctrl_scheme, 'e) Action"
+type_synonym 's RoboPred = "'s robochart_ctrl_scheme upred"
 
 translations
   (type) "('s, 'e) RoboAction" <= (type) "('s robochart_ctrl_scheme, 'e) Action"
+  (type) "'s RoboPred" <= (type) "'s robochart_ctrl_scheme upred"
 
 abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
 
@@ -27,12 +29,17 @@ record ('s, 'e) Transition =
   tn_condition :: "'s upred"
   tn_action    :: "('s, 'e) Action"
 
-record ('s, 'e) NodeBody =
+declare Transition.defs [simp]
+
+record ('s, 'e) Node =
+  n_name   :: "string"
   n_entry  :: "('s, 'e) Action"
   n_during :: "('s, 'e) Action"
   n_exit   :: "('s, 'e) Action"
 
-type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody"
+declare Node.defs [simp]
+
+(* type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody" *)
 
 record ('s, 'e) StateMachine =
   sm_initial     :: "string" ("init\<index>")
@@ -40,30 +47,71 @@ record ('s, 'e) StateMachine =
   sm_nodes       :: "('s, 'e) Node list"
   sm_transitions :: "('s, 'e) Transition list" ("\<^bold>T\<index>")
 
+declare StateMachine.defs [simp]
+
 abbreviation sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string list" ("nodes\<index>") where
-"sm_node_names sm \<equiv> map fst (sm_nodes sm)"
+"sm_node_names sm \<equiv> map n_name (sm_nodes sm)"
 
 definition sm_inters :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node list" where
-"sm_inters sm = filter (\<lambda> (n,s). n \<notin> set(sm_finals sm)) (sm_nodes sm)"
+"sm_inters sm = filter (\<lambda> n. n_name n \<notin> set(sm_finals sm)) (sm_nodes sm)"
 
 definition sm_inter_names ("inters\<index>") where
-"sm_inter_names sm \<equiv> map fst (sm_inters sm)"
+"sm_inter_names sm \<equiv> map n_name (sm_inters sm)"
+
+definition sm_node_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Node)" ("nmap\<index>") where
+"sm_node_map M = map_of (map (\<lambda> n. (n_name n, n)) (sm_nodes M))"
+
+definition sm_trans_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Transition list)" ("tmap\<index>") where
+"sm_trans_map M = map_of (map (\<lambda> n. (n_name n, filter (\<lambda> t. tn_source t = n_name n) (sm_transitions M))) (sm_nodes M))"
+
+lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = set(nodes\<^bsub>M\<^esub>)"
+  using image_iff by (force simp add: sm_node_map_def dom_map_of_conv_image_fst)
+
+abbreviation sm_init_node :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node" ("ninit\<index>") where
+"sm_init_node M \<equiv> the (sm_node_map M (sm_initial M))"
 
 subsection \<open> Well-Formedness \<close>
 
 locale WfStateMachine =
   fixes M :: "('s, 'm) StateMachine" (structure)
-  assumes init_is_state: "init \<in> set(nodes)"
+  -- \<open> The list of nodes is a set \<close>
+  assumes nodes_distinct: "distinct nodes"
+  and init_is_state: "init \<in> set(nodes)"
   and init_not_final: "init \<notin> set(finals)"
   and trans_wf: " \<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> tn_source t \<in> set(inters) \<and> tn_target t \<in> set(nodes)"
 begin
   lemma init_is_inter: "init \<in> set(inters)"
     using init_is_state init_not_final by (auto simp add: sm_inters_def sm_inter_names_def)
+
+  lemma nmap_init: "nmap init = Some ninit"
+    by (metis domIff dom_sm_node_map init_is_state option.exhaust_sel)
+
+  lemma n_name_init: "n_name ninit = init"
+  proof (simp add: sm_node_map_def)
+    have "map_of (map (\<lambda>n. (n_name n, n)) (sm_nodes M)) init = Some (the (map_of (map (\<lambda>n. (n_name n, n)) (sm_nodes M)) init))"
+      by (metis (no_types) nmap_init sm_node_map_def)
+    then show "n_name (the (map_of (map (\<lambda>n. (n_name n, n)) (sm_nodes M)) init)) = init"
+      using map_of_SomeD by force
+  qed
+
+  lemma nmap_name:
+    assumes "n \<in> set(sm_nodes M)"
+    shows "nmap (n_name n) = Some n"
+  proof -
+    have "distinct (map fst (map (\<lambda>n. (n_name n, n)) (sm_nodes M)))"
+      by (simp add: comp_def nodes_distinct)
+    with assms show ?thesis
+      by (simp add: sm_node_map_def)
+  qed
+
+  lemma ninit_is_node: "ninit \<in> set(sm_nodes M)"
+    using init_is_state nmap_name by auto
+
 end
 
 method check_machine uses defs = 
   (unfold_locales, 
-   simp_all add: defs StateMachine.defs Transition.defs sm_inter_names_def sm_inters_def, safe, simp_all)
+   simp_all add: defs sm_inter_names_def sm_inters_def, safe, simp_all)
 
 subsection \<open> State Machine Semantics \<close>
 
@@ -80,41 +128,46 @@ text \<open> The following function extracts a tree representation of nodes and 
   there is no outgoing edges. \<close>
 
 definition sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
-"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = fst s) (sm_transitions sm))) (sm_inters sm)"
+"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = n_name s) (sm_transitions sm))) (sm_inters sm)"
 
-definition "state_action null_event b ts \<equiv>
-        rc_state:[n_entry b]\<^sub>A\<^sup>+ ;
-        (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop) ;
-        rc_state:[n_exit b]\<^sub>A\<^sup>+"
-
-definition state_semantics :: "'e \<Rightarrow> ('s, 'e) Node \<times> ('s, 'e) Transition list \<Rightarrow> 'a robochart_ctrl_scheme upred \<times> ('s, 'e) RoboAction" where
-  "state_semantics null_event
-    = (\<lambda> ((n, b), ts). 
-       (&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>,
-        state_action null_event b ts
-       )
-      )"
+definition node_semantics :: 
+  "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
+  "node_semantics M null_event node  = 
+  ([&rc_ctrl =\<^sub>u \<guillemotleft>n_name node\<guillemotright>]\<^sub>A ;
+   rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
+   (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop) ;
+   rc_state:[n_exit node]\<^sub>A\<^sup>+)"
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
-"sm_semantics sm null_event = 
-    (rc_ctrl := \<guillemotleft>sm_initial sm\<guillemotright> ;
-    iteration (map (state_semantics null_event) (sm_tree sm)))"
+"sm_semantics M null_event = 
+    (rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ;
+    iteration (map (\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) (sm_nodes M)))"
 
-lemmas sm_sem_def = sm_semantics_def state_semantics_def state_action_def sm_inters_def sm_inter_names_def sm_tree_def Transition.defs StateMachine.defs NodeBody.defs
+lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def sm_tree_def Transition.defs StateMachine.defs Node.defs
 
 subsection \<open> Theorems \<close>
 
 lemma productive_tr_semantics [closure]: "productive (\<lbrakk>t\<rbrakk>\<^sub>T null_event)"
   by (cases "tn_trigger t", auto simp add: tr_semantics_def action_rep_eq closure unrest)
 
-lemma productive_state_semantics:
-  "productive (state_action null_event s ts)"
+lemma productive_node_semantics:
+  "productive (M;null_event \<turnstile> \<lbrakk>node\<rbrakk>\<^sub>N)"
 proof -
-  have "productive (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop)"
-    by (induct ts, auto simp add: action_rep_eq, simp add: closure productive_Productive)
+  have "\<And> ts. productive (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop)"
+    by (rename_tac ts, induct_tac ts, auto simp add: action_rep_eq closure, simp add: closure productive_Productive)
+  hence "productive (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop)"
+    by blast
   thus ?thesis
-    by (simp add: action_rep_eq state_semantics_def state_action_def)
+    by (simp add: action_rep_eq closure node_semantics_def)
 qed
+
+lemma Sup_Collect_as_UINF:
+  "\<Sqinter> {P x | x. x \<in> A} = (\<Sqinter> x \<in> A \<bullet> P x)"
+  apply (simp add: UINF_as_Sup[THEN sym], rel_simp)
+  apply (rule cong[of Sup Sup])
+   apply (auto)
+  done
+  
 
 lemma Sup_Collect_2_as_UINF:
   "\<Sqinter> {P x y | x y. (x, y) \<in> A} = (\<Sqinter> (x, y) \<in> A \<bullet> P x y)"
@@ -122,12 +175,12 @@ lemma Sup_Collect_2_as_UINF:
   apply (rule cong[of Sup Sup])
    apply (auto)
   done
-  
+(*
 lemma guard_form_lemma:
   "(\<Sqinter> (b, P) \<in> state_semantics null_event ` set(sm_tree M) \<bullet> b) = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)"
   (is "?lhs = ?rhs")
 proof -
-  have 1:"fst ` state_semantics null_event ` set(sm_tree M) = {&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright> | n s. (n, s) \<in> set(sm_inters M)}"
+  have 1:"fst ` state_semantics null_event ` set(sm_tree M) = {&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright> | n. n \<in> set(sm_inters M)}"
     apply (simp add: sm_tree_def)
     apply (induct "sm_transitions M")
      apply (auto simp add: state_semantics_def prod.case_eq_if)
@@ -135,12 +188,13 @@ proof -
     done
   have 2:"?lhs = (\<Sqinter> (fst ` state_semantics null_event ` set(sm_tree M)))"
     by (pred_auto, metis fst_conv, metis imageI prod.exhaust_sel)
-  also have "... = (\<Sqinter> (n, s) \<in> set(sm_inters M) \<bullet> (&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>))"
-    by (simp only: 1 Sup_Collect_2_as_UINF)
+  also have "... = (\<Sqinter> n \<in> set(sm_inters M) \<bullet> (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>))"
+    by (simp only: Sup_Collect_as_UINF 1)
   also have "... = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)"
-    by (simp add: sm_inter_names_def, rel_auto, force)
+    by (simp add: sm_inter_names_def, rel_auto)
   finally show ?thesis .
 qed
+*)
 
 lemma asm_assign:
   "vwb_lens x \<Longrightarrow> [&x =\<^sub>u k]\<^sub>A ; x := k =  [&x =\<^sub>u k]\<^sub>A"
@@ -149,24 +203,59 @@ lemma asm_assign:
   using vwb_lens.put_eq apply force+
   done
 
-lemma asubst_seq [action_simp]: 
+lemma asubst_twice [action_simp]: 
+  fixes P :: "('s, 'e) Action"
+  shows "\<sigma> \<dagger> \<rho> \<dagger> P = (\<rho> \<circ> \<sigma>) \<dagger> P"
+  by (simp add: action_rep_eq usubst)
+
+lemma asubst_seq [action_simp]:
   fixes P Q :: "('s, 'e) Action"
   shows "\<sigma> \<dagger> (P ; Q) = ((\<sigma> \<dagger> P) ; Q)"
   by (simp add: action_rep_eq usubst)
 
-lemma StateMachine_dlf_intro:
+lemma UINF_Collect: "(\<Sqinter> b \<in> {F(x)| x . x \<in> A} \<bullet> b) = (\<Sqinter> x \<in> A \<bullet> F(x))"
+  by (simp add: Sup_Collect_as_UINF UINF_as_Sup)
+
+
+
+lemma ueq_literlise [lit_simps]: 
+  "(\<guillemotleft>x = y\<guillemotright>) = (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>)"
+  by (rel_auto)
+
+declare [[show_sorts]]
+
+lemma StateMachine_refine_intro:
   fixes 
     S :: "('s, 'e) RoboAction" and
     M :: "('s, 'e) StateMachine"
   assumes 
     "WfStateMachine M"
-    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
-    "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+    "S \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+    "\<And> n. n \<in> set(sm_nodes M) \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
   shows "S \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
 proof -
   interpret wf: WfStateMachine M
     by (simp add: assms)
-  have "S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A" (is "?lhs \<sqsubseteq> ?rhs")
+  have 1: "\<And>n. n \<in> set(sm_nodes M) \<Longrightarrow> productive (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+    by (simp add: productive_node_semantics)
+  have 2: "S \<sqsubseteq> rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> ; [\<not> (\<Sqinter> (b, P) \<in> (\<lambda>n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) ` set(sm_nodes M) \<bullet> b)]\<^sub>A"
+  proof -
+    have a:"(\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright> :: 's RoboPred, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) ` set(sm_nodes M) =
+             {(&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)| n . n \<in> set(sm_nodes M)}"
+      by (auto)
+    have b: "(\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>n_name ` set(sm_nodes M)\<guillemotright>) = false"
+      by (literalise, metis (full_types) false_alt_def image_set true_alt_def utp_pred_laws.compl_top_eq wf.init_is_state)
+    have "(\<Sqinter> (b, P) \<in> (\<lambda>n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright> :: 's RoboPred, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) ` set(sm_nodes M) \<bullet> b) =
+           (\<Sqinter> (b, P) \<in> {(&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)| n . n \<in> set(sm_nodes M)} \<bullet> b)"
+      by (simp add: a)
+    also have "...  = (\<Sqinter> b \<in> {&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>| n . n \<in> set(sm_nodes M)} \<bullet> b)"
+      by (rel_auto)      
+    also have "... = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_node_names M)\<guillemotright>)"
+      by (simp add: UINF_Collect, rel_auto)
+    finally show ?thesis
+      by (simp add: action_simp usubst b miracle_top)
+  qed
+  have 3: "S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A" (is "?lhs \<sqsubseteq> ?rhs")
   proof -
     have "?rhs = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>set(inters\<^bsub>M\<^esub>)\<guillemotright>]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
       by (simp add: action_simp usubst)
@@ -177,6 +266,37 @@ proof -
     finally
     show ?thesis by (simp add: miracle_top)
   qed
+  have 4:"\<And>n. n \<in> set(sm_nodes M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+  proof -
+    fix n
+    assume a:"n \<in> set(sm_nodes M)"
+    show "S \<sqsubseteq> rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+    proof (cases "n=ninit\<^bsub>M\<^esub>")
+      case True
+      hence "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N) = (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+        apply (simp add: node_semantics_def action_simp usubst)
+      with True assms(2) show ?thesis
+        by (simp add: action_simp usubst wf.n_name_init)
+    next
+      case False
+      with a have "(init\<^bsub>M\<^esub> = n_name n) = False"
+        using wf.nmap_name by auto
+      hence "((\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> =\<^sub>u \<guillemotleft>n_name n\<guillemotright>) :: 's RoboPred) = false"
+        by (rel_auto)
+      thus ?thesis
+        by (simp add: action_simp usubst miracle_top)
+    qed
+  qed
+  have 5: "\<And>n. n \<in> set(sm_nodes M) \<Longrightarrow> S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+  proof -
+    fix n
+    assume a:"n \<in> set(sm_nodes M)"
+    have "S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+      by (simp add: a assms(3))
+    hence "S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+      apply (simp add: node_semantics_def)
+
+
 (*
   moreover have "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
   proof -
@@ -186,12 +306,11 @@ proof -
           = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; ([&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (state_action null_event b ts))"
       by (simp add: action_simp usubst)
 *)  
-  thus ?thesis
+  show ?thesis
     apply (simp add: sm_semantics_def)
-  apply (rule iterate_refine_intro)
-     apply (auto simp add: prod.case_eq_if comp_def image_Collect) 
-  apply (simp add: state_semantics_def productive_state_semantics)
-    apply (simp add: guard_form_lemma assms)
+    apply (rule iterate_refine_intro)
+    apply (auto simp add: 1 2 3 4)
+    apply (simp add: guard_form_lemma 2)
    apply (auto simp add: state_semantics_def assms)
     done
 qed
@@ -230,7 +349,7 @@ translations
   "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
 
   "_state e d x" =>
-  "CONST NodeBody.make e d x"
+  "CONST Node.make (CONST undefined) e d x"
 
 term "from s1 to s2 trigger y := 1; x?(y) ; z!(1) condition b action a"
 term "from s1 to s2 action a"

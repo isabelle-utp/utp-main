@@ -5,6 +5,8 @@ theory StateMachine
   keywords "statemachine" :: "thy_decl_block" and "states" "initial" "finals" "transitions" "vars" "events"
 begin
 
+ML {* @{term "Transition.make ''s1''"} *}
+
 subsection \<open> Interface to Algebraic Datatypes \<close>
 
 lemma meta_refl: "(x = x) \<equiv> True"
@@ -102,8 +104,8 @@ compileEventDecls NONE = compileEventDecls (SOME []);
 
 fun mk_def ty = Const ("Pure.eq", ty --> ty --> Term.propT);
 
-fun nodeBodyT state event = Type (@{type_name NodeBody_ext}, [state, event, unitT]);
-fun nodeT state event = mk_prodT (HOLogic.stringT, nodeBodyT state event);
+fun nodeBodyT state event = Type (@{type_name Node_ext}, [state, event, unitT]);
+fun nodeT state event = nodeBodyT state event;
 fun transitionT state event = Type (@{type_name "Transition_ext"}, [state, event, unitT]);
 fun statemachineT state event = Type (@{type_name "StateMachine_ext"}, [state, event, unitT]);
 fun actionT state event = Type ("MetaModel.RoboAction", [state, event]); 
@@ -111,35 +113,43 @@ fun actionT state event = Type ("MetaModel.RoboAction", [state, event]);
 val mk_StateMachine = Const (fst (dest_Const @{term StateMachine.make}), dummyT);
 val sm_semantics = Const (fst (dest_Const @{term sm_semantics}), dummyT);
 
+val n_name = Const (fst (dest_Const @{term MetaModel.n_name}), dummyT);
+val n_node_update = Const (fst (dest_Const @{term MetaModel.n_name_update}), dummyT);
+
+val tn_source = Const (fst (dest_Const @{term MetaModel.tn_source}), dummyT);
 
 fun compileStateDecls defs typ ctx =
-  fold (fn (b, t) => fn (ts, ctx) =>        
+  fold (fn (b, t) => fn (ts, simps, ctx) =>        
            let 
-             val tm = pair_const @{typ string} dummyT $ mk_string (Binding.name_of b) $ Syntax.parse_term ctx t;
-             val (t', ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
+             val tm = n_node_update $ (absdummy dummyT (mk_string (Binding.name_of b))) $ (Syntax.parse_term ctx t);
+             val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
+             val sthm = prove_eq_simplify ctx' (n_name $ trm) (mk_string (Binding.name_of b)) [thm]
            in
-             (t' :: ts, ctx')
+             ((trm, (nm, thm)) :: ts, sthm :: simps, ctx')
            end
-        ) defs ([], ctx);
+        ) defs ([], [], ctx);
 
 fun compileTransDecls (SOME defs) typ ctx =
-  fold (fn (b, t) => fn (ts, ctx) =>        
+  fold (fn (b, t) => fn (ts, simps, ctx) =>        
            let 
              val tm = Syntax.parse_term ctx t;
-             val (t', ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
+             val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
+             (* Calculate the source node name for each transitions. Quite slow; optimise. *)
+             val src = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) (@{thms Transition.simps[THEN eq_reflection]} @ @{thms Transition.defs} @ [thm]) [] (Syntax.check_term ctx (tn_source $ trm));
+             val sthm = prove_eq_simplify ctx' (tn_source $ trm) src [thm]
            in
-             (t' :: ts, ctx')
+             ((trm, (nm, thm)) :: ts, sthm :: simps, ctx')
            end
-        ) defs ([], ctx)
+        ) defs ([], [], ctx)
   |
-  compileTransDecls NONE _ ctx = ([], ctx);
+  compileTransDecls NONE _ ctx = ([], [], ctx);
 
 fun compileTransSem null_event def_thms tds ctx =
   let
     val sem_thms = 
       map (fn (term, (n, thm)) =>
         (* Use simplifier with definitional theorems and Circus laws to calculate semantics *)
-        let val thms = (def_thms @ @{thms action_simp[THEN eq_reflection]} @ @{thms Transition.defs} @ [@{thm tr_semantics_def}]);
+        let val thms = (def_thms @ @{thms action_simp[THEN eq_reflection]} @ [@{thm tr_semantics_def}]);
             val thms_raw = @{thms action_simp[THEN eq_reflection]} @ @{thms sc_rewrites} @ @{thms Transition.select_convs[THEN eq_reflection]} @ thms
             val ft = Syntax.check_term ctx (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) (* (Const ("MetaModel.tr_semantics", dummyT) $ term $ null_event) *);
             val semt = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) thms_raw [] ft;
@@ -157,10 +167,10 @@ fun compileStatemachine (n, (((((vs, es), ss), ins), fins), ts)) thy0 =
       val tranT = transitionT alphaT evT;
       val machineT = statemachineT alphaT evT;
       val actT = actionT alphaT evT;
-      val (tds, ctx2) = compileTransDecls ts tranT ctx1;
+      val (tds, tsimps, ctx2) = compileTransDecls ts tranT ctx1;
       val transDef = mk_def (listT tranT) $ Free ("transitions", (listT tranT)) $ mk_list tranT (map fst tds);
       val ((tr_term, (_, tr_thm)), ctx3) = Specification.definition NONE [] [] ((Binding.empty, []), transDef) ctx2;
-      val (sds, ctx4) = compileStateDecls ss stateT ctx3;
+      val (sds, simps, ctx4) = compileStateDecls ss stateT ctx3;
       val statesDef = mk_def (listT stateT) $ Free ("states", (listT stateT)) $ mk_list stateT (map fst sds)
       val ((st_term, (_, st_thm)), ctx5) = Specification.definition NONE [] [] ((Binding.empty, []), statesDef) ctx4;
       val fins' = (case fins of NONE => [] | SOME ss => map (mk_string o Binding.name_of) ss);
@@ -172,7 +182,8 @@ fun compileStatemachine (n, (((((vs, es), ss), ins), fins), ts)) thy0 =
       val def_thms = map (snd o snd) tds @ map (snd o snd) sds @ [st_thm, tr_thm, mch_thm, act_thm];
       val (_, ctx8) = Local_Theory.note ((Binding.name "defs", []), def_thms) ctx7;
       val (_, ctx9) = compileTransSem null_event def_thms tds ctx8;
-  in Local_Theory.exit_global ctx9
+      val (_, ctx10) = Local_Theory.note ((Binding.name "simps", []), simps @ tsimps) ctx9;
+  in Local_Theory.exit_global ctx10
   end;
 
 val _ =

@@ -203,7 +203,7 @@ lemmas action_rep_eq =
   contract.rep_eq
   asubst.rep_eq
   miracle.rep_eq
-  state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq  closure
+  state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq 
 
 subsection \<open> Action Syntax \<close>
 
@@ -266,7 +266,7 @@ lemma asm_false [action_simp]: "[false]\<^sub>A = miracle"
   by (transfer, rdes_eq)
 
 lemma miracle_top: "P \<sqsubseteq> miracle"
-  by (simp add: action_rep_eq)
+  by (simp add: action_rep_eq closure)
 
 lemma ext_choice_idem [action_simp]: "P \<box> P = P"
   by (transfer, simp add: extChoice_idem closure)
