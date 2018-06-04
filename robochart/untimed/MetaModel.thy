@@ -142,6 +142,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma asm_assign:
+  "vwb_lens x \<Longrightarrow> [&x =\<^sub>u k]\<^sub>A ; x := k =  [&x =\<^sub>u k]\<^sub>A"
+  apply (simp add: action_rep_eq)
+  apply (rdes_eq)
+  using vwb_lens.put_eq apply force+
+  done
+
+lemma asubst_seq [action_simp]: 
+  fixes P Q :: "('s, 'e) Action"
+  shows "\<sigma> \<dagger> (P ; Q) = ((\<sigma> \<dagger> P) ; Q)"
+  by (simp add: action_rep_eq usubst)
+
 lemma StateMachine_dlf_intro:
   fixes 
     S :: "('s, 'e) RoboAction" and
@@ -165,6 +177,15 @@ proof -
     finally
     show ?thesis by (simp add: miracle_top)
   qed
+(*
+  moreover have "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
+  proof -
+    fix n b ts
+    assume "((n, b), ts) \<in> set(sm_tree M)"
+    have "rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts 
+          = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; ([&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (state_action null_event b ts))"
+      by (simp add: action_simp usubst)
+*)  
   thus ?thesis
     apply (simp add: sm_semantics_def)
   apply (rule iterate_refine_intro)
