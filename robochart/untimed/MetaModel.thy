@@ -133,7 +133,7 @@ definition sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<time
 definition node_semantics :: 
   "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
-  ([&rc_ctrl =\<^sub>u \<guillemotleft>n_name node\<guillemotright>]\<^sub>A ;
+  (rc_ctrl := \<guillemotleft>n_name node\<guillemotright> ;
    rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
    (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop) ;
    rc_state:[n_exit node]\<^sub>A\<^sup>+)"
@@ -222,7 +222,20 @@ lemma ueq_literlise [lit_simps]:
   "(\<guillemotleft>x = y\<guillemotright>) = (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>)"
   by (rel_auto)
 
-declare [[show_sorts]]
+lemma rdes_assume_pre_refine:
+  assumes "P is NCSP"
+  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
+  by (rdes_refine cls: assms)
+
+lemma asm_pre_refine: "P \<sqsubseteq> [b]\<^sub>A ; P"
+  by (simp add: action_rep_eq rdes_assume_pre_refine closure)
+
+lemma seq_refine_mono:
+  fixes P\<^sub>1 P\<^sub>2 Q\<^sub>1 Q\<^sub>2 :: "('s, 'e) Action"
+  assumes "P\<^sub>1 \<sqsubseteq> Q\<^sub>1" "P\<^sub>2 \<sqsubseteq> Q\<^sub>2"
+  shows "P\<^sub>1 ; P\<^sub>2 \<sqsubseteq> Q\<^sub>1 ; Q\<^sub>2"
+  using assms
+  by (simp add: action_rep_eq seqr_mono)
 
 lemma StateMachine_refine_intro:
   fixes 
@@ -274,7 +287,7 @@ proof -
     proof (cases "n=ninit\<^bsub>M\<^esub>")
       case True
       hence "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N) = (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
-        apply (simp add: node_semantics_def action_simp usubst)
+        by (simp add: node_semantics_def action_simp usubst)
       with True assms(2) show ?thesis
         by (simp add: action_simp usubst wf.n_name_init)
     next
@@ -293,25 +306,16 @@ proof -
     assume a:"n \<in> set(sm_nodes M)"
     have "S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
       by (simp add: a assms(3))
-    hence "S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
-      apply (simp add: node_semantics_def)
+    moreover have "S ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N) \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+      by (rule seq_refine_mono, simp_all add: asm_pre_refine)
+    ultimately show "S \<sqsubseteq> S ; [&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>]\<^sub>A ; (M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)"
+      using dual_order.trans by blast
+  qed
 
-
-(*
-  moreover have "\<And> n b ts. ((n, b), ts) \<in> set(sm_tree M) \<Longrightarrow> S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts"
-  proof -
-    fix n b ts
-    assume "((n, b), ts) \<in> set(sm_tree M)"
-    have "rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [&rc_ctrl =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; state_action null_event b ts 
-          = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sub>A ; ([&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (state_action null_event b ts))"
-      by (simp add: action_simp usubst)
-*)  
   show ?thesis
     apply (simp add: sm_semantics_def)
     apply (rule iterate_refine_intro)
-    apply (auto simp add: 1 2 3 4)
-    apply (simp add: guard_form_lemma 2)
-   apply (auto simp add: state_semantics_def assms)
+    apply (auto simp add: 1 2 3 4 5)
     done
 qed
 
