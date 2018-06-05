@@ -39,24 +39,27 @@ record ('s, 'e) Node =
 
 declare Node.defs [simp]
 
-(* type_synonym ('s, 'e) Node = "string \<times> ('s, 'e) NodeBody" *)
-
 record ('s, 'e) StateMachine =
   sm_initial     :: "string" ("init\<index>")
   sm_finals      :: "string list" ("finals\<index>")
-  sm_nodes       :: "('s, 'e) Node list"
+  sm_nodes       :: "('s, 'e) Node list" ("nodes\<index>")
   sm_transitions :: "('s, 'e) Transition list" ("\<^bold>T\<index>")
 
 declare StateMachine.defs [simp]
 
-abbreviation sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string list" ("nodes\<index>") where
-"sm_node_names sm \<equiv> map n_name (sm_nodes sm)"
+thm set_map
+
+abbreviation sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string set" ("nnames\<index>") where
+"sm_node_names sm \<equiv> n_name ` set(sm_nodes sm)"
 
 definition sm_inters :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node list" where
 "sm_inters sm = filter (\<lambda> n. n_name n \<notin> set(sm_finals sm)) (sm_nodes sm)"
 
-definition sm_inter_names ("inters\<index>") where
-"sm_inter_names sm \<equiv> map n_name (sm_inters sm)"
+definition sm_inter_names ("inames\<index>") where
+"sm_inter_names sm \<equiv> n_name ` set (sm_inters sm)"
+
+abbreviation sm_final_names ("fnames\<index>") where
+"sm_final_names M \<equiv> set (finals\<^bsub>M\<^esub>)"
 
 definition sm_node_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Node)" ("nmap\<index>") where
 "sm_node_map M = map_of (map (\<lambda> n. (n_name n, n)) (sm_nodes M))"
@@ -64,8 +67,10 @@ definition sm_node_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightha
 definition sm_trans_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Transition list)" ("tmap\<index>") where
 "sm_trans_map M = map_of (map (\<lambda> n. (n_name n, filter (\<lambda> t. tn_source t = n_name n) (sm_transitions M))) (sm_nodes M))"
 
-lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = set(nodes\<^bsub>M\<^esub>)"
+lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
   using image_iff by (force simp add: sm_node_map_def dom_map_of_conv_image_fst)
+
+lemma dom_sm_trans_map: "dom(tmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
 
 abbreviation sm_init_node :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node" ("ninit\<index>") where
 "sm_init_node M \<equiv> the (sm_node_map M (sm_initial M))"
@@ -74,13 +79,13 @@ subsection \<open> Well-Formedness \<close>
 
 locale WfStateMachine =
   fixes M :: "('s, 'm) StateMachine" (structure)
-  -- \<open> The list of nodes is a set \<close>
-  assumes nodes_distinct: "distinct nodes"
-  and init_is_state: "init \<in> set(nodes)"
-  and init_not_final: "init \<notin> set(finals)"
-  and trans_wf: " \<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> tn_source t \<in> set(inters) \<and> tn_target t \<in> set(nodes)"
+  -- \<open> The list of nnames is a set \<close>
+  assumes nnames_distinct: "distinct (map n_name (nodes\<^bsub>M\<^esub>))"
+  and init_is_state: "init \<in> nnames"
+  and init_not_final: "init \<notin> fnames"
+  and trans_wf: " \<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> tn_source t \<in> inames \<and> tn_target t \<in> nnames"
 begin
-  lemma init_is_inter: "init \<in> set(inters)"
+  lemma init_is_inter: "init \<in> inames"
     using init_is_state init_not_final by (auto simp add: sm_inters_def sm_inter_names_def)
 
   lemma nmap_init: "nmap init = Some ninit"
@@ -99,7 +104,7 @@ begin
     shows "nmap (n_name n) = Some n"
   proof -
     have "distinct (map fst (map (\<lambda>n. (n_name n, n)) (sm_nodes M)))"
-      by (simp add: comp_def nodes_distinct)
+      by (simp add: comp_def nnames_distinct)
     with assms show ?thesis
       by (simp add: sm_node_map_def)
   qed
@@ -123,13 +128,6 @@ definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> (
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
   rc_state:[trigger_semantics t null_event ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
 
-text \<open> The following function extracts a tree representation of nodes and the transitions for each state
-  in the state machine. We exclude final states as reaching these should lead to termination even though
-  there is no outgoing edges. \<close>
-
-definition sm_tree :: "('s, 'e) StateMachine \<Rightarrow> (('s, 'e) Node \<times> ('s, 'e) Transition list) list" where
-"sm_tree sm \<equiv> map (\<lambda> s. (s, filter (\<lambda> t. tn_source t = n_name s) (sm_transitions sm))) (sm_inters sm)"
-
 definition node_semantics :: 
   "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
@@ -143,7 +141,7 @@ definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow>
     (rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ;
     iteration (map (\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) (sm_inters M)))"
 
-lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def sm_tree_def Transition.defs StateMachine.defs Node.defs
+lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def Transition.defs StateMachine.defs Node.defs
 
 subsection \<open> Theorems \<close>
 
@@ -197,7 +195,7 @@ lemma StateMachine_refine_intro:
   assumes 
     "WfStateMachine M"
     "S \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
-    "\<And> n. n \<in> set(inters\<^bsub>M\<^esub>) \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>the(nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+    "\<And> n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>the(nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
   shows "S \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
 proof -
   interpret wf: WfStateMachine M
@@ -209,24 +207,24 @@ proof -
     have a:"(\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright> :: 's RoboPred, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) ` set(sm_inters M) =
              {(&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)| n . n \<in> set(sm_inters M)}"
       by (auto)
-    have b: "(\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>set(inters\<^bsub>M\<^esub>)\<guillemotright>) = false"
+    have b: "(\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>inames\<^bsub>M\<^esub>\<guillemotright>) = false"
       by (literalise, metis (full_types) false_alt_def true_alt_def utp_pred_laws.compl_top_eq wf.init_is_inter)
     have "(\<Sqinter> (b, P) \<in> (\<lambda>n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright> :: 's RoboPred, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) ` set(sm_inters M) \<bullet> b) =
            (\<Sqinter> (b, P) \<in> {(&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)| n . n \<in> set(sm_inters M)} \<bullet> b)"
       by (simp add: a)
     also have "...  = (\<Sqinter> b \<in> {&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>| n . n \<in> set(sm_inters M)} \<bullet> b)"
       by (rel_auto)      
-    also have "... = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)"
+    also have "... = (&rc_ctrl \<in>\<^sub>u \<guillemotleft>inames\<^bsub>M\<^esub>\<guillemotright>)"
       apply (simp add: UINF_Collect, rel_auto)
       apply (simp add: sm_inter_names_def sm_sem_def(3))
-      apply (metis in_set_conv_nth length_map nth_map sm_inter_names_def)
+      using sm_inter_names_def apply fastforce
       done
     finally show ?thesis
       by (simp add: action_simp usubst b miracle_top)
   qed
-  have 3: "S \<sqsubseteq> rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>set(sm_inter_names M)\<guillemotright>)]\<^sub>A" (is "?lhs \<sqsubseteq> ?rhs")
+  have 3: "S \<sqsubseteq> rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> ; [\<not> (&rc_ctrl \<in>\<^sub>u \<guillemotleft>inames\<^bsub>M\<^esub>\<guillemotright>)]\<^sub>A" (is "?lhs \<sqsubseteq> ?rhs")
   proof -
-    have "?rhs = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>set(inters\<^bsub>M\<^esub>)\<guillemotright>]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
+    have "?rhs = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>inames\<^bsub>M\<^esub>\<guillemotright>]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
       by (simp add: action_simp usubst)
     also have "... = [false]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
       by (literalise, simp add: wf.init_is_inter, unliteralise, simp)
@@ -273,7 +271,7 @@ proof -
         by (simp add: sm_sem_def(3))
       then have "n_name n \<in> n_name ` {n. (n::('s, 'e) Node) \<in> set(sm_nodes M) \<and> \<not> n_name n \<in> set(finals\<^bsub>M\<^esub>)}"
         using a by force
-      then have "n_name n \<in> set(inters\<^bsub>M\<^esub>)"
+      then have "n_name n \<in> inames\<^bsub>M\<^esub>"
         by (simp add: sm_inter_names_def sm_sem_def(3))
       then show ?thesis
         using f1 a assms(3) wf.nmap_name by fastforce
