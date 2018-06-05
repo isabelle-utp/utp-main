@@ -71,6 +71,10 @@ lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
   using image_iff by (force simp add: sm_node_map_def dom_map_of_conv_image_fst)
 
 lemma dom_sm_trans_map: "dom(tmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
+  using image_iff by (force simp add: sm_trans_map_def dom_map_of_conv_image_fst)
+
+lemma nnames_finite: "finite(nnames\<^bsub>M\<^esub>)"
+  by blast
 
 abbreviation sm_init_node :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node" ("ninit\<index>") where
 "sm_init_node M \<equiv> the (sm_node_map M (sm_initial M))"
@@ -131,8 +135,7 @@ definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> (
 definition node_semantics :: 
   "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
-  (rc_ctrl := \<guillemotleft>n_name node\<guillemotright> ;
-   rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
+  (rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
    (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop) ;
    rc_state:[n_exit node]\<^sub>A\<^sup>+)"
 
@@ -142,6 +145,17 @@ definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow>
     iteration (map (\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) (sm_inters M)))"
 
 lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def Transition.defs StateMachine.defs Node.defs
+
+lemma tr_semantics_subst_ctrl: "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> (\<lbrakk>a\<rbrakk>\<^sub>T null_event) = \<lbrakk>a\<rbrakk>\<^sub>T null_event"
+  by (simp add: tr_semantics_def action_simp usubst unrest frame_asubst)
+
+lemma tr_choice_subst_ctrl:
+  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop) = (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop)"
+  by (induct ts, simp_all add: action_simp usubst tr_semantics_subst_ctrl)
+
+lemma sm_semantics_subst_ctrl:
+  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> node_semantics M null_event node = node_semantics M null_event node"
+  by (simp add: node_semantics_def action_simp frame_asubst tr_choice_subst_ctrl unrest)
 
 subsection \<open> Theorems \<close>
 
@@ -241,7 +255,7 @@ proof -
     proof (cases "n=ninit\<^bsub>M\<^esub>")
       case True
       hence "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>] \<dagger> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N) = (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
-        by (simp add: node_semantics_def action_simp usubst)
+        by (simp add: sm_semantics_subst_ctrl)
       with True assms(2) show ?thesis
         by (simp add: action_simp usubst wf.n_name_init)
     next

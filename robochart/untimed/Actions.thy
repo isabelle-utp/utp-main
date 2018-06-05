@@ -276,6 +276,10 @@ lemma asubst_skip [action_simp]:
   "\<sigma> \<dagger> skip = \<langle>\<sigma>\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
 
+lemma asubst_stop [action_simp]:
+  "\<sigma> \<dagger> stop = stop"
+  by (simp add: action_rep_eq, rdes_eq)
+
 lemma asubst_assigns [action_simp]:
   "\<sigma> \<dagger> (\<langle>\<rho>\<rangle>\<^sub>a :: ('s, 'e) Action) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
@@ -340,6 +344,37 @@ lemma frame_skip [simp]: "vwb_lens a \<Longrightarrow> a:[skips]\<^sub>A\<^sup>+
 
 lemma frame_sync [simp]: "vwb_lens a \<Longrightarrow> a:[sync e]\<^sub>A\<^sup>+ = sync e"
   by (transfer, rdes_eq)
+
+lemma rea_frame_ext_subst_CRR:
+  assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "P is CRR" "$ref\<acute> \<sharp> P"
+  shows "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = a:[P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
+proof-
+  have "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[(CRR P)]\<^sub>r\<^sup>+ = a:[(CRR P)]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
+  using assms(1-3,5)
+    apply (rel_auto)
+    apply (simp_all add: lens_indep.lens_put_irr2)
+      apply (smt lens_indep_def)
+    apply blast+
+  apply (metis lens_indep_comm)
+  done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma rdes_frame_ext_asubst:
+  assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "P is NCSP"
+  shows "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>R\<^sup>+ = a:[P]\<^sub>R\<^sup>+ ;; x :=\<^sub>C v"
+  apply (rdes_eq_split cls: assms(4))
+    apply (simp_all add: rea_frame_ext_subst_CRR closure unrest assms)
+  apply (rel_auto)
+    apply (simp_all add: assms(2) lens_indep.lens_put_irr2)
+  apply (rel_auto)
+   apply (simp_all add: assms(2) lens_indep.lens_put_irr2)
+  done
+
+
+lemma frame_asubst: "\<lbrakk> vwb_lens x; vwb_lens a; x \<bowtie> a; a \<sharp> v\<rbrakk> \<Longrightarrow> [x \<mapsto>\<^sub>s v] \<dagger> a:[P]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; x := v"
+  by (transfer, simp add: CACT_implies_NCSP rdes_frame_ext_asubst)
 
 lemma decl_Skip [simp]: "(decl x \<bullet> skips) = skips"
   by (simp add: state_block_def, transfer, rdes_eq)
