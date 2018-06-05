@@ -42,7 +42,7 @@ syntax "_utr_par" ::
 text {* The function @{const trop} is used to lift ternary operators. *}
 
 translations
-  "t1 \<star>\<^bsub>cs\<^esub> t2" == "(CONST trop) (CONST tr_par) cs t1 t2"
+  "t1 \<star>\<^bsub>cs\<^esub> t2" == "(CONST bop) (CONST tr_par cs) t1 t2"
 
 subsection {* Trace Merge Lemmas *}
 
@@ -72,7 +72,7 @@ done
 lemma tr_inter_sym: "x |||\<^sub>t y = y |||\<^sub>t x"
   by (simp add: tr_par_sym)
     
-lemma trace_merge_nil [simp]: "x \<star>\<^bsub>{}\<^sub>u\<^esub> \<langle>\<rangle> = {x}\<^sub>u"
+lemma trace_merge_nil [simp]: "x \<star>\<^bsub>{}\<^esub> \<langle>\<rangle> = {x}\<^sub>u"
   by (pred_auto, simp_all add: tr_par_empty, metis takeWhile_eq_all_conv)
 
 lemma trace_merge_empty [simp]:
@@ -80,11 +80,11 @@ lemma trace_merge_empty [simp]:
   by (rel_auto)
 
 lemma trace_merge_single_empty [simp]:
-  "a \<in> cs \<Longrightarrow> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<langle>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
+  "a \<in> cs \<Longrightarrow> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<star>\<^bsub>cs\<^esub> \<langle>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
   by (rel_auto)
 
 lemma trace_merge_empty_single [simp]:
-  "a \<in> cs \<Longrightarrow> \<langle>\<rangle> \<star>\<^bsub>\<guillemotleft>cs\<guillemotright>\<^esub> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
+  "a \<in> cs \<Longrightarrow> \<langle>\<rangle> \<star>\<^bsub>cs\<^esub> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
   by (rel_auto)
     
 lemma trace_merge_commute: "t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 = t\<^sub>2 \<star>\<^bsub>cs\<^esub> t\<^sub>1"
