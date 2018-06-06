@@ -578,6 +578,12 @@ lemma shEx_commute: "(\<^bold>\<exists> x \<bullet> \<^bold>\<exists> y \<bullet
 lemma shEx_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shEx P = shEx Q"
   by (pred_auto)
 
+lemma shEx_insert: "(\<^bold>\<exists> x \<in> insert\<^sub>u y A \<bullet> P(x)) = (P(x)\<lbrakk>x\<rightarrow>y\<rbrakk> \<or> (\<^bold>\<exists> x \<in> A \<bullet> P(x)))"
+  by (pred_auto)
+
+lemma shEx_one_point: "(\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> =\<^sub>u v \<and> P(x)) = P(x)\<lbrakk>x\<rightarrow>v\<rbrakk>"
+  by (rel_auto)
+
 lemma shAll_unbound [simp]: "(\<^bold>\<forall> x \<bullet> P) = P"
   by (pred_auto)
 

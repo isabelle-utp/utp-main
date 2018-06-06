@@ -683,7 +683,10 @@ lemma tsubst_csp_enable [usubst]: "\<E>(s,t\<^sub>2,e)\<lbrakk>t\<^sub>1\<rbrakk
   apply (metis append.assoc less_eq_list_def prefix_concat_minus)
   apply (simp add: list_concat_minus_list_concat)
 done
-  
+
+lemma msubst_csp_enable [usubst]: "\<E>(b(x),t(x), E(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub><\<rbrakk> = \<E>(b(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>, E(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+
 lemma csp_enable_unrests [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($ref\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<E>(s,t,e)"
   by (simp add: csp_enable_def R1_def lens_indep_sym unrest)
@@ -784,7 +787,10 @@ done
 lemma st_subst_csp_do [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ> \<sigma>,\<sigma> \<dagger> t)"
   by (rel_auto)
-  
+
+lemma msubst_csp_do [usubst]: "\<Phi>(b(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub><\<rbrakk> = \<Phi>(b(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+
 lemma csp_init_do [rpred]: "(\<I>(s1,t) \<and> \<Phi>(s2,\<sigma>,t)) = \<Phi>(s1 \<and> s2, \<sigma>, t)"
   by (rel_auto)
 

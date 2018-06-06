@@ -485,9 +485,11 @@ translations
   "\<lfloor>x\<rfloor>\<^sub>u" == "CONST uop CONST floor x"
 
 syntax -- \<open> Lists / Sequences \<close>
+  "_ucons"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "#\<^sub>u" 65)
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
   "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
+  "_udconcat"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<^sup>\<frown>\<^sub>u" 90)
   "_ulast"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("last\<^sub>u'(_')")
   "_ufront"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("front\<^sub>u'(_')")
   "_uhead"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("head\<^sub>u'(_')")
@@ -506,10 +508,12 @@ syntax -- \<open> Lists / Sequences \<close>
   "_utr_iter"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("iter[_]'(_')")
 
 translations
+  "x #\<^sub>u ys" == "CONST bop (op #) x ys"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
-  "\<langle>x, xs\<rangle>"  == "CONST bop (op #) x \<langle>xs\<rangle>"
-  "\<langle>x\<rangle>"      == "CONST bop (op #) x \<guillemotleft>[]\<guillemotright>"
+  "\<langle>x, xs\<rangle>"  == "x #\<^sub>u \<langle>xs\<rangle>"
+  "\<langle>x\<rangle>"      == "x #\<^sub>u \<guillemotleft>[]\<guillemotright>"
   "x ^\<^sub>u y"   == "CONST bop (op @) x y"
+  "A \<^sup>\<frown>\<^sub>u B" == "CONST bop (op \<^sup>\<frown>) A B"
   "last\<^sub>u(xs)" == "CONST uop CONST last xs"
   "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
@@ -533,6 +537,8 @@ syntax -- \<open> Sets \<close>
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
   "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
   "_uinter"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<inter>\<^sub>u" 70)
+  "_uinsert"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("insert\<^sub>u")
+  "_uimage"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>u" [10,0] 10)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
   "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
   "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
@@ -545,10 +551,12 @@ syntax -- \<open> Sets \<close>
 translations
   "finite\<^sub>u(x)" == "CONST uop (CONST finite) x"
   "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
-  "{x, xs}\<^sub>u" == "CONST bop (CONST insert) x {xs}\<^sub>u"
-  "{x}\<^sub>u"     == "CONST bop (CONST insert) x \<guillemotleft>{}\<guillemotright>"
+  "insert\<^sub>u x xs" == "CONST bop CONST insert x xs"
+  "{x, xs}\<^sub>u" == "insert\<^sub>u x {xs}\<^sub>u"
+  "{x}\<^sub>u"     == "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
   "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
   "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
+  "f\<lparr>A\<rparr>\<^sub>u"     == "CONST bop CONST image f A"
   "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
   "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
   "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
@@ -777,5 +785,5 @@ method uexpr_simp uses simps = ((literalise)?, simp add: lit_norm simps, (unlite
   
 lemma "(1::(int, '\<alpha>) uexpr) + \<guillemotleft>2\<guillemotright> = 4 \<longleftrightarrow> \<guillemotleft>3\<guillemotright> = 4"
   apply (uexpr_simp) oops
-  
+
 end

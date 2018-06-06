@@ -492,7 +492,7 @@ subsection {* Parallel Substitution Laws *}
     
 lemma par_subst_id [usubst]:
   "\<lbrakk> vwb_lens A; vwb_lens B \<rbrakk> \<Longrightarrow> id [A|B]\<^sub>s id = id"
-  by (simp add: par_subst_def lens_override_idem id_def)
+  by (simp add: par_subst_def id_def)
 
 lemma par_subst_left_empty [usubst]:
   "\<lbrakk> vwb_lens A \<rbrakk> \<Longrightarrow> \<sigma> [\<emptyset>|A]\<^sub>s \<rho> = id [\<emptyset>|A]\<^sub>s \<rho>"

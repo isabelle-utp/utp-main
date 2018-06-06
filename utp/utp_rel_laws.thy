@@ -232,12 +232,22 @@ lemma seqr_to_conj: "\<lbrakk> out\<alpha> \<sharp> P; in\<alpha> \<sharp> Q \<r
 
 lemma shEx_lift_seq_1 [uquant_lift]:
   "((\<^bold>\<exists> x \<bullet> P x) ;; Q) = (\<^bold>\<exists> x \<bullet> (P x ;; Q))"
-  by pred_auto
+  by rel_auto
+
+lemma shEx_mem_lift_seq_1 [uquant_lift]:
+  assumes "out\<alpha> \<sharp> A"
+  shows "((\<^bold>\<exists> x \<in> A \<bullet> P x) ;; Q) = (\<^bold>\<exists> x \<in> A \<bullet> (P x ;; Q))"
+  using assms by rel_blast
 
 lemma shEx_lift_seq_2 [uquant_lift]:
   "(P ;; (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P ;; Q x))"
-  by pred_auto
-  
+  by rel_auto
+
+lemma shEx_mem_lift_seq_2 [uquant_lift]:
+  assumes "in\<alpha> \<sharp> A"
+  shows "(P ;; (\<^bold>\<exists> x \<in> A \<bullet> Q x)) = (\<^bold>\<exists> x \<in> A \<bullet> (P ;; Q x))"
+  using assms by rel_blast
+
 subsection {* Iterated Sequential Composition Laws *}
   
 lemma iter_seqr_nil [simp]: "(;; i : [] \<bullet> P(i)) = II"
