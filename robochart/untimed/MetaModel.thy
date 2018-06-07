@@ -11,12 +11,14 @@ text \<open> All state machine statespace types extend the following type which 
 alphabet robochart_ctrl =
   rc_ctrl :: string 
 
+type_synonym 's rcst = "'s robochart_ctrl_scheme"
 type_synonym ('s, 'e) RoboAction = "('s robochart_ctrl_scheme, 'e) Action"
 type_synonym 's RoboPred = "'s robochart_ctrl_scheme upred"
 
 translations
-  (type) "('s, 'e) RoboAction" <= (type) "('s robochart_ctrl_scheme, 'e) Action"
-  (type) "'s RoboPred" <= (type) "'s robochart_ctrl_scheme upred"
+  (type) "'s rcst" <= (type) "'s robochart_ctrl_scheme"
+  (type) "('s, 'e) RoboAction" <= (type) "('s rcst, 'e) Action"
+  (type) "'s RoboPred" <= (type) "'s rcst upred"
 
 abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
 
@@ -144,7 +146,7 @@ definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow>
     (rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ;
     iteration (map (\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) (sm_inters M)))"
 
-lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def Transition.defs StateMachine.defs Node.defs
+lemmas sm_sem_def = sm_semantics_def node_semantics_def sm_inters_def sm_inter_names_def
 
 lemma tr_semantics_subst_ctrl: "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> (\<lbrakk>a\<rbrakk>\<^sub>T null_event) = \<lbrakk>a\<rbrakk>\<^sub>T null_event"
   by (simp add: tr_semantics_def action_simp usubst unrest frame_asubst)

@@ -115,17 +115,27 @@ val sm_semantics = Const (fst (dest_Const @{term sm_semantics}), dummyT);
 
 val n_name = Const (fst (dest_Const @{term MetaModel.n_name}), dummyT);
 val n_node_update = Const (fst (dest_Const @{term MetaModel.n_name_update}), dummyT);
+val n_entry = Const (fst (dest_Const @{term MetaModel.n_entry}), dummyT);
+val n_during = Const (fst (dest_Const @{term MetaModel.n_during}), dummyT);
+val n_exit = Const (fst (dest_Const @{term MetaModel.n_exit}), dummyT);
 
 val tn_source = Const (fst (dest_Const @{term MetaModel.tn_source}), dummyT);
 
 fun compileStateDecls defs typ ctx =
   fold (fn (b, t) => fn (ts, simps, ctx) =>        
            let 
-             val tm = n_node_update $ (absdummy dummyT (mk_string (Binding.name_of b))) $ (Syntax.parse_term ctx t);
+             val pt = Syntax.parse_term ctx t;
+             val tm = n_node_update $ (absdummy dummyT (mk_string (Binding.name_of b))) $ pt;
              val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
-             val sthm = prove_eq_simplify ctx' (n_name $ trm) (mk_string (Binding.name_of b)) [thm]
+             val nm_thm = prove_eq_simplify ctx' (n_name $ trm) (mk_string (Binding.name_of b)) [thm]
+             val (en, dr, ex) = case pt of 
+                                  (Const _ $ _ $ x $ y $ z) => (x, y, z) |
+                                  t => raise TERM ("Incorrect form for transition:", [t]);
+             val en_thm = prove_eq_simplify ctx' (n_entry $ trm) en [thm];
+             val dr_thm = prove_eq_simplify ctx' (n_during $ trm) dr [thm];
+             val ex_thm = prove_eq_simplify ctx' (n_exit $ trm) ex [thm];
            in
-             ((trm, (nm, thm)) :: ts, sthm :: simps, ctx')
+             ((trm, (nm, thm)) :: ts, [nm_thm, en_thm, dr_thm, ex_thm] @ simps, ctx')
            end
         ) defs ([], [], ctx);
 
@@ -136,7 +146,7 @@ fun compileTransDecls (SOME defs) typ ctx =
              val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
              (* Calculate the source node name for each transitions. Quite slow; optimise. *)
              val src = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) (@{thms Transition.simps[THEN eq_reflection]} @ @{thms Transition.defs} @ [thm]) [] (Syntax.check_term ctx (tn_source $ trm));
-             val sthm = prove_eq_simplify ctx' (tn_source $ trm) src [thm]
+             val sthm = prove_eq_simplify ctx' (tn_source $ trm) src [thm];
            in
              ((trm, (nm, thm)) :: ts, sthm :: simps, ctx')
            end

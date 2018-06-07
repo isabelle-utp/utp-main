@@ -284,6 +284,8 @@ lemma asubst_assigns [action_simp]:
   "\<sigma> \<dagger> (\<langle>\<rho>\<rangle>\<^sub>a :: ('s, 'e) Action) = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
 
+thm usubst
+
 lemma GuardCSP_usubst:
   assumes "P is NCSP"
   shows "\<sigma> \<dagger>\<^sub>S (b &\<^sub>u P) = (\<sigma> \<dagger> b) &\<^sub>u (\<sigma> \<dagger>\<^sub>S P)"
@@ -304,6 +306,14 @@ lemma asubst_guard [action_simp]:
 
 lemma asubst_sync [action_simp]:
   "\<sigma> \<dagger> sync e = sync e ; \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma asubst_send [action_simp]:
+  "\<sigma> \<dagger> send e v = send e (\<sigma> \<dagger> v) ; \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma asubst_recv:
+  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> receive e x = receive e x ; \<langle>\<sigma>\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
 
 lemma asm_false [action_simp]: "[false]\<^sub>A = miracle"
