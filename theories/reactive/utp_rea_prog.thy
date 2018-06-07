@@ -483,6 +483,9 @@ proof -
     by (simp add: Healthy_if assms)
 qed
 
+lemma true_rea_map_st [alpha]: "(R1 true \<oplus>\<^sub>r map_st\<^sub>L[a]) = R1 true"
+  by (rel_auto)
+
 lemma rea_frame_ext_R1_closed [closure]:
   "P is R1 \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is R1"
   by (simp add: rea_frame_ext_def closure)
@@ -498,7 +501,7 @@ lemma rea_frame_ext_RR_closed [closure]:
 lemma rel_aext_st_Instant_closed [closure]:
   "P is Instant \<Longrightarrow> rel_aext P (map_st\<^sub>L x) is Instant"
   by (rel_auto)
-  
+
 lemma rea_frame_ext_false [frame]:
   "x:[false]\<^sub>r\<^sup>+ = false"
   by (rel_auto)
@@ -542,6 +545,14 @@ proof -
   thus ?thesis
     by (simp add: assms Healthy_if)
 qed
+
+lemma rea_frame_ext_UINF_ind [frame]:
+  "a:[\<Sqinter> x \<bullet> P x]\<^sub>r\<^sup>+ = (\<Sqinter> x \<bullet> a:[P x]\<^sub>r\<^sup>+)"
+  by (rel_auto)
+
+lemma rea_frame_ext_UINF_mem [frame]: 
+  "a:[\<Sqinter> x\<in>A \<bullet> P x]\<^sub>r\<^sup>+ = (\<Sqinter> x\<in>A \<bullet> a:[P x]\<^sub>r\<^sup>+)"
+  by (rel_auto)
 
 subsection \<open> Stateful Reactive specifications \<close>
 

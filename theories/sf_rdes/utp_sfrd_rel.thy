@@ -684,9 +684,6 @@ lemma tsubst_csp_enable [usubst]: "\<E>(s,t\<^sub>2,e)\<lbrakk>t\<^sub>1\<rbrakk
   apply (simp add: list_concat_minus_list_concat)
 done
 
-lemma msubst_csp_enable [usubst]: "\<E>(b(x),t(x), E(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub><\<rbrakk> = \<E>(b(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>, E(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
-  by (rel_auto)
-
 lemma csp_enable_unrests [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($ref\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<E>(s,t,e)"
   by (simp add: csp_enable_def R1_def lens_indep_sym unrest)
@@ -754,6 +751,10 @@ lemma R5_csp_enable_Cons [rpred]:
   "R5(\<E>(s,bop Cons x xs, E)) = false"
   by (rel_auto)
 
+lemma rel_aext_csp_enable [alpha]: 
+  "vwb_lens a \<Longrightarrow> \<E>(s, t, E) \<oplus>\<^sub>r map_st\<^sub>L[a] = \<E>(s \<oplus>\<^sub>p a, t \<oplus>\<^sub>p a, E \<oplus>\<^sub>p a)"
+  by (rel_auto)
+
 subsection \<open> Completed Trace Interaction \<close>
 
 definition csp_do :: "'s upred \<Rightarrow> ('s \<Rightarrow> 's) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
@@ -786,9 +787,6 @@ done
 
 lemma st_subst_csp_do [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ> \<sigma>,\<sigma> \<dagger> t)"
-  by (rel_auto)
-
-lemma msubst_csp_do [usubst]: "\<Phi>(b(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub><\<rbrakk> = \<Phi>(b(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
   by (rel_auto)
 
 lemma csp_init_do [rpred]: "(\<I>(s1,t) \<and> \<Phi>(s2,\<sigma>,t)) = \<Phi>(s1 \<and> s2, \<sigma>, t)"
@@ -877,6 +875,10 @@ qed
 
 lemma msubst_csp_do [usubst]: 
   "\<Phi>(s(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk> = \<Phi>(s(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
+  by (rel_auto)
+
+lemma rea_frame_ext_csp_do [frame]: 
+  "vwb_lens a \<Longrightarrow> a:[\<Phi>(s,\<sigma>,t)]\<^sub>r\<^sup>+ = \<Phi>(s \<oplus>\<^sub>p a,\<sigma> \<oplus>\<^sub>s a ,t \<oplus>\<^sub>p a)"
   by (rel_auto)
 
 subsection \<open> Downward closure of refusals \<close>

@@ -440,7 +440,11 @@ lemma unrest_in_rel_aext [unrest]: "x \<bowtie> y \<Longrightarrow> $y \<sharp> 
 
 lemma unrest_out_rel_aext [unrest]: "x \<bowtie> y \<Longrightarrow> $y\<acute> \<sharp> P \<oplus>\<^sub>r x"
   by (simp add: rel_aext_def unrest_aext_indep)
-    
+
+lemma rel_aext_false [alpha]:
+  "false \<oplus>\<^sub>r a = false"
+  by (pred_auto)
+
 lemma rel_aext_seq [alpha]:
   "weak_lens a \<Longrightarrow> (P ;; Q) \<oplus>\<^sub>r a = (P \<oplus>\<^sub>r a ;; Q \<oplus>\<^sub>r a)"
   apply (rel_auto)

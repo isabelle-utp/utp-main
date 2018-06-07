@@ -31,7 +31,7 @@ method rdes_expand uses cls = (insert cls, (erule RD_elim)+)
 text {* Tactic to simplify the definition of a reactive design *}
   
 method rdes_simp uses cls cong simps =
-  ((rdes_expand cls: cls)?, (simp add: closure)?, (simp add: rdes_def rdes_rel_norms rdes rpred cls closure alpha usubst unrest wp simps cong: cong))
+  ((rdes_expand cls: cls)?, (simp add: closure)?, (simp add: rdes_def rdes_rel_norms rdes rpred cls closure alpha frame usubst unrest wp simps cong: cong))
 
 text {* Tactic to split a refinement conjecture into three POs *}
 
