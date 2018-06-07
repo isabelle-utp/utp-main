@@ -216,7 +216,7 @@ syntax
   "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
   "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
   "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
-  "_rcv_ev_raction"    :: "id \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
+  "_rcv_ev_raction"    :: "svid \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
   "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
   "_action_state"      :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
 
@@ -354,6 +354,15 @@ lemma frame_skip [simp]: "vwb_lens a \<Longrightarrow> a:[skips]\<^sub>A\<^sup>+
 
 lemma frame_sync [simp]: "vwb_lens a \<Longrightarrow> a:[sync e]\<^sub>A\<^sup>+ = sync e"
   by (transfer, rdes_eq)
+
+lemma frame_receive [simp]: "vwb_lens a \<Longrightarrow> a:[receive c x]\<^sub>A\<^sup>+ = receive c (x ;\<^sub>L a)"
+  by (transfer, rdes_eq)
+
+lemma frame_send [simp]: "vwb_lens a \<Longrightarrow> a:[send c v]\<^sub>A\<^sup>+ = send c (v \<oplus>\<^sub>p a)"
+  by (simp add: action_rep_eq, rdes_eq)
+
+lemma frame_assigns [simp]: "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>A\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
+  by (simp add: action_rep_eq, rdes_eq)
 
 lemma rea_frame_ext_subst_CRR:
   assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "P is CRR" "$ref\<acute> \<sharp> P"
