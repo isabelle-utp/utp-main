@@ -4,6 +4,49 @@ theory Actions
   imports ReactiveSpec
 begin
 
+lemma st_post_CRR [closure]: "[b]\<^sub>S\<^sub>> is CRR"
+  by (rel_auto)
+
+lemma st_post_unrest_ref' [unrest]: "$ref\<acute> \<sharp> [b]\<^sub>S\<^sub>>"
+  by (rel_auto)
+
+definition StateInvC :: "'s upred \<Rightarrow> ('s, 'e) action" ("sinv\<^sub>C'(_')") where
+[rdes_def]: "sinv\<^sub>C(b) = \<^bold>R\<^sub>s([b]\<^sub>S\<^sub>< \<turnstile> true\<^sub>r \<diamondop> [b]\<^sub>S\<^sub>>)"
+
+lemma StateInvC_NCSP [closure]: "sinv\<^sub>C(b) is NCSP"
+  by (simp add: StateInvC_def closure unrest)
+
+lemma CACT_rdes_intro:
+  assumes "P\<^sub>1 is CRC" "P\<^sub>2 is CRR" "P\<^sub>2 is CDC" "P\<^sub>3 is CRR" "$st\<acute> \<sharp> P\<^sub>2" "$ref\<acute> \<sharp> P\<^sub>3"
+  shows "\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) is CACT"
+  by (rule CACT_intro, simp add: closure assms, rule C2_rdes_intro, simp_all add: assms)
+
+lemma StateInvC_CACT [closure]: "sinv\<^sub>C(b) is CACT"
+  by (simp add: CACT_rdes_intro rdes_def closure unrest)
+
+lemma StateInvC_seq_idem:
+  "sinv\<^sub>C(b) ;; sinv\<^sub>C(b) = sinv\<^sub>C(b)"
+  by (rdes_eq)
+
+lemma StateInvC_seq_refine:
+  assumes "sinv\<^sub>C(b) \<sqsubseteq> P" "sinv\<^sub>C(b) \<sqsubseteq> Q"
+  shows "sinv\<^sub>C(b) \<sqsubseteq> P ;; Q"
+  by (metis (full_types) StateInvC_seq_idem assms seqr_mono)
+
+lemma StateInvC_extchoice_refine:
+  assumes 
+    "P is NCSP" "Q is NCSP"
+    "sinv\<^sub>C(b) \<sqsubseteq> P" "sinv\<^sub>C(b) \<sqsubseteq> Q"
+  shows "sinv\<^sub>C(b) \<sqsubseteq> P \<box> Q"
+proof -
+  have 1:
+    "pre\<^sub>R P \<sqsubseteq> [b]\<^sub>S\<^sub><" "[b]\<^sub>S\<^sub>> \<sqsubseteq> ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R P)"
+    "pre\<^sub>R Q \<sqsubseteq> [b]\<^sub>S\<^sub><" "[b]\<^sub>S\<^sub>> \<sqsubseteq> ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R Q)"
+    by (metis (no_types, lifting) CRR_implies_RR NCSP_implies_CSP RHS_tri_design_refine SRD_reactive_tri_design StateInvC_def assms periR_RR postR_RR preR_CRR rea_st_cond_RR rea_true_RR refBy_order st_post_CRR)+
+  show ?thesis
+    by (rdes_refine_split cls: assms(1-2), simp_all add: 1 closure assms truer_bottom_rpred  utp_pred_laws.inf_sup_distrib1)
+qed
+
 typedef ('s, 'e) Action = "{P :: ('s, 'e) action. P is CACT}"
   by (rule_tac x="Skip" in exI, simp add: closure)
 
@@ -160,7 +203,36 @@ lemma CDF_is_C2 [closure]: "CDF is C2"
 lemma CDF_is_CACT [closure]: "CDF is CACT"
   by (simp add: CACT_intro closure)
 
-lift_definition dlf :: "('s, 'e) Action" is "CDF"
+definition ndiv_srd :: "('s,'t::trace,'\<alpha>) hrel_rsp" ("ndiv\<^sub>R")
+where [rdes_def]: "ndiv_srd = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> true\<^sub>r \<diamondop> true\<^sub>r)"
+
+lemma choose_srd_CACT [closure]: "ndiv\<^sub>R is CACT"
+  by (simp add: rdes_def closure unrest CACT_rdes_intro)
+
+lemma ndiv_srd_refines_preR_true:
+  assumes "P is SRD"
+  shows "ndiv\<^sub>R \<sqsubseteq> P \<longleftrightarrow> pre\<^sub>R(P) = true\<^sub>r" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  thus ?rhs
+    by (metis R1_preR ndiv_srd_def preR_antitone preR_rdes rea_true_RR rea_true_disj(2) utp_pred_laws.sup.orderE)    
+next
+  assume ?rhs
+  hence "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: RHS_tri_design_conj assms ndiv_srd_def periR_SRD_R1 postR_SRD_R1 rea_true_conj(1) rea_true_impl utp_pred_laws.inf.absorb_iff2)
+  thus ?lhs
+    by (simp add: SRD_reactive_tri_design assms)
+qed
+
+lemma ndiv_srd_refines_rdes_pre_true:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR"
+  shows "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<longleftrightarrow> P\<^sub>1 = true\<^sub>r" (is "?lhs \<longleftrightarrow> ?rhs")
+  by (simp add: ndiv_srd_refines_preR_true closure assms rdes unrest)
+
+lift_definition divf :: "('s, 'e) Action" is "ndiv\<^sub>R"
+  by (simp add: closure)
+
+lift_definition dlockf :: "('s, 'e) Action" is "CDF"
   by (simp add: closure)
 
 purge_notation
@@ -186,6 +258,12 @@ is "\<lambda> P Q R. \<^bold>R\<^sub>s(RC1(P) \<turnstile> (\<exists> $st\<acute
   apply (metis (no_types, lifting) CRC_intro'' Healthy_intro RC1_def RC1_idem rea_not_CRR_closed rea_true_RR seq_CRR_closed)
   done
 
+lift_definition pre\<^sub>A :: "('s, 'e) Action \<Rightarrow> ('s, 'e) rrel" is "pre\<^sub>R"
+  by (metis CACT_implies_NCSP NCSP_implies_NSRD NSRD_neg_pre_RC false_CDC preR_CRR wp_rea_CDC_closed wp_rea_RC_false)
+
+lift_definition StateInvA :: "'s upred \<Rightarrow> ('s, 'e) Action" ("sinv\<^sub>A") is StateInvC
+  by (simp add: closure)
+
 lemmas action_rep_eq = 
   less_eq_Action.rep_eq
   productive.rep_eq
@@ -203,7 +281,8 @@ lemmas action_rep_eq =
   contract.rep_eq
   asubst.rep_eq
   miracle.rep_eq
-  state_block_def dlf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq 
+  state_block_def dlockf.rep_eq state_decl.rep_eq seq.rep_eq assigns.rep_eq iteration.rep_eq 
+  StateInvA.rep_eq
 
 subsection \<open> Action Syntax \<close>
 
@@ -340,6 +419,14 @@ lemma stop_choice_right_zero [action_simp]: "P \<box> stop = P"
 lemma stop_seq_left_zero [action_simp]: "stop ; P = stop"
   by (transfer, simp add: closure Stop_left_zero)
 
+lemma stop_sinv_refine: "sinv\<^sub>A(a) \<sqsubseteq> stop"
+  by (transfer, rdes_refine)
+
+lemma extchoice_sinv_refine:
+  assumes "sinv\<^sub>A(a) \<sqsubseteq> P" "sinv\<^sub>A(a) \<sqsubseteq> Q"
+  shows "sinv\<^sub>A(a) \<sqsubseteq> (P \<box> Q)"
+  using assms by (transfer, simp add: CACT_implies_NCSP StateInvC_extchoice_refine)
+
 lemma true_guard [action_simp]: "true \<^bold>& P = P"
   by (transfer, simp add: closure)
 
@@ -467,8 +554,8 @@ next
   done
 qed
 
-lemma dlf_state_decl:
-  "dlf \<sqsubseteq> P \<Longrightarrow> dlf \<sqsubseteq> state_decl P"
+lemma dlockf_state_decl:
+  "dlockf \<sqsubseteq> P \<Longrightarrow> dlockf \<sqsubseteq> state_decl P"
   by (transfer, simp add: state_srea_refine alpha)
 
 subsection \<open> Contract Theorems \<close>

@@ -51,7 +51,7 @@ declare StateMachine.defs [simp]
 
 thm set_map
 
-abbreviation sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string set" ("nnames\<index>") where
+definition sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string set" ("nnames\<index>") where
 "sm_node_names sm \<equiv> n_name ` set(sm_nodes sm)"
 
 definition sm_inters :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node list" where
@@ -70,13 +70,13 @@ definition sm_trans_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<righth
 "sm_trans_map M = map_of (map (\<lambda> n. (n_name n, filter (\<lambda> t. tn_source t = n_name n) (sm_transitions M))) (sm_nodes M))"
 
 lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
-  using image_iff by (force simp add: sm_node_map_def dom_map_of_conv_image_fst)
+  using image_iff by (force simp add: sm_node_map_def sm_node_names_def dom_map_of_conv_image_fst)
 
 lemma dom_sm_trans_map: "dom(tmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
-  using image_iff by (force simp add: sm_trans_map_def dom_map_of_conv_image_fst)
+  using image_iff by (force simp add: sm_trans_map_def sm_node_names_def dom_map_of_conv_image_fst)
 
 lemma nnames_finite: "finite(nnames\<^bsub>M\<^esub>)"
-  by blast
+  by (force simp add: sm_node_names_def)
 
 abbreviation sm_init_node :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node" ("ninit\<index>") where
 "sm_init_node M \<equiv> the (sm_node_map M (sm_initial M))"
@@ -92,7 +92,7 @@ locale WfStateMachine =
   and trans_wf: " \<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> tn_source t \<in> inames \<and> tn_target t \<in> nnames"
 begin
   lemma init_is_inter: "init \<in> inames"
-    using init_is_state init_not_final by (auto simp add: sm_inters_def sm_inter_names_def)
+    using init_is_state init_not_final by (auto simp add: sm_inters_def sm_inter_names_def sm_node_names_def)
 
   lemma nmap_init: "nmap init = Some ninit"
     by (metis domIff dom_sm_node_map init_is_state option.exhaust_sel)
@@ -116,13 +116,23 @@ begin
   qed
 
   lemma ninit_is_node: "ninit \<in> set(sm_nodes M)"
-    using init_is_state nmap_name by auto
+    using init_is_state nmap_name by (auto simp add: sm_node_names_def)
+
+  lemma tmap_node_in_trans: 
+    assumes "n \<in> nnames" "ts \<in> ran(tmap)"
+    shows "set(ts) \<subseteq> set(\<^bold>T)"
+    using assms by (auto simp add: sm_trans_map_def ran_distinct nnames_distinct comp_def)
+
+  lemma node_tran_exists:
+    assumes "n \<in> nnames" "t \<in> set(the(tmap n))"
+    shows "t \<in> set(\<^bold>T)"
+    by (metis (mono_tags, hide_lams) assms(1) assms(2) domIff dom_sm_trans_map in_mono init_is_state option.collapse ranI tmap_node_in_trans)
 
 end
 
 method check_machine uses defs = 
   (unfold_locales, 
-   simp_all add: defs sm_inter_names_def sm_inters_def, safe, simp_all)
+   simp_all add: defs sm_node_names_def sm_inter_names_def sm_inters_def, safe, simp_all)
 
 subsection \<open> State Machine Semantics \<close>
 
@@ -138,7 +148,7 @@ definition node_semantics ::
   "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
   (rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
-   (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop) ;
+   (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop) ;
    rc_state:[n_exit node]\<^sub>A\<^sup>+)"
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
@@ -152,7 +162,7 @@ lemma tr_semantics_subst_ctrl: "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<g
   by (simp add: tr_semantics_def action_simp usubst unrest frame_asubst)
 
 lemma tr_choice_subst_ctrl:
-  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop) = (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) ts stop)"
+  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> foldr op \<box> (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop = foldr op \<box> (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop"
   by (induct ts, simp_all add: action_simp usubst tr_semantics_subst_ctrl)
 
 lemma sm_semantics_subst_ctrl:
@@ -167,9 +177,9 @@ lemma productive_tr_semantics [closure]: "productive (\<lbrakk>t\<rbrakk>\<^sub>
 lemma productive_node_semantics:
   "productive (M;null_event \<turnstile> \<lbrakk>node\<rbrakk>\<^sub>N)"
 proof -
-  have "\<And> ts. productive (foldr (\<lambda>t P. \<lbrakk>t\<rbrakk>\<^sub>T null_event \<box> P) ts stop)"
+  have "\<And> ts. productive (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop)"
     by (rename_tac ts, induct_tac ts, auto simp add: action_rep_eq closure, simp add: closure productive_Productive)
-  hence "productive (foldr (\<lambda>t. op \<box> (\<lbrakk>t\<rbrakk>\<^sub>T null_event)) (the (tmap\<^bsub>M\<^esub> (n_name node))) stop)"
+  hence "productive (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop)"
     by blast
   thus ?thesis
     by (simp add: action_rep_eq closure node_semantics_def)
@@ -304,6 +314,128 @@ proof -
     apply (simp_all)
     apply (auto simp add: 1 2 3 4 5)
     done
+qed
+(*
+lemma StateMachine_sinv_refine_intro:
+  fixes 
+    S :: "('s, 'e) RoboAction" and
+    M :: "('s, 'e) StateMachine"
+  assumes 
+    "WfStateMachine M"
+    "sinv\<^sub>A(s) \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+    "\<And> n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> S \<sqsubseteq> S ; (M;null_event \<turnstile> \<lbrakk>the(nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+  shows "S \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+*)
+
+(*
+lemma "sinv\<^sub>A (&rc_ctrl \<in>\<^sub>u \<guillemotleft>nnames\<^bsub>M\<^esub>\<guillemotright>) \<sqsubseteq> r:[P]\<^sub>A\<^sup>+"
+  apply (simp add: action_rep_eq, safe)
+   apply (rdes_refine_split)
+  apply (rel_simp)
+
+lemma 
+  assumes "WfStateMachine M"
+  shows "sinv\<^sub>A(&rc_ctrl \<in>\<^sub>u \<guillemotleft>nnames\<^bsub>M\<^esub>\<guillemotright>) \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+proof (rule StateMachine_refine_intro[OF assms])
+  show "sinv\<^sub>A(&rc_ctrl \<in>\<^sub>u \<guillemotleft>nnames\<^bsub>M\<^esub>\<guillemotright>) \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+    apply (simp add: node_semantics_def)
+*)
+
+subsection \<open> Divergence Freedom \<close>
+
+locale DivFreeSM = WfStateMachine +
+  assumes 
+    n_entry_divf: "\<And> n. n \<in> set(nodes) \<Longrightarrow> divf \<sqsubseteq> n_entry n" and
+    n_during_divf: "\<And> n. n \<in> set(nodes) \<Longrightarrow> divf \<sqsubseteq> n_exit n" and
+    n_exit_divf: "\<And> n. n \<in> set(nodes) \<Longrightarrow> divf \<sqsubseteq> n_exit n" and
+    tn_trigger_divf: "\<And> t e. \<lbrakk> t \<in> set(\<^bold>T); tn_trigger t = Some e \<rbrakk> \<Longrightarrow> divf \<sqsubseteq> e" and
+    tn_action_divf: "\<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> divf \<sqsubseteq> tn_action t"
+
+lemma divf_frame_ext:
+  "divf \<sqsubseteq> P \<Longrightarrow> divf \<sqsubseteq> a:[P]\<^sub>A\<^sup>+"
+  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes, safe, simp add: rdes_def rdes alpha closure)
+
+lemma divf_seq_refine:
+  assumes "divf \<sqsubseteq> P" "divf \<sqsubseteq> Q"
+  shows "divf \<sqsubseteq> (P ; Q)"
+  using assms by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
+
+lemma divf_extchoice_refine:
+  assumes "divf \<sqsubseteq> P" "divf \<sqsubseteq> Q"
+  shows "divf \<sqsubseteq> (P \<box> Q)"
+  using assms by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
+
+lemma divf_stop: "divf \<sqsubseteq> stop"
+  by (transfer, rdes_refine)
+
+lemma divf_extchoice_fold_refine:
+  assumes "\<And> P. P \<in> set(xs) \<Longrightarrow> divf \<sqsubseteq> P"
+  shows "divf \<sqsubseteq> foldr (op \<box>) xs stop"
+  using assms
+  apply (induct xs)
+   apply (simp_all add: divf_stop)
+  apply (rule divf_extchoice_refine)
+   apply (auto simp add: assms)
+  done
+
+lemma divf_assigns: "divf \<sqsubseteq> \<langle>\<sigma>\<rangle>\<^sub>a"
+  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
+
+lemma divf_guard: "divf \<sqsubseteq> P \<Longrightarrow> divf \<sqsubseteq> b \<^bold>& P"
+  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
+
+lemma divf_sync: "divf \<sqsubseteq> sync e"
+  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred usubst wp)
+
+lemma DivFreeSM_divf:
+  assumes "DivFreeSM M"
+  shows "divf \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+proof (rule StateMachine_refine_intro)
+  interpret dvs: DivFreeSM M
+    by (simp add: assms)
+  show "WfStateMachine M"
+    by (simp add: dvs.WfStateMachine_axioms)
+  have "\<And> n t. \<lbrakk> n \<in> nnames\<^bsub>M\<^esub>; t \<in> set(the (tmap\<^bsub>M\<^esub> n)) \<rbrakk> \<Longrightarrow> divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T null_event"  
+  proof -
+    fix n t
+    assume a: "n \<in> nnames\<^bsub>M\<^esub>" "t \<in> set(the (tmap\<^bsub>M\<^esub> n))"
+    have "divf \<sqsubseteq> trigger_semantics t null_event"
+    proof (cases "tn_trigger t")
+      case None
+      then show ?thesis by (simp add: divf_sync)
+    next
+      case (Some a)
+      then show ?thesis
+        using a(1) a(2) divf_sync dvs.node_tran_exists dvs.tn_trigger_divf by fastforce
+    qed
+    thus "divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T null_event"
+      apply (simp add: tr_semantics_def)
+      apply (rule divf_guard)
+      apply (rule divf_seq_refine)
+       apply (rule divf_seq_refine)
+        apply (rule divf_frame_ext)
+        apply (simp)
+       apply (rule divf_frame_ext)
+      using a(1) a(2) dvs.node_tran_exists dvs.tn_action_divf apply blast
+      apply (simp add: divf_assigns)
+      done
+  qed
+  hence b:"\<And> n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+    apply (simp add: node_semantics_def)
+    apply (rule divf_seq_refine)
+    apply (rule divf_frame_ext)
+    apply (smt dvs.n_entry_divf dvs.nmap_name filter_is_subset imageE option.sel sm_inter_names_def sm_inters_def subset_eq)
+    apply (rule divf_seq_refine)
+     apply (rule divf_extchoice_fold_refine)
+    apply (auto)
+    apply (smt dvs.nmap_name filter_is_subset image_iff option.sel sm_inter_names_def sm_inters_def sm_node_names_def subset_code(1))
+    apply (rule divf_frame_ext)
+    apply (smt dvs.n_exit_divf dvs.nmap_name filter_is_subset imageE option.sel sm_inter_names_def sm_inters_def subset_eq)
+    done
+  show "divf \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+    by (simp add: b dvs.init_is_inter)
+  show "\<And>n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> divf ; (M;null_event \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+    by (simp add: b divf_seq_refine)
 qed
 
 subsection \<open> Transition and State Parsers \<close>
