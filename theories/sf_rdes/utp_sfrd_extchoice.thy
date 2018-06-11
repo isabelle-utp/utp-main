@@ -679,4 +679,19 @@ lemma extChoice_seq_distl:
   shows "P ;; (Q \<box> R) = (P ;; Q \<box> P ;; R)"
   by (rdes_eq cls: assms)
 
+lemma extchoice_StateInvR_refine:
+  assumes 
+    "P is NCSP" "Q is NCSP"
+    "sinv\<^sub>R(b) \<sqsubseteq> P" "sinv\<^sub>R(b) \<sqsubseteq> Q"
+  shows "sinv\<^sub>R(b) \<sqsubseteq> P \<box> Q"
+proof -
+  have 1:
+    "pre\<^sub>R P \<sqsubseteq> [b]\<^sub>S\<^sub><" "[b]\<^sub>S\<^sub>> \<sqsubseteq> ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R P)"
+    "pre\<^sub>R Q \<sqsubseteq> [b]\<^sub>S\<^sub><" "[b]\<^sub>S\<^sub>> \<sqsubseteq> ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R Q)"
+    by (metis (no_types, lifting) CRR_implies_RR NCSP_implies_CSP RHS_tri_design_refine SRD_reactive_tri_design StateInvR_def assms periR_RR postR_RR preR_CRR rea_st_cond_RR rea_true_RR refBy_order st_post_CRR)+
+  show ?thesis
+    by (rdes_refine_split cls: assms(1-2), simp_all add: 1 closure assms truer_bottom_rpred  utp_pred_laws.inf_sup_distrib1)
+qed
+
+
 end

@@ -594,6 +594,9 @@ lemma rea_st_rel_RR [closure]: "[P]\<^sub>S is RR"
 lemma rea_st_rel'_RR [closure]: "[P]\<^sub>S' is RR"
   by (rel_auto)
 
+lemma rea_st_post_RR [closure]: "[b]\<^sub>S\<^sub>> is RR"
+  by (rel_auto)
+
 lemma st_subst_rel [usubst]:
   "\<sigma> \<dagger>\<^sub>S [P]\<^sub>S = [\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P]\<^sub>S"
   by (rel_auto)

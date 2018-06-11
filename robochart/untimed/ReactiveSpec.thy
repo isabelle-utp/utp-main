@@ -7,9 +7,6 @@ begin
 consts
   seq_comp :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr ";" 71)
 
-lemma CDC_CRR_commute: "CDC (CRR P) = CRR (CDC P)"
-  by (rel_blast)
-
 typedef ('s, 'e) rrel = "{P :: ('s, 'e) action. (P is CDC) \<and> (P is CRR)}"
   by (rule_tac x="false" in exI, simp add: closure)
 
@@ -115,26 +112,6 @@ lift_definition rcondition :: "('s, 'e) rrel \<Rightarrow> bool" is "\<lambda> P
 lemma rcondition_true: "rcondition true"
   by (transfer, simp add: closure)
 
-lemma st_subst_CRR_closed [closure]:
-  assumes "P is CRR"
-  shows "(\<sigma> \<dagger>\<^sub>S P) is CRR"
-  by (rule CRR_intro, simp_all add: unrest closure assms)
-
-lemma st_subst_CRC_closed [closure]:
-  assumes "P is CRC"
-  shows "(\<sigma> \<dagger>\<^sub>S P) is CRC"
-  by (rule CRC_intro, simp_all add: closure assms unrest)
-
-lemma st_subst_CDC_closed [closure]:
-  assumes "P is CDC"
-  shows "(\<sigma> \<dagger>\<^sub>S P) is CDC"
-proof -
-  have "(\<sigma> \<dagger>\<^sub>S CDC P) is CDC"
-    by (rel_auto)
-  thus ?thesis
-    by (simp add: assms Healthy_if)
-qed
-
 lift_definition rsubst :: "'s usubst \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "st_subst"
   by (simp add: closure)
 
@@ -144,16 +121,11 @@ lift_definition rR4 :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" ("[_]\<^sub>\
 
 lift_definition rR5 :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" ("[_]\<^sub>\<box>") is "R5" by (simp add: closure)
 
-lemma csp_do_CDC [closure]: "\<Phi>(s,\<sigma>,t) is CDC"
-  by (rel_auto)
-
 lift_definition rcsp_do :: "'s upred \<Rightarrow> 's usubst \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) rrel" ("\<^bold>\<Phi>'(_,_,_')") is csp_do
   by (simp add: closure)
 
 lift_definition rcsp_enable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('e set, 's) uexpr \<Rightarrow> ('s, 'e) rrel" ("\<^bold>\<E>'(_,_,_')") is csp_enable
   by (simp add: closure)
-
-term "in_var ref"
 
 lift_definition runrest :: "('a \<Longrightarrow> ('s,'e) st_csp \<times> ('s,'e) st_csp) \<Rightarrow> ('s, 'e) rrel \<Rightarrow> bool" is "unrest_uexpr" .
 
@@ -161,7 +133,7 @@ adhoc_overloading unrest runrest
 
 lemmas rrel_rep_eq = rtrue.rep_eq rfalse.rep_eq rconj.rep_eq rdisj.rep_eq rcsp_do.rep_eq rcsp_enable.rep_eq rrel_eq_transfer
 
-lemma [simp]: "P ; rfalse = rfalse"
+lemma rfalse_right_anhil [simp]: "P ; rfalse = rfalse"
   by (transfer, simp)
 (*
 thm wp

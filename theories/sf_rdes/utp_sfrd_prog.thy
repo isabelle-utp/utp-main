@@ -251,6 +251,15 @@ lemma AssignC_init_refine_intro:
   shows "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> x :=\<^sub>C \<guillemotleft>k\<guillemotright> ;; Q"
   by (simp add: AssignsCSP_as_AssignsR[THEN sym] assms seqr_assoc Skip_left_unit AssignR_init_refine_intro closure)
 
+lemma AssignsCSP_refines_sinv: 
+  assumes "`\<sigma> \<dagger> b`"
+  shows "sinv\<^sub>R(b) \<sqsubseteq> \<langle>\<sigma>\<rangle>\<^sub>C"
+  apply (rdes_refine_split)
+  apply (simp_all)
+   apply (metis rea_st_cond_true st_cond_conj utp_pred_laws.inf.absorb_iff2 utp_pred_laws.inf_top_left)
+  using assms apply (rel_auto)
+  done
+
 subsection \<open> Assignment with update \<close>
 
 text \<open> There are different collections that we would like to assign to, but they all have different
@@ -331,6 +340,11 @@ lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<t
 lemma gcmd_AssumeCircus: 
   "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
   by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
+
+lemma rdes_assume_pre_refine:
+  assumes "P is NCSP"
+  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
+  by (rdes_refine cls: assms)
 
 subsection \<open> Guards \<close>
 
@@ -516,6 +530,20 @@ proof -
     by (simp add: Healthy_def')
 qed
 
+lemma Guard_refines_sinv: 
+  assumes "P is NCSP" "sinv\<^sub>R(b) \<sqsubseteq> P"
+  shows "sinv\<^sub>R(b) \<sqsubseteq> g &\<^sub>u P"
+proof -
+  from assms
+  have "\<^bold>R\<^sub>s([b]\<^sub>S\<^sub>< \<turnstile> R1 true \<diamondop> [b]\<^sub>S\<^sub>>) \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: rdes_def NCSP_implies_CSP SRD_reactive_tri_design)
+  thus ?thesis
+    apply (simp add: RHS_tri_design_refine' closure unrest assms)
+    apply (safe)
+    apply (rdes_refine cls: assms(1))
+    done
+qed
+
 subsection \<open> Basic events\<close>
 
 definition do\<^sub>u ::
@@ -601,6 +629,9 @@ lemma wp_rea_DoCSP_alt:
   shows "($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st) wp\<^sub>r pre\<^sub>R P = 
          ($tr\<acute> \<ge>\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<Rightarrow>\<^sub>r (pre\<^sub>R P)\<lbrakk>$tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>/$tr\<rbrakk>)"  
   by (simp add: wp_rea_DoCSP assms rea_not_def R1_def usubst unrest, rel_auto)
+
+lemma DoCSP_refine_sinv: "sinv\<^sub>R(b) \<sqsubseteq> do\<^sub>C(a)"
+  by (rdes_refine)
 
 subsection \<open> Event prefix \<close>
 

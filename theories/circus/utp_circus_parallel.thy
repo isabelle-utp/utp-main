@@ -892,6 +892,11 @@ lemma CACT_intro:
   shows "P is CACT"
   by (metis CACT_def Healthy_def assms(1) assms(2))
 
+lemma CACT_rdes_intro:
+  assumes "P\<^sub>1 is CRC" "P\<^sub>2 is CRR" "P\<^sub>2 is CDC" "P\<^sub>3 is CRR" "$st\<acute> \<sharp> P\<^sub>2" "$ref\<acute> \<sharp> P\<^sub>3"
+  shows "\<^bold>R\<^sub>s (P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) is CACT"
+  by (rule CACT_intro, simp add: closure assms, rule C2_rdes_intro, simp_all add: assms)
+
 lemma C2_NCSP_quasi_commute:
   assumes "P is NCSP"
   shows "C2(NCSP(P)) = NCSP(C2(P))"
@@ -1055,7 +1060,10 @@ lemma gcomm_C2_closed [closure]:
 
 lemma AssumeCircus_CACT [closure]: "[b]\<^sub>C is CACT"
   by (metis AssumeCircus_NCSP AssumeCircus_def CACT_intro NCSP_Skip Skip_C2_closed gcomm_C2_closed)
- 
+
+lemma StateInvR_CACT [closure]: "sinv\<^sub>R(b) is CACT"
+  by (simp add: CACT_rdes_intro rdes_def closure unrest)
+
 lemma AlternateR_C2_closed [closure]:
   assumes 
     "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"

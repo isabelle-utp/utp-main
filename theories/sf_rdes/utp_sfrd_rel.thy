@@ -164,6 +164,12 @@ lemma false_CRC [closure]: "false is CRC"
 lemma st_pred_CRR [closure]: "[P]\<^sub>S\<^sub>< is CRR"
   by (rel_auto)
 
+lemma st_post_unrest_ref' [unrest]: "$ref\<acute> \<sharp> [b]\<^sub>S\<^sub>>"
+  by (rel_auto)
+
+lemma st_post_CRR [closure]: "[b]\<^sub>S\<^sub>> is CRR"
+  by (rel_auto)
+
 lemma st_cond_CRC [closure]: "[P]\<^sub>S\<^sub>< is CRC"
   by (rel_auto)
 
@@ -176,6 +182,16 @@ proof -
   thus ?thesis
     by (rule_tac CRR_intro, simp_all add: closure Healthy_if assms)
 qed
+
+lemma st_subst_CRR_closed [closure]:
+  assumes "P is CRR"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is CRR"
+  by (rule CRR_intro, simp_all add: unrest closure assms)
+
+lemma st_subst_CRC_closed [closure]:
+  assumes "P is CRC"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is CRC"
+  by (rule CRC_intro, simp_all add: closure assms unrest)
 
 lemma conj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRC"
@@ -897,6 +913,9 @@ lemma CDC_RR_commute: "CDC(RR(P)) = RR(CDC(P))"
 lemma CDC_RR_closed [closure]: "P is RR \<Longrightarrow> CDC(P) is RR"
   by (metis CDC_RR_commute Healthy_def)
 
+lemma CDC_CRR_commute: "CDC (CRR P) = CRR (CDC P)"
+  by (rel_blast)
+
 lemma CDC_CRR_closed [closure]:
   assumes "P is CRR"
   shows "CDC(P) is CRR"
@@ -965,6 +984,16 @@ proof -
     by (rel_blast)
   thus ?thesis
     by (metis Healthy_def assms)
+qed
+
+lemma st_subst_CDC_closed [closure]:
+  assumes "P is CDC"
+  shows "(\<sigma> \<dagger>\<^sub>S P) is CDC"
+proof -
+  have "(\<sigma> \<dagger>\<^sub>S CDC P) is CDC"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
 qed
 
 lemma rea_st_cond_CDC [closure]: "[g]\<^sub>S\<^sub>< is CDC"
@@ -1057,5 +1086,8 @@ lemma ref'_unrest_csp_rename [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow
 lemma csp_rename_CDC_closed [closure]:
   "P is CDC \<Longrightarrow> P\<lparr>f\<rparr>\<^sub>c is CDC"
   by (rel_blast)
+
+lemma csp_do_CDC [closure]: "\<Phi>(s,\<sigma>,t) is CDC"
+  by (rel_auto)
 
 end

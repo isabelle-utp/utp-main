@@ -391,6 +391,34 @@ lemma choose_srd_SRD [closure]: "choose\<^sub>R is SRD"
 lemma NSRD_choose_srd [closure]: "choose\<^sub>R is NSRD"
   by (rule NSRD_intro, simp_all add: closure unrest rdes)
 
+subsection \<open> Divergence Freedom \<close>
+
+definition ndiv_srd :: "('s,'t::trace,'\<alpha>) hrel_rsp" ("ndiv\<^sub>R")
+where [rdes_def]: "ndiv_srd = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> true\<^sub>r \<diamondop> true\<^sub>r)"
+
+lemma ndiv_NSRD [closure]: "ndiv\<^sub>R is NSRD"
+  by (simp add: rdes_def closure unrest)
+
+lemma ndiv_srd_refines_preR_true:
+  assumes "P is SRD"
+  shows "ndiv\<^sub>R \<sqsubseteq> P \<longleftrightarrow> pre\<^sub>R(P) = true\<^sub>r" (is "?lhs \<longleftrightarrow> ?rhs")
+proof
+  assume ?lhs
+  thus ?rhs
+    by (metis R1_preR ndiv_srd_def preR_antitone preR_rdes rea_true_RR rea_true_disj(2) utp_pred_laws.sup.orderE)    
+next
+  assume ?rhs
+  hence "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: RHS_tri_design_conj assms ndiv_srd_def periR_SRD_R1 postR_SRD_R1 rea_true_conj(1) rea_true_impl utp_pred_laws.inf.absorb_iff2)
+  thus ?lhs
+    by (simp add: SRD_reactive_tri_design assms)
+qed
+
+lemma ndiv_srd_refines_rdes_pre_true:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR"
+  shows "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<longleftrightarrow> P\<^sub>1 = true\<^sub>r" (is "?lhs \<longleftrightarrow> ?rhs")
+  by (simp add: ndiv_srd_refines_preR_true closure assms rdes unrest)
+
 subsection \<open> State Abstraction \<close>
 
 definition state_srea ::
@@ -1089,7 +1117,7 @@ lemma R_D_seq:
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
 
-text {* Thes laws are applicable only when there is no further alphabet extension *}
+text {* These laws are applicable only when there is no further alphabet extension *}
 
 lemma R_D_skip:
   "\<^bold>R\<^sub>D(II\<^sub>D) = (II\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"
@@ -1098,5 +1126,28 @@ lemma R_D_skip:
 lemma R_D_assigns:
   "\<^bold>R\<^sub>D(\<langle>\<sigma>\<rangle>\<^sub>D) = (\<langle>\<sigma>\<rangle>\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"
   by (simp add: assigns_d_def des_rea_lift_def alpha assigns_srd_RHS_tri_des, rel_auto)
+
+subsection \<open> State Invariants \<close>
+
+definition StateInvR :: "'s upred \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("sinv\<^sub>R'(_')") where
+[rdes_def]: "sinv\<^sub>R(b) = \<^bold>R\<^sub>s([b]\<^sub>S\<^sub>< \<turnstile> true\<^sub>r \<diamondop> [b]\<^sub>S\<^sub>>)"
+
+lemma StateInvR_NSRD [closure]: "sinv\<^sub>R(b) is NSRD"
+  by (simp add: StateInvR_def closure unrest)
+
+lemma StateInvR_srd_skip_refine: "sinv\<^sub>R(b) \<sqsubseteq> II\<^sub>R"
+  by (rdes_refine)
+
+lemma StateInvR_seq_idem:
+  "sinv\<^sub>R(b) ;; sinv\<^sub>R(b) = sinv\<^sub>R(b)"
+  by (rdes_eq)
+
+lemma StateInvR_seq_refine:
+  assumes "sinv\<^sub>R(b) \<sqsubseteq> P" "sinv\<^sub>R(b) \<sqsubseteq> Q"
+  shows "sinv\<^sub>R(b) \<sqsubseteq> P ;; Q"
+  by (metis (full_types) StateInvR_seq_idem assms seqr_mono)
+
+lemma ndiv_StateInvR: "ndiv\<^sub>R = sinv\<^sub>R(true)"
+  by (rdes_eq)
 
 end

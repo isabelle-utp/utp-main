@@ -351,55 +351,19 @@ locale DivFreeSM = WfStateMachine +
     tn_trigger_divf: "\<And> t e. \<lbrakk> t \<in> set(\<^bold>T); tn_trigger t = Some e \<rbrakk> \<Longrightarrow> divf \<sqsubseteq> e" and
     tn_action_divf: "\<And> t. t \<in> set(\<^bold>T) \<Longrightarrow> divf \<sqsubseteq> tn_action t"
 
-lemma divf_frame_ext:
-  "divf \<sqsubseteq> P \<Longrightarrow> divf \<sqsubseteq> a:[P]\<^sub>A\<^sup>+"
-  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes, safe, simp add: rdes_def rdes alpha closure)
-
-lemma divf_seq_refine:
-  assumes "divf \<sqsubseteq> P" "divf \<sqsubseteq> Q"
-  shows "divf \<sqsubseteq> (P ; Q)"
-  using assms by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
-
-lemma divf_extchoice_refine:
-  assumes "divf \<sqsubseteq> P" "divf \<sqsubseteq> Q"
-  shows "divf \<sqsubseteq> (P \<box> Q)"
-  using assms by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
-
-lemma divf_stop: "divf \<sqsubseteq> stop"
-  by (transfer, rdes_refine)
-
-lemma divf_extchoice_fold_refine:
-  assumes "\<And> P. P \<in> set(xs) \<Longrightarrow> divf \<sqsubseteq> P"
-  shows "divf \<sqsubseteq> foldr (op \<box>) xs stop"
-  using assms
-  apply (induct xs)
-   apply (simp_all add: divf_stop)
-  apply (rule divf_extchoice_refine)
-   apply (auto simp add: assms)
-  done
-
-lemma divf_assigns: "divf \<sqsubseteq> \<langle>\<sigma>\<rangle>\<^sub>a"
-  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
-
-lemma divf_guard: "divf \<sqsubseteq> P \<Longrightarrow> divf \<sqsubseteq> b \<^bold>& P"
-  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred wp)
-
-lemma divf_sync: "divf \<sqsubseteq> sync e"
-  by (transfer, simp add: ndiv_srd_refines_preR_true closure rdes rpred usubst wp)
-
 lemma DivFreeSM_divf:
   assumes "DivFreeSM M"
-  shows "divf \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M null_event"
+  shows "divf \<sqsubseteq> \<lbrakk>M\<rbrakk>\<^sub>M \<epsilon>"
 proof (rule StateMachine_refine_intro)
   interpret dvs: DivFreeSM M
     by (simp add: assms)
   show "WfStateMachine M"
     by (simp add: dvs.WfStateMachine_axioms)
-  have "\<And> n t. \<lbrakk> n \<in> nnames\<^bsub>M\<^esub>; t \<in> set(the (tmap\<^bsub>M\<^esub> n)) \<rbrakk> \<Longrightarrow> divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T null_event"  
+  have "\<And> n t. \<lbrakk> n \<in> nnames\<^bsub>M\<^esub>; t \<in> set(the (tmap\<^bsub>M\<^esub> n)) \<rbrakk> \<Longrightarrow> divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T \<epsilon>"  
   proof -
     fix n t
     assume a: "n \<in> nnames\<^bsub>M\<^esub>" "t \<in> set(the (tmap\<^bsub>M\<^esub> n))"
-    have "divf \<sqsubseteq> trigger_semantics t null_event"
+    have "divf \<sqsubseteq> trigger_semantics t \<epsilon>"
     proof (cases "tn_trigger t")
       case None
       then show ?thesis by (simp add: divf_sync)
@@ -408,7 +372,7 @@ proof (rule StateMachine_refine_intro)
       then show ?thesis
         using a(1) a(2) divf_sync dvs.node_tran_exists dvs.tn_trigger_divf by fastforce
     qed
-    thus "divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T null_event"
+    thus "divf \<sqsubseteq> \<lbrakk>t\<rbrakk>\<^sub>T \<epsilon>"
       apply (simp add: tr_semantics_def)
       apply (rule divf_guard)
       apply (rule divf_seq_refine)
@@ -420,7 +384,7 @@ proof (rule StateMachine_refine_intro)
       apply (simp add: divf_assigns)
       done
   qed
-  hence b:"\<And> n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+  hence b:"\<And> n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> (M;\<epsilon> \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
     apply (simp add: node_semantics_def)
     apply (rule divf_seq_refine)
     apply (rule divf_frame_ext)
@@ -432,9 +396,9 @@ proof (rule StateMachine_refine_intro)
     apply (rule divf_frame_ext)
     apply (smt dvs.n_exit_divf dvs.nmap_name filter_is_subset imageE option.sel sm_inter_names_def sm_inters_def subset_eq)
     done
-  show "divf \<sqsubseteq> (M;null_event \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
+  show "divf \<sqsubseteq> (M;\<epsilon> \<turnstile> \<lbrakk>ninit\<^bsub>M\<^esub>\<rbrakk>\<^sub>N)"
     by (simp add: b dvs.init_is_inter)
-  show "\<And>n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> divf ; (M;null_event \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
+  show "\<And>n. n \<in> inames\<^bsub>M\<^esub> \<Longrightarrow> divf \<sqsubseteq> divf ; (M;\<epsilon> \<turnstile> \<lbrakk>the (nmap\<^bsub>M\<^esub> n)\<rbrakk>\<^sub>N)"
     by (simp add: b divf_seq_refine)
 qed
 
@@ -459,6 +423,9 @@ syntax
   "_state" :: "raction \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> logic"
   ("entry _ during _ exit _" [0,0,10] 10)
 
+  "_state_entry" :: "raction \<Rightarrow> logic"
+  ("entry _" [10] 10)
+
 translations
   "_transition s1 s2 e b a" =>
   "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some e) b a"
@@ -471,8 +438,9 @@ translations
 
   "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
 
-  "_state e d x" =>
-  "CONST Node.make (CONST undefined) e d x"
+  "_state e d x" => "CONST Node.make (CONST undefined) e d x"
+
+  "_state_entry e" => "CONST Node.make (CONST undefined) e skip skip"
 
 term "from s1 to s2 trigger y := 1; x?(y) ; z!(1) condition b action a"
 term "from s1 to s2 action a"
