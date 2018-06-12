@@ -24,6 +24,12 @@ abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
 
 notation rc_state ("\<^bold>r")
 
+syntax
+  "_svid_rc_state"  :: "svid" ("\<^bold>r")
+
+translations
+  "_svid_rc_state" == "CONST rc_state"
+
 record ('s, 'e) Transition = 
   tn_source    :: string
   tn_target    :: string
