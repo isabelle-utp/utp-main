@@ -446,6 +446,7 @@ term "from s1 to s2 trigger y := 1; x?(y) ; z!(1) condition b action a"
 term "from s1 to s2 action a"
 term "from s1 to s2 trigger e"
 term "entry e during d exit x"
+term "entry e"
 
 term "entry skip during skip exit skip"
 

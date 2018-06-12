@@ -124,7 +124,7 @@ val tn_source = Const (fst (dest_Const @{term MetaModel.tn_source}), dummyT);
 fun compileStateDecls defs typ ctx =
   fold (fn (b, t) => fn (ts, simps, ctx) =>        
            let 
-             val pt = Syntax.parse_term ctx t;
+             val pt = Syntax.check_term ctx (Type.constraint typ (Syntax.parse_term ctx t));
              val tm = n_node_update $ (absdummy dummyT (mk_string (Binding.name_of b))) $ pt;
              val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
              val nm_thm = prove_eq_simplify ctx' (n_name $ trm) (mk_string (Binding.name_of b)) [thm]
