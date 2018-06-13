@@ -23,6 +23,10 @@ text \<open> The action type is parametrised by a state-space type @{typ 's} and
   and channels in this type, as this would require existential quantification. We therefore
   adopt point-free operators that refer only to the state-space type and event type. \<close>
 
+record ('s, 'e) Event =
+  ev_pred   :: "'e \<Rightarrow> 's upred" 
+  ev_update :: "'e \<Rightarrow> 's usubst"
+
 datatype ('s, 'e) Action = 
   -- {* The deadlock action *}
   stop |
@@ -30,11 +34,11 @@ datatype ('s, 'e) Action =
   -- {* Generalised assignment that applies a state transformation *}
   assigns "'s usubst" |
 
-  -- {* Generalised event; take an event predicate $P$ that can refer to state variables, and
+  -- {* Generalised event; takes an event predicate $P$ that can refer to state variables, and
     a substitution $\sigma$ parametrised by events. The assumed semantics of this is that any 
     event $e$ satisfying $P$ can be accepted, and when it is the state update $\sigma(e)$ is 
     executed. *}
-  event "'e \<Rightarrow> 's upred" "'e \<Rightarrow> 's usubst" |
+  event "('s, 'e) Event" |
 
   -- {* Sequential composition *}
   seq "('s, 'e) Action" "('s, 'e) Action" |
@@ -81,13 +85,13 @@ definition assign :: "('a \<Longrightarrow> 's) \<Rightarrow> ('a, 's) uexpr \<R
 "assign x v = \<langle>[x \<mapsto>\<^sub>s v]\<rangle>\<^sub>a"
 
 definition sync :: "'e \<Rightarrow> ('s, 'e) Action" where
-"sync a = event (\<lambda> b. \<guillemotleft>a = b\<guillemotright>) (\<lambda> x. id)"
+"sync a = event \<lparr> ev_pred = (\<lambda> b. \<guillemotleft>a = b\<guillemotright>), ev_update = (\<lambda> x. id) \<rparr>"
 
 definition recv :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')") where
-"recv c x = event (\<lambda> a. \<guillemotleft>a \<in> range c\<guillemotright>) (\<lambda> a. [x \<mapsto>\<^sub>s \<guillemotleft>inv c a\<guillemotright>])"
+"recv c x = event \<lparr> ev_pred = (\<lambda> a. \<guillemotleft>a \<in> range c\<guillemotright>), ev_update = (\<lambda> a. [x \<mapsto>\<^sub>s \<guillemotleft>inv c a\<guillemotright>]) \<rparr>"
 
 definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')") where
-"send c v = event (\<lambda> a. \<guillemotleft>a\<guillemotright> =\<^sub>u (c\<cdot>v)\<^sub>u) (\<lambda> a. id)"
+"send c v = event \<lparr> ev_pred = (\<lambda> a. \<guillemotleft>a\<guillemotright> =\<^sub>u (c\<cdot>v)\<^sub>u), ev_update = (\<lambda> a. id) \<rparr>"
 
 subsection \<open> Action Syntax Parser \<close>
 

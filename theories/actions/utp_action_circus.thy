@@ -10,7 +10,7 @@ fun sfrd_sem :: "('s, 'e) Action \<Rightarrow> ('s, 'e) action" ("\<lbrakk>_\<rb
 "\<lbrakk>intchoice P Q\<rbrakk>\<^sub>C = \<lbrakk>P\<rbrakk>\<^sub>C \<sqinter> \<lbrakk>Q\<rbrakk>\<^sub>C" |
 "\<lbrakk>assigns \<sigma>\<rbrakk>\<^sub>C = \<langle>\<sigma>\<rangle>\<^sub>C" |
 "\<lbrakk>stop\<rbrakk>\<^sub>C = Stop" |
-"\<lbrakk>event P \<sigma>\<rbrakk>\<^sub>C = (\<box> e\<in>UNIV \<bullet> P(e) &\<^sub>u do\<^sub>C(\<guillemotleft>e\<guillemotright>) ;; \<langle>\<sigma>(e)\<rangle>\<^sub>C)" |
+"\<lbrakk>event E\<rbrakk>\<^sub>C = (\<box> e\<in>UNIV \<bullet> ev_pred E e &\<^sub>u do\<^sub>C(\<guillemotleft>e\<guillemotright>) ;; \<langle>ev_update E e\<rangle>\<^sub>C)" |
 "\<lbrakk>extchoice P Q\<rbrakk>\<^sub>C = (\<lbrakk>P\<rbrakk>\<^sub>C \<box> \<lbrakk>Q\<rbrakk>\<^sub>C)" |
 "\<lbrakk>guard b P\<rbrakk>\<^sub>C = (b &\<^sub>u \<lbrakk>P\<rbrakk>\<^sub>C)"
 
