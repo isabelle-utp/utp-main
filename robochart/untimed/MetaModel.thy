@@ -29,6 +29,7 @@ syntax
 
 translations
   "_svid_rc_state" == "CONST rc_state"
+  "_svid_dot \<^bold>r x" <= "x ;\<^sub>L \<^bold>r"
 
 record ('s, 'e) Transition = 
   tn_source    :: string
