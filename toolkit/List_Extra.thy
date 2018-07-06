@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Lists: extra functions and properties *}
+section \<open> Lists: extra functions and properties \<close>
 
 theory List_Extra
   imports
@@ -14,16 +14,16 @@ theory List_Extra
   "HOL-Library.Prefix_Order"
 begin
 
-subsection {* Useful Abbreviations *}
+subsection \<open> Useful Abbreviations \<close>
 
 abbreviation "list_sum xs \<equiv> foldr (+) xs 0"
 
-subsection {* List Lookup *}
+subsection \<open> List Lookup \<close>
 
-text {*
+text \<open>
   The following variant of the standard @{text nth} function returns @{text "\<bottom>"} if the index is 
   out of range.
-*}
+\<close>
 
 primrec
   nth_el :: "'a list \<Rightarrow> nat \<Rightarrow> 'a option" ("_\<langle>_\<rangle>\<^sub>l" [90, 0] 91)
@@ -45,9 +45,9 @@ lemma nth_el_appendr[simp]: "length xs \<le> i \<Longrightarrow> (xs @ ys)\<lang
    apply simp_all
   done
 
-subsection {* Extra List Theorems *}
+subsection \<open> Extra List Theorems \<close>
 
-subsubsection {* Map *}
+subsubsection \<open> Map \<close>
 
 lemma map_nth_Cons_atLeastLessThan:
   "map (nth (x # xs)) [Suc m..<n] = map (nth xs) [m..<n - 1]"
@@ -63,7 +63,7 @@ proof -
   finally show ?thesis ..
 qed
 
-subsubsection {* Sorted Lists *}
+subsubsection \<open> Sorted Lists \<close>
 
 lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> x \<le> last xs"
   by (induct xs, auto)
@@ -77,7 +77,7 @@ lemma sorted_distinct [intro]: "\<lbrakk> sorted (xs); distinct(xs) \<rbrakk> \<
   apply (metis (no_types, hide_lams) Suc_leI Suc_less_eq Suc_pred gr0_conv_Suc not_le not_less_iff_gr_or_eq nth_Cons_Suc nth_mem nth_non_equal_first_eq)
   done
 
-text {* Is the given list a permutation of the given set? *}
+text \<open> Is the given list a permutation of the given set? \<close>
 
 definition is_sorted_list_of_set :: "('a::ord) set \<Rightarrow> 'a list \<Rightarrow> bool" where
 "is_sorted_list_of_set A xs = ((\<forall> i<length(xs) - 1. xs!i < xs!(i + 1)) \<and> set(xs) = A)"
@@ -145,7 +145,7 @@ lemma sorted_list_of_set_alt [simp]:
   apply (auto simp add: sorted_list_of_set_alt_def is_sorted_list_of_set_alt_def sorted_list_of_set_other_def)
   done
 
-text {* Sorting lists according to a relation *}
+text \<open> Sorting lists according to a relation \<close>
 
 definition is_sorted_list_of_set_by :: "'a rel \<Rightarrow> 'a set \<Rightarrow> 'a list \<Rightarrow> bool" where
 "is_sorted_list_of_set_by R A xs = ((\<forall> i<length(xs) - 1. (xs!i, xs!(i + 1)) \<in> R) \<and> set(xs) = A)"
@@ -193,7 +193,7 @@ lemma tl_element:
   "\<lbrakk> x \<in> set xs; x \<noteq> hd(xs) \<rbrakk> \<Longrightarrow> x \<in> set(tl(xs))"
   by (metis in_set_insert insert_Nil list.collapse list.distinct(2) set_ConsD)
 
-subsubsection {* List Update *}
+subsubsection \<open> List Update \<close>
 
 lemma listsum_update:
   fixes xs :: "'a::ring list"
@@ -216,7 +216,7 @@ next
   qed
 qed
 
-subsubsection {* Drop While and Take While *}
+subsubsection \<open> Drop While and Take While \<close>
 
 
 lemma dropWhile_sorted_le_above:
@@ -265,7 +265,7 @@ lemma nth_length_takeWhile_less:
   "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
   by (induct xs, auto)
 
-subsubsection {* Last and But Last *}
+subsubsection \<open> Last and But Last \<close>
 
 lemma length_gt_zero_butlast_concat:
   assumes "length ys > 0"
@@ -295,7 +295,7 @@ lemma length_gt_zero_last_concat:
   shows "last (s @ t) = last t"
   by (metis assms last_append length_greater_0_conv)
 
-subsubsection {* Prefixes and Strict Prefixes *}
+subsubsection \<open> Prefixes and Strict Prefixes \<close>
 
 lemma prefix_length_eq:
   "\<lbrakk> length xs = length ys; prefix xs ys \<rbrakk> \<Longrightarrow> xs = ys"
@@ -424,7 +424,7 @@ proof -
   finally show ?thesis .
 qed
 
-text {* Greatest common prefix *}
+text \<open> Greatest common prefix \<close>
 
 fun gcp :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
 "gcp [] ys = []" |
@@ -461,7 +461,7 @@ next
     by (simp add: prefix_def, auto)
 qed
 
-subsubsection {* Lexicographic Order *}
+subsubsection \<open> Lexicographic Order \<close>
 
 lemma lexord_append:
   assumes "(xs\<^sub>1 @ ys\<^sub>1, xs\<^sub>2 @ ys\<^sub>2) \<in> lexord R" "length(xs\<^sub>1) = length(xs\<^sub>2)"
@@ -549,7 +549,7 @@ next
     by (auto)
 qed
 
-subsection {* Distributed Concatenation *}
+subsection \<open> Distributed Concatenation \<close>
 
 definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow>  'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
 [simp]: "uncurry f = (\<lambda>(x, y). f x y)"
@@ -570,7 +570,7 @@ lemma dist_concat_insert [simp]:
 "insert l ls1 \<^sup>\<frown> ls2 = ((@) l ` ( ls2)) \<union> (ls1 \<^sup>\<frown> ls2)"
   by (auto simp add: dist_concat_def)
 
-subsection {* List Domain and Range *}
+subsection \<open> List Domain and Range \<close>
 
 abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
 "seq_dom xs \<equiv> {0..<length xs}"
@@ -578,7 +578,7 @@ abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
 abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
 
-subsection {* Extracting List Elements *}
+subsection \<open> Extracting List Elements \<close>
 
 definition seq_extract :: "nat set \<Rightarrow> 'a list \<Rightarrow> 'a list" (infix "\<upharpoonleft>\<^sub>l" 80) where
 "seq_extract A xs = nths xs A"
@@ -698,7 +698,7 @@ next
     by (auto simp add: seq_extract_split)
 qed
 
-subsection {* Filtering a list according to a set *}
+subsection \<open> Filtering a list according to a set \<close>
 
 definition seq_filter :: "'a list \<Rightarrow> 'a set \<Rightarrow> 'a list" (infix "\<restriction>\<^sub>l" 80) where
 "seq_filter xs A = filter (\<lambda> x. x \<in> A) xs"
@@ -726,14 +726,14 @@ lemma seq_filter_UNIV [simp]: "xs \<restriction>\<^sub>l UNIV = xs"
 lemma seq_filter_twice [simp]: "(xs \<restriction>\<^sub>l A) \<restriction>\<^sub>l B = xs \<restriction>\<^sub>l (A \<inter> B)"
   by (simp add: seq_filter_def)
 
-subsection {* Minus on lists *}
+subsection \<open> Minus on lists \<close>
 
 instantiation list :: (type) minus
 begin
 
-text {* We define list minus so that if the second list is not a prefix of the first, then an arbitrary
+text \<open> We define list minus so that if the second list is not a prefix of the first, then an arbitrary
         list longer than the combined length is produced. Thus we can always determined from the output
-        whether the minus is defined or not. *}
+        whether the minus is defined or not. \<close>
 
 definition "xs - ys = (if (prefix ys xs) then drop (length ys) xs else [])"
 
@@ -763,7 +763,7 @@ lemma list_minus_first_tl [simp]:
   "[x] \<le> xs \<Longrightarrow> (xs - [x]) = tl xs"
   by (metis Prefix_Order.prefixE append.left_neutral append_minus list.sel(3) not_Cons_self2 tl_append2)
 
-text {* Extra lemmas about @{term prefix} and @{term strict_prefix} *}
+text \<open> Extra lemmas about @{term prefix} and @{term strict_prefix} \<close>
 
 lemma prefix_concat_minus:
   assumes "prefix xs ys"

@@ -138,7 +138,7 @@ lemma cset_mapM_Some_image [simp]:
   "cset_mapM (cimage Some A) = Some A"
   apply (auto simp add: cset_mapM_def)
   apply (metis cimage_cinsert cinsertI1 option.sel set_cinsert)
-done
+  done
 
 definition CCollect_ext :: "('a \<Rightarrow> 'b option) \<Rightarrow> ('a \<Rightarrow> bool option) \<Rightarrow> 'b cset option" where
 "CCollect_ext f p = do { xs \<leftarrow> CCollect p; cset_mapM (f `\<^sub>c xs) }"
@@ -200,7 +200,7 @@ definition cset_seq :: "'a cset \<Rightarrow> (nat \<rightharpoonup> 'a)" where
 lemma cset_seq_ran: "ran (cset_seq A) = rcset(A)"
   apply (auto simp add: ran_def cset_seq_def cin.rep_eq)
   apply (metis cset_count_inj_seq inv_into_f_f rangeI)
-done
+  done
 
 lemma cset_seq_inj: "inj cset_seq"
 proof (rule injI)
