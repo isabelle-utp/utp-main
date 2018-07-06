@@ -1,4 +1,4 @@
-section {* Alphabetised Predicates *}
+section \<open> Alphabetised Predicates \<close>
 
 theory utp_pred
 imports
@@ -8,24 +8,24 @@ imports
   utp_tactics
 begin
   
-text {* In this theory we begin to create an Isabelle version of the alphabetised predicate calculus
-  that is described in Chapter 1 of the UTP book~\cite{Hoare&98}. *}
+text \<open> In this theory we begin to create an Isabelle version of the alphabetised predicate calculus
+  that is described in Chapter 1 of the UTP book~\cite{Hoare&98}. \<close>
   
-subsection {* Predicate type and syntax *}
+subsection \<open> Predicate type and syntax \<close>
   
-text {* An alphabetised predicate is a simply a boolean valued expression. *}
+text \<open> An alphabetised predicate is a simply a boolean valued expression. \<close>
 
 type_synonym '\<alpha> upred = "(bool, '\<alpha>) uexpr"
 
 translations
   (type) "'\<alpha> upred" <= (type) "(bool, '\<alpha>) uexpr"
 
-text {* We want to remain as close as possible to the mathematical UTP syntax, but also
+text \<open> We want to remain as close as possible to the mathematical UTP syntax, but also
         want to be conservative with HOL. For this reason we chose not to steal syntax
         from HOL, but where possible use polymorphism to allow selection of the appropriate
         operator (UTP vs. HOL). Thus we will first remove the standard syntax for conjunction,
         disjunction, and negation, and replace these with adhoc overloaded definitions. We
-        similarly use polymorphic constants for the other predicate calculus operators. *}
+        similarly use polymorphic constants for the other predicate calculus operators. \<close>
 
 purge_notation
   conj (infixr "\<and>" 35) and
@@ -50,12 +50,12 @@ adhoc_overloading
   udisj disj and
   unot Not
 
-text {* We set up two versions of each of the quantifiers: @{const uex} / @{const uall} and
+text \<open> We set up two versions of each of the quantifiers: @{const uex} / @{const uall} and
         @{const ushEx} / @{const ushAll}. The former pair allows quantification of UTP variables,
         whilst the latter allows quantification of HOL variables in concert with the literal
         expression constructor @{term "\<guillemotleft>x\<guillemotright>"}. Both varieties will be needed at various points. 
         Syntactically they are distinguished by a boldface quantifier
-        for the HOL versions (achieved by the "bold" escape in Isabelle). *}
+        for the HOL versions (achieved by the "bold" escape in Isabelle). \<close>
 
 nonterminal idt_list
 
@@ -86,24 +86,24 @@ translations
   "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> >\<^sub>u y \<Rightarrow> P"
   "\<^bold>\<forall> x < y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> <\<^sub>u y \<Rightarrow> P"
 
-subsection {* Predicate operators *}
+subsection \<open> Predicate operators \<close>
 
-text {* We chose to maximally reuse definitions and laws built into HOL. For this reason,
+text \<open> We chose to maximally reuse definitions and laws built into HOL. For this reason,
         when introducing the core operators we proceed by lifting operators from the
         polymorphic algebraic hierarchy of HOL. Thus the initial definitions take
         place in the context of type class instantiations. We first introduce our own
         class called \emph{refine} that will add the refinement operator syntax to
-        the HOL partial order class. *}
+        the HOL partial order class. \<close>
 
 class refine = order
 
 abbreviation refineBy :: "'a::refine \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50) where
 "P \<sqsubseteq> Q \<equiv> less_eq Q P"
 
-text {* Since, on the whole, lattices in UTP are the opposite way up to the standard definitions
+text \<open> Since, on the whole, lattices in UTP are the opposite way up to the standard definitions
         in HOL, we syntactically invert the lattice operators. This is the one exception where
         we do steal HOL syntax, but I think it makes sense for UTP. Indeed we make this
-        inversion for all of the lattice operators. *}
+        inversion for all of the lattice operators. \<close>
 
 purge_notation Lattices.inf (infixl "\<sqinter>" 70)
 notation Lattices.inf (infixl "\<squnion>" 70)
@@ -132,7 +132,7 @@ syntax
   "_SUP1"     :: "pttrns \<Rightarrow> 'b \<Rightarrow> 'b"           ("(3\<Sqinter>_./ _)" [0, 10] 10)
   "_SUP"      :: "pttrn \<Rightarrow> 'a set \<Rightarrow> 'b \<Rightarrow> 'b"  ("(3\<Sqinter>_\<in>_./ _)" [0, 0, 10] 10)
 
-text {* We trivially instantiate our refinement class *}
+text \<open> We trivially instantiate our refinement class \<close>
 
 instance uexpr :: (order, type) refine ..
 
@@ -144,7 +144,7 @@ theorem upred_ref_iff [uexpr_transfer_laws]:
   apply (clarsimp)
   done
 
-text {* Next we introduce the lattice operators, which is again done by lifting. *}
+text \<open> Next we introduce the lattice operators, which is again done by lifting. \<close>
 
 instantiation uexpr :: (lattice, type) lattice
 begin
@@ -175,9 +175,9 @@ lemma bot_uexpr_rep_eq [simp]:
 instance uexpr :: (distrib_lattice, type) distrib_lattice
   by (intro_classes) (transfer, rule ext, auto simp add: sup_inf_distrib1)
 
-text {* Finally we show that predicates form a Boolean algebra (under the lattice operators),
+text \<open> Finally we show that predicates form a Boolean algebra (under the lattice operators),
   a complete lattice, a completely distribute lattice, and a complete boolean algebra. This
-  equip us with a very complete theory for basic logical propositions. *}
+  equip us with a very complete theory for basic logical propositions. \<close>
 
 instance uexpr :: (boolean_algebra, type) boolean_algebra
   apply (intro_classes, unfold uexpr_defs; transfer, rule ext)
@@ -200,8 +200,8 @@ instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
   
-text {* From the complete lattice, we can also define and give syntax for the fixed-point operators. 
-  Like the lattice operators, these are reversed in UTP. *}
+text \<open> From the complete lattice, we can also define and give syntax for the fixed-point operators. 
+  Like the lattice operators, these are reversed in UTP. \<close>
 
 syntax
   "_mu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu> _ \<bullet> _" [0, 10] 10)
@@ -214,8 +214,8 @@ translations
   "\<nu> X \<bullet> P" == "CONST lfp (\<lambda> X. P)"
   "\<mu> X \<bullet> P" == "CONST gfp (\<lambda> X. P)"
 
-text {* With the lattice operators defined, we can proceed to give definitions for the
-        standard predicate operators in terms of them. *}
+text \<open> With the lattice operators defined, we can proceed to give definitions for the
+        standard predicate operators in terms of them. \<close>
 
 definition "true_upred  = (Orderings.top :: '\<alpha> upred)"
 definition "false_upred = (Orderings.bot :: '\<alpha> upred)"
@@ -234,9 +234,9 @@ notation
   conj_upred (infixr "\<and>\<^sub>p" 35) and
   disj_upred (infixr "\<or>\<^sub>p" 30)
 
-text {* Perhaps slightly confusingly, the UTP infimum is the HOL supremum and vice-versa. This is
+text \<open> Perhaps slightly confusingly, the UTP infimum is the HOL supremum and vice-versa. This is
   because, again, in UTP the lattice is inverted due to the definition of refinement and a desire
-  to have miracle at the top, and abort at the bottom. *}
+  to have miracle at the top, and abort at the bottom. \<close>
   
 lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
@@ -273,7 +273,7 @@ translations
   "\<Squnion> x | P \<bullet> F" <= "CONST USUP (\<lambda> y. P) (\<lambda> x. F)"
   "\<Squnion> x | P \<bullet> F(x)" <= "CONST USUP (\<lambda> x. P) F"
 
-text {* We also define the other predicate operators *}
+text \<open> We also define the other predicate operators \<close>
 
 lift_definition impl::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P Q A. P A \<longrightarrow> Q A" .
@@ -293,8 +293,8 @@ lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha>
 lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P A. \<forall> x. (P x) A" .
     
-text {* We define the following operator which is dual of existential quantification. It hides the
-  valuation of variables other than $x$ through existential quantification. *}
+text \<open> We define the following operator which is dual of existential quantification. It hides the
+  valuation of variables other than $x$ through existential quantification. \<close>
     
 lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred" is
 "\<lambda> P x b. \<exists> b'. P (b' \<oplus>\<^sub>L b on x)" .
@@ -302,8 +302,8 @@ lift_definition var_res :: "'\<alpha> upred \<Rightarrow> ('a \<Longrightarrow> 
 translations
   "_uvar_res P a" \<rightleftharpoons> "CONST var_res P a"
 
-text {* We have to add a u subscript to the closure operator as I don't want to override the syntax
-        for HOL lists (we'll be using them later). *}
+text \<open> We have to add a u subscript to the closure operator as I don't want to override the syntax
+        for HOL lists (we'll be using them later). \<close>
 
 lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<alpha> upred" ("[_]\<^sub>u") is
 "\<lambda> P A. \<forall>A'. P A'" .
@@ -360,7 +360,7 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 declare true_alt_def[THEN sym,lit_simps]
 declare false_alt_def[THEN sym,lit_simps]
 
-subsection {* Unrestriction Laws *}
+subsection \<open> Unrestriction Laws \<close>
 
 lemma unrest_allE:
   "\<lbrakk> \<Sigma> \<sharp> P; P = true \<Longrightarrow> Q; P = false \<Longrightarrow> Q \<rbrakk> \<Longrightarrow> Q"
@@ -403,7 +403,7 @@ lemma unrest_iff [unrest]: "\<lbrakk> x \<sharp> P; x \<sharp> Q \<rbrakk> \<Lon
 lemma unrest_not [unrest]: "x \<sharp> (P :: '\<alpha> upred) \<Longrightarrow> x \<sharp> (\<not> P)"
   by (pred_auto)
 
-text {* The sublens proviso can be thought of as membership below. *}
+text \<open> The sublens proviso can be thought of as membership below. \<close>
 
 lemma unrest_ex_in [unrest]:
   "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<exists> y \<bullet> P)"
@@ -460,7 +460,7 @@ lemma unrest_closure [unrest]:
   "x \<sharp> [P]\<^sub>u"
   by (pred_auto)
 
-subsection {* Used-by laws *}
+subsection \<open> Used-by laws \<close>
 
 lemma usedBy_not [unrest]:
   "\<lbrakk> x \<natural> P \<rbrakk> \<Longrightarrow> x \<natural> (\<not> P)"
@@ -482,9 +482,9 @@ lemma usedBy_iff [unrest]:
   "\<lbrakk> x \<natural> P; x \<natural> Q \<rbrakk> \<Longrightarrow> x \<natural> (P \<Leftrightarrow> Q)"
   by (pred_simp)
     
-subsection {* Substitution Laws *}
+subsection \<open> Substitution Laws \<close>
 
-text {* Substitution is monotone *}
+text \<open> Substitution is monotone \<close>
 
 lemma subst_mono: "P \<sqsubseteq> Q \<Longrightarrow> (\<sigma> \<dagger> P) \<sqsubseteq> (\<sigma> \<dagger> Q)"
   by (pred_auto)
@@ -531,7 +531,7 @@ lemma subst_shEx [usubst]: "\<sigma> \<dagger> (\<^bold>\<exists> x \<bullet> P(
 lemma subst_shAll [usubst]: "\<sigma> \<dagger> (\<^bold>\<forall> x \<bullet> P(x)) = (\<^bold>\<forall> x \<bullet> \<sigma> \<dagger> P(x))"
   by (pred_auto)
 
-text {* TODO: Generalise the quantifier substitution laws to n-ary substitutions *}
+text \<open> TODO: Generalise the quantifier substitution laws to n-ary substitutions \<close>
 
 lemma subst_ex_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> (\<exists> x \<bullet> P) = \<sigma> \<dagger> (\<exists> x \<bullet> P)"

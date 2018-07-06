@@ -83,7 +83,7 @@ lemma Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>
 lemma is_Healthy_subset_member: "\<lbrakk> A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H; P \<in> A \<rbrakk> \<Longrightarrow> P is H"
   by blast
 
-subsection {* Properties of Healthiness Conditions *}
+subsection \<open> Properties of Healthiness Conditions \<close>
 
 definition Idempotent :: "'\<alpha> health \<Rightarrow> bool" where
   "Idempotent(H) \<longleftrightarrow> (\<forall> P. H(H(P)) = H(P))"
@@ -236,7 +236,7 @@ lemma Continuous_cond [closure]:
   shows "Continuous (\<lambda> X. F(X) \<triangleleft> b \<triangleright> G(X))"
   using assms by (pred_auto)
 
-text {* Closure laws derived from continuity *}
+text \<open> Closure laws derived from continuity \<close>
 
 lemma Sup_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
@@ -304,7 +304,7 @@ proof -
   finally show ?thesis .
 qed
 
-text {* All continuous functions are also Scott-continuous *}
+text \<open> All continuous functions are also Scott-continuous \<close>
 
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
   by (simp add: Continuous_def sup_continuous_def)

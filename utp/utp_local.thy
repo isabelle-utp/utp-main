@@ -1,4 +1,4 @@
-section {* Local Variables *}
+section \<open> Local Variables \<close>
 
 theory utp_local
 imports 
@@ -7,22 +7,22 @@ imports
   utp_theory
 begin
       
-subsection {* Preliminaries *}
+subsection \<open> Preliminaries \<close>
   
-text {* The following type is used to augment that state-space with a stack of local variables
+text \<open> The following type is used to augment that state-space with a stack of local variables
   represented as a list in the special variable $store$. Local variables will be represented
   by pushing variables onto the stack, and popping them off after use. The element type of
-  the stack is @{typ "'u"} which corresponds to a suitable injection universe. *}
+  the stack is @{typ "'u"} which corresponds to a suitable injection universe. \<close>
   
 alphabet 'u local =
   store :: "'u list"
 
-text {* State-space with a countable universe for local variables. *}
+text \<open> State-space with a countable universe for local variables. \<close>
   
 type_synonym 'a clocal = "(nat, 'a) local_scheme"
   
-text {* The following predicate wraps the relation with assumptions that the stack has a particular 
-  size before and after execution. *}
+text \<open> The following predicate wraps the relation with assumptions that the stack has a particular 
+  size before and after execution. \<close>
   
 definition local_num where
 "local_num n P = [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top> ;; P ;; [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top>"
@@ -31,10 +31,10 @@ declare inj_univ.from_univ_def [upred_defs]
 declare inj_univ.to_univ_lens_def [upred_defs]
 declare nat_inj_univ_def [upred_defs]
     
-subsection {* State Primitives *}
+subsection \<open> State Primitives \<close>
   
-text {* The following record is used to characterise the UTP theory specific operators we require
-  in order to create the local variable operators. *}
+text \<open> The following record is used to characterise the UTP theory specific operators we require
+  in order to create the local variable operators. \<close>
   
 record ('\<alpha>, 's) state_prim =
   
@@ -54,33 +54,33 @@ syntax
 translations
   "_sstate T" => "CONST sstate T"
 
-text {* The following record type adds an injection universe @{typ "'u"} to the above operators.
+text \<open> The following record type adds an injection universe @{typ "'u"} to the above operators.
   This is needed because the stack has a homogeneous type into which we must inject type variable
   bindings. The universe can be any Isabelle type, but must satisfy the axioms of the locale
-  @{term inj_univ}, which broadly shows the injectable values permitted. *}
+  @{term inj_univ}, which broadly shows the injectable values permitted. \<close>
   
 record ('\<alpha>, 's, 'u, 'a) local_prim = "('\<alpha>, ('u, 's) local_scheme) state_prim" +
   inj_local :: "('a, 'u) inj_univ"
   
-text {* The following locales give the assumptions required of the above signature types. The first
+text \<open> The following locales give the assumptions required of the above signature types. The first
   gives the definining axioms for state-spaces. State-space lens @{text "\<^bold>s"} must be a very well-behaved
   lens, and sequential composition of assignments corresponds to functional composition of the
   underlying substitutions. TODO: We might also need operators to properly handle framing in the
-  future. *}
+  future. \<close>
   
 locale utp_state =
   fixes S (structure)
   assumes "vwb_lens \<^bold>s"
   and passigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
       
-text {* The next locale combines the axioms of a state-space and an injection universe structure. It
-  then uses the required constructs to create the local variable operators. *}
+text \<open> The next locale combines the axioms of a state-space and an injection universe structure. It
+  then uses the required constructs to create the local variable operators. \<close>
   
 locale utp_local_state = utp_state S + inj_univ "inj_local S" for S :: "('\<alpha>, 's, 'u::two, 'a) local_prim" (structure)
 begin
 
-  text {* The following two operators represent opening and closing a variable scope, which is
-   implemented by pushing an arbitrary initial value onto the stack, and popping it off, respectively. *}
+  text \<open> The following two operators represent opening and closing a variable scope, which is
+   implemented by pushing an arbitrary initial value onto the stack, and popping it off, respectively. \<close>
   
   definition var_open :: "'\<alpha> hrel" ("open\<^sub>v") where
   "var_open = (\<Sqinter> v \<bullet> \<^bold>\<langle>[store \<mapsto>\<^sub>s (&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)]\<^bold>\<rangle>)"
@@ -88,17 +88,17 @@ begin
   definition var_close :: "'\<alpha> hrel" ("close\<^sub>v") where
   "var_close = \<^bold>\<langle>[store \<mapsto>\<^sub>s front\<^sub>u(&store) \<triangleleft> #\<^sub>u(&store) >\<^sub>u 0 \<triangleright> &store]\<^bold>\<rangle>"
   
-  text {* The next operator is an expression that returns a lens pointing to the top of the stack.
+  text \<open> The next operator is an expression that returns a lens pointing to the top of the stack.
     This is effectively a dynamic lens, since where it points to depends on the initial number
-    of variables on the stack. *}
+    of variables on the stack. \<close>
   
   definition top_var :: "('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("top\<^sub>v") where
   "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1)\<^sub>a"
   
-  text {* Finally, we combine the above operators to represent variable scope. This is a kind of
+  text \<open> Finally, we combine the above operators to represent variable scope. This is a kind of
     binder which takes a homogeneous relation, parametric over a lens, and returns a relation. It
     simply opens the variable scope, substitutes the top variable into the body, and then closes
-    the scope afterwards. *}
+    the scope afterwards. \<close>
   
   definition var_scope :: "(('a \<Longrightarrow> ('u, 's) local_scheme) \<Rightarrow> '\<alpha> hrel) \<Rightarrow> '\<alpha> hrel" where
   "var_scope f = open\<^sub>v ;; f(x)\<lbrakk>x\<rightarrow>\<lceil>top\<^sub>v\<rceil>\<^sub><\<rbrakk> ;; close\<^sub>v" 
@@ -117,8 +117,8 @@ translations
   "_var_scope T x P" == "CONST utp_local_state.var_scope T (\<lambda> x. P)"
   "_var_scope_type T x t P" => "CONST utp_local_state.var_scope T (_abs (_constrain x (_uvar_ty t)) P)"
     
-text {* Next, we prove a collection of important generci laws about variable scopes using the axioms
-  defined above. *}
+text \<open> Next, we prove a collection of important generci laws about variable scopes using the axioms
+  defined above. \<close>
   
 context utp_local_state
 begin
@@ -155,11 +155,11 @@ declare utp_local_state.var_close_def [upred_defs]
 declare utp_local_state.top_var_def [upred_defs]
 declare utp_local_state.var_scope_def [upred_defs]  
     
-subsection {* Relational State Spaces *}
+subsection \<open> Relational State Spaces \<close>
   
-text {* To illustrate the above technique, we instantiate it for relations with a @{typ nat} as
+text \<open> To illustrate the above technique, we instantiate it for relations with a @{typ nat} as
   the universe type. The following definition defines the state-space location, assignment operator,
-  and injection universe for this. *}
+  and injection universe for this. \<close>
   
 definition rel_local_state :: 
   "'a::countable itself \<Rightarrow> ((nat, 's) local_scheme, 's, nat, 'a::countable) local_prim" where
@@ -192,7 +192,7 @@ translations
   "_rel_var_scope x P" => "_var_scope R\<^sub>l x P"
   "_rel_var_scope_type x t P" => "_var_scope_type (_rel_local_state_type t) x t P"
  
-text {* Next we prove some examples laws. *}
+text \<open> Next we prove some examples laws. \<close>
   
 lemma rel_var_ex_1: "(var x :: string \<bullet> II) = II"
   by (rel_auto')

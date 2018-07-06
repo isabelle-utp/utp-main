@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Meta-theory for the Standard Core *}
+section \<open> Meta-theory for the Standard Core \<close>
 
 theory utp
 imports

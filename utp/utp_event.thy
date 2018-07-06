@@ -6,21 +6,21 @@
 (******************************************************************************)
 (* LAST REVIEWED: 30 Jan 2017 *)
 
-section {* UTP Events *}
+section \<open> UTP Events \<close>
 
 theory utp_event
 imports utp_pred
 begin
 
-subsection {* Events *}
+subsection \<open> Events \<close>
 
-text {* Events of some type @{typ "'\<theta>"} are just the elements of that type. *}
+text \<open> Events of some type @{typ "'\<theta>"} are just the elements of that type. \<close>
 
 type_synonym '\<theta> event = "'\<theta>"
 
-subsection {* Channels *}
+subsection \<open> Channels \<close>
 
-text {*
+text \<open>
   Typed channels are modelled as functions. Below, @{typ "'a"} determines the
   channel type and @{typ "'\<theta>"} the underlying event type. As with values, it
   is difficult to introduce channels as monomorphic types due to the fact that
@@ -29,11 +29,11 @@ text {*
   this is not formalised here, we may also sensibly assume that all channel-
   representing functions are injective. Note: is there benefit in formalising
   this here?
-*}
+\<close>
 
 type_synonym ('a, '\<theta>) chan = "'a \<Rightarrow> '\<theta> event"
 
-text {*
+text \<open>
   A downside of the approach is that the event type @{typ "'\<theta>"} must be able
   to encode \emph{all} events of a process model, and hence cannot be fixed
   upfront for a single channel or channel set. To do so, we actually require
@@ -41,23 +41,23 @@ text {*
   Another solution is to encode a notion of channel scoping that namely uses
   @{type sum} types to lift channel types into extensible ones, that is using
   channel-set specific scoping operators. This is a current work in progress.
-*}
+\<close>
 
-subsubsection {* Operators *}
+subsubsection \<open> Operators \<close>
 
-text {*
+text \<open>
   The Z type of a channel corresponds to the entire carrier of the underlying
   HOL type of that channel. Strictly, the function is redundant but was added
   to mirror the mathematical account in [?]. (TODO: Ask Simon Foster for [?])
-*}
+\<close>
 
 definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
 [upred_defs]: "\<delta>\<^sub>u c = UNIV"
 
-text {*
+text \<open>
   The next lifted function creates an expression that yields a channel event,
   from an expression on the channel type @{typ "'a"}.
-*}
+\<close>
 
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where

@@ -1,4 +1,4 @@
-section {* Concurrent Programming *}
+section \<open> Concurrent Programming \<close>
 
 theory utp_concurrency
   imports
@@ -8,22 +8,22 @@ theory utp_concurrency
     utp_theory
 begin
 
-text {* In this theory we describe the UTP scheme for concurrency, \emph{parallel-by-merge},
+text \<open> In this theory we describe the UTP scheme for concurrency, \emph{parallel-by-merge},
   which provides a general parallel operator parametrised by a ``merge predicate'' that explains
   how to merge the after states of the composed predicates. It can thus be applied to many languages
   and concurrency schemes, with this theory providing a number of generic laws. The operator is
-  explained in more detail in Chapter 7 of the UTP book~\cite{Hoare&98}. *}
+  explained in more detail in Chapter 7 of the UTP book~\cite{Hoare&98}. \<close>
   
-subsection {* Variable Renamings *}
+subsection \<open> Variable Renamings \<close>
 
-text {* In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
+text \<open> In parallel-by-merge constructions, a merge predicate defines the behaviour following execution of
   of parallel processes, $P \parallel Q$, as a relation that merges the output of $P$ and $Q$. In order 
   to achieve this we need to separate the variable values output from $P$ and $Q$, and in addition the 
   variable values before execution. The following three constructs do these separations. The initial
   state-space before execution is @{typ "'\<alpha>"}, the final state-space after the first parallel process
   is @{typ "'\<beta>\<^sub>0"}, and the final state-space for the second is @{typ "'\<beta>\<^sub>1"}. These three functions
   lift variables on these three state-spaces, respectively.
-*}
+\<close>
 
 alphabet ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg =
   mrg_prior :: "'\<alpha>"
@@ -39,8 +39,8 @@ definition left_uvar :: "('a \<Longrightarrow> '\<beta>\<^sub>0) \<Rightarrow> (
 definition right_uvar :: "('a \<Longrightarrow> '\<beta>\<^sub>1) \<Rightarrow> ('a \<Longrightarrow> ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg)" where
 [upred_defs]: "right_uvar x = x ;\<^sub>L mrg_right"
 
-text {* We set up syntax for the three variable classes using a subscript $<$, $0$-$x$, and $1$-$x$,
-  respectively. *} 
+text \<open> We set up syntax for the three variable classes using a subscript $<$, $0$-$x$, and $1$-$x$,
+  respectively. \<close> 
 
 syntax
   "_svarpre"   :: "svid \<Rightarrow> svid" ("_\<^sub><" [995] 995)
@@ -55,7 +55,7 @@ translations
   "_svarleft \<Sigma>"  <= "CONST left_uvar 1\<^sub>L"
   "_svarright \<Sigma>" <= "CONST right_uvar 1\<^sub>L"  
   
-text {* We proved behavedness closure properties about the lenses. *}
+text \<open> We proved behavedness closure properties about the lenses. \<close>
   
 lemma left_uvar [simp]: "vwb_lens x \<Longrightarrow> vwb_lens (left_uvar x)"
   by (simp add: left_uvar_def )
@@ -75,7 +75,7 @@ lemma right_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (right_uvar 
 lemma pre_uvar_mwb [simp]: "mwb_lens x \<Longrightarrow> mwb_lens (pre_uvar x)"
   by (simp add: pre_uvar_def)
   
-text {* We prove various independence laws about the variable classes. *}
+text \<open> We prove various independence laws about the variable classes. \<close>
   
 lemma left_uvar_indep_right_uvar [simp]:
   "left_uvar x \<bowtie> right_uvar y"
@@ -113,35 +113,35 @@ lemma pre_uvar_indep_pre_uvar [simp]:
   "x \<bowtie> y \<Longrightarrow> pre_uvar x \<bowtie> pre_uvar y"
   by (simp add: pre_uvar_def)
 
-subsection {* Merge Predicates *}
+subsection \<open> Merge Predicates \<close>
 
-text {* A merge predicate is a relation whose input has three parts: the prior variables, the output
-  variables of the left predicate, and the output of the right predicate. *}
+text \<open> A merge predicate is a relation whose input has three parts: the prior variables, the output
+  variables of the left predicate, and the output of the right predicate. \<close>
   
 type_synonym '\<alpha> merge = "(('\<alpha>, '\<alpha>, '\<alpha>) mrg, '\<alpha>) urel"
   
-text {* skip is the merge predicate which ignores the output of both parallel predicates *}
+text \<open> skip is the merge predicate which ignores the output of both parallel predicates \<close>
 
 definition skip\<^sub>m :: "'\<alpha> merge" where
 [upred_defs]: "skip\<^sub>m = ($\<^bold>v\<acute> =\<^sub>u $\<^bold>v\<^sub><)"
 
-text {* swap is a predicate that the swaps the left and right indices; it is used to specify
-        commutativity of the parallel operator *}
+text \<open> swap is a predicate that the swaps the left and right indices; it is used to specify
+        commutativity of the parallel operator \<close>
 
 definition swap\<^sub>m :: "(('\<alpha>, '\<beta>, '\<beta>) mrg) hrel" where
 [upred_defs]: "swap\<^sub>m = (0-\<^bold>v,1-\<^bold>v) := (&1-\<^bold>v,&0-\<^bold>v)"
 
-text {* A symmetric merge is one for which swapping the order of the merged concurrent predicates
+text \<open> A symmetric merge is one for which swapping the order of the merged concurrent predicates
   has no effect. We represent this by the following healthiness condition that states that
-  @{term "swap\<^sub>m"} is a left-unit. *}
+  @{term "swap\<^sub>m"} is a left-unit. \<close>
 
 abbreviation SymMerge :: "'\<alpha> merge \<Rightarrow> '\<alpha> merge" where
 "SymMerge(M) \<equiv> (swap\<^sub>m ;; M)"
 
-subsection {* Separating Simulations *}
+subsection \<open> Separating Simulations \<close>
 
-text {* U0 and U1 are relations modify the variables of the input state-space such that they become 
-  indexed with $0$ and $1$, respectively. *}
+text \<open> U0 and U1 are relations modify the variables of the input state-space such that they become 
+  indexed with $0$ and $1$, respectively. \<close>
 
 definition U0 :: "('\<beta>\<^sub>0, ('\<alpha>, '\<beta>\<^sub>0, '\<beta>\<^sub>1) mrg) urel" where
 [upred_defs]: "U0 = ($0-\<^bold>v\<acute> =\<^sub>u $\<^bold>v)"
@@ -155,22 +155,22 @@ lemma U0_swap: "(U0 ;; swap\<^sub>m) = U1"
 lemma U1_swap: "(U1 ;; swap\<^sub>m) = U0"
   by (rel_auto)
 
-text {* As shown below, separating simulations can also be expressed using the following two 
-  alphabet extrusions *}
+text \<open> As shown below, separating simulations can also be expressed using the following two 
+  alphabet extrusions \<close>
 
 definition U0\<alpha> where [upred_defs]: "U0\<alpha> = (1\<^sub>L \<times>\<^sub>L mrg_left)"
 
 definition U1\<alpha> where [upred_defs]: "U1\<alpha> = (1\<^sub>L \<times>\<^sub>L mrg_right)"
 
-text {* We then create the following intuitive syntax for separating simulations. *}
+text \<open> We then create the following intuitive syntax for separating simulations. \<close>
   
 abbreviation U0_alpha_lift ("\<lceil>_\<rceil>\<^sub>0") where "\<lceil>P\<rceil>\<^sub>0 \<equiv> P \<oplus>\<^sub>p U0\<alpha>"
 
 abbreviation U1_alpha_lift ("\<lceil>_\<rceil>\<^sub>1") where "\<lceil>P\<rceil>\<^sub>1 \<equiv> P \<oplus>\<^sub>p U1\<alpha>"
   
-text {* @{term "\<lceil>P\<rceil>\<^sub>0"} is predicate $P$ where all variables are indexed by $0$, and 
+text \<open> @{term "\<lceil>P\<rceil>\<^sub>0"} is predicate $P$ where all variables are indexed by $0$, and 
   @{term "\<lceil>P\<rceil>\<^sub>1"} is where all variables are indexed by $1$. We can thus equivalently express separating 
-  simulations using alphabet extrusion. *}
+  simulations using alphabet extrusion. \<close>
   
 lemma U0_as_alpha: "(P ;; U0) = \<lceil>P\<rceil>\<^sub>0"
   by (rel_auto)
@@ -232,40 +232,40 @@ lemma U1\<alpha>_comp_in_var [alpha]: "(in_var x) ;\<^sub>L U1\<alpha> = in_var 
 lemma U1\<alpha>_comp_out_var [alpha]: "(out_var x) ;\<^sub>L U1\<alpha> = out_var (right_uvar x)"
   by (simp add: U1\<alpha>_def alpha_out_var id_wb_lens right_uvar_def out_var_prod_lens)
 
-subsection {* Associative Merges *}
+subsection \<open> Associative Merges \<close>
   
-text {* Associativity of a merge means that if we construct a three way merge from a two way merge
+text \<open> Associativity of a merge means that if we construct a three way merge from a two way merge
   and then rotate the three inputs of the merge to the left, then we get exactly the same three
   way merge back. 
 
   We first construct the operator that constructs the three way merge by effectively wiring up
   the two way merge in an appropriate way.
-*}
+\<close>
   
 definition ThreeWayMerge :: "'\<alpha> merge \<Rightarrow> (('\<alpha>, '\<alpha>, ('\<alpha>, '\<alpha>, '\<alpha>) mrg) mrg, '\<alpha>) urel" ("\<^bold>M3'(_')") where
 [upred_defs]: "ThreeWayMerge M = (($0-\<^bold>v\<acute> =\<^sub>u $0-\<^bold>v \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-0-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M ;; U0 \<and> $1-\<^bold>v\<acute> =\<^sub>u $1-1-\<^bold>v \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v\<^sub><) ;; M"
   
-text {* The next definition rotates the inputs to a three way merge to the left one place. *}
+text \<open> The next definition rotates the inputs to a three way merge to the left one place. \<close>
 
 abbreviation rotate\<^sub>m where "rotate\<^sub>m \<equiv> (0-\<^bold>v,1-0-\<^bold>v,1-1-\<^bold>v) := (&1-0-\<^bold>v,&1-1-\<^bold>v,&0-\<^bold>v)"
 
-text {* Finally, a merge is associative if rotating the inputs does not effect the output. *}
+text \<open> Finally, a merge is associative if rotating the inputs does not effect the output. \<close>
   
 definition AssocMerge :: "'\<alpha> merge \<Rightarrow> bool" where
 [upred_defs]: "AssocMerge M = (rotate\<^sub>m ;; \<^bold>M3(M) = \<^bold>M3(M))"
     
-subsection {* Parallel Operators *}
+subsection \<open> Parallel Operators \<close>
 
-text {* We implement the following useful abbreviation for separating of two parallel processes and
-  copying of the before variables, all to act as input to the merge predicate. *}
+text \<open> We implement the following useful abbreviation for separating of two parallel processes and
+  copying of the before variables, all to act as input to the merge predicate. \<close>
 
 abbreviation par_sep (infixr "\<parallel>\<^sub>s" 85) where
 "P \<parallel>\<^sub>s Q \<equiv> (P ;; U0) \<and> (Q ;; U1) \<and> $\<^bold>v\<^sub><\<acute> =\<^sub>u $\<^bold>v"
 
-text {* The following implementation of parallel by merge is less general than the book version, in
+text \<open> The following implementation of parallel by merge is less general than the book version, in
   that it does not properly partition the alphabet into two disjoint segments. We could actually
   achieve this specifying lenses into the larger alphabet, but this would complicate the definition
-  of programs. May reconsider later. *}
+  of programs. May reconsider later. \<close>
 
 definition 
   par_by_merge :: "('\<alpha>, '\<beta>) urel \<Rightarrow> (('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel \<Rightarrow> ('\<alpha>, '\<gamma>) urel \<Rightarrow> ('\<alpha>, '\<delta>) urel" 
@@ -281,7 +281,7 @@ lemma shEx_pbm_left: "((\<^bold>\<exists> x \<bullet> P x) \<parallel>\<^bsub>M\
 lemma shEx_pbm_right: "(P \<parallel>\<^bsub>M\<^esub> (\<^bold>\<exists> x \<bullet> Q x)) = (\<^bold>\<exists> x \<bullet> (P \<parallel>\<^bsub>M\<^esub> Q x))"
   by (rel_auto)
 
-subsection {* Unrestriction Laws *}
+subsection \<open> Unrestriction Laws \<close>
   
 lemma unrest_in_par_by_merge [unrest]:
   "\<lbrakk> $x \<sharp> P; $x\<^sub>< \<sharp> M; $x \<sharp> Q \<rbrakk> \<Longrightarrow> $x \<sharp> P \<parallel>\<^bsub>M\<^esub> Q"
@@ -291,12 +291,12 @@ lemma unrest_out_par_by_merge [unrest]:
   "\<lbrakk> $x\<acute> \<sharp> M \<rbrakk> \<Longrightarrow> $x\<acute> \<sharp> P \<parallel>\<^bsub>M\<^esub> Q"
   by (rel_auto)
     
-subsection {* Substitution laws *}
+subsection \<open> Substitution laws \<close>
 
-text {* Substitution is a little tricky because when we push the expression through the composition
+text \<open> Substitution is a little tricky because when we push the expression through the composition
   operator the alphabet of the expression must also change. Consequently for now we only support
   literal substitution, though this could be generalised with suitable alphabet coercsions. We
-  need quite a number of variants to support this which are below. *}
+  need quite a number of variants to support this which are below. \<close>
 
 lemma U0_seq_subst: "(P ;; U0)\<lbrakk>\<guillemotleft>v\<guillemotright>/$0-x\<acute>\<rbrakk> = (P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; U0)"
   by (rel_auto)
@@ -336,7 +336,7 @@ lemma numeral_pbm_subst [usubst]:
     "\<And> P Q M \<sigma>. \<sigma>($x\<acute> \<mapsto>\<^sub>s numeral n) \<dagger> (P \<parallel>\<^bsub>M\<^esub> Q) = \<sigma> \<dagger> (P \<parallel>\<^bsub>M\<lbrakk>numeral n/$x\<acute>\<rbrakk>\<^esub> Q)"
   by (rel_auto)+
 
-subsection {* Parallel-by-merge laws *}
+subsection \<open> Parallel-by-merge laws \<close>
 
 lemma par_by_merge_false [simp]:
   "P \<parallel>\<^bsub>false\<^esub> Q = false"
@@ -353,7 +353,7 @@ lemma par_by_merge_right_false [simp]:
 lemma par_by_merge_seq_add: "(P \<parallel>\<^bsub>M\<^esub> Q) ;; R = (P \<parallel>\<^bsub>M ;; R\<^esub> Q)"
   by (simp add: par_by_merge_def seqr_assoc)
 
-text {* A skip parallel-by-merge yields a skip whenever the parallel predicates are both feasible. *}
+text \<open> A skip parallel-by-merge yields a skip whenever the parallel predicates are both feasible. \<close>
 
 lemma par_by_merge_skip:
   assumes "P ;; true = true" "Q ;; true = true"
@@ -366,7 +366,7 @@ lemma skip_merge_swap: "swap\<^sub>m ;; skip\<^sub>m = skip\<^sub>m"
 lemma par_sep_swap: "P \<parallel>\<^sub>s Q ;; swap\<^sub>m = Q \<parallel>\<^sub>s P"
   by (rel_auto)
         
-text {* Parallel-by-merge commutes when the merge predicate is unchanged by swap *}
+text \<open> Parallel-by-merge commutes when the merge predicate is unchanged by swap \<close>
 
 lemma par_by_merge_commute_swap:
   shows "P \<parallel>\<^bsub>M\<^esub> Q = Q \<parallel>\<^bsub>swap\<^sub>m ;; M\<^esub> P"
@@ -451,9 +451,9 @@ theorem par_by_merge_USUP_ind_right:
   "P \<parallel>\<^bsub>M\<^esub> (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<parallel>\<^bsub>M\<^esub> Q(i))"
   by (rel_auto)
    
-subsection {* Example: Simple State-Space Division *}
+subsection \<open> Example: Simple State-Space Division \<close>
   
-text {* The following merge predicate divides the state space using a pair of independent lenses. *}
+text \<open> The following merge predicate divides the state space using a pair of independent lenses. \<close>
   
 definition StateMerge :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> merge" ("M[_|_]\<^sub>\<sigma>") where
 [upred_defs]: "M[a|b]\<^sub>\<sigma> = ($\<^bold>v\<acute> =\<^sub>u ($\<^bold>v\<^sub>< \<oplus> $0-\<^bold>v on &a) \<oplus> $1-\<^bold>v on &b)"
@@ -482,7 +482,7 @@ lemma StateParallel_form':
   apply (metis (no_types, hide_lams) lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
   done  
   
-text {* We can frame all the variables that the parallel operator refers to *}
+text \<open> We can frame all the variables that the parallel operator refers to \<close>
     
 lemma StateParallel_frame:
   assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b"
@@ -492,9 +492,9 @@ lemma StateParallel_frame:
   using lens_indep_comm apply fastforce+
   done
 
-text {* Parallel Hoare logic rule. This employs something similar to separating conjunction in
+text \<open> Parallel Hoare logic rule. This employs something similar to separating conjunction in
   the postcondition, but we explicitly require that the two conjuncts only refer to variables
-  on the left and right of the parallel composition explicitly. *}
+  on the left and right of the parallel composition explicitly. \<close>
   
 theorem StateParallel_hoare [hoare]:
   assumes "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<bowtie> b" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
@@ -516,8 +516,8 @@ proof -
     unfolding hoare_r_def using 1 2 order_trans by auto
 qed
 
-text {* Specialised version of the above law where an invariant expression referring to variables
-  outside the frame is preserved. *}
+text \<open> Specialised version of the above law where an invariant expression referring to variables
+  outside the frame is preserved. \<close>
   
 theorem StateParallel_frame_hoare [hoare]:
   assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2" "a \<sharp> c\<^sub>1" "b \<sharp> c\<^sub>1" "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<^sub>1 \<and> c\<^sub>2\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u"

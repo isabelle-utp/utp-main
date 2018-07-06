@@ -1,4 +1,4 @@
-section {* UTP Deduction Tactic *}
+section \<open> UTP Deduction Tactic \<close>
 
 theory utp_deduct
 imports utp_pred
@@ -49,7 +49,7 @@ lemma udeduct_eqI [uintro]: "\<lbrakk> \<And> b. \<lbrakk>p\<rbrakk>\<^sub>eb \<
 
 (* Changed *)
 
-text {* Some of the following lemmas help backward reasoning with bindings *}
+text \<open> Some of the following lemmas help backward reasoning with bindings \<close>
 
 lemma conj_implies: "\<lbrakk> \<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b \<rbrakk> \<Longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e b \<and> \<lbrakk>Q\<rbrakk>\<^sub>e b"
   by pred_auto
@@ -72,7 +72,7 @@ lemma conj_imp_subst: "(\<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b \<and> (\<lbrakk>
 lemma disj_imp_subst: "(\<lbrakk>Q \<and> (P \<or> S)\<rbrakk>\<^sub>e b \<and> (\<lbrakk>Q\<rbrakk>\<^sub>e b \<longrightarrow> (\<lbrakk>P\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b))) = (\<lbrakk>Q \<and> (R \<or> S)\<rbrakk>\<^sub>e b \<and> (\<lbrakk>Q\<rbrakk>\<^sub>e b \<longrightarrow> (\<lbrakk>P\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)))"
   by pred_auto
 
-text {* Simplifications on value equality *}
+text \<open> Simplifications on value equality \<close>
 
 lemma uexpr_eq: "(\<lbrakk>e\<^sub>0\<rbrakk>\<^sub>e b = \<lbrakk>e\<^sub>1\<rbrakk>\<^sub>e b) = \<lbrakk>e\<^sub>0 =\<^sub>u e\<^sub>1\<rbrakk>\<^sub>e b"
   by pred_auto
@@ -97,7 +97,7 @@ lemma ueqe2: "(\<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbra
 lemma ueqe3: "\<lbrakk> \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> (\<lbrakk>R \<and> P\<rbrakk>\<^sub>e b = \<lbrakk>Q \<and> P\<rbrakk>\<^sub>e b)"
   by pred_auto
 
-text {* The following allows simplifying the equality if $P \Rightarrow Q = R$ *}
+text \<open> The following allows simplifying the equality if $P \Rightarrow Q = R$ \<close>
 
 lemma ueqe3_imp: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\<lbrakk>Q\<rbrakk>\<^sub>e b = \<lbrakk>R\<rbrakk>\<^sub>e b)) \<Longrightarrow> ((R \<and> P) = (Q \<and> P))"
   by pred_auto
@@ -108,7 +108,7 @@ lemma ueqe3_imp3: "(\<And> b. \<lbrakk>P\<rbrakk>\<^sub>e b \<Longrightarrow> (\
 lemma ueqe3_imp2: "\<lbrakk> (\<And> b. \<lbrakk>P0 \<and> P1\<rbrakk>\<^sub>e b \<Longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e b \<Longrightarrow> \<lbrakk>R\<rbrakk>\<^sub>e b = \<lbrakk>S\<rbrakk>\<^sub>e b) \<rbrakk> \<Longrightarrow> ((P0 \<and> P1 \<and> (Q \<Rightarrow> R)) = (P0 \<and> P1 \<and> (Q \<Rightarrow> S)))"
   by pred_auto
 
-text {* The following can introduce the binding notation into predicates *}
+text \<open> The following can introduce the binding notation into predicates \<close>
 
 lemma conj_bind_dist: "\<lbrakk>P \<and> Q\<rbrakk>\<^sub>e b = (\<lbrakk>P\<rbrakk>\<^sub>e b \<and> \<lbrakk>Q\<rbrakk>\<^sub>e b)"
   by pred_auto

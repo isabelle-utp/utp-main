@@ -1,4 +1,4 @@
-section {* Fixed-points and Recursion *}
+section \<open> Fixed-points and Recursion \<close>
 
 theory utp_recursion
   imports 
@@ -6,7 +6,7 @@ theory utp_recursion
     utp_rel
 begin
 
-subsection {* Fixed-point Laws *}
+subsection \<open> Fixed-point Laws \<close>
   
 lemma mu_id: "(\<mu> X \<bullet> X) = true"
   by (simp add: antisym gfp_upperbound)
@@ -14,7 +14,7 @@ lemma mu_id: "(\<mu> X \<bullet> X) = true"
 lemma mu_const: "(\<mu> X \<bullet> P) = P"
   by (simp add: gfp_const)
 
-lemma nu_id: "(\<nu> X \<bullet> X) = false"
+lemma nu_id: "(\<nu> X \<bullet> X) = false"                                                            
   by (meson lfp_lowerbound utp_pred_laws.bot.extremum_unique)
 
 lemma nu_const: "(\<nu> X \<bullet> P) = P"
@@ -30,10 +30,10 @@ proof -
     by (pred_auto)
 qed
 
-subsection {* Obtaining Unique Fixed-points *}
+subsection \<open> Obtaining Unique Fixed-points \<close>
     
-text {* Obtaining termination proofs via approximation chains. Theorems and proofs adapted
-  from Chapter 2, page 63 of the UTP book~\cite{Hoare&98}.  *}
+text \<open> Obtaining termination proofs via approximation chains. Theorems and proofs adapted
+  from Chapter 2, page 63 of the UTP book~\cite{Hoare&98}.  \<close>
 
 type_synonym 'a chain = "nat \<Rightarrow> 'a upred"
 
@@ -58,7 +58,7 @@ lemma L274:
   shows "(\<Sqinter> (range E) \<and> X) = (\<Sqinter> (range E) \<and> Y)"
   using assms by (pred_auto)
 
-text {* Constructive chains *}
+text \<open> Constructive chains \<close>
 
 definition constr ::
   "('a upred \<Rightarrow> 'a upred) \<Rightarrow> 'a chain \<Rightarrow> bool" where
@@ -69,9 +69,9 @@ lemma constrI:
   shows "constr F E"
   using assms by (auto simp add: constr_def)
 
-text {* This lemma gives a way of showing that there is a unique fixed-point when
+text \<open> This lemma gives a way of showing that there is a unique fixed-point when
         the predicate function can be built using a constructive function F
-        over an approximation chain E *}
+        over an approximation chain E \<close>
 
 lemma chain_pred_terminates:
   assumes "constr F E" "mono F"
@@ -110,10 +110,10 @@ theorem constr_fp_uniq:
   shows "(C \<and> \<mu> F) = (C \<and> \<nu> F)"
   using assms(1) assms(2) assms(3) chain_pred_terminates by blast
     
-subsection {* Noetherian Induction Instantiation*}
+subsection \<open> Noetherian Induction Instantiation\<close>
       
-text {* Contribution from Yakoub Nemouchi.The following generalization was used by Tobias Nipkow
-        and Peter Lammich  in \emph{Refine\_Monadic} *}
+text \<open> Contribution from Yakoub Nemouchi.The following generalization was used by Tobias Nipkow
+        and Peter Lammich  in \emph{Refine\_Monadic} \<close>
 
 lemma  wf_fixp_uinduct_pure_ueq_gen:     
   assumes fixp_unfold: "fp B = B (fp B)"
@@ -137,15 +137,15 @@ proof -
   by pred_simp  
 qed
   
-text {* The next lemma shows that using substitution also work. However it is not that generic
-        nor practical for proof automation ... *}
+text \<open> The next lemma shows that using substitution also work. However it is not that generic
+        nor practical for proof automation ... \<close>
 
 lemma refine_usubst_to_ueq:
   "vwb_lens E \<Longrightarrow> (Pre \<Rightarrow> Post)\<lbrakk>\<guillemotleft>st'\<guillemotright>/$E\<rbrakk> \<sqsubseteq> f\<lbrakk>\<guillemotleft>st'\<guillemotright>/$E\<rbrakk> = (((Pre \<and> $E =\<^sub>u \<guillemotleft>st'\<guillemotright>) \<Rightarrow> Post) \<sqsubseteq> f)"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)  
 
-text {* By instantiation of @{thm wf_fixp_uinduct_pure_ueq_gen} with @{term \<mu>} and lifting of the 
-        well-founded relation we have ... *}
+text \<open> By instantiation of @{thm wf_fixp_uinduct_pure_ueq_gen} with @{term \<mu>} and lifting of the 
+        well-founded relation we have ... \<close>
   
 lemma mu_rec_total_pure_rule: 
   assumes WF: "wf R"
@@ -183,8 +183,8 @@ proof (rule wf_fixp_uinduct_pure_ueq_gen[where fp=\<nu> and Pre=Pre and B=B and 
     by (rule induct_step, rel_simp, simp)
 qed
 
-text {*Since @{term "B ((Pre \<and> (\<lceil>E\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright> \<Rightarrow> Post)) \<sqsubseteq> B (\<mu> B)"} and 
-      @{term "mono B"}, thus,  @{thm mu_rec_total_pure_rule} can be expressed as follows*}
+text \<open>Since @{term "B ((Pre \<and> (\<lceil>E\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright> \<Rightarrow> Post)) \<sqsubseteq> B (\<mu> B)"} and 
+      @{term "mono B"}, thus,  @{thm mu_rec_total_pure_rule} can be expressed as follows\<close>
   
 lemma mu_rec_total_utp_rule: 
   assumes WF: "wf R"

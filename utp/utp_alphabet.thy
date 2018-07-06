@@ -1,13 +1,13 @@
-section {* Alphabet Manipulation *}
+section \<open> Alphabet Manipulation \<close>
 
 theory utp_alphabet
   imports
     utp_pred utp_event
 begin
 
-subsection {* Preliminaries *}
+subsection \<open> Preliminaries \<close>
   
-text {* Alphabets are simply types that characterise the state-space of an expression. Thus
+text \<open> Alphabets are simply types that characterise the state-space of an expression. Thus
   the Isabelle type system ensures that predicates cannot refer to variables not in the alphabet
   as this would be a type error. Often one would like to add or remove additional variables, for 
   example if we wish to have a predicate which ranges only a smaller state-space, and then
@@ -16,42 +16,42 @@ text {* Alphabets are simply types that characterise the state-space of an expre
   to ensure well-formedness. 
 
   In this theory we will set up operators for extending and contracting and alphabet. 
-  We first set up a theorem attribute for alphabet laws and a tactic. *}
+  We first set up a theorem attribute for alphabet laws and a tactic. \<close>
   
 named_theorems alpha
 
 method alpha_tac = (simp add: alpha unrest)?
 
-subsection {* Alphabet Extrusion *}
+subsection \<open> Alphabet Extrusion \<close>
 
-text {* Alter an alphabet by application of a lens that demonstrates how the smaller alphabet
+text \<open> Alter an alphabet by application of a lens that demonstrates how the smaller alphabet
   ($\beta$) injects into the larger alphabet ($\alpha$). This changes the type of the expression
   so it is parametrised over the large alphabet. We do this by using the lens \emph{get}
   function to extract the smaller state binding, and then apply this to the expression. 
 
   We call this "extrusion" rather than "extension" because if the extension lens is bijective
   then it does not extend the alphabet. Nevertheless, it does have an effect because the type
-  will be different which can be useful when converting predicates with equivalent alphabets. *}
+  will be different which can be useful when converting predicates with equivalent alphabets. \<close>
 
 lift_definition aext :: "('a, '\<beta>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha>) uexpr" (infixr "\<oplus>\<^sub>p" 95)
 is "\<lambda> P x b. P (get\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms
 
-text {* Next we prove some of the key laws. Extending an alphabet twice is equivalent to extending
-  by the composition of the two lenses. *}
+text \<open> Next we prove some of the key laws. Extending an alphabet twice is equivalent to extending
+  by the composition of the two lenses. \<close>
   
 lemma aext_twice: "(P \<oplus>\<^sub>p a) \<oplus>\<^sub>p b = P \<oplus>\<^sub>p (a ;\<^sub>L b)"
   by (pred_auto)
 
-text {* The bijective @{term "1\<^sub>L"} lens identifies the source and view types. Thus an alphabet
-  extension using this has no effect. *}
+text \<open> The bijective @{term "1\<^sub>L"} lens identifies the source and view types. Thus an alphabet
+  extension using this has no effect. \<close>
     
 lemma aext_id [simp]: "P \<oplus>\<^sub>p 1\<^sub>L = P"
   by (pred_auto)
 
-text {* Literals do not depend on any variables, and thus applying an alphabet extension only
-  alters the predicate's type, and not its valuation .*}
+text \<open> Literals do not depend on any variables, and thus applying an alphabet extension only
+  alters the predicate's type, and not its valuation .\<close>
     
 lemma aext_lit [simp]: "\<guillemotleft>v\<guillemotright> \<oplus>\<^sub>p a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
@@ -98,7 +98,7 @@ lemma aext_UINF_mem [alpha]: "(\<Sqinter> x\<in>A \<bullet> P x) \<oplus>\<^sub>
 lemma aext_event [alpha]: "(c\<cdot>v)\<^sub>u \<oplus>\<^sub>p a = (c\<cdot>v \<oplus>\<^sub>p a)\<^sub>u"
   by (pred_auto)
     
-text {* Alphabet extension distributes through the function liftings. *}
+text \<open> Alphabet extension distributes through the function liftings. \<close>
     
 lemma aext_uop [alpha]: "uop f u \<oplus>\<^sub>p a = uop f (u \<oplus>\<^sub>p a)"
   by (pred_auto)
@@ -132,8 +132,8 @@ lemma aext_divide [alpha]:
   "(x / y) \<oplus>\<^sub>p a = (x \<oplus>\<^sub>p a) / (y \<oplus>\<^sub>p a)"
   by (pred_auto)
 
-text {* Extending a variable expression over $x$ is equivalent to composing $x$ with the alphabet,
-  thus effectively yielding a variable whose source is the large alphabet. *}
+text \<open> Extending a variable expression over $x$ is equivalent to composing $x$ with the alphabet,
+  thus effectively yielding a variable whose source is the large alphabet. \<close>
     
 lemma aext_var [alpha]:
   "var x \<oplus>\<^sub>p a = var (x ;\<^sub>L a)"
@@ -142,7 +142,7 @@ lemma aext_var [alpha]:
 lemma aext_ulambda [alpha]: "((\<lambda> x \<bullet> P(x)) \<oplus>\<^sub>p a) = (\<lambda> x \<bullet> P(x) \<oplus>\<^sub>p a)"
   by (pred_auto)
 
-text {* Alphabet extension is monotonic and continuous. *}
+text \<open> Alphabet extension is monotonic and continuous. \<close>
     
 lemma aext_mono: "P \<sqsubseteq> Q \<Longrightarrow> P \<oplus>\<^sub>p a \<sqsubseteq> Q \<oplus>\<^sub>p a"
   by (pred_auto)
@@ -150,26 +150,26 @@ lemma aext_mono: "P \<sqsubseteq> Q \<Longrightarrow> P \<oplus>\<^sub>p a \<sqs
 lemma aext_cont [alpha]: "vwb_lens a \<Longrightarrow> (\<Sqinter> A) \<oplus>\<^sub>p a = (\<Sqinter> P\<in>A.  P \<oplus>\<^sub>p a)"
   by (pred_simp)
    
-text {* If a variable is unrestricted in a predicate, then the extended variable is unrestricted
-  in the predicate with an alphabet extension. *}
+text \<open> If a variable is unrestricted in a predicate, then the extended variable is unrestricted
+  in the predicate with an alphabet extension. \<close>
     
 lemma unrest_aext [unrest]:
   "\<lbrakk> mwb_lens a; x \<sharp> p \<rbrakk> \<Longrightarrow> unrest (x ;\<^sub>L a) (p \<oplus>\<^sub>p a)"
   by (transfer, simp add: lens_comp_def)
 
-text {* If a given variable (or alphabet) $b$ is independent of the extension lens $a$, that is, it is
+text \<open> If a given variable (or alphabet) $b$ is independent of the extension lens $a$, that is, it is
   outside the original state-space of $p$, then it follows that once $p$ is extended by $a$ then
-  $b$ cannot be restricted. *}
+  $b$ cannot be restricted. \<close>
     
 lemma unrest_aext_indep [unrest]:
   "a \<bowtie> b \<Longrightarrow> b \<sharp> (p \<oplus>\<^sub>p a)"
   by pred_auto
     
-subsection {* Expression Alphabet Restriction *}
+subsection \<open> Expression Alphabet Restriction \<close>
 
-text {* Restrict an alphabet by application of a lens that demonstrates how the smaller alphabet
+text \<open> Restrict an alphabet by application of a lens that demonstrates how the smaller alphabet
   ($\beta$) injects into the larger alphabet ($\alpha$). Unlike extension, this operation
-  can lose information if the expressions refers to variables in the larger alphabet. *}
+  can lose information if the expressions refers to variables in the larger alphabet. \<close>
 
 lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>e" 90)
 is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
@@ -182,9 +182,9 @@ lemma arestr_id [simp]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
 lemma arestr_aext [simp]: "mwb_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a) \<restriction>\<^sub>e a = P"
   by (pred_auto)
 
-text {* If an expression's alphabet can be divided into two disjoint sections and the expression
+text \<open> If an expression's alphabet can be divided into two disjoint sections and the expression
   does not depend on the second half then restricting the expression to the first half is
-  loss-less. *}
+  loss-less. \<close>
 
 lemma aext_arestr [alpha]:
   assumes "mwb_lens a" "bij_lens (a +\<^sub>L b)" "a \<bowtie> b" "b \<sharp> P"
@@ -233,13 +233,13 @@ lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>ex = (P\<restriction>\
 lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<Rightarrow> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
 
-subsection {* Predicate Alphabet Restriction *}
+subsection \<open> Predicate Alphabet Restriction \<close>
   
-text {* In order to restrict the variables of a predicate, we also need to existentially quantify
+text \<open> In order to restrict the variables of a predicate, we also need to existentially quantify
   away the other variables. We can't do this at the level of expressions, as quantifiers are not
   applicable here. Consequently, we need a specialised version of alphabet restriction for
   predicates. It both restricts the variables using quantification and then removes them
-  from the alphabet type using expression restriction. *}
+  from the alphabet type using expression restriction. \<close>
 
 definition upred_ares :: "'\<alpha> upred \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> upred" 
 where [upred_defs]: "upred_ares P a = (P \<restriction>\<^sub>v a) \<restriction>\<^sub>e a"
@@ -270,7 +270,7 @@ lemma upred_arestr_false [simp]: "false \<restriction>\<^sub>p a = false"
 lemma upred_arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>px = (P\<restriction>\<^sub>px \<or> Q\<restriction>\<^sub>px)"
   by (pred_auto)
     
-subsection {* Alphabet Lens Laws *}
+subsection \<open> Alphabet Lens Laws \<close>
 
 lemma alpha_in_var [alpha]: "x ;\<^sub>L fst\<^sub>L = in_var x"
   by (simp add: in_var_def)
@@ -291,9 +291,9 @@ lemma out_var_prod_lens [alpha]:
   apply (simp)
   done
   
-subsection {* Substitution Alphabet Extension *}
+subsection \<open> Substitution Alphabet Extension \<close>
 
-text {* This allows us to extend the alphabet of a substitution, in a similar way to expressions. *}
+text \<open> This allows us to extend the alphabet of a substitution, in a similar way to expressions. \<close>
   
 definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) where
 [upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
@@ -318,9 +318,9 @@ lemma subst_aext_comp [usubst]:
   "vwb_lens a \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s a) \<circ> (\<rho> \<oplus>\<^sub>s a) = (\<sigma> \<circ> \<rho>) \<oplus>\<^sub>s a"
   by pred_auto
     
-subsection {* Substitution Alphabet Restriction *}
+subsection \<open> Substitution Alphabet Restriction \<close>
 
-text {* This allows us to reduce the alphabet of a substitution, in a similar way to expressions. *}
+text \<open> This allows us to reduce the alphabet of a substitution, in a similar way to expressions. \<close>
   
 definition subst_res :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65) where
 [upred_defs]: "\<sigma> \<restriction>\<^sub>s x = (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))"

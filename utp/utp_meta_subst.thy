@@ -1,11 +1,11 @@
-section {* Meta-level Substitution *}
+section \<open> Meta-level Substitution \<close>
 
 theory utp_meta_subst
 imports utp_subst utp_tactics
 begin
 
-text {* Meta substitution substitutes a HOL variable in a UTP expression for another UTP expression.
-  It is analogous to UTP substitution, but acts on functions. *}
+text \<open> Meta substitution substitutes a HOL variable in a UTP expression for another UTP expression.
+  It is analogous to UTP substitution, but acts on functions. \<close>
   
 lift_definition msubst :: "('b \<Rightarrow> ('a, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr"
 is "\<lambda> F v b. F (v b) b" .

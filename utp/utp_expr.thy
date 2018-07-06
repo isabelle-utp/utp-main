@@ -775,9 +775,9 @@ method literalise = (unfold lit_simps[THEN sym])
 method unliteralise = (unfold lit_simps uexpr_defs[THEN sym];
                      (unfold lit_numeral_1 ; (unfold ueval); (unfold lit_numeral_2))?)+
                    
-text {* The following tactic can be used to evaluate literal expressions. It first literalises UTP 
+text \<open> The following tactic can be used to evaluate literal expressions. It first literalises UTP 
   expressions, that is pushes as many operators into literals as possible. Then it tries to simplify,
-  and final unliteralises at the end. *}
+  and final unliteralises at the end. \<close>
 
 method uexpr_simp uses simps = ((literalise)?, simp add: lit_norm simps, (unliteralise)?)
 

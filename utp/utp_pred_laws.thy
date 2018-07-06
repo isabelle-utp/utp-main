@@ -1,13 +1,13 @@
-section {* Predicate Calculus Laws *}
+section \<open> Predicate Calculus Laws \<close>
 
 theory utp_pred_laws
   imports utp_pred
 begin
   
-subsection {* Propositional Logic *}
+subsection \<open> Propositional Logic \<close>
   
-text {* Showing that predicates form a Boolean Algebra (under the predicate operators as opposed to
-  the lattice operators) gives us many useful laws. *}
+text \<open> Showing that predicates form a Boolean Algebra (under the predicate operators as opposed to
+  the lattice operators) gives us many useful laws. \<close>
 
 interpretation boolean_algebra diff_upred not_upred conj_upred "(\<le>)" "(<)"
   disj_upred false_upred true_upred
@@ -206,7 +206,7 @@ lemma taut_iff_eq:
 lemma impl_alt_def: "(P \<Rightarrow> Q) = (\<not> P \<or> Q)"
   by (pred_auto)
     
-subsection {* Lattice laws *}
+subsection \<open> Lattice laws \<close>
     
 lemma uinf_or:
   fixes P Q :: "'\<alpha> upred"
@@ -506,7 +506,7 @@ lemma UINF_pred_lit_eq [simp]:
   "(\<Sqinter> x | \<guillemotleft>x = v\<guillemotright> \<bullet> P(x)) = (P v)"
   by (pred_auto)
 
-subsection {* Equality laws *}
+subsection \<open> Equality laws \<close>
 
 lemma eq_upred_refl [simp]: "(x =\<^sub>u x) = true"
   by (pred_auto)
@@ -564,7 +564,7 @@ lemma conj_var_subst:
   using assms
   by (pred_simp, (metis (full_types) vwb_lens_def wb_lens.get_put)+)
 
-subsection {* HOL Variable Quantifiers *}
+subsection \<open> HOL Variable Quantifiers \<close>
     
 lemma shEx_unbound [simp]: "(\<^bold>\<exists> x \<bullet> P) = P"
   by (pred_auto)
@@ -593,7 +593,7 @@ lemma shAll_bool [simp]: "shAll P = (P True \<and> P False)"
 lemma shAll_cong: "\<lbrakk> \<And> x. P x = Q x \<rbrakk> \<Longrightarrow> shAll P = shAll Q"
   by (pred_auto)
     
-text {* Quantifier lifting *}
+text \<open> Quantifier lifting \<close>
 
 named_theorems uquant_lift
 
@@ -605,7 +605,7 @@ lemma shEx_lift_conj_2 [uquant_lift]:
   "(P \<and> (\<^bold>\<exists> x \<bullet> Q(x))) = (\<^bold>\<exists> x \<bullet> P \<and> Q(x))"
   by (pred_auto)
 
-subsection {* Case Splitting *}
+subsection \<open> Case Splitting \<close>
   
 lemma eq_split_subst:
   assumes "vwb_lens x"
@@ -653,7 +653,7 @@ lemma subst_eq_replace:
   shows "(p\<lbrakk>u/x\<rbrakk> \<and> u =\<^sub>u v) = (p\<lbrakk>v/x\<rbrakk> \<and> u =\<^sub>u v)"
   by (pred_auto)
 
-subsection {* UTP Quantifiers *}
+subsection \<open> UTP Quantifiers \<close>
     
 lemma one_point:
   assumes "mwb_lens x" "x \<sharp> v"
@@ -755,7 +755,7 @@ lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet>
 lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
   by (pred_auto)
 
-subsection {* Variable Restriction *}    
+subsection \<open> Variable Restriction \<close>    
   
 lemma var_res_all: 
   "P \<restriction>\<^sub>v \<Sigma> = P"
@@ -765,7 +765,7 @@ lemma var_res_twice:
   "mwb_lens x \<Longrightarrow> P \<restriction>\<^sub>v x \<restriction>\<^sub>v x = P \<restriction>\<^sub>v x"
   by (pred_auto)
     
-subsection {* Conditional laws *}
+subsection \<open> Conditional laws \<close>
 
 lemma cond_def:
   "(P \<triangleleft> b \<triangleright> Q) = ((b \<and> P) \<or> ((\<not> b) \<and> Q))"
@@ -858,7 +858,7 @@ lemma cond_monotonic:
   "\<lbrakk> mono P; mono Q \<rbrakk> \<Longrightarrow> mono (\<lambda> X. P X \<triangleleft> b \<triangleright> Q X)"
   by (simp add: mono_def, rel_blast)
 
-subsection {* Additional Expression Laws *}
+subsection \<open> Additional Expression Laws \<close>
 
 lemma le_pred_refl [simp]:
   fixes x :: "('a::preorder, '\<alpha>) uexpr"
@@ -912,9 +912,9 @@ lemma uset_mems [simp]:
   "x \<in>\<^sub>u A \<inter>\<^sub>u B = (x \<in>\<^sub>u A \<and> x \<in>\<^sub>u B)"
   by (rel_auto)+
     
-subsection {* Refinement By Observation *}
+subsection \<open> Refinement By Observation \<close>
     
-text {* Function to obtain the set of observations of a predicate *}
+text \<open> Function to obtain the set of observations of a predicate \<close>
     
 definition obs_upred :: "'\<alpha> upred \<Rightarrow> '\<alpha> set" ("\<lbrakk>_\<rbrakk>\<^sub>o")
 where [upred_defs]: "\<lbrakk>P\<rbrakk>\<^sub>o = {b. \<lbrakk>P\<rbrakk>\<^sub>eb}"
@@ -923,10 +923,10 @@ lemma obs_upred_refine_iff:
   "P \<sqsubseteq> Q \<longleftrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>o \<subseteq> \<lbrakk>P\<rbrakk>\<^sub>o"
   by (pred_auto)
     
-text {* A refinement can be demonstrated by considering only the observations of the predicates
+text \<open> A refinement can be demonstrated by considering only the observations of the predicates
   which are relevant, i.e. not unrestricted, for them. In other words, if the alphabet can
   be split into two disjoint segments, $x$ and $y$, and neither predicate refers to $y$ then
-  only $x$ need be considered when checking for observations. *}
+  only $x$ need be considered when checking for observations. \<close>
     
 lemma refine_by_obs:
   assumes "x \<bowtie> y" "bij_lens (x +\<^sub>L y)" "y \<sharp> P" "y \<sharp> Q" "{v. `P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`} \<subseteq> {v. `Q\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>`}"
@@ -940,7 +940,7 @@ lemma refine_by_obs:
    apply (metis assms(1) assms(2) bij_lens.axioms(2) bij_lens_axioms_def lens_override_def lens_override_plus)+
   done
     
-subsection {* Cylindric Algebra *}
+subsection \<open> Cylindric Algebra \<close>
 
 lemma C1: "(\<exists> x \<bullet> false) = false"
   by (pred_auto)

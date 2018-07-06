@@ -1,4 +1,4 @@
-section {* Relational Operational Semantics *}
+section \<open> Relational Operational Semantics \<close>
 
 theory utp_rel_opsem
   imports 
@@ -6,8 +6,8 @@ theory utp_rel_opsem
     utp_hoare
 begin
 
-text {* This theory uses the laws of relational calculus to create a basic operational semantics.
-  It is based on Chapter 10 of the UTP book~\cite{Hoare&98}. *}
+text \<open> This theory uses the laws of relational calculus to create a basic operational semantics.
+  It is based on Chapter 10 of the UTP book~\cite{Hoare&98}. \<close>
   
 fun trel :: "'\<alpha> usubst \<times> '\<alpha> hrel \<Rightarrow> '\<alpha> usubst \<times> '\<alpha> hrel \<Rightarrow> bool" (infix "\<rightarrow>\<^sub>u" 85) where
 "(\<sigma>, P) \<rightarrow>\<^sub>u (\<rho>, Q) \<longleftrightarrow> (\<langle>\<sigma>\<rangle>\<^sub>a ;; P) \<sqsubseteq> (\<langle>\<rho>\<rangle>\<^sub>a ;; Q)"
@@ -65,8 +65,8 @@ lemma while_false_trel:
   shows "(\<sigma>, while b do P od) \<rightarrow>\<^sub>u (\<sigma>, II)"
   by (metis assms rcond_false_trel while_unfold)
 
-text {* Theorem linking Hoare calculus and operational semantics. If we start $Q$ in a state $\sigma_0$
-  satisfying $p$, and $Q$ reaches final state $\sigma_1$ then $r$ holds in this final state. *}
+text \<open> Theorem linking Hoare calculus and operational semantics. If we start $Q$ in a state $\sigma_0$
+  satisfying $p$, and $Q$ reaches final state $\sigma_1$ then $r$ holds in this final state. \<close>
     
 theorem hoare_opsem_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = (\<forall> \<sigma>\<^sub>0 \<sigma>\<^sub>1. `\<sigma>\<^sub>0 \<dagger> p` \<and> (\<sigma>\<^sub>0, Q) \<rightarrow>\<^sub>u (\<sigma>\<^sub>1, II) \<longrightarrow> `\<sigma>\<^sub>1 \<dagger> r`)"

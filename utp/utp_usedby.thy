@@ -1,13 +1,13 @@
-section {* Used-by *}
+section \<open> Used-by \<close>
 
 theory utp_usedby
   imports utp_unrest
 begin
 
-text {* The used-by predicate is the dual of unrestriction. It states that the given lens is an 
+text \<open> The used-by predicate is the dual of unrestriction. It states that the given lens is an 
   upper-bound on the size of state space the given expression depends on. It is similar to stating
   that the lens is a valid alphabet for the predicate. For convenience, and because the predicate
-  uses a similar form, we will reuse much of unrestriction's infrastructure. *}
+  uses a similar form, we will reuse much of unrestriction's infrastructure. \<close>
   
 consts
   usedBy :: "'a \<Rightarrow> 'b \<Rightarrow> bool"
@@ -43,8 +43,8 @@ lemma usedBy_lens_plus_1 [unrest]: "x \<natural> P \<Longrightarrow> x;y \<natur
 lemma usedBy_lens_plus_2 [unrest]: "\<lbrakk> x \<bowtie> y; y \<natural> P \<rbrakk> \<Longrightarrow> x;y \<natural> P"
   by (transfer, auto simp add: lens_defs lens_indep_comm)
     
-text {* Linking used-by to unrestriction: if x is used-by P, and x is independent of y, then
-  P cannot depend on any variable in y. *}
+text \<open> Linking used-by to unrestriction: if x is used-by P, and x is independent of y, then
+  P cannot depend on any variable in y. \<close>
     
 lemma usedBy_indep_uses:
   fixes P :: "('a, '\<alpha>) uexpr"
@@ -71,8 +71,8 @@ lemma usedBy_trop [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v; x \<natur
 lemma usedBy_qtop [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v; x \<natural> w; x \<natural> y \<rbrakk> \<Longrightarrow> x \<natural> qtop f u v w y"
   by (transfer, simp)
 
-text {* For convenience, we also prove used-by rules for the bespoke operators on equality,
-  numbers, arithmetic etc. *}
+text \<open> For convenience, we also prove used-by rules for the bespoke operators on equality,
+  numbers, arithmetic etc. \<close>
     
 lemma usedBy_eq [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v \<rbrakk> \<Longrightarrow> x \<natural> u =\<^sub>u v"
   by (simp add: eq_upred_def, transfer, simp)

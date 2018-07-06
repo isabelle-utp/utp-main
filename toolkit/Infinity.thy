@@ -117,7 +117,7 @@ theorem infinite_transfer (*[intro]*) :
   apply (blast)
   done
 
-subsection {* Instantiations *}
+subsection \<open> Instantiations \<close>
 
 text \<open>
   The instantiations for product and sum types have stronger caveats than in

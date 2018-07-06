@@ -1,4 +1,4 @@
-section {* Relational Hoare calculus *}
+section \<open> Relational Hoare calculus \<close>
 
 theory utp_hoare
   imports 
@@ -157,8 +157,8 @@ lemma approx_chain:
   "(\<Sqinter>n::nat. \<lceil>p \<and> v <\<^sub>u \<guillemotleft>n\<guillemotright>\<rceil>\<^sub><) = \<lceil>p\<rceil>\<^sub><"
   by (rel_auto)
 
-text {* Total correctness law for Hoare logic, based on constructive chains. This is limited to
-  variants that have naturals numbers as their range. *}
+text \<open> Total correctness law for Hoare logic, based on constructive chains. This is limited to
+  variants that have naturals numbers as their range. \<close>
     
 lemma while_term_hoare_r:
   assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v =\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v <\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u"
@@ -213,7 +213,7 @@ lemma while_vrt_hoare_r [hoare_safe]:
   apply (rule while_term_hoare_r[where v="v", OF assms(1)]) 
   done
   
-text {* General total correctness law based on well-founded induction *}
+text \<open> General total correctness law based on well-founded induction \<close>
         
 lemma while_wf_hoare_r:
   assumes WF: "wf R"
@@ -239,9 +239,9 @@ qed
 
 subsection \<open> Frame Rules \<close>
 
-text {* Frame rule: If starting $S$ in a state satisfying $p establishes q$ in the final state, then
+text \<open> Frame rule: If starting $S$ in a state satisfying $p establishes q$ in the final state, then
   we can insert an invariant predicate $r$ when $S$ is framed by $a$, provided that $r$ does not
-  refer to variables in the frame, and $q$ does not refer to variables outside the frame. *}
+  refer to variables in the frame, and $q$ does not refer to variables outside the frame. \<close>
 
 lemma frame_hoare_r:
   assumes "vwb_lens a" "a \<sharp> r" "a \<natural> q" "\<lbrace>p\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  

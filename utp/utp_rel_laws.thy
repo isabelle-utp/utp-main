@@ -1,4 +1,4 @@
-section {* Relational Calculus Laws *}
+section \<open> Relational Calculus Laws \<close>
 
 theory utp_rel_laws
   imports 
@@ -6,7 +6,7 @@ theory utp_rel_laws
     utp_recursion
 begin
 
-subsection {* Conditional Laws *}
+subsection \<open> Conditional Laws \<close>
   
 lemma comp_cond_left_distr:
   "((P \<triangleleft> b \<triangleright>\<^sub>r Q) ;; R) = ((P ;; R) \<triangleleft> b \<triangleright>\<^sub>r (Q ;; R))"
@@ -25,7 +25,7 @@ text \<open> Alternative expression of conditional using assumptions and choice 
 lemma rcond_rassume_expand: "P \<triangleleft> b \<triangleright>\<^sub>r Q = ([b]\<^sup>\<top> ;; P) \<sqinter> ([\<not> b]\<^sup>\<top> ;; Q)"
   by (rel_auto)
 
-subsection {* Precondition and Postcondition Laws *}
+subsection \<open> Precondition and Postcondition Laws \<close>
   
 theorem precond_equiv:
   "P = (P ;; true) \<longleftrightarrow> (out\<alpha> \<sharp> P)"
@@ -50,7 +50,7 @@ theorem feasibile_iff_true_right_zero:
   "P ;; true = true \<longleftrightarrow> `\<exists> out\<alpha> \<bullet> P`"
   by (rel_auto)
     
-subsection {* Sequential Composition Laws *}
+subsection \<open> Sequential Composition Laws \<close>
     
 lemma seqr_assoc: "(P ;; Q) ;; R = P ;; (Q ;; R)"
   by (rel_auto)
@@ -248,7 +248,7 @@ lemma shEx_mem_lift_seq_2 [uquant_lift]:
   shows "(P ;; (\<^bold>\<exists> x \<in> A \<bullet> Q x)) = (\<^bold>\<exists> x \<in> A \<bullet> (P ;; Q x))"
   using assms by rel_blast
 
-subsection {* Iterated Sequential Composition Laws *}
+subsection \<open> Iterated Sequential Composition Laws \<close>
   
 lemma iter_seqr_nil [simp]: "(;; i : [] \<bullet> P(i)) = II"
   by (simp add: seqr_iter_def)
@@ -256,7 +256,7 @@ lemma iter_seqr_nil [simp]: "(;; i : [] \<bullet> P(i)) = II"
 lemma iter_seqr_cons [simp]: "(;; i : (x # xs) \<bullet> P(i)) = P(x) ;; (;; i : xs \<bullet> P(i))"
   by (simp add: seqr_iter_def)
 
-subsection {* Quantale Laws *}
+subsection \<open> Quantale Laws \<close>
 
 lemma seq_Sup_distl: "P ;; (\<Sqinter> A) = (\<Sqinter> Q\<in>A. P ;; Q)"
   by (transfer, auto)
@@ -282,7 +282,7 @@ lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; 
 lemma seq_SUP_distr: "(\<Sqinter>i\<in>A. P(i)) ;; Q = (\<Sqinter>i\<in>A. P(i) ;; Q)"
   by (simp add: seq_Sup_distr)
 
-subsection {* Skip Laws *}
+subsection \<open> Skip Laws \<close>
     
 lemma cond_skip: "out\<alpha> \<sharp> b \<Longrightarrow> (b \<and> II) = (II \<and> b\<^sup>-)"
   by (rel_auto)
@@ -314,7 +314,7 @@ lemma skip_res_as_ra:
   apply (metis vwb_lens.put_eq)
   done
 
-subsection {* Assignment Laws *}
+subsection \<open> Assignment Laws \<close>
   
 lemma assigns_subst [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>a = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
@@ -414,7 +414,7 @@ lemma assign_unfold:
   apply (rel_auto, auto simp add: comp_def)
   using vwb_lens.put_eq by fastforce
 
-subsection {* Converse Laws *}
+subsection \<open> Converse Laws \<close>
 
 lemma convr_invol [simp]: "p\<^sup>-\<^sup>- = p"
   by pred_auto
@@ -459,7 +459,7 @@ lemma pre_convr [simp]: "\<lceil>p\<rceil>\<^sub><\<^sup>- = \<lceil>p\<rceil>\<
 lemma post_convr [simp]: "\<lceil>p\<rceil>\<^sub>>\<^sup>- = \<lceil>p\<rceil>\<^sub><"
   by (rel_auto)
 
-subsection {* Assertion and Assumption Laws *}
+subsection \<open> Assertion and Assumption Laws \<close>
 
 declare sublens_def [lens_defs del]
   
@@ -481,7 +481,7 @@ lemma assert_true: "{true}\<^sub>\<bottom> = II"
 lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
   by (rel_auto)
 
-subsection {* Frame and Antiframe Laws *}
+subsection \<open> Frame and Antiframe Laws \<close>
 
 named_theorems frame
 
@@ -608,7 +608,7 @@ lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x
     
 declare sublens_def [lens_defs]
     
-subsection {* While Loop Laws *}
+subsection \<open> While Loop Laws \<close>
 
 theorem while_unfold:
   "while b do P od = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
@@ -655,7 +655,7 @@ theorem while_bot_false: "while\<^sub>\<bottom> false do P od = II"
 theorem while_bot_true: "while\<^sub>\<bottom> true do P od = (\<mu> X \<bullet> P ;; X)"
   by (simp add: while_bot_def alpha)
 
-text {* An infinite loop with a feasible body corresponds to a program error (non-termination). *}
+text \<open> An infinite loop with a feasible body corresponds to a program error (non-termination). \<close>
 
 theorem while_infinite: "P ;; true\<^sub>h = true \<Longrightarrow> while\<^sub>\<bottom> true do P od = true"
   apply (simp add: while_bot_true)
@@ -665,7 +665,7 @@ theorem while_infinite: "P ;; true\<^sub>h = true \<Longrightarrow> while\<^sub>
   apply (simp)
   done
 
-subsection {* Algebraic Properties *}
+subsection \<open> Algebraic Properties \<close>
 
 interpretation upred_semiring: semiring_1
   where times = seqr and one = skip_r and zero = false\<^sub>h and plus = Lattices.sup
@@ -673,7 +673,7 @@ interpretation upred_semiring: semiring_1
 
 declare upred_semiring.power_Suc [simp del]
 
-text {* We introduce the power syntax derived from semirings *}
+text \<open> We introduce the power syntax derived from semirings \<close>
 
 abbreviation upower :: "'\<alpha> hrel \<Rightarrow> nat \<Rightarrow> '\<alpha> hrel" (infixr "\<^bold>^" 80) where
 "upower P n \<equiv> upred_semiring.power P n"
@@ -682,7 +682,7 @@ translations
   "P \<^bold>^ i" <= "CONST power.power II op ;; P i"
   "P \<^bold>^ i" <= "(CONST power.power II op ;; P) i"
 
-text {* Set up transfer tactic for powers *}
+text \<open> Set up transfer tactic for powers \<close>
 
 lemma upower_rep_eq:
   "\<lbrakk>P \<^bold>^ i\<rbrakk>\<^sub>e = (\<lambda> b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
@@ -728,9 +728,9 @@ proof -
     by (simp add: Lattices.sup_commute)
 qed
 
-text {* The following two proofs are adapted from the AFP entry 
+text \<open> The following two proofs are adapted from the AFP entry 
   \href{https://www.isa-afp.org/entries/Kleene_Algebra.shtml}{Kleene Algebra}. 
-  See also~\cite{Armstrong2012,Armstrong2015}. *}
+  See also~\cite{Armstrong2012,Armstrong2015}. \<close>
 
 lemma upower_inductl: "Q \<sqsubseteq> (P ;; Q \<sqinter> R) \<Longrightarrow> Q \<sqsubseteq> P \<^bold>^ n ;; R"
 proof (induct n)
@@ -771,7 +771,7 @@ lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
 lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
   by (induct n, rel_auto+)
 
-subsubsection {* Kleene Star *}
+subsubsection \<open> Kleene Star \<close>
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
 "P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"
@@ -782,7 +782,7 @@ lemma ustar_rep_eq:
 
 update_uexpr_rep_eq_thms
 
-subsection {* Kleene Plus *}
+subsection \<open> Kleene Plus \<close>
 
 purge_notation trancl ("(_\<^sup>+)" [1000] 999)
 
@@ -792,12 +792,12 @@ definition uplus :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>+" [
 lemma uplus_power_def: "P\<^sup>+ = (\<Sqinter> i \<bullet> P \<^bold>^ (Suc i))"
   by (simp add: uplus_def ustar_def seq_UINF_distl' UINF_atLeast_Suc upred_semiring.power_Suc)
 
-subsection {* Omega *}
+subsection \<open> Omega \<close>
 
 definition uomega :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<omega>" [999] 999) where
 "P\<^sup>\<omega> = (\<mu> X \<bullet> P ;; X)"
 
-subsection {* Relation Algebra Laws *}
+subsection \<open> Relation Algebra Laws \<close>
 
 theorem RA1: "(P ;; (Q ;; R)) = ((P ;; Q) ;; R)"
   by (simp add: seqr_assoc)
@@ -820,7 +820,7 @@ theorem RA6: "((P \<or> Q) ;; R) = (P;;R \<or> Q;;R)"
 theorem RA7: "((P\<^sup>- ;; (\<not>(P ;; Q))) \<or> (\<not>Q)) = (\<not>Q)"
   by (rel_auto)
 
-subsection {* Kleene Algebra Laws *}
+subsection \<open> Kleene Algebra Laws \<close>
 
 lemma ustar_alt_def: "P\<^sup>\<star> = (\<Sqinter> i \<bullet> P \<^bold>^ i)"
   by (simp add: ustar_def)
@@ -904,13 +904,13 @@ proof -
   finally show ?thesis .
 qed
   
-subsection {* Omega Algebra Laws *}
+subsection \<open> Omega Algebra Laws \<close>
 
 lemma uomega_induct:
   "P ;; P\<^sup>\<omega> \<sqsubseteq> P\<^sup>\<omega>"
   by (simp add: uomega_def, metis eq_refl gfp_unfold monoI seqr_mono)
 
-subsection {* Refinement Laws *}
+subsection \<open> Refinement Laws \<close>
 
 lemma skip_r_refine:
   "(p \<Rightarrow> p) \<sqsubseteq> II"
@@ -942,7 +942,7 @@ lemma seq_refine_unrest:
   shows "(b \<Rightarrow> c) \<sqsubseteq> (P ;; Q)"
   using assms by rel_blast 
     
- subsection {* Domain and Range Laws *}
+ subsection \<open> Domain and Range Laws \<close>
   
 lemma Dom_conv_Ran:
   "Dom(P\<^sup>-) = Ran(P)"
