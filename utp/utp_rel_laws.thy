@@ -697,7 +697,7 @@ next
 qed
 
 lemma upower_rep_eq_alt:
-  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a op ;; P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a (;;) P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
   by (metis skip_r_def upower_rep_eq)
 
 update_uexpr_rep_eq_thms

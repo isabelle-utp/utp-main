@@ -785,9 +785,9 @@ text \<open> Refinement introduction law for reactive while loops \<close>
 
 theorem WhileR_refine_intro:
   assumes 
-    -- {* Closure conditions *}
+    \<comment> \<open> Closure conditions \<close>
     "Q\<^sub>1 is RC" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR" "$st\<acute> \<sharp> Q\<^sub>2" "Q\<^sub>3 is R4"
-    -- {* Refinement conditions *}
+    \<comment> \<open> Refinement conditions \<close>
     "([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r Q\<^sub>1) \<sqsubseteq> P\<^sub>1"
     "P\<^sub>2 \<sqsubseteq> [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2"
     "P\<^sub>2 \<sqsubseteq> [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 ;; P\<^sub>2"
@@ -921,7 +921,7 @@ qed
 
 theorem IterateR_refine_intro:
   assumes 
-    -- {* Closure conditions *}
+    \<comment> \<open> Closure conditions \<close>
     "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>1(i) is RC" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>2(i) is RR" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>3(i) is RR" 
     "\<And> i. i\<in>I \<Longrightarrow> $st\<acute> \<sharp> Q\<^sub>2(i)" "\<And> i. i\<in>I \<Longrightarrow> Q\<^sub>3(i) is R4" "I \<noteq> {}"
     "(\<Sqinter> i \<in> I \<bullet> [b i]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3 i)\<^sup>\<star>\<^sup>r wp\<^sub>r (\<Squnion> i \<in> I \<bullet> [b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r Q\<^sub>1 i) \<sqsubseteq> P\<^sub>1"

@@ -39,7 +39,7 @@ text \<open> Next, import the laws of Kleene Algebra into the UTP relational cal
   exports a large library of algebraic laws. \<close>
 
 interpretation urel_dioid: dioid
-  where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and less_eq = less_eq and less = less
+  where plus = "(\<sqinter>)" and times = "(;;\<^sub>h)" and less_eq = less_eq and less = less
 proof
   fix P Q R :: "'\<alpha> hrel"
   show "(P \<sqinter> Q) ;; R = P ;; R \<sqinter> Q ;; R"
@@ -53,7 +53,7 @@ proof
 qed
 
 interpretation urel_ka: kleene_algebra
-  where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar
+  where plus = "(\<sqinter>)" and times = "(;;\<^sub>h)" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar
 proof
   fix P Q R :: "'\<alpha> hrel"
   show "II ;; P = P" by simp
@@ -72,7 +72,7 @@ qed
 text \<open> We also show that UTP relations form a Kleene Algebra with Tests~\cite{kozen1997kleene,Gomes2016} (KAT). \<close>
 
 interpretation urel_kat: kat
-  where plus = "op \<sqinter>" and times = "op ;;\<^sub>h" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar and n_op = "\<lambda>x. II \<and> (\<not> x)"
+  where plus = "(\<sqinter>)" and times = "(;;\<^sub>h)" and one = skip_r and zero = false\<^sub>h and less_eq = less_eq and less = less and star = ustar and n_op = "\<lambda>x. II \<and> (\<not> x)"
   by (unfold_locales, rel_auto+)
 
 text \<open> We can now access the laws of KA and KAT for UTP relations as below. \<close>

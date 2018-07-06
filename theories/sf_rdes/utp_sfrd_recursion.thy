@@ -29,7 +29,7 @@ lemma mu_CSP_unfold:
   apply (simp_all add: closure Healthy_if)
   done
 
-lemma mu_csp_expand [rdes]: "(\<mu>\<^sub>C (op ;; Q)) = (\<mu> X \<bullet> Q ;; CSP X)"
+lemma mu_csp_expand [rdes]: "(\<mu>\<^sub>C ((;;) Q)) = (\<mu> X \<bullet> Q ;; CSP X)"
   by (simp add: comp_def)
     
 lemma mu_csp_basic_refine:

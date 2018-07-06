@@ -1163,7 +1163,7 @@ proof -
     by (metis (mono_tags, lifting))
 qed
 
-lemma Monotonic_SRD_comp [closure]: "Monotonic (op ;; P \<circ> SRD)"
+lemma Monotonic_SRD_comp [closure]: "Monotonic ((;;) P \<circ> SRD)"
   by (simp add: mono_def R1_R2c_is_R2 R2_mono R3h_mono RD1_mono RD2_mono RHS_def SRD_def seqr_mono)
 
 end

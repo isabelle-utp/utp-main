@@ -29,7 +29,7 @@ lift_definition fran :: "('a, 'b) ffun \<Rightarrow> 'b set" is pran .
 
 lift_definition ffun_comp :: "('b, 'c) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'c) ffun" (infixl "\<circ>\<^sub>f" 55) is pfun_comp by auto
 
-lift_definition ffun_member :: "'a \<times> 'b \<Rightarrow> ('a, 'b) ffun \<Rightarrow> bool" (infix "\<in>\<^sub>f" 50) is "op \<in>\<^sub>p" .
+lift_definition ffun_member :: "'a \<times> 'b \<Rightarrow> ('a, 'b) ffun \<Rightarrow> bool" (infix "\<in>\<^sub>f" 50) is "(\<in>\<^sub>p)" .
 
 lift_definition fdom_res :: "'a set \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" (infixl "\<lhd>\<^sub>f" 85)
 is "pdom_res" by simp
@@ -54,13 +54,13 @@ where "fempty \<equiv> 0"
 
 instantiation ffun :: (type, type) plus
 begin
-lift_definition plus_ffun :: "('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" is "op +" by simp
+lift_definition plus_ffun :: "('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" is "(+)" by simp
 instance ..
 end
 
 instantiation ffun :: (type, type) minus
 begin
-lift_definition minus_ffun :: "('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" is "op -"
+lift_definition minus_ffun :: "('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun" is "(-)"
   by (metis finite_Diff finite_Domain pdom_graph_pfun pdom_pfun_graph_finite pfun_graph_inv pfun_graph_minus)
 instance ..
 end

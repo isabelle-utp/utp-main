@@ -11,7 +11,7 @@ text \<open> Here, we mechanise a representation of UTP theories using locales~\
 subsection {* Complete lattice of predicates *}
 
 definition upred_lattice :: "('\<alpha> upred) gorder" ("\<P>") where
-"upred_lattice = \<lparr> carrier = UNIV, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+"upred_lattice = \<lparr> carrier = UNIV, eq = (=), le = (\<sqsubseteq>) \<rparr>"
 
 text {* @{term "\<P>"} is the complete lattice of alphabetised predicates. All other theories will
   be defined relative to it. *}
@@ -19,12 +19,12 @@ text {* @{term "\<P>"} is the complete lattice of alphabetised predicates. All o
 interpretation upred_lattice: complete_lattice \<P>
 proof (unfold_locales, simp_all add: upred_lattice_def)
   fix A :: "'\<alpha> upred set"
-  show "\<exists>s. is_lub \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> s A"
+  show "\<exists>s. is_lub \<lparr>carrier = UNIV, eq = (=), le = (\<sqsubseteq>)\<rparr> s A"
     apply (rule_tac x="\<Squnion> A" in exI)
     apply (rule least_UpperI)
        apply (auto intro: Inf_greatest simp add: Inf_lower Upper_def)
     done
-  show "\<exists>i. is_glb \<lparr>carrier = UNIV, eq = op =, le = op \<sqsubseteq>\<rparr> i A"
+  show "\<exists>i. is_glb \<lparr>carrier = UNIV, eq = (=), le = (\<sqsubseteq>)\<rparr> i A"
     apply (rule_tac x="\<Sqinter> A" in exI)
     apply (rule greatest_LowerI)
        apply (auto intro: Sup_least simp add: Sup_upper Lower_def)
@@ -35,7 +35,7 @@ lemma upred_weak_complete_lattice [simp]: "weak_complete_lattice \<P>"
   by (simp add: upred_lattice.weak.weak_complete_lattice_axioms)
 
 lemma upred_lattice_eq [simp]:
-  "op .=\<^bsub>\<P>\<^esub> = op ="
+  "(.=\<^bsub>\<P>\<^esub>) = (=)"
   by (simp add: upred_lattice_def)
 
 lemma upred_lattice_le [simp]:
@@ -91,7 +91,7 @@ consts
   utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health" ("\<H>\<index>")
 
 definition utp_order :: "('\<alpha> \<times> '\<alpha>) health \<Rightarrow> '\<alpha> hrel gorder" where
-"utp_order H = \<lparr> carrier = {P. P is H}, eq = (op =), le = op \<sqsubseteq> \<rparr>"
+"utp_order H = \<lparr> carrier = {P. P is H}, eq = (=), le = (\<sqsubseteq>) \<rparr>"
 
 abbreviation "uthy_order T \<equiv> utp_order \<H>\<^bsub>T\<^esub>"
 
@@ -104,11 +104,11 @@ lemma utp_order_carrier [simp]:
   by (simp add: utp_order_def)
 
 lemma utp_order_eq [simp]:
-  "eq (utp_order T) = op ="
+  "eq (utp_order T) = (=)"
   by (simp add: utp_order_def)
 
 lemma utp_order_le [simp]:
-  "le (utp_order T) = op \<sqsubseteq>"
+  "le (utp_order T) = (\<sqsubseteq>)"
   by (simp add: utp_order_def)
 
 lemma utp_partial_order: "partial_order (utp_order T)"

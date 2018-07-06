@@ -9,8 +9,8 @@ section {* Finite Sets: extra functions and properties *}
 
 theory FSet_Extra
 imports
-  "~~/src/HOL/Library/FSet"
-  "~~/src/HOL/Library/Countable_Set_Type"
+  "HOL-Library.FSet"
+  "HOL-Library.Countable_Set_Type"
 begin
 
 setup_lifting type_definition_fset

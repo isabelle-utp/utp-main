@@ -60,17 +60,17 @@ interpretation design_theory_continuous: utp_theory_continuous DES
   rewrites "\<And> P. P \<in> carrier (uthy_order DES) \<longleftrightarrow> P is \<^bold>H"
   and "carrier (uthy_order DES) \<rightarrow> carrier (uthy_order DES) \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>DES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>DES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
-  and "le (uthy_order DES) = op \<sqsubseteq>"
-  and "eq (uthy_order DES) = op ="
+  and "le (uthy_order DES) = (\<sqsubseteq>)"
+  and "eq (uthy_order DES) = (=)"
   by (unfold_locales, simp_all add: des_hcond_def H1_H2_Continuous utp_order_def)
                                                             
 interpretation normal_design_theory_continuous: utp_theory_continuous NDES
   rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
   and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
-  and "le (uthy_order NDES) = op \<sqsubseteq>"
+  and "le (uthy_order NDES) = (\<sqsubseteq>)"
   and "A \<subseteq> carrier (uthy_order NDES) \<longleftrightarrow> A \<subseteq> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"  
-  and "eq (uthy_order NDES) = op ="  
+  and "eq (uthy_order NDES) = (=)"  
   by (unfold_locales, simp_all add: ndes_hcond_def H1_H3_Continuous utp_order_def)
 
 lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
@@ -106,8 +106,8 @@ interpretation Des_Rel_coretract:
     "\<And> x. x \<in> carrier \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = True" and
     "\<pi>\<^sub>*\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = Des" and
     "\<pi>\<^sup>*\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = Rel" and
-    "le \<X>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>" and
-    "le \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = op \<sqsubseteq>"
+    "le \<X>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = (\<sqsubseteq>)" and
+    "le \<Y>\<^bsub>DES \<leftarrow>\<langle>Des,Rel\<rangle>\<rightarrow> REL\<^esub> = (\<sqsubseteq>)"
 proof (unfold_locales, simp_all add: rel_hcond_def des_hcond_def)
   show "\<And>x. x is id"
     by (simp add: Healthy_def)

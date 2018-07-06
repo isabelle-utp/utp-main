@@ -136,7 +136,7 @@ text {* We trivially instantiate our refinement class *}
 
 instance uexpr :: (order, type) refine ..
 
--- {* Configure transfer law for refinement for the fast relational tactics. *}
+\<comment> \<open> Configure transfer law for refinement for the fast relational tactics. \<close>
 
 theorem upred_ref_iff [uexpr_transfer_laws]:
 "(P \<sqsubseteq> Q) = (\<forall>b. \<lbrakk>Q\<rbrakk>\<^sub>e b \<longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e b)"
@@ -194,14 +194,9 @@ instance
   by (intro_classes)
      (transfer, auto intro: INF_lower SUP_upper simp add: INF_greatest SUP_least)+
 end
-  
+
 instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
-  apply (intro_classes)
-   apply (transfer, rule ext, auto)
-  using sup_INF apply fastforce
-  apply (transfer, rule ext, auto)
-  using inf_SUP apply fastforce
-  done
+  by (intro_classes; transfer; auto simp add: INF_SUP_set)
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
   
@@ -248,11 +243,6 @@ is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbra
 
 lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
-    
-(*
-declare UINF_def [upred_defs]
-declare USUP_def [upred_defs]
-*)
   
 syntax
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
@@ -321,9 +311,9 @@ lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<alpha> upred" ("[_]\<
 lift_definition taut :: "'\<alpha> upred \<Rightarrow> bool" ("`_`")
 is "\<lambda> P. \<forall> A. P A" .
 
--- {* Configuration for UTP tactics (see @{theory utp_tactics}). *}
+text \<open> Configuration for UTP tactics \<close>
 
-update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
+update_uexpr_rep_eq_thms \<comment> \<open> Reread @{text rep_eq} theorems. \<close>
 
 declare utp_pred.taut.rep_eq [upred_defs]
 
@@ -346,7 +336,7 @@ syntax
 
 translations
   "x \<noteq>\<^sub>u y" == "CONST unot (x =\<^sub>u y)"
-  "x \<notin>\<^sub>u A" == "CONST unot (CONST bop (op \<in>) x A)"
+  "x \<notin>\<^sub>u A" == "CONST unot (CONST bop (\<in>) x A)"
 
 declare true_upred_def [upred_defs]
 declare false_upred_def [upred_defs]

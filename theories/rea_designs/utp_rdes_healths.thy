@@ -562,8 +562,8 @@ interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
 interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
   rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
   and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
-  and "le (uthy_order RDES) = op \<sqsubseteq>"
-  and "eq (uthy_order RDES) = op ="
+  and "le (uthy_order RDES) = (\<sqsubseteq>)"
+  and "eq (uthy_order RDES) = (=)"
   by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
 
 interpretation rdes_rea_galois:
@@ -609,8 +609,8 @@ interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'
   and "(\<mu> X \<bullet> F (\<H>\<^bsub>SRDES\<^esub> X)) = (\<mu> X \<bullet> F (SRD X))"
   and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   and "\<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
-  and "le (uthy_order SRDES) = op \<sqsubseteq>"
-  and "eq (uthy_order SRDES) = op ="
+  and "le (uthy_order SRDES) = (\<sqsubseteq>)"
+  and "eq (uthy_order SRDES) = (=)"
   by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
 
 declare srdes_theory_continuous.top_healthy [simp del]

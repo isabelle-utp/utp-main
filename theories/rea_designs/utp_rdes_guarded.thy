@@ -15,7 +15,7 @@ class size_trace = trace + size +
     size_zero: "size 0 = 0" and
     size_nzero: "s > 0 \<Longrightarrow> size(s) > 0" and
     size_plus: "size (s + t) = size(s) + size(t)"
-  -- \<open> These axioms may be stronger than necessary. In particular, @{thm size_nzero} requires that
+  \<comment> \<open> These axioms may be stronger than necessary. In particular, @{thm size_nzero} requires that
        a non-empty trace have a positive size. But this may not be the case with all trace models
        and is possibly more restrictive than necessary. In future we will explore weakening. \<close>
 begin
@@ -158,8 +158,8 @@ lemma Guarded_if_Productive [closure]:
   assumes "P is NSRD" "P is Productive"
   shows "Guarded (\<lambda> X. P ;; SRD(X))"
 proof (clarsimp simp add: Guarded_def)
-  -- {* We split the proof into three cases corresponding to valuations for ok, wait, and wait'
-        respectively. *}
+  \<comment> \<open> We split the proof into three cases corresponding to valuations for ok, wait, and wait'
+        respectively. \<close>
   fix X n
   have a:"(P ;; SRD(X) \<and> gvrt (Suc n))\<lbrakk>false/$ok\<rbrakk> =
         (P ;; SRD(X \<and> gvrt n) \<and> gvrt (Suc n))\<lbrakk>false/$ok\<rbrakk>"
@@ -194,7 +194,7 @@ proof (clarsimp simp add: Guarded_def)
               R2c_preR rea_not_def R1_extend_conj' R2c_ok' R2c_post_SRD R1_tr_less_tr' R2c_tr_less_tr')
         also have "... =
              ((((\<not>\<^sub>r pre\<^sub>R P) ;; (SRD(Y))\<lbrakk>false/$wait\<rbrakk> \<or> ($ok\<acute> \<and> post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (SRD Y)\<lbrakk>false/$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
-          by (simp add: usubst unrest assms closure seqr_or_distl NSRD_neg_pre_left_zero SRD_healths)
+          by (simp add: usubst unrest assms closure seqr_or_distl NSRD_neg_pre_left_zero)
         also have "... =
              ((((\<not>\<^sub>r pre\<^sub>R P) ;; (SRD(Y))\<lbrakk>false/$wait\<rbrakk> \<or> (post\<^sub>R P \<and> $tr\<acute> >\<^sub>u $tr) ;; (SRD Y)\<lbrakk>true,false/$ok,$wait\<rbrakk>)) \<and> gvrt (Suc n))\<lbrakk>true,false/$ok,$wait\<rbrakk>"
         proof -

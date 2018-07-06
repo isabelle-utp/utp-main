@@ -8,8 +8,8 @@
 section \<open> Infinity Supplement \<close>
 
 theory Infinity
-imports Main Real
-  "~~/src/HOL/Library/Infinite_Set"
+imports HOL.Real
+  "HOL-Library.Infinite_Set"
   "Optics.Two"
 begin
 

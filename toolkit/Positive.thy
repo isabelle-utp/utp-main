@@ -51,9 +51,9 @@ end
 instantiation pos :: ("{zero, linorder}") linorder
 begin
   lift_definition less_eq_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool"
-    is "op \<le> :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
+    is "(\<le>) :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
   lift_definition less_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> bool"
-    is "op < :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
+    is "(<) :: 'a \<Rightarrow> 'a \<Rightarrow> bool" .
   instance
     apply (intro_classes; transfer)
         apply (auto)
@@ -80,12 +80,12 @@ begin
   lift_definition one_pos :: "'a pos"
     is "1 :: 'a" by (simp)
   lift_definition plus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
-    is "op +" by (simp)
+    is "(+)" by (simp)
   lift_definition minus_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
     is "\<lambda>x y. if y \<le> x then x - y else 0"
     by (simp add: add_le_imp_le_diff)
   lift_definition times_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
-    is "op *" by (simp)
+    is "times" by (simp)
   instance
     apply (intro_classes; transfer; simp?)
             apply (simp add: add.assoc)
@@ -110,7 +110,7 @@ end
 instantiation pos :: ("linordered_field") semidom_divide
 begin
   lift_definition divide_pos :: "'a pos \<Rightarrow> 'a pos \<Rightarrow> 'a pos"
-    is "op div" by (simp)
+    is "divide" by (simp)
   instance
     apply (intro_classes; transfer)
      apply (simp_all)

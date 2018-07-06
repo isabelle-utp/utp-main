@@ -9,7 +9,7 @@ section \<open> Infinite Sequences \<close>
 
 theory Sequence
 imports
-  Real
+  HOL.Real
   List_Extra
   "HOL-Library.Sublist"
   "HOL-Library.Nat_Bijection"
@@ -42,7 +42,7 @@ lemma prefix_upt_0 [intro]:
 
 lemma sinit_prefix:
   "i \<le> j \<Longrightarrow> prefix (sinit i xs) (sinit j xs)"
-  by (auto intro: map_prefixI simp add: ssubstr_def)
+  by (simp add: map_mono_prefix prefix_upt_0 ssubstr_def)
 
 lemma sinit_strict_prefix:
   "i < j \<Longrightarrow> strict_prefix (sinit i xs) (sinit j xs)"

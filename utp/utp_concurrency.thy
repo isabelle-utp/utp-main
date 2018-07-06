@@ -500,11 +500,11 @@ theorem StateParallel_hoare [hoare]:
   assumes "\<lbrace>c\<rbrace>P\<lbrace>d\<^sub>1\<rbrace>\<^sub>u" "\<lbrace>c\<rbrace>Q\<lbrace>d\<^sub>2\<rbrace>\<^sub>u" "a \<bowtie> b" "a \<natural> d\<^sub>1" "b \<natural> d\<^sub>2"
   shows "\<lbrace>c\<rbrace>P |a|b|\<^sub>\<sigma> Q\<lbrace>d\<^sub>1 \<and> d\<^sub>2\<rbrace>\<^sub>u"
 proof -
-  -- {* Parallelise the specification *}
+  \<comment> \<open> Parallelise the specification \<close>
   from assms(4,5)
   have 1:"(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1 \<and> d\<^sub>2\<rceil>\<^sub>>) \<sqsubseteq> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) |a|b|\<^sub>\<sigma> (\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>2\<rceil>\<^sub>>)" (is "?lhs \<sqsubseteq> ?rhs")
     by (simp add: StateParallel_form, rel_auto, metis assms(3) lens_indep_comm)
-  -- {* Prove Hoare rule by monotonicity of parallelism *}
+  \<comment> \<open> Prove Hoare rule by monotonicity of parallelism \<close>
   have 2:"?rhs \<sqsubseteq> P |a|b|\<^sub>\<sigma> Q"
   proof (rule par_by_merge_mono)
     show "(\<lceil>c\<rceil>\<^sub>< \<Rightarrow> \<lceil>d\<^sub>1\<rceil>\<^sub>>) \<sqsubseteq> P"

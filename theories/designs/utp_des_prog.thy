@@ -340,7 +340,7 @@ next
   also have "... = (Q \<^bold>^ 0 wp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: wp)
   also have "... = ((\<Squnion> i \<in> {0..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
-    by (simp add: Iic_Suc_eq_insert_0 atLeast0AtMost conj_upred_def image_Suc_atMost)      
+    by (simp add: atMost_Suc_eq_insert_0 atLeast0AtMost conj_upred_def image_Suc_atMost)      
   also have "... = (\<Squnion> i \<in> {0..Suc n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc (Suc n)"
     by (simp add: upred_semiring.power_Suc USUP_as_Inf_image upred_semiring.mult_assoc)
   finally show ?case .

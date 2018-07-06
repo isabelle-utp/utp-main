@@ -740,7 +740,7 @@ interpretation nsrd_thy: utp_theory_kleene "UTHY(NSRDES, ('s,'t::trace,'\<alpha>
   and "\<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
   and "\<^bold>\<top>\<^bsub>NSRDES\<^esub> = Miracle"
   and "\<I>\<I>\<^bsub>NSRDES\<^esub> = II\<^sub>R"
-  and "le (uthy_order NSRDES) = op \<sqsubseteq>"
+  and "le (uthy_order NSRDES) = (\<sqsubseteq>)"
 proof -
   interpret lat: utp_theory_continuous "UTHY(NSRDES, ('s,'t,'\<alpha>) rsp)"
     by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if)

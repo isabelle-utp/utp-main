@@ -9,7 +9,7 @@ subsection {* Propositional Logic *}
 text {* Showing that predicates form a Boolean Algebra (under the predicate operators as opposed to
   the lattice operators) gives us many useful laws. *}
 
-interpretation boolean_algebra diff_upred not_upred conj_upred "op \<le>" "op <"
+interpretation boolean_algebra diff_upred not_upred conj_upred "(\<le>)" "(<)"
   disj_upred false_upred true_upred
   by (unfold_locales; pred_auto)
 
@@ -475,14 +475,14 @@ lemma USUP_Suc_shift: "(\<Squnion> i \<in> {Suc 0..<Suc n} \<bullet> P(i)) = (\<
   using less_Suc_eq_0_disj by auto
     
 lemma UINF_list_conv:
-  "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<or> (map f xs) false"    
+  "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr (\<or>) (map f xs) false"    
   apply (induct xs)
    apply (rel_auto)
   apply (simp add: UINF_upto_expand_first UINF_Suc_shift)
   done
 
 lemma USUP_list_conv:
-  "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr op \<and> (map f xs) true"    
+  "(\<Squnion> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr (\<and>) (map f xs) true"    
   apply (induct xs)
    apply (rel_auto)
   apply (simp_all add: USUP_upto_expand_first USUP_Suc_shift)

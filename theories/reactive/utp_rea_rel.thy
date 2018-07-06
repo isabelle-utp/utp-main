@@ -756,7 +756,7 @@ interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)
   and "\<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
   and "\<^bold>\<top>\<^bsub>RREL\<^esub> = false"
   and "\<I>\<I>\<^bsub>RREL\<^esub> = II\<^sub>r"
-  and "le (uthy_order RREL) = op \<sqsubseteq>"
+  and "le (uthy_order RREL) = (\<sqsubseteq>)"
 proof -
   interpret lat: utp_theory_continuous "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
     by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)

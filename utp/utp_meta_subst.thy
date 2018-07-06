@@ -10,7 +10,7 @@ text {* Meta substitution substitutes a HOL variable in a UTP expression for ano
 lift_definition msubst :: "('b \<Rightarrow> ('a, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr"
 is "\<lambda> F v b. F (v b) b" .
   
-update_uexpr_rep_eq_thms -- {* Reread @{text rep_eq} theorems. *}
+update_uexpr_rep_eq_thms \<comment> \<open> Reread @{text rep_eq} theorems. \<close>
     
 syntax
   "_msubst"   :: "logic \<Rightarrow> pttrn \<Rightarrow> logic \<Rightarrow> logic" ("(_\<lbrakk>_\<rightarrow>_\<rbrakk>)" [990,0,0] 991)

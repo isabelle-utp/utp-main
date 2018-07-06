@@ -35,7 +35,7 @@ subsection \<open> Countable set functions \<close>
 
 setup_lifting type_definition_cset
 
-lift_definition cnin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" (infix "\<notin>\<^sub>c" 50) is "op \<notin>" .
+lift_definition cnin :: "'a \<Rightarrow> 'a cset \<Rightarrow> bool" (infix "\<notin>\<^sub>c" 50) is "(\<notin>)" .
 
 definition cBall :: "'a cset \<Rightarrow> ('a \<Rightarrow> bool) \<Rightarrow> bool" where
 "cBall A P = (\<forall>x. x \<in>\<^sub>c A \<longrightarrow> P x)"
@@ -88,7 +88,7 @@ lemma cset_CollectD: "(a :: 'a::countable) \<in>\<^sub>c {x. P x}\<^sub>c \<Long
 lemma cset_Collect_cong: "(\<And>x. P x = Q x) ==> {x. P x}\<^sub>c = {x. Q x}\<^sub>c"
   by simp
 
--- \<open> Avoid eta-contraction for robust pretty-printing. \<close>
+text \<open> Avoid eta-contraction for robust pretty-printing. \<close>
 
 print_translation \<open>
  [Syntax_Trans.preserve_binder_abs_tr'
@@ -269,7 +269,7 @@ definition nat_set_cset_collapse :: "nat set cset \<Rightarrow> nat set" where
 
 lemma nat_set_cset_collapse_inj: "inj_on nat_set_cset_collapse {A. A \<noteq> {}\<^sub>c}"
 proof -
-  have "op `\<^sub>c bit_seq_of_nat_set ` {A. A \<noteq> {}\<^sub>c} \<subseteq> {A. A \<noteq> {}\<^sub>c}"
+  have "(`\<^sub>c) bit_seq_of_nat_set ` {A. A \<noteq> {}\<^sub>c} \<subseteq> {A. A \<noteq> {}\<^sub>c}"
     by (auto simp add:cimage.rep_eq)
   thus ?thesis
     apply (simp add: nat_set_cset_collapse_def)
@@ -352,11 +352,11 @@ lemma bij_nat_set_cset_bij:
   by (metis nat_set_cset_bij nat_set_cset_bij_def someI_ex)
 
 lemma inj_on_image_csets:
-  "inj_on f A \<Longrightarrow> inj_on (op `\<^sub>c f) (csets A)"
+  "inj_on f A \<Longrightarrow> inj_on ((`\<^sub>c) f) (csets A)"
   by (fastforce simp add: inj_on_def cimage_def cin_def csets_def)
 
 lemma image_csets_surj:
-  "\<lbrakk> inj_on f A; f ` A = B \<rbrakk> \<Longrightarrow> op `\<^sub>c f ` csets A = csets B"
+  "\<lbrakk> inj_on f A; f ` A = B \<rbrakk> \<Longrightarrow> (`\<^sub>c) f ` csets A = csets B"
   apply (auto simp add: cimage_def csets_def image_mono map_fun_def)
   apply (simp add: image_comp)
   apply (auto simp add: image_Collect)
@@ -366,6 +366,6 @@ lemma image_csets_surj:
   done
 
 lemma bij_betw_image_csets:
-  "bij_betw f A B \<Longrightarrow> bij_betw (op `\<^sub>c f) (csets A) (csets B)"
+  "bij_betw f A B \<Longrightarrow> bij_betw ((`\<^sub>c) f) (csets A) (csets B)"
   by (simp add: bij_betw_def inj_on_image_csets image_csets_surj)
 end

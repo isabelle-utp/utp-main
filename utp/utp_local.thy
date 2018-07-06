@@ -38,13 +38,13 @@ text {* The following record is used to characterise the UTP theory specific ope
   
 record ('\<alpha>, 's) state_prim =
   
-  -- {* The first field states where in the alphabet @{typ "'\<alpha>"} the user state-space type is 
-        @{typ "'s"} is located with the form of a lens. *}
+  \<comment> \<open> The first field states where in the alphabet @{typ "'\<alpha>"} the user state-space type is 
+        @{typ "'s"} is located with the form of a lens. \<close>
 
   sstate   :: "'s \<Longrightarrow> '\<alpha>" ("\<^bold>s\<index>") 
 
-  -- {* The second field is the theory's substitution operator. It takes a substitution over the
-        state-space type and constructs a homogeneous assignment relation. *}
+  \<comment> \<open> The second field is the theory's substitution operator. It takes a substitution over the
+        state-space type and constructs a homogeneous assignment relation. \<close>
 
   sassigns :: "'s usubst \<Rightarrow> '\<alpha> hrel" ("\<^bold>\<langle>_\<^bold>\<rangle>\<index>")
   

@@ -677,7 +677,7 @@ interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) st_
   and "\<^bold>\<top>\<^bsub>TCSP\<^esub> = Miracle"
   and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
-  and "le (uthy_order TCSP) = op \<sqsubseteq>"
+  and "le (uthy_order TCSP) = (\<sqsubseteq>)"
 proof -
   interpret lat: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
     by (unfold_locales, simp_all add: tcsp_hcond_def closure Healthy_if)

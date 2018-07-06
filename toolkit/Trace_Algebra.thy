@@ -71,14 +71,16 @@ subsection \<open> Trace Algebras \<close>
 text \<open> A pre-trace algebra is based on a left-cancellative monoid with the additional property that
   plus has no additive inverse. The latter is required to ensure that there are no ``negative 
   traces''. A pre-trace algebra has all the trace algebra axioms, but does not export the definitions
-  of @{term "op \<le>"} and @{term "op -"}. \<close>
+  of @{term "(\<le>)"} and @{term "(-)"}. \<close>
+
 
 class pre_trace = left_cancel_monoid + monoid_sum_0 +
   assumes
   sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-  -- \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
-       can be expressed in terms of each other. \<close>
 begin
+
+text \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
+       can be expressed in terms of each other. \<close>
 
 text \<open> From our axiom set, we can derive a variety of properties of the monoid order \<close>
   
@@ -254,7 +256,7 @@ instantiation list :: (type) monoid_add
 begin
 
   definition zero_list :: "'a list" where "zero_list = []"
-  definition plus_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where "plus_list = op @"
+  definition plus_list :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where "plus_list = (@)"
 
 instance
   by (intro_classes, simp_all add: zero_list_def plus_list_def)

@@ -8,8 +8,7 @@
 section {* Lists: extra functions and properties *}
 
 theory List_Extra
-imports
-  Main
+  imports
   "HOL-Library.Sublist"
   "HOL-Library.Monad_Syntax"
   "HOL-Library.Prefix_Order"
@@ -17,7 +16,7 @@ begin
 
 subsection {* Useful Abbreviations *}
 
-abbreviation "list_sum xs \<equiv> foldr (op +) xs 0"
+abbreviation "list_sum xs \<equiv> foldr (+) xs 0"
 
 subsection {* List Lookup *}
 
@@ -67,19 +66,16 @@ qed
 subsubsection {* Sorted Lists *}
 
 lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> x \<le> last xs"
-  apply (induct xs)
-   apply (auto)
-   apply (metis last_in_set sorted_Cons)+
-  done
+  by (induct xs, auto)
 
 lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
-  by (simp add: monoD sorted_equals_nth_mono)
+  by (simp add: monoD sorted_iff_nth_mono)
 
 lemma sorted_distinct [intro]: "\<lbrakk> sorted (xs); distinct(xs) \<rbrakk> \<Longrightarrow> (\<forall> i<length xs - 1. xs!i < xs!(i + 1))"
   apply (induct xs)
-  apply (auto)
-  apply (metis Suc_mono distinct.simps(2) length_Cons lessI less_SucI less_le nth_Cons_Suc nth_eq_iff_index_eq sorted_equals_nth_mono)
-done
+   apply (auto)
+  apply (metis (no_types, hide_lams) Suc_leI Suc_less_eq Suc_pred gr0_conv_Suc not_le not_less_iff_gr_or_eq nth_Cons_Suc nth_mem nth_non_equal_first_eq)
+  done
 
 text {* Is the given list a permutation of the given set? *}
 
@@ -105,8 +101,8 @@ next
     by (simp add: is_sorted_list_of_set_def)
   with isl show "sorted (x # xs)"
     apply (auto simp add: is_sorted_list_of_set_def)
-    apply (metis length_pos_if_in_set less_imp_le nth_Cons_0 sorted.simps sorted_many sorted_single)
-  done
+    apply (metis (mono_tags, lifting) all_nth_imp_all_set less_le_trans linorder_not_less not_less_iff_gr_or_eq nth_Cons_0 sorted_iff_nth_mono zero_order(3))
+    done
   from srt hyps(2) have "distinct xs"
     by (simp add: is_sorted_list_of_set_def)
   with isl show "distinct (x # xs)"
@@ -114,7 +110,7 @@ next
     have "(\<forall>n. \<not> n < length (x # xs) - 1 \<or> (x # xs) ! n < (x # xs) ! (n + 1)) \<and> set (x # xs) = A"
       by (meson \<open>is_sorted_list_of_set A (x # xs)\<close> is_sorted_list_of_set_def)
   then show ?thesis
-      by (metis Nat.add_0_right One_nat_def \<open>distinct xs\<close> \<open>sorted (x # xs)\<close> add_Suc_right diff_Suc_Suc diff_zero distinct.simps(2) insert_iff length_pos_if_in_set linorder_not_less list.set(2) list.simps(1) list.simps(3) list.size(3) list.size(4) not_less_iff_gr_or_eq nth_Cons_0 nth_Cons_Suc sorted.cases)
+    by (metis \<open>distinct xs\<close> add.commute add_diff_cancel_left' distinct.simps(2) leD length_Cons length_greater_0_conv length_pos_if_in_set less_le nth_Cons_0 nth_Cons_Suc plus_1_eq_Suc set_ConsD sorted.elims(2) srtd)    
   qed
 qed
 
@@ -229,9 +225,7 @@ lemma dropWhile_sorted_le_above:
    apply (auto)
   apply (rename_tac a xs)
   apply (case_tac "a \<le> n")
-   apply (simp_all)
-  using sorted_Cons apply blast
-  apply (meson dual_order.trans not_less sorted_Cons)
+   apply (auto)
 done
 
 lemma set_dropWhile_le:
@@ -242,9 +236,7 @@ lemma set_dropWhile_le:
   apply (subgoal_tac "sorted xs")
    apply (simp)
    apply (safe)
-     apply (simp_all)
-   apply (meson not_less order_trans sorted_Cons)
-  using sorted_Cons apply auto
+     apply (auto)
 done
 
 lemma set_takeWhile_less_sorted:
@@ -254,14 +246,14 @@ proof (induct I arbitrary: x)
     by (simp)
 next
   case (Cons a I) thus ?case
-    by (auto, (meson le_less_trans sorted_Cons)+)
+    by auto
 qed
 
 lemma nth_le_takeWhile_ord: "\<lbrakk> sorted xs; i \<ge> length (takeWhile (\<lambda> x. x \<le> n) xs); i < length xs \<rbrakk> \<Longrightarrow> n \<le> xs ! i"
   apply (induct xs arbitrary: i, auto)
   apply (rename_tac x xs i)
   apply (case_tac "x \<le> n")
-   apply (auto simp add: sorted_Cons)
+   apply (auto)
   apply (metis One_nat_def Suc_eq_plus1 le_less_linear le_less_trans less_imp_le list.size(4) nth_mem set_ConsD)
   done
 
@@ -271,9 +263,7 @@ lemma length_takeWhile_less:
 
 lemma nth_length_takeWhile_less:
   "\<lbrakk> sorted xs; distinct xs; (\<exists> a \<in> set xs. a \<ge> n) \<rbrakk> \<Longrightarrow> xs ! length (takeWhile (\<lambda>x. x < n) xs) \<ge> n"
-  apply (induct xs, auto)
-  using sorted_Cons apply blast
-  done
+  by (induct xs, auto)
 
 subsubsection {* Last and But Last *}
 
@@ -330,7 +320,7 @@ lemma prefix_map_inj:
 lemma prefix_map_inj_eq [simp]:
   "inj_on f (set xs \<union> set ys) \<Longrightarrow>
    prefix (map f xs) (map f ys) \<longleftrightarrow> prefix xs ys"
-  by (metis map_prefixI prefix_map_inj)
+  using map_mono_prefix prefix_map_inj by blast
 
 lemma strict_prefix_Cons_elim [elim]:
   assumes "strict_prefix (x # xs) ys"
@@ -352,7 +342,7 @@ lemma strict_prefix_map_inj:
 lemma strict_prefix_map_inj_eq [simp]:
   "inj_on f (set xs \<union> set ys) \<Longrightarrow>
    strict_prefix (map f xs) (map f ys) \<longleftrightarrow> strict_prefix xs ys"
-  by (metis inj_on_map_eq_map map_prefixI prefix_map_inj prefix_order.less_le)
+  by (simp add: inj_on_map_eq_map strict_prefix_def)
 
 lemma prefix_drop:
   "\<lbrakk> drop (length xs) ys = zs; prefix xs ys \<rbrakk>
@@ -566,7 +556,7 @@ definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow>  'c) \<Rightarrow> ('a
 
 definition dist_concat ::
   "'a list set \<Rightarrow> 'a list set \<Rightarrow> 'a list set" (infixr "\<^sup>\<frown>" 100) where
-"dist_concat ls1 ls2 = (uncurry (op @) ` (ls1 \<times> ls2))"
+"dist_concat ls1 ls2 = (uncurry (@) ` (ls1 \<times> ls2))"
 
 lemma dist_concat_left_empty [simp]:
   "{} \<^sup>\<frown> ys = {}"
@@ -577,7 +567,7 @@ lemma dist_concat_right_empty [simp]:
   by (simp add: dist_concat_def)
 
 lemma dist_concat_insert [simp]:
-"insert l ls1 \<^sup>\<frown> ls2 = ((op @ l) ` ( ls2)) \<union> (ls1 \<^sup>\<frown> ls2)"
+"insert l ls1 \<^sup>\<frown> ls2 = ((@) l ` ( ls2)) \<union> (ls1 \<^sup>\<frown> ls2)"
   by (auto simp add: dist_concat_def)
 
 subsection {* List Domain and Range *}
@@ -767,7 +757,7 @@ lemma length_minus_list: "y \<le> x \<Longrightarrow> length(x - y) = length(x) 
 
 lemma map_list_minus:
   "xs \<le> ys \<Longrightarrow> map f (ys - xs) = map f ys - map f xs"
-  by (simp add: drop_map less_eq_list_def map_prefixI minus_list_def)
+  by (simp add: drop_map less_eq_list_def map_mono_prefix minus_list_def)
 
 lemma list_minus_first_tl [simp]: 
   "[x] \<le> xs \<Longrightarrow> (xs - [x]) = tl xs"

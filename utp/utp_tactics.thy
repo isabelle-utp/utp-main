@@ -140,7 +140,7 @@ ML {*
     (Scan.succeed (Toplevel.theory uexpr_rep_eq.read_uexpr_rep_eq_thms));
 *}
 
-update_uexpr_rep_eq_thms -- {* Read @{thm [source] uexpr_rep_eq_thms} here. *}
+update_uexpr_rep_eq_thms \<comment> \<open> Read @{thm [source] uexpr_rep_eq_thms} here. \<close>
   
 text {*
   Lastly, we require several named-theorem attributes to record the manual
@@ -176,7 +176,7 @@ subsection {* Interpretation *}
 
 text {*
   The interpretation of record state spaces as products is done using the laws
-  provided by the utility theory @{theory Interp}. Note that this step can be
+  provided by the utility theory \emph{Interp}. Note that this step can be
   suppressed by using the @{text no_interp} option.
 *}
 

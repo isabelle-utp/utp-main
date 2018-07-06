@@ -2,7 +2,7 @@ section \<open> UTP Variables \<close>
 
 theory utp_var
   imports
-  "../toolkit/utp_toolkit"
+  "UTP-Toolkit.utp_toolkit"
   utp_parser_utils
 begin
 
@@ -207,7 +207,7 @@ text \<open> These non-terminals correspond to the following syntactic entities.
   be constructed only through lens composition due to typing restrictions. Next we introduce some 
   syntax constructors. \<close>
    
-syntax -- \<open> Identifiers \<close>
+syntax \<comment> \<open> Identifiers \<close>
   "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
   "_svid_unit"   :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"   :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
@@ -218,7 +218,7 @@ text \<open> A variable identifier can either be a HOL identifier, the complete 
   alphabet $\textbf{v}$, or a composite identifier separated by colons, which
   corresponds to a sort of qualification. The final option is effectively a lens composition. \<close>
   
-syntax -- \<open> Decorations \<close>
+syntax \<comment> \<open> Decorations \<close>
   "_spvar"       :: "svid \<Rightarrow> svar" ("&_" [990] 990)
   "_sinvar"      :: "svid \<Rightarrow> svar" ("$_" [990] 990)
   "_soutvar"     :: "svid \<Rightarrow> svar" ("$_\<acute>" [990] 990)
@@ -228,7 +228,7 @@ text \<open> A variable can be decorated with an ampersand, to indicate it is a 
   indicate its a primed relational variable. Isabelle's parser is extensible so additional
   decorations can be and are added later. \<close>
   
-syntax -- \<open> Variable sets \<close>
+syntax \<comment> \<open> Variable sets \<close>
   "_salphaid"    :: "svid \<Rightarrow> salpha" ("_" [990] 990)
   "_salphavar"   :: "svar \<Rightarrow> salpha" ("_" [990] 990)
   "_salphaparen" :: "salpha \<Rightarrow> salpha" ("'(_')")
@@ -245,7 +245,7 @@ text \<open> The terminals of an alphabet are either HOL identifiers or UTP vari
   We support two ways of constructing alphabets; by composition of smaller alphabets using
   a semi-colon or by a set-style construction $\{a,b,c\}$ with a list of UTP variables. \<close>
 
-syntax -- \<open> Quotations \<close>
+syntax \<comment> \<open> Quotations \<close>
   "_ualpha_set"  :: "svars \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")  
   "_svar"        :: "svar \<Rightarrow> logic" ("'(_')\<^sub>v")
   
@@ -275,12 +275,12 @@ text \<open> The functions above turn a representation of a variable (type @{typ
   Finally, we set up the translations rules. \<close>
 
 translations
-  -- \<open> Identifiers \<close>
+  \<comment> \<open> Identifiers \<close>
   "_svid x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
 
-  -- \<open> Decorations \<close>
+  \<comment> \<open> Decorations \<close>
   "_spvar \<Sigma>"  \<leftharpoondown>  "CONST svar CONST id_lens"
   "_sinvar \<Sigma>"  \<leftharpoondown> "CONST ivar 1\<^sub>L"
   "_soutvar \<Sigma>" \<leftharpoondown> "CONST ovar 1\<^sub>L"
@@ -293,7 +293,7 @@ translations
   "_sinvar x" \<rightleftharpoons> "CONST ivar x"
   "_soutvar x" \<rightleftharpoons> "CONST ovar x"
 
-  -- \<open> Alphabets \<close>
+  \<comment> \<open> Alphabets \<close>
   "_salphaparen a" \<rightharpoonup> "a"
   "_salphaid x" \<rightharpoonup> "x"
   "_salphacomp x y" \<rightharpoonup> "x +\<^sub>L y"
@@ -307,7 +307,7 @@ translations
   "_salpha_all" \<rightleftharpoons> "1\<^sub>L"
   "_salpha_none" \<rightleftharpoons> "0\<^sub>L"
 
-  -- \<open> Quotations \<close>
+  \<comment> \<open> Quotations \<close>
   "_ualpha_set A" \<rightharpoonup> "A"
   "_svar x" \<rightharpoonup> "x"
 

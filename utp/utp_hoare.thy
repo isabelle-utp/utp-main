@@ -16,15 +16,14 @@ declare hoare_r_def [upred_defs]
 named_theorems hoare and hoare_safe
 
 method hoare_split uses hr = 
-  ((simp add: assigns_r_comp usubst unrest)?, -- {* Eliminate assignments where possible *}
+  ((simp add: assigns_r_comp usubst unrest)?, \<comment> \<open> Eliminate assignments where possible \<close>
    (auto 
     intro: hoare intro!: hoare_safe hr
-    simp add: assigns_r_comp conj_comm conj_assoc usubst unrest))[1] -- {* Apply Hoare logic laws *}
+    simp add: assigns_r_comp conj_comm conj_assoc usubst unrest))[1] \<comment> \<open> Apply Hoare logic laws \<close>
 
 method hoare_auto uses hr = (hoare_split hr: hr; rel_auto?)
 
 subsection \<open> Basic Laws \<close>
-
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
   by rel_auto
 

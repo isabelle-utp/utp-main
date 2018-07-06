@@ -14,7 +14,7 @@ fun tr_par ::
 "tr_par cs (e\<^sub>1 # t\<^sub>1) (e\<^sub>2 # t\<^sub>2) =
   (if e\<^sub>1 = e\<^sub>2
     then
-      if e\<^sub>1 \<in> cs (* \<and> e\<^sub>2 \<in> cs *)
+      if e\<^sub>1 \<in> cs 
         then {[e\<^sub>1]} \<^sup>\<frown> (tr_par cs t\<^sub>1 t\<^sub>2)
         else
           ({[e\<^sub>1]} \<^sup>\<frown> (tr_par cs t\<^sub>1 (e\<^sub>2 # t\<^sub>2))) \<union>
@@ -49,22 +49,22 @@ subsection {* Trace Merge Lemmas *}
 lemma tr_par_empty:
 "tr_par cs t1 [] = {takeWhile (\<lambda>x. x \<notin> cs) t1}"
 "tr_par cs [] t2 = {takeWhile (\<lambda>x. x \<notin> cs) t2}"
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (induct t1; simp)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (induct t2; simp)
 done
 
 lemma tr_par_sym:
 "tr_par cs t1 t2 = tr_par cs t2 t1"
 apply (induct t1 arbitrary: t2)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (simp add: tr_par_empty)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (induct_tac t2)
--- {* Subgoal 2.1 *}
+\<comment> \<open> Subgoal 2.1 \<close>
 apply (clarsimp)
--- {* Subgoal 2.2 *}
+\<comment> \<open> Subgoal 2.2 \<close>
 apply (clarsimp)
 apply (blast)
 done
@@ -91,9 +91,8 @@ lemma trace_merge_commute: "t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 = t\<^
   by (rel_simp, simp add: tr_par_sym)
    
 lemma csp_trace_simps [simp]: 
-  "v ^\<^sub>u \<langle>\<rangle> = v" "\<langle>\<rangle> ^\<^sub>u v = v"
   "v + \<langle>\<rangle> = v" "\<langle>\<rangle> + v = v"
-  "bop (op #) x xs ^\<^sub>u ys = bop (op #) x (xs ^\<^sub>u ys)"
+  "bop (#) x xs ^\<^sub>u ys = bop (#) x (xs ^\<^sub>u ys)"
   by (rel_auto)+
 
 end

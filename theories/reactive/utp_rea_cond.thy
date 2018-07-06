@@ -17,7 +17,6 @@ lemma RC_intro: "\<lbrakk> P is RR; ((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\
 
 lemma RC_intro': "\<lbrakk> P is RR; P is RC1 \<rbrakk> \<Longrightarrow> P is RC"
   by (simp add: Healthy_def RC1_def RC_def)
-
 lemma RC1_idem: "RC1(RC1(P)) = RC1(P)"
   by (rel_auto, (blast intro: dual_order.trans)+)
   

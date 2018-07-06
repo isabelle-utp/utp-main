@@ -9,7 +9,6 @@ section \<open> Map Type: extra functions and properties \<close>
 
 theory Map_Extra
   imports
-  Main
   "HOL-Library.Countable_Set"
   "HOL-Library.Monad_Syntax"
 begin
@@ -71,7 +70,7 @@ lemma map_graph_countable [simp]: "countable (dom f) \<Longrightarrow> countable
 lemma map_graph_inv [simp]: "graph_map (map_graph f) = f"
   by (auto intro!:ext simp add:map_graph_def graph_map_def image_def)
 
-lemma graph_map_empty[simp]: "graph_map {} = empty"
+lemma graph_map_empty[simp]: "graph_map {} = Map.empty"
   by (simp add:graph_map_def)
 
 lemma graph_map_insert [simp]: "\<lbrakk>functional g; g``{x} \<subseteq> {y}\<rbrakk> \<Longrightarrow> graph_map (insert (x,y) g) = (graph_map g)(x \<mapsto> y)"
@@ -298,7 +297,7 @@ lemma map_id_on_inj [simp]:
   "inj_on (map_id_on xs) xs"
   by (simp add:inj_on_def)
 
-lemma map_inv_empty [simp]: "map_inv empty = empty"
+lemma map_inv_empty [simp]: "map_inv Map.empty = Map.empty"
   by (simp add:map_inv_def)
 
 lemma map_inv_id [simp]:

@@ -137,7 +137,7 @@ end
 
 instantiation uexpr :: (plus, type) plus
 begin
-  definition plus_uexpr_def: "u + v = bop (op +) u v"
+  definition plus_uexpr_def: "u + v = bop (+) u v"
 instance ..
 end
 
@@ -152,13 +152,13 @@ end
 
 instantiation uexpr :: (minus, type) minus
 begin
-  definition minus_uexpr_def: "u - v = bop (op -) u v"
+  definition minus_uexpr_def: "u - v = bop (-) u v"
 instance ..
 end
 
 instantiation uexpr :: (times, type) times
 begin
-  definition times_uexpr_def: "u * v = bop (op *) u v"
+  definition times_uexpr_def: "u * v = bop times u v"
 instance ..
 end
 
@@ -180,7 +180,7 @@ end
 
 instantiation uexpr :: (modulo, type) modulo
 begin
-  definition mod_uexpr_def: "u mod v = bop (op mod) u v"
+  definition mod_uexpr_def: "u mod v = bop (mod) u v"
 instance ..
 end
 
@@ -237,7 +237,7 @@ instance uexpr :: (ring_1, type) ring_1
   by (intro_classes) (simp add: plus_uexpr_def uminus_uexpr_def minus_uexpr_def times_uexpr_def zero_uexpr_def one_uexpr_def, transfer, simp add: fun_eq_iff)+
      
 text \<open> We can also define the order relation on expressions. Now, unlike the previous group and ring 
-  constructs, the order relations @{term "op \<le>"} and @{term "op \<le>"} return a @{type bool} type.
+  constructs, the order relations @{term "(\<le>)"} and @{term "(\<le>)"} return a @{type bool} type.
   This order is not therefore the lifted order which allows us to compare the valuation of two
   expressions, but rather the order on expressions themselves. Notably, this instantiation will
   later allow us to talk about predicate refinements and complete lattices. \<close>
@@ -322,25 +322,25 @@ text \<open> For convenience, we often want to utilise the same expression synta
   but rather our own partial function type, for example. \<close>
   
 consts
-  -- \<open> Empty elements, for example empty set, nil list, 0... \<close> 
+  \<comment> \<open> Empty elements, for example empty set, nil list, 0... \<close> 
   uempty     :: "'f"
-  -- \<open> Function application, map application, list application... \<close>
+  \<comment> \<open> Function application, map application, list application... \<close>
   uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  -- \<open> Function update, map update, list update... \<close>
+  \<comment> \<open> Function update, map update, list update... \<close>
   uupd       :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
-  -- \<open> Domain of maps, lists... \<close>
+  \<comment> \<open> Domain of maps, lists... \<close>
   udom       :: "'f \<Rightarrow> 'a set"
-  -- \<open> Range of maps, lists... \<close>
+  \<comment> \<open> Range of maps, lists... \<close>
   uran       :: "'f \<Rightarrow> 'b set"
-  -- \<open> Domain restriction \<close>
+  \<comment> \<open> Domain restriction \<close>
   udomres    :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
-  -- \<open> Range restriction \<close>
+  \<comment> \<open> Range restriction \<close>
   uranres    :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
-  -- \<open> Collection cardinality \<close>
+  \<comment> \<open> Collection cardinality \<close>
   ucard      :: "'f \<Rightarrow> nat"
-  -- \<open> Collection summation \<close>
+  \<comment> \<open> Collection summation \<close>
   usums      :: "'f \<Rightarrow> 'a"
-  -- \<open> Construct a collection from a list of entries \<close>
+  \<comment> \<open> Construct a collection from a list of entries \<close>
   uentries   :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> 'f"
   
 text \<open> We need a function corresponding to function application in order to overload. \<close>
@@ -383,13 +383,13 @@ definition set_of :: "'a itself \<Rightarrow> 'a set" where
 "set_of t = UNIV"
   
 translations
-  "0" <= "CONST uempty" -- \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
+  "0" <= "CONST uempty" \<comment> \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
     
 text \<open> We add new non-terminals for UTP tuples and maplets. \<close>
   
 nonterminal utuple_args and umaplet and umaplets
 
-syntax -- \<open> Core expression constructs \<close>
+syntax \<comment> \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
   "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
@@ -402,7 +402,7 @@ translations
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
   "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
 
-syntax -- \<open> Tuples \<close>
+syntax \<comment> \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
@@ -417,7 +417,7 @@ translations
   "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
     
-syntax -- \<open> Polymorphic constructs \<close>
+syntax \<comment> \<open> Polymorphic constructs \<close>
   "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
   "_umap_empty" :: "logic" ("[]\<^sub>u")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
@@ -444,7 +444,7 @@ syntax -- \<open> Polymorphic constructs \<close>
   "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
   
 translations
-  -- \<open> Pretty printing for adhoc-overloaded constructs \<close>
+  \<comment> \<open> Pretty printing for adhoc-overloaded constructs \<close>
   "f(x)\<^sub>a"    <= "CONST uapply f x"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"  
@@ -453,7 +453,7 @@ translations
   "#\<^sub>u(f)" <= "CONST ucard f"
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
-  -- \<open> Overloaded construct translations \<close>
+  \<comment> \<open> Overloaded construct translations \<close>
   "f(x,y,z,u)\<^sub>a" == "CONST bop CONST uapply f (x,y,z,u)\<^sub>u"
   "f(x,y,z)\<^sub>a" == "CONST bop CONST uapply f (x,y,z)\<^sub>u"
   "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
@@ -473,9 +473,9 @@ translations
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
   
-  -- \<open> Type-class polymorphic constructs \<close>
-  "x <\<^sub>u y"   == "CONST bop (op <) x y"
-  "x \<le>\<^sub>u y"   == "CONST bop (op \<le>) x y"
+  \<comment> \<open> Type-class polymorphic constructs \<close>
+  "x <\<^sub>u y"   == "CONST bop (<) x y"
+  "x \<le>\<^sub>u y"   == "CONST bop (\<le>) x y"
   "x >\<^sub>u y"   => "y <\<^sub>u x"
   "x \<ge>\<^sub>u y"   => "y \<le>\<^sub>u x"
   "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y"
@@ -484,7 +484,7 @@ translations
   "\<lceil>x\<rceil>\<^sub>u" == "CONST uop CONST ceiling x"
   "\<lfloor>x\<rfloor>\<^sub>u" == "CONST uop CONST floor x"
 
-syntax -- \<open> Lists / Sequences \<close>
+syntax \<comment> \<open> Lists / Sequences \<close>
   "_ucons"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "#\<^sub>u" 65)
   "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
@@ -508,12 +508,12 @@ syntax -- \<open> Lists / Sequences \<close>
   "_utr_iter"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("iter[_]'(_')")
 
 translations
-  "x #\<^sub>u ys" == "CONST bop (op #) x ys"
+  "x #\<^sub>u ys" == "CONST bop (#) x ys"
   "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "x #\<^sub>u \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "x #\<^sub>u \<guillemotleft>[]\<guillemotright>"
-  "x ^\<^sub>u y"   == "CONST bop (op @) x y"
-  "A \<^sup>\<frown>\<^sub>u B" == "CONST bop (op \<^sup>\<frown>) A B"
+  "x ^\<^sub>u y"   == "CONST bop (@) x y"
+  "A \<^sup>\<frown>\<^sub>u B" == "CONST bop (\<^sup>\<frown>) A B"
   "last\<^sub>u(xs)" == "CONST uop CONST last xs"
   "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
   "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
@@ -524,14 +524,14 @@ translations
   "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
   "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
   "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
-  "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (op \<upharpoonleft>\<^sub>l) A xs"
+  "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (\<upharpoonleft>\<^sub>l) A xs"
   "\<langle>n..k\<rangle>" == "CONST bop CONST upto n k"
   "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
   "map\<^sub>u f xs" == "CONST bop CONST map f xs"
   "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
   "iter[n](P)" == "CONST uop (CONST tr_iter n) P"
 
-syntax -- \<open> Sets \<close>
+syntax \<comment> \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
   "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
@@ -554,23 +554,23 @@ translations
   "insert\<^sub>u x xs" == "CONST bop CONST insert x xs"
   "{x, xs}\<^sub>u" == "insert\<^sub>u x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
-  "A \<union>\<^sub>u B"   == "CONST bop (op \<union>) A B"
-  "A \<inter>\<^sub>u B"   == "CONST bop (op \<inter>) A B"
+  "A \<union>\<^sub>u B"   == "CONST bop (\<union>) A B"
+  "A \<inter>\<^sub>u B"   == "CONST bop (\<inter>) A B"
   "f\<lparr>A\<rparr>\<^sub>u"     == "CONST bop CONST image f A"
-  "x \<in>\<^sub>u A"   == "CONST bop (op \<in>) x A"
-  "A \<subset>\<^sub>u B"   == "CONST bop (op \<subset>) A B"
-  "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>p) f g"
-  "f \<subset>\<^sub>u g"   <= "CONST bop (op \<subset>\<^sub>f) f g"
-  "A \<subseteq>\<^sub>u B"   == "CONST bop (op \<subseteq>) A B"
-  "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>p) f g"
-  "f \<subseteq>\<^sub>u g"   <= "CONST bop (op \<subseteq>\<^sub>f) f g"
+  "x \<in>\<^sub>u A"   == "CONST bop (\<in>) x A"
+  "A \<subset>\<^sub>u B"   == "CONST bop (\<subset>) A B"
+  "f \<subset>\<^sub>u g"   <= "CONST bop (\<subset>\<^sub>p) f g"
+  "f \<subset>\<^sub>u g"   <= "CONST bop (\<subset>\<^sub>f) f g"
+  "A \<subseteq>\<^sub>u B"   == "CONST bop (\<subseteq>) A B"
+  "f \<subseteq>\<^sub>u g"   <= "CONST bop (\<subseteq>\<^sub>p) f g"
+  "f \<subseteq>\<^sub>u g"   <= "CONST bop (\<subseteq>\<^sub>f) f g"
   "P\<^sup>~"        == "CONST uop CONST converse P"
   "['a]\<^sub>T"     == "\<guillemotleft>CONST set_of TYPE('a)\<guillemotright>"
   "id['a]"    == "\<guillemotleft>CONST Id_on (CONST set_of TYPE('a))\<guillemotright>"
   "A \<times>\<^sub>u B"    == "CONST bop CONST Product_Type.Times A B"
   "A ;\<^sub>u B"    == "CONST bop CONST relcomp A B"
 
-syntax -- \<open> Partial functions \<close>
+syntax \<comment> \<open> Partial functions \<close>
   "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>u" 85)
   "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
 
@@ -578,7 +578,7 @@ translations
   "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
   "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
   
-syntax -- \<open> Sum types \<close>
+syntax \<comment> \<open> Sum types \<close>
   "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
   "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
   
@@ -747,10 +747,10 @@ lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guille
 lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: ueval, transfer, simp)
 lemma lit_power [lit_simps]: "\<guillemotleft>x ^ n\<guillemotright> = \<guillemotleft>x\<guillemotright> ^ n" by (simp add: lit.rep_eq power_rep_eq uexpr_eq_iff)
     
-lemma lit_plus_appl [lit_norm]: "\<guillemotleft>op +\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
-lemma lit_minus_appl [lit_norm]: "\<guillemotleft>op -\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
-lemma lit_mult_appl [lit_norm]: "\<guillemotleft>op *\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
-lemma lit_divide_apply [lit_norm]: "\<guillemotleft>op /\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
+lemma lit_plus_appl [lit_norm]: "\<guillemotleft>(+)\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x + y" by (simp add: ueval, transfer, simp)
+lemma lit_minus_appl [lit_norm]: "\<guillemotleft>(-)\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x - y" by (simp add: ueval, transfer, simp)
+lemma lit_mult_appl [lit_norm]: "\<guillemotleft>times\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: ueval, transfer, simp)
+lemma lit_divide_apply [lit_norm]: "\<guillemotleft>(/)\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: ueval, transfer, simp)
     
 lemma lit_fun_simps [lit_simps]:
   "\<guillemotleft>i x y z u\<guillemotright> = qtop i \<guillemotleft>x\<guillemotright> \<guillemotleft>y\<guillemotright> \<guillemotleft>z\<guillemotright> \<guillemotleft>u\<guillemotright>"
