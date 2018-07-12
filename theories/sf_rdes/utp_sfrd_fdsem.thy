@@ -435,7 +435,13 @@ lemma CDF_NCSP [closure]: "CDF is NCSP"
   apply (rule NCSP_rdes_intro)
   apply (simp_all add: closure unrest)
   done
-  
+
+lemma CDF_seq_idem: "CDF ;; CDF = CDF"
+  by (rdes_eq)
+
+lemma CDF_refine_intro: "CDF \<sqsubseteq> P \<Longrightarrow> CDF \<sqsubseteq> (CDF ;; P)"
+  by (metis CDF_seq_idem urel_dioid.mult_isol)
+
 lemma Skip_deadlock_free: "CDF \<sqsubseteq> Skip"
   by (rdes_refine)
 
