@@ -21,8 +21,10 @@ imports
   utp_pred_laws
   utp_recursion
   utp_deduct
+  utp_dynlog
   utp_rel
   utp_rel_laws
+  utp_sequent
   utp_state_parser
   utp_tactics
   utp_hoare
