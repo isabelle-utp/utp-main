@@ -171,6 +171,12 @@ lemma pfun_minus_self [simp]:
   shows "f - f = 0"
   by (transfer, simp add: map_minus_def)
 
+thm map_add_comm
+
+lemma pfun_plus_commute:
+  "pdom(f) \<inter> pdom(g) = {} \<Longrightarrow> f + g = g + f"
+  by (transfer, metis map_add_comm)
+
 lemma pfun_minus_plus_commute:
   "pdom(g) \<inter> pdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: map_minus_plus_commute)
@@ -345,7 +351,11 @@ lemma pdom_res_zero [simp]: "A \<lhd>\<^sub>p {}\<^sub>p = {}\<^sub>p"
 lemma pdom_res_empty [simp]:
   "({} \<lhd>\<^sub>p f) = {}\<^sub>p"
   by (transfer, auto)
-      
+
+lemma pdom_res_pdom [simp]:
+  "pdom(f) \<lhd>\<^sub>p f = f"
+  by (transfer, auto)
+
 lemma pdom_res_UNIV [simp]: "UNIV \<lhd>\<^sub>p f = f"
   by (transfer, auto)
     

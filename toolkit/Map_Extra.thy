@@ -801,6 +801,9 @@ lemma map_eqI:
   "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
   by (metis domIff map_le_antisym map_le_def option.expand)
 
+lemma map_restrict_dom [simp]: "f |` dom f = f"
+  by (simp add: map_eqI)
+
 lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
   by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
 

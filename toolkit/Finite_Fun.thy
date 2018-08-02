@@ -136,6 +136,10 @@ lemma ffun_minus_self [simp]:
   shows "f - f = 0"
   by (transfer, simp)
 
+lemma ffun_plus_commute:
+  "fdom(f) \<inter> fdom(g) = {} \<Longrightarrow> f + g = g + f"
+  by (transfer, metis pfun_plus_commute)
+
 lemma ffun_minus_plus_commute:
   "fdom(g) \<inter> fdom(h) = {} \<Longrightarrow> (f - g) + h = (f + h) - g"
   by (transfer, simp add: pfun_minus_plus_commute)
@@ -225,6 +229,9 @@ lemma fsubseteq_ran_subset:
 
 subsection \<open> Domain laws \<close>
 
+lemma fdom_finite [simp]: "finite(fdom(f))"
+  by (transfer, simp)
+
 lemma fdom_zero [simp]: "fdom 0 = {}"
   by (transfer, simp)
 
@@ -264,6 +271,10 @@ lemma fran_comp [simp]: "fran (g \<circ>\<^sub>f f) = fran (fran f \<lhd>\<^sub>
 subsection \<open> Domain restriction laws \<close>
 
 lemma fdom_res_zero [simp]: "A \<lhd>\<^sub>f {}\<^sub>f = {}\<^sub>f"
+  by (transfer, auto)
+
+lemma fdom_res_fdom [simp]:
+  "fdom(f) \<lhd>\<^sub>f f = f"
   by (transfer, auto)
 
 lemma pdom_res_upd_in [simp]:
