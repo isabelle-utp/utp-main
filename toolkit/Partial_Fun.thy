@@ -171,8 +171,6 @@ lemma pfun_minus_self [simp]:
   shows "f - f = 0"
   by (transfer, simp add: map_minus_def)
 
-thm map_add_comm
-
 lemma pfun_plus_commute:
   "pdom(f) \<inter> pdom(g) = {} \<Longrightarrow> f + g = g + f"
   by (transfer, metis map_add_comm)
@@ -227,6 +225,9 @@ lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)
 
 lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
   by (transfer, simp)
+
+lemma pfun_app_add [simp]: "x \<in> pdom(g) \<Longrightarrow> (f + g)(x)\<^sub>p = g(x)\<^sub>p"
+  by (transfer, auto)
 
 lemma pfun_upd_add [simp]: "f + g(x \<mapsto> v)\<^sub>p = (f + g)(x \<mapsto> v)\<^sub>p"
   by (transfer, simp)

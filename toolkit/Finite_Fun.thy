@@ -179,6 +179,9 @@ lemma ffun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)
 lemma ffun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)(y)\<^sub>f = f(y)\<^sub>f"
   by (transfer, simp)
 
+lemma ffun_app_add [simp]: "x \<in> fdom(g) \<Longrightarrow> (f + g)(x)\<^sub>f = g(x)\<^sub>f"
+  by (transfer, simp)
+
 lemma ffun_upd_add [simp]: "f + g(x \<mapsto> v)\<^sub>f = (f + g)(x \<mapsto> v)\<^sub>f"
   by (transfer, simp)
 
@@ -271,6 +274,10 @@ lemma fran_comp [simp]: "fran (g \<circ>\<^sub>f f) = fran (fran f \<lhd>\<^sub>
 subsection \<open> Domain restriction laws \<close>
 
 lemma fdom_res_zero [simp]: "A \<lhd>\<^sub>f {}\<^sub>f = {}\<^sub>f"
+  by (transfer, auto)
+
+lemma fdom_res_empty [simp]:
+  "({} \<lhd>\<^sub>f f) = {}\<^sub>f"
   by (transfer, auto)
 
 lemma fdom_res_fdom [simp]:
