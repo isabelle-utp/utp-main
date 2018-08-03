@@ -590,6 +590,10 @@ lemma rdesign_refine_intro':
   using assms unfolding upred_defs
   by (pred_auto)
 
+lemma ndesign_refinement: 
+  "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2 \<longleftrightarrow> (`p1 \<Rightarrow> p2` \<and> `\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`)"
+  by (simp add: ndesign_def rdesign_def design_refinement unrest, rel_auto)
+
 lemma ndesign_refine_intro:
   assumes "`p1 \<Rightarrow> p2`" "`\<lceil>p1\<rceil>\<^sub>< \<and> Q2 \<Rightarrow> Q1`"
   shows "p1 \<turnstile>\<^sub>n Q1 \<sqsubseteq> p2 \<turnstile>\<^sub>n Q2"
