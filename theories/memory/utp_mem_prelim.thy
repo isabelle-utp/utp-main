@@ -5,19 +5,21 @@ begin
 text \<open> As usual, the memory consists of the store and the heap. The store is an abstract
   type, and will usually be another alphabet. \<close>
 
-alphabet ('s, 'h) mem =
-  st :: "'s"
+alphabet 'h mem =
   hp :: "'h"
+
+abbreviation str :: "'s \<Longrightarrow> ('a :: sep_alg, 's) mem_ext" where
+"str \<equiv> mem_child_lens"
 
 text \<open> We define an order on memory by lifting of the containment order on finite functions. \<close>
 
-instantiation mem_ext :: (type, order, type) order
+instantiation mem_ext :: (order, type) order
 begin
-  definition less_eq_mem_ext :: "('a, 'b, 'c) mem_scheme \<Rightarrow> ('a, 'b, 'c) mem_scheme \<Rightarrow> bool" where
-  [upred_defs]: "less_eq_mem_ext x y = (st\<^sub>v x = st\<^sub>v y \<and> mem.more x = mem.more y \<and> hp\<^sub>v x \<le> hp\<^sub>v y)"
+  definition less_eq_mem_ext :: "('a, 'b) mem_scheme \<Rightarrow> ('a, 'b) mem_scheme \<Rightarrow> bool" where
+  [upred_defs]: "less_eq_mem_ext x y = (hp\<^sub>v x \<le> hp\<^sub>v y \<and> mem.more x = mem.more y)"
 
-  definition less_mem_ext :: "('a, 'b, 'c) mem_scheme \<Rightarrow> ('a, 'b, 'c) mem_scheme \<Rightarrow> bool" where
-  [upred_defs]: "less_mem_ext x y = (st\<^sub>v x = st\<^sub>v y \<and> mem.more x = mem.more y \<and> hp\<^sub>v x < hp\<^sub>v y)"
+  definition less_mem_ext :: "('a, 'b) mem_scheme \<Rightarrow> ('a, 'b) mem_scheme \<Rightarrow> bool" where
+  [upred_defs]: "less_mem_ext x y = (hp\<^sub>v x < hp\<^sub>v y \<and> mem.more x = mem.more y)"
 
   instance by (intro_classes, (rel_auto)+)
 end
@@ -30,10 +32,10 @@ syntax
 translations
   "f ##\<^sub>u g" == "CONST bop (op ##) f g"
 
-type_synonym ('s, 'h) spred = "('s, 'h) mem upred"
-type_synonym ('s, 'h) sprog = "('s, 'h) mem hrel_des"
+type_synonym ('h, 's) spred = "('h, 's) mem_ext upred"
+type_synonym ('h, 's) sprog = "('h, 's) mem_ext hrel_des"
 
-type_synonym 's mpred = "('s, (nat, nat) ffun) spred"
-type_synonym 's mprog = "('s, (nat, nat) ffun) sprog"
+type_synonym 's mpred = "((nat, nat) ffun, 's) spred"
+type_synonym 's mprog = "((nat, nat) ffun, 's) sprog"
 
 end

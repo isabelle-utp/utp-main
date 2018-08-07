@@ -13,7 +13,7 @@ type_synonym data = nat
 text \<open> An abort is currently just the empty relation. In future we could use the theory
   of designs instead and model aborts differently. \<close>
 
-abbreviation abort_mp :: "('s, 'h) sprog" ("abort") where
+abbreviation abort_mp :: "('h, 's) sprog" ("abort") where
 "abort \<equiv> true"
 
 text \<open> Heap allocation takes a lens $x$ within the store that holds an address, and an expression
@@ -26,7 +26,7 @@ definition
   ("_ := alloc'(_')" [74,0] 75) 
   where [upred_defs, ndes_simp]: 
     "x := alloc(e) = 
-     (true \<turnstile>\<^sub>n (\<Sqinter> l | \<guillemotleft>l\<guillemotright> \<notin>\<^sub>u dom\<^sub>u($hp) \<bullet> st:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&st:x \<mapsto> uop to_nat (e \<oplus>\<^sub>p st))\<^sub>u))"
+     (true \<turnstile>\<^sub>n (\<Sqinter> l | \<guillemotleft>l\<guillemotright> \<notin>\<^sub>u dom\<^sub>u($hp) \<bullet> str:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&str:x \<mapsto> uop to_nat (e \<oplus>\<^sub>p str))\<^sub>u))"
 
 text \<open> Heap lookup retrieves data from the heap and places it into a store variable. If the memory
   location $l$ is unallocated then an abort is the result. \<close>
@@ -35,7 +35,7 @@ definition
   heap_lookup :: "('a::countable \<Longrightarrow> 's) \<Rightarrow> (addr, 's) uexpr \<Rightarrow> 's mprog" 
   ("_ := *_" [74,75] 75)
   where [upred_defs, ndes_simp]: 
-    "x := *l = (((l \<oplus>\<^sub>p st) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n st:x := uop from_nat (&hp(l \<oplus>\<^sub>p st)\<^sub>a))"
+    "x := *l = (((l \<oplus>\<^sub>p str) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n str:x := uop from_nat (&hp(l \<oplus>\<^sub>p str)\<^sub>a))"
 
 text \<open> Heap mutation updates the value of an already allocated address in the heap. \<close>
 
@@ -43,14 +43,14 @@ definition
   heap_mutate :: "(addr, 's) uexpr \<Rightarrow> ('a::countable, 's) uexpr \<Rightarrow> 's mprog"
   ("*_ := _" [0, 74] 75)
   where [upred_defs, ndes_simp]:
-    "*l := e = (((l \<oplus>\<^sub>p st) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n hp := &hp((l \<oplus>\<^sub>p st) \<mapsto> uop to_nat (e \<oplus>\<^sub>p st))\<^sub>u)"
+    "*l := e = (((l \<oplus>\<^sub>p str) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n hp := &hp((l \<oplus>\<^sub>p str) \<mapsto> uop to_nat (e \<oplus>\<^sub>p str))\<^sub>u)"
 
 text \<open> Heap deallocation removes an area of memory from the heap. \<close>
 
 definition
   heap_dealloc :: "(addr, 's) uexpr \<Rightarrow> 's mprog" ("dealloc'(_')")
   where [upred_defs, ndes_simp]:
-  "dealloc(l) = (((l \<oplus>\<^sub>p st) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n hp := (dom\<^sub>u(&hp) - {l \<oplus>\<^sub>p st}\<^sub>u) \<lhd>\<^sub>u &hp)"
+  "dealloc(l) = (((l \<oplus>\<^sub>p str) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n hp := (dom\<^sub>u(&hp) - {l \<oplus>\<^sub>p str}\<^sub>u) \<lhd>\<^sub>u &hp)"
 
 subsection \<open> Weakest Precondition Semantics \<close>
 
@@ -60,11 +60,11 @@ lemma wp_UINF_pred [wp]:
 
 lemma wp_heap_alloc [wp]:
   "\<lbrakk> vwb_lens x; x \<sharp> e \<rbrakk> \<Longrightarrow> 
-   x := alloc(e) wp\<^sub>D p = (\<^bold>\<forall> l \<in> -dom\<^sub>u(&hp) \<bullet> p\<lbrakk>\<guillemotleft>l\<guillemotright>,&hp(\<guillemotleft>l\<guillemotright> \<mapsto> uop to_nat (e \<oplus>\<^sub>p st))\<^sub>u/&st:x,&hp\<rbrakk>)"
+   x := alloc(e) wp\<^sub>D p = (\<^bold>\<forall> l \<in> -dom\<^sub>u(&hp) \<bullet> p\<lbrakk>\<guillemotleft>l\<guillemotright>,&hp(\<guillemotleft>l\<guillemotright> \<mapsto> uop to_nat (e \<oplus>\<^sub>p str))\<^sub>u/&str:x,&hp\<rbrakk>)"
   by (simp add: ndes_simp wp usubst unrest, rel_auto)
 
 lemma wp_heap_dealloc [wp]: 
-  "dealloc(e) wp\<^sub>D p = (e \<oplus>\<^sub>p st \<in>\<^sub>u dom\<^sub>u(&hp) \<and> p\<lbrakk>(dom\<^sub>u(&hp) - {e \<oplus>\<^sub>p st}\<^sub>u) \<lhd>\<^sub>u &hp/&hp\<rbrakk>)"
+  "dealloc(e) wp\<^sub>D p = (e \<oplus>\<^sub>p str \<in>\<^sub>u dom\<^sub>u(&hp) \<and> p\<lbrakk>(dom\<^sub>u(&hp) - {e \<oplus>\<^sub>p str}\<^sub>u) \<lhd>\<^sub>u &hp/&hp\<rbrakk>)"
   by (rel_auto)
 
 subsection \<open> Example properties \<close>
@@ -84,11 +84,11 @@ lemma "dealloc(e) ;; dealloc(e) = abort"
 lemma "dealloc(e) ;; *e := \<guillemotleft>v\<guillemotright> = abort"
   by (ndes_simp, rel_auto)
 
-lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>5 :: int\<guillemotright>) ;; dealloc(&x) ;; st:x :=\<^sub>D 0) = st:x :=\<^sub>D 0"
+lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>5 :: int\<guillemotright>) ;; dealloc(&x) ;; str:x :=\<^sub>D 0) = str:x :=\<^sub>D 0"
   apply (ndes_simp, rel_auto)
-  apply (rename_tac ok st hp ok')
-  apply (rule_tac x="put\<^bsub>x\<^esub> st (\<Squnion>(- fdom(hp)))" in exI, simp)
+  apply (rename_tac ok hp st ok')
   apply (rule_tac x="hp(Inf(- fdom(hp)) \<mapsto> to_nat 5)\<^sub>f" in exI)
+  apply (rule_tac x="put\<^bsub>x\<^esub> st (\<Squnion>(- fdom(hp)))" in exI, simp)
   apply (auto)
   done
 

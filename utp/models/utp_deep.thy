@@ -9,6 +9,7 @@
 section {* Meta-Theory for UTP with Deep Variables *}
 
 theory utp_deep
-imports utp
+  imports 
+  "UTP.utp"
   utp_dvar
 begin end
