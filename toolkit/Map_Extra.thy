@@ -836,4 +836,20 @@ lemma map_le_via_restrict:
   "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
   by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
 
+lemma map_add_cancel:
+  "f \<subseteq>\<^sub>m g \<Longrightarrow> f ++ (g -- f) = g"
+  by (auto simp add: map_le_def map_add_def map_minus_def fun_eq_iff option.case_eq_if)
+     (metis domIff)
+
+lemma map_le_iff_add: "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<exists> h. dom(f) \<inter> dom(h) = {} \<and> f ++ h = g)"
+  apply (auto)
+  apply (rule_tac x="g -- f" in exI)
+  apply (metis (no_types, lifting) Int_emptyI domIff map_add_cancel map_le_def map_minus_def)
+  apply (simp add: map_add_comm)
+  done
+
+lemma map_add_comm_weak: "(\<forall> k \<in> dom m1 \<inter> dom m2. m1(k) = m2(k)) \<Longrightarrow> m1 ++ m2 = m2 ++ m1"
+  by (auto simp add: map_add_def option.case_eq_if fun_eq_iff)
+     (metis IntI domI option.inject)
+
 end
