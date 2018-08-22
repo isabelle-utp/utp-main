@@ -1,7 +1,9 @@
 Affine_Arithmetic
 Automatic_Refinement
 Binomial-Heaps
+CAVA_Automata
 Collections
+Containers
 Datatype_Order_Generator
 Deriving
 Finger-Trees
@@ -9,8 +11,10 @@ KAT_and_DRA
 Kleene_Algebra
 List-Index
 Native_Word
+Optics
 Ordinary_Differential_Equations
 Refine_Monadic
+Regular-Sets
 Show
 Triangle
 Trie
