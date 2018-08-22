@@ -5,17 +5,17 @@
 (******************************************************************************)
 (* LAST REVIEWED: 27 March 2014 *)
 
-section {* Lightweight Cardinals *}
+section \<open> Lightweight Cardinals \<close>
 
 theory Lightweight_Cardinals
 imports
-  Main Real
+  Main "HOL.Real"
   "HOL-Library.Countable_Set"
   "HOL-Cardinals.Cardinals"
   "UTP-Toolkit.Infinity" UNIV_TYPE
 begin
 
-subsection {* Cardinal Order *}
+subsection \<open> Cardinal Order \<close>
 
 definition leq_card :: "'a set \<Rightarrow> 'b set \<Rightarrow> bool" (infix "\<preceq>\<^sub>c" 50) where
 "(A \<preceq>\<^sub>c B) \<longleftrightarrow> (\<exists> f . (inj_on f A) \<and> (f ` A) \<subseteq> B)"
@@ -31,7 +31,7 @@ lemmas card_ord_defs =
   equal_card_def
   less_card_def
 
-subsection {*  Constructors *}
+subsection \<open>  Constructors \<close>
 
 definition fin_card :: "nat \<Rightarrow> nat set" ("c\<^sub>f") where
 "c\<^sub>f n = {1..n}"
@@ -55,16 +55,16 @@ lemmas card_defs =
   nat_card_def
   real_card_def
 
-subsection {* Theorems *}
+subsection \<open> Theorems \<close>
 
-subsubsection {* Library Link *}
+subsubsection \<open> Library Link \<close>
 
 theorem ordLess_lemma :
 "(A <o B) \<longleftrightarrow> (A \<le>o B) \<and> \<not> (A =o B)"
 apply (metis not_ordLess_ordIso ordLeq_iff_ordLess_or_ordIso)
 done
 
-section {* Transfer Rules *}
+section \<open> Transfer Rules \<close>
 
 theorem leq_card_iff_ordLeq :
 "c1 \<preceq>\<^sub>c c2 \<longleftrightarrow> |c1| \<le>o |c2|"
@@ -94,7 +94,7 @@ lemmas card_transfer =
   equal_card_iff_ordIso
   less_card_iff_ordLess
 
-section {* Introduction Rules *}
+section \<open> Introduction Rules \<close>
 
 theorem leq_card_intro [intro] :
 "|c1| \<le>o |c2| \<Longrightarrow> c1 \<preceq>\<^sub>c c2"
@@ -111,7 +111,7 @@ theorem less_card_intro [intro] :
 apply (simp add: less_card_iff_ordLess)
 done
 
-section {* Destruction Rules *}
+section \<open> Destruction Rules \<close>
 
 theorem leq_card_dest [dest] :
 "c1 \<preceq>\<^sub>c c2 \<Longrightarrow> |c1| \<le>o |c2|"
@@ -128,7 +128,7 @@ theorem less_card_dest [dest] :
 apply (simp add: less_card_iff_ordLess)
 done
 
-subsubsection {* Theorems for @{term "op \<preceq>\<^sub>c"} *}
+subsubsection \<open> Theorems for @{term "(\<preceq>\<^sub>c)"} \<close>
 
 theorem leq_card_refl :
 "(A \<preceq>\<^sub>c A)"
@@ -150,12 +150,12 @@ apply (clarify)
 apply (rename_tac f g)
 apply (rule_tac x = "g \<circ> f" in exI)
 apply (rule conjI)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (rule comp_inj_on)
 apply (assumption)
 apply (erule subset_inj_on)
-apply (assumption)
--- {* Subgoal 2 *}
+  apply (assumption)
+\<comment> \<open> Subgoal 2 \<close>
 apply (simp add: image_comp[THEN sym])
 apply (metis image_mono order.trans)
 done
@@ -190,35 +190,35 @@ apply (unfold leq_card_def)
 apply (clarify)
 apply (rename_tac g)
 apply (rule_tac x = "g o (inv_into A f)" in exI)
-apply (rule conjI)
--- {* Subgoal 1 *}
+  apply (rule conjI)
+\<comment> \<open> Subgoal 1 \<close>
 apply (rule comp_inj_on)
 apply (rule inj_on_inv_into)
 apply (simp)
 apply (erule subset_inj_on)
 apply (rule image_subsetI)
 apply (erule inv_into_into)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (rule image_subsetI)
 apply (unfold comp_def)
 apply (metis image_eqI in_mono inv_into_into)
 done
 
-subsubsection {* Theorems for @{term "op \<equiv>\<^sub>c"} *}
+subsubsection \<open> Theorems for @{term "(\<equiv>\<^sub>c)"} \<close>
 
 theorem equal_card_bij_betw :
 "(A \<equiv>\<^sub>c B) \<longleftrightarrow> (\<exists> f . bij_betw f A B)"
 apply (unfold equal_card_def leq_card_def)
 apply (safe)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (rename_tac f g)
 apply (rule Schroeder_Bernstein)
 apply (assumption)+
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (unfold bij_betw_def)
 apply (rule_tac x = "f" in exI)
 apply (clarsimp)
--- {* Subgoal 3 *}
+\<comment> \<open> Subgoal 3 \<close>
 apply (rule_tac x = "inv_into A f" in exI)
 apply (clarsimp)
 apply (rule inj_on_inv_into)
@@ -248,7 +248,7 @@ apply (erule leq_card_trans)
 apply (assumption)
 done
 
-subsubsection {* Theorems for @{term "op \<prec>\<^sub>c"} *}
+subsubsection \<open> Theorems for @{term "(\<prec>\<^sub>c)"} \<close>
 
 theorem le_imp_leq_card :
 "(A \<prec>\<^sub>c B) \<Longrightarrow> (A \<preceq>\<^sub>c B)"
@@ -274,7 +274,7 @@ apply (simp add: le_card_iff)
 apply (metis leq_card_linear leq_card_trans)
 done
 
-subsubsection {* Theorems for @{term "c\<^sub>f"} *}
+subsubsection \<open> Theorems for @{term "c\<^sub>f"} \<close>
 
 theorem fin_card_mono :
 "n \<le> m \<Longrightarrow> c\<^sub>f n \<preceq>\<^sub>c c\<^sub>f m"
@@ -303,7 +303,7 @@ apply (rule le_imp_leq_card)
 apply (rule fin_le_nat_card)
 done
 
-subsubsection {* Theorems for @{term "c\<^sub>\<bool>"} *}
+subsubsection \<open> Theorems for @{term "c\<^sub>\<bool>"} \<close>
 
 theorem bool_eq_fin_card :
 "c\<^sub>\<bool> \<equiv>\<^sub>c c\<^sub>f 2"
@@ -311,18 +311,18 @@ apply (unfold equal_card_def leq_card_def)
 apply (unfold card_defs)
 apply (simp add: UNIV_TYPE_def)
 apply (safe)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (rule_tac x = "(\<lambda> b . if b then 1 else 2)" in exI)
 apply (rule conjI)
--- {* Subgoal 1.1 *}
+\<comment> \<open> Subgoal 1.1 \<close>
 apply (rule injI)
 apply (simp only: atomize_imp)
 apply (induct_tac x)
 apply (induct_tac y)
 apply (simp_all)
--- {* Subgoal 1.2 *}
+\<comment> \<open> Subgoal 1.2 \<close>
 apply (auto) [1]
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (rule_tac x = "(\<lambda> n . n = 1)" in exI)
 apply (rule inj_onI)
 apply (clarsimp)
@@ -330,7 +330,7 @@ apply (case_tac "x = 1")
 apply (simp_all)
 done
 
-subsubsection {* Theorems for @{term "c\<^sub>\<nat>"} *}
+subsubsection \<open> Theorems for @{term "c\<^sub>\<nat>"} \<close>
 
 theorem countable_leq_nat_card :
 "countable c \<Longrightarrow> c \<preceq>\<^sub>c c\<^sub>\<nat>"
@@ -416,7 +416,7 @@ done
 theorem Nats_countable: "\<nat> \<preceq>\<^sub>c c\<^sub>\<T> TYPE(nat)"
   by (metis Nats_def UNIV_TYPE_def leq_card_refl leq_image_mono type_card_def)
 
-text {* We construct bijective versions of @{const to_nat} and @{const from_nat} *}
+text \<open> We construct bijective versions of @{const to_nat} and @{const from_nat} \<close>
 
 definition to_nat_bij :: "'a::{countable, infinite} \<Rightarrow> nat" where
 "to_nat_bij = (SOME f. bij f)"

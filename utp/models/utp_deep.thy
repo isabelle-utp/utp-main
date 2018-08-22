@@ -6,9 +6,9 @@
 (******************************************************************************)
 (* LAST REVIEWED: 22 Mar 2017 *)
 
-section {* Meta-Theory for UTP with Deep Variables *}
+section \<open> Meta-Theory for UTP with Deep Variables \<close>
 
 theory utp_deep
-imports utp
+imports UTP.utp
   utp_dvar
 begin end

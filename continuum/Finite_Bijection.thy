@@ -45,12 +45,10 @@ proof -
 qed
 
 lemma length_sorted_list_of_set [simp]: "finite A \<Longrightarrow> length (sorted_list_of_set A) = card A"
-  using distinct_card sorted_list_of_set by force
+  by (metis distinct_card distinct_sorted_list_of_set set_sorted_list_of_set)
 
 lemma to_nat_on_inj_on: "countable A \<Longrightarrow> inj_on (to_nat_on A) A"
   by (auto simp add: inj_on_def)
-
-thm card_image
 
 lemma finite_card_to_nat_on [simp]:
   "finite (UNIV :: 'a set) \<Longrightarrow> card (range (to_nat_on (UNIV :: 'a set))) = card (UNIV :: 'a set)"

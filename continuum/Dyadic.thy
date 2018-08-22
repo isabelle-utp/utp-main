@@ -1,15 +1,14 @@
-section {* Dyadic rational numbers *}
+section \<open> Dyadic rational numbers \<close>
 
 theory Dyadic
-imports
+  imports
+    HOL.Transcendental
   "HOL-Library.Float"
-  Real
-  Transcendental
   Lightweight_Cardinals
 begin
 
-text {* A dyadic rational is a rational whose denominator is a power of 2. They are precisely the
-  rational numbers that can be encoded in binary. *}
+text \<open> A dyadic rational is a rational whose denominator is a power of 2. They are precisely the
+  rational numbers that can be encoded in binary. \<close>
 
 definition dyadic :: "'a::field_char_0 \<Rightarrow> bool" where
 "dyadic x = (\<exists> a \<in> \<int>. \<exists> b. x = a / 2^b)"
@@ -87,15 +86,7 @@ lemma Dyadics_countable:
   using Dyadics_Rats countable_rat countable_subset by blast
 
 lemma coprime_power_two: "b > 0 \<Longrightarrow> coprime (a::int) (2^b) \<longleftrightarrow> odd a"
-  apply (induct b arbitrary: a)
-  apply (auto)
-  apply (metis dvd_triv_left even_power gcd_greatest_iff less_irrefl power_0)
-  apply (rename_tac b a)
-  apply (case_tac "0 < b")
-  apply (simp_all)
-  apply (metis coprime_power power.simps(2) zero_less_Suc)
-  apply (metis even_iff_mod_2_eq_zero gcd_1_int gcd_red_int not_mod_2_eq_0_eq_1)
-done
+  by (induct b arbitrary: a, auto)
 
 typedef drat = "{x :: rat. dyadic x}"
   by (rule_tac x="0" in exI, auto simp add: dyadic_def)
@@ -171,19 +162,18 @@ lemma odd_div_tdiv2:
   apply (simp)
   apply (rename_tac x)
   apply (case_tac "even (x div 2)")
-  apply (simp_all)
-  apply (metis Divides.div_mult2_eq Divides.div_positive dvd_imp_le neq0_conv pos2 power.simps(2) tdiv2.simps)
+  apply (metis div_mult2_eq dvd_div_eq_0_iff neq0_conv power.simps(2) tdiv2.simps)
   apply (simp add: tdiv2.simps)
 done
 
 lemma tdiv2_mod: "x mod (2^(tdiv2 x)) = 0"
   apply (induct x rule: tdiv2.induct)
   apply (auto)
-  apply (metis Divides.mod_mult2_eq add.right_neutral even_iff_mod_2_eq_zero mod_by_1 mult_zero_right neq0_conv power_0 power_Suc tdiv2.simps)
+  apply (metis (no_types) comm_monoid_mult_class.mult_1 dvd_imp_mod_0 dvd_triv_left mod_mult2_eq mult_zero_right neq0_conv power.simps(1) power.simps(2) tdiv2.simps)
 done
 
-text {* Every number greater than 0 can be expressed as the multiple of a perfect square
-        and an odd number *}
+text \<open> Every number greater than 0 can be expressed as the multiple of a perfect square
+        and an odd number \<close>
 
 lemma evenE_nat [elim?]:
   fixes a :: nat
@@ -209,15 +199,20 @@ proof (cases "a \<ge> 0")
   moreover obtain b' n' where "odd b'" "a' = 2^n' * b'"
     using assms calculation evenE_nat by auto
   ultimately show ?thesis using that
-    by (metis even_int_iff of_nat_mult of_nat_power transfer_int_nat_numerals(3))
+    by (metis of_nat_dvd_iff of_nat_mult of_nat_numeral of_nat_power)
 next
   case False
-  then obtain a' :: nat where "a = - (int a')"
-    by (metis Nat_Transfer.transfer_nat_int_function_closures(9) int_cases)
-  moreover obtain b' n' where "odd b'" "a' = 2^n' * b'"
+  then obtain a' :: nat where a: "a = - (int a')"
+    by (metis int_cases2 of_nat_0_le_iff)
+  moreover obtain b' n' where b: "odd b'" "a' = 2^n' * b'"
     using assms calculation evenE_nat by auto
   ultimately show ?thesis using that
-    by (metis even_int_iff even_minus mult_minus_right of_nat_mult of_nat_numeral of_nat_power)
+  proof -
+    have "int b' * int (2 ^ n') = int a'"
+      by (simp add: b)
+    then show ?thesis
+      by (metis a b(1) dvd_minus_iff even_of_nat mult.commute mult_minus_right of_nat_numeral of_nat_power that)
+  qed
 qed
 
 lemma rat_of_int_div: "\<lbrakk> y dvd x \<rbrakk> \<Longrightarrow> rat_of_int x / rat_of_int y = rat_of_int (x div y)"
@@ -263,7 +258,7 @@ proof -
       by (simp add: Fract_of_int_quotient x_def)
   qed
   moreover have "coprime k (2 ^ (b' - n))"
-    by (metis coprime_power_two gcd_1_int kn(1) not_gr_zero power_0)
+    by (simp add: kn(1))
   ultimately show ?thesis
     using that by blast
 qed
@@ -300,9 +295,9 @@ lemma drat_cases:
 
 lemma gcd_power_two: "gcd a (2^Suc b) = (if ((a::int) mod 2 = 0) then (2 * gcd (a div 2) (2^b)) else 1)"
   apply (auto)
-  apply (subst gcd_mult_distrib_int[THEN sym])
-  apply (simp)
-  apply (metis coprime_exp gcd_1_int gcd_red_int power.simps(2))
+   apply (subst gcd_mult_distrib_int[THEN sym])
+   apply (auto)
+  apply (force intro: coprime_imp_gcd_eq_1)
 done
 
 instantiation drat :: "{plus,minus,uminus,times,one,zero}"
@@ -311,13 +306,13 @@ begin
     by (fact dyadic_zero)
   lift_definition one_drat :: drat is 1
     by (fact dyadic_one)
-  lift_definition plus_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "op +"
+  lift_definition plus_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "(+)"
     by (fact dyadic_plus)
-  lift_definition minus_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "op -"
+  lift_definition minus_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "(-)"
     by (fact dyadic_minus)
   lift_definition uminus_drat :: "drat \<Rightarrow> drat" is "uminus"
     by (fact dyadic_uminus)
-  lift_definition times_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "op *"
+  lift_definition times_drat :: "drat \<Rightarrow> drat \<Rightarrow> drat" is "times"
     by (fact dyadic_times)
 instance ..
 end
@@ -327,8 +322,8 @@ instance drat :: idom
 
 instantiation drat :: linorder
 begin
-  lift_definition less_eq_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "op \<le>" .
-  lift_definition less_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "op <" .
+  lift_definition less_eq_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "(\<le>)" .
+  lift_definition less_drat :: "drat \<Rightarrow> drat \<Rightarrow> bool" is "(<)" .
 instance
   by (intro_classes, (transfer, auto)+)
 end

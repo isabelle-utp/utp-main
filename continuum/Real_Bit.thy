@@ -2,7 +2,7 @@ section {* Encoding real numbers as bit sequences *}
 
 theory Real_Bit
 imports
-  Transcendental
+  HOL.Transcendental
   "HOL-Library.Bit"
   "HOL-Library.Sublist"
   Dyadic
@@ -406,7 +406,6 @@ proof -
     apply (simp add: nth_cont_def)
     apply (cases "\<lfloor>x * (2 * 2 ^ i)\<rfloor>" rule: parity_cases)
     apply (simp_all)
-    using even_iff_mod_2_eq_zero apply fastforce
   done
 qed
 
@@ -419,6 +418,7 @@ proof -
     using left_diff_distrib by blast
   moreover have "x * (2 * 2 ^ j) - 2 ^ j / 2 ^ i = x * (2 * 2 ^ j) - real ((2::nat) ^ (j - i))"
     by (simp add: assms order_less_imp_le power_diff power_one_over)
+       (metis assms le_less of_nat_numeral of_nat_power power_diff rel_simps(76))
   moreover have "\<lfloor>x * (2 * 2 ^ j) - of_int ((2::nat) ^ (j - i))\<rfloor> = \<lfloor>x * (2 * 2 ^ j)\<rfloor> - ((2::nat) ^ (j - i))"
     using floor_diff_of_int by blast
   moreover have "(2::int) ^ (j - i) mod 2 = 0"
@@ -492,13 +492,13 @@ next
   case (Suc n) note hyp = this
   have "(\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (Suc n - i)) = (\<Sum>i<n. \<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2 * 2 ^ (n - i))*2"
     by (auto intro: sum.cong simp add: Suc_diff_le sum_distrib_right)
-  -- {* This can be proven with reference to integer division and modulus *}
+  \<comment> \<open> This can be proven with reference to integer division and modulus \<close>
   moreover have "\<lfloor>x * (2 ^ (n+1))\<rfloor> * 2 = \<lfloor>x * (2 ^ (n+2))\<rfloor> - \<lfloor>x * (2 ^ (n+2))\<rfloor> mod 2"
   proof -
     have "\<lfloor>x * 2^(n+1)\<rfloor> = \<lfloor>x * 2^(n+2)\<rfloor> div 2"
     proof -
-      -- {* This result should maybe be extracted? It says how an integer division can
-            be expressed in binary more or less... *}
+      \<comment> \<open> This result should maybe be extracted? It says how an integer division can
+           be expressed in binary more or less... \<close>
       have "\<lfloor>x * 2^(n+2)\<rfloor> div 2 = \<lfloor>(x * 2^(n+2)) / 2\<rfloor>"
         by linarith
       thus ?thesis
@@ -515,11 +515,11 @@ next
     using hyp by simp
 qed
 
-text {* This theorem shows that the nth digit of a real number x in [0..1) can equivalently
+text \<open> This theorem shows that the nth digit of a real number x in [0..1) can equivalently
         be obtained either by shift;floor;modulus 2, or alternatively by subtracting the
         approximation of the real number up to the nth digit, followed by a shift and floor.
         It can be used to show that the recursive algorithm and functional specification
-        co-incide. *}
+        co-incide. \<close>
 
 theorem modulus_2_via_shift:
   fixes x :: real
@@ -536,6 +536,7 @@ proof -
       by (rule sum_distrib_right)
     also have "... = (\<Sum>i<n. (of_int ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))))"
       by (rule sum.cong, auto simp add: power_diff)
+         (metis (no_types, hide_lams) le_less of_int_numeral of_int_power power_diff times_divide_eq_right zero_neq_numeral)
     finally show ?thesis
       by auto
   qed
@@ -915,7 +916,7 @@ lemma terminal_rbseq_drat:
   "x \<in> {0<..<1} \<Longrightarrow> terminal (rbseq (of_drat x))"
 proof (erule drat_0_1_induct, simp add: rbseq_def terminal_def terminates_at_def)
   fix a :: int and b :: nat
-  assume coprime: "coprime a (2 ^ b)"
+  assume coprime: "even a \<longrightarrow> b = 0"
   have "\<And> j. j \<ge> b \<Longrightarrow> of_int (\<lfloor>real_of_int a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
   proof -
     fix j
@@ -925,7 +926,7 @@ proof (erule drat_0_1_induct, simp add: rbseq_def terminal_def terminates_at_def
     moreover have "real_of_int a * (2 * 2 ^ (j-b)) \<in> \<int>"
       by simp
     moreover hence "\<lfloor>real_of_int a * (2 * 2 ^ (j-b))\<rfloor> mod 2 = (2 * \<lfloor>real_of_int a * 2 ^ (j - b)\<rfloor>) mod 2"
-      by (metis floor_of_int linordered_field_class.sign_simps(25) power.simps(2) real_of_int_eq_numeral_power_cancel_iff of_int_mult)
+      by (metis (no_types, hide_lams) floor_of_int mult.left_commute of_int_mult of_int_numeral of_int_power)
     ultimately show "of_int (\<lfloor>real_of_int a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
       by simp
   qed
