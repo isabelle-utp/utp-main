@@ -9,9 +9,9 @@
 section {* String Literals *}
 
 theory Strings
-imports "../../../utils/Infinity" Normalise
-  "~~/src/HOL/Library/Countable"
-  "~~/src/HOL/Library/Char_ord"
+imports "UTP-Toolkit.Infinity" Normalise
+  "HOL-Library.Countable"
+  "HOL-Library.Char_ord"
 begin
 
 subsection {* Type Synonyms *}
@@ -29,11 +29,10 @@ text {* @{type "String.literal"} already instantiates @{class countable}. *}
 
 subsubsection {* Infinity *}
 
-setup_lifting type_definition_literal
+setup_lifting String.type_definition_literal
 
 lift_definition succ_literal :: "String.literal \<Rightarrow> String.literal"
-is "\<lambda>s. undefined # s"
-done
+is "\<lambda>s. String.ascii_of undefined # s" by (auto)
 
 lemma inj_succ_literal :
 "inj succ_literal"
@@ -47,8 +46,8 @@ lemma not_surj_succ_literal :
 apply (unfold surj_def)
 apply (clarsimp)
 apply (transfer)
-apply (rule_tac x = "[]" in exI)
-apply (simp)
+apply (rule_tac x = "[]" in bexI)
+apply (auto)
 done
 
 theorem infinite_UNIV_String_literal [simp]:

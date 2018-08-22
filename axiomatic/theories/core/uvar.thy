@@ -216,7 +216,7 @@ text {*
   apply transfer laws for the types @{type var}, @{type uvar} and @{type uname}.
   While record-based types already generate the underlying splitting laws, for
   the @{type var} type being defined via a type definition, we make use of the
-  utility theory @{theory Typedef_extra} which generates those laws for us.
+  utility theory @{text Typedef_extra} which generates those laws for us.
 *}
 
 subsubsection {* Transfer Laws *}

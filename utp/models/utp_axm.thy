@@ -9,6 +9,6 @@
 section {* Meta-Theory for UTP with Axiomatic Variables *}
 
 theory utp_axm
-imports utp
+imports UTP.utp
   utp_avar
 begin end

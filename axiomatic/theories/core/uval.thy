@@ -6,14 +6,14 @@
 (******************************************************************************)
 (* LAST REVIEWED: 17 Jan 2016 *)
 
-section {* Universal Values *}
+section \<open> Universal Values \<close>
 
 theory uval
 imports utype "../utils/Typedep"
 keywords "inject_type" :: thy_decl
 begin
 
-text {* We are going to use the colon for model typing. *}
+text \<open> We are going to use the colon for model typing. \<close>
 
 no_notation
   Set.member ("op :") and
@@ -21,15 +21,15 @@ no_notation
 
 default_sort typedep
 
-subsection {* Value Type *}
+subsection \<open> Value Type \<close>
 
-text {* The universal value type is introduced by a type declaration. *}
+text \<open> The universal value type is introduced by a type declaration. \<close>
 
 typedecl uval
 
-subsection {* Instantiations *}
+subsection \<open> Instantiations \<close>
 
-text {* Instantiation of @{class typerep} *}
+text \<open> Instantiation of @{class typerep} \<close>
 
 instantiation uval :: typerep
 begin
@@ -39,7 +39,7 @@ definition typerep_uval :: "uval itself \<Rightarrow> typerep" where
 instance ..
 end
 
-text {* Instantiation of @{class typedep} *}
+text \<open> Instantiation of @{class typedep} \<close>
 
 instantiation uval :: typedep
 begin
@@ -48,9 +48,9 @@ definition typedep_uval :: "uval itself \<Rightarrow> typerep set" where
 instance ..
 end
 
-subsection {* Injectability *}
+subsection \<open> Injectability \<close>
 
-text {*
+text \<open>
   We introduce a class @{text injectable} to tag types that we permit to be
   injected into the unified value type @{type uval}. This is to ensure that
   @{type uval} does not occur \emph{itself} in such types, as this leads to
@@ -62,7 +62,7 @@ text {*
   As the latter is done automatically upon defining new types, the user has
   no way of interfering with it. This justifies our claim that the axiomatic
   value model is definitionally sound.
-*}
+\<close>
 
 class injectable = typedep +
   assumes utype_is_not_uval : "TYPEREP('a) \<noteq> TYPEREP(uval)"
@@ -79,27 +79,27 @@ apply (simp add: utype_not_dep_uval)
 done
 end
 
-subsection {* Command @{text "inject_type"} *}
+subsection \<open> Command @{text "inject_type"} \<close>
 
-text {*
+text \<open>
   We next configure a command to inject a HOL type into @{type uval}. This
   automatically performs instantiation of the class @{class injectable} for
   the type to be injected, and attempts to discharge the proof obligations
   thus arising. If the proof of the latter fails, an error is displayed to
   the user; in that case, the type is most likely not injectable due to some
   dependency on the type @{type uval}.
-*}
+\<close>
 
 ML_file "uval.ML"
 
-ML {*
+ML \<open>
   Outer_Syntax.command @{command_keyword "inject_type"} "inject type"
     (Parse.type_const >> (Toplevel.theory o Inject_Type.inject_type));
-*}
+\<close>
 
-subsection {* Axiomatisation *}
+subsection \<open> Axiomatisation \<close>
 
-text {*
+text \<open>
   We next axiomatise the universal abstraction and representation functions.
   The axioms are guarded by membership to the sort @{class injectable}. This
   is to ensure that they only hold for injectable values and types. A special
@@ -108,25 +108,25 @@ text {*
   ensure the existence of a well-typed total binding and should not raise any
   concerns of soundness, as we know nothing else about such types and their
   values.
-*}
+\<close>
 
 axiomatization
--- {* Universal Abstraction Function *}
+\<comment> \<open> Universal Abstraction Function \<close>
   InjU :: "'a::injectable \<Rightarrow> uval" and
--- {* Universal Representation Function *}
+\<comment> \<open> Universal Representation Function \<close>
   ProjU :: "uval \<Rightarrow> 'a::injectable" and
--- {* Model Typing Relation *}
+\<comment> \<open> Model Typing Relation \<close>
   utype_rel :: "uval \<Rightarrow> utype \<Rightarrow> bool" (infix ":\<^sub>u" 50) where
--- {* Injection Inverse *}
+\<comment> \<open> Injection Inverse \<close>
   InjU_inverse [simp]: "ProjU (InjU x) = x" and
--- {* Projection Inverse *}
+\<comment> \<open> Projection Inverse \<close>
   ProjU_inverse [simp]: "y :\<^sub>u UTYPE('a) \<Longrightarrow> InjU (ProjU y) = y" and
--- {* Definition of Model Typing *}
+\<comment> \<open> Definition of Model Typing \<close>
   utype_rel_def [simp]: "(InjU x) :\<^sub>u t \<longleftrightarrow> x : t" and
--- {* Non-emptiness of all model types, even non-injectable ones! *}
+\<comment> \<open> Non-emptiness of all model types, even non-injectable ones! \<close>
   utypes_non_empty : "\<exists> y. y :\<^sub>u t"
 
-subsection {* Derived Laws *}
+subsection \<open> Derived Laws \<close>
 
 theorem InjU_inject :
 "InjU x = InjU y \<Longrightarrow> x = y"
@@ -147,11 +147,11 @@ theorem ProjU_inject :
 apply (metis ProjU_inverse)
 done
 
-subsection {* Definitions *}
+subsection \<open> Definitions \<close>
 
-text {* We includes several useful derived operators in this section. *}
+text \<open> We includes several useful derived operators in this section. \<close>
 
-subsubsection {* Some Value *}
+subsubsection \<open> Some Value \<close>
 
 definition some_uval :: "utype \<Rightarrow> uval" where
 "some_uval t = (SOME x. x :\<^sub>u t)"
@@ -163,7 +163,7 @@ apply (rule someI_ex)
 apply (rule utypes_non_empty)
 done
 
-subsubsection {* Carrier Set *}
+subsubsection \<open> Carrier Set \<close>
 
 definition ucarrier :: "utype \<Rightarrow> uval set" where
 "ucarrier t = {x. x :\<^sub>u t}"
@@ -187,16 +187,16 @@ apply (unfold p_type_rel_def)
 apply (rule refl)
 done
 
-subsection {* Type Definition *}
+subsection \<open> Type Definition \<close>
 
-text {*
+text \<open>
   For a particular value type @{typ 'a}, @{const InjU} and @{const ProjU}
   fulfil the axioms of a type definition. Hence, we can think of a any
   injectable HOL type @{typ 'a} as a subtype of @{type uval}. Note that I
   previously had a interpretation of the @{text type_definition} locale
   here but this caused some strange behaviours in proofs due to additional
   cases and induct rules being implicitly used after the interpretation.
-*}
+\<close>
 
 theorem type_definition_uval:
 "type_definition (InjU :: 'a::injectable \<Rightarrow> uval) ProjU UVAL('a)"
@@ -207,7 +207,7 @@ apply (rule ProjU_inverse)
 apply (clarsimp)
 done
 
-subsection {* Experiments *}
+subsection \<open> Experiments \<close>
 
 inject_type nat
 inject_type bool

@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 10 Jan 2017 *)
 
-section {* Universal Store *}
+section \<open> Universal Store \<close>
 
 theory ustore
 imports ustate
@@ -14,9 +14,9 @@ begin
 
 default_sort type
 
-subsection {* Type Class *}
+subsection \<open> Type Class \<close>
 
-text {*
+text \<open>
   We define a type class here to locate the universal state type @{type ustate}
   within some larger type into which it may be embedded. Access to the embedded
   state is via the lens @{text "ust\<^sub>L"} provided by the class. That lens can be
@@ -28,17 +28,17 @@ text {*
   that we can freely use different kinds of variables alongside. This unifying
   aspect of lenses is very interesting in its own right and may deserves more
   exploration.
-*}
+\<close>
 
 class ust =
   fixes ust_lens :: "ustate \<Longrightarrow> 'a" ("ust\<^sub>L")
   assumes vwb_lens_ust [simp]: "vwb_lens ust_lens"
 
-subsection {* Instantiations *}
+subsection \<open> Instantiations \<close>
 
-subsubsection {* @{type ustate} Type *}
+subsubsection \<open> @{type ustate} Type \<close>
 
-text {* Clearly type @{type ustate} itself instantiates @{class ust}. *}
+text \<open> Clearly type @{type ustate} itself instantiates @{class ust}. \<close>
 
 instantiation ustate :: ust
 begin
@@ -51,13 +51,13 @@ apply (rule id_vwb_lens)
 done
 end
 
-subsubsection {* Product Type *}
+subsubsection \<open> Product Type \<close>
 
-text {*
+text \<open>
   Before we proceed, we define two utility functions that enable us to dash and
   undash states of type @{type ustate}. Both are effectively substitutions that
   turn all undashed (resp.~dashed) variables into dashed (resp.~undashed) ones.
-*}
+\<close>
 
 lift_definition undash_ustate :: "ustate \<Rightarrow> ustate"
 is "\<lambda>s. \<lambda>v::uvar. s v\<acute>"
@@ -73,7 +73,7 @@ done
 
 adhoc_overloading dash dash_ustate
 
-text {*
+text \<open>
   We next instantiate class @{class ust} for product state spaces. This creates
   a link to state models that uses HOL relations to represent UTP relations. To
   turn a state product into a single state (of type @{type ustate}), we have to
@@ -81,7 +81,7 @@ text {*
   (on the dashed variable) with the result. We start by defining two utility
   functions to combine and split relational state spaces; they are effectively
   the get and put functions of the lens for the @{type prod}uct instantiation.
-*}
+\<close>
 
 definition comb_ustate :: "ustate \<times> ustate \<Rightarrow> ustate" where [transfer_unfold]:
 "comb_ustate = (\<lambda>(s1, s2). s1 \<oplus>\<^sub>s s2\<acute> on DASHED)"
@@ -93,7 +93,7 @@ definition split_ustate ::
 definition split_ustate_lens :: "ustate \<Longrightarrow> ustate \<times> ustate" ("ust\<^sub>>\<^sub><") where
 "split_ustate_lens = \<lparr>lens_get = comb_ustate, lens_put = split_ustate\<rparr>"
 
-text {* We next prove lemmas for @{term "ust\<^sub>>\<^sub><"} being a very well-behaved lens. *}
+text \<open> We next prove lemmas for @{term "ust\<^sub>>\<^sub><"} being a very well-behaved lens. \<close>
 
 theorem split_ustate_inv:
 "comb_ustate (split_ustate ss s) = s"
@@ -103,9 +103,9 @@ apply (rule ext)
 apply (rename_tac v)
 apply (case_tac "v \<in> DASHED")
 apply (simp_all)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (var_tac)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (var_tac)
 done
 
@@ -114,15 +114,15 @@ theorem comb_ustate_inv:
 apply (transfer')
 apply (clarsimp)
 apply (rule conjI)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (var_tac)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (rule ext)
 apply (rename_tac v)
 apply (case_tac "v \<in> UNDASHED")
--- {* Subgoal 2.1 *}
+\<comment> \<open> Subgoal 2.1 \<close>
 apply (var_tac)
--- {* Subgoal 2.2 *}
+\<comment> \<open> Subgoal 2.2 \<close>
 apply (var_tac)
 done
 
@@ -142,10 +142,10 @@ apply (rule comb_ustate_inv)
 apply (rule split_ustate_idem)
 done
 
-text {*
+text \<open>
   We are finally ready to carry out the instantiation of the @{type prod} type
   as class @{class ust}. It makes use of the compression lens @{term "ust\<^sub>>\<^sub><"}.
-*}
+\<close>
 
 instantiation prod :: (ust, ust) ust
 begin
@@ -158,9 +158,9 @@ apply (simp add: comp_vwb_lens prod_vwb_lens ustate_split_vwb_lens)
 done
 end
 
-subsection {* Store Type *}
+subsection \<open> Store Type \<close>
 
-text {* We provide a concrete extensible store for @{type ustate} instances. *}
+text \<open> We provide a concrete extensible store for @{type ustate} instances. \<close>
 
 record ust_store =
   ust_store :: "ustate"
@@ -187,13 +187,13 @@ apply (simp_all)
 done
 end
 
-subsection {* Laws *}
+subsection \<open> Laws \<close>
 
-subsubsection {* Independence Laws *}
+subsubsection \<open> Independence Laws \<close>
 
-text {* \todo{Prove the relevant lens independence laws here!} *}
+text \<open> \todo{Prove the relevant lens independence laws here!} \<close>
 
-subsubsection {* State Space Laws *}
+subsubsection \<open> State Space Laws \<close>
 
 theorem dash_ustate_app_mono [simp]:
 "v \<in> UNDASHED \<Longrightarrow> (dash_ustate s)\<cdot>(v\<acute>) = s\<cdot>v"

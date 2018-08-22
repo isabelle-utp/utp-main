@@ -17,7 +17,7 @@ begin recall_syntax
 default_sort type
 
 text {*
-  Note that theory @{theory ulens} already includes key definitions and laws
+  Note that theory @{text ulens} already includes key definitions and laws
   for defining the required lenses for axiomatic variables. Our concern here
   is merely to integrate them smoothly into Isabelle/UTP.
 *}
@@ -31,11 +31,11 @@ text {*
   theories are processed, undeclaration of syntax and notations may be lost
   after the inclusion; in particular, if a theory is imported that does not
   depend on the theory that undeclares the respective notation or syntax. We
-  use the @{theory TotalRecall} utility and @{command purge_notation} command
+  use the @{text TotalRecall} utility and @{command purge_notation} command
   to solve this problem here.
 *}
 
--- {* From @{theory utype}. *}
+\<comment> \<open> From @{text utype}. \<close>
 
 purge_notation
   Set.member  ("op :") and

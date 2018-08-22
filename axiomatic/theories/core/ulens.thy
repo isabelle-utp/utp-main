@@ -6,23 +6,23 @@
 (******************************************************************************)
 (* LAST REVIEWED: 14 Feb 2017 *)
 
-section {* Axiomatic Lenses *}
+section \<open> Axiomatic Lenses \<close>
 
 theory ulens
 imports ustate ustore
 begin
 
-text {* This is a source of ambiguity in the presence of structure variables. *}
+text \<open> This is a source of ambiguity in the presence of structure variables. \<close>
 
 no_notation subscr ("_\<^bsub>_\<^esub>" [1000] 1000)
 
 default_sort type
 
-subsection {* Lens Types *}
+subsection \<open> Lens Types \<close>
 
 type_synonym 'a ulens = "'a \<Longrightarrow> ustate"
 
-subsection {* Constructors *}
+subsection \<open> Constructors \<close>
 
 definition avar_lens :: "'a::injectable var \<Rightarrow> 'a ulens" where
 "avar_lens v = \<lparr>lens_get = (\<lambda>s. s\<star>v), lens_put = (\<lambda>s x. s(v := x)\<^sub>s)\<rparr>"
@@ -34,14 +34,14 @@ definition avar_ust_lens :: "'a::injectable var \<Rightarrow> ('a \<Longrightarr
 
 notation avar_ust_lens ("avar'_ust\<^sub>L")
 
-subsection {* Lens Laws *}
+subsection \<open> Lens Laws \<close>
 
 theorem avar_vwb_lens [simp]:
 "vwb_lens (avar\<^sub>L v)"
 apply (unfold_locales)
 apply (unfold avar_lens_def)
 apply (simp_all)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (transfer)
 apply (rule ext)
 apply (clarsimp)
@@ -71,7 +71,7 @@ fixes v :: "'a::{injectable, two} var"
 fixes w :: "'b::{injectable, two} var"
 shows "avar\<^sub>L v \<bowtie> avar\<^sub>L w \<longleftrightarrow> v\<down> \<noteq> w\<down>"
 apply (rule iffI)
--- {* Subgoal 1 *}
+\<comment> \<open> Subgoal 1 \<close>
 apply (unfold lens_indep_def) [1]
 apply (unfold avar_lens_def) [1]
 apply (clarsimp)
@@ -87,7 +87,7 @@ apply (rule_tac x = "if \<sigma>\<^sub>0\<star>w = b\<^sub>1 then b\<^sub>2 else
 apply (rule_tac x = "if \<sigma>\<^sub>0\<star>v = a\<^sub>1 then a\<^sub>2 else a\<^sub>1" in exI)
 apply (clarsimp)
 apply ((*smt*)metis ustate_upd_poly_app1)
--- {* Subgoal 2 *}
+\<comment> \<open> Subgoal 2 \<close>
 apply (erule avar_indepI)
 done
 
@@ -122,11 +122,11 @@ fixes y :: "'a::{injectable, two} var"
 shows "avar_ust\<^sub>L x \<bowtie> avar_ust\<^sub>L y \<longleftrightarrow> x \<noteq> y"
 using avar_ust_indep_iff by (auto)
 
-subsection {* Lens Syntax *}
+subsection \<open> Lens Syntax \<close>
 
--- {* Syntax is now also configured in @{text utp_avar} within Isabelle/UTP. *}
+\<comment> \<open> Syntax is now also configured in @{text utp_avar} within Isabelle/UTP. \<close>
 
-text {* We use the prefix @{text "@"} for axiomatic (lens) variables. *}
+text \<open> We use the prefix @{text "@"} for axiomatic (lens) variables. \<close>
 
 syntax "_MkAxVar1" :: "id \<Rightarrow>         ('a, 'b) lens" ("@_" [1000] 1000)
 syntax "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> ('a, 'b) lens" ("@_:{_}"  [1000, 0] 1000)
@@ -136,7 +136,7 @@ translations "@n"       \<rightleftharpoons> "avar_ust\<^sub>L $n"
 translations "@n:{'a}"  \<rightleftharpoons> "avar_ust\<^sub>L $n:{'a}"
 translations "@n:{'a}-" \<rightleftharpoons> "avar_ust\<^sub>L $n:{'a}-"
 
-subsection {* Experiments *}
+subsection \<open> Experiments \<close>
 
 declare [[show_sorts]]
 
@@ -144,7 +144,7 @@ term "avar_ust\<^sub>L $x"
 term "avar_ust\<^sub>L $x:{nat}"
 term "avar_ust\<^sub>L $x:{bool}-"
 
-text {* We deal with relational state spaces through lens composition. *}
+text \<open> We deal with relational state spaces through lens composition. \<close>
 
 term "@x:{nat} ;\<^sub>L fst\<^sub>L"
 term "@x':{bool} ;\<^sub>L snd\<^sub>L"

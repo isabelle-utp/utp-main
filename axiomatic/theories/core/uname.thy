@@ -43,7 +43,7 @@ record uname =
 subsection {* Constructors *}
 
 abbreviation MkName :: "string \<Rightarrow> bool \<Rightarrow> string \<Rightarrow> uname" where
-"MkName n d s \<equiv> \<lparr>name_str = STR(n), dashed = d, subscript = STR(s)\<rparr>"
+"MkName n d s \<equiv> \<lparr>name_str = String.implode n, dashed = d, subscript = String.implode s\<rparr>"
 
 abbreviation (input) MkPlain :: "string \<Rightarrow> uname" where
 "MkPlain n \<equiv> MkName n False ''''"
@@ -80,7 +80,7 @@ text {* An empty string indicates the absence of a subscript. *}
 
 syntax "_NoSub" :: "string" ("NoSub")
 
-translations "NoSub" \<rightharpoonup> "(CONST STR) []"
+translations "NoSub" \<rightharpoonup> "(CONST String.implode) []"
 
 subsubsection {* Add Subscript *}
 
@@ -89,7 +89,7 @@ text {* The definition below ensures that subscripting is an involution. *}
 definition subscr_change ::
   "string \<Rightarrow> 'more uname_ext \<Rightarrow> 'more uname_ext" where
 "subscr_change s' = (subscript_update
-  (\<lambda>s. if s = NoSub then STR(s') else if s = STR(s') then NoSub else s))"
+  (\<lambda>s. if s = NoSub then String.implode s' else if s = String.implode s' then NoSub else s))"
 
 definition subscr_uname ::
   "'more uname_ext \<Rightarrow> string \<Rightarrow> 'more uname_ext" where
@@ -234,8 +234,6 @@ declare less_eq_char_def [simp]
 declare less_char_def [simp]
 declare less_eq_literal.rep_eq [simp]
 declare less_literal.rep_eq [simp]
-declare sym [OF explode_inject, simp]
-declare STR_inverse [simplified, simp]
 declare less_eq_uname_ext_def [simp]
 declare less_uname_ext_def [simp]
 
@@ -252,9 +250,7 @@ lemma uname_less_iff (*[simp]*):
 apply (induct_tac n1)
 apply (induct_tac n2)
 apply (clarsimp)
-apply (transfer)
-apply (meson STR_inject' antisym_conv3 less_eq_literal.abs_eq less_le_not_le
-  less_literal.abs_eq ord.lexordp_eq_refl)
+apply (metis less_asym' less_eq_literal.rep_eq less_literal.rep_eq linorder_cases not_less)
 done
 
 text {* \fixme{Are the three lemmas below really needed / desirable?} *}

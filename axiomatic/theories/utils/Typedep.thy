@@ -9,7 +9,7 @@
 section {* Type Dependency *}
 
 theory Typedep
-imports Typerep
+imports HOL.Typerep
   Typerep_ind Named_Attrib
 begin
 

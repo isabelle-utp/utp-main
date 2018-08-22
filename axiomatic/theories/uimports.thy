@@ -9,7 +9,7 @@
 section {* Imported Theories *}
 
 theory uimports
-imports Main Real
+imports Main HOL.Real
   "HOL-Library.Adhoc_Overloading"
   "HOL-Eisbach.Eisbach"
   "HOL-Library.Countable"

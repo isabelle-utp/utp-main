@@ -9,7 +9,7 @@
 section {* Unfolding Transfer *}
 
 theory Transfer_Plus
-imports Transfer
+imports HOL.Transfer
 begin
 
 text {*
