@@ -186,6 +186,8 @@ text \<open> Assumptions ($c^{\top}$) and assertions ($c_{\bot}$) are encoded as
 definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("[_]\<^sup>\<top>") where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
+notation rassume ("?[_]")
+
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("{_}\<^sub>\<bottom>") where
 [urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 

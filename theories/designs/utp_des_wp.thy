@@ -1,7 +1,7 @@
 section {* Design Weakest Preconditions *}
 
 theory utp_des_wp
-  imports utp_des_prog
+  imports utp_des_prog utp_des_hoare
 begin
 
 definition wp_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" (infix "wp\<^sub>D" 60) where
@@ -16,6 +16,9 @@ done
 
 theorem wpd_H3_eq_intro: "\<lbrakk> P is H1_H3; Q is H1_H3; \<And> r. P wp\<^sub>D r = Q wp\<^sub>D r \<rbrakk> \<Longrightarrow> P = Q"
   by (metis H1_H3_commute H1_H3_is_normal_design H3_idem Healthy_def' wpd_eq_intro)
+
+lemma wp_d_abort [wp]: "true wp\<^sub>D p = false"
+  by (rel_auto)
 
 lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<sigma> \<dagger> r"
   by (rel_auto)
@@ -47,5 +50,10 @@ theorem wpd_seq_r_H1_H3 [wp]:
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "(P ;; Q) wp\<^sub>D r = P wp\<^sub>D (Q wp\<^sub>D r)"
   by (metis H1_H3_commute H1_H3_is_normal_design H1_idem Healthy_def' assms(1) assms(2) wpnd_seq_r)
+
+theorem wp_hoare_d_link:
+  assumes "Q is \<^bold>N"
+  shows "{p}Q{r}\<^sub>D \<longleftrightarrow> (Q wp\<^sub>D r \<sqsubseteq> p)"
+  by (ndes_simp cls: assms, rel_auto)
 
 end

@@ -43,6 +43,9 @@ theorem wp_conj [wp]:
 theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
   by rel_auto
 
+theorem wp_choice [wp]: "(P \<sqinter> Q) wp R = (P wp R \<and> Q wp R)"
+  by (rel_auto)
+
 theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
   by rel_auto
 

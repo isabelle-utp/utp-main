@@ -457,4 +457,10 @@ term "entry e"
 
 term "entry skip during skip exit skip"
 
+subsection \<open> Proof Tactics \<close>
+
+method sm_induct uses simps wf = auto intro!: StateMachine_refine_intro[OF wf] dlockf_refine_intro simp add: simps
+method sm_calc uses simps = simp_all add: simps sm_sem_def, simp_all add: action_simp usubst alpha
+
+
 end

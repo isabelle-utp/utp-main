@@ -6,6 +6,7 @@ theory utp_designs
     utp_des_healths
     utp_des_theory
     utp_des_tactics
+    utp_des_hoare
     utp_des_prog
     utp_des_wp
     utp_des_refcalc

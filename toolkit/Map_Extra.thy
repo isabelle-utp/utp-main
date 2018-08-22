@@ -800,6 +800,9 @@ lemma map_eqI:
   "\<lbrakk> dom f = dom g; \<forall> x\<in>dom(f). the(f x) = the(g x) \<rbrakk> \<Longrightarrow> f = g"
   by (metis domIff map_le_antisym map_le_def option.expand)
 
+lemma map_restrict_dom [simp]: "f |` dom f = f"
+  by (simp add: map_eqI)
+
 lemma map_restrict_dom_compl: "f |` (- dom f) = Map.empty"
   by (metis dom_eq_empty_conv dom_restrict inf_compl_bot)
 
@@ -831,5 +834,21 @@ lemma map_add_split:
 lemma map_le_via_restrict:
   "f \<subseteq>\<^sub>m g \<longleftrightarrow> g |` dom(f) = f"
   by (auto simp add: map_le_def restrict_map_def dom_def fun_eq_iff)
+
+lemma map_add_cancel:
+  "f \<subseteq>\<^sub>m g \<Longrightarrow> f ++ (g -- f) = g"
+  by (auto simp add: map_le_def map_add_def map_minus_def fun_eq_iff option.case_eq_if)
+     (metis domIff)
+
+lemma map_le_iff_add: "f \<subseteq>\<^sub>m g \<longleftrightarrow> (\<exists> h. dom(f) \<inter> dom(h) = {} \<and> f ++ h = g)"
+  apply (auto)
+  apply (rule_tac x="g -- f" in exI)
+  apply (metis (no_types, lifting) Int_emptyI domIff map_add_cancel map_le_def map_minus_def)
+  apply (simp add: map_add_comm)
+  done
+
+lemma map_add_comm_weak: "(\<forall> k \<in> dom m1 \<inter> dom m2. m1(k) = m2(k)) \<Longrightarrow> m1 ++ m2 = m2 ++ m1"
+  by (auto simp add: map_add_def option.case_eq_if fun_eq_iff)
+     (metis IntI domI option.inject)
 
 end

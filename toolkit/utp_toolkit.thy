@@ -30,6 +30,7 @@ theory utp_toolkit
   List_Extra
   List_Lexord_Alt
   Partial_Fun
+  Partial_Monoids
   Finite_Fun
   Infinity
   Positive

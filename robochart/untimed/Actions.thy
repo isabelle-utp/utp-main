@@ -484,6 +484,9 @@ next
   done
 qed
 
+lemma dlockf_refine_intro: "dlockf \<sqsubseteq> P \<Longrightarrow> dlockf \<sqsubseteq> (dlockf ; P)"
+  by (transfer, simp add: CDF_refine_intro)
+
 lemma dlockf_state_decl:
   "dlockf \<sqsubseteq> P \<Longrightarrow> dlockf \<sqsubseteq> state_decl P"
   by (transfer, simp add: state_srea_refine alpha)
