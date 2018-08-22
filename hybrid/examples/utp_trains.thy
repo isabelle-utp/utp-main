@@ -3,7 +3,7 @@ section {* Train Hybrid System *}
 theory utp_trains
   imports 
     "../utp_hybrid"
-    "~~/src/HOL/Decision_Procs/Approximation"
+    "HOL-Decision_Procs.Approximation"
 begin recall_syntax
 
 subsection {* Constants *}
@@ -17,9 +17,9 @@ abbreviation "track1_length \<equiv> 100"
 subsection {* State-space *}
   
 alphabet cst_train =
-  accel :: real -- {* Acceleration *}
-  vel   :: real -- {* Velocity *}
-  pos   :: real -- {* Position *}
+  accel :: real \<comment> \<open> Acceleration \<close>
+  vel   :: real \<comment> \<open> Velocity \<close>
+  pos   :: real \<comment> \<open> Position \<close>
 
 print_theorems
   
@@ -75,7 +75,7 @@ lemma train_ode_uniq_sol:
   shows "(train_sol (a\<^sub>0, v\<^sub>0, p\<^sub>0) usolves_ode train_ode from 0) {0..l} UNIV"
 proof -
   from assms have 1:"unique_on_strip 0 {0..l} train_ode 1"
-    by (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
+    by (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_on_def dist_Pair_Pair prod.case_eq_if)
   from assms have 2:"((train_sol (a\<^sub>0, v\<^sub>0, p\<^sub>0)) solves_ode train_ode) {0..l} UNIV"
     by (fact train_ode_sol)
   from 1 2 show sol:"((train_sol (a\<^sub>0, v\<^sub>0, p\<^sub>0)) usolves_ode train_ode from 0) {0..l} UNIV"
@@ -113,13 +113,13 @@ definition
 theorem braking_train_pos_le:
  "($st:\<^bold>c:accel\<acute> =\<^sub>u 0 \<and> \<lceil>$pos\<acute> <\<^sub>u 44\<rceil>\<^sub>h) \<sqsubseteq> BrakingTrain" (is "?lhs \<sqsubseteq> ?rhs")
 proof -
-  -- {* Solve ODE, replacing it with an explicit solution: @{term train_sol}. *}
+  \<comment> \<open> Solve ODE, replacing it with an explicit solution: @{term train_sol}. \<close>
   have "?rhs =
     (\<^bold>c:accel, \<^bold>c:vel, \<^bold>c:pos) :=\<^sub>r (\<guillemotleft>-1.4\<guillemotright>, \<guillemotleft>4.16\<guillemotright>, \<guillemotleft>0\<guillemotright>) ;; 
     {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>($accel,$vel,$pos)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; 
     \<^bold>c:accel :=\<^sub>r 0"
   by (simp only: BrakingTrain_def train_sol)
-  -- {* Set up initial values for the ODE solution using assigned variables. *}
+  \<comment> \<open> Set up initial values for the ODE solution using assigned variables. \<close>
   also have "... = 
     {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol(-1.4,4.16,0)(ti)\<guillemotright> until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; \<^bold>c:accel :=\<^sub>r 0"
     by (rel_auto)

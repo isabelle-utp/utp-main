@@ -45,7 +45,7 @@ lemma grav_ode_sol:
   "(\<langle>{&velocity,&height} \<bullet> grav_ode(ti)\<rangle>\<^sub>h) = {&velocity,&height} \<leftarrow>\<^sub>h \<guillemotleft>grav_sol\<guillemotright>($velocity, $height)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
 proof -
   have 1:"\<forall>l>0. unique_on_strip 0 {0..l} grav_ode 1"
-    by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)
+    by (auto, unfold_locales, auto intro!: continuous_on_Pair continuous_on_const continuous_on_fst continuous_on_snd simp add: lipschitz_on_def dist_Pair_Pair prod.case_eq_if)
   have 2:"\<forall> v\<^sub>0 h\<^sub>0. \<forall>l>0. ((grav_sol (v\<^sub>0, h\<^sub>0)) solves_ode grav_ode) {0..l} UNIV"
     by (clarify, ode_cert)
   from 1 2 have sol:"\<forall> v\<^sub>0 h\<^sub>0. \<forall>l>0. ((grav_sol (v\<^sub>0, h\<^sub>0)) usolves_ode grav_ode from 0) {0..l} UNIV"

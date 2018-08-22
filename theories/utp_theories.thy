@@ -12,7 +12,7 @@ imports
   "UTP-Designs.utp_designs"
   "UTP-Reactive.utp_reactive"
   "UTP-Reactive-Designs.utp_rea_designs"
-  utp_time_rel
+  "UTP-Time.utp_time_rel"
   "UTP-Circus.utp_circus"
   utp_cml
 begin recall_syntax end

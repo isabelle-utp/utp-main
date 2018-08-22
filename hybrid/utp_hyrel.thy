@@ -4,7 +4,7 @@ theory utp_hyrel
 imports
   "UTP.utp"
   "UTP-Reactive-Designs.utp_rea_designs"
-  "UTP-Theories.utp_time_rel"
+  "UTP-Time.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"
   "Dynamics.Derivative_extra"
   "Dynamics.Timed_Traces"
@@ -29,16 +29,18 @@ lemma continuous_on_Pair_second:
    apply (simp_all add: continuous_on_const continuous_on_id)
   apply (subgoal_tac "(\<lambda>y. (x, y)) ` B = {x} \<times> B")
    apply (auto intro: continuous_on_subset)
-done
+  done
+
+thm continuous_on_fst
   
 lemma continuous_on_pairwise:
   "\<lbrakk> continuous_on A f; continuous_on B g \<rbrakk> \<Longrightarrow> continuous_on (A \<times> B) (\<lambda> (x, y). (f x, g y))"
   apply (simp add: prod.case_eq_if)
   apply (rule continuous_on_Pair)
   apply (rule continuous_on_compose[of "A \<times> B" fst f, simplified])
-  apply (simp_all add: ODE_Auxiliarities.continuous_on_fst)
+  apply (simp_all add: continuous_on_fst)
   apply (rule continuous_on_compose[of "A \<times> B" snd g, simplified])
-  apply (simp_all add: ODE_Auxiliarities.continuous_on_snd)
+  apply (simp_all add: continuous_on_snd)
 done
   
 locale continuous_lens = 
@@ -98,8 +100,7 @@ lemma fst_continuous_lens [closure]:
   "continuous_lens fst\<^sub>L"
   apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)
   apply (rule continuous_on_Pair)
-  using ODE_Auxiliarities.continuous_on_snd apply blast
-  apply (simp add: ODE_Auxiliarities.continuous_on_fst Topological_Spaces.continuous_on_snd)
+  apply (simp_all add: continuous_on_fst continuous_on_snd)
 done
   
 text {* The one lens is continuous *}
@@ -112,7 +113,7 @@ text {* Lens summation of two continuous lenses is continuous *}
   
 lemma continuous_on_plus_lens [continuous_intros]:
   "\<lbrakk> continuous_on A get\<^bsub>x\<^esub>; continuous_on A get\<^bsub>y\<^esub> \<rbrakk> \<Longrightarrow> continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
-  by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair)
+  by (simp add: lens_defs continuous_on_Pair)
 
 declare plus_vwb_lens [simp]
    
@@ -123,7 +124,7 @@ proof (rule continuous_lens_intro)
   show "vwb_lens (x +\<^sub>L y)"
     by (simp add: assms)
   show "\<And>A. continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
-    by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms)  
+    by (simp add: lens_defs continuous_on_Pair assms)  
   show "\<And>B. continuous_on B (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
   proof -
     fix A v
@@ -134,22 +135,22 @@ proof (rule continuous_lens_intro)
         apply (rule continuous_on_compose[where s="A" and f="\<lambda> (x, y). (x, snd y)" and g="uncurry put\<^bsub>y\<^esub>"])
          apply (simp add: prod.case_eq_if)
           apply (rule continuous_on_Pair)
-        apply (simp add: ODE_Auxiliarities.continuous_on_fst)
-        apply (simp add: ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_snd)
+        apply (simp add: continuous_on_fst)
+        apply (simp add: continuous_on_snd)
         using assms(2) continuous_lens.put_continuous apply blast
       done
       thus "continuous_on A (\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2))"
        apply (simp add: prod.case_eq_if)
         apply (rule continuous_on_Pair)
-        apply (auto)
-        using ODE_Auxiliarities.continuous_on_snd Topological_Spaces.continuous_on_fst by blast
+         apply (auto simp add: continuous_on_snd continuous_on_fst)
+        done
     next
       show "continuous_on ((\<lambda>(s, v2, v1). (put\<^bsub>y\<^esub> s v1, v2)) ` A) (uncurry put\<^bsub>x\<^esub>)"
         using assms(1) continuous_lens.put_continuous by auto
     qed
 
     thus "continuous_on A (uncurry put\<^bsub>x +\<^sub>L y\<^esub>)"
-      by (simp add: lens_defs ODE_Auxiliarities.continuous_on_Pair assms prod.case_eq_if)
+      by (simp add: lens_defs continuous_on_Pair assms prod.case_eq_if)
   qed
 qed
 

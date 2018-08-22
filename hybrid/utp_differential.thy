@@ -33,7 +33,7 @@ abbreviation hasDerivAll ::
   
 translations
   "x has-vderiv y" <= 
-  "CONST trop (\<lambda>l f f'. CONST ODE_Auxiliarities.has_vderiv_on f1 f1' {0..l2}) \<^bold>l x y"
+  "CONST trop (\<lambda>l f f'. CONST Vector_Derivative_On.has_vderiv_on f1 f1' {0..l2}) \<^bold>l x y"
 
 abbreviation hasOdeDerivAt ::
   "((real \<Rightarrow> 'c :: real_normed_vector), '\<alpha>) uexpr \<Rightarrow>
@@ -161,7 +161,7 @@ proof (rule antisym)
     let ?G = "(\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr' - tr\<rangle>\<^sub>t(t)))"
         
     from a(4,5) b have "?P \<longleftrightarrow> (?G has_vector_derivative F' t (F t)) (at t within {0..<end\<^sub>t (tr' - tr)})"
-      by (rule_tac has_vector_derivative_cong, auto)
+      by (rule_tac has_vector_derivative_cong_ev, auto)
       
     with a(4,5) c show "(?G has_vector_derivative F' t (F t)) (at t within {0..end\<^sub>t (tr' - tr)})"
       by (simp add: at_within_closed_open)
@@ -290,9 +290,9 @@ text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
 text {* \emph{linear\_ode} certifies unique solutions for linears ODEs. *}
-  
+
 method linear_ode = 
-  (rule_tac uos_impl_uniq_sol[where L=1], (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_def dist_Pair_Pair prod.case_eq_if)[1], (auto)[1], ode_cert)  
+  (rule_tac uos_impl_uniq_sol[where L=1], (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_on_def dist_Pair_Pair prod.case_eq_if)[1], (auto)[1], ode_cert)  
 
 text {* \emph{ode\_solve} tries to rewrite an ODE to a solution. The solution must be passed
   as a mandatory term parameter. *}
@@ -332,7 +332,7 @@ proof (rule antisym)
         
     have "(f has_vector_derivative n) (at t within {0..<end\<^sub>t (tr' - tr)}) \<longleftrightarrow>
           ((\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>tt)) has_vector_derivative n) (at t within {0..<end\<^sub>t (tr' - tr)})"
-      by (rule has_vector_derivative_cong, simp_all add: a c)
+      by (rule has_vector_derivative_cong_ev, simp_all add: a c)
 
     with b show "((\<lambda>t. get\<^bsub>x\<^esub> (\<langle>tr'-tr\<rangle>\<^sub>tt)) has_vector_derivative n) (at t within {0..end\<^sub>t (tr' - tr)})"
       using a(4) a(5) at_within_closed_open b by auto

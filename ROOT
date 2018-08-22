@@ -117,6 +117,12 @@ session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
     "root.tex"
     "document.sty"
 
+(* Timed Relations *)
+
+session "UTP-Time" in "theories/time" = "UTP-Reactive-Designs" +
+  options [browser_info = true, document = false]
+  theories utp_time_rel  
+
 (* Stateful-Failure Reactive Designs *)
 
 session "UTP-Stateful-Failures" in "theories/sf_rdes" = "UTP-Reactive-Designs" +
@@ -161,6 +167,8 @@ session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
 
 session "UTP-Theories" in "theories" = "UTP-Circus" +
   options [browser_info = true, document = false]
+  sessions
+    "UTP-Time"
   theories utp_theories
 
 session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
@@ -191,7 +199,7 @@ session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
 session "UTP-Hybrid-Imports" = "Dynamics" +
   options [document = false]
   sessions
-    "UTP-Reactive-Designs"
+    "UTP-Time"
   theories
     "hybrid/utp_hybrid_imports"
 
