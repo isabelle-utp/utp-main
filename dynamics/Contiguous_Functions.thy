@@ -420,7 +420,7 @@ lemma cgf_sum_eq_sum_conv:
   "a @\<^sub>C b = c @\<^sub>C d \<Longrightarrow> \<exists>e. a = c @\<^sub>C e \<and> e @\<^sub>C b = d \<or> a @\<^sub>C e = c \<and> b = e @\<^sub>C d"
   by (metis cgf_cat_assoc cgf_cat_left_imp_eq cgf_prefix_iff cgf_sub_cat_cases)
   
-instantiation cgf :: (type) trace
+instantiation cgf :: (type) trace_split
 begin
   definition minus_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> 'a cgf" where
   "minus_cgf x y = x -\<^sub>m y"
@@ -428,10 +428,10 @@ instance
   apply (intro_classes)
   using cgf_cat_left_imp_eq apply blast
   using cgf_zero_sum_left apply blast
-  apply (simp add: cgf_sum_eq_sum_conv)
   apply (simp add: monoid_le_ttrace)
   apply (simp add: less_cgf_def)
-  apply (simp add: minus_cgf_def)
+   apply (simp add: minus_cgf_def)
+  apply (simp add: cgf_sum_eq_sum_conv)
 done
 end
 

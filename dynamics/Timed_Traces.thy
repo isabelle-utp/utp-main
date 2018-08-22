@@ -932,14 +932,14 @@ end
 text \<open> Similarly, we can define the minus operator for timed traces by definition from the
   summation operator. \<close>
 
-instance ttrace :: (topological_space) trace
+instance ttrace :: (topological_space) trace_split
   apply (intro_classes)
-  apply (transfer, metis add_monoid_diff_cancel_left)
-  apply (transfer, metis cgf_zero_sum_left)
+       apply (transfer, metis add_monoid_diff_cancel_left)
+      apply (transfer, metis cgf_zero_sum_left)
+     apply (simp_all add: less_eq_ttrace_def less_ttrace_def monoid_le_def minus_ttrace_def)
   apply (transfer)
   apply (metis cgf_sum_eq_sum_conv mem_Collect_eq piecewise_convergent_cat_right)
-  apply (simp_all add: less_eq_ttrace_def less_ttrace_def monoid_le_def minus_ttrace_def)
-done
+  done
   
 text \<open> We can then show that time traces also form a cancellative monoid, and thus fulfil the
   obligations to our trace algebra. We next lift some of the other operators for contiguous functions. \<close>
