@@ -173,13 +173,13 @@ session "UTP-Theories-Axm" in "utp/models" = "UTP-Theories" +
   options [browser_info = true, document = false]
   sessions
     "UTP-Axm"
-  theories utp_theories utp_axm
+  theories utp_axm
 
 session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
   options [browser_info = true, document = false]
   sessions
     "UTP-Deep-Axm"
-  theories utp_theories_deep utp_axm
+  theories utp_axm
 
 (* Imports for Hybrid UTP *)
 
@@ -191,7 +191,7 @@ session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
 session "UTP-Hybrid-Imports" = "Dynamics" +
   options [document = false]
   sessions
-    "UTP-Theories"
+    "UTP-Reactive-Designs"
   theories
     "hybrid/utp_hybrid_imports"
 

@@ -1,14 +1,14 @@
-section {* Timed Traces *}
+section \<open> Timed Traces \<close>
 
 theory Timed_Traces
 imports Contiguous_Functions
 begin
 
-subsection {* Piecewise Continuity *}
+subsection \<open> Piecewise Continuity \<close>
 
-text {* With the foundation of contiguous functions established, we can now proceed to define
+text \<open> With the foundation of contiguous functions established, we can now proceed to define
   piecewise continuous and convergent functions. We begin with a locale that gives the necessary
-  invariants on a piecewise continuous function. *}
+  invariants on a piecewise continuous function. \<close>
 
 locale pc_interval =
   fixes I :: "real list" and f :: "'a::topological_space cgf"
@@ -19,7 +19,7 @@ locale pc_interval =
   and continuous_segments [intro]: "\<And> i. i < length(I) - 1 \<Longrightarrow> continuous_on {I!i ..< I!(Suc i)} \<langle>f\<rangle>\<^sub>C"
 begin
 
-text {* Piecewise continuity means that there exists an ordered list $I$ of points (equivalently
+text \<open> Piecewise continuity means that there exists an ordered list $I$ of points (equivalently
     a finite set) within in the contiguous function $f$, such that each inter-point segment is
     continuous. This list can therefore be thought of as as a finite set of segments.
     In order to allow the specification of continuity we require that the range type of $f$ is a suitable topological
@@ -37,7 +37,7 @@ text {* Piecewise continuity means that there exists an ordered list $I$ of poin
 
     The function predicate @{term "continuous_on g A"} describes that a function $g$ is continuous
     on the sub-domain $A$. From these axioms we can derive some theorems, which are listed below.
- *}
+ \<close>
 
   lemma I_length [simp]: "length(I) > 0"
     using I_bounds by auto
@@ -45,25 +45,25 @@ text {* Piecewise continuity means that there exists an ordered list $I$ of poin
   lemma ne_f_I_length [simp]: "f \<noteq> []\<^sub>C \<Longrightarrow> length(I) > Suc 0"
     by (metis I_bounds I_length Suc_lessI cgf_end_0_iff in_set_conv_nth insert_subset less_Suc0)
 
-  text {* The length of the point list cannot be empty, and assuming the contiguous function is non-empty
-    then there must be more than one point. *}
+  text \<open> The length of the point list cannot be empty, and assuming the contiguous function is non-empty
+    then there must be more than one point. \<close>
 
   lemma I_hd [simp]: "hd(I) = 0"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff atLeastLessThan_empty
               atLeastLessThan_empty_iff contra_subsetD empty_iff hd_in_set insert_subset
-              less_eq_real_def list.exhaust_sel list.set(1) sorted_Cons tl_element)
+              less_eq_real_def list.exhaust_sel list.set(1) sorted.simps(2) tl_element)
 
   lemma I_last: "last(I) = end\<^sub>C(f)"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff dual_order.antisym empty_iff
               insert_subset last_in_set list.set(1) sorted_last subsetCE)
 
-  text {* The first point is always 0, and the final point is the end point of the function. *}
+  text \<open> The first point is always 0, and the final point is the end point of the function. \<close>
 
   lemma tl_I_ge_0 [simp]: "x \<in> set (tl I) \<Longrightarrow> x > 0"
     by (metis I_distinct I_hd I_length I_sorted distinct.simps(2) hd_Cons_tl length_greater_0_conv
-              less_eq_real_def sorted_Cons)
+              less_eq_real_def sorted.simps(2))
 
-  text {* Any point after the initial point must be strictly positive. *}
+  text \<open> Any point after the initial point must be strictly positive. \<close>
 
   lemma I_z [simp]: "0 \<in> set(I)"
     using I_bounds by blast
@@ -71,7 +71,7 @@ text {* Piecewise continuity means that there exists an ordered list $I$ of poin
   lemma I_nz [simp]: "x \<in> set(I) \<Longrightarrow> 0 \<le> x"
     using I_range atLeastAtMost_iff by blast
 
-  text {* One of the points is 0, and every element is no less than 0. *}
+  text \<open> One of the points is 0, and every element is no less than 0. \<close>
 
   lemma nth_I_nz: "i < length I \<Longrightarrow> 0 \<le> I!i"
     by simp
@@ -81,18 +81,18 @@ text {* Piecewise continuity means that there exists an ordered list $I$ of poin
 
 end
 
-text {* In addition to piecewise continuous function we also define the following locale that
+text \<open> In addition to piecewise continuous function we also define the following locale that
   characterises piecewise convergent functions. Specifically, it characterises functions where
   each continuous segment also converges to a given limit. We will make this requirement of
-  our timed traces to ensure that the "final" value of a trace can always be obtained. *}
+  our timed traces to ensure that the "final" value of a trace can always be obtained. \<close>
 
 locale pc_cvg_interval = pc_interval +
-  -- {* The following assumption requires that each continuous segment also converges to a limit *}
+  \<comment> \<open> The following assumption requires that each continuous segment also converges to a limit \<close>
   assumes cvg_segments [intro]:
     "\<And> i. i < length(I) - 1 \<Longrightarrow> \<exists> L. (\<langle>f\<rangle>\<^sub>C \<longlongrightarrow> L) (at (I!(Suc i)) within {I!i ..< I!(Suc i)})"
 
-text {* We characterise piecewise convergent functions $f$ by requiring that for each segment $(i, i+1)$
-  there exists a limit $L$ which the function tends to at point $i+1$. *}
+text \<open> We characterise piecewise convergent functions $f$ by requiring that for each segment $(i, i+1)$
+  there exists a limit $L$ which the function tends to at point $i+1$. \<close>
 
 definition piecewise_continuous :: "'a::topological_space cgf \<Rightarrow> bool" where
 "piecewise_continuous f = (\<exists> I. pc_interval I f)"
@@ -100,25 +100,25 @@ definition piecewise_continuous :: "'a::topological_space cgf \<Rightarrow> bool
 definition piecewise_convergent :: "'a::topological_space cgf \<Rightarrow> bool" where
 "piecewise_convergent f = (\<exists> I. pc_cvg_interval I f)"
 
-text {* Functions are respectively piecewise continuous or convergent, if there exists an $I$
-  that characterises the piecewise segments.  *}
+text \<open> Functions are respectively piecewise continuous or convergent, if there exists an $I$
+  that characterises the piecewise segments.  \<close>
 
 lemma piecewise_continuous_empty [simp]: "piecewise_continuous []\<^sub>C"
   by (auto simp add: piecewise_continuous_def, rule_tac x="[0]" in exI,
-      simp add: pc_interval_def cgf_end_empty)
+      simp add: pc_interval_def)
 
 lemma piecewise_convergent_empty [simp]: "piecewise_convergent []\<^sub>C"
    by (auto simp add: piecewise_convergent_def, rule_tac x="[0]" in exI,
-       simp add: pc_interval_def pc_cvg_interval_def pc_cvg_interval_axioms_def cgf_end_empty)
+       simp add: pc_interval_def pc_cvg_interval_def pc_cvg_interval_axioms_def)
 
-text {* Empty contiguous functions are both piecewise continuous and piecewise convergent. *}
+text \<open> Empty contiguous functions are both piecewise continuous and piecewise convergent. \<close>
 
-subsection {* Concatenation of Piecewise Continuous Functions *}
+subsection \<open> Concatenation of Piecewise Continuous Functions \<close>
 
-text {* A major result of this theory is to show that the a piecewise continuous function can always
+text \<open> A major result of this theory is to show that the a piecewise continuous function can always
   be decomposed into two piecewise continuous functions with the help of concatenation operator.
   This requires a lot of lemmas and theorems which we will develop in this section. We first prove
-  some continuity properties about transformed functions. *}
+  some continuity properties about transformed functions. \<close>
 
 lemma continuous_on_linear:
   fixes A :: "real set"
@@ -129,7 +129,7 @@ proof (clarsimp simp add: continuous_on_def)
     by (force intro: tendsto_add[of "(\<lambda>x. m * x)" "m * x" "at x within A" "\<lambda>_. a" a, simplified] tendsto_mult)
 qed
 
-text {* This property states that any linear function on a real number is everywhere continuous. *}
+text \<open> This property states that any linear function on a real number is everywhere continuous. \<close>
 
 lemma continuous_on_shift:
   fixes f :: "real \<Rightarrow> 'b::topological_space"
@@ -145,8 +145,8 @@ proof -
     by (simp add: assms)
 qed
 
-text {* This property shows that, given a continuous function $f$ on $A$, then if we shift the
-  the function to right by $y$, the resulting function is continuous on a shifted domain. *}
+text \<open> This property shows that, given a continuous function $f$ on $A$, then if we shift the
+  the function to right by $y$, the resulting function is continuous on a shifted domain. \<close>
 
 lemma continuous_on_cgf_cat_left:
   assumes "j \<le> end\<^sub>C f" "continuous_on {i..<j} \<langle>f @\<^sub>C g\<rangle>\<^sub>C"
@@ -185,14 +185,14 @@ proof -
   ultimately show ?thesis by blast
 qed
 
-text {* These previous three theorems show that if the concatenation of two contiguous functions is continuous,
-  then the functions themselves must also be continuous. *}
+text \<open> These previous three theorems show that if the concatenation of two contiguous functions is continuous,
+  then the functions themselves must also be continuous. \<close>
 
 definition "left_pc_interval n I = (takeWhile (\<lambda> x. x < n) I) @ [n]"
 
 definition "right_pc_interval n I = 0 # map (\<lambda> x. x - n) (dropWhile (\<lambda> x. x \<le> n) I)"
 
-text {* An important part of manipulating timed traces is that we can decompose them. In order to do
+text \<open> An important part of manipulating timed traces is that we can decompose them. In order to do
   this, and ensure closure of the operators, we need to show that decomposition of a piecewise
   continuous function results in two piecewise continuous segments, each of which will be characterised
   by its own piecewise continuous segment set. These two functions extract the
@@ -206,7 +206,7 @@ text {* An important part of manipulating timed traces is that we can decompose 
   the point on the end to complete the final interval. The second function, @{term right_pc_interval},
   conversely takes the remainder of the list, and shifts each element to the left by $n$ (so as to
   construct a segment set for the right trace only). Finally, it prepends the list with $0$ to denote
-  the beginning of the first segment. *}
+  the beginning of the first segment. \<close>
 
 lemma set_left_pc_interval:
   "sorted I \<Longrightarrow> set (left_pc_interval n I) = insert n {x |x. x \<in> ran\<^sub>l I \<and> n > x}"
@@ -217,9 +217,9 @@ lemma set_right_pc_interval:
   "sorted I \<Longrightarrow> set (right_pc_interval n I) = insert 0 {x - n |x. x \<in> ran\<^sub>l I \<and> n < x}"
   by (simp add: right_pc_interval_def set_dropWhile_le image_Collect)
 
-text {* These two properties show the set of points that will be present in the left and right
+text \<open> These two properties show the set of points that will be present in the left and right
   segment sets, respectively. We will next prove that both the left and right segment sets characterise
-  piecewise continuity for the elements of a decomposed piecewise continuous functions. *}
+  piecewise continuity for the elements of a decomposed piecewise continuous functions. \<close>
 
 lemma pc_interval_left:
   assumes "pc_interval I (f @\<^sub>C g)"
@@ -227,9 +227,9 @@ lemma pc_interval_left:
 proof
   interpret I: pc_interval I "(f @\<^sub>C g)" by (simp add: assms)
 
-  -- {* We first need to show the basic properties of the decomposed interval; that its points
+  \<comment> \<open> We first need to show the basic properties of the decomposed interval; that its points
         lie within the range of function $f$ and that is is sorted and distinct. These properties
-        follow relatively easily. *}
+        follow relatively easily. \<close>
 
   show "set (left_pc_interval (end\<^sub>C f) I) \<subseteq> {0..end\<^sub>C f}"
     by (auto simp add: set_left_pc_interval)
@@ -241,8 +241,8 @@ proof
   show "distinct (left_pc_interval (end\<^sub>C f) I)"
     by (auto simp add: left_pc_interval_def, meson less_irrefl set_takeWhileD)
 
-  -- {* The complicated part of the proof is to show that each of the segments, characterised
-        by $i$ and $i+1$, is continuous. *}
+  \<comment> \<open> The complicated part of the proof is to show that each of the segments, characterised
+        by $i$ and $i+1$, is continuous. \<close>
 
   show "\<And>i. i < length (left_pc_interval (end\<^sub>C f) I) - 1 \<Longrightarrow>
          continuous_on {left_pc_interval (end\<^sub>C f) I ! i..<left_pc_interval (end\<^sub>C f) I ! Suc i} \<langle>f\<rangle>\<^sub>C"
@@ -296,7 +296,7 @@ proof
   qed
 qed
 
-text {* The next proof dualises the above proof. *}
+text \<open> The next proof dualises the above proof. \<close>
 
 lemma pc_interval_right:
   assumes "pc_interval I (f @\<^sub>C g)"
@@ -305,7 +305,7 @@ proof
   interpret I: pc_interval I "(f @\<^sub>C g)" by (simp add: assms)
   obtain I' where I': "I = 0 # I'" "sorted I'" "distinct I'"
     by (metis I.I_distinct I.I_hd I.I_length I.I_sorted distinct.simps(2) hd_Cons_tl
-              length_greater_0_conv sorted_Cons)
+              length_greater_0_conv sorted.simps(2))
   show "set (right_pc_interval (end\<^sub>C f) I) \<subseteq> {0..end\<^sub>C g}"
     by (auto simp add: set_right_pc_interval, metis I.I_le_end
              cancel_ab_semigroup_add_class.add_diff_cancel_left'
@@ -316,7 +316,7 @@ proof
         cgf_end_ge_0 diff_gt_0_iff_gt last_in_set length_greater_0_conv length_pos_if_in_set
         less_eq_real_def)
   show "sorted (right_pc_interval (end\<^sub>C f) I)"
-    apply (auto intro!:sorted_map sorted_dropWhile simp add: right_pc_interval_def sorted_Cons mono_def)
+    apply (auto intro!:sorted_map sorted_dropWhile simp add: right_pc_interval_def mono_def)
     using I.I_sorted dropWhile_sorted_le_above less_eq_real_def apply blast
   done
   show "distinct (right_pc_interval (end\<^sub>C f) I)"
@@ -373,9 +373,9 @@ proof
   qed
 qed
 
-text {* Having proved that a piecewise continuous function can be decomposed into two piecewise
+text \<open> Having proved that a piecewise continuous function can be decomposed into two piecewise
   continuous functions, we now prove the same property but for convergent functions. The first
-  step is to show some properties about limits. *}
+  step is to show some properties about limits. \<close>
 
 lemma Lim_cgf_plus_shift:
   assumes "0 \<le> m" "m < n"
@@ -406,10 +406,10 @@ proof -
        (metis Lim_cgf_plus_shift add.commute add.left_neutral assms order_refl)  
 qed
   
-text {* Theorem @{thm [source] Lim_cgf_plus_shift} shows that a composed function converges to a point beyond
+text \<open> Theorem @{thm [source] Lim_cgf_plus_shift} shows that a composed function converges to a point beyond
   the end of the first (left) function if and only if the second function also conveges to this
   point, but with shifted indices. We then use this properties to show that the a piecewise
-  convergent function can be decomposed into two. *}
+  convergent function can be decomposed into two. \<close>
 
 lemma pc_cvg_interval_left:
   assumes "pc_cvg_interval I (f @\<^sub>C g)"
@@ -595,8 +595,8 @@ proof -
   qed
 qed
 
-text {* Having proved all these properties about the intervals of piecewise continuous functions,
-  we can now lift this to the functions themselves. *}
+text \<open> Having proved all these properties about the intervals of piecewise continuous functions,
+  we can now lift this to the functions themselves. \<close>
 
 lemma piecewise_continuous_cat_left:
   assumes "piecewise_continuous (f @\<^sub>C g)"
@@ -618,14 +618,14 @@ lemma piecewise_convergent_cat_right:
   shows "piecewise_convergent g"
   using assms pc_cvg_interval_right by (auto simp add: piecewise_convergent_def)
 
-text {* Next we need to show that the composition of two piecewise continuous functions yields
+text \<open> Next we need to show that the composition of two piecewise continuous functions yields
   a piecewise continuous function; the inverse direction of the above proofs. Again, we do
   this by constructing a suitable interval set, though this time we compose $I_1$ and $I_2$
-  of the underlying functions by shifting $I_2$ to the right. *}
+  of the underlying functions by shifting $I_2$ to the right. \<close>
 
 lemma pc_interval_cat:
   assumes "pc_interval I\<^sub>1 f" "pc_interval I\<^sub>2 g"
-  shows "pc_interval (I\<^sub>1 @ map (op + (end\<^sub>C f)) (tl I\<^sub>2)) (f @\<^sub>C g)"
+  shows "pc_interval (I\<^sub>1 @ map ((+) (end\<^sub>C f)) (tl I\<^sub>2)) (f @\<^sub>C g)"
 proof (cases "g = []\<^sub>C")
   case True thus ?thesis
     by (simp, metis append_Nil2 assms(1) assms(2) cgf_end_empty last_in_set length_greater_0_conv
@@ -639,7 +639,7 @@ next
   interpret I\<^sub>1: pc_interval I\<^sub>1 f by (simp add: assms)
   interpret I\<^sub>2: pc_interval I\<^sub>2 g by (simp add: assms)
 
-  let ?I = "I\<^sub>1 @ map (op + (end\<^sub>C f)) (tl I\<^sub>2)"
+  let ?I = "I\<^sub>1 @ map ((+) (end\<^sub>C f)) (tl I\<^sub>2)"
 
   have "ran\<^sub>l ?I \<subseteq> {0..end\<^sub>C f+end\<^sub>C g}"
     using I\<^sub>2.I_length list.set_sel(2) by (force simp add: add_increasing2 less_imp_le)
@@ -722,8 +722,8 @@ next
     by (unfold_locales, simp_all add: cgf_end_cat)
 qed
 
-text {* Thus we can show that the composition of piecewise continuous functions yields a piecewise
-  continuous function. *}
+text \<open> Thus we can show that the composition of piecewise continuous functions yields a piecewise
+  continuous function. \<close>
 
 lemma piecewise_continuous_cat:
   assumes "piecewise_continuous f" "piecewise_continuous g"
@@ -731,25 +731,25 @@ lemma piecewise_continuous_cat:
   using assms
   by (auto intro: pc_interval_cat simp add: piecewise_continuous_def)
 
-text {* Since we've proved this property in both directions we can prove the following if and only if
+text \<open> Since we've proved this property in both directions we can prove the following if and only if
   -- the composition of two functions is piecewise continuous if and only if the underlying
-  functions are piecewise continuous. *}
+  functions are piecewise continuous. \<close>
 
 lemma piecewise_continuous_cat_iff:
   "piecewise_continuous (f @\<^sub>C g) \<longleftrightarrow> piecewise_continuous f \<and> piecewise_continuous g"
   using piecewise_continuous_cat piecewise_continuous_cat_left piecewise_continuous_cat_right
   by blast
 
-text {* We then also need to show that the composition of two piecewise convergent functions yields
-  a piecewise convergent function, in a similar way to the above. *}
+text \<open> We then also need to show that the composition of two piecewise convergent functions yields
+  a piecewise convergent function, in a similar way to the above. \<close>
 
 lemma pc_cvg_interval_cat:
   assumes "pc_cvg_interval I\<^sub>1 f" "pc_cvg_interval I\<^sub>2 g"
-  shows "pc_cvg_interval (I\<^sub>1 @ map (op + (end\<^sub>C f)) (tl I\<^sub>2)) (f @\<^sub>C g)"
+  shows "pc_cvg_interval (I\<^sub>1 @ map ((+) (end\<^sub>C f)) (tl I\<^sub>2)) (f @\<^sub>C g)"
 proof -
   interpret I\<^sub>1: pc_cvg_interval I\<^sub>1 f by (simp add: assms)
   interpret I\<^sub>2: pc_cvg_interval I\<^sub>2 g by (simp add: assms)
-  let ?I = "I\<^sub>1 @ map (op + (end\<^sub>C f)) (tl I\<^sub>2)"
+  let ?I = "I\<^sub>1 @ map ((+) (end\<^sub>C f)) (tl I\<^sub>2)"
   interpret I: pc_interval ?I "(f @\<^sub>C g)"
     using pc_interval_cat[of I\<^sub>1 f I\<^sub>2 g] I\<^sub>1.pc_interval_axioms I\<^sub>2.pc_interval_axioms by blast
   have "\<And> i. i < length(?I) - 1 \<Longrightarrow>
@@ -833,8 +833,8 @@ proof -
     by (unfold_locales, auto)
 qed
 
-text {* Then, we can show that the composition of two piecewise convergent functions is piecewise
-  convergent, and prove a similar "if and only if". *}
+text \<open> Then, we can show that the composition of two piecewise convergent functions is piecewise
+  convergent, and prove a similar "if and only if". \<close>
 
 lemma piecewise_convergent_cat:
   assumes "piecewise_convergent f" "piecewise_convergent g"
@@ -847,28 +847,28 @@ lemma piecewise_convergent_cat_iff:
   using piecewise_convergent_cat piecewise_convergent_cat_left piecewise_convergent_cat_right
   by blast
 
-text {* Thus we have proved the key properties about composition of piecewise continuous functions,
-  and so we now proceed to create the type. *}
+text \<open> Thus we have proved the key properties about composition of piecewise continuous functions,
+  and so we now proceed to create the type. \<close>
 
-subsection {* Timed Trace Type *}
+subsection \<open> Timed Trace Type \<close>
 
-text {* Finally, having proved the important closure properties for piecewise continuous and convergent
-  functions we can now create our type of timed traces, which are piecewise convergent functions. *}
+text \<open> Finally, having proved the important closure properties for piecewise continuous and convergent
+  functions we can now create our type of timed traces, which are piecewise convergent functions. \<close>
 
 typedef (overloaded) 'a::topological_space ttrace =
   "{f :: 'a cgf. piecewise_convergent f}"
   by (rule_tac x="[]\<^sub>C" in exI, simp)
 
-text {* The parameter of a timed trace must be within the @{class topological_space} class so that
+text \<open> The parameter of a timed trace must be within the @{class topological_space} class so that
   we can talk about limits and continuity. As before, we need to exhibit a piecewise convergent
   function to ensure non-emptiness of the characteristic type set, and in this case we chose the
-  empty trace. *}
+  empty trace. \<close>
 
 setup_lifting type_definition_ttrace
 
-text {* As for contiguous functions, we instantiate various type classes that equip our type
+text \<open> As for contiguous functions, we instantiate various type classes that equip our type
   with suitable algebraic operators. Note that all of these instantiations require that
-  the parameter be a topological space. *}
+  the parameter be a topological space. \<close>
 
 instantiation ttrace :: (topological_space) zero
 begin
@@ -878,13 +878,13 @@ end
 
 abbreviation (input) tt_empty :: "'a::topological_space ttrace" ("[]\<^sub>t") where "[]\<^sub>t \<equiv> 0"
 
-text {* The zero trace is the empty trace, and we give this the syntax @{term "[]\<^sub>t"}. *}
+text \<open> The zero trace is the empty trace, and we give this the syntax @{term "[]\<^sub>t"}. \<close>
 
 instantiation ttrace :: (topological_space) plus
 begin
 
 lift_definition plus_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace"
-is "op +" by (simp add: piecewise_convergent_cat)
+is "(+)" by (simp add: piecewise_convergent_cat)
 
 instance ..
 
@@ -894,21 +894,21 @@ abbreviation (input)
   tt_cat :: "'a::topological_space ttrace \<Rightarrow> 'a ttrace \<Rightarrow> 'a ttrace" (infixl "@\<^sub>t" 85)
 where "xs @\<^sub>t ys \<equiv> xs + ys"
 
-text {* Plus is trace concatenation, which we also give the syntax of @{term "s @\<^sub>t t"}. It is here
+text \<open> Plus is trace concatenation, which we also give the syntax of @{term "s @\<^sub>t t"}. It is here
   where we rely on our closure property for piecewise convergent functions since lifted functions
-  must be closed under the timed trace characteristic set. *}
+  must be closed under the timed trace characteristic set. \<close>
 
 instance ttrace :: (topological_space) monoid_add
   by (intro_classes, (transfer, simp add: add.assoc)+)
 
-text {* Now, since we know that timed traces are closure under plus we can prove that timed traces
-  form a monoid, simply by transfer of the equivalent property on contiguous functions. *}
+text \<open> Now, since we know that timed traces are closure under plus we can prove that timed traces
+  form a monoid, simply by transfer of the equivalent property on contiguous functions. \<close>
 
 instantiation ttrace :: (topological_space) ord
 begin
 
 definition less_eq_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool"
-where "less_eq_ttrace = op \<le>\<^sub>m"
+where "less_eq_ttrace = (\<le>\<^sub>m)"
 definition less_ttrace :: "'a ttrace \<Rightarrow> 'a ttrace \<Rightarrow> bool"
 where "less_ttrace a b = (a \<le> b \<and> \<not> b \<le> a)"
 
@@ -916,8 +916,8 @@ instance ..
 
 end
 
-text {* We can also define the ordering relation on traces, by lifting the order induced by
-  our summation operator (as for contiguous functions). *}
+text \<open> We can also define the ordering relation on traces, by lifting the order induced by
+  our summation operator (as for contiguous functions). \<close>
 
 instantiation ttrace :: (topological_space) minus
 begin
@@ -929,8 +929,8 @@ begin
 
 end
 
-text {* Similarly, we can define the minus operator for timed traces by definition from the
-  summation operator. *}
+text \<open> Similarly, we can define the minus operator for timed traces by definition from the
+  summation operator. \<close>
 
 instance ttrace :: (topological_space) trace
   apply (intro_classes)
@@ -941,13 +941,13 @@ instance ttrace :: (topological_space) trace
   apply (simp_all add: less_eq_ttrace_def less_ttrace_def monoid_le_def minus_ttrace_def)
 done
   
-text {* We can then show that time traces also form a cancellative monoid, and thus fulfil the
-  obligations to our trace algebra. We next lift some of the other operators for contiguous functions. *}
+text \<open> We can then show that time traces also form a cancellative monoid, and thus fulfil the
+  obligations to our trace algebra. We next lift some of the other operators for contiguous functions. \<close>
 
 lift_definition tt_end :: "'a::topological_space ttrace \<Rightarrow> real" ("end\<^sub>t") is "cgf_end" .
 
-text {* @{term tt_end} retrieves the end point of a timed trace by doing so on the underlying
-  contiguous function. We can then lift multiple properties about this function. *}
+text \<open> @{term tt_end} retrieves the end point of a timed trace by doing so on the underlying
+  contiguous function. We can then lift multiple properties about this function. \<close>
 
 lemma tt_end_ge_0 [simp]: "end\<^sub>t(f) \<ge> 0" by (transfer, simp)
 
@@ -992,8 +992,8 @@ lemma tt_sub_end:
     
 lift_definition tt_apply :: "'a::topological_space ttrace \<Rightarrow> real \<Rightarrow> 'a" ("\<langle>_\<rangle>\<^sub>t") is cgf_apply .
 
-text {* @{term tt_apply} is function application for timed traces, likewise defined by lifting
-  and transfer of properties below. *}
+text \<open> @{term tt_apply} is function application for timed traces, likewise defined by lifting
+  and transfer of properties below. \<close>
 
 lemma tt_cat_ext_first [simp]: "x < end\<^sub>t f \<Longrightarrow> \<langle>f @\<^sub>t g\<rangle>\<^sub>t x = \<langle>f\<rangle>\<^sub>t x"
   by (transfer, simp add: cgf_cat_ext_first)
@@ -1026,11 +1026,11 @@ proof -
     by (metis piecewise_convergent_cat_left)
 qed
 
-text {* Lifting the @{term tt_restrict} operator is a little more complicated since we need to
+text \<open> Lifting the @{term tt_restrict} operator is a little more complicated since we need to
   show that the restricted contiguous function remains piecewise convergent. However, since
   we can rewrite our restricted function as a concatenation, and we know that concatenations
   can be decomposed to piecewise convergent parts, we can easily prove closure of the operator.
-  Then we can easily lift properties from convergent functions. *}
+  Then we can easily lift properties from convergent functions. \<close>
 
 lemma tt_restrict_le: "t \<restriction>\<^sub>t n \<le> t"
   by (simp add: less_eq_ttrace_def monoid_le_def, transfer)
@@ -1043,10 +1043,10 @@ lemma tt_restrict_empty [simp]: "[]\<^sub>t \<restriction>\<^sub>t n = []\<^sub>
 lemma tt_end_restrict [simp]: "\<lbrakk> 0 \<le> n; n \<le> end\<^sub>t f \<rbrakk> \<Longrightarrow> end\<^sub>t (f \<restriction>\<^sub>t n) = n"
   by (transfer, simp)
 
-text {* We prove the following useful property: a non-empty timed trace can always be divided into
+text \<open> We prove the following useful property: a non-empty timed trace can always be divided into
   two non-empty sections, which just uses our restriction operator. It is useful because
   It means we can always chop up a trace into two traces, which is important for piecewise
-  reasoning about systems. *}
+  reasoning about systems. \<close>
 
 lemma ttrace_divisible:
   assumes "end\<^sub>t(t) > 0"
@@ -1062,8 +1062,8 @@ proof -
     using that by blast
 qed
 
-text {* We also show that any non-empty piecewise convergent function must exhibit a definite
-  end point $l$ that it converges to. *}
+text \<open> We also show that any non-empty piecewise convergent function must exhibit a definite
+  end point $l$ that it converges to. \<close>
 
 lemma piecewise_convergent_end:
   assumes "piecewise_convergent t" "0 < end\<^sub>C t"
@@ -1087,7 +1087,7 @@ proof -
     using L at_left_end by auto
 qed
 
-text {* We then also lift this property to timed traces. *}
+text \<open> We then also lift this property to timed traces. \<close>
 
 lemma ttrace_convergent_end:
   assumes "0 < end\<^sub>t t"
@@ -1095,8 +1095,8 @@ lemma ttrace_convergent_end:
   using assms
   by (transfer, blast intro: piecewise_convergent_end)
   
-text {* We next construct a function to build an atomic timed trace from a continuous function,
-  this requires that be prove a number of continuity lemmas first. *}
+text \<open> We next construct a function to build an atomic timed trace from a continuous function,
+  this requires that be prove a number of continuity lemmas first. \<close>
     
 lemma continuous_on_mk_cgf:
   assumes "continuous_on {0..l} f" 
@@ -1130,8 +1130,8 @@ lemma piecewise_convergent_cgf_mk:
   apply (meson atLeastLessThan_subseteq_atLeastAtMost_iff cgf_mk_tendto order_refl tendsto_within_subset)
 done
 
-text {* The function $mk_t$ builds a timed trace from a function, provided it is continuous on
-  the given domain. If it isn't, then an empty timed trace is produced. *}
+text \<open> The function $mk_t$ builds a timed trace from a function, provided it is continuous on
+  the given domain. If it isn't, then an empty timed trace is produced. \<close>
   
 lift_definition tt_mk :: "real \<Rightarrow> (real \<Rightarrow> 'a::topological_space) \<Rightarrow> 'a ttrace" ("mk\<^sub>t")
 is "\<lambda> t f. if (continuous_on {0..t} f) 
@@ -1157,7 +1157,7 @@ lemma tt_mk_nempty [simp]:
   "0 < n \<Longrightarrow> 0 < mk\<^sub>t n f" 
   by (metis dual_order.strict_implies_not_eq dual_order.strict_implies_order neq_zero_impl_greater tt_end_empty tt_end_mk)
    
-text {* Limit of a timed trace *}
+text \<open> Limit of a timed trace \<close>
    
 abbreviation lim_ttrace :: "'a::t2_space ttrace \<Rightarrow> 'a" ("lim\<^sub>t") where
 "lim_ttrace t \<equiv> Lim (at_left (end\<^sub>t t)) \<langle>t\<rangle>\<^sub>t"
@@ -1206,7 +1206,7 @@ proof -
     by (metis l tendsto_Lim trivial_limit_at_left_real tt_end_cat)
 qed
 
-text {* Finally, we hide the implementation details for contiguous functions and timed traces. *}
+text \<open> Finally, we hide the implementation details for contiguous functions and timed traces. \<close>
 
 lifting_update cgf.lifting
 lifting_forget cgf.lifting

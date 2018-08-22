@@ -3,7 +3,7 @@ section {* Contiguous Functions *}
 (*<*)
 theory Contiguous_Functions
   imports
-  Real_Vector_Spaces
+  HOL.Real_Vector_Spaces
   "Optics.Lenses"
   "UTP-Toolkit.Map_Extra"
   "UTP-Toolkit.List_Extra"
@@ -43,7 +43,7 @@ text {* We can then show the following two results that give the domain of left 
 lemma dom_shift_plus: "dom (n \<lless> f) = {x - n | x. x \<in> dom f}"
   by (auto simp add: dom_def, force)
 
-lemma dom_shift_minus: "dom (f \<ggreater> n) = op + n ` dom f"
+lemma dom_shift_minus: "dom (f \<ggreater> n) = (+) n ` dom f"
   by (simp add: dom_def image_Collect, force)
 
 lemma shift_minus_cong: "f \<ggreater> n = g \<ggreater> n \<Longrightarrow> f = g"
@@ -54,11 +54,6 @@ done
 
 lemma dom_shift_map_add: "(f ++ g) \<ggreater> n = (f \<ggreater> n) ++ (g \<ggreater> n)"
   by (simp add: map_add_def)
-
-lemma plus_image_atLeastLessThan:
-  fixes m n k :: "real"
-  shows "op + k ` {m..<n} = {m+k..<n+k}"
-  by (auto, metis add.commute atLeastLessThan_iff diff_add_cancel diff_less_eq imageI le_diff_eq)
 
 lemma atLeastLessThan_union_disj [simp]: "\<lbrakk> 0 \<le> i; i \<le> j \<rbrakk> \<Longrightarrow> {0..<i::real} \<union> {i..<j} = {0..<j}"
   by (auto)
@@ -169,7 +164,7 @@ proof -
   from ij have "?k \<ge> 0"
     by auto
   moreover from ij have "dom ((g \<ggreater> Sup' (dom f)) ++ f) = {0..<?k}"
-    by (auto simp add: dom_shift_minus plus_image_atLeastLessThan)
+    by (auto simp add: dom_shift_minus)
   ultimately show "\<exists>i\<ge>0. dom ((g \<ggreater> Sup' (dom f)) ++ f) = {0..<i}"
     by force
 qed
@@ -183,7 +178,7 @@ where "xs @\<^sub>C ys \<equiv> xs + ys"
 text {* We next define the concatenation operator, which in our algebra is a plus operator. The
   concatentation of functions, @{term [source] "f @\<^sub>C g"}, takes @{term g}, shifts it to the right by
   the length of @{term f}, and finally unions this with @{term f} using the partial function
-  operator @{term "op ++"}. It is necessary to show that this definition is closed under contiguous functions,
+  operator @{term "(++)"}. It is necessary to show that this definition is closed under contiguous functions,
   i.e. we must demonstrate an $k$ such that the domain of @{term [source] "f @\<^sub>C g"} is $[0..k)$, which we do
   using an Isar proof. Since we're concatentating two functions of length $i$ and $j$, respectively,
   then their combined length will be $i + j$, which our proof confirms. *}
@@ -224,7 +219,7 @@ lemma cgf_end_0_iff: "end\<^sub>C(f) = 0 \<longleftrightarrow> f = []\<^sub>C"
   by (transfer, force simp add: antisym_conv2)
 
 lemma cgf_end_cat: "end\<^sub>C(f @\<^sub>C g) = end\<^sub>C(f)+end\<^sub>C(g)"
-  by (transfer, auto simp add: dom_shift_minus plus_image_atLeastLessThan)
+  by (transfer, auto simp add: dom_shift_minus)
 
 text {* Next we demonstrate some properties about the @{term end\<^sub>C} function. It always returns
   a positive value (@{thm [source] cgf_end_ge_0}), the end of the empty function is 0 (@{thm [source] cgf_end_empty}),
@@ -364,14 +359,14 @@ instance cgf :: (type) monoid_add
 instantiation cgf :: (type) ord
 begin
   lift_definition less_eq_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" is
-  "op \<subseteq>\<^sub>m" .
+  "(\<subseteq>\<^sub>m)" .
   definition less_cgf :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" where
   "less_cgf x y = (x \<le> y \<and> \<not> y \<le> x)"
 instance ..
 end
 
 text {* We can also construct a suitably order relation on contiguous functions by lifting of the
-  corresponding order on partial functions, @{term "op \<subseteq>\<^sub>m"}, which corresponds to the subset
+  corresponding order on partial functions, @{term "(\<subseteq>\<^sub>m)"}, which corresponds to the subset
   operator when considering the function as a relation. *}
 
 abbreviation (input) cgf_prefix :: "'a cgf \<Rightarrow> 'a cgf \<Rightarrow> bool" (infix "\<subseteq>\<^sub>C" 50)
