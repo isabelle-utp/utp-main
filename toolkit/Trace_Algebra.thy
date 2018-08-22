@@ -39,7 +39,9 @@ class left_cancel_monoid = monoid_add +
 class right_cancel_monoid = monoid_add +
   assumes add_right_imp_eq: "b + a = c + a \<Longrightarrow> b = c"
 
-class monoid_sum_0 = monoid_add +
+text \<open> Positive Monoids \<close>
+
+class monoid_pos = monoid_add +
   assumes zero_sum_left: "a + b = 0 \<Longrightarrow> a = 0"
 begin
 
@@ -64,7 +66,42 @@ text \<open> We can also define a subtraction operator that remove a prefix from
 definition monoid_subtract (infixl "-\<^sub>m" 65)
 where "a -\<^sub>m b = (if (b \<le>\<^sub>m a) then THE c. a = b + c else 0)"
 
+text \<open> We derive some basic properties of the preorder \<close>
+
+lemma monoid_le_least_zero: "0 \<le>\<^sub>m a"
+  by (simp add: monoid_le_def)
+
+lemma monoid_le_add: "a \<le>\<^sub>m a + b"
+  by (auto simp add: monoid_le_def)
+
+lemma monoid_le_refl: "a \<le>\<^sub>m a"
+  by (simp add: monoid_le_def, metis add.right_neutral)
+
+lemma monoid_le_trans: "\<lbrakk> a \<le>\<^sub>m b; b \<le>\<^sub>m c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>m c"
+  by (metis add.assoc monoid_le_def)
+
+lemma monoid_le_add_left_mono: "a \<le>\<^sub>m b \<Longrightarrow> c + a \<le>\<^sub>m c + b"
+  using add_assoc by (auto simp add: monoid_le_def)
+
 end 
+
+class ordered_monoid_pos = monoid_pos + ord +
+  assumes le_is_monoid_le: "a \<le> b \<longleftrightarrow> (a \<le>\<^sub>m b)"
+  and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
+begin
+
+  subclass preorder
+  proof
+    fix x y z :: "'a"
+    show "(x < y) = (x \<le> y \<and> \<not> y \<le> x)"
+      by (simp add: local.less_iff)
+    show "x \<le> x"
+      by (simp add: local.le_is_monoid_le local.monoid_le_refl)
+    show "x \<le> y \<Longrightarrow> y \<le> z \<Longrightarrow> x \<le> z"
+      using local.le_is_monoid_le local.monoid_le_trans by blast
+  qed
+
+end
 
 subsection \<open> Trace Algebras \<close>
 
@@ -73,24 +110,11 @@ text \<open> A pre-trace algebra is based on a left-cancellative monoid with the
   traces''. A pre-trace algebra has all the trace algebra axioms, but does not export the definitions
   of @{term "op \<le>"} and @{term "op -"}. \<close>
 
-class pre_trace = left_cancel_monoid + monoid_sum_0 +
-  assumes
-  sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-  -- \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
-       can be expressed in terms of each other. \<close>
+class pre_trace = left_cancel_monoid + monoid_pos
 begin
 
 text \<open> From our axiom set, we can derive a variety of properties of the monoid order \<close>
   
-lemma monoid_le_least_zero: "0 \<le>\<^sub>m a"
-  by (simp add: monoid_le_def)
-
-lemma monoid_le_refl: "a \<le>\<^sub>m a"
-  by (simp add: monoid_le_def, metis add.right_neutral)
-
-lemma monoid_le_trans: "\<lbrakk> a \<le>\<^sub>m b; b \<le>\<^sub>m c \<rbrakk> \<Longrightarrow> a \<le>\<^sub>m c"
-  by (metis add.assoc monoid_le_def)
-
 lemma monoid_le_antisym:
   assumes "a \<le>\<^sub>m b" "b \<le>\<^sub>m a"
   shows "a = b"
@@ -114,11 +138,6 @@ proof -
     by simp
 qed
 
-lemma monoid_le_add: "a \<le>\<^sub>m a + b"
-  by (auto simp add: monoid_le_def)
-
-lemma monoid_le_add_left_mono: "a \<le>\<^sub>m b \<Longrightarrow> c + a \<le>\<^sub>m c + b"
-  using add_assoc by (auto simp add: monoid_le_def)
 
 text \<open> The monoid minus operator is also the inverse of plus in this context, as expected. \<close>
 
@@ -206,21 +225,6 @@ text \<open> Next we prove all the trace algebra lemmas. \<close>
     "\<lbrakk> x \<le> y; y \<le> z \<rbrakk> \<Longrightarrow> y - x \<le> z - x"
     using add_assoc le_iff_add by auto
 
-  text \<open> The set subtraces of a common trace $c$ is totally ordered. \<close>
-
-  lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
-    by (metis diff_add_cancel_left' le_add local.sum_eq_sum_conv)
-  
-  lemma le_sum_cases: "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
-    by (simp add: le_common_total)
-            
-  lemma le_sum_cases':
-    "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
-    by (auto, metis le_sum_cases, metis minus_def le_is_monoid_le add_monoid_diff_cancel_left monoid_le_def sum_eq_sum_conv)
-
-  lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
-    by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_monoid_le minus_def monoid_le_add_left_mono monoid_le_def monoid_le_trans)
-    
   lemma sum_minus_right: "c \<ge> a \<Longrightarrow> a + b - c = b - (c - a)"
     by (metis diff_add_cancel_left' local.add_diff_cancel_left')
 
@@ -232,10 +236,35 @@ text \<open> Next we prove all the trace algebra lemmas. \<close>
     using local.le_iff_add local.zero_sum by auto
             
   lemma minus_assoc [simp]: "x - y - z = x - (y + z)"
-    by (metis local.add_diff_cancel_left' local.diff_add_cancel_left' local.le_add local.le_sum_iff 
-        local.not_le_minus local.zero_sum_right)
+    by (metis diff_add_cancel_left' le_add local.add_0_right local.add_diff_cancel_left' local.zero_sum minus_cancel_le not_le_minus)
       
 end
+
+class trace_split = trace +
+  assumes
+  sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+  -- \<open> @{thm sum_eq_sum_conv} shows how two equal traces that are each composed of two subtraces,
+       can be expressed in terms of each other. \<close>
+begin
+
+  text \<open> The set subtraces of a common trace $c$ is totally ordered. \<close>
+
+  lemma le_common_total: "\<lbrakk> a \<le> c; b \<le> c \<rbrakk> \<Longrightarrow> a \<le> b \<or> b \<le> a"
+    by (metis diff_add_cancel_left' le_add local.sum_eq_sum_conv)  
+
+  lemma le_sum_cases: "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a"
+    by (simp add: le_common_total)
+            
+  lemma le_sum_cases':
+    "a \<le> b + c \<Longrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
+    by (auto, metis le_sum_cases, metis minus_def le_is_monoid_le add_monoid_diff_cancel_left monoid_le_def sum_eq_sum_conv)
+
+  lemma le_sum_iff: "a \<le> b + c \<longleftrightarrow> a \<le> b \<or> b \<le> a \<and> a - b \<le> c"
+    by (metis le_sum_cases' add_monoid_diff_cancel_left le_is_monoid_le minus_def monoid_le_add_left_mono monoid_le_def monoid_le_trans)
+
+end
+
+
 
 text \<open> Trace algebra give rise to a partial order on traces. \<close>
 
@@ -274,11 +303,11 @@ lemma monoid_subtract_list:
     apply (simp_all add: zero_list_def plus_list_def prefix_drop)
   done
 
-instance list :: (type) trace
+instance list :: (type) trace_split
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-    apply (simp add: append_eq_append_conv2)
   using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
-  apply (simp add: less_list_def)
+   apply (simp add: less_list_def)
+  apply (simp add: append_eq_append_conv2)
   done
 
 lemma monoid_le_nat:
@@ -289,16 +318,16 @@ lemma monoid_subtract_nat:
   "(x :: nat) -\<^sub>m y = x - y"
   by (auto simp add: monoid_subtract_def monoid_le_nat)
 
-instance nat :: trace
+instance nat :: trace_split
   apply (intro_classes, simp_all add: monoid_subtract_nat)
-    apply (metis Nat.diff_add_assoc Nat.diff_add_assoc2 add_diff_cancel_right' add_le_cancel_left add_le_cancel_right add_less_mono cancel_ab_semigroup_add_class.add_diff_cancel_left' less_irrefl not_le)
    apply (simp add: nat_le_iff_add monoid_le_def)
-  apply linarith+
+   apply linarith+
+  apply (metis Nat.diff_add_assoc Nat.diff_add_assoc2 add_diff_cancel_right' add_le_cancel_left add_le_cancel_right add_less_mono cancel_ab_semigroup_add_class.add_diff_cancel_left' less_irrefl not_le)
   done
 
 text \<open> Positives form a trace algebra. \<close>
     
-instance pos :: (linordered_semidom) trace
+instance pos :: (linordered_semidom) trace_split
 proof (intro_classes, simp_all)
   fix a b c d :: "'a pos"
   show "a + b = 0 \<Longrightarrow> a = 0"
