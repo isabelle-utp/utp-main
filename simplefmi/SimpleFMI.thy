@@ -1,6 +1,6 @@
 theory SimpleFMI
   imports 
-    "UTP-Theories.utp_time_rel"
+    "UTP-Time.utp_time_rel"
     "UTP-Hybrid.utp_hybrid"
 begin
   
@@ -30,7 +30,7 @@ lemma TimeConstraint_RR [closure]: "TimeConstraint(T) is RR"
   by (rel_auto)
 
 abbreviation Instantiate_FMUs :: "'\<alpha> fmu list \<Rightarrow> '\<alpha> trel" 
-where "Instantiate_FMUs FMUs \<equiv> [foldr (op ;;) (map fmiInstantiate FMUs) II]\<^sub>S"
+where "Instantiate_FMUs FMUs \<equiv> [foldr (;;) (map fmiInstantiate FMUs) II]\<^sub>S"
   
 text {* We make the assumption that the FMUs operate on separate state spaces and thus the order
   of execution is irrelevant. *}
