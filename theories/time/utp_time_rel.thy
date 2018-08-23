@@ -17,7 +17,7 @@ definition wait_trel :: "(real pos, '\<alpha>) uexpr \<Rightarrow> '\<alpha> tre
 [upred_defs]: "wait\<^sub>r(n) = ($st\<acute> =\<^sub>u $st \<and> $time\<acute> =\<^sub>u $time + \<lceil>n\<rceil>\<^sub>S\<^sub><)"
 
 lemma wait_RR_closed [closure]: "wait\<^sub>r n is RR"
-  by (rel_auto, metis add_monoid_diff_cancel_left minus_def trace_class.le_iff_add)
+  using diff_add_cancel_left' by (rel_auto, fastforce)
     
 lemma st_subst_rea_wait [usubst]:
   "\<sigma> \<dagger>\<^sub>S wait\<^sub>r n = wait\<^sub>r (\<sigma> \<dagger> n) ;; \<langle>\<sigma>\<rangle>\<^sub>r"
