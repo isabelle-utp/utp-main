@@ -24,12 +24,12 @@ begin
 instance by (intro_classes; transfer, simp add: less_uexpr_def)
 end
 
-lift_definition rconj :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "op \<and>\<^sub>p"
+lift_definition rconj :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "(\<and>\<^sub>p)"
   by (simp add: closure)
 
 adhoc_overloading uconj rconj
 
-lift_definition rdisj :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "op \<or>\<^sub>p"
+lift_definition rdisj :: "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "(\<or>\<^sub>p)"
   by (simp add: closure)
 
 adhoc_overloading udisj rdisj
@@ -94,14 +94,14 @@ proof -
 qed
 
 lift_definition rwp ::
-  "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "op wp\<^sub>r"
+  "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel" is "(wp\<^sub>r)"
   by (simp add: closure)
 
 adhoc_overloading
   uwp rwp
 
 lift_definition rseq :: 
-  "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel"  is "op ;;"
+  "('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel \<Rightarrow> ('s, 'e) rrel"  is "(;;)"
   by (simp add: closure)
 
 adhoc_overloading
@@ -135,16 +135,5 @@ lemmas rrel_rep_eq = rtrue.rep_eq rfalse.rep_eq rconj.rep_eq rdisj.rep_eq rcsp_d
 
 lemma rfalse_right_anhil [simp]: "P ; rfalse = rfalse"
   by (transfer, simp)
-(*
-thm wp
-
-lemma wp_rcsp_do [wp]:
-  "\<^bold>\<Phi>(s,\<sigma>,t) wp P = (\<I>(s,t) \<Rightarrow> (\<sigma> \<dagger> ?P)\<lbrakk>?t\<rbrakk>\<^sub>t)"
-
-lemma
-  fixes P :: "('s, 'e) rrel"
-  shows "P wp false = "
-*)
-
 
 end

@@ -1,39 +1,39 @@
-section {* Mini-mondex example *}
+section \<open> Mini-mondex example \<close>
 
 theory utp_csp_mini_mondex
   imports "UTP-Circus.utp_circus"
 begin
 
-text {* This example is a modified version of the Mini-Mondex card example taken from the 2014
-  paper "Contracts in CML" by Woodcock et al. *}
+text \<open> This example is a modified version of the Mini-Mondex card example taken from the 2014
+  paper "Contracts in CML" by Woodcock et al. \<close>
   
-subsection {* Types and Statespace *}
+subsection \<open> Types and Statespace \<close>
   
-type_synonym index = nat -- {* Card identifiers *}
-type_synonym money = int -- {* Monetary amounts. *}
+type_synonym index = nat \<comment> \<open> Card identifiers \<close>
+type_synonym money = int \<comment> \<open> Monetary amounts. \<close>
 
-text {* In the paper money is represented as a nat, here we use an int so that we have the option
-  of modelling negative balances. This also eases proof as integers form an algebraic ring. *}
+text \<open> In the paper money is represented as a nat, here we use an int so that we have the option
+  of modelling negative balances. This also eases proof as integers form an algebraic ring. \<close>
   
 alphabet st_mdx =
-  accts :: "(index, money) pfun" -- {* Index record of each card's balance *}
+  accts :: "(index, money) pfun" \<comment> \<open> Index record of each card's balance \<close>
   
 datatype ch_mdx = 
-  pay "index \<times> index \<times> money" | -- {* Request a payment between two cards *}
-  transfer "index \<times> index \<times> money" | -- {* Effect the transfer *}
-  accept index | -- {* Accept the payment *}
-  reject index -- {* Reject it *}
+  pay "index \<times> index \<times> money" | \<comment> \<open> Request a payment between two cards \<close>
+  transfer "index \<times> index \<times> money" | \<comment> \<open> Effect the transfer \<close>
+  accept index | \<comment> \<open> Accept the payment \<close>
+  reject index \<comment> \<open> Reject it \<close>
   
 type_synonym action_mdx = "(st_mdx, ch_mdx) action"
   
-subsection {* Actions *}
+subsection \<open> Actions \<close>
   
-text {* The Pay action describes the protocol when a payment of $n$ is requested between two cards,
+text \<open> The Pay action describes the protocol when a payment of $n$ is requested between two cards,
   $i$ and $j$. It is slightly modified from the paper, as we firstly do not use operations but effect
   the transfer using indexed assignments directly, and secondly because before the transfer can proceed
   we need to check the balance is both sufficient, and that the transfer amount is greater than 0. It
   should also be noted that the indexed assignments give rise to preconditions that the list is
-  defined at the given index. In other words, the given card records must be present. *}
+  defined at the given index. In other words, the given card records must be present. \<close>
   
 definition Pay :: "index \<Rightarrow> index \<Rightarrow> money \<Rightarrow> action_mdx" where
 "Pay i j n = 
@@ -50,33 +50,33 @@ definition PaySet :: "index \<Rightarrow> (index \<times> index \<times> money) 
 definition AllPay :: "index \<Rightarrow> action_mdx" where
 "AllPay cardNum = (\<Sqinter> (i, j, n) \<in> PaySet cardNum \<bullet> Pay i j n)"
 
-text {* The Cycle action just repea the payments over and over for any extant and different card
-  indices. In order to be well-formed we require that $cardNum \ge 2$. *}
+text \<open> The Cycle action just repea the payments over and over for any extant and different card
+  indices. In order to be well-formed we require that $cardNum \ge 2$. \<close>
 
 definition Cycle :: "index \<Rightarrow> action_mdx" where
 "Cycle cardNum = (\<mu>\<^sub>C X \<bullet> AllPay(cardNum) ;; X)"
 
-text {* The Mondex action is a sample setup. It requires creates $cardNum$ cards each with 100 units
-  present. *}
+text \<open> The Mondex action is a sample setup. It requires creates $cardNum$ cards each with 100 units
+  present. \<close>
 
 definition Mondex :: "index \<Rightarrow> action_mdx" where
 "Mondex(cardNum) = (accts :=\<^sub>C entr\<^sub>u({0..10}\<^sub>u, \<lambda> x. 100) ;; Cycle(cardNum))"
 
-subsection {* Pre/peri/post calculations *}
+subsection \<open> Pre/peri/post calculations \<close>
 
-text {* The behaviour of a reactive program is described in three parts: (1) the precondition,
+text \<open> The behaviour of a reactive program is described in three parts: (1) the precondition,
   that describes how the state and environment must behave to ensure valid behaviour; (2)
   the pericondition that describes the commitments the program makes whilst in an intermediate
   state in terms of events only; and (3) the postcondition that describes the commitments after
   the process terminates. The pericondition refers only to the trace, as the state is invisible
   in intermediate states -- it can only be observed through events. The pre- and postcondition
   can refer to both the state and the trace; although the form can only refer to a prefix
-  of the trace and before state variables -- only the postcondition refers to after state. *}
+  of the trace and before state variables -- only the postcondition refers to after state. \<close>
   
 lemma Pay_CSP [closure]: "Pay i j n is CSP"
   by (simp add: Pay_def closure)
 
-text {* The precondition of pay requires that, under the assumption that a payment was requested
+text \<open> The precondition of pay requires that, under the assumption that a payment was requested
   by the environment (pay is present at the trace head), and that the given amount can be honoured by
   the sending card, then the two cards must exist. This arises directly from the indexed assignment
   preconditions. 
@@ -90,7 +90,7 @@ text {* The precondition of pay requires that, under the assumption that a payme
   unchanged. Secondly, the payment was fine and so the trace was extended by pay 
   and accept, and the states of the two cards was updated appropriately.
 
-*}
+\<close>
   
 lemma Pay_contract [rdes_def]:
   assumes "i \<noteq> j"
@@ -129,9 +129,9 @@ lemma AllPay_Productive [closure]:
   "cardNum \<ge> 2 \<Longrightarrow> AllPay cardNum is Productive"
   by (simp add: AllPay_def closure)
     
-subsection {* Verification *}
+subsection \<open> Verification \<close>
 
-text {* We perform verification by writing contracts that specify desired behaviours of our
+text \<open> We perform verification by writing contracts that specify desired behaviours of our
   system. A contract @{term "[P \<turnstile> Q | R]\<^sub>C"} consists of three predicates that correspond to
   the pre-, peri-, and postconditions, respectively. The precondition talks about initial state
   variables and the $trace$ contribution via a special variable. The pericondition likewise
@@ -141,7 +141,7 @@ text {* We perform verification by writing contracts that specify desired behavi
   This is under the assumption that at least two cards exist. The contract has as its precondition
   that initially the number of cards is $cardNum$. The pericondition is $true$ as we don't
   care about intermediate behaviour here. The postcondition has that the summation of the 
-  sequence of card values remains the same, though of course individual records will change. *}
+  sequence of card values remains the same, though of course individual records will change. \<close>
 
 lemma uminus_inter_insert [simp]: 
   "(- A) \<inter> (- insert x B) = (- insert x A) \<inter> (- B)"
@@ -150,14 +150,14 @@ lemma uminus_inter_insert [simp]:
 theorem money_constant:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
   shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
--- {* We first calculate the reactive design contract and apply refinement introduction *}
+\<comment> \<open> We first calculate the reactive design contract and apply refinement introduction \<close>
 proof (simp add: assms Pay_contract, rule CRD_refine_rdes)    
 
-  -- {* Three proof obligations result for the pre/peri/postconditions. The first requires us to
+  \<comment> \<open> Three proof obligations result for the pre/peri/postconditions. The first requires us to
     show that the contract's precondition is weakened by the implementation precondition. 
     It is because the implementation's precondition is under the assumption of receiving an
     input and the money amount constraints. We discharge by first calculating the precondition, 
-    as done above, and then using the relational calculus tactic. *}
+    as done above, and then using the relational calculus tactic. \<close>
 
   from assms 
   show "`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<Rightarrow>
@@ -166,7 +166,7 @@ proof (simp add: assms Pay_contract, rule CRD_refine_rdes)
             \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><`"
     by (rel_auto)
 
-  -- {* The second is trivial as we don't care about intermediate states. *}
+  \<comment> \<open> The second is trivial as we don't care about intermediate states. \<close>
       
   show "[true]\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk>\<lbrakk>r\<rightarrow>$ref\<acute>\<rbrakk> \<sqsubseteq>
     ([dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<and>
@@ -175,10 +175,10 @@ proof (simp add: assms Pay_contract, rule CRD_refine_rdes)
          \<E>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>, {(accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u}\<^sub>u)))"
     by (simp add: rpred usubst, rel_auto)
 
-  -- {* The third requires that we show that the postcondition implies that the total amount remains
+  \<comment> \<open> The third requires that we show that the postcondition implies that the total amount remains
     unaltered. We calculate the postcondition, and then use relational calculus. In this case, this
     is not enough and an additional property of lists is required (@{thm listsum_update}) that can
-    be retrieved by sledgehammer. However, we actually had to prove that property first and add it to our library. *}
+    be retrieved by sledgehammer. However, we actually had to prove that property first and add it to our library. \<close>
       
   from assms
   show "[sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>S'\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<sqsubseteq>
@@ -188,8 +188,8 @@ proof (simp add: assms Pay_contract, rule CRD_refine_rdes)
     by (rel_auto, simp_all add: pfun_sums_upd_2)
 qed
       
-text {* The next property is that no card value can go below 0, assuming it was non-zero to start
-  with. *}
+text \<open> The next property is that no card value can go below 0, assuming it was non-zero to start
+  with. \<close>
   
 theorem no_overdrafts:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j"
@@ -203,9 +203,9 @@ theorem no_overdrafts:
   apply (metis diff_ge_0_iff_ge dual_order.trans le_add_same_cancel2 less_le not_le pfun_app_upd_1 pfun_app_upd_2)
 done
   
-text {* The next property shows liveness of transfers. If a payment is accepted, and we have enough
+text \<open> The next property shows liveness of transfers. If a payment is accepted, and we have enough
   money, then the acceptance of the transfer cannot be refused. Unlike the previous two examples,
-  this is specified using the pericondition as we are talking about intermediate states and refusals. *}
+  this is specified using the pericondition as we are talking about intermediate states and refusals. \<close>
   
 theorem transfer_live:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" "n > 0"

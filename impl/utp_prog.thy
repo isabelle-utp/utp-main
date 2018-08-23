@@ -28,9 +28,9 @@ setup_lifting type_definition_prog
 instantiation prog :: (type) refine
 begin
   lift_definition less_eq_prog :: "'a prog \<Rightarrow> 'a prog \<Rightarrow> bool" is
-  "op \<le>" .
+  "(\<le>)" .
   lift_definition less_prog :: "'a prog \<Rightarrow> 'a prog \<Rightarrow> bool" is
-  "op <" .
+  "(<)" .
   instance by (intro_classes, (transfer, simp add: less_uexpr_def)+)
 end
 
@@ -48,8 +48,8 @@ subsection {* Operators *}
   
 instantiation prog :: (type) lattice
 begin
-  lift_definition inf_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "op \<squnion>" by (simp add: closure)
-  lift_definition sup_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "op \<sqinter>" by (simp add: closure)
+  lift_definition inf_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "(\<squnion>)" by (simp add: closure)
+  lift_definition sup_prog :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "(\<sqinter>)" by (simp add: closure)
 instance by (intro_classes; (transfer, rel_simp))
 end
 

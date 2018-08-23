@@ -92,7 +92,7 @@ subsection \<open> Well-Formedness \<close>
 
 locale WfStateMachine =
   fixes M :: "('s, 'm) StateMachine" (structure)
-  -- \<open> The list of nnames is a set \<close>
+  \<comment> \<open> The list of nnames is a set \<close>
   assumes nnames_distinct: "distinct (map n_name (nodes\<^bsub>M\<^esub>))"
   and init_is_state: "init \<in> nnames"
   and init_not_final: "init \<notin> fnames"
@@ -155,7 +155,7 @@ definition node_semantics ::
   "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
   (rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
-   (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop) ;
+   (foldr (\<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop) ;
    rc_state:[n_exit node]\<^sub>A\<^sup>+)"
 
 definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
@@ -169,7 +169,7 @@ lemma tr_semantics_subst_ctrl: "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<g
   by (simp add: tr_semantics_def action_simp usubst unrest frame_asubst)
 
 lemma tr_choice_subst_ctrl:
-  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> foldr op \<box> (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop = foldr op \<box> (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop"
+  "[&rc_ctrl \<mapsto>\<^sub>s \<guillemotleft>k\<guillemotright>] \<dagger> foldr (\<box>) (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop = foldr (\<box>) (map (\<lambda>t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop"
   by (induct ts, simp_all add: action_simp usubst tr_semantics_subst_ctrl)
 
 lemma sm_semantics_subst_ctrl:
@@ -184,9 +184,9 @@ lemma productive_tr_semantics [closure]: "productive (\<lbrakk>t\<rbrakk>\<^sub>
 lemma productive_node_semantics:
   "productive (M;null_event \<turnstile> \<lbrakk>node\<rbrakk>\<^sub>N)"
 proof -
-  have "\<And> ts. productive (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop)"
+  have "\<And> ts. productive (foldr (\<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) ts) stop)"
     by (rename_tac ts, induct_tac ts, auto simp add: action_rep_eq closure, simp add: closure productive_Productive)
-  hence "productive (foldr (op \<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop)"
+  hence "productive (foldr (\<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop)"
     by blast
   thus ?thesis
     by (simp add: action_rep_eq closure node_semantics_def)

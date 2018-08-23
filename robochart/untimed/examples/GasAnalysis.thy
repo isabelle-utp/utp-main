@@ -59,9 +59,9 @@ notation GasAnalysis.resume ("resume")
 text \<open> Deadlock Freedom Check \<close>
 
 lemma GasAnalysis_deadlock_free: "dlockf \<sqsubseteq> GasAnalysis.action"
-  -- \<open> The following line produces three proof obligations that can be discharged by sledgehammer \<close>
+  \<comment> \<open> The following line produces three proof obligations that can be discharged by sledgehammer \<close>
   apply ((sm_induct wf:Wf simps: GasAnalysis.action_def GasAnalysis_inters, sm_calc simps: GasAnalysis_nmap GasAnalysis_tmap GasAnalysis.semantics GasAnalysis.simps); (simp add: action_rep_eq, rdes_refine))
-
+  oops
 
 
 end
