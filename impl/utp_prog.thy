@@ -68,7 +68,7 @@ abbreviation abort :: "'\<alpha> prog" where "abort \<equiv> \<bottom>"
 abbreviation magic :: "'\<alpha> prog" where "magic \<equiv> \<top>"
 
 lift_definition skip     :: "'\<alpha> prog" is "II\<^sub>D" by (simp add: closure)
-lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infixr ";" 71) is "op ;;" by (simp add: closure)
+lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infixr ";" 71) is "(;;)" by (simp add: closure)
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
 lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "\<lambda> \<sigma> P. ((\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D) \<oplus>\<^sub>s in\<alpha>) \<dagger> P" by (simp add: closure)
 lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)

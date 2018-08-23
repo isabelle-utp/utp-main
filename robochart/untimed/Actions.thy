@@ -510,7 +510,7 @@ lemma divf_stop: "divf \<sqsubseteq> stop"
 
 lemma divf_extchoice_fold_refine:
   assumes "\<And> P. P \<in> set(xs) \<Longrightarrow> divf \<sqsubseteq> P"
-  shows "divf \<sqsubseteq> foldr (op \<box>) xs stop"
+  shows "divf \<sqsubseteq> foldr (\<box>) xs stop"
   using assms
   apply (induct xs)
    apply (simp_all add: divf_stop)
