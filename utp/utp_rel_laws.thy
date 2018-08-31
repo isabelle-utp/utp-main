@@ -182,7 +182,7 @@ lemma seqr_bool_split:
   assumes "vwb_lens x"
   shows "P ;; Q = (P\<lbrakk>true/$x\<acute>\<rbrakk> ;; Q\<lbrakk>true/$x\<rbrakk> \<or> P\<lbrakk>false/$x\<acute>\<rbrakk> ;; Q\<lbrakk>false/$x\<rbrakk>)"
   using assms
-  by (subst seqr_middle[of x], simp_all add: true_alt_def false_alt_def)
+  by (subst seqr_middle[of x], simp_all)
 
 lemma cond_inter_var_split:
   assumes "vwb_lens x"

@@ -28,7 +28,7 @@ text \<open> Small external choice as an indexed big external choice. \<close>
 
 lemma extChoice_alt_def:
   "P \<box> Q = (\<box>i::nat\<in>{0,1} \<bullet> P \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q)"
-  by (simp add: extChoice_def ExtChoice_def, unliteralise, simp)
+  by (simp add: extChoice_def ExtChoice_def)
 
 subsection \<open> Basic laws \<close>
 
@@ -171,10 +171,7 @@ proof -
   also have "... = (\<box>i::nat\<in>{0, 1} \<bullet> \<^bold>R\<^sub>s ((P\<^sub>1 \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<triangleleft> \<guillemotleft>i = 0\<guillemotright> \<triangleright> Q\<^sub>2)))"
     by (simp add: design_condr)
   also have "... = \<^bold>R\<^sub>s ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> ((P\<^sub>2 \<and> Q\<^sub>2) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute> \<triangleright> (P\<^sub>2 \<or> Q\<^sub>2)))"
-    apply (subst ExtChoice_rdes, simp_all add: assms unrest)
-    apply unliteralise
-    apply (simp add: uinf_or usup_and)
-    done
+    by (subst ExtChoice_rdes, simp_all add: assms unrest uinf_or usup_and)
   finally show ?thesis by (simp add: extChoice_alt_def)
 qed
 

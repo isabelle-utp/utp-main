@@ -357,8 +357,8 @@ lemma true_alt_def: "true = \<guillemotleft>True\<guillemotright>"
 lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
   by (pred_auto)
 
-declare true_alt_def[THEN sym,lit_simps]
-declare false_alt_def[THEN sym,lit_simps]
+declare true_alt_def[THEN sym,simp]
+declare false_alt_def[THEN sym,simp]
 
 subsection \<open> Unrestriction Laws \<close>
 

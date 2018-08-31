@@ -177,13 +177,11 @@ theorem R1_design_composition:
   "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) =
    R1((\<not> (R1(\<not> P) ;; R1(true)) \<and> \<not> (R1(Q) ;; R1(\<not> R))) \<turnstile> (R1(Q) ;; R1(S)))"
 proof -
-  have "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = (\<^bold>\<exists> ok\<^sub>0 \<bullet> (R1(P \<turnstile> Q))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<acute>\<rbrakk> ;; (R1(R \<turnstile> S))\<lbrakk>\<guillemotleft>ok\<^sub>0\<guillemotright>/$ok\<rbrakk>)"
-    using seqr_middle ok_vwb_lens by blast
-  also from assms have "... = (\<^bold>\<exists> ok\<^sub>0 \<bullet> R1(($ok \<and> P) \<Rightarrow> (\<guillemotleft>ok\<^sub>0\<guillemotright> \<and> Q)) ;; R1((\<guillemotleft>ok\<^sub>0\<guillemotright>  \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))"
-    by (simp add: design_def R1_def usubst unrest)
+  have "(R1(P \<turnstile> Q) ;; R1(R \<turnstile> S)) = ((R1 (P \<turnstile> Q))\<^sup>t ;; R1 (R \<turnstile> S)\<lbrakk>true/$ok\<rbrakk> \<or> (R1 (P \<turnstile> Q))\<^sup>f ;; R1 (R \<turnstile> S)\<lbrakk>false/$ok\<rbrakk>)"
+    by (rule seqr_bool_split[of ok], simp)
   also from assms have "... = ((R1(($ok \<and> P) \<Rightarrow> (true \<and> Q)) ;; R1((true \<and> R) \<Rightarrow> ($ok\<acute> \<and> S)))
                              \<or> (R1(($ok \<and> P) \<Rightarrow> (false \<and> Q)) ;; R1((false \<and> R) \<Rightarrow> ($ok\<acute> \<and> S))))"
-    by (simp add: false_alt_def true_alt_def)
+    by (simp add: design_def usubst R1_def)
   also from assms have "... = ((R1(($ok \<and> P) \<Rightarrow> Q) ;; R1(R \<Rightarrow> ($ok\<acute> \<and> S)))
                              \<or> (R1(\<not> ($ok \<and> P)) ;; R1(true)))"
     by simp

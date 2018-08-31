@@ -462,7 +462,7 @@ translations
   "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
-  "[]\<^sub>u"     == "\<guillemotleft>CONST uempty\<guillemotright>"
+  "[]\<^sub>u"     => "\<guillemotleft>CONST uempty\<guillemotright>"
   "\<bottom>\<^sub>u"     == "\<guillemotleft>CONST undefined\<guillemotright>"
   "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
   "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
