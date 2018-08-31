@@ -602,4 +602,12 @@ lemma msubst_shAll_2 [usubst]:
   "(\<^bold>\<forall> x \<bullet> P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk> = (\<^bold>\<forall> x \<bullet> (P x y z)\<lbrakk>(y,z)\<rightarrow>v\<rbrakk>)"
   by (pred_auto)+
 
+subsection \<open> Sandbox for conjectures \<close>
+
+definition utp_sandbox :: "'\<alpha> upred \<Rightarrow> bool" ("TRY'(_')") where
+"TRY(P) = (P = undefined)"
+
+translations
+  "P" <= "CONST utp_sandbox P"
+
 end

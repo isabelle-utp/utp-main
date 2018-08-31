@@ -18,6 +18,16 @@ subsection \<open> Useful Abbreviations \<close>
 
 abbreviation "list_sum xs \<equiv> foldr (+) xs 0"
 
+subsection \<open> Folds \<close>
+
+context abel_semigroup
+begin
+
+  lemma foldr_snoc: "foldr (\<^bold>*) (xs @ [x]) k = (foldr (\<^bold>*) xs k) \<^bold>* x"
+    by (induct xs, simp_all add: commute left_commute)
+  
+end
+
 subsection \<open> List Lookup \<close>
 
 text \<open>

@@ -16,12 +16,12 @@ declare hoare_r_def [upred_defs]
 named_theorems hoare and hoare_safe
 
 method hoare_split uses hr = 
-  ((simp add: assigns_r_comp usubst unrest)?, \<comment> \<open> Eliminate assignments where possible \<close>
-   (auto 
+  ((simp add: assigns_comp), \<comment> \<open> Combine Assignments where possible \<close>
+   (auto
     intro: hoare intro!: hoare_safe hr
-    simp add: assigns_r_comp conj_comm conj_assoc usubst unrest))[1] \<comment> \<open> Apply Hoare logic laws \<close>
+    simp add: conj_comm conj_assoc usubst unrest))[1] \<comment> \<open> Apply Hoare logic laws \<close>
 
-method hoare_auto uses hr = (hoare_split hr: hr; rel_auto?)
+method hoare_auto uses hr = (hoare_split hr: hr; (rel_simp)?, auto?)
 
 subsection \<open> Basic Laws \<close>
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
@@ -59,6 +59,10 @@ lemma assign_floyd_hoare_r:
   shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
+
+lemma assigns_init_hoare [hoare_safe]:
+  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> v; \<lbrace>&x =\<^sub>u v \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_auto)
 
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
   by rel_auto
