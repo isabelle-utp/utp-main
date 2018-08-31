@@ -125,11 +125,11 @@ begin
   
   lemma var_open_commute:
     "\<lbrakk> x \<bowtie> store; store \<sharp> v \<rbrakk> \<Longrightarrow> \<^bold>\<langle>[x \<mapsto>\<^sub>s v]\<^bold>\<rangle> ;; open\<^sub>v = open\<^sub>v ;; \<^bold>\<langle>[x \<mapsto>\<^sub>s v]\<^bold>\<rangle>"
-    by (simp add: var_open_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym, simp add: usubst_upd_comm)
+    by (simp add: var_open_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym)
 
   lemma var_close_commute:
     "\<lbrakk> x \<bowtie> store; store \<sharp> v \<rbrakk> \<Longrightarrow> \<^bold>\<langle>[x \<mapsto>\<^sub>s v]\<^bold>\<rangle> ;; close\<^sub>v = close\<^sub>v ;; \<^bold>\<langle>[x \<mapsto>\<^sub>s v]\<^bold>\<rangle>"
-    by (simp add: var_close_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym, simp add: usubst_upd_comm)
+    by (simp add: var_close_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym)
 
   lemma var_open_close_lemma: 
     "[store \<mapsto>\<^sub>s front\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleright> &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>] = id"

@@ -192,7 +192,7 @@ lemma usubst_upd_comm2:
 
 lemma subst_upd_pr_var: "s(&x \<mapsto>\<^sub>s v) = s(x \<mapsto>\<^sub>s v)"
   by (simp add: pr_var_def) 
-  
+
 text \<open> A substitution which swaps two independent variables is an injective function. \<close>
     
 lemma swap_usubst_inj:
@@ -412,42 +412,19 @@ lemma subst_singleton:
 lemmas subst_to_singleton = subst_singleton id_subst
 
 subsection \<open> Ordering substitutions \<close>
-  
-text \<open> We set up a purely syntactic order on variable lenses which is useful for the substitution
-        normal form. \<close>
 
-definition var_name_ord :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> bool" where
-[no_atp]: "var_name_ord x y = True"
+text \<open> A simplification procedure to reorder substitutions maplets lexicographically by variable syntax \<close>
 
-syntax
-  "_var_name_ord" :: "salpha \<Rightarrow> salpha \<Rightarrow> bool" (infix "\<prec>\<^sub>v" 65)
+simproc_setup subst_order ("subst_upd_uvar (subst_upd_uvar \<sigma> x u) y v") =
+  {* (fn _ => fn ctx => fn ct => 
+        case (Thm.term_of ct) of
+          Const ("utp_subst.subst_upd_uvar", _) $ (Const ("utp_subst.subst_upd_uvar", _) $ s $ x $ u) $ y $ v
+            => if (YXML.content_of (Syntax.string_of_term ctx x) > YXML.content_of(Syntax.string_of_term ctx y))
+               then SOME (mk_meta_eq @{thm usubst_upd_comm})
+               else NONE  |
+          _ => NONE) 
+  *}
 
-translations
-  "_var_name_ord x y" == "CONST var_name_ord x y"
-
-text \<open> A fact of the form @{term "x \<prec>\<^sub>v y"} has no logical information; it simply exists to define
-  a total order on named lenses that is useful for normalisation. The following theorem is simply
-  an instance of the commutativity law for substitutions. However, that law could not be a simplification
-  law as it would cause the simplifier to loop. Assuming that the variable order is a total order then
-  this theorem will not loop. \<close>
-  
-lemma usubst_upd_comm_ord [usubst]:
-  assumes "x \<bowtie> y" "y \<prec>\<^sub>v x"
-  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v, x \<mapsto>\<^sub>s u)"
-  by (simp add: assms(1) usubst_upd_comm)
-  
-lemma var_name_order_comp_outer [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> x:a \<prec>\<^sub>v y:b"
-  by (simp add: var_name_ord_def)
-    
-lemma var_name_ord_comp_inner [usubst]: "a \<prec>\<^sub>v b \<Longrightarrow> x:a \<prec>\<^sub>v x:b"
-  by (simp add: var_name_ord_def)
-
-lemma var_name_ord_pr_var_1 [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> &x \<prec>\<^sub>v y"
-  by (simp add: var_name_ord_def)
-
-lemma var_name_ord_pr_var_2 [usubst]: "x \<prec>\<^sub>v y \<Longrightarrow> x \<prec>\<^sub>v &y"
-  by (simp add: var_name_ord_def)
-    
 subsection \<open> Unrestriction laws \<close>
 
 text \<open> These are the key unrestriction theorems for substitutions and expressions involving substitutions. \<close>

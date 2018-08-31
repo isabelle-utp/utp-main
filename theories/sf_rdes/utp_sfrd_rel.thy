@@ -404,7 +404,7 @@ lemma CRR_refine_ext:
 proof -
   have "\<And> t s s' r'. (CRR P)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> 
                     \<sqsubseteq> (CRR Q)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
-    by (simp add: assms Healthy_if)
+    using assms by (simp add: Healthy_if)
   hence "CRR P \<sqsubseteq> CRR Q"
     by (rel_auto)
   thus ?thesis
@@ -419,7 +419,7 @@ lemma CRR_eq_ext:
 proof -
   have "\<And> t s s' r'. (CRR P)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk> 
                     = (CRR Q)\<lbrakk>\<langle>\<rangle>,\<guillemotleft>t\<guillemotright>,\<guillemotleft>s\<guillemotright>,\<guillemotleft>s'\<guillemotright>,\<guillemotleft>r'\<guillemotright>/$tr,$tr\<acute>,$st,$st\<acute>,$ref\<acute>\<rbrakk>"
-    by (simp add: assms Healthy_if)
+    using assms by (simp add: Healthy_if)
   hence "CRR P = CRR Q"
     by (rel_auto)
   thus ?thesis

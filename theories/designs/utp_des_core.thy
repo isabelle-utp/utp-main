@@ -44,10 +44,6 @@ apply (rule injI)
 apply (clarsimp)
 done
 
-lemma ok_ord [usubst]:
-  "$ok \<prec>\<^sub>v $ok\<acute>"
-  by (simp add: var_name_ord_def)
-
 type_synonym '\<alpha> des  = "'\<alpha> des_vars_scheme"
 type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) urel"
 type_synonym '\<alpha> hrel_des = "('\<alpha> des) hrel"

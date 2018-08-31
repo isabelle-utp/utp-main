@@ -79,16 +79,6 @@ interpretation rp_vars_rel: lens_interp "\<lambda>(ok, ok', r, r').
   apply (clarsimp)
   done
 
-text \<open> The following syntactic orders exist to help to order lens names when, for example, 
-  performing substitution, to achieve normalisation of terms. \<close>
-
-lemma rea_var_ords [usubst]:
-  "$tr \<prec>\<^sub>v $tr\<acute>" "$wait \<prec>\<^sub>v $wait\<acute>"
-  "$ok \<prec>\<^sub>v $tr" "$ok\<acute> \<prec>\<^sub>v $tr\<acute>" "$ok \<prec>\<^sub>v $tr\<acute>" "$ok\<acute> \<prec>\<^sub>v $tr"
-  "$ok \<prec>\<^sub>v $wait" "$ok\<acute> \<prec>\<^sub>v $wait\<acute>" "$ok \<prec>\<^sub>v $wait\<acute>" "$ok\<acute> \<prec>\<^sub>v $wait"
-  "$tr \<prec>\<^sub>v $wait" "$tr\<acute> \<prec>\<^sub>v $wait\<acute>" "$tr \<prec>\<^sub>v $wait\<acute>" "$tr\<acute> \<prec>\<^sub>v $wait"
-  by (simp_all add: var_name_ord_def)
-
 abbreviation wait_f::"('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 

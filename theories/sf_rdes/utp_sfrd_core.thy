@@ -36,14 +36,6 @@ apply (rule injI)
 apply (clarsimp)
 done
 
-lemma circus_var_ords [usubst]:
-  "$ref \<prec>\<^sub>v $ref\<acute>"
-  "$ok \<prec>\<^sub>v $ref" "$ok\<acute> \<prec>\<^sub>v $ref\<acute>" "$ok \<prec>\<^sub>v $ref\<acute>" "$ok\<acute> \<prec>\<^sub>v $ref"
-  "$ref \<prec>\<^sub>v $wait" "$ref\<acute> \<prec>\<^sub>v $wait\<acute>" "$ref \<prec>\<^sub>v $wait\<acute>" "$ref\<acute> \<prec>\<^sub>v $wait"
-  "$ref \<prec>\<^sub>v $st" "$ref\<acute> \<prec>\<^sub>v $st\<acute>" "$ref \<prec>\<^sub>v $st\<acute>" "$ref\<acute> \<prec>\<^sub>v $st"
-  "$ref \<prec>\<^sub>v $tr" "$ref\<acute> \<prec>\<^sub>v $tr\<acute>" "$ref \<prec>\<^sub>v $tr\<acute>" "$ref\<acute> \<prec>\<^sub>v $tr"
-  by (simp_all add: var_name_ord_def)
-
 type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi> list, ('\<phi>, unit) csp_vars_scheme) rsp"
 type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>,'\<phi>) st_csp hrel"
 type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
