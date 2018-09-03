@@ -4,6 +4,9 @@ theory utp_sym_eval
   imports utp_rel_opsem
 begin
 
+text \<open> The following operator applies a variable context $\Gamma$ as an assignment, and composes 
+  it with a relation $P$ for the purposes of evaluation. \<close>
+
 definition utp_sym_eval :: "'s usubst \<Rightarrow> 's hrel \<Rightarrow> 's hrel" (infixr "\<Turnstile>" 55) where
 [upred_defs]: "utp_sym_eval \<Gamma> P = (\<langle>\<Gamma>\<rangle>\<^sub>a ;; P)"
 

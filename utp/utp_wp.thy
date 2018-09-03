@@ -1,10 +1,10 @@
-section {* Weakest Precondition Calculus *}
+section {* Weakest (Liberal) Precondition Calculus *}
 
 theory utp_wp
 imports utp_hoare
 begin
 
-text {* A very quick implementation of wp -- more laws still needed! *}
+text {* A very quick implementation of wlp -- more laws still needed! *}
 
 named_theorems wp
 

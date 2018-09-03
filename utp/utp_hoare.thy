@@ -273,20 +273,5 @@ lemma antiframe_strong_hoare_r:
   assumes "vwb_lens a" "a \<natural> r" "a \<sharp> q" "\<lbrace>p \<and> r\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  
   shows "\<lbrace>p \<and> r\<rbrace> a:\<lbrakk>P\<rbrakk> \<lbrace>q \<and> r\<rbrace>\<^sub>u"
   using assms by (rel_auto, metis)
-
-(* FIXME: Got some work to prove this theorem from Yakoub ... *)
-
-lemma antiframe_intro:
-  assumes 
-    "vwb_lens g" "vwb_lens g'" "vwb_lens l" "l \<bowtie> g" "g' \<subseteq>\<^sub>L g" 
-    "{&g', &l}:[C] = C" "\<lbrace>p\<rbrace>C\<lbrace>q\<rbrace>\<^sub>u" "`r \<Rightarrow> p`"     
-  shows "\<lbrace>r\<rbrace> l:\<lbrakk>C\<rbrakk> \<lbrace>(\<exists> l \<bullet> q) \<and> (\<exists>g' \<bullet> r)\<rbrace>\<^sub>u"
-  using assms
-  apply (rel_auto, simp_all add: lens_defs)
-   apply metis
-  apply (rename_tac Z a b)
-  apply (rule_tac x="get\<^bsub> g'\<^esub> a" in exI)
-oops
-
   
 end
