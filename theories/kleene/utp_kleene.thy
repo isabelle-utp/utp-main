@@ -42,7 +42,7 @@ interpretation urel_dioid: dioid
   where plus = "(\<sqinter>)" and times = "(;;\<^sub>h)" and less_eq = less_eq and less = less
 proof
   fix P Q R :: "'\<alpha> hrel"
-  show "(P \<sqinter> Q) ;; R = P ;; R \<sqinter> Q ;; R"
+  show "(P \<sqinter> Q) ;; R = (P ;; R) \<sqinter> (Q ;; R)"
     by (simp add: upred_semiring.distrib_right)
   show "(Q \<sqsubseteq> P) = (P \<sqinter> Q = Q)"
     by (simp add: semilattice_sup_class.le_iff_sup)
@@ -61,11 +61,11 @@ proof
   show "false \<sqinter> P = P" by simp
   show "false ;; P = false" by simp
   show "P ;; false = false" by simp
-  show "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P ;; P\<^sup>\<star>"
+  show "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> (P ;; P\<^sup>\<star>)"
     using ustar_sub_unfoldl by blast
-  show "Q \<sqsubseteq> R \<sqinter> P ;; Q \<Longrightarrow> Q \<sqsubseteq> P\<^sup>\<star> ;; R"
+  show "Q \<sqsubseteq> R \<sqinter> (P ;; Q) \<Longrightarrow> Q \<sqsubseteq> P\<^sup>\<star> ;; R"
     by (simp add: ustar_inductl)
-  show "Q \<sqsubseteq> R \<sqinter> Q ;; P \<Longrightarrow> Q \<sqsubseteq> R ;; P\<^sup>\<star>"
+  show "Q \<sqsubseteq> R \<sqinter> (Q ;; P) \<Longrightarrow> Q \<sqsubseteq> R ;; P\<^sup>\<star>"
     by (simp add: ustar_inductr)
 qed
 
@@ -94,9 +94,9 @@ text \<open> The KAT laws can be used to prove results like the one below. \<clo
 lemma while_kat_form:
   "while b do P od = ([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>" (is "?lhs = ?rhs")
 proof -
-  have 1:"(II::'a hrel) \<sqinter> (II::'a hrel) ;; [\<not> b]\<^sup>\<top> = II"
+  have 1:"(II::'a hrel) \<sqinter> ((II::'a hrel) ;; [\<not> b]\<^sup>\<top>) = II"
     by (metis assume_true test_rassume urel_kat.test_absorb1)
-  have "?lhs = ([b]\<^sup>\<top> ;; P \<sqinter> [\<not> b]\<^sup>\<top> ;; II)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
+  have "?lhs = (([b]\<^sup>\<top> ;; P) \<sqinter> ([\<not> b]\<^sup>\<top> ;; II))\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
     by (simp add: while_star_form rcond_rassume_expand)
   also have "... = (([b]\<^sup>\<top> ;; P)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>\<^sup>\<star>)\<^sup>\<star> ;; [\<not> b]\<^sup>\<top>"
     by (metis seqr_right_unit urel_ka.star_denest)
@@ -145,11 +145,11 @@ lemma Star_Healthy [closure]:
   by (simp add: assms closure Star_alt_def)
 
 lemma Star_unfoldl:
-  "P\<^bold>\<star> \<sqsubseteq> \<I>\<I> \<sqinter> P ;; P\<^bold>\<star>"
+  "P\<^bold>\<star> \<sqsubseteq> \<I>\<I> \<sqinter> (P ;; P\<^bold>\<star>)"
   by (simp add: RA1 utp_star_def)
 
 lemma Star_inductl:
-  assumes "R is \<H>" "Q \<sqsubseteq> P ;; Q \<sqinter> R"
+  assumes "R is \<H>" "Q \<sqsubseteq> (P ;; Q) \<sqinter> R"
   shows "Q \<sqsubseteq> P\<^bold>\<star>;;R"
 proof -
   from assms(2) have "Q \<sqsubseteq> R" "Q \<sqsubseteq> P ;; Q"
@@ -189,7 +189,7 @@ lemma Star_denest_disj:
 
 lemma Star_unfoldl_eq: 
   assumes "P is \<H>"
-  shows "\<I>\<I> \<sqinter> P ;; P\<^bold>\<star> = P\<^bold>\<star>"
+  shows "\<I>\<I> \<sqinter> (P ;; P\<^bold>\<star>) = P\<^bold>\<star>"
   by (simp add: RA1 utp_star_def)
 
 lemma uplus_Star_def:
@@ -220,11 +220,11 @@ qed
 
 lemma Star_unfoldr_eq:
   assumes "P is \<H>"
-  shows "\<I>\<I> \<sqinter> P\<^bold>\<star> ;; P = P\<^bold>\<star>"
+  shows "\<I>\<I> \<sqinter> (P\<^bold>\<star> ;; P) = P\<^bold>\<star>"
   using Star_slide Star_unfoldl_eq assms by auto
 
 lemma Star_inductr:
-  assumes "P is \<H>" "R is \<H>" "Q \<sqsubseteq> P \<sqinter> Q ;; R"
+  assumes "P is \<H>" "R is \<H>" "Q \<sqsubseteq> P \<sqinter> (Q ;; R)"
   shows "Q \<sqsubseteq> P;;R\<^bold>\<star>"
   by (metis (full_types) RA1 Star_def Star_trade_skip Unit_Right assms urel_ka.star_inductr')
 

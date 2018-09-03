@@ -8,7 +8,7 @@ no_notation
   while_inv ("while _ invr _ do _ od")
 
 no_syntax
-  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [75] 75)
+  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [64] 64)
 
 syntax
   "_ue_true"  :: "uexp" ("true")

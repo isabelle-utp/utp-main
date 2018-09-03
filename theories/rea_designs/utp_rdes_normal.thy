@@ -703,7 +703,7 @@ declare upred_semiring.power_Suc [simp del]
 
 theorem uplus_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
-  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>+ = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>r wp\<^sub>r P \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>+)"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>+ = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>r wp\<^sub>r P \<turnstile> (R\<^sup>\<star>\<^sup>r ;; Q) \<diamondop> R\<^sup>+)"
 proof -
   have 1:"(\<Sqinter> i \<bullet> R \<^bold>^ i) ;; Q = R\<^sup>\<star>\<^sup>r ;; Q"
     by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rrel_thy.Star_def ustar_alt_def)
@@ -764,7 +764,7 @@ text \<open> We also show how to calculate the Kleene closure of a reactive desi
 
 lemma StarR_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
-  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R = \<^bold>R\<^sub>s((R\<^sup>\<star>\<^sup>r wp\<^sub>r P) \<turnstile> R\<^sup>\<star>\<^sup>r ;; Q \<diamondop> R\<^sup>\<star>\<^sup>r)"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R = \<^bold>R\<^sub>s((R\<^sup>\<star>\<^sup>r wp\<^sub>r P) \<turnstile> (R\<^sup>\<star>\<^sup>r ;; Q) \<diamondop> R\<^sup>\<star>\<^sup>r)"
   by (simp add: rrel_thy.Star_alt_def nsrd_thy.Star_alt_def assms closure rdes_def unrest rpred disj_upred_def)
 
 end

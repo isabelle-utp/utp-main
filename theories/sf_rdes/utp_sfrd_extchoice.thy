@@ -21,7 +21,7 @@ translations
   "\<box>P \<bullet> B"     \<rightleftharpoons> "CONST ExtChoice (CONST range (\<lambda>P. B))"
 
 definition extChoice ::
-  "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\<box>" 65) where
+  "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" (infixl "\<box>" 60) where
 [upred_defs]: "P \<box> Q \<equiv> ExtChoice {P, Q}"
 
 text \<open> Small external choice as an indexed big external choice. \<close>

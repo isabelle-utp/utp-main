@@ -223,7 +223,7 @@ text \<open> Since we are now in the world of relations, we have an additional t
   is an order on programs that allows us to assert that a program refines a given specification,
   for example: \<close>
 
-lemma "($x\<acute> >\<^sub>u $y) \<sqsubseteq> (x, y := &y + 3, 5)"
+lemma "($x\<acute> >\<^sub>u $y) \<sqsubseteq> (x, y) := ((&y + 3), 5)"
   by (rel_auto)
 
 text \<open> This tells us that the specification that the after value of $x$ must be greater than the initial
