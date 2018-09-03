@@ -13,13 +13,11 @@ alphabet st_sum_list =
 
 text \<open> Next, we define the program as by a homogeneous relation over the state-space type. \<close>
 
-term "while (ans = sum(take(i, x))) invr ans = ans do II od"
-
 abbreviation Sum_List :: "st_sum_list hrel" where
   "Sum_List \<equiv>
   i := 0 ;;
   ans := 0 ;;
-  while (i < #xs) invr (ans = sum(take(i, xs)))
+  while (i < #xs) invr (ans = list_sum(take(i, xs)))
   do
     ans := (ans + xs[i]) ;;
     i := (i + 1)

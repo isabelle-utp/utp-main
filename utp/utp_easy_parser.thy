@@ -11,15 +11,18 @@ no_syntax
   "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_")
 
 syntax
+  "_ue_not"   :: "uexp \<Rightarrow> uexp" ("\<not> _" [40] 40)
   "_ue_conj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<and>" 35)
   "_ue_disj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<or>" 30)
 
 translations
+  "_ue_not p" => "CONST not_upred p"
   "_ue_conj p q" => "p \<and>\<^sub>p q"
   "_ue_disj p q" => "p \<or>\<^sub>p q"
 
 syntax
   "_ue_paren" :: "uexp \<Rightarrow> uexp" ("'(_')")
+  "_ue_lit"   :: "logic \<Rightarrow> uexp" ("\<guillemotleft>_\<guillemotright>")
   "_ue_num"   :: "num_const \<Rightarrow> uexp" ("_")
   "_ue_var"   :: "id \<Rightarrow> uexp" ("_")
   "_ue_size"  :: "uexp \<Rightarrow> uexp" ("#_" [999] 999)
@@ -32,10 +35,14 @@ syntax
   "_ue_one"   :: "uexp" ("1")
   "_ue_plus"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "+" 165)
   "_ue_minus" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "-" 165)
+  "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
+  "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
+  "_ue_trop"  :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _, _')" [999,0,0,0] 999)
   "_ue_apply" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_[_]" [999] 999)
 
 translations
   "_ue_paren x"  => "x"
+  "_ue_lit x"    => "CONST lit x"
   "_ue_num x"    => "_Numeral x"
   "_ue_var x"    => "CONST utp_expr.var (CONST pr_var x)"
   "_ue_size e"   => "#\<^sub>u(e)"
@@ -48,17 +55,10 @@ translations
   "_ue_one"      => "1"
   "_ue_plus x y" => "x + y"
   "_ue_minus x y" => "x - y"
+  "_ue_uop f x"   => "CONST uop f x"
+  "_ue_bop f x y" => "CONST bop f x y"
+  "_ue_trop f x y" => "CONST trop f x y"
   "_ue_apply f x" => "f(x)\<^sub>a"
-
-
-syntax
-  "_ue_sum"        :: "uexp \<Rightarrow> uexp" ("sum'(_')")
-  "_ue_take"       :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("take'(_, _')")
-
-translations
-  "_ue_sum x" => "sum\<^sub>u(x)"
-  "_ue_take x y" => "take\<^sub>u(x, y)"
-
 
 syntax
   "_ue_while"      :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")

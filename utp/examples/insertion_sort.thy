@@ -7,17 +7,16 @@ alphabet st_insertion_sort =
   i   :: nat
   key :: int
   j   :: nat
-  n   :: nat
 
 abbreviation insertion_sort :: "st_insertion_sort hrel" where
   "insertion_sort \<equiv>
   i := 1 ;;
-  n := #arr ;;
-  while (i < n)
+  while (i < #arr) invr sorted(take(i-1,arr))
   do 
     key := arr[i] ;;
     j := i ;;
     while (j > 0 \<and> arr[j-1] > key)
+    invr sorted(take(j-1,arr))
     do
       arr[j] := arr[j-1] ;;
       j := (j - 1)
