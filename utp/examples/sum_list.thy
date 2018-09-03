@@ -31,8 +31,7 @@ lemma "TRY([&xs \<mapsto>\<^sub>s \<guillemotleft>[4,3,7,1,12,8]\<guillemotright
 text \<open> Finally, we verify the program. \<close>
 
 theorem Sum_List_sums:
-  "\<lbrace>&xs =\<^sub>u \<guillemotleft>XS\<guillemotright>\<rbrace>Sum_List\<lbrace>&ans =\<^sub>u sum\<^sub>u(&xs)\<rbrace>\<^sub>u"
+  "{{xs = \<guillemotleft>XS\<guillemotright>}} Sum_List {{ans = list_sum(xs)}}"
   by (hoare_auto, metis add.foldr_snoc take_Suc_conv_app_nth)
-
 
 end

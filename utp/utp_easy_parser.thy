@@ -11,11 +11,15 @@ no_syntax
   "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_")
 
 syntax
+  "_ue_true"  :: "uexp" ("true")
+  "_ue_false" :: "uexp" ("false")
   "_ue_not"   :: "uexp \<Rightarrow> uexp" ("\<not> _" [40] 40)
   "_ue_conj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<and>" 35)
   "_ue_disj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<or>" 30)
 
 translations
+  "_ue_true" => "CONST true_upred"
+  "_ue_false" => "CONST false_upred"
   "_ue_not p" => "CONST not_upred p"
   "_ue_conj p q" => "p \<and>\<^sub>p q"
   "_ue_disj p q" => "p \<or>\<^sub>p q"
@@ -61,11 +65,15 @@ translations
   "_ue_apply f x" => "f(x)\<^sub>a"
 
 syntax
+  "_ue_if_then"    :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _ then _ else _ fi")
   "_ue_while"      :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
   "_ue_while_inv"  :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ do _ od")
+  "_ue_hoare"      :: "uexp \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> logic" ("{{_}} / _ / {{_}}")
 
 translations
+  "_ue_if_then b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
   "_ue_while b P" == "CONST while_top b P"
   "_ue_while_inv b c P" == "CONST while_inv b c P"
+  "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
 
 end

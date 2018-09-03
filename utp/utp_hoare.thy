@@ -16,7 +16,7 @@ declare hoare_r_def [upred_defs]
 named_theorems hoare and hoare_safe
 
 method hoare_split uses hr = 
-  ((simp add: assigns_comp), \<comment> \<open> Combine Assignments where possible \<close>
+  ((simp add: assigns_comp)?, \<comment> \<open> Combine Assignments where possible \<close>
    (auto
     intro: hoare intro!: hoare_safe hr
     simp add: conj_comm conj_assoc usubst unrest))[1] \<comment> \<open> Apply Hoare logic laws \<close>
