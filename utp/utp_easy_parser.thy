@@ -76,6 +76,4 @@ translations
   "_ue_while_inv b c P" == "CONST while_inv b c P"
   "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
 
-term "x := 5"
-
 end

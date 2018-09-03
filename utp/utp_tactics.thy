@@ -4,7 +4,6 @@
 (* Authors: Simon Foster & Frank Zeyda (University of York, UK)               *)
 (* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
 (******************************************************************************)
-(* LAST REVIEWED: 3 Mar 2017 *)
 
 text_raw \<open> \newpage \<close>
 

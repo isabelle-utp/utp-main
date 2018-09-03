@@ -16,7 +16,7 @@ abbreviation insertion_sort :: "st_insertion_sort hrel" where
     key := arr[i] ;;
     j := i ;;
     while (j > 0 \<and> arr[j-1] > key)
-    invr sorted(take(j-1,arr))
+    invr sorted(drop(j-1,take(i-1,arr)))
     do
       arr[j] := arr[j-1] ;;
       j := (j - 1)
