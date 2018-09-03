@@ -49,7 +49,7 @@ definition assigns_srd :: "'s usubst \<Rightarrow> ('s, 't::trace, '\<alpha>) hr
 
 syntax
   "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') :=\<^sub>R '(_')")  
-  "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>R" 90)
+  "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>R" 72)
 
 translations
   "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (CONST id) xs vs)"

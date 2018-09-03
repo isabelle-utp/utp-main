@@ -197,7 +197,7 @@ subsection \<open> R2: No dependence upon trace history \<close>
 text \<open> There are various ways of expressing $R2$, which are enumerated below. \<close>
 
 definition R2a :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
-[upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk>)"
+[upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,(\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr))/$tr,$tr\<acute>\<rbrakk>)"
 
 definition R2a' :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
 [upred_defs]: "R2a' P = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"

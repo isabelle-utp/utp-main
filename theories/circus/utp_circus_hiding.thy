@@ -7,7 +7,7 @@ begin
 subsection \<open> Hiding in peri- and postconditions \<close>
 
 definition hide_rea ("hide\<^sub>r") where
-[upred_defs]: "hide\<^sub>r P E = (\<^bold>\<exists> s \<bullet> (P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>)))"
+[upred_defs]: "hide\<^sub>r P E = (\<^bold>\<exists> s \<bullet> (P\<lbrakk>$tr^\<^sub>u\<guillemotleft>s\<guillemotright>,(\<guillemotleft>E\<guillemotright>\<union>\<^sub>u$ref\<acute>)/$tr\<acute>,$ref\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr^\<^sub>u(\<guillemotleft>s\<guillemotright>\<restriction>\<^sub>u\<guillemotleft>-E\<guillemotright>)))"
 
 lemma hide_rea_CRR_closed [closure]: 
   assumes "P is CRR"

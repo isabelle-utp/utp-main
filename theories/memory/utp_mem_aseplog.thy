@@ -13,7 +13,7 @@ definition sep_conj :: "('h :: sep_alg, 's) spred \<Rightarrow> ('h, 's) spred \
 [upred_defs]: "(P \<^bold>* Q) = (\<^bold>\<exists> (h\<^sub>0, h\<^sub>1) \<bullet> \<guillemotleft>h\<^sub>0 ## h\<^sub>1\<guillemotright> \<and> &hp =\<^sub>u \<guillemotleft>h\<^sub>0 + h\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>h\<^sub>1\<guillemotright>/&hp\<rbrakk>)"
 
 definition sep_impl :: "('h :: sep_alg, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "-\<^bold>*" 25) where
-[upred_defs]: "(P -\<^bold>* Q) = (\<^bold>\<forall> h\<^sub>0 \<bullet> \<guillemotleft>h\<^sub>0\<guillemotright> ##\<^sub>u &hp \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<Rightarrow> Q\<lbrakk>&hp + \<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk>)"
+[upred_defs]: "(P -\<^bold>* Q) = (\<^bold>\<forall> h\<^sub>0 \<bullet> \<guillemotleft>h\<^sub>0\<guillemotright> ##\<^sub>u &hp \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<Rightarrow> Q\<lbrakk>(&hp + \<guillemotleft>h\<^sub>0\<guillemotright>)/&hp\<rbrakk>)"
 
 subsection \<open> Algebraic Properties \<close>
 

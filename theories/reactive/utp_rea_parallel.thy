@@ -17,19 +17,15 @@ definition R1m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alph
 text \<open> A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
   $1.tr$. Thus we have to remove the latter two histories as well to satisfy R2 for the overall
   construction. \<close>
-
-term "M\<lbrakk>0,x,k/y,z,a\<rbrakk>"
-  
-term "M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>"
   
 definition R2m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+  where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
 definition R2m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+  where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
 definition R2cm :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2cm(M) = M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M"
+  where [upred_defs]: "R2cm(M) = M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M"
 
 lemma R2m'_form:
   "R2m'(M) =

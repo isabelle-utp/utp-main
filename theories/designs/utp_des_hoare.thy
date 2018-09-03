@@ -10,6 +10,9 @@ definition HoareD :: "'s upred \<Rightarrow> 's hrel_des \<Rightarrow> 's upred 
 lemma assigns_hoare_d [hoare_safe]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrightarrow> {p}\<langle>\<sigma>\<rangle>\<^sub>D{q}\<^sub>D"
   by rel_auto
 
+lemma skip_hoare_d: "{p}II\<^sub>D{p}\<^sub>D"
+  by (rel_auto)
+
 lemma assigns_backward_hoare_d: 
   "{\<sigma> \<dagger> p}\<langle>\<sigma>\<rangle>\<^sub>D{p}\<^sub>D"
   by rel_auto
