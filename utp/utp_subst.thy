@@ -111,7 +111,7 @@ syntax
   "_Subst"    :: "smaplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
   "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
   "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
-  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [75] 75)
+  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [64] 64)
   "_uexprs"  :: "[uexp, uexprs] => uexprs" ("_,/ _")
   ""         :: "uexp => uexprs" ("_")
   "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")
@@ -131,7 +131,7 @@ translations
   "_subst P v x" <= "_subst P (_spvar x) v"
   "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
   "_uexp_l e" => "e"
-  
+
 text \<open> Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} to update a variable $x$ in $\sigma$ with
   expression $v$, @{term "[x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f]"} to construct a substitution with two variables,
   and finally @{term "P\<lbrakk>v/x\<rbrakk>"}, the traditional syntax.

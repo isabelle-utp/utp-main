@@ -19,10 +19,10 @@ abbreviation insertion_sort :: "st_insertion_sort hrel" where
     invr sorted(drop(j-1,take(i-1,arr)))
     do
       arr[j] := arr[j-1] ;;
-      j := (j - 1)
+      j := j - 1
     od ;;
     arr[j] := key ;;
-    i := (i + 1)
+    i := i + 1
   od"
 
 lemma "TRY([&arr \<mapsto>\<^sub>s \<guillemotleft>[4,3,7,1,12,8]\<guillemotright>] \<Turnstile> insertion_sort)"

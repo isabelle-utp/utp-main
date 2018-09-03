@@ -87,7 +87,7 @@ text \<open> We set up some overloaded constants for sequential composition and 
   we want to overload their definitions later. \<close>
   
 consts
-  useq     :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 71)
+  useq     :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 61)
   uassigns :: "'a usubst \<Rightarrow> 'b" ("\<langle>_\<rangle>\<^sub>a")
   uskip    :: "'a" ("II")
   
@@ -118,7 +118,7 @@ adhoc_overloading
 text \<open> We also set up a homogeneous sequential composition operator, and versions of @{term true}
   and @{term false} that are explicitly typed by a homogeneous alphabet. \<close>
 
-abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 71) where
+abbreviation seqh :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" (infixr ";;\<^sub>h" 61) where
 "seqh P Q \<equiv> (P ;; Q)"
 
 abbreviation truer :: "'\<alpha> hrel" ("true\<^sub>h") where
@@ -274,9 +274,9 @@ syntax
   "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   \<comment> \<open> Single and multiple assignement \<close>
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
-  "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
+  "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
   \<comment> \<open> Indexed assignment \<close>
-  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [73, 0, 0] 72)
+  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [63, 0, 0] 62)
   \<comment> \<open> Substitution constructor \<close>
   "_mk_usubst"      :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
   \<comment> \<open> Alphabetised skip \<close>

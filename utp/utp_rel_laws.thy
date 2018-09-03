@@ -732,7 +732,7 @@ text \<open> The following two proofs are adapted from the AFP entry
   \href{https://www.isa-afp.org/entries/Kleene_Algebra.shtml}{Kleene Algebra}. 
   See also~\cite{Armstrong2012,Armstrong2015}. \<close>
 
-lemma upower_inductl: "Q \<sqsubseteq> (P ;; Q \<sqinter> R) \<Longrightarrow> Q \<sqsubseteq> P \<^bold>^ n ;; R"
+lemma upower_inductl: "Q \<sqsubseteq> ((P ;; Q) \<sqinter> R) \<Longrightarrow> Q \<sqsubseteq> P \<^bold>^ n ;; R"
 proof (induct n)
   case 0
   then show ?case by (auto)
@@ -743,7 +743,7 @@ next
 qed
 
 lemma upower_inductr:
-  assumes "Q \<sqsubseteq> (R \<sqinter> Q ;; P)"
+  assumes "Q \<sqsubseteq> R \<sqinter> (Q ;; P)"
   shows "Q \<sqsubseteq> R ;; (P \<^bold>^ n)"
 using assms proof (induct n)
   case 0
@@ -825,7 +825,7 @@ subsection \<open> Kleene Algebra Laws \<close>
 lemma ustar_alt_def: "P\<^sup>\<star> = (\<Sqinter> i \<bullet> P \<^bold>^ i)"
   by (simp add: ustar_def)
 
-theorem ustar_sub_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> P;;P\<^sup>\<star>"
+theorem ustar_sub_unfoldl: "P\<^sup>\<star> \<sqsubseteq> II \<sqinter> (P;;P\<^sup>\<star>)"
   by (rel_simp, simp add: rtrancl_into_trancl2 trancl_into_rtrancl)
     
 theorem ustar_inductl:
@@ -850,16 +850,16 @@ proof -
   finally show ?thesis .
 qed
 
-lemma ustar_refines_nu: "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+lemma ustar_refines_nu: "(\<nu> X \<bullet> (P ;; X) \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
   by (metis (no_types, lifting) lfp_greatest semilattice_sup_class.le_sup_iff 
       semilattice_sup_class.sup_idem upred_semiring.mult_2_right 
       upred_semiring.one_add_one ustar_inductl)
 
-lemma ustar_as_nu: "P\<^sup>\<star> = (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+lemma ustar_as_nu: "P\<^sup>\<star> = (\<nu> X \<bullet> (P ;; X) \<sqinter> II)"
 proof (rule antisym)
-  show "(\<nu> X \<bullet> P ;; X \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
+  show "(\<nu> X \<bullet> (P ;; X) \<sqinter> II) \<sqsubseteq> P\<^sup>\<star>"
     by (simp add: ustar_refines_nu)
-  show "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> P ;; X \<sqinter> II)"
+  show "P\<^sup>\<star> \<sqsubseteq> (\<nu> X \<bullet> (P ;; X) \<sqinter> II)"
     by (metis lfp_lowerbound upred_semiring.add_commute ustar_sub_unfoldl)
 qed
 
@@ -983,5 +983,5 @@ lemma Dom_inf:
 lemma assume_Dom:
   "[Dom(P)]\<^sup>\<top> ;; P = P"
   by (rel_auto)
-     
+
 end

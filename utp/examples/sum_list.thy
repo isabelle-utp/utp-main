@@ -19,8 +19,8 @@ abbreviation Sum_List :: "st_sum_list hrel" where
   ans := 0 ;;
   while (i < #xs) invr (ans = list_sum(take(i, xs)))
   do
-    ans := (ans + xs[i]) ;;
-    i := (i + 1)
+    ans := ans + xs[i] ;;
+    i := i + 1
   od"
 
 text \<open> Next, we symbolically evaluate some examples. \<close>
