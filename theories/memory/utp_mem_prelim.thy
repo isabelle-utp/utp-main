@@ -30,7 +30,7 @@ syntax
   "_ucompat" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "##\<^sub>u" 60)
 
 translations
-  "f ##\<^sub>u g" == "CONST bop (op ##) f g"
+  "f ##\<^sub>u g" == "CONST bop (##) f g"
 
 type_synonym ('h, 's) spred = "('h, 's) mem_ext upred"
 type_synonym ('h, 's) sprog = "('h, 's) mem_ext hrel_des"
