@@ -20,7 +20,6 @@ imports
   utp_pred
   utp_pred_laws
   utp_recursion
-  utp_deduct
   utp_dynlog
   utp_rel
   utp_rel_laws

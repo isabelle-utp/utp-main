@@ -111,7 +111,7 @@ syntax
   "_Subst"    :: "smaplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
   "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
   "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
-  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_")
+  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [75] 75)
   "_uexprs"  :: "[uexp, uexprs] => uexprs" ("_,/ _")
   ""         :: "uexp => uexprs" ("_")
   "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")

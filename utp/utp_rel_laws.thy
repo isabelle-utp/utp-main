@@ -373,7 +373,7 @@ lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbra
     
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"
   by (simp add: assigns_comp usubst)
-    
+
 lemma assign_twice: "\<lbrakk> mwb_lens x; x \<sharp> f \<rbrakk> \<Longrightarrow> (x := e ;; x := f) = (x := f)"
   by (simp add: assigns_comp usubst unrest)
  

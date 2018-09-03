@@ -8,7 +8,7 @@ no_notation
   while_inv ("while _ invr _ do _ od")
 
 no_syntax
-  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_")
+  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [75] 75)
 
 syntax
   "_ue_true"  :: "uexp" ("true")
@@ -75,5 +75,7 @@ translations
   "_ue_while b P" == "CONST while_top b P"
   "_ue_while_inv b c P" == "CONST while_inv b c P"
   "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
+
+term "x := 5"
 
 end
