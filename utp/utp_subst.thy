@@ -101,7 +101,7 @@ text \<open> We support two kinds of syntax for substitutions, one where we cons
   to construct substitutions from multiple variables. 
 \<close>
   
-nonterminal smaplet and smaplets and uexprs and salphas
+nonterminal smaplet and smaplets and uexp and uexprs and salphas
 
 syntax
   "_smaplet"  :: "[salpha, 'a] => smaplet"             ("_ /\<mapsto>\<^sub>s/ _")
@@ -111,8 +111,9 @@ syntax
   "_Subst"    :: "smaplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
   "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
   "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
-  "_uexprs"  :: "[logic, uexprs] => uexprs" ("_,/ _")
-  ""         :: "logic => uexprs" ("_")
+  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_")
+  "_uexprs"  :: "[uexp, uexprs] => uexprs" ("_,/ _")
+  ""         :: "uexp => uexprs" ("_")
   "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")
   ""         :: "salpha => salphas" ("_")
   "_par_subst" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>s _" [100,0,0,101] 101)
@@ -129,6 +130,7 @@ translations
   "_subst P v x" <= "CONST usubst (CONST subst_upd (CONST id) x v) P"
   "_subst P v x" <= "_subst P (_spvar x) v"
   "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
+  "_uexp_l e" => "e"
   
 text \<open> Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} to update a variable $x$ in $\sigma$ with
   expression $v$, @{term "[x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f]"} to construct a substitution with two variables,

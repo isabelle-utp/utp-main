@@ -276,7 +276,7 @@ syntax
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 72)
   \<comment> \<open> Indexed assignment \<close>
-  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_[_] :=/ _)" [73, 0, 0] 72)
+  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [73, 0, 0] 72)
   \<comment> \<open> Substitution constructor \<close>
   "_mk_usubst"      :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
   \<comment> \<open> Alphabetised skip \<close>
@@ -304,7 +304,7 @@ translations
   "_assignment x v" <= "_assignment (_spvar x) v"
   "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
   \<comment> \<open> Indexed assignment uses the overloaded collection update function \emph{uupd}. \<close>
-  "x [k] := v" => "x := &x(k \<mapsto> v)\<^sub>u"
+  "_assignment_upd x k v" => "x := &x(k \<mapsto> v)\<^sub>u"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
   "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
@@ -314,7 +314,7 @@ translations
   "_rel_aext P a" == "CONST rel_aext P a"
   "_rel_ares P a" == "CONST rel_ares P a"
   "_rel_frext a P" == "CONST rel_frext a P"
-  
+
 text \<open> The following code sets up pretty-printing for homogeneous relational expressions. We cannot 
   do this via the ``translations'' command as we only want the rule to apply when the input and output
   alphabet types are the same. The code has to deconstruct a @{typ "('a, '\<alpha>) uexpr"} type, determine 

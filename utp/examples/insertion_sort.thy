@@ -1,5 +1,5 @@
 theory insertion_sort
-  imports "UTP.utp"
+  imports "UTP.utp_easy_parser"
 begin
 
 alphabet st_insertion_sort =
@@ -12,18 +12,18 @@ alphabet st_insertion_sort =
 abbreviation insertion_sort :: "st_insertion_sort hrel" where
   "insertion_sort \<equiv>
   i := 1 ;;
-  n := #\<^sub>u(&arr) ;;
-  while (&i <\<^sub>u &n)
+  n := #arr ;;
+  while (i < n)
   do 
-    key := &arr(&i)\<^sub>a ;;
-    j := &i ;;
-    while (&j >\<^sub>u 0 \<and> &arr(&j-1)\<^sub>a >\<^sub>u &key)
+    key := arr[i] ;;
+    j := i ;;
+    while (j > 0 \<and> arr[j-1] > key)
     do
-      arr[&j] := &arr(&j-1)\<^sub>a ;;
-      j := (&j - 1)
+      arr[j] := arr[j-1] ;;
+      j := (j - 1)
     od ;;
-    arr[&j] := &key ;;
-    i := (&i + 1)
+    arr[j] := key ;;
+    i := (i + 1)
   od"
 
 lemma "TRY([&arr \<mapsto>\<^sub>s \<guillemotleft>[4,3,7,1,12,8]\<guillemotright>] \<Turnstile> insertion_sort)"

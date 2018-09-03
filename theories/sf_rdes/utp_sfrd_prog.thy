@@ -248,7 +248,7 @@ lemma AssignC_init_refine_intro:
     "vwb_lens x" "$st:x \<sharp> P\<^sub>2" "$st:x \<sharp> P\<^sub>3"
     "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q is NCSP"
     "\<^bold>R\<^sub>s([&x =\<^sub>u \<guillemotleft>k\<guillemotright>]\<^sub>S\<^sub>< \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> Q"
-  shows "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> x :=\<^sub>C \<guillemotleft>k\<guillemotright> ;; Q"
+  shows "\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> (x :=\<^sub>C \<guillemotleft>k\<guillemotright>) ;; Q"
   by (simp add: AssignsCSP_as_AssignsR[THEN sym] assms seqr_assoc Skip_left_unit AssignR_init_refine_intro closure)
 
 lemma AssignsCSP_refines_sinv: 
