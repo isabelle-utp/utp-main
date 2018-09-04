@@ -1,6 +1,7 @@
 section \<open> UTP Easy Expression Parser \<close>
+
 theory utp_easy_parser
-  imports "utp"
+  imports utp_full
 begin
 
 no_notation 

@@ -151,7 +151,7 @@ lemma renamer_map: "inj f \<Longrightarrow> renamer (map f)"
   by (unfold_locales, simp_all add: plus_list_def)
 
 definition rea_rename :: "('t\<^sub>1::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t\<^sub>1 \<Rightarrow> 't\<^sub>2) \<Rightarrow> ('t\<^sub>2::trace,'\<alpha>) hrel_rp" ("(_)\<lparr>_\<rparr>\<^sub>r" [999, 0] 999) where
-[upred_defs]: "rea_rename P f = R2(($tr\<acute> =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P ;; ($tr\<acute> =\<^sub>u \<guillemotleft>f\<guillemotright>($tr)\<^sub>a \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
+[upred_defs]: "rea_rename P f = R2(($tr\<acute> =\<^sub>u 0 \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R) ;; P ;; ($tr\<acute> =\<^sub>u uop f $tr \<and> $\<Sigma>\<^sub>R\<acute> =\<^sub>u $\<Sigma>\<^sub>R))"
 
 text \<open> Trace contribution substitution: make a substitution for the trace contribution lens 
   @{term tt}, and apply @{term R1} to make the resulting predicate healthy again. \<close>

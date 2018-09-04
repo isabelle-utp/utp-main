@@ -1017,7 +1017,7 @@ subsection \<open> Renaming \<close>
 abbreviation "pre_image f B \<equiv> {x. f(x) \<in> B}"
 
 definition csp_rename :: "('s, 'e) action \<Rightarrow> ('e \<Rightarrow> 'f) \<Rightarrow> ('s, 'f) action" ("(_)\<lparr>_\<rparr>\<^sub>c" [999, 0] 999) where
-[upred_defs]: "P\<lparr>f\<rparr>\<^sub>c = R2(($tr\<acute> =\<^sub>u \<langle>\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P ;; ($tr\<acute> =\<^sub>u map\<^sub>u \<guillemotleft>f\<guillemotright> $tr \<and> $st\<acute> =\<^sub>u $st \<and> \<guillemotleft>pre_image f\<guillemotright>($ref\<acute>)\<^sub>a \<subseteq>\<^sub>u $ref))"
+[upred_defs]: "P\<lparr>f\<rparr>\<^sub>c = R2(($tr\<acute> =\<^sub>u \<langle>\<rangle> \<and> $st\<acute> =\<^sub>u $st) ;; P ;; ($tr\<acute> =\<^sub>u map\<^sub>u \<guillemotleft>f\<guillemotright> $tr \<and> $st\<acute> =\<^sub>u $st \<and> uop (pre_image f) $ref\<acute> \<subseteq>\<^sub>u $ref))"
 
 lemma csp_rename_CRR_closed [closure]: 
   assumes "P is CRR"
@@ -1074,7 +1074,7 @@ lemma csp_rename_R5 [rpred]:
 lemma csp_rename_do [rpred]: "\<Phi>(s,\<sigma>,t)\<lparr>f\<rparr>\<^sub>c = \<Phi>(s,\<sigma>,map\<^sub>u \<guillemotleft>f\<guillemotright> t)"
   by (rel_auto)
 
-lemma csp_rename_enable [rpred]: "\<E>(s,t,E)\<lparr>f\<rparr>\<^sub>c = \<E>(s,map\<^sub>u \<guillemotleft>f\<guillemotright> t, \<guillemotleft>image f\<guillemotright>(E)\<^sub>a)"
+lemma csp_rename_enable [rpred]: "\<E>(s,t,E)\<lparr>f\<rparr>\<^sub>c = \<E>(s,map\<^sub>u \<guillemotleft>f\<guillemotright> t, uop (image f) E)"
   by (rel_auto)
 
 lemma st'_unrest_csp_rename [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp> P\<lparr>f\<rparr>\<^sub>c"

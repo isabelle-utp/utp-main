@@ -1,7 +1,7 @@
 section \<open> Overloaded Expression Constructs \<close>
 
 theory utp_expr_ovld
-  imports "UTP.utp"
+  imports utp
 begin
 
 subsection \<open> Overloadable Constants \<close>
