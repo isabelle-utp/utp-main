@@ -1,7 +1,7 @@
 section \<open> Unrestriction \<close>
 
 theory utp_unrest
-  imports utp_expr
+  imports utp_expr_insts
 begin
 
 subsection \<open> Definitions and Core Syntax \<close>

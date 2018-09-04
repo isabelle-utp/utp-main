@@ -2,7 +2,7 @@ section \<open> Alphabetised Predicates \<close>
 
 theory utp_pred
 imports
-  utp_expr
+  utp_expr_funcs
   utp_subst
   utp_meta_subst
   utp_tactics

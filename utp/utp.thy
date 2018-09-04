@@ -11,6 +11,8 @@ theory utp
 imports
   utp_var
   utp_expr
+  utp_expr_insts
+  utp_expr_funcs
   utp_unrest
   utp_usedby
   utp_subst
