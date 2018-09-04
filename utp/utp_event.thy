@@ -61,7 +61,7 @@ text \<open>
 
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
-[upred_defs]: "(c\<cdot>e)\<^sub>u = \<guillemotleft>c\<guillemotright>(e)\<^sub>a"
+[upred_defs]: "(c\<cdot>e)\<^sub>u = uop c e"
 
 lemma unrest_chan_apply [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> (c\<cdot>e)\<^sub>u"
   by (rel_auto)

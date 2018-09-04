@@ -886,20 +886,6 @@ lemma uset_laws [simp]:
   "x \<in>\<^sub>u {m..n}\<^sub>u = (m \<le>\<^sub>u x \<and> x \<le>\<^sub>u n)"
   by (pred_auto)+
   
-lemma pfun_entries_apply [simp]:
-  "(entr\<^sub>u(d,f) :: (('k, 'v) pfun, '\<alpha>) uexpr)(i)\<^sub>a = ((\<guillemotleft>f\<guillemotright>(i)\<^sub>a) \<triangleleft> i \<in>\<^sub>u d \<triangleright> \<bottom>\<^sub>u)"
-  by (pred_auto)
-    
-lemma udom_uupdate_pfun [simp]:
-  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
-  shows "dom\<^sub>u(m(k \<mapsto> v)\<^sub>u) = {k}\<^sub>u \<union>\<^sub>u dom\<^sub>u(m)"
-  by (rel_auto)
-
-lemma uapply_uupdate_pfun [simp]:
-  fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
-  shows "(m(k \<mapsto> v)\<^sub>u)(i)\<^sub>a = v \<triangleleft> i =\<^sub>u k \<triangleright> m(i)\<^sub>a"
-  by (rel_auto)
-
 lemma ulit_eq [simp]: "x = y \<Longrightarrow> (\<guillemotleft>x\<guillemotright> =\<^sub>u \<guillemotleft>y\<guillemotright>) = true"
   by (rel_auto)
     
