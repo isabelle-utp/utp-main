@@ -44,7 +44,7 @@ lift_definition var :: "('t \<Longrightarrow> '\<alpha>) \<Rightarrow> ('t, '\<a
 text \<open> A literal is simply a constant function expression, always returning the same value
   for any binding. \<close>
 
-lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr" is "\<lambda> v b. v" .
+lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr" ("\<guillemotleft>_\<guillemotright>") is "\<lambda> v b. v" .
 
 text \<open> We define lifting for unary, binary, ternary, and quaternary expression constructs, that 
   simply take a HOL function with correct number of arguments and apply it function to all possible 
@@ -84,19 +84,8 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop uIf b P Q"
 text \<open> UTP expression is equality is simply HOL equality lifted using the @{term bop} binary 
   expression constructor. \<close>
     
-definition eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr"
+definition eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infixl "=\<^sub>u" 50)
 where "eq_upred x y = bop HOL.eq x y"
-    
-text \<open> We define syntax for expressions using adhoc-overloading -- this allows us to later define
-        operators on different types if necessary (e.g. when adding types for new UTP theories). \<close>
-
-consts
-  ulit   :: "'t \<Rightarrow> 'e" ("\<guillemotleft>_\<guillemotright>")
-  ueq    :: "'a \<Rightarrow> 'a \<Rightarrow> 'b" (infixl "=\<^sub>u" 50)
-  
-adhoc_overloading
-  ulit lit and
-  ueq eq_upred
 
 text \<open> A literal is the expression @{term "\<guillemotleft>v\<guillemotright>"}, where @{term v} is any HOL term. Actually, the
   literal construct is very versatile and also allows us to refer to HOL variables within UTP
@@ -360,30 +349,15 @@ translations
   "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
     
 syntax \<comment> \<open> Polymorphic constructs \<close>
-  "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
-  "_umap_empty" :: "logic" ("[]\<^sub>u")
-  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
-  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
-  ""            :: "umaplet => umaplets"             ("_")
-  "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
-  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
-  "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-  "_ucard"      :: "logic \<Rightarrow> logic" ("#\<^sub>u'(_')")
   "_uless"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "<\<^sub>u" 50)
   "_uleq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<le>\<^sub>u" 50)
   "_ugreat"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix ">\<^sub>u" 50)
   "_ugeq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<ge>\<^sub>u" 50)
   "_uceil"      :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>u")
   "_ufloor"     :: "logic \<Rightarrow> logic" ("\<lfloor>_\<rfloor>\<^sub>u")
-  "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
-  "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
-  "_usum"       :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
-  "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
-  "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
   "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
   "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
   "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
-  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
 
 translations
   \<comment> \<open> Type-class polymorphic constructs \<close>
@@ -517,7 +491,7 @@ is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
 translations
   "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
-  "{x | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr (CONST ulit CONST UNIV) (\<lambda> x. (P, F))"
+  "{x | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr (CONST lit CONST UNIV) (\<lambda> x. (P, F))"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))"
 
 subsection \<open> Lifting limits \<close>

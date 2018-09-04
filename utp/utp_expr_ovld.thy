@@ -4,6 +4,8 @@ theory utp_expr_ovld
   imports "UTP.utp"
 begin
 
+subsection \<open> Overloadable Constants \<close>
+
 text \<open> For convenience, we often want to utilise the same expression syntax for multiple constructs.
   This can be achieved using ad-hoc overloading. We create a number of polymorphic constants and then
   overload their definitions using appropriate implementations. In order for this to work,
@@ -57,8 +59,24 @@ adhoc_overloading
   usums list_sum and usums Sum and usums pfun_sum and
   uentries pfun_entries and uentries ffun_entries
 
-translations
-  "0" <= "CONST uempty" \<comment> \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
+subsection \<open> Syntax Translations \<close>
+
+syntax
+  "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
+  "_umap_empty" :: "logic" ("[]\<^sub>u")
+  "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
+  "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
+  ""            :: "umaplet => umaplets"             ("_")
+  "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
+  "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
+  "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
+  "_ucard"      :: "logic \<Rightarrow> logic" ("#\<^sub>u'(_')")
+  "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
+  "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
+  "_usum"       :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
+  "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
+  "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
+  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
 
 translations
   \<comment> \<open> Pretty printing for adhoc-overloaded constructs \<close>
@@ -69,6 +87,7 @@ translations
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
+  "0" <= "CONST uempty" \<comment> \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
 
   \<comment> \<open> Overloaded construct translations \<close>
   "f(x,y,z,u)\<^sub>a" == "CONST bop CONST uapply f (x,y,z,u)\<^sub>u"
@@ -89,6 +108,8 @@ translations
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
   "_UMap (_UMaplets ms1 ms2)"     <= "_UMapUpd (_UMap ms1) ms2"
   "_UMaplets ms1 (_UMaplets ms2 ms3)" <= "_UMaplets (_UMaplets ms1 ms2) ms3"
+
+subsection \<open> Simplifications \<close>
 
 lemma ufun_apply_lit [simp]: 
   "\<guillemotleft>f\<guillemotright>(\<guillemotleft>x\<guillemotright>)\<^sub>a = \<guillemotleft>f(x)\<guillemotright>"
@@ -113,5 +134,14 @@ lemma uapply_uupdate_pfun [simp]:
   shows "(m(k \<mapsto> v)\<^sub>u)(i)\<^sub>a = v \<triangleleft> i =\<^sub>u k \<triangleright> m(i)\<^sub>a"
   by (rel_auto)
 
+subsection \<open> Indexed Assignment \<close>
+
+syntax
+  \<comment> \<open> Indexed assignment \<close>
+  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [63, 0, 0] 62)
+
+translations
+  \<comment> \<open> Indexed assignment uses the overloaded collection update function \emph{uupd}. \<close>
+  "_assignment_upd x k v" => "x := &x(k \<mapsto> v)\<^sub>u"
 
 end

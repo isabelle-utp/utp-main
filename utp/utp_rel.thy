@@ -275,8 +275,6 @@ syntax
   \<comment> \<open> Single and multiple assignement \<close>
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
-  \<comment> \<open> Indexed assignment \<close>
-  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [63, 0, 0] 62)
   \<comment> \<open> Substitution constructor \<close>
   "_mk_usubst"      :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
   \<comment> \<open> Alphabetised skip \<close>
@@ -293,7 +291,7 @@ syntax
   "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
   \<comment> \<open> Nameset \<close>
   "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
-  
+
 translations
   "_utp_if b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
@@ -303,8 +301,6 @@ translations
   "_assignment x v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
   "_assignment x v" <= "_assignment (_spvar x) v"
   "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
-  \<comment> \<open> Indexed assignment uses the overloaded collection update function \emph{uupd}. \<close>
-  "_assignment_upd x k v" => "x := &x(k \<mapsto> v)\<^sub>u"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
   "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
