@@ -62,7 +62,10 @@ session "UTP" in "utp" = "UTP-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories [document = false]
     utp_parser_utils
-  theories utp utp_easy_parser
+  theories 
+    utp 
+    utp_full
+    utp_easy_parser
   document_files
     "root.bib"
     "root.tex"
