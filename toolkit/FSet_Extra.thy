@@ -108,7 +108,7 @@ lemma sorted_list_of_set_inj:
     apply (simp_all)
    apply (metis finite.insertI insert_not_empty sorted_list_of_set_def sorted_list_of_set_empty sorted_list_of_set_eq_Nil_iff)
   apply (metis finite.insertI finite_list set_remdups set_sort sorted_list_of_set_def sorted_list_of_set_sort_remdups)
-done
+  done
 
 definition flist :: "'a fset \<Rightarrow> 'a list" where
 "flist xs = sorted_list_of_set (fset xs)"
@@ -120,7 +120,7 @@ lemma flist_inj: "inj flist"
   apply (subgoal_tac "fset x = fset y")
    apply (simp add:fset_inject)
   apply (rule sorted_list_of_set_inj, simp_all)
-done
+  done
 
 lemma flist_props [simp]:
   "sorted (flist xs)"
@@ -140,7 +140,7 @@ lemma flist_set [simp]: "set (flist xs) = fset xs"
 lemma fset_inv [simp]: "\<lbrakk> sorted xs; distinct xs \<rbrakk> \<Longrightarrow> flist (finset xs) = xs"
   apply (simp add:finset_def flist_def fset_inverse)
   apply (metis local.sorted_list_of_set_sort_remdups local.sorted_sort_id remdups_id_iff_distinct)
-done
+  done
 
 lemma fcard_flist:
   "fcard xs = length (flist xs)"
@@ -148,13 +148,13 @@ lemma fcard_flist:
   apply (fold flist_set)
   apply (unfold distinct_card[OF flist_props(2)])
   apply (rule refl)
-done
+  done
 
 lemma flist_nth:
   "i < fcard vs \<Longrightarrow> flist vs ! i |\<in>| vs"
   apply (simp add: fmember_def flist_def fcard_def)
-  apply (metis distinct_card finite_fset nth_mem sorted_list_of_set)
-done
+  apply (metis fcard.rep_eq fcard_flist finset.rep_eq flist_def flist_inv nth_mem)
+  done
 
 definition fmax :: "'a fset \<Rightarrow> 'a" where
 "fmax xs = (if (xs = \<lbrace>\<rbrace>) then undefined else last (flist xs))"
@@ -188,7 +188,7 @@ lemma flist_arb_inj:
 lemma flist_arb_lists: "flist_arb ` Fow A \<subseteq> lists A"
   apply (auto)
   using Fow_def finset.rep_eq apply fastforce
-done
+  done
 
 lemma countable_Fow:
   fixes A :: "'a set"

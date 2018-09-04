@@ -392,7 +392,7 @@ lemma map_self_adjoin_complete [intro]:
    apply (case_tac "y \<in> ran f")
     apply (subgoal_tac "y \<in> dom (map_inv f)")
      apply (simp)
-     apply (metis Int_iff domD empty_iff ranI ran_map_inv)
+     apply (metis Int_iff empty_iff)
     apply (simp)
    apply (metis Int_iff domD empty_iff ranI ran_map_inv)
   apply (simp)
@@ -417,7 +417,7 @@ lemma inj_completed_map [intro]:
 lemma bij_completed_map [intro]:
   "\<lbrakk> dom f = ran f; inj_on f (dom f) \<rbrakk> \<Longrightarrow>
    bij_betw (Some ++ f) UNIV (range Some)"
-  apply (auto intro: inj_completed_map simp add:bij_betw_def)
+  apply (auto simp add:bij_betw_def)
    apply (rename_tac x)
    apply (case_tac "x \<in> dom f")
     apply (simp)
@@ -597,9 +597,6 @@ lemma maplets_lookup_nth [rule_format,simp]:
   apply (case_tac i)
    apply (auto)
   done
-
-theorem the_Some[simp]: "the \<circ> Some = id"
-  by (simp add:comp_def id_def)
 
 theorem inv_map_inv:
   "\<lbrakk> inj_on f (dom f); ran f = dom f \<rbrakk>
@@ -788,7 +785,7 @@ proof -
       by (simp add: sorted_list_of_map_def, metis dom_empty empty_iff map_le_antisym map_le_def)
   next
     case (insert x A) thus ?thesis
-      by (simp add: sorted_list_of_map_def, metis finite_insert map_of_map_keys sorted_list_of_set)
+      by (simp add: assms sorted_list_of_map_def map_of_map_keys)
   qed
 qed
 
