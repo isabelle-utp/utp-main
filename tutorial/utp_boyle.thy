@@ -46,10 +46,6 @@ apply (rule injI)
 apply (clarsimp)
 done
 
-lemma boyle_var_ords [usubst]:
-  "k \<prec>\<^sub>v p" "p \<prec>\<^sub>v V"
-  by (simp_all add: var_name_ord_def)
-
 subsection \<open> Static invariant \<close>
 
 text \<open> We first create a simple UTP theory representing Boyle's laws on a single state, as a static

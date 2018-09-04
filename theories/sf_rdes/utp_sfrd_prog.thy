@@ -202,7 +202,8 @@ definition AssignsCSP :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>, '\<phi>) ac
 
 syntax
   "_assigns_csp" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  ("'(_') :=\<^sub>C '(_')")  
-  "_assigns_csp" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>C" 62)
+  "_assigns_csp" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>C" 64)
+
 
 translations
   "_assigns_csp xs vs" => "CONST AssignsCSP (_mk_usubst (CONST id) xs vs)"
@@ -278,7 +279,7 @@ text \<open> All different assignment updates have the same syntax; the type res
   to use. \<close>
   
 syntax
-  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [0,0,72] 72)
+  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
 
 translations
   "x[k] :=\<^sub>C v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
@@ -352,7 +353,7 @@ subsection \<open> Guards \<close>
 definition GuardCSP ::
   "'\<sigma> cond \<Rightarrow>
    ('\<sigma>, '\<phi>) action \<Rightarrow>
-   ('\<sigma>, '\<phi>) action" (infixr "&\<^sub>u" 70) where
+   ('\<sigma>, '\<phi>) action" (infixr "&\<^sub>u" 60) where
 [upred_defs]: "g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<lceil>\<not> g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 lemma Guard_tri_design:
@@ -1010,6 +1011,5 @@ declare ExtChoice_tri_rdes' [rdes_def]
 
 declare extChoice_rdes_def [rdes_def del]
 declare extChoice_rdes_def' [rdes_def]
-
 
 end
