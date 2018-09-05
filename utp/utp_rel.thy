@@ -201,30 +201,43 @@ where [urel_defs]: "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
 
-definition while :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sup>\<top> _ do _ od") where
-[urel_defs]: "while\<^sup>\<top> b do P od = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+definition while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "while_top b P = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
-abbreviation while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ do _ od") where
-"while b do P od \<equiv> while\<^sup>\<top> b do P od"
-
-definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
-[urel_defs]: "while\<^sub>\<bottom> b do P od = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "while_bot b P = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
 text \<open> While loops with invariant decoration (cf. \cite{Armstrong2015}) -- partial correctness. \<close>
 
-definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
-[urel_defs]: "while b invr p do S od = while b do S od"
+definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "while_inv b p S = while_top b S"
 
 text \<open> While loops with invariant decoration -- total correctness. \<close>
 
-definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ invr _ do _ od" 71) where
-[urel_defs]: "while\<^sub>\<bottom> b invr p do S od = while\<^sub>\<bottom> b do S od"  
+definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  where
+[urel_defs]: "while_inv_bot b p S = while_bot b S"  
 
 text \<open> While loops with invariant and variant decorations -- total correctness. \<close>
 
 definition while_vrt :: 
-  "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ vrt _ do _ od") where
-[urel_defs]: "while b invr p vrt v do S od = while\<^sub>\<bottom> b do S od"
+  "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  where
+[urel_defs]: "while_vrt b p v S = while_bot b S"
+
+syntax
+  "_uwhile"         :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sup>\<top> _ do _ od")
+  "_uwhile_top"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
+  "_uwhile_bot"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ do _ od")
+  "_uwhile_inv"     :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ do _ od")
+  "_uwhile_inv_bot" :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ invr _ do _ od" 71)
+  "_uwhile_vrt"     :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("while _ invr _ vrt _ do _ od")
+
+translations
+  "_uwhile b P" == "CONST while_top b P"
+  "_uwhile_top b P" == "CONST while_top b P"
+  "_uwhile_bot b P" == "CONST while_bot b P"
+  "_uwhile_inv b p S" == "CONST while_inv b p S"
+  "_uwhile_inv_bot b p S" == "CONST while_inv_bot b p S"
+  "_uwhile_vrt b p v S" == "CONST while_vrt b p v S"
 
 text \<open> We implement a poor man's version of alphabet restriction that hides a variable within 
   a relation. \<close>

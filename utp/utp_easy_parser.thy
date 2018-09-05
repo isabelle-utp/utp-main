@@ -4,10 +4,6 @@ theory utp_easy_parser
   imports utp_full
 begin
 
-purge_notation 
-  while_top ("while _ do _ od") and
-  while_inv ("while _ invr _ do _ od")
-
 purge_syntax
   "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [64] 64)
 
@@ -71,14 +67,10 @@ translations
 
 syntax
   "_ue_if_then"    :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _ then _ else _ fi")
-  "_ue_while"      :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
-  "_ue_while_inv"  :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ do _ od")
   "_ue_hoare"      :: "uexp \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> logic" ("{{_}} / _ / {{_}}")
 
 translations
   "_ue_if_then b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
-  "_ue_while b P" == "CONST while_top b P"
-  "_ue_while_inv b c P" == "CONST while_inv b c P"
   "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
 
 end

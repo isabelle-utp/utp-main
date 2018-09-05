@@ -616,11 +616,11 @@ proof -
   have m:"mono (\<lambda>X. (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (auto intro: monoI seqr_mono cond_mono)
   have "(while b do P od) = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
-    by (simp add: while_def)
+    by (simp add: while_top_def)
   also have "... = ((P ;; (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)) \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (subst lfp_unfold, simp_all add: m)
   also have "... = ((P ;; while b do P od) \<triangleleft> b \<triangleright>\<^sub>r II)"
-    by (simp add: while_def)
+    by (simp add: while_top_def)
   finally show ?thesis .
 qed
 
@@ -628,7 +628,7 @@ theorem while_false: "while false do P od = II"
   by (subst while_unfold, rel_auto)
 
 theorem while_true: "while true do P od = false"
-  apply (simp add: while_def alpha)
+  apply (simp add: while_top_def alpha)
   apply (rule antisym)
    apply (simp_all)
   apply (rule lfp_lowerbound)
@@ -878,7 +878,7 @@ proof -
   have 1: "Continuous (\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (rel_auto)
   have "while b do P od = (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ i) false)"
-    by (simp add: "1" false_upred_def sup_continuous_Continuous sup_continuous_lfp while_def)
+    by (simp add: "1" false_upred_def sup_continuous_Continuous sup_continuous_lfp while_top_def)
   also have "... = ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ 0) false \<sqinter> (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ (i+1)) false)"
     by (subst Sup_power_expand, simp)
   also have "... = (\<Sqinter>i. ((\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II) ^^ (i+1)) false)"

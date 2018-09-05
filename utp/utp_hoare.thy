@@ -144,7 +144,7 @@ lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
   using assms
-  by (simp add: while_def hoare_r_def, rule_tac lfp_lowerbound) (rel_auto)
+  by (simp add: while_top_def hoare_r_def, rule_tac lfp_lowerbound) (rel_auto)
 
 lemma while_invr_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
