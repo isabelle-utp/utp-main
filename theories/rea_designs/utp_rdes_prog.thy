@@ -898,11 +898,11 @@ lemma IterateR_lemma1:
 
 lemma IterateR_lemma2:
   assumes "I \<noteq> {}" "\<And> i. i\<in>I \<Longrightarrow> P(i) is RR"
-  shows "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> (P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> \<not> (\<Sqinter> i \<in> I \<bullet> b i) \<triangleright>\<^sub>R R1 true)
+  shows "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> (P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> (\<not> (\<Sqinter> i \<in> I \<bullet> b i)) \<triangleright>\<^sub>R R1 true)
        = (\<Squnion> i \<in> I \<bullet> (P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true)"
 proof -
   from assms(1)
-  have "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> \<not> (\<Sqinter> i \<in> I \<bullet> b i) \<triangleright>\<^sub>R R1 true)
+  have "([\<Sqinter> i \<in> I \<bullet> b i]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r (\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true) \<and> false \<triangleleft> (\<not> (\<Sqinter> i \<in> I \<bullet> b i)) \<triangleright>\<^sub>R R1 true)
        = (\<Squnion> i \<in> I \<bullet> RR(P i) \<triangleleft> b i \<triangleright>\<^sub>R R1 true)"
     by (rel_auto)
   thus ?thesis

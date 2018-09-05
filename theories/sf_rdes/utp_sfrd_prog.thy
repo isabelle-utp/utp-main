@@ -279,10 +279,10 @@ text \<open> All different assignment updates have the same syntax; the type res
   to use. \<close>
   
 syntax
-  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
+  "_csp_assign_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
 
 translations
-  "x[k] :=\<^sub>C v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
+  "_csp_assign_upd x k v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
 
 lemma AssignCSP_update_CSP [closure]:
   "AssignCSP_update domf updatef x k v is CSP"
@@ -298,7 +298,7 @@ lemma periR_AssignCSP_update [rdes]:
 
 lemma post_AssignCSP_update [rdes]:
   "post\<^sub>R(AssignCSP_update domf updatef x k v) = 
-    (\<Phi>(true,[x \<mapsto>\<^sub>s trop updatef (&x) k v],\<langle>\<rangle>) \<triangleleft> k \<in>\<^sub>u uop domf (&x) \<triangleright>\<^sub>R R1(true))"
+    (\<Phi>(true,[x \<mapsto>\<^sub>s trop updatef (&x) k v],\<langle>\<rangle>) \<triangleleft> (k \<in>\<^sub>u uop domf (&x)) \<triangleright>\<^sub>R R1(true))"
   by (rel_auto) 
 
 lemma AssignCSP_update_NCSP [closure]:
@@ -353,8 +353,14 @@ subsection \<open> Guards \<close>
 definition GuardCSP ::
   "'\<sigma> cond \<Rightarrow>
    ('\<sigma>, '\<phi>) action \<Rightarrow>
-   ('\<sigma>, '\<phi>) action" (infixr "&\<^sub>u" 60) where
-[upred_defs]: "g &\<^sub>u A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<lceil>\<not> g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+   ('\<sigma>, '\<phi>) action"  where
+[upred_defs]: "GuardCSP g A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<lceil>\<not> g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+
+syntax
+  "_GuardCSP" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" (infixr "&\<^sub>u" 60)
+
+translations
+  "_GuardCSP b P" == "CONST GuardCSP b P"
 
 lemma Guard_tri_design:
   "g &\<^sub>u P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"

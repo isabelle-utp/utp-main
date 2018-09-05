@@ -295,8 +295,14 @@ abbreviation cond_srea ::
   "('s,'t::trace,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
   's upred \<Rightarrow>
   ('s,'t,'\<alpha>,'\<beta>) rel_rsp \<Rightarrow>
-  ('s,'t,'\<alpha>,'\<beta>) rel_rsp" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52) where
+  ('s,'t,'\<alpha>,'\<beta>) rel_rsp" where
 "cond_srea P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>\<leftarrow> \<triangleright> Q"
+
+syntax
+  "_cond_srea" :: "logic \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>R/ _)" [52,0,53] 52)
+
+translations
+  "_cond_srea P b Q" == "CONST cond_srea P b Q"
 
 lemma st_cond_assigns [rpred]:
   "\<langle>\<sigma>\<rangle>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>\<rangle>\<^sub>r"

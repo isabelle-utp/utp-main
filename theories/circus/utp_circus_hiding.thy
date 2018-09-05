@@ -222,12 +222,12 @@ lemma HideCSP_seq:
   by (rdes_eq_split cls: assms)
 
 lemma HideCSP_DoCSP [rdes_def]: 
-  "do\<^sub>C(a) \\\<^sub>C A = (Skip \<triangleleft> a \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<triangleright>\<^sub>R do\<^sub>C(a))"
+  "do\<^sub>C(a) \\\<^sub>C A = (Skip \<triangleleft> (a \<in>\<^sub>u \<guillemotleft>A\<guillemotright>) \<triangleright>\<^sub>R do\<^sub>C(a))"
   by (rdes_eq)
 
 lemma HideCSP_PrefixCSP:
   assumes "P is NCSP"
-  shows "(a \<rightarrow>\<^sub>C P) \\\<^sub>C A = ((P \\\<^sub>C A) \<triangleleft> a \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<triangleright>\<^sub>R (a \<rightarrow>\<^sub>C (P \\\<^sub>C A)))"
+  shows "(a \<rightarrow>\<^sub>C P) \\\<^sub>C A = ((P \\\<^sub>C A) \<triangleleft> (a \<in>\<^sub>u \<guillemotleft>A\<guillemotright>) \<triangleright>\<^sub>R (a \<rightarrow>\<^sub>C (P \\\<^sub>C A)))"
   apply (simp add: PrefixCSP_def Healthy_if HideCSP_seq HideCSP_DoCSP closure assms rdes rpred)
   apply (simp add: HideCSP_NCSP_closed Skip_left_unit assms cond_st_distr)
   done

@@ -4,11 +4,11 @@ theory utp_easy_parser
   imports utp_full
 begin
 
-no_notation 
+purge_notation 
   while_top ("while _ do _ od") and
   while_inv ("while _ invr _ do _ od")
 
-no_syntax
+purge_syntax
   "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [64] 64)
 
 syntax
@@ -17,6 +17,8 @@ syntax
   "_ue_not"   :: "uexp \<Rightarrow> uexp" ("\<not> _" [40] 40)
   "_ue_conj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<and>" 35)
   "_ue_disj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<or>" 30)
+  "_ue_mem"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<in> _)" [51, 51] 50)
+  "_ue_nmem"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<notin> _)" [51, 51] 50)
 
 translations
   "_ue_true" => "CONST true_upred"
@@ -24,6 +26,8 @@ translations
   "_ue_not p" => "CONST not_upred p"
   "_ue_conj p q" => "p \<and>\<^sub>p q"
   "_ue_disj p q" => "p \<or>\<^sub>p q"
+  "_ue_mem x A"  => "x \<in>\<^sub>u A"
+  "_ue_nmem x A" => "x \<notin>\<^sub>u A"
 
 syntax
   "_ue_paren" :: "uexp \<Rightarrow> uexp" ("'(_')")
