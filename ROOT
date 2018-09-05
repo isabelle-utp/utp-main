@@ -93,6 +93,12 @@ session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
     "root.tex"
     "document.sty"
 
+(* UTP Memory Models *)
+
+session "UTP-Memory" in "theories/memory" = "UTP-Designs" +
+  options [document = false]
+  theories utp_memory
+
 (* Imperative Programs based on Designs *)
     
 session "UTP-Impl" in "impl" = "UTP-Designs" +

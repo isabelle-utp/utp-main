@@ -1,5 +1,5 @@
 theory utp_mem_prelim
-  imports "UTP-Designs.utp_designs"
+  imports "UTP-Designs.utp_designs" "UTP.utp_full"
 begin
 
 text \<open> As usual, the memory consists of the store and the heap. The store is an abstract
