@@ -1,7 +1,7 @@
 section \<open> Mini-mondex example \<close>
 
 theory utp_csp_mini_mondex
-  imports "UTP-Circus.utp_circus"
+  imports "UTP-Circus.utp_circus" "UTP.utp_easy_parser"
 begin
 
 text \<open> This example is a modified version of the Mini-Mondex card example taken from the 2014
@@ -34,7 +34,7 @@ text \<open> The Pay action describes the protocol when a payment of $n$ is requ
   we need to check the balance is both sufficient, and that the transfer amount is greater than 0. It
   should also be noted that the indexed assignments give rise to preconditions that the list is
   defined at the given index. In other words, the given card records must be present. \<close>
-  
+
 definition Pay :: "index \<Rightarrow> index \<Rightarrow> money \<Rightarrow> action_mdx" where
 "Pay i j n = 
   pay.((\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>,\<guillemotleft>n\<guillemotright>)\<^sub>u) \<^bold>\<rightarrow> 

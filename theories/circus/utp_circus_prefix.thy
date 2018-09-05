@@ -5,7 +5,7 @@ theory utp_circus_prefix
 begin
 
 syntax
-  "_simple_prefix" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [62, 61] 61)
+  "_simple_prefix" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<^bold>\<rightarrow> _" [63, 62] 62)
 
 translations
   "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a\<guillemotright> P"
@@ -43,7 +43,7 @@ syntax "_mixed_prefix" :: "prefix_elem' \<Rightarrow> mixed_prefix' \<Rightarrow
 syntax
   "_prefix_action" ::
   "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix' \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
-  ("(__ \<^bold>\<rightarrow>/ _)" [61, 61, 60] 60)
+  ("(__ \<^bold>\<rightarrow>/ _)" [63, 63, 62] 62)
 
 text {* Syntax translations *}
 
@@ -83,8 +83,8 @@ term "x!(\<langle>1\<rangle>)!(2)?(v:true) \<^bold>\<rightarrow> P"
 text {* Basic translations for state variable communications *}
 
 syntax
-  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_" [61, 0, 60] 60)
-  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_\<^bold>?$_" [61, 60] 60)
+  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_" [63, 0, 60] 62)
+  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_\<^bold>?$_" [63, 60] 62)
 
 translations
   "c\<^bold>?$x:A" \<rightharpoonup> "CONST InputVarCSP c x A"

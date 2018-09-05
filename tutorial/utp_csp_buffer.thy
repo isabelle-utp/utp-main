@@ -35,7 +35,7 @@ text \<open> We define the main body of behaviour for the buffer as an abbreviat
   we can output a value presently in the buffer. \<close>
 
 abbreviation DoBuff :: act_buffer where
-"DoBuff \<equiv> (inp?(v) \<^bold>\<rightarrow> buff :=\<^sub>C (&buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)
+"DoBuff \<equiv> (inp?(v) \<^bold>\<rightarrow> buff :=\<^sub>C &buff ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>
            \<box> (#\<^sub>u(&buff) >\<^sub>u 0) &\<^sub>u outp!(head\<^sub>u(&buff)) \<^bold>\<rightarrow> buff :=\<^sub>C tail\<^sub>u(&buff))"
 
 text \<open> The main action of the buffer first initialises the single state variable $buff$, and
