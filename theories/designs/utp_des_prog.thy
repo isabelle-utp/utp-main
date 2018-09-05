@@ -83,8 +83,11 @@ qed
 
 subsection {* Guarded Commands *}
 
-definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("_ \<rightarrow>\<^sub>D _" [85, 86] 85) where
-[upred_defs]: "b \<rightarrow>\<^sub>D P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
+definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
+[upred_defs]: "GrdCommD b P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
+
+syntax "_GrdCommD" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>D _" [60, 61] 61)
+translations "_GrdCommD b P" == "CONST GrdCommD b P"
 
 lemma GrdCommD_ndes_simp [ndes_simp]:
   "b \<rightarrow>\<^sub>D (p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) = ((b \<Rightarrow> p\<^sub>1) \<turnstile>\<^sub>n (\<lceil>b\<rceil>\<^sub>< \<and> P\<^sub>2))"
@@ -110,7 +113,7 @@ consts
   
 definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('\<alpha>, '\<beta>) rel_des) \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs, ndes_simp]:
-"AlternateD A g P Q = (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D P(i)) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D Q"
+"AlternateD A g P Q = (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D P(i)) \<sqinter> ((\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D Q)"
 
 text {* This lemma shows that our generalised alternation is the same operator as Marcel Oliveira's
   definition of alternation when the else branch is abort. *}
@@ -123,7 +126,7 @@ lemma AlternateD_abort_alternate:
 proof (cases "A = {}")
   case False
   have "AlternateD A g P \<bottom>\<^sub>D = 
-        (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D (\<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i))) \<sqinter> (\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D (false \<turnstile>\<^sub>n true)"
+        (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D (\<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P i))) \<sqinter> ((\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D (false \<turnstile>\<^sub>n true))"
     by (simp add: AlternateD_def ndesign_form bot_d_ndes_def assms)
   also have "... = ((\<Or> i\<in>A \<bullet> g(i)) \<and> (\<And> i\<in>A \<bullet> g(i) \<Rightarrow> \<lfloor>pre\<^sub>D(P i)\<rfloor>\<^sub><)) \<turnstile>\<^sub>n (\<Or> i\<in>A \<bullet> \<lceil>g(i)\<rceil>\<^sub>< \<and> post\<^sub>D(P i))"
     by (simp add: ndes_simp False, rel_auto)
@@ -146,9 +149,9 @@ adhoc_overloading
 nonterminal gcomm and gcomms
   
 syntax
-  "_altind_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
-  "_altind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
-  "_gcomm"        :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [60, 60] 61)
+  "_altind_els"   :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altind"       :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_gcomm"        :: "uexp \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [60, 60] 61)
   "_gcomm_nil"    :: "gcomm \<Rightarrow> gcomms" ("_")
   "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ |/ _" [60, 61] 61)
   "_gcomm_show"   :: "logic \<Rightarrow> logic"
@@ -353,7 +356,7 @@ consts
   uiterate_list  :: "('a \<times> 'r) list \<Rightarrow> 'r"
 
 syntax
-  "_iterind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do _\<in>_ \<bullet> _ \<rightarrow> _ od")
+  "_iterind"       :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("do _\<in>_ \<bullet> _ \<rightarrow> _ od")
   "_itergcomm"     :: "gcomms \<Rightarrow> logic" ("do _ od")
   
 translations

@@ -89,9 +89,11 @@ abbreviation drop_desr ("\<lfloor>_\<rfloor>\<^sub>D")
 where "\<lfloor>P\<rfloor>\<^sub>D \<equiv> P \<restriction>\<^sub>e (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
 abbreviation dcond :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" 
-  ("(3_ \<triangleleft> _ \<triangleright>\<^sub>D/ _)" [52,0,53] 52)
-where "P \<triangleleft> b \<triangleright>\<^sub>D Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>D\<^sub>< \<triangleright> Q"
-  
+where "dcond P b Q \<equiv> P \<triangleleft> \<lceil>b\<rceil>\<^sub>D\<^sub>< \<triangleright> Q"
+
+syntax "_dcond" :: "logic \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("(3_ \<triangleleft> _ \<triangleright>\<^sub>D/ _)" [52,0,53] 52)
+translations "_dcond P b Q" == "CONST dcond P b Q"
+
 definition design::"('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>" 59) where
 [upred_defs]: "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 
