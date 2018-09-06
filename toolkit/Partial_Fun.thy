@@ -8,7 +8,7 @@
 section \<open> Partial Functions \<close>
 
 theory Partial_Fun
-imports Map_Extra Partial_Monoids
+imports Map_Extra
 begin
 
 text \<open> I'm not completely satisfied with partial functions as provided by Map.thy, since they don't
@@ -196,83 +196,11 @@ lemma pfun_minus_plus:
   by (transfer, simp add: map_add_def map_minus_def option.case_eq_if, rule ext, auto)
      (metis Int_commute domIff insert_disjoint(1) insert_dom)
 
-instantiation pfun :: (type, type) pas
-begin
-  definition compat_pfun :: "('a, 'b) pfun \<Rightarrow> ('a, 'b) pfun \<Rightarrow> bool" where
-  "f ## g = (pdom(f) \<inter> pdom(g) = {})"
-instance proof
-  fix x y z :: "('a, 'b) pfun"
-  assume "x ## y"
-  thus "y ## x"
-    by (auto simp add: compat_pfun_def)
-  assume a: "x ## y" "x + y ## z"
-  thus "x ## y + z"
-    by (auto simp add: compat_pfun_def) (transfer, auto) 
-  from a show "y ## z"
-    by (auto simp add: compat_pfun_def) (transfer, auto)
-  from a show "x + y + z = x + (y + z)"
-    by (simp add: add.assoc)
-next
-  fix x y :: "('a, 'b) pfun"
-  assume "x ## y"
-  thus "x + y = y + x"
-    by (meson compat_pfun_def pfun_plus_commute)
-qed
-end
+lemma pfun_plus_pos: "x + y = {}\<^sub>p \<Longrightarrow> x = {}\<^sub>p"
+  by (transfer, simp)
 
-instance pfun :: (type, type) pam
-proof
-  fix x :: "('a, 'b) pfun"
-  show "{}\<^sub>p ## x"
-    by (simp add: compat_pfun_def, transfer, auto)
-  show "{}\<^sub>p + x = x"
-    by (simp)
-  show "x + {}\<^sub>p = x"
-    by (simp)
-qed
-
-instance pfun :: (type, type) pam_cancel_pos
-proof
-  fix x y z :: "('a, 'b) pfun"
-  assume "z ## x" "z ## y" "z + x = z + y"
-  thus "x = y"
-    by (auto simp add: compat_pfun_def, metis Int_commute pfun_minus_plus pfun_plus_commute)
-next
-  fix x y :: "('a, 'b) pfun"
-  show "x + y = {}\<^sub>p \<Longrightarrow> x = {}\<^sub>p"
-    by (transfer) (meson map_add_None)
-qed
-
-lemma pfun_compat_minus:
-  fixes x y :: "('a, 'b) pfun"
-  assumes "y \<subseteq>\<^sub>p x"
-  shows "y ## x - y"
-  using assms
-  apply (simp add: compat_pfun_def)
-  apply (transfer)
-  apply (auto simp add: map_minus_def)
-  apply (metis domI map_le_def option.distinct(1))
-  done
-
-instance pfun :: (type, type) sep_alg
-proof
-  show 1: "\<And> x y :: ('a, 'b) pfun. (x \<subseteq>\<^sub>p y) = (x \<preceq>\<^sub>G y)"
-    by (simp add: green_preorder_def compat_pfun_def)
-       (transfer, auto simp add: map_le_iff_add)
-  show "\<And>x y :: ('a, 'b) pfun. (x \<subset>\<^sub>p y) = (x \<prec>\<^sub>G y)"
-    by (simp add: "1" green_strict_def less_le_not_le)
-  show "\<And>x y :: ('a, 'b) pfun. y \<subseteq>\<^sub>p x \<Longrightarrow> x - y = x -\<^sub>G y"
-    apply (rule sym)
-    thm 1[THEN sym]
-    apply (auto simp add: green_subtract_def 1[THEN sym])
-     apply (rule the_equality)
-      apply (auto simp add: pfun_compat_minus)
-    using pfun_compat_minus pfun_plus_minus plus_pcomm apply fastforce
-    apply (metis Int_commute compat_pfun_def pfun_minus_plus plus_pcomm)
-    done
-qed
-
-instance pfun :: (type, type) sep_alg_cancel_pos .. 
+lemma pfun_le_plus: "pdom x \<inter> pdom y = {} \<Longrightarrow> x \<le> x + y"
+  by (transfer, auto simp add: map_le_iff_add)
 
 subsection \<open> Lambda abstraction \<close>
 
@@ -376,6 +304,12 @@ lemma pdom_pId_on [simp]: "pdom (pId_on A) = A"
 
 lemma pdom_plus [simp]: "pdom (f + g) = pdom f \<union> pdom g"
   by (transfer, auto)
+
+lemma pdom_minus [simp]: "g \<le> f \<Longrightarrow> pdom (f - g) = pdom f - pdom g"
+  apply (transfer, auto simp add: map_minus_def)
+  apply (meson option.distinct(1))
+  apply (metis domIff map_le_def option.simps(3))
+  done
 
 lemma pdom_inter: "pdom (f \<inter>\<^sub>p g) \<subseteq> pdom f \<inter> pdom g"
   by (transfer, auto simp add: dom_def)

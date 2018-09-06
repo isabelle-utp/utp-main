@@ -1,8 +1,10 @@
 section \<open> Stack-based Local Variables \<close>
 
 theory utp_mem_stack
-imports "UTP-Designs.utp_designs" "UTP.utp_full"
-begin
+  imports 
+    Injection_Universe
+    "UTP-Designs.utp_designs" "UTP.utp_full"
+begin recall_syntax
       
 subsection \<open> Preliminaries \<close>
   

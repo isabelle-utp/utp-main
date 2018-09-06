@@ -1,6 +1,10 @@
 theory utp_mem_prelim
-  imports "UTP-Designs.utp_designs" "UTP.utp_full"
-begin
+  imports 
+    Partial_Monoids
+    Partial_Monoids_Instances
+    "UTP-Designs.utp_designs" 
+    "UTP.utp_full"
+begin recall_syntax
 
 text \<open> As usual, the memory consists of the store and the heap. The store is an abstract
   type, and will usually be another alphabet. \<close>

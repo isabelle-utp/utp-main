@@ -30,11 +30,8 @@ theory utp_toolkit
   List_Extra
   List_Lexord_Alt
   Partial_Fun
-  Partial_Monoids
   Finite_Fun
   Infinity
   Positive
   Total_Recall
-  Injection_Universe
-  Trace_Algebra
 begin end

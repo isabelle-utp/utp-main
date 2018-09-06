@@ -112,19 +112,6 @@ text \<open> The next theorem lifts powers. \<close>
 lemma power_rep_eq: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
   by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
 
-text \<open> We can also lift a few trace properties from the class instantiations above using
-  \emph{transfer}. \<close>
-
-lemma uexpr_diff_zero [simp]:
-  fixes a :: "('\<alpha>::trace, 'a) uexpr"
-  shows "a - 0 = a"
-  by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
-
-lemma uexpr_add_diff_cancel_left [simp]:
-  fixes a b :: "('\<alpha>::trace, 'a) uexpr"
-  shows "(a + b) - a = b"
-  by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
-
 lemma lit_uminus [lit_simps]: "\<guillemotleft>- x\<guillemotright> = - \<guillemotleft>x\<guillemotright>" by (simp add: uexpr_defs, transfer, simp)
 lemma lit_minus [lit_simps]: "\<guillemotleft>x - y\<guillemotright> = \<guillemotleft>x\<guillemotright> - \<guillemotleft>y\<guillemotright>" by (simp add: uexpr_defs, transfer, simp)
 lemma lit_times [lit_simps]: "\<guillemotleft>x * y\<guillemotright> = \<guillemotleft>x\<guillemotright> * \<guillemotleft>y\<guillemotright>" by (simp add: uexpr_defs, transfer, simp)

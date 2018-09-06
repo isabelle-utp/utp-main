@@ -1,7 +1,7 @@
 section \<open> Partial Monoid and Semigroups \<close>
 
 theory Partial_Monoids
-  imports Trace_Algebra
+  imports Main
 begin
 
 text \<open> The content of this theory is adapted from two AFP entries: 

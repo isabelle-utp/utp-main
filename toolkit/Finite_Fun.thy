@@ -156,81 +156,11 @@ lemma ffun_minus_plus:
   "fdom(f) \<inter> fdom(g) = {} \<Longrightarrow> (f + g) - g = f"
   by (transfer, simp add: pfun_minus_plus)
 
-instantiation ffun :: (type, type) pas
-begin
-  lift_definition compat_ffun :: "('a, 'b) ffun \<Rightarrow> ('a, 'b) ffun \<Rightarrow> bool" is
-  "\<lambda> f g. f ## g" .
-instance proof
-  fix x y z :: "('a, 'b) ffun"
-  assume "x ## y"
-  thus "y ## x"
-    by (transfer, simp add: compat_comm)
-  assume a:"x ## y" "x + y ## z"
-  thus "x ## y + z"
-    by (transfer, simp add: compat_assoc) 
-  from a show "y ## z"
-    by (transfer, metis compat_property)
-  from a show "x + y + z = x + (y + z)"
-    by (simp add: add.assoc)
-next
-  fix x y :: "('a, 'b) ffun"
-  assume "x ## y"
-  thus "x + y = y + x"
-    by (transfer, meson compat_pfun_def pfun_plus_commute)
-qed
-end
+lemma ffun_plus_pos: "x + y = {}\<^sub>f \<Longrightarrow> x = {}\<^sub>f"
+  by (transfer, simp add: pfun_plus_pos)
 
-lemma compat_ffun_alt_def: "f ## g = (fdom(f) \<inter> fdom(g) = {})"
-  by (transfer, simp add: compat_pfun_def)
-
-instance ffun :: (type, type) pam
-proof
-  fix x :: "('a, 'b) ffun"
-  show "{}\<^sub>f ## x"
-    by (transfer, simp)
-  show "{}\<^sub>f + x = x"
-    by (simp)
-  show "x + {}\<^sub>f = x"
-    by (simp)
-qed
-
-instance ffun :: (type, type) pam_cancel_pos
-proof
-  fix x y z :: "('a, 'b) ffun"
-  assume "z ## x" "z ## y" "z + x = z + y"
-  thus "x = y"
-    by (transfer, metis gr_minus_cancel)
-next
-  fix x y :: "('a, 'b) ffun"
-  show "x + y = {}\<^sub>f \<Longrightarrow> x = {}\<^sub>f"
-    by (transfer) (simp add: positive_left)
-qed
-
-lemma ffun_compat_minus:
-  fixes x y :: "('a, 'b) ffun"
-  assumes "y \<subseteq>\<^sub>f x"
-  shows "y ## x - y"
-  by (metis assms compat_ffun.rep_eq less_eq_ffun.rep_eq minus_ffun.rep_eq pfun_compat_minus)
-
-instance ffun :: (type, type) sep_alg
-proof
-  show 1: "\<And> x y :: ('a, 'b) ffun. (x \<subseteq>\<^sub>f y) = (x \<preceq>\<^sub>G y)"
-    by (simp add: green_preorder_def compat_ffun_def)
-       (metis ffun_compat_minus compat_ffun.rep_eq ffun_plus_minus green_preorder_def less_eq_def less_eq_ffun.rep_eq plus_ffun.rep_eq plus_pcomm)
-  show "\<And>x y :: ('a, 'b) ffun. (x \<subset>\<^sub>f y) = (x \<prec>\<^sub>G y)"
-    by (simp add: "1" green_strict_def less_le_not_le)
-  show "\<And>x y :: ('a, 'b) ffun. y \<subseteq>\<^sub>f x \<Longrightarrow> x - y = x -\<^sub>G y"
-    apply (rule sym)
-    thm 1[THEN sym]
-    apply (auto simp add: green_subtract_def 1[THEN sym])
-     apply (rule the_equality)
-      apply (auto simp add: ffun_compat_minus)
-    using ffun_compat_minus ffun_plus_minus plus_pcomm apply fastforce
-    apply (metis compat_comm compat_ffun_alt_def ffun_minus_plus plus_pcomm)
-    done
-qed
-
-instance ffun :: (type, type) sep_alg_cancel_pos .. 
+lemma ffun_le_plus: "fdom x \<inter> fdom y = {} \<Longrightarrow> x \<le> x + y"
+  by (transfer, simp add: pfun_le_plus)
 
 subsection \<open> Membership, application, and update \<close>
 

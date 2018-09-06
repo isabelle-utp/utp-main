@@ -2,7 +2,7 @@ section \<open> Reactive Processes Core Definitions \<close>
 
 theory utp_rea_core
 imports
-  "UTP-Toolkit.Trace_Algebra"
+  Trace_Algebra
   "UTP.utp_concurrency"
   "UTP-Designs.utp_designs"
 begin recall_syntax
@@ -171,10 +171,12 @@ lemma itrace_mwb_lens [simp]: "mwb_lens \<^bold>i\<^bold>t"
 syntax
   "_svid_tcontr"  :: "svid" ("tt")
   "_svid_itrace"  :: "svid" ("\<^bold>i\<^bold>t")
+  "_utr_iter"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("iter[_]'(_')")
 
 translations
   "_svid_tcontr" == "CONST tcontr"
   "_svid_itrace" == "CONST itrace"
+  "iter[n](P)"   == "CONST uop (CONST tr_iter n) P"
   
 lemma tcontr_alt_def: "&tt = ($tr\<acute> - $tr)"
   by (rel_auto)
@@ -187,5 +189,20 @@ lemma tt_indeps [simp]:
   shows "x \<bowtie> tt" "tt \<bowtie> x"
   using assms
   by (unfold lens_indep_def, safe, simp_all add: tcontr_def, (metis lens_indep_get var_update_out)+)
+
+text \<open> We lift a few trace properties from the trace class using \emph{transfer}. \<close>
+
+lemma uexpr_diff_zero [simp]:
+  fixes a :: "('\<alpha>::trace, 'a) uexpr"
+  shows "a - 0 = a"
+  by (simp add: minus_uexpr_def zero_uexpr_def, transfer, auto)
+
+lemma uexpr_add_diff_cancel_left [simp]:
+  fixes a b :: "('\<alpha>::trace, 'a) uexpr"
+  shows "(a + b) - a = b"
+  by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
+
+lemma iter_0 [simp]: "iter[0](t) = \<langle>\<rangle>"
+  by (transfer, simp add: zero_list_def)
 
 end

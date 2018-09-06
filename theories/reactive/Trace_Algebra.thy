@@ -1,16 +1,9 @@
-(******************************************************************************)
-(* Project: Isabelle/UTP Toolkit                                              *)
-(* File: Trace_Algebra.thy                                                    *)
-(* Authors: Simon Foster and Frank Zeyda                                      *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
-(******************************************************************************)
-
 section \<open> Trace Algebras \<close>
 
 theory Trace_Algebra
   imports 
-    List_Extra
-    Positive
+    "UTP-Toolkit.List_Extra"
+    "UTP-Toolkit.Positive"
 begin
 
 text \<open> Trace algebras provide a useful way in the UTP of characterising different notions of trace

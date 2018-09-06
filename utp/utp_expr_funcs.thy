@@ -38,7 +38,6 @@ syntax \<comment> \<open> Lists / Sequences \<close>
   "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
   "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
   "_uzip"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("zip\<^sub>u")
-  "_utr_iter"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("iter[_]'(_')")
 
 translations
   "x #\<^sub>u ys" == "CONST bop (#) x ys"
@@ -62,7 +61,6 @@ translations
   "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
   "map\<^sub>u f xs" == "CONST bop CONST map f xs"
   "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
-  "iter[n](P)" == "CONST uop (CONST tr_iter n) P"
 
 syntax \<comment> \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
@@ -185,8 +183,5 @@ lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
 
 lemma uconcat_units [simp]: "\<langle>\<rangle> ^\<^sub>u xs = xs" "xs ^\<^sub>u \<langle>\<rangle> = xs"
   by (transfer, simp)+
-
-lemma iter_0 [simp]: "iter[0](t) = \<langle>\<rangle>"
-  by (transfer, simp add: zero_list_def)
 
 end
