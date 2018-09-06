@@ -7,7 +7,7 @@ theory Contiguous_Functions
   "Optics.Lenses"
   "UTP-Toolkit.Map_Extra"
   "UTP-Toolkit.List_Extra"
-  "UTP-Toolkit.Trace_Algebra"
+  "UTP-Reactive.Trace_Algebra"
   Derivative_extra
   "HOL-Analysis.Topology_Euclidean_Space"
 begin

@@ -32,7 +32,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
   options [document = pdf, document_output = "output", timeout = 1000]
   sessions
-    "UTP-Toolkit"
+    "UTP-Reactive"
   theories
     Derivative_extra
     Contiguous_Functions

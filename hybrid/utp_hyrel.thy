@@ -2,7 +2,7 @@ section {* Hybrid Relational Calculus *}
 
 theory utp_hyrel
 imports
-  "UTP.utp"
+  "UTP.utp_full"
   "UTP-Reactive-Designs.utp_rea_designs"
   "UTP-Time.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"
@@ -232,7 +232,7 @@ syntax
   
 translations
   "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
-  "x~" <= "CONST ulambda (\<lambda> t. CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) (CONST ulit t2)))"
+  "x~" <= "CONST ulambda (\<lambda> t. CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) (CONST lit t2)))"
   "\<^bold>l" <= "CONST uop (CONST tt_end) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
   "\<^bold>l" <= "CONST uop CONST tt_end (&tt)"
   "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
@@ -1307,7 +1307,7 @@ lemma HyStep_hEvolves':
   shows "HyStep[n]({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = false \<triangleleft> \<guillemotleft>n \<le> 0\<guillemotright> \<triangleright>\<^sub>r (x := \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>n\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
   apply (cases "n \<le> 0")
   apply (uexpr_simp, simp add: HyStep_hEvolves_0)
-  apply (simp, unliteralise, simp add: HyStep_hEvolves assms)
+  apply (simp add: HyStep_hEvolves assms(1) assms(2) assms(3))
 done
   
 lemma HyStep_hEvolveAt:

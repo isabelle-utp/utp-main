@@ -23,7 +23,7 @@ definition hrdEvolveBounds ::
    (real, 'd \<times> 'c) uexpr \<Rightarrow>
    (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> 
    ('d,'c) hyrel" where
-[upred_defs, rdes_def]: "hrdEvolveBounds x l u f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(u) f(ti)) \<diamondop> ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> u >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r))"
+[upred_defs, rdes_def]: "hrdEvolveBounds x l u f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(u) f(ti)) \<diamondop> ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> (u >\<^sub>u 0) \<triangleright>\<^sub>R II\<^sub>r))"
 
 text {* Evolve according to a continuous function for a definite time length. Currently this
   duplicates the state where t = l as the pre-emption operator does as well. *}
@@ -110,7 +110,7 @@ lemma periR_hrdEvolveBounds [rdes]: "peri\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(
 declare minus_zero_eq [dest]
     
 lemma postR_hrdEvolveBounds [rdes]: 
-  "post\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(ti)) = ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> u >\<^sub>u 0 \<triangleright>\<^sub>R II\<^sub>r)"
+  "post\<^sub>R(x \<leftarrow>[l,u]\<^sub>H f(ti)) = ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> (u >\<^sub>u 0) \<triangleright>\<^sub>R II\<^sub>r)"
   by (rel_auto)
 
 lemma preR_hrdODE [rdes]:
@@ -302,7 +302,7 @@ proof (rule SRD_eq_intro, simp_all add: closure assms rdes rpred)
       qed
     qed
   qed
-  show "x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> inv b until\<^sub>h c = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright> \<triangleleft> 0 <\<^sub>u \<guillemotleft>l\<guillemotright> \<triangleright>\<^sub>R II\<^sub>r" (is "?lhs = ?rhs")
+  show "x \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> inv b until\<^sub>h c = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright> \<triangleleft> (0 <\<^sub>u \<guillemotleft>l\<guillemotright>) \<triangleright>\<^sub>R II\<^sub>r" (is "?lhs = ?rhs")
   proof -
     have "?lhs = x \<leftarrow>[\<guillemotleft>k\<guillemotright>,\<guillemotleft>l\<guillemotright>]\<^sub>h \<guillemotleft>f ti\<guillemotright>"
       by (rule hUntil_inv_solve, simp_all add: assms)
