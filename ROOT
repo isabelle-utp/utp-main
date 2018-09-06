@@ -101,7 +101,7 @@ session "UTP-Memory" in "theories/memory" = "UTP-Designs" +
 
 (* Imperative Programs based on Designs *)
     
-session "UTP-Impl" in "impl" = "UTP-Designs" +
+session "UTP-Impl" in "impl" = "UTP-Memory" +
   options [document = false]
   theories
     utp_impl

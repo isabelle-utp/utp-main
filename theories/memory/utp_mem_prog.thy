@@ -10,12 +10,6 @@ text \<open> For now we represent addresses and data as naturals. We can therefo
 type_synonym addr = nat
 type_synonym data = nat
 
-text \<open> An abort is currently just the empty relation. In future we could use the theory
-  of designs instead and model aborts differently. \<close>
-
-abbreviation abort_mp :: "('h, 's) sprog" ("abort") where
-"abort \<equiv> true"
-
 text \<open> Heap allocation takes a lens $x$ within the store that holds an address, and an expression
   $e$ over store variables whose return type is countable. The semantics of allocation selects
   an arbitrary memory location not currently allocated in the heap, places the said address
@@ -78,10 +72,10 @@ lemma least_nat_Compl_not_in [simp]:
 lemma "(x := alloc(\<guillemotleft>u\<guillemotright>) ;; *&x := \<guillemotleft>v\<guillemotright>) = (x := alloc(\<guillemotleft>v\<guillemotright>))"  
   by (rel_auto, fastforce)
 
-lemma "dealloc(e) ;; dealloc(e) = abort"
+lemma "dealloc(e) ;; dealloc(e) = \<bottom>\<^sub>D"
   by (ndes_simp, rel_auto)
 
-lemma "dealloc(e) ;; *e := \<guillemotleft>v\<guillemotright> = abort"
+lemma "dealloc(e) ;; *e := \<guillemotleft>v\<guillemotright> = \<bottom>\<^sub>D"
   by (ndes_simp, rel_auto)
 
 lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>5 :: int\<guillemotright>) ;; dealloc(&x) ;; str:x :=\<^sub>D 0) = str:x :=\<^sub>D 0"

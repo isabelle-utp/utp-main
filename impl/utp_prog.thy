@@ -1,7 +1,7 @@
 section {* Imperative Programs *}
   
 theory utp_prog
-  imports "UTP-Designs.utp_designs"
+  imports "UTP-Designs.utp_designs" "UTP-Memory.utp_memory"
 begin
   
 subsection {* Program Type *}
