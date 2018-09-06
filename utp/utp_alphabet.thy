@@ -2,7 +2,7 @@ section \<open> Alphabet Manipulation \<close>
 
 theory utp_alphabet
   imports
-    utp_pred utp_event
+    utp_pred
 begin
 
 subsection \<open> Preliminaries \<close>
@@ -93,9 +93,6 @@ lemma aext_UINF_ind [alpha]: "(\<Sqinter> x \<bullet> P x) \<oplus>\<^sub>p a =(
   by (pred_auto)
 
 lemma aext_UINF_mem [alpha]: "(\<Sqinter> x\<in>A \<bullet> P x) \<oplus>\<^sub>p a =(\<Sqinter> x\<in>A \<bullet> (P x \<oplus>\<^sub>p a))"
-  by (pred_auto)
-    
-lemma aext_event [alpha]: "(c\<cdot>v)\<^sub>u \<oplus>\<^sub>p a = (c\<cdot>v \<oplus>\<^sub>p a)\<^sub>u"
   by (pred_auto)
     
 text \<open> Alphabet extension distributes through the function liftings. \<close>

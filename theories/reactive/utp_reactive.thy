@@ -3,6 +3,7 @@ section \<open> Meta-theory for Generalised Reactive Processes \<close>
 theory utp_reactive
   imports
     utp_rea_core
+    utp_rea_event
     utp_rea_healths
     utp_rea_parallel
     utp_rea_rel

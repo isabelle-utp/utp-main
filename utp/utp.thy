@@ -35,5 +35,4 @@ imports
   utp_theory
   utp_concurrency
   utp_rel_opsem
-  utp_event
 begin end

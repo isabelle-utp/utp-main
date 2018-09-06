@@ -1,15 +1,7 @@
-(******************************************************************************)
-(* Project: The Isabelle/UTP Proof System                                     *)
-(* File: utp_event.thy                                                        *)
-(* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
-(* Emails: simon.foster@york.ac.uk frank.zeyda@york.ac.uk                     *)
-(******************************************************************************)
-(* LAST REVIEWED: 30 Jan 2017 *)
+section \<open> Events for Reactive Processes \<close>
 
-section \<open> UTP Events \<close>
-
-theory utp_event
-imports utp_pred
+theory utp_rea_event
+imports "UTP.utp"
 begin
 
 subsection \<open> Events \<close>
@@ -47,8 +39,7 @@ subsubsection \<open> Operators \<close>
 
 text \<open>
   The Z type of a channel corresponds to the entire carrier of the underlying
-  HOL type of that channel. Strictly, the function is redundant but was added
-  to mirror the mathematical account in [?]. (TODO: Ask Simon Foster for [?])
+  HOL type of that channel.
 \<close>
 
 definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
@@ -76,5 +67,8 @@ lemma msubst_event [usubst]:
 lemma msubst_event_2 [usubst]:
   "(c\<cdot>v x y)\<^sub>u\<lbrakk>(x,y)\<rightarrow>u\<rbrakk> = (c\<cdot>(v x y)\<lbrakk>(x,y)\<rightarrow>u\<rbrakk>)\<^sub>u"
   by (pred_simp)+
+
+lemma aext_event [alpha]: "(c\<cdot>v)\<^sub>u \<oplus>\<^sub>p a = (c\<cdot>v \<oplus>\<^sub>p a)\<^sub>u"
+  by (pred_auto)
 
 end
