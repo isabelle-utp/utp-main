@@ -16,6 +16,16 @@ text \<open> The following type is used to augment that state-space with a stack
 alphabet 'u local =
   store :: "'u list"
 
+definition stack_lens :: "nat \<Rightarrow> ('a::two \<Longrightarrow> 'a list)" where
+[lens_defs]: "stack_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs (length xs - i))
+                            , lens_put = (\<lambda> xs x. list_augment xs (length xs - i) x) \<rparr>"
+
+syntax
+  "_spind_var" :: "nat \<Rightarrow> svid" ("[_]")
+
+translations
+  "_spind_var n" == "CONST stack_lens n ;\<^sub>L (CONST store)"
+
 text \<open> State-space with a countable universe for local variables. \<close>
   
 type_synonym 'a clocal = "(nat, 'a) local_scheme"
@@ -93,20 +103,26 @@ begin
   
   definition top_var :: "('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("top\<^sub>v") where
   "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1)\<^sub>a"
-  
+
+  definition ind_var :: "nat \<Rightarrow> ('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("[_]\<^sub>v") where
+  "ind_var n = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1 - \<guillemotleft>n\<guillemotright>)\<^sub>a"
+
+
   text \<open> Finally, we combine the above operators to represent variable scope. This is a kind of
     binder which takes a homogeneous relation, parametric over a lens, and returns a relation. It
     simply opens the variable scope, substitutes the top variable into the body, and then closes
     the scope afterwards. \<close>
   
   definition var_scope :: "(('a \<Longrightarrow> ('u, 's) local_scheme) \<Rightarrow> '\<alpha> hrel) \<Rightarrow> '\<alpha> hrel" where
-  "var_scope f = open\<^sub>v ;; f(x)\<lbrakk>x\<rightarrow>\<lceil>top\<^sub>v\<rceil>\<^sub><\<rbrakk> ;; close\<^sub>v" 
+  "var_scope f = open\<^sub>v ;; f(x)\<lbrakk>x\<rightarrow>\<lceil>[0]\<^sub>v\<rceil>\<^sub><\<rbrakk> ;; close\<^sub>v" 
+
 end
 
 notation utp_local_state.var_open ("open[_]")
 notation utp_local_state.var_close ("close[_]")  
 notation utp_local_state.var_scope ("\<V>[_,/ _]")
 notation utp_local_state.top_var ("top[_]")
+notation utp_local_state.ind_var ("[_,/ _]\<^sub>v")
   
 syntax       
   "_var_scope"      :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("var[_] _ \<bullet> _" [0, 0, 10] 10)
@@ -152,7 +168,8 @@ end
 declare utp_local_state.var_open_def [upred_defs]
 declare utp_local_state.var_close_def [upred_defs]  
 declare utp_local_state.top_var_def [upred_defs]
-declare utp_local_state.var_scope_def [upred_defs]  
+declare utp_local_state.ind_var_def [upred_defs]
+declare utp_local_state.var_scope_def [upred_defs]
     
 subsection \<open> Relational State Spaces \<close>
   
@@ -207,6 +224,18 @@ lemma rel_var_ex_4: "\<lbrakk> x \<bowtie> store; store \<sharp> v \<rbrakk> \<L
  
 lemma rel_var_ex_5: "\<lbrakk> x \<bowtie> store; store \<sharp> v \<rbrakk> \<Longrightarrow> x := v ;; (var y :: int \<bullet> P) = (var y :: int \<bullet> x := v ;; P)"
   by (simp add: utp_local_state.var_scope_def seqr_assoc[THEN sym] rel_var_ex_4, rel_auto', force+)
+
+lemma prop1: "(open[R\<^sub>l] ;; P x)\<lbrakk>x\<rightarrow>\<lceil>[R\<^sub>l, n]\<^sub>v\<rceil>\<^sub><\<rbrakk> = open[R\<^sub>l] ;; (P x)\<lbrakk>x\<rightarrow>\<lceil>[R\<^sub>l, Suc n]\<^sub>v\<rceil>\<^sub><\<rbrakk>"
+  by (rel_auto')
+
+lemma prop2: "(P x ;; Q)\<lbrakk>x \<rightarrow> \<lceil>v\<rceil>\<^sub><\<rbrakk> = (P x)\<lbrakk>x \<rightarrow> \<lceil>v\<rceil>\<^sub><\<rbrakk> ;; Q"
+  by (rel_auto)
+
+lemma var_scope_expand: "(var x \<bullet> P x y)\<lbrakk>y \<rightarrow> \<lceil>[R\<^sub>l, n]\<^sub>v\<rceil>\<^sub><\<rbrakk> = (var x \<bullet> (P x y)\<lbrakk>y \<rightarrow> \<lceil>[R\<^sub>l, Suc n]\<^sub>v\<rceil>\<^sub><\<rbrakk>)"
+  apply (simp add: utp_local_state.var_scope_def)
+  apply (subst prop1)
+  apply (rel_simp')
+  done
 
 subsection {* Deep Local Variables *}
 
