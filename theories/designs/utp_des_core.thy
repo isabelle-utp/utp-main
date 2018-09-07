@@ -56,6 +56,12 @@ translations
   
 notation des_vars_child_lens ("\<Sigma>\<^sub>D")
 
+syntax
+  "_svid_des_alpha"  :: "svid" ("\<^bold>v\<^sub>D")
+
+translations
+  "_svid_des_alpha" => "CONST des_vars_child_lens"
+
 lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
   by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
 
