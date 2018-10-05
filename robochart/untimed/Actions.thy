@@ -229,11 +229,11 @@ syntax
   "_bracket_raction"   :: "raction \<Rightarrow> raction" ("'(_')")
   "_skip_raction"      :: "raction" ("skip")
   "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";/" 71)
-  "_if_raction"        :: "uexp \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
-  "_assign_raction"    :: "id \<Rightarrow> uexp \<Rightarrow> raction" (infixr ":=" 72)
+  "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
+  "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
   "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
   "_rcv_ev_raction"    :: "svid \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
-  "_send_ev_raction"   :: "id \<Rightarrow> uexp \<Rightarrow> raction" ("_!'(_')" [85,86]) 
+  "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
   "_action_state"      :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
 
 translations
