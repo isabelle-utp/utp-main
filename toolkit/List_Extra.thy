@@ -12,7 +12,6 @@ theory List_Extra
   "HOL-Library.Sublist"
   "HOL-Library.Monad_Syntax"
   "HOL-Library.Prefix_Order"
-  "HOL-Library.More_List"
   "Optics.Lens_Instances"
 begin
 

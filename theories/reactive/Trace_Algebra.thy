@@ -299,7 +299,7 @@ lemma monoid_subtract_list:
 
 instance list :: (type) trace_split
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-  apply (meson Prefix_Order.prefixE Prefix_Order.prefixI)
+  using Prefix_Order.prefixE apply blast
    apply (simp add: less_list_def)
   apply (simp add: append_eq_append_conv2)
   done
