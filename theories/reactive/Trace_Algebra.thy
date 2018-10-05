@@ -287,7 +287,7 @@ end
 lemma monoid_le_list:
   "(xs :: 'a list) \<le>\<^sub>m ys \<longleftrightarrow> xs \<le> ys"
   apply (simp add: monoid_le_def plus_list_def)
-  using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
+  apply (meson Prefix_Order.prefixE Prefix_Order.prefixI)
   done
 
 lemma monoid_subtract_list:
@@ -299,7 +299,7 @@ lemma monoid_subtract_list:
 
 instance list :: (type) trace_split
   apply (intro_classes, simp_all add: zero_list_def plus_list_def monoid_le_def monoid_subtract_list)
-  using Prefix_Order.prefixE Prefix_Order.prefixI apply blast
+  apply (meson Prefix_Order.prefixE Prefix_Order.prefixI)
    apply (simp add: less_list_def)
   apply (simp add: append_eq_append_conv2)
   done
