@@ -25,9 +25,6 @@ lemma "TRY(id \<Turnstile> gcd_prog 6 21)"
 
 lemma gcd_verify:
   "{{\<guillemotleft>X\<guillemotright> > 0 \<and> \<guillemotleft>Y > 0\<guillemotright>}} gcd_prog X Y {{x = gcd(\<guillemotleft>X\<guillemotright>, \<guillemotleft>Y\<guillemotright>)}}"
-  apply (hoare_auto)
-  apply (simp add: gcd_diff1)
-  apply (metis gcd.commute gcd_diff1)
-  done
+  oops
 
 end

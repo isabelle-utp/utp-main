@@ -83,6 +83,7 @@ syntax
   "_ue_uminus" :: "uexp \<Rightarrow> uexp" ("- _" [181] 180)
   "_ue_minus"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "-" 165)
   "_ue_times"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "*" 170)
+  "_ue_div"    :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "div" 170)
 
 translations
   "_ue_num x"    => "_Numeral x"
@@ -97,6 +98,19 @@ translations
   "_ue_uminus x" => "- x"
   "_ue_minus x y" => "x - y"
   "_ue_times x y" => "x * y"
+  "_ue_div x y"   => "CONST divide x y"
+
+subsection \<open> Sets \<close>
+
+syntax
+  "_ue_empset"          :: "uexp" ("{}")
+  "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
+  "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
+
+translations
+  "_ue_empset" => "{}\<^sub>u"
+  "_ue_atLeastAtMost m n" => "{m..n}\<^sub>u"
+  "_ue_atLeastLessThan m n" => "{m..<n}\<^sub>u"
 
 subsection \<open> Imperative Program Syntax \<close>
 
