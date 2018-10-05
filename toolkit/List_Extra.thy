@@ -12,6 +12,8 @@ theory List_Extra
   "HOL-Library.Sublist"
   "HOL-Library.Monad_Syntax"
   "HOL-Library.Prefix_Order"
+  "HOL-Library.More_List"
+  "Optics.Lens_Instances"
 begin
 
 subsection \<open> Useful Abbreviations \<close>
@@ -77,6 +79,16 @@ subsubsection \<open> Sorted Lists \<close>
 
 lemma sorted_last [simp]: "\<lbrakk> x \<in> set xs; sorted xs \<rbrakk> \<Longrightarrow> x \<le> last xs"
   by (induct xs, auto)
+
+lemma sorted_prefix:
+  assumes "xs \<le> ys" "sorted ys"
+  shows "sorted xs"
+proof -
+  obtain zs where "ys = xs @ zs"
+    using Prefix_Order.prefixE assms(1) by auto
+  thus ?thesis
+    using assms(2) sorted_append by blast
+qed
 
 lemma sorted_map: "\<lbrakk> sorted xs; mono f \<rbrakk> \<Longrightarrow> sorted (map f xs)"
   by (simp add: monoD sorted_iff_nth_mono)
@@ -384,7 +396,7 @@ lemma prefix_and_concat_prefix_is_concat_prefix:
 
 lemma prefix_eq_exists:
   "prefix s t \<longleftrightarrow> (\<exists>xs . s @ xs = t)"
-  using Sublist.prefixE Sublist.prefixI by blast
+  using prefix_def by auto
 
 lemma strict_prefix_eq_exists:
   "strict_prefix s t \<longleftrightarrow> (\<exists>xs . s @ xs = t \<and> (length xs) > 0)"
@@ -842,5 +854,40 @@ lemma length_list_minus:
   assumes "strict_prefix s t"
   shows "length(t - s) = length(t) - length(s)"
   using assms by (simp add: minus_list_def prefix_order.dual_order.strict_implies_order)
+
+subsection \<open> Laws on @{term take}, @{term drop}, and @{term nths} \<close>
+
+lemma take_prefix: "m \<le> n \<Longrightarrow> take m xs \<le> take n xs"
+  by (metis Prefix_Order.prefixI append_take_drop_id min_absorb2 take_append take_take)
+
+lemma nths_atLeastAtMost_0_take: "nths xs {0..m} = take (Suc m) xs"
+  by (metis atLeast0AtMost lessThan_Suc_atMost nths_upt_eq_take)
+
+lemma nths_atLeastLessThan_0_take: "nths xs {0..<m} = take m xs"
+  by (simp add: atLeast0LessThan)
+
+lemma nths_atLeastAtMost_prefix: "m \<le> n \<Longrightarrow> nths xs {0..m} \<le> nths xs {0..n}"
+  by (simp add: nths_atLeastAtMost_0_take take_prefix)
+
+lemma sorted_nths_atLeastAtMost_0: "\<lbrakk> m \<le> n; sorted (nths xs {0..n}) \<rbrakk> \<Longrightarrow> sorted (nths xs {0..m})"
+  using nths_atLeastAtMost_prefix sorted_prefix by blast
+
+lemma sorted_nths_atLeastLessThan_0: "\<lbrakk> m \<le> n; sorted (nths xs {0..<n}) \<rbrakk> \<Longrightarrow> sorted (nths xs {0..<m})"
+  by (metis atLeast0LessThan nths_upt_eq_take sorted_prefix take_prefix)
+
+lemma list_augment_as_update: 
+  "k < length xs \<Longrightarrow> list_augment xs k x = list_update xs k x"
+  by (metis list_augment_def list_augment_idem list_update_overwrite)
+
+lemma nths_list_update_out: "k \<notin> A \<Longrightarrow> nths (list_update xs k x) A = nths xs A"
+  apply (induct xs arbitrary: k x A)
+   apply (auto)
+  apply (rename_tac a xs k x A)
+  apply (case_tac k)
+   apply (auto simp add: nths_Cons)
+  done
+
+lemma nths_list_augment_out: "\<lbrakk> k < length xs; k \<notin> A \<rbrakk> \<Longrightarrow> nths (list_augment xs k x) A = nths xs A"
+  by (simp add: list_augment_as_update nths_list_update_out)
 
 end
