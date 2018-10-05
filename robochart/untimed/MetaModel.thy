@@ -260,7 +260,7 @@ proof -
     have "?rhs = [\<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright> \<notin>\<^sub>u \<guillemotleft>inames\<^bsub>M\<^esub>\<guillemotright>]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
       by (simp add: action_simp usubst)
     also have "... = [false]\<^sub>A ; rc_ctrl := \<guillemotleft>init\<^bsub>M\<^esub>\<guillemotright>"
-      by (literalise, simp add: wf.init_is_inter, unliteralise, simp)
+      by (literalise, simp add: wf.init_is_inter)
     also have "... = miracle"
       by (simp add: action_simp)
     finally
@@ -412,16 +412,16 @@ qed
 subsection \<open> Transition and State Parsers \<close>
 
 syntax
-  "_transition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
+  "_transition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> uexp \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ trigger _ condition _ action _" [0,0,0,0,10] 10)
 
   "_transition_action" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ action _" [0,0,10] 10)
 
-  "_transition_condition" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic"
+  "_transition_condition" :: "id \<Rightarrow> id \<Rightarrow> uexp \<Rightarrow> logic"
   ("from _ to _ condition _" [0,0,10] 10)
 
-  "_transition_condition_action" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
+  "_transition_condition_action" :: "id \<Rightarrow> id \<Rightarrow> uexp \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ condition _ action _" [0,0,0,10] 10)
 
   "_transition_trigger" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
@@ -449,7 +449,7 @@ translations
 
   "_state_entry e" => "CONST Node.make (CONST undefined) e skip skip"
 
-term "from s1 to s2 trigger y := 1; x?(y) ; z!(1) condition b action a"
+term "from s1 to s2 trigger y := 1 ; x?(y) ; z!(1) condition b action a"
 term "from s1 to s2 action a"
 term "from s1 to s2 trigger e"
 term "entry e during d exit x"

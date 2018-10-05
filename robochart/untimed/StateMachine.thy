@@ -5,8 +5,6 @@ theory StateMachine
   keywords "statemachine" :: "thy_decl_block" and "states" "initial" "finals" "transitions" "vars" "events"
 begin
 
-ML {* @{term "Transition.make ''s1''"} *}
-
 subsection \<open> Interface to Algebraic Datatypes \<close>
 
 lemma meta_refl: "(x = x) \<equiv> True"

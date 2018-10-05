@@ -88,7 +88,7 @@ lift_definition asubst :: "'s usubst \<Rightarrow> ('s, 'e) Action \<Rightarrow>
 
 adhoc_overloading usubst asubst
 
-lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr "\<^bold>&" 70) is "GuardCSP"
+lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr "\<^bold>&" 60) is "GuardCSP"
   by (simp add: closure)
 
 lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" ("\<^bold>s'(_')") is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
@@ -170,10 +170,10 @@ lift_definition dlockf :: "('s, 'e) Action" is "CDF"
   by (simp add: closure)
 
 purge_notation
-  extChoice (infixl "\<box>" 65)
+  extChoice (infixl "\<box>" 59)
 
 notation
-  ext_choice (infixl "\<box>" 85)
+  ext_choice (infixl "\<box>" 59)
 
 lift_definition state_decl :: "('s, 'e) Action \<Rightarrow> 'e Process" is "state_srea TYPE('s)"
   by (simp add: closure)
@@ -229,11 +229,11 @@ syntax
   "_bracket_raction"   :: "raction \<Rightarrow> raction" ("'(_')")
   "_skip_raction"      :: "raction" ("skip")
   "_seq_raction"       :: "raction \<Rightarrow> raction \<Rightarrow> raction" (infixr ";/" 71)
-  "_if_raction"        :: "logic \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
-  "_assign_raction"    :: "id \<Rightarrow> logic \<Rightarrow> raction" (infixr ":=" 72)
+  "_if_raction"        :: "uexp \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> raction" ("if _ then _ else _ end")
+  "_assign_raction"    :: "id \<Rightarrow> uexp \<Rightarrow> raction" (infixr ":=" 72)
   "_basic_ev_raction"  :: "id \<Rightarrow> raction" ("_")
   "_rcv_ev_raction"    :: "svid \<Rightarrow> id \<Rightarrow> raction" ("_?'(_')" [85,86])
-  "_send_ev_raction"   :: "id \<Rightarrow> logic \<Rightarrow> raction" ("_!'(_')" [85,86]) 
+  "_send_ev_raction"   :: "id \<Rightarrow> uexp \<Rightarrow> raction" ("_!'(_')" [85,86]) 
   "_action_state"      :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("decl _ \<bullet>/ _" [0,10] 10)
 
 translations
@@ -452,7 +452,7 @@ lemma assumption_true [simp]: "[true]\<^sub>A = skip"
   by (transfer, simp add: AssumeCircus_def)
 
 lemma asm_assign:
-  "vwb_lens x \<Longrightarrow> [&x =\<^sub>u k]\<^sub>A ; x := k =  [&x =\<^sub>u k]\<^sub>A"
+  "vwb_lens x \<Longrightarrow> [&x =\<^sub>u k]\<^sub>A ; (x := k) =  [&x =\<^sub>u k]\<^sub>A"
   apply (simp add: action_rep_eq)
   apply (rdes_eq)
   using vwb_lens.put_eq apply force+

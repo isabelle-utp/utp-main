@@ -4,8 +4,10 @@ theory ReactiveSpec
   imports "UTP-Circus.utp_circus"
 begin
 
+term "(;;)"
+
 consts
-  seq_comp :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr ";" 71)
+  seq_comp :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr ";" 61)
 
 typedef ('s, 'e) rrel = "{P :: ('s, 'e) action. (P is CDC) \<and> (P is CRR)}"
   by (rule_tac x="false" in exI, simp add: closure)
