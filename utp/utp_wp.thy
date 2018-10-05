@@ -11,7 +11,13 @@ named_theorems wp
 method wp_tac = (simp add: wp)
 
 consts
-  uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infix "wp" 60)
+  uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
+
+syntax
+  "_uwp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wp" 60)
+
+translations
+  "_uwp P b" == "CONST uwp P b"
 
 definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
 "wp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub><"

@@ -229,7 +229,7 @@ syntax
   "_uwhile_bot"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ do _ od")
   "_uwhile_inv"     :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ do _ od")
   "_uwhile_inv_bot" :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ invr _ do _ od" 71)
-  "_uwhile_vrt"     :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("while _ invr _ vrt _ do _ od")
+  "_uwhile_vrt"     :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ vrt _ do _ od")
 
 translations
   "_uwhile b P" == "CONST while_top b P"
