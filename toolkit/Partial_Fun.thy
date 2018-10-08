@@ -8,7 +8,7 @@
 section \<open> Partial Functions \<close>
 
 theory Partial_Fun
-imports Map_Extra
+imports "Optics.Lenses" Map_Extra
 begin
 
 text \<open> I'm not completely satisfied with partial functions as provided by Map.thy, since they don't
@@ -235,6 +235,9 @@ lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)
 
 lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
   by (transfer, simp)
+
+lemma pfun_upd_ext [simp]: "x \<in> pdom(f) \<Longrightarrow> f(x \<mapsto> f(x)\<^sub>p)\<^sub>p = f"
+  by (transfer, simp add: domIff)
 
 lemma pfun_app_add [simp]: "x \<in> pdom(g) \<Longrightarrow> (f + g)(x)\<^sub>p = g(x)\<^sub>p"
   by (transfer, auto)
@@ -519,7 +522,18 @@ lemma pfun_sum_pdom_antires [simp]:
   assumes "finite(pdom f)"
   shows "pfun_sum ((- A) \<lhd>\<^sub>p f) = pfun_sum f - pfun_sum (A \<lhd>\<^sub>p f)"
   by (subst pfun_sum_pdom_res, simp_all add: assms)
-  
+
+subsection \<open> Partial Function Lens \<close>
+
+definition pfun_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a, 'b) pfun)" where
+[lens_defs]: "pfun_lens i = \<lparr> lens_get = \<lambda> s. s(i)\<^sub>p, lens_put = \<lambda> s v. s(i \<mapsto> v)\<^sub>p \<rparr>"
+
+lemma pfun_lens_mwb [simp]: "mwb_lens (pfun_lens i)"
+  by (unfold_locales, simp_all add: pfun_lens_def)
+
+lemma pfun_lens_src: "\<S>\<^bsub>pfun_lens i\<^esub> = {f. i \<in> pdom(f)}"
+  by (auto simp add: lens_defs lens_source_def, transfer, force)
+
 text \<open> Hide implementation details for partial functions \<close>
 
 lifting_update pfun.lifting
