@@ -251,13 +251,10 @@ text {* We construct bijective versions of @{const to_nat_set} and @{const from_
 definition to_nat_set_bij :: "'a::{continuum, infinite} \<Rightarrow> nat set" where
 "to_nat_set_bij = (SOME f. bij f)"
 
-lemma to_nat_bij:
+lemma to_nat_set_bij:
   "bij to_nat_set_bij"
   apply (auto simp add: bij_def)
   oops
-
-definition from_nat_bij :: "nat \<Rightarrow> 'a::{countable, infinite}" where
-"from_nat_bij = inv to_nat_bij"
 
 text {* The real numbers are in the continuum -- this requires a proof that $|\mathbb{P}\,\mathbb{N}| = |\mathbb{R}|$
  that we have proved elsewhere. *}
