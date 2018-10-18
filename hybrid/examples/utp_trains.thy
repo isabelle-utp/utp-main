@@ -2,7 +2,7 @@ section {* Train Hybrid System *}
 
 theory utp_trains
   imports 
-    "../utp_hybrid"
+    "UTP-Hybrid.utp_hybrid"
     "HOL-Decision_Procs.Approximation"
 begin recall_syntax
 
@@ -21,11 +21,13 @@ alphabet cst_train =
   vel   :: real \<comment> \<open> Velocity \<close>
   pos   :: real \<comment> \<open> Position \<close>
 
+term accel
+
 print_theorems
   
 setup_lifting type_definition_cst_train_ext
   
-text {* Proof that the state-space is a T2 topological space. *}
+text \<open> Proof that the state-space is a T2 topological space. \<close>
   
 instantiation cst_train_ext :: (t2_space) t2_space
 begin
@@ -44,7 +46,7 @@ lemma continuous_Abs_cst_train_ext  [continuous_intros]:
   apply (metis Rep_cst_train_ext_inverse UNIV_I UNIV_eq_I image_eqI open_cst_train_ext.abs_eq open_cst_train_ext.rep_eq surj_image_vimage_eq)
 done  
   
-text {* All three variable lenses are continuous *}    
+text \<open> All three variable lenses are continuous \<close>    
     
 lemma continuous_get_accel [continuous_intros]: "continuous_on UNIV get\<^bsub>accel\<^esub>"
   by (simp add: lens_defs cst_train.select_defs iso_tuple_fst_def tuple_iso_tuple_def 
@@ -58,7 +60,7 @@ lemma continuous_get_pos [continuous_intros]: "continuous_on UNIV get\<^bsub>pos
   by (simp add: lens_defs cst_train.select_defs iso_tuple_fst_def iso_tuple_snd_def tuple_iso_tuple_def 
       cst_train_ext_Tuple_Iso_def Topological_Spaces.continuous_on_snd Topological_Spaces.continuous_on_fst continuous_Rep_cst_train_ext)
   
-subsection {* Differential Equations and Solutions *}
+subsection \<open> Differential Equations and Solutions \<close>
   
 abbreviation train_ode :: "real \<Rightarrow> real \<times> real \<times> real \<Rightarrow> real \<times> real \<times> real" where
 "train_ode \<equiv> (\<lambda> t (a, v, p). (0, a, v))"
@@ -123,6 +125,7 @@ proof -
   also have "... = 
     {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol(-1.4,4.16,0)(ti)\<guillemotright> until\<^sub>h ($vel\<acute> \<le>\<^sub>u 0) ;; \<^bold>c:accel :=\<^sub>r 0"
     by (rel_auto)
+  \<comment> \<open> Find the point at which the train stops \<close>
   also have "... =
     (({&accel,&vel,&pos} \<leftarrow>\<^sub>h(\<guillemotleft>416/140\<guillemotright>) \<guillemotleft>train_sol(-1.4,4.16,0)(ti)\<guillemotright>)) ;; \<^bold>c:accel :=\<^sub>r 0"
     apply (literalise)
@@ -131,7 +134,8 @@ proof -
     apply (force intro: continuous_intros)
     apply (force simp add: pr_var_def intro: continuous_intros)
     apply (pred_auto)
-  done
+    done
+  \<comment> \<open> Prove that this satisfies the continuous invariant \<close>
   also have "?lhs \<sqsubseteq> ..."
   proof (rel_simp)
     fix tr tr' :: "'a cst_train_scheme ttrace" and t::real
