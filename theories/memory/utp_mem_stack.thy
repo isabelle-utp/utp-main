@@ -280,7 +280,8 @@ lemma msubst_H1_H3_closed [closure]:
   
 lemma var_block_H1_H3_closed [closure]:
   "(\<And>x. P x is \<^bold>N) \<Longrightarrow> \<V>[\<L>\<^sub>D['a::countable], P] is \<^bold>N"
-  by (simp add: utp_local_state.var_scope_def closure unrest)
+  apply (simp add: utp_local_state.var_scope_def closure unrest)
+  oops
 
 lemma inj_local_rel [simp]: "inj_local R\<^sub>l = \<U>\<^sub>\<nat>"
   by (simp add: rel_local_state_def)
@@ -309,6 +310,6 @@ lemma ndesign_local_expand_1 [ndes_simp]:
   apply (simp add: utp_local_state.var_scope_def utp_local_state.var_open_def utp_local_state.var_close_def seq_UINF_distr' usubst)
   apply (simp add: ndes_simp wp unrest)
   apply (rel_auto')
-  done
+  oops
 
 end

@@ -4,12 +4,6 @@ theory utp_mem_prog
   imports utp_mem_prelim
 begin
 
-text \<open> For now we represent addresses and data as naturals. We can therefore inject
-  countable data structures into our memory model. \<close>
-
-type_synonym addr = nat
-type_synonym data = nat
-
 text \<open> Heap allocation takes a lens $x$ within the store that holds an address, and an expression
   $e$ over store variables whose return type is countable. The semantics of allocation selects
   an arbitrary memory location not currently allocated in the heap, places the said address

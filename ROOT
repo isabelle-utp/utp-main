@@ -93,10 +93,18 @@ session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
     "root.tex"
     "document.sty"
 
+(* UTP Undefinedness *)
+
+session "UTP-Undef" in "theories/undef" = "UTP-Designs" +
+  options [document = false]
+  theories utp_undef
+
 (* UTP Memory Models *)
 
-session "UTP-Memory" in "theories/memory" = "UTP-Designs" +
+session "UTP-Memory" in "theories/memory" = "UTP-Undef" +
   options [document = false]
+  sessions
+    "Continuum"
   theories utp_memory
 
 (* Imperative Programs based on Designs *)
