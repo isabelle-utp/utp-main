@@ -74,7 +74,7 @@ lemma to_nat_lens_bij [simp]: "bij_lens to_nat_lens"
   by (unfold_locales, simp_all add: lens_defs)
 
 text \<open> The dereferencing lens obtains the heap, applies the finite function lens with the given
-  address, and finally obtains the type data. \<close>
+  address, and finally obtains the typed data. \<close>
 
 definition deref :: "(addr \<Longrightarrow> 's) \<Rightarrow> ('a::{countable,infinite} \<Longrightarrow> ((nat, nat) ffun, 's) mem_ext)" where
 [lens_defs]: "deref a = to-nat\<^sub>L ;\<^sub>L ind_lens (\<lambda> i. ffun_lens i ;\<^sub>L hp) (a ;\<^sub>L str)"
@@ -91,7 +91,7 @@ lemma src_deref: "vwb_lens a \<Longrightarrow> \<S>\<^bsub>deref a\<^esub> = {s.
   apply (metis ffun_upd_ext mem.surjective mem.update_convs(1))
   done
 
-lemma src_pred_deref: "vwb_lens a \<Longrightarrow> \<^bold>S(deref a) = (&str:a \<in>\<^sub>u dom\<^sub>u(&hp))"
+lemma src_pred_deref [simp]: "vwb_lens a \<Longrightarrow> \<^bold>S(deref a) = (&str:a \<in>\<^sub>u dom\<^sub>u(&hp))"
   by (simp add: src_pred_def src_deref, rel_auto)
 
 end
