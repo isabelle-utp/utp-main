@@ -122,6 +122,20 @@ lemma uderiv_var:
   "k < DIM(real^'i::enum) \<Longrightarrow> \<partial>\<^sub>e (var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec)) F' = \<langle>F'\<rangle>\<^sub>s (eucl_lens k) \<oplus>\<^sub>p cvec"
   by (rel_simp, metis bounded_linear_imp_has_derivative bounded_linear_inner_left frechet_derivative_at)
 
+lemma uderiv_pr_var: 
+  "k < DIM(real^'i::enum) \<Longrightarrow> \<partial>\<^sub>e (var (pr_var((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec))) F' = \<langle>F'\<rangle>\<^sub>s (eucl_lens k) \<oplus>\<^sub>p cvec"
+  by (simp add: pr_var_def uderiv_var)
+  
+
+lemma differentiable_var [closure]: 
+  "k < DIM(real^'i::enum) \<Longrightarrow> differentiable\<^sub>e(var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec))"
+  by (rel_simp)
+
+lemma differentiable_pr_var [closure]: 
+  "k < DIM(real^'i::enum) \<Longrightarrow> differentiable\<^sub>e (var (pr_var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec)))"
+  by (rel_simp)
+
+
 lemma cvec_lemma: "\<lparr>cvec\<^sub>v = x, \<dots> = hybs.more s\<rparr> = s\<lparr>cvec\<^sub>v := x\<rparr>"
   by (auto)
 
@@ -199,10 +213,10 @@ using assms proof (rel_auto')
     by (simp add: a(4)[THEN sym] a(6))
 qed
 
-lemma dI_le:
+lemma dI_ge:
   fixes e :: "(real, 'i::enum, 's) hyexpr"
   assumes "differentiable\<^sub>e e" "`B \<Rightarrow> \<partial>\<^sub>e e F' \<ge>\<^sub>u 0`"
-  shows "\<lbrace>e \<ge>\<^sub>u 0\<rbrace>ode F' B\<lbrace>e \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
+  shows "\<lbrace>e \<ge>\<^sub>u 0\<rbrace>ode F' B\<lbrace>e \<ge>\<^sub>u 0\<rbrace>\<^sub>u" and "\<lbrace>e >\<^sub>u 0\<rbrace>ode F' B\<lbrace>e >\<^sub>u 0\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> (real, 'i) vec" and s :: "('i, 's) hybs_scheme"
   assume a:
@@ -212,7 +226,6 @@ using assms proof (rel_auto')
             (F has_vector_derivative F' (F t)) (at t within {0..l}) \<and> (\<forall>b. \<lbrakk>B\<rbrakk>\<^sub>e (b\<lparr>cvec\<^sub>v := F t\<rparr>))"
     "cvec\<^sub>v s = F 0"
     "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (F' (cvec\<^sub>v A)) \<ge> 0"
-    "\<lbrakk>e\<rbrakk>\<^sub>e s \<ge> 0"
 
   have d0: "\<forall> t\<in>{0..l}. \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (F' (F t)) \<ge> 0"
   proof
@@ -243,13 +256,38 @@ using assms proof (rel_auto')
     by (simp)
 
   then obtain t 
-    where "0 \<le> t \<and> t \<le> l \<and> \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0 \<and> \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0 \<and>
-           \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F 0\<rparr>) = l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
-    apply (simp add: uexpr_deriv.rep_eq lens_defs)
+    where "0 \<le> t" "t \<le> l" "\<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0" "\<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0"
+          "\<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e s = l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
+    apply (simp add: uexpr_deriv.rep_eq lens_defs a(4)[THEN sym])
     using d0 by force
-    
 
-  thus "\<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0"
+  moreover have "l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0"
+    using a(2) calculation(3) by auto
 
+  ultimately show 
+    "\<lbrakk>e\<rbrakk>\<^sub>e s \<ge> 0 \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0" and 
+    "\<lbrakk>e\<rbrakk>\<^sub>e s > 0 \<Longrightarrow> \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) > 0"
+    by linarith+
+
+qed
+
+text \<open> Example \<close>
+
+type_synonym gravs = "(2, unit) hybs_scheme"
+
+abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> eucl_lens 0 ;\<^sub>L cvec"
+abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> eucl_lens 1 ;\<^sub>L cvec"
+
+lemma eucl_lens_indep [simp]:
+  "\<lbrakk> i < DIM('a); j < DIM('a); i \<noteq> j \<rbrakk> \<Longrightarrow> (eucl_lens i :: real \<Longrightarrow> 'a::executable_euclidean_space) \<bowtie> eucl_lens j"
+  by (unfold_locales, simp_all add: lens_defs list_update_swap eucl_of_list_inner)
+
+declare lens_comp_quotient [simp]
+declare plus_lens_distr [THEN sym, simp]
+
+lemma "\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<langle>der(h) = v, der(v) = 9.81\<rangle>\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
+  apply (rule dI_ge)
+   apply (simp_all add: closure uderiv_pr_var fode_def usubst)
+  oops
 
 end

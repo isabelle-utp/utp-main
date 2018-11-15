@@ -99,7 +99,9 @@ definition ode :: "(real^'i::enum \<Rightarrow> real^'i::enum) \<Rightarrow> ('i
 text \<open> We set up a parser and pretty printer so that an ODE relation can be written using the
   familiar $\dot{x} = f(x)$ style syntax. \<close>
 
-(*
+definition fode :: "('a::euclidean_space \<Longrightarrow> 'b::euclidean_space) \<Rightarrow> 'a usubst \<Rightarrow> 'b usubst" where
+[upred_defs]: "fode x \<sigma> = [&\<^bold>v \<mapsto>\<^sub>s 0](x \<mapsto>\<^sub>s uop \<sigma> &x)"
+
 nonterminal sode and sodes
 
 syntax
@@ -120,9 +122,9 @@ translations
   "_ode_tuple (_ode_last (_ode x f))" => "x"
   "_ode_expr (_ode_cons (_ode x f) fs)" => "(f, (_ode_expr fs))"
   "_ode_expr (_ode_last (_ode x f))" => "f"
-  "_sys_ode fs B" => "CONST ode (_ode_lens fs /\<^sub>L CONST cvec) (_abs (_ode_tuple fs) (_ode_expr fs)) B"
+  "_sys_ode fs B" => "CONST ode (CONST fode (_ode_lens fs /\<^sub>L CONST cvec) (_abs (_ode_tuple fs) (_ode_expr fs))) B"
   "_sys_ode_s fs" == "_sys_ode fs true"
-  "_sys_ode (_ode y f) B" <= "CONST ode x (_abs y f) B"
+  "_sys_ode (_ode y f) B" <= "CONST ode (CONST fode x (_abs y f)) B"
   "_ode_cons (_ode x f) (_ode y g)" <= "_ode (_pattern x y) (f, g)"
 
 term "\<langle>der(h) = v, der(v) = -9.81 | (&h \<ge>\<^sub>u 0)\<rangle>"
@@ -133,6 +135,5 @@ subsection \<open> dL Rules \<close>
 lemma differential_weakening: 
   "\<lbrakk> vwb_lens x; `B \<Rightarrow> C` \<rbrakk> \<Longrightarrow> \<^bold>[\<langle>x\<^sup>\<bullet> = f(x) | B\<rangle>\<^bold>]C = true"
   by (rel_simp, simp add: bop_ueval lit.rep_eq)
-*)
 
 end
