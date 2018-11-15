@@ -89,16 +89,17 @@ text \<open> An ODE consists of equations @{term \<F>'} and a boundary condition
   holds on at each instant, and the before and after value of variable $x$ is equal to 
   @{term "\<F>(0)"} and @{term "\<F>(l)"}, respectively. \<close>
 
-definition ode :: "('a::executable_euclidean_space \<Longrightarrow> real^'i::enum) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('i, 's) hypred \<Rightarrow> ('i, 's) hyrel" where
-[upred_defs]: "ode x \<F>' B = 
-  cvec:x:[\<^bold>\<exists> (\<F>, l) \<bullet> 
+definition ode :: "(real^'i::enum \<Rightarrow> real^'i::enum) \<Rightarrow> ('i, 's) hypred \<Rightarrow> ('i, 's) hyrel" where
+[upred_defs]: "ode \<F>' B = 
+  cvec:[\<^bold>\<exists> (\<F>, l) \<bullet> 
         \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<F>') \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
-                    \<and> `B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec:x\<rbrakk>`\<guillemotright>)
-      \<and> $cvec:x =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec:x\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
+                    \<and> `B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec\<rbrakk>`\<guillemotright>)
+      \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
 
 text \<open> We set up a parser and pretty printer so that an ODE relation can be written using the
   familiar $\dot{x} = f(x)$ style syntax. \<close>
 
+(*
 nonterminal sode and sodes
 
 syntax
@@ -132,5 +133,6 @@ subsection \<open> dL Rules \<close>
 lemma differential_weakening: 
   "\<lbrakk> vwb_lens x; `B \<Rightarrow> C` \<rbrakk> \<Longrightarrow> \<^bold>[\<langle>x\<^sup>\<bullet> = f(x) | B\<rangle>\<^bold>]C = true"
   by (rel_simp, simp add: bop_ueval lit.rep_eq)
+*)
 
 end
