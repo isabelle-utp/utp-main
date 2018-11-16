@@ -60,4 +60,16 @@ translations
 term "\<langle>der(h) = v, der(v) = -9.81 | (&h \<ge>\<^sub>u 0)\<rangle>"
 term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"
 
+subsection \<open> ODE laws \<close>
+
+lemma ode_post: "ode F' B ;; ?[B] = ode F' B"
+  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective order_refl)
+
+lemma ode_mono:
+  "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
+  by (rel_blast)
+
+lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
+  by (rel_auto)
+
 end

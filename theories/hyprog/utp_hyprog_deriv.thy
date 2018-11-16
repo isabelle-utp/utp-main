@@ -18,31 +18,31 @@ declare uexpr_differentiable_def [upred_defs]
 
 update_uexpr_rep_eq_thms
 
-lemma differentiable_consts [closure]:
+lemma udifferentiable_consts [closure]:
   "differentiable\<^sub>e 0" "differentiable\<^sub>e 1" "differentiable\<^sub>e (numeral n)" "differentiable\<^sub>e \<guillemotleft>k\<guillemotright>"
   by (rel_simp)+
 
-lemma differentiable_var [closure]: 
+lemma udifferentiable_var [closure]: 
   "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e(var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec))"
   by (rel_simp)
 
-lemma differentiable_pr_var [closure]: 
+lemma udifferentiable_pr_var [closure]: 
   "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e (var (pr_var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec)))"
   by (rel_simp)
 
-lemma differentiable_plus [closure]:
+lemma udifferentiable_plus [closure]:
   "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e + f)"
   by (rel_simp)
 
-lemma differentiable_uminus [closure]:
+lemma udifferentiable_uminus [closure]:
   "\<lbrakk> differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (- e)"
   by (rel_simp)
 
-lemma differentiable_minus [closure]:
+lemma udifferentiable_minus [closure]:
   "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e - f)"
   by (rel_simp)
 
-lemma differentiable_mult [closure]:
+lemma udifferentiable_mult [closure]:
   fixes e f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e * f)"
   by (rel_simp)
@@ -60,6 +60,15 @@ is "\<lambda> \<sigma> f s. frechet_derivative (\<lambda> x. f (put\<^bsub>cvec\
 update_uexpr_rep_eq_thms
 
 named_theorems uderiv
+
+lemma uderiv_zero [uderiv]: "F' \<turnstile> \<partial>\<^sub>e 0 = 0"
+  by (rel_simp, simp add: frechet_derivative_const)
+
+lemma uderiv_one [uderiv]: "F' \<turnstile> \<partial>\<^sub>e 1 = 0"
+  by (rel_simp, simp add: frechet_derivative_const)
+
+lemma uderiv_numeral [uderiv]: "F' \<turnstile> \<partial>\<^sub>e (numeral n) = 0"
+  by (rel_simp, simp add: frechet_derivative_const)
 
 lemma uderiv_lit [uderiv]: "F' \<turnstile> \<partial>\<^sub>e (\<guillemotleft>v\<guillemotright>) = 0"
   by (rel_simp, simp add: frechet_derivative_const)

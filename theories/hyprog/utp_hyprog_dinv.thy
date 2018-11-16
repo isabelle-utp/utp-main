@@ -141,12 +141,90 @@ using assms proof (rel_auto')
 
 qed
 
+datatype ('c::executable_euclidean_space, 's) hyprop =
+  Eq "(real, 'c, 's) hyexpr" "(real, 'c, 's) hyexpr" (infix "=\<^sub>P" 50) |
+  Less "(real, 'c, 's) hyexpr" "(real, 'c, 's) hyexpr" (infix "<\<^sub>P" 50) |
+  LessEq "(real, 'c, 's) hyexpr" "(real, 'c, 's) hyexpr" (infix "\<le>\<^sub>P" 50) |
+  And "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<and>\<^sub>P" 35) |
+  Or "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<or>\<^sub>P" 30)
+
+fun hyprop_deriv :: 
+  "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("(_ \<turnstile> \<partial>\<^sub>P _)" [100, 101] 100) where
+"F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e =\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
+"F' \<turnstile> \<partial>\<^sub>P (e <\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e \<le>\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
+"F' \<turnstile> \<partial>\<^sub>P (e \<le>\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e \<le>\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
+"F' \<turnstile> \<partial>\<^sub>P (p \<and>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)" |
+"F' \<turnstile> \<partial>\<^sub>P (p \<or>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)"
+
+fun hyprop_eval :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hypred" ("\<lbrakk>_\<rbrakk>\<^sub>P") where
+"\<lbrakk>e =\<^sub>P f\<rbrakk>\<^sub>P = (e =\<^sub>u f)" |
+"\<lbrakk>e <\<^sub>P f\<rbrakk>\<^sub>P = (e <\<^sub>u f)" |
+"\<lbrakk>e \<le>\<^sub>P f\<rbrakk>\<^sub>P = (e \<le>\<^sub>u f)" |
+"\<lbrakk>p \<and>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<and> \<lbrakk>q\<rbrakk>\<^sub>P)" |
+"\<lbrakk>p \<or>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<or> \<lbrakk>q\<rbrakk>\<^sub>P)"
+
+definition hyprop_pred ("[_]\<^sub>P") where "[p]\<^sub>P = \<lbrakk>p\<rbrakk>\<^sub>P"
+
+fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> bool" ("differentiable\<^sub>P") where
+"differentiable\<^sub>P (e =\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
+"differentiable\<^sub>P (e <\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
+"differentiable\<^sub>P (e \<le>\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
+"differentiable\<^sub>P (p \<and>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)" |
+"differentiable\<^sub>P (p \<or>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)"
+
+lemma dI:
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "differentiable\<^sub>P p" "`B \<Rightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P p\<rbrakk>\<^sub>P`"
+  shows "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u"
+using assms proof (simp add: hyprop_pred_def, induct p)
+  case (Eq x1 x2)
+  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 =\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+    by (auto)
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x1 - F' \<turnstile> \<partial>\<^sub>e x2) =\<^sub>u 0`"
+    by (rel_auto)
+  hence "\<lbrace>(x1 - x2) =\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x1 - x2) =\<^sub>u 0\<rbrace>\<^sub>u"
+    by (simp add: a(2) a(3) dI_eq uderiv closure)
+  then show ?case
+    by (rel_auto')
+next
+  case (Less x1 x2)
+  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le>\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+    by (auto)
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
+    by (rel_auto)
+  hence "\<lbrace>(x2 - x1) >\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x2 - x1) >\<^sub>u 0\<rbrace>\<^sub>u"
+    by (simp add: a(2) a(3) dI_ge uderiv closure)
+  then show ?case
+    by (rel_auto')
+next
+  case (LessEq x1 x2)
+  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le>\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+    by (auto)
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
+    by (rel_auto)
+  hence "\<lbrace>(x2 - x1) \<ge>\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x2 - x1) \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
+    by (simp add: a(2) a(3) dI_ge uderiv closure)
+  then show ?case
+    by (rel_auto')
+next
+  case (And p1 p2)
+  then show ?case
+    by (rel_auto')
+next
+  case (Or p1 p2)
+  then show ?case
+    by (rel_auto')
+qed
+
 text \<open> Example \<close>
 
 type_synonym gravs = "(real^2, unit) hybs_scheme"
 
-abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> eucl_lens 0 ;\<^sub>L cvec"
-abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> eucl_lens 1 ;\<^sub>L cvec"
+abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> \<Pi>[0] ;\<^sub>L \<^bold>c"
+abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> \<Pi>[Suc 0] ;\<^sub>L \<^bold>c"
+
+lemma mkuexpr_lens_get [mkuexpr]: "mk\<^sub>e get\<^bsub>x\<^esub> = &x"
+  by (rel_simp)
 
 lemma eucl_lens_indep [simp]:
   "\<lbrakk> i < DIM('a); j < DIM('a); i \<noteq> j \<rbrakk> \<Longrightarrow> (eucl_lens i :: real \<Longrightarrow> 'a::executable_euclidean_space) \<bowtie> eucl_lens j"
@@ -155,10 +233,10 @@ lemma eucl_lens_indep [simp]:
 declare lens_comp_quotient [simp]
 declare plus_lens_distr [THEN sym, simp]
 
-lemma "\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<langle>der(h) = v, der(v) = 9.81\<rangle>\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
-  apply (rule dI_ge)
+lemma "\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<langle>der(h) = v, der(v) = -9.81\<rangle>\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
+  apply (rule dI)
    apply (simp_all add: closure uderiv usubst fode_def mkuexpr alpha)
-  apply (rel_auto)
-  done
+  apply (rel_simp)
+  oops
 
 end
