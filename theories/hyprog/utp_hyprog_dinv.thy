@@ -2,138 +2,6 @@ theory utp_hyprog_dinv
   imports utp_hyprog
 begin
 
-(*
-lemma 
-  fixes \<eta> :: "(real, 'a) uexpr"
-  assumes "vwb_lens x" "`B \<Rightarrow> ((F' \<oplus>\<^sub>s x) \<dagger> \<eta> =\<^sub>u 0)`" 
-    "\<forall> l\<ge>0. \<forall> r\<in>{0..l}. (\<lambda>t. \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F t))) differentiable (at r within {0..l})"
-  shows "(\<lceil>\<eta> =\<^sub>u 0\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<eta> =\<^sub>u 0\<rceil>\<^sub>>) \<sqsubseteq> ode x F' B"
-using assms proof (rel_auto')
-  fix l :: real and F s
-  assume a:
-    "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> A (F' (get\<^bsub>x\<^esub> A))) = 0" "l > 0"
-    "\<forall>t. 0 \<le> t \<and> t \<le> l \<longrightarrow> (F has_vector_derivative F' (F t)) (at t within {0..l}) \<and> (\<forall>b. \<lbrakk>B\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> b (F t)))"
-    "get\<^bsub>x\<^esub> s = F 0" "\<lbrakk>\<eta>\<rbrakk>\<^sub>e s = 0"
-  have "\<forall>r\<in>{0..l}. ((\<lambda>t. \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F t))) has_vector_derivative 0) (at r within {0..l})"
-  proof
-    fix r
-    assume r: "r \<in> {0..l}"
-    hence "\<lbrakk>B\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F r))"
-      using a(3) atLeastAtMost_iff by blast
-    hence "\<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F' (get\<^bsub>x\<^esub> s))) = 0"
-      using a(1) a(2) a(3) a(4) assms(1) by force
-    moreover have "(F has_vector_derivative F' (F r)) (at r within {0..l})"
-      using r a(3) atLeastAtMost_iff by blast
-    moreover have "((\<lambda>t. \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F t))) has_vector_derivative vector_derivative (\<lambda>t. \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F t))) (at r within {0..l})) (at r within {0..l})"
-    
-    ultimately show "((\<lambda>t. \<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F t))) has_vector_derivative 0) (at r within {0..l})"
-  show "\<lbrakk>\<eta>\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> s (F l)) = 0"
-*)
-
-
-lemma vector_derivative_chain_frechet: 
-  fixes g :: "'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
-  assumes "f differentiable (at x)" "g differentiable (at (f x))"
-  shows "vector_derivative (g \<circ> f) (at x) =
-        (frechet_derivative g (at (f x))) (vector_derivative f (at x)) "
-proof -
-  have "(g has_derivative frechet_derivative g (at (f x))) (at (f x))"
-    using assms(2) frechet_derivative_works by blast
-  hence 1:"(g has_derivative frechet_derivative g (at (f x))) (at (f x) within range f)"
-    by (simp add: has_derivative_at_withinI)
-  from 1 assms show ?thesis
-    by (auto intro: vector_derivative_chain_within simp add: at_eq_bot_iff)
-qed
-
-lemma frechet_derivative_const: "\<partial> (\<lambda> x. k) (at t) = (\<lambda> x. 0)"
-  by (metis frechet_derivative_at has_derivative_const)
-
-lemma frechet_derivative_uminus:
-  assumes "f differentiable (at t)"
-  shows "\<partial> (\<lambda> x. - f x) (at t) = (\<lambda>x. - \<partial> f (at t) x)"
-proof -
-  have "((\<lambda>x. - f x) has_derivative (\<lambda>x. - \<partial> f (at t) x)) (at t)"
-    using assms frechet_derivative_works has_derivative_minus by blast
-  thus ?thesis
-    using frechet_derivative_at by force
-qed
-
-lemma frechet_derivative_plus:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
-  assumes "f differentiable (at t)" "g differentiable (at t)"
-  shows "\<partial> (\<lambda> x. f x + g x) (at t) = (\<lambda> x. \<partial> f (at t) x + \<partial> g (at t) x)"
-proof -
-  have "((\<lambda>x. f x + g x) has_derivative (\<lambda>x. \<partial> f (at t) x + \<partial> g (at t) x)) (at t)"
-    using assms(1) assms(2) frechet_derivative_works has_derivative_add by blast
-  thus ?thesis
-    using frechet_derivative_at by force
-qed
-
-lemma frechet_derivative_mult:
-  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
-  assumes "f differentiable (at t)" "g differentiable (at t)"
-  shows "\<partial> (\<lambda> x. f x * g x) (at t) = 
-         (\<lambda> x. f t * \<partial> g (at t) x + \<partial> f (at t) x * g t)"
-proof -
-  have "((\<lambda>x. f x * g x) has_derivative (\<lambda> x. f t * \<partial> g (at t) x + \<partial> f (at t) x * g t)) (at t)"
-    using assms(1) assms(2) frechet_derivative_works has_derivative_mult by blast
-  thus ?thesis
-    using frechet_derivative_at by force
-qed
-
-lift_definition uexpr_deriv :: "('a::ordered_euclidean_space, 'i::finite, 's) hyexpr \<Rightarrow> (real^'i) usubst \<Rightarrow> ('a, 'i, 's) hyexpr" ("\<partial>\<^sub>e")
-is "\<lambda> f \<sigma> s. frechet_derivative (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) (at (get\<^bsub>cvec\<^esub> s)) (\<sigma> (get\<^bsub>cvec\<^esub> s))" .
-
-(*
-lift_definition uexpr_deriv :: "('a::ordered_euclidean_space, 'b::ordered_euclidean_space) uexpr \<Rightarrow> 'b usubst \<Rightarrow> ('a, 'b) uexpr" ("\<partial>\<^sub>e")
-is "\<lambda> f \<sigma> s. frechet_derivative f (at s) (\<sigma> s)" .
-*)
-
-lift_definition uexpr_differentiable :: "('a::ordered_euclidean_space, 'i::finite, 's) hyexpr \<Rightarrow> bool" ("differentiable\<^sub>e")
-is "\<lambda> f. \<forall> s. (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) differentiable (at (get\<^bsub>cvec\<^esub> s))" .
-
-update_uexpr_rep_eq_thms
-
-declare uexpr_differentiable_def [upred_defs]
-
-lemma uderiv_lit: "\<partial>\<^sub>e (\<guillemotleft>v\<guillemotright>) F' = 0"
-  by (rel_simp, simp add: frechet_derivative_const)
-
-term " \<partial>\<^sub>e (- e) F'"
-
-lemma uderiv_uminus: 
-  "differentiable\<^sub>e e \<Longrightarrow> \<partial>\<^sub>e (- e) F' = - (\<partial>\<^sub>e e) F'"
-  by (rel_simp, simp add: frechet_derivative_uminus)
-
-lemma uderiv_plus:
-  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<partial>\<^sub>e (e + f) F' = (\<partial>\<^sub>e e F' + \<partial>\<^sub>e f F')"
-  by (rel_simp, simp add: frechet_derivative_plus)
-
-typ "'a::real_algebra"
-
-lemma uderiv_mult:
-  fixes e f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'i::finite, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<partial>\<^sub>e (e * f) F' = (e * \<partial>\<^sub>e f F' + \<partial>\<^sub>e e F' * f)"
-  by (rel_simp, simp add: frechet_derivative_mult)
-
-text \<open> The derivative of a variable represented by a Euclidean lens is the same Euclidean lens \<close>
-
-lemma uderiv_var: 
-  "k < DIM(real^'i::enum) \<Longrightarrow> \<partial>\<^sub>e (var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec)) F' = \<langle>F'\<rangle>\<^sub>s (eucl_lens k) \<oplus>\<^sub>p cvec"
-  by (rel_simp, metis bounded_linear_imp_has_derivative bounded_linear_inner_left frechet_derivative_at)
-
-lemma uderiv_pr_var: 
-  "k < DIM(real^'i::enum) \<Longrightarrow> \<partial>\<^sub>e (var (pr_var((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec))) F' = \<langle>F'\<rangle>\<^sub>s (eucl_lens k) \<oplus>\<^sub>p cvec"
-  by (simp add: pr_var_def uderiv_var)
-  
-
-lemma differentiable_var [closure]: 
-  "k < DIM(real^'i::enum) \<Longrightarrow> differentiable\<^sub>e(var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec))"
-  by (rel_simp)
-
-lemma differentiable_pr_var [closure]: 
-  "k < DIM(real^'i::enum) \<Longrightarrow> differentiable\<^sub>e (var (pr_var ((eucl_lens k :: real \<Longrightarrow> real^'i::enum) ;\<^sub>L cvec)))"
-  by (rel_simp)
 
 
 lemma cvec_lemma: "\<lparr>cvec\<^sub>v = x, \<dots> = hybs.more s\<rparr> = s\<lparr>cvec\<^sub>v := x\<rparr>"
@@ -287,7 +155,8 @@ declare plus_lens_distr [THEN sym, simp]
 
 lemma "\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<langle>der(h) = v, der(v) = 9.81\<rangle>\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
   apply (rule dI_ge)
-   apply (simp_all add: closure uderiv_pr_var fode_def usubst)
-  oops
+   apply (simp_all add: closure uderiv_pr_var usubst fode_def prod.case_eq_if mkuexpr alpha)
+  apply (rel_auto)
+  done
 
 end
