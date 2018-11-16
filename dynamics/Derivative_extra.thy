@@ -2,7 +2,7 @@ section {* Derivatives: extra laws and tactics *}
 
 theory Derivative_extra
   imports
-  "HOL-Analysis.Derivative"
+  "HOL-Analysis.Analysis"
   "HOL-Eisbach.Eisbach"
 begin
 
@@ -155,5 +155,99 @@ lemma min_simps [simp]:
   "min (x::real) y < x \<longleftrightarrow> y < x"
   "min x y < y \<longleftrightarrow> x < y"
   by auto
+
+subsection \<open> Calculating derivatives \<close>
+
+text \<open> We set up some nice syntax for taking derivatives by calculation, and prove associated
+  theorems based on the Multivariate Analysis package. \<close>
+
+notation frechet_derivative ("\<partial>")
+notation vector_derivative ("\<partial>\<^sub>v")
+
+lemma vector_derivative_chain_frechet: 
+  fixes g :: "'a::ordered_euclidean_space \<Rightarrow> 'b::ordered_euclidean_space"
+  assumes "f differentiable (at x)" "g differentiable (at (f x))"
+  shows "\<partial>\<^sub>v (g \<circ> f) (at x) = \<partial> g (at (f x)) (\<partial>\<^sub>v f (at x))"
+proof -
+  have "(g has_derivative \<partial> g (at (f x))) (at (f x))"
+    using assms(2) frechet_derivative_works by blast
+  hence 1:"(g has_derivative \<partial> g (at (f x))) (at (f x) within range f)"
+    by (simp add: has_derivative_at_withinI)
+  from 1 assms show ?thesis
+    by (auto intro: vector_derivative_chain_within simp add: at_eq_bot_iff)
+qed
+
+lemma frechet_derivative_const: "\<partial> (\<lambda> x. k) (at t) = (\<lambda> x. 0)"
+  by (metis frechet_derivative_at has_derivative_const)
+
+lemma frechet_derivative_plus:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "f differentiable (at t)" "g differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x + g x) (at t) = (\<lambda> x. \<partial> f (at t) x + \<partial> g (at t) x)"
+proof -
+  have "((\<lambda>x. f x + g x) has_derivative (\<lambda>x. \<partial> f (at t) x + \<partial> g (at t) x)) (at t)"
+    using assms(1) assms(2) frechet_derivative_works has_derivative_add by blast
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
+lemma frechet_derivative_uminus:
+  assumes "f differentiable (at t)"
+  shows "\<partial> (\<lambda> x. - f x) (at t) = (\<lambda>x. - \<partial> f (at t) x)"
+proof -
+  have "((\<lambda>x. - f x) has_derivative (\<lambda>x. - \<partial> f (at t) x)) (at t)"
+    using assms frechet_derivative_works has_derivative_minus by blast
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
+lemma frechet_derivative_minus:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
+  assumes "f differentiable (at t)" "g differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x - g x) (at t) = (\<lambda> x. \<partial> f (at t) x - \<partial> g (at t) x)"
+proof -
+  have "((\<lambda>x. f x - g x) has_derivative (\<lambda>x. \<partial> f (at t) x - \<partial> g (at t) x)) (at t)"
+    using assms(1) assms(2) frechet_derivative_works has_derivative_diff by blast
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
+lemma frechet_derivative_mult:
+  fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
+  assumes "f differentiable (at t)" "g differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x * g x) (at t) = 
+         (\<lambda> x. f t * \<partial> g (at t) x + \<partial> f (at t) x * g t)"
+proof -
+  have "((\<lambda>x. f x * g x) has_derivative (\<lambda> x. f t * \<partial> g (at t) x + \<partial> f (at t) x * g t)) (at t)"
+    using assms(1) assms(2) frechet_derivative_works has_derivative_mult by blast
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
+lemma frechet_derivative_power:
+  fixes f :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_field"
+  assumes "f differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x ^ n) (at t) = (\<lambda>y. of_nat n * \<partial> f (at t) y * f t ^ (n - 1))"
+  using assms has_derivative_power[of f "\<partial> f (at t)" t UNIV n] frechet_derivative_at
+  by (fastforce simp add: frechet_derivative_works)
+
+lemma frechet_derivative_powr:
+  fixes f :: "'a::{banach, real_normed_algebra_1} \<Rightarrow> real"
+  assumes "f differentiable (at t)" "g differentiable (at t)" "0 < f t"
+  shows "\<partial> (\<lambda> x. f x powr g x) (at t) = (\<lambda>h. f t powr g t * (\<partial> g (at t) h * ln (f t) + \<partial> f (at t) h * g t / f t))"
+  using assms has_derivative_powr[of f "\<partial> f (at t)" t UNIV g "\<partial> g (at t)"] frechet_derivative_at
+  by (fastforce simp add: frechet_derivative_works)
+
+lemma frechet_derivative_ln:
+  fixes f :: "'a::{banach, real_normed_algebra_1} \<Rightarrow> real"
+  assumes "f differentiable (at t)" "0 < f t"
+  shows "\<partial> (\<lambda> x. ln (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * inverse (f t))"
+  by (metis assms(1) assms(2) frechet_derivative_at frechet_derivative_works has_derivative_ln)
+
+lemma frechet_derivative_sin:
+  fixes f :: "'a::{banach, real_normed_algebra_1} \<Rightarrow> real"
+  assumes "f differentiable (at t)"
+  shows "\<partial> (\<lambda> x. sin (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * cos (f t))"
+  by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_sin)
 
 end
