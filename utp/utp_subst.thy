@@ -251,7 +251,11 @@ lemma usubst_lookup_upd_indep [usubst]:
   shows "\<langle>\<sigma>(y \<mapsto>\<^sub>s v)\<rangle>\<^sub>s x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   using assms
   by (simp add: subst_upd_uvar_def, transfer, simp)
-    
+
+lemma subst_upd_plus [usubst]: 
+  "x \<bowtie> y \<Longrightarrow> subst_upd s (x +\<^sub>L y) e = s(x \<mapsto>\<^sub>s \<pi>\<^sub>1(e), y \<mapsto>\<^sub>s \<pi>\<^sub>2(e))"
+  by (simp add: subst_upd_uvar_def lens_defs, transfer, auto simp add: fun_eq_iff prod.case_eq_if lens_indep_comm)
+
 text \<open> If a variable is unrestricted in a substitution then it's application has no effect. \<close>
 
 lemma usubst_apply_unrest [usubst]:

@@ -193,6 +193,9 @@ lemma var_update_in [simp]: "lens_put (in_var x) (A, A') v = (lens_put x A v, A'
 lemma var_update_out [simp]: "lens_put (out_var x) (A, A') v = (A, lens_put x A' v)"
   by (simp add: out_var_def snd_lens_def lens_comp_def)
 
+lemma get_lens_plus [simp]: "get\<^bsub>x +\<^sub>L y\<^esub> s = (get\<^bsub>x\<^esub> s, get\<^bsub>y\<^esub> s)"
+  by (simp add: lens_defs)
+
 subsection \<open> Syntax translations \<close>
   
 text \<open> In order to support nice syntax for variables, we here set up some translations. The first

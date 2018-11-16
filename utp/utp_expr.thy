@@ -21,6 +21,7 @@ typedef ('t, '\<alpha>) uexpr = "UNIV :: ('\<alpha> \<Rightarrow> 't) set" ..
 setup_lifting type_definition_uexpr
     
 notation Rep_uexpr ("\<lbrakk>_\<rbrakk>\<^sub>e")
+notation Abs_uexpr ("mk\<^sub>e")
 
 lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
@@ -266,7 +267,13 @@ lemma bop_const_1 [simp]: "bop (\<lambda>x y. y) u v = v"
 
 lemma bop_const_2 [simp]: "bop (\<lambda>x y. x) u v = u"
   by (transfer, simp)
-    
+
+lemma uexpr_fst [simp]: "\<pi>\<^sub>1((e, f)\<^sub>u) = e"
+  by (transfer, simp)
+
+lemma uexpr_snd [simp]: "\<pi>\<^sub>2((e, f)\<^sub>u) = f"
+  by (transfer, simp)
+
 subsection \<open> Literalise tactics \<close>
 
 text \<open> The following tactic converts literal HOL expressions to UTP expressions and vice-versa
