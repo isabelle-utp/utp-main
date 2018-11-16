@@ -63,7 +63,7 @@ term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"
 subsection \<open> ODE laws \<close>
 
 lemma ode_post: "ode F' B ;; ?[B] = ode F' B"
-  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective order_refl)
+  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective less_imp_le order_refl)
 
 lemma ode_mono:
   "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
