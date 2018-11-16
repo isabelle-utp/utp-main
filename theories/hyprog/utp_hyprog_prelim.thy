@@ -89,6 +89,9 @@ abbreviation "dst \<equiv> hybs_child_lens"
 notation cvec ("\<^bold>c")
 notation dst ("\<^bold>d")
 
+text \<open> We define hybrid expressions, predicates, and relations (i.e. programs) by utilising
+  the hybrid state-space type. \<close>
+
 type_synonym ('a, 'c, 's) hyexpr = "('a, ('c, 's) hybs_scheme) uexpr"
 type_synonym ('c, 's) hypred = "('c, 's) hybs_scheme upred"
 type_synonym ('c, 's) hyrel = "('c, 's) hybs_scheme hrel"

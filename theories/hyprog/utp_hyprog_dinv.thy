@@ -1,16 +1,18 @@
+section \<open> Differential Induction \<close>
+
 theory utp_hyprog_dinv
-  imports utp_hyprog
+  imports 
+    utp_hyprog_dL
+    utp_hyprog_deriv
 begin
-
-
 
 lemma cvec_lemma: "\<lparr>cvec\<^sub>v = x, \<dots> = hybs.more s\<rparr> = s\<lparr>cvec\<^sub>v := x\<rparr>"
   by (auto)
 
 lemma derivation_lemma1:
-  fixes e :: "(real, 'i::enum, 's) hyexpr"
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
   assumes "differentiable\<^sub>e e" "t \<in> {0..l}" "(F has_vector_derivative F' (F t)) (at t within {0..l})"
-  shows "((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F has_vector_derivative \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
+  shows "((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F has_vector_derivative \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
   using assms
   apply (rel_auto)
   apply (simp add: frechet_derivative_works)
@@ -33,11 +35,11 @@ lemma derivation_lemma2:
   done
 
 lemma dI_eq:
-  fixes e :: "(real, 'i::enum, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> \<partial>\<^sub>e e F' =\<^sub>u 0`"
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e e =\<^sub>u 0`"
   shows "\<lbrace>e =\<^sub>u 0\<rbrace>ode F' B\<lbrace>e =\<^sub>u 0\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
-  fix l :: real and F :: "real \<Rightarrow> (real, 'i) vec" and s :: "('i, 's) hybs_scheme"
+  fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
     "0 < l"
@@ -64,7 +66,7 @@ using assms proof (rel_auto')
 
   hence "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F
                       has_vector_derivative 
-                    \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
+                    \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
     by (simp add: a(3) assms(1) derivation_lemma1)
 
   with d0 have "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F has_vector_derivative 0) (at t within {0..l})"
@@ -82,11 +84,11 @@ using assms proof (rel_auto')
 qed
 
 lemma dI_ge:
-  fixes e :: "(real, 'i::enum, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> \<partial>\<^sub>e e F' \<ge>\<^sub>u 0`"
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e e  \<ge>\<^sub>u 0`"
   shows "\<lbrace>e \<ge>\<^sub>u 0\<rbrace>ode F' B\<lbrace>e \<ge>\<^sub>u 0\<rbrace>\<^sub>u" and "\<lbrace>e >\<^sub>u 0\<rbrace>ode F' B\<lbrace>e >\<^sub>u 0\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
-  fix l :: real and F :: "real \<Rightarrow> (real, 'i) vec" and s :: "('i, 's) hybs_scheme"
+  fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
     "0 < l"
@@ -112,24 +114,24 @@ using assms proof (rel_auto')
 
   hence "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F
                       has_vector_derivative 
-                    \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
+                    \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
     by (simp add: a(3) assms(1) derivation_lemma1)
 
   hence "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F
                       has_derivative 
-                    (\<lambda> x. x *\<^sub>R \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (at t within {0..l})"
+                    (\<lambda> x. x *\<^sub>R \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (at t within {0..l})"
     using has_vector_derivative_def by blast
-  hence "\<exists>x\<in>{0..l}. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F 0\<rparr>) = l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F x\<rparr>)"
-    using a(2) mvt_very_simple[of 0 l "(\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F" "\<lambda> t. (\<lambda> x. x *\<^sub>R \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>))"]
+  hence "\<exists>x\<in>{0..l}. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F 0\<rparr>) = l * \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F x\<rparr>)"
+    using a(2) mvt_very_simple[of 0 l "(\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F" "\<lambda> t. (\<lambda> x. x *\<^sub>R \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>))"]
     by (simp)
 
   then obtain t 
-    where "0 \<le> t" "t \<le> l" "\<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0" "\<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0"
-          "\<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e s = l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
+    where "0 \<le> t" "t \<le> l" "\<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0" "\<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) \<ge> 0"
+          "\<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e s = l * \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
     apply (simp add: uexpr_deriv.rep_eq lens_defs a(4)[THEN sym])
     using d0 by force
 
-  moreover have "l * \<lbrakk>\<partial>\<^sub>e e F'\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0"
+  moreover have "l * \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>) \<ge> 0"
     using a(2) calculation(3) by auto
 
   ultimately show 
@@ -141,7 +143,7 @@ qed
 
 text \<open> Example \<close>
 
-type_synonym gravs = "(2, unit) hybs_scheme"
+type_synonym gravs = "(real^2, unit) hybs_scheme"
 
 abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> eucl_lens 0 ;\<^sub>L cvec"
 abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> eucl_lens 1 ;\<^sub>L cvec"
@@ -155,7 +157,7 @@ declare plus_lens_distr [THEN sym, simp]
 
 lemma "\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<langle>der(h) = v, der(v) = 9.81\<rangle>\<lbrace>&v \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
   apply (rule dI_ge)
-   apply (simp_all add: closure uderiv_pr_var usubst fode_def prod.case_eq_if mkuexpr alpha)
+   apply (simp_all add: closure uderiv usubst fode_def mkuexpr alpha)
   apply (rel_auto)
   done
 
