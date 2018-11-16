@@ -22,7 +22,7 @@ lemma cond_seq_right_distr:
 
 text \<open> Alternative expression of conditional using assumptions and choice \<close>
 
-lemma rcond_rassume_expand: "P \<triangleleft> b \<triangleright>\<^sub>r Q = ([b]\<^sup>\<top> ;; P) \<sqinter> ([\<not> b]\<^sup>\<top> ;; Q)"
+lemma rcond_rassume_expand: "P \<triangleleft> b \<triangleright>\<^sub>r Q = ([b]\<^sup>\<top> ;; P) \<sqinter> ([(\<not> b)]\<^sup>\<top> ;; Q)"
   by (rel_auto)
 
 subsection \<open> Precondition and Postcondition Laws \<close>
@@ -341,7 +341,7 @@ text \<open> The following law shows the case for the above law when $x$ is only
 
 lemma assign_vacuous_assume:
   assumes "mwb_lens x"
-  shows "[&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top> ;; (x := &x) = [&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top>"
+  shows "[(&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>)]\<^sup>\<top> ;; (x := &x) = [(&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>)]\<^sup>\<top>"
   using assms by rel_auto
 
 lemma assign_simultaneous:
@@ -469,7 +469,7 @@ lemma assume_false: "[false]\<^sup>\<top> = false"
 lemma assume_true: "[true]\<^sup>\<top> = II"
   by (rel_auto)
     
-lemma assume_seq: "[b]\<^sup>\<top> ;; [c]\<^sup>\<top> = [b \<and> c]\<^sup>\<top>"
+lemma assume_seq: "[b]\<^sup>\<top> ;; [c]\<^sup>\<top> = [(b \<and> c)]\<^sup>\<top>"
   by (rel_auto)
 
 lemma assert_false: "{false}\<^sub>\<bottom> = true"
@@ -478,7 +478,7 @@ lemma assert_false: "{false}\<^sub>\<bottom> = true"
 lemma assert_true: "{true}\<^sub>\<bottom> = II"
   by (rel_auto)
     
-lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {b \<and> c}\<^sub>\<bottom>"
+lemma assert_seq: "{b}\<^sub>\<bottom> ;; {c}\<^sub>\<bottom> = {(b \<and> c)}\<^sub>\<bottom>"
   by (rel_auto)
 
 subsection \<open> Frame and Antiframe Laws \<close>
@@ -873,7 +873,7 @@ lemma ustar_unfoldl: "P\<^sup>\<star> = II \<sqinter> (P ;; P\<^sup>\<star>)"
 text \<open> While loop can be expressed using Kleene star \<close>
 
 lemma while_star_form:
-  "while b do P od = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [\<not>b]\<^sup>\<top>"
+  "while b do P od = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [(\<not>b)]\<^sup>\<top>"
 proof -
   have 1: "Continuous (\<lambda>X. P ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
     by (rel_auto)
@@ -897,9 +897,9 @@ proof -
            (metis (no_types, lifting) RA1 comp_cond_left_distr cond_L6 upred_semiring.mult.left_neutral)
     qed
   qed
-  also have "... = (\<Sqinter>i\<in>{0..} \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; [\<not>b]\<^sup>\<top>)"
+  also have "... = (\<Sqinter>i\<in>{0..} \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^bold>^i ;; [(\<not>b)]\<^sup>\<top>)"
     by (rel_auto)
-  also have "... = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [\<not>b]\<^sup>\<top>"
+  also have "... = (P \<triangleleft> b \<triangleright>\<^sub>r II)\<^sup>\<star> ;; [(\<not>b)]\<^sup>\<top>"
     by (metis seq_UINF_distr ustar_def)
   finally show ?thesis .
 qed

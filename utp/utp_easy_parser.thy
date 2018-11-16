@@ -22,9 +22,10 @@ purge_syntax
 subsection \<open> Expression Operators \<close>
 
 syntax
+  "_ue_quote" :: "uexp \<Rightarrow> logic" ("'(_')\<^sub>e")
   "_ue_tuple" :: "uexprs \<Rightarrow> uexp" ("'(_')")
   "_ue_lit"   :: "logic \<Rightarrow> uexp" ("\<guillemotleft>_\<guillemotright>")
-  "_ue_var"   :: "id \<Rightarrow> uexp" ("_")
+  "_ue_var"   :: "svid \<Rightarrow> uexp" ("_")
   "_ue_eq"    :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "=" 150)
   "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
   "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
@@ -32,6 +33,7 @@ syntax
   "_ue_apply" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_[_]" [999] 999)
 
 translations
+  "_ue_quote e" => "e"
   "_ue_tuple (_uexprs x (_uexprs y z))" => "_ue_tuple (_uexprs x (_ue_tuple (_uexprs y z)))"
   "_ue_tuple (_uexprs x y)" => "CONST bop CONST Pair x y"
   "_ue_tuple x" => "x"
@@ -104,11 +106,13 @@ subsection \<open> Sets \<close>
 
 syntax
   "_ue_empset"          :: "uexp" ("{}")
+  "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 80)
   "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
   "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
 
 translations
   "_ue_empset" => "{}\<^sub>u"
+  "_ue_setprod e f" =>  "CONST bop (CONST Product_Type.Times) e f"
   "_ue_atLeastAtMost m n" => "{m..n}\<^sub>u"
   "_ue_atLeastLessThan m n" => "{m..<n}\<^sub>u"
 

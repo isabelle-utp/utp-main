@@ -181,22 +181,15 @@ definition assigns_ra :: "'\<alpha> usubst \<Rightarrow> ('\<beta>, '\<alpha>) l
 
 text \<open> Assumptions ($c^{\top}$) and assertions ($c_{\bot}$) are encoded as conditionals. An assumption
   behaves like skip if the condition is true, and otherwise behaves like @{term false} (miracle).
-  An assertion is the same, but yields @{term true}, which is an abort. \<close>
-
-definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("[_]\<^sup>\<top>") where
-[urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
-
-notation rassume ("?[_]")
-
-definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("{_}\<^sub>\<bottom>") where
-[urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
-
-text \<open> A test is like a precondition, except that it identifies to the postcondition, and is thus
-  a refinement of @{term II}. It forms the basis for Kleene Algebra with Tests~\cite{kozen1997kleene,Armstrong2015} 
+  An assertion is the same, but yields @{term true}, which is an abort. They are the same as
+  tests, as in Kleene Algebra with Tests~\cite{kozen1997kleene,Armstrong2015} 
   (KAT), which embeds a Boolean algebra into a Kleene algebra to represent conditions. \<close>
 
-definition lift_test :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel" ("\<lceil>_\<rceil>\<^sub>t")
-where [urel_defs]: "\<lceil>b\<rceil>\<^sub>t = (\<lceil>b\<rceil>\<^sub>< \<and> II)"
+definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
+
+definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
@@ -224,6 +217,9 @@ definition while_vrt ::
 [urel_defs]: "while_vrt b p v S = while_bot b S"
 
 syntax
+  "_uassume"        :: "uexp \<Rightarrow> logic" ("[_]\<^sup>\<top>")
+  "_uassume"        :: "uexp \<Rightarrow> logic" ("?[_]")
+  "_uassert"        :: "uexp \<Rightarrow> logic" ("{_}\<^sub>\<bottom>")
   "_uwhile"         :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sup>\<top> _ do _ od")
   "_uwhile_top"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
   "_uwhile_bot"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ do _ od")
@@ -232,6 +228,8 @@ syntax
   "_uwhile_vrt"     :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ vrt _ do _ od")
 
 translations
+  "_uassume b" == "CONST rassume b"
+  "_uassert b" == "CONST rassert b"
   "_uwhile b P" == "CONST while_top b P"
   "_uwhile_top b P" == "CONST while_top b P"
   "_uwhile_bot b P" == "CONST while_bot b P"

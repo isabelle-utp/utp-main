@@ -137,15 +137,15 @@ text \<open> Since these properties are relational, we discharge them using our 
 
 definition InitSys :: "real \<Rightarrow> real \<Rightarrow> boyle_rel" where
   (*<*)[upred_defs]:(*>*) "InitSys ip iV
-  = [\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0]\<^sup>\<top> ;; (p,V,k) := (\<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>*\<guillemotleft>iV\<guillemotright>))"
+  = [(\<guillemotleft>ip\<guillemotright> >\<^sub>u 0 \<and> \<guillemotleft>iV\<guillemotright> >\<^sub>u 0)]\<^sup>\<top> ;; (p,V,k) := (\<guillemotleft>ip\<guillemotright>,\<guillemotleft>iV\<guillemotright>,(\<guillemotleft>ip\<guillemotright>*\<guillemotleft>iV\<guillemotright>))"
 
 definition ChPres :: "real \<Rightarrow> boyle_rel" where
   (*<*)[upred_defs]:(*>*) "ChPres dp
-  = ([&p + \<guillemotleft>dp\<guillemotright> >\<^sub>u 0]\<^sup>\<top> ;; p := (&p + \<guillemotleft>dp\<guillemotright>) ;; V := (&k/&p))"
+  = ([(&p + \<guillemotleft>dp\<guillemotright> >\<^sub>u 0)]\<^sup>\<top> ;; p := (&p + \<guillemotleft>dp\<guillemotright>) ;; V := (&k/&p))"
 
 definition ChVol :: "real \<Rightarrow> boyle_rel" where
   (*<*)[upred_defs]:(*>*) "ChVol dV
-  = ([&V + \<guillemotleft>dV\<guillemotright> >\<^sub>u 0]\<^sup>\<top> ;; V := (&V + \<guillemotleft>dV\<guillemotright>) ;; p := (&k/&V))"
+  = ([(&V + \<guillemotleft>dV\<guillemotright> >\<^sub>u 0)]\<^sup>\<top> ;; V := (&V + \<guillemotleft>dV\<guillemotright>) ;; p := (&k/&V))"
 
 text \<open> @{const InitSys} initialises the system with a given initial pressure ($ip$) and volume ($iV$).
         It assumes that both are greater than 0 using the assumption construct @{term "[c]\<^sup>\<top>"} which equates to @{term II}
@@ -186,7 +186,7 @@ proof -
           = (ChPres (-2))\<lbrakk>10,4,40/$p,$V,$k\<rbrakk>"
     by (simp add: assigns_r_comp alpha usubst)
   \<comment> \<open> Unfold definition of @{const ChPres} \<close>
-  also have "... = ([(&p - 2) >\<^sub>u 0]\<^sup>\<top>\<lbrakk>10,4,40/$p,$V,$k\<rbrakk>
+  also have "... = ([((&p - 2) >\<^sub>u 0)]\<^sup>\<top>\<lbrakk>10,4,40/$p,$V,$k\<rbrakk>
                         ;; p := (&p - 2) ;; V := (&k / &p))"
     by (simp add: ChPres_def lit_numeral lit_uminus usubst unrest)
   \<comment> \<open> Unfold definition of assumption \<close>

@@ -119,4 +119,41 @@ lemma lit_divide [lit_simps]: "\<guillemotleft>x / y\<guillemotright> = \<guille
 lemma lit_div [lit_simps]: "\<guillemotleft>x div y\<guillemotright> = \<guillemotleft>x\<guillemotright> div \<guillemotleft>y\<guillemotright>" by (simp add: uexpr_defs, transfer, simp)
 lemma lit_power [lit_simps]: "\<guillemotleft>x ^ n\<guillemotright> = \<guillemotleft>x\<guillemotright> ^ n" by (simp add: lit.rep_eq power_rep_eq uexpr_eq_iff)
 
+subsection \<open> Expression construction from HOL terms \<close>
+
+text \<open> Sometimes it is convenient to cast HOL terms to UTP expressions, and these simplifications
+  automate this process. \<close>
+
+named_theorems mkuexpr
+
+lemma mkuexpr_zero [mkuexpr]: "mk\<^sub>e (\<lambda> s. 0) = 0"
+  by (simp add: zero_uexpr_def, transfer, simp)
+
+lemma mkuexpr_one [mkuexpr]: "mk\<^sub>e (\<lambda> s. 1) = 1"
+  by (simp add: one_uexpr_def, transfer, simp)
+
+lemma mkuexpr_numeral [mkuexpr]: "mk\<^sub>e (\<lambda> s. numeral n) = numeral n"
+  using lit_numeral_2 by blast
+
+lemma mkuexpr_lit [mkuexpr]: "mk\<^sub>e (\<lambda> s. k) = \<guillemotleft>k\<guillemotright>"
+  by (transfer, simp)
+
+lemma mkuexpr_pair [mkuexpr]: "mk\<^sub>e (\<lambda>s. (f s, g s)) = (mk\<^sub>e f, mk\<^sub>e g)\<^sub>u"
+  by (transfer, simp)
+
+lemma mkuexpr_plus [mkuexpr]: "mk\<^sub>e (\<lambda> s. f s + g s) = mk\<^sub>e f + mk\<^sub>e g"
+  by (simp add: plus_uexpr_def, transfer, simp)
+
+lemma mkuexpr_uminus [mkuexpr]: "mk\<^sub>e (\<lambda> s. - f s) = - mk\<^sub>e f"
+  by (simp add: uminus_uexpr_def, transfer, simp)
+
+lemma mkuexpr_minus [mkuexpr]: "mk\<^sub>e (\<lambda> s. f s - g s) = mk\<^sub>e f - mk\<^sub>e g"
+  by (simp add: minus_uexpr_def, transfer, simp)
+
+lemma mkuexpr_times [mkuexpr]: "mk\<^sub>e (\<lambda> s. f s * g s) = mk\<^sub>e f * mk\<^sub>e g"
+  by (simp add: times_uexpr_def, transfer, simp)
+
+lemma mkuexpr_divide [mkuexpr]: "mk\<^sub>e (\<lambda> s. f s / g s) = mk\<^sub>e f / mk\<^sub>e g"
+  by (simp add: divide_uexpr_def, transfer, simp)
+
 end

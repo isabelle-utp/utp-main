@@ -1,6 +1,6 @@
 section \<open> Simple UTP real-time theory \<close>
 
-theory utp_simple_time imports "UTP.utp_theory" begin
+theory utp_simple_time imports "UTP.utp" begin
   
 alphabet 's st_time = 
   time :: nat  st :: 's

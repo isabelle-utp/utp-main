@@ -4,10 +4,10 @@ theory utp_mem_seplog
   imports utp_mem_aseplog utp_mem_prog
 begin
 
-definition heaplet :: "(addr, 's) uexpr \<Rightarrow> ('a::countable, 's) uexpr \<Rightarrow> 's mpred" (infix "\<^bold>\<mapsto>" 70) where
-[upred_defs]: "v \<^bold>\<mapsto> e = (dom\<^sub>u(&hp) =\<^sub>u {v \<oplus>\<^sub>p str}\<^sub>u \<and> &hp(v \<oplus>\<^sub>p str)\<^sub>a =\<^sub>u uop to_nat (e \<oplus>\<^sub>p str))"
+definition heaplet :: "(addr, 's) uexpr \<Rightarrow> ('a::{countable,infinite}, 's) uexpr \<Rightarrow> 's mpred" (infix "\<^bold>\<mapsto>" 70) where
+[upred_defs]: "v \<^bold>\<mapsto> e = (dom\<^sub>u(&hp) =\<^sub>u {v \<oplus>\<^sub>p str}\<^sub>u \<and> &hp(v \<oplus>\<^sub>p str)\<^sub>a =\<^sub>u uop to_nat_bij (e \<oplus>\<^sub>p str))"
 
-abbreviation heaplet_min :: "(addr, 's) uexpr \<Rightarrow> ('a::countable, 's) uexpr \<Rightarrow> 's mpred" (infix "\<^bold>\<hookrightarrow>" 70) where
+abbreviation heaplet_min :: "(addr, 's) uexpr \<Rightarrow> ('a::{countable,infinite}, 's) uexpr \<Rightarrow> 's mpred" (infix "\<^bold>\<hookrightarrow>" 70) where
 "v \<^bold>\<hookrightarrow> e \<equiv> v \<^bold>\<mapsto> e \<^bold>* true"
 
 abbreviation heaplet_ex :: "(addr, 's) uexpr \<Rightarrow> 's mpred" ("_ \<^bold>\<mapsto> -" [69] 70) where
@@ -32,7 +32,7 @@ lemma allocation_noninterfering_global:
   apply (rel_simp)
   apply (rename_tac ok hp st ok' l)
   apply (rule_tac x="hp" in exI)
-  apply (rule_tac x="0(l \<mapsto> to_nat (\<lbrakk>e\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> st l)))\<^sub>f" in exI)
+  apply (rule_tac x="0(l \<mapsto> to_nat_bij (\<lbrakk>e\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> st l)))\<^sub>f" in exI)
   apply (auto simp add: compat_ffun_def)
   done
 
@@ -43,7 +43,7 @@ lemma mutation_global: "{p \<^bold>* e \<^bold>\<mapsto> -} *e := v {p \<^bold>*
   apply (rel_simp)
   apply (rename_tac st ok' a b x)
   apply (rule_tac x="a" in exI)
-  apply (rule_tac x="b(\<lbrakk>e\<rbrakk>\<^sub>e st \<mapsto> to_nat (\<lbrakk>v\<rbrakk>\<^sub>e st))\<^sub>f" in exI)
+  apply (rule_tac x="b(\<lbrakk>e\<rbrakk>\<^sub>e st \<mapsto> to_nat_bij (\<lbrakk>v\<rbrakk>\<^sub>e st))\<^sub>f" in exI)
   apply (simp add: compat_ffun_def)
   done
 

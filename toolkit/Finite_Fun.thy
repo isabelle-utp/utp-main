@@ -185,6 +185,9 @@ lemma ffun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)
 lemma ffun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>f)(y)\<^sub>f = f(y)\<^sub>f"
   by (transfer, simp)
 
+lemma ffun_upd_ext [simp]: "x \<in> fdom(f) \<Longrightarrow> f(x \<mapsto> f(x)\<^sub>f)\<^sub>f = f"
+  by (transfer, simp)
+
 lemma ffun_app_add [simp]: "x \<in> fdom(g) \<Longrightarrow> (f + g)(x)\<^sub>f = g(x)\<^sub>f"
   by (transfer, simp)
 
@@ -340,6 +343,17 @@ lemma ffun_graph_minus: "ffun_graph (f - g) = ffun_graph f - ffun_graph g"
 
 lemma ffun_graph_inter: "ffun_graph (f \<inter>\<^sub>f g) = ffun_graph f \<inter> ffun_graph g"
   by (transfer, simp add: pfun_graph_inter)
+
+subsection \<open> Partial Function Lens \<close>
+
+definition ffun_lens :: "'a \<Rightarrow> ('b \<Longrightarrow> ('a, 'b) ffun)" where
+[lens_defs]: "ffun_lens i = \<lparr> lens_get = \<lambda> s. s(i)\<^sub>f, lens_put = \<lambda> s v. s(i \<mapsto> v)\<^sub>f \<rparr>"
+
+lemma ffun_lens_mwb [simp]: "mwb_lens (ffun_lens i)"
+  by (unfold_locales, simp_all add: ffun_lens_def)
+
+lemma ffun_lens_src: "\<S>\<^bsub>ffun_lens i\<^esub> = {f. i \<in> fdom(f)}"
+  by (auto simp add: lens_defs lens_source_def, metis ffun_upd_ext)
 
 text \<open> Hide implementation details for finite functions \<close>
 
