@@ -47,6 +47,11 @@ lemma udifferentiable_mult [closure]:
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e * f)"
   by (rel_simp)
 
+lemma udifferentiable_power [closure]:
+  fixes e :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "differentiable\<^sub>e e \<Longrightarrow> differentiable\<^sub>e (e ^ n)"
+  by (rel_simp)
+
 subsection \<open> Differentiation \<close>
 
 text \<open> For convenience in the use of ODEs, we differentiate with respect to a known context of
@@ -89,6 +94,14 @@ lemma uderiv_mult [uderiv]:
   fixes e f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e * f) = (e * F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e * f)"
   by (rel_simp, simp add: frechet_derivative_mult)
+
+lemma of_nat_uexpr_rep_eq [ueval]: "\<lbrakk>of_nat x\<rbrakk>\<^sub>e b = of_nat x"
+  by (induct x, simp_all add: uexpr_defs ueval)
+
+lemma uderiv_power [uderiv]:
+  fixes e :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e ^ n) = of_nat n * F' \<turnstile> \<partial>\<^sub>e e * e ^ (n - 1)"
+  by (rel_simp, simp add: frechet_derivative_power ueval)
 
 text \<open> The derivative of a variable represented by a Euclidean lens into the continuous state space
   uses the said lens to obtain the derivative from the context @{term F'} \<close>

@@ -220,25 +220,4 @@ lemma dCut_split:
   shows "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' B\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
   by (metis assms dCut hoare_r_weaken_pre(1) hyprop_eval.simps(4) hyprop_pred_def)
 
-text \<open> Example \<close>
-
-type_synonym gravs = "(real^2, unit) hybs_scheme"
-
-abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> \<Pi>[0] ;\<^sub>L \<^bold>c"
-abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> \<Pi>[Suc 0] ;\<^sub>L \<^bold>c"
-  
-lemma dInv_grav_ex:
-  "\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<langle>der(h) = v, der(v) = -9.81\<rangle>\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
-  apply (rule dCut_split)
-   apply (rule dInv)
-    apply (simp add: closure)
-   apply (simp add: closure uderiv usubst fode_def mkuexpr alpha)
-   apply (rel_auto)
-  apply (simp)
-  apply (rule dInv)
-   apply (simp add: closure)
-  apply (simp add: closure uderiv usubst fode_def mkuexpr alpha hyprop_pred_def)
-  apply (rel_simp')
-  done
-
 end
