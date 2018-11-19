@@ -170,7 +170,7 @@ fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Righ
 "differentiable\<^sub>P (p \<and>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)" |
 "differentiable\<^sub>P (p \<or>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)"
 
-lemma dI:
+lemma dInv:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
   assumes "differentiable\<^sub>P p" "`B \<Rightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P p\<rbrakk>\<^sub>P`"
   shows "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u"
@@ -214,27 +214,31 @@ next
     by (rel_auto')
 qed
 
+lemma dCut_split:
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u" "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' (B \<and> [p]\<^sub>P)\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
+  shows "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' B\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
+  by (metis assms dCut hoare_r_weaken_pre(1) hyprop_eval.simps(4) hyprop_pred_def)
+
 text \<open> Example \<close>
 
 type_synonym gravs = "(real^2, unit) hybs_scheme"
 
 abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> \<Pi>[0] ;\<^sub>L \<^bold>c"
 abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> \<Pi>[Suc 0] ;\<^sub>L \<^bold>c"
-
-lemma mkuexpr_lens_get [mkuexpr]: "mk\<^sub>e get\<^bsub>x\<^esub> = &x"
-  by (rel_simp)
-
-lemma eucl_lens_indep [simp]:
-  "\<lbrakk> i < DIM('a); j < DIM('a); i \<noteq> j \<rbrakk> \<Longrightarrow> (eucl_lens i :: real \<Longrightarrow> 'a::executable_euclidean_space) \<bowtie> eucl_lens j"
-  by (unfold_locales, simp_all add: lens_defs list_update_swap eucl_of_list_inner)
-
-declare lens_comp_quotient [simp]
-declare plus_lens_distr [THEN sym, simp]
-
-lemma "\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<langle>der(h) = v, der(v) = -9.81\<rangle>\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
-  apply (rule dI)
-   apply (simp_all add: closure uderiv usubst fode_def mkuexpr alpha)
-  apply (rel_simp)
-  oops
+  
+lemma dInv_grav_ex:
+  "\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<langle>der(h) = v, der(v) = -9.81\<rangle>\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
+  apply (rule dCut_split)
+   apply (rule dInv)
+    apply (simp add: closure)
+   apply (simp add: closure uderiv usubst fode_def mkuexpr alpha)
+   apply (rel_auto)
+  apply (simp)
+  apply (rule dInv)
+   apply (simp add: closure)
+  apply (simp add: closure uderiv usubst fode_def mkuexpr alpha hyprop_pred_def)
+  apply (rel_simp')
+  done
 
 end

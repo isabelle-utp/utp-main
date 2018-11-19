@@ -66,14 +66,14 @@ term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"
 
 subsection \<open> ODE laws \<close>
 
+lemma solves_le: "\<lbrakk> solves F F' B s l; l' \<le> l \<rbrakk> \<Longrightarrow> solves F F' B s l'"
+  by (meson atLeastatMost_subset_iff has_vector_derivative_within_subset order_refl order_trans)
+
 lemma ode_post: "ode F' B ;; ?[B] = ode F' B"
   by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective order_refl)
 
 lemma ode_mono:
   "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
   by (rel_blast)
-
-lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
-  by (rel_auto)
 
 end
