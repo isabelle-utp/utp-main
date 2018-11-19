@@ -30,7 +30,9 @@ declare snd_vwb_lens [simp]
 declare comp_vwb_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
-  
+declare lens_comp_quotient [simp]
+declare plus_lens_distr [THEN sym, simp]
+
 subsection \<open> Variable foundations \<close>
   
 text \<open> This theory describes the foundational structure of UTP variables, upon which the rest      
@@ -158,10 +160,10 @@ lemma pr_var_lens_comp_1 [simp]:
   by (simp add: pr_var_def)
     
 lemma in_var_plus [simp]: "in_var (x +\<^sub>L y) = in_var x +\<^sub>L in_var y"
-  by (simp add: in_var_def plus_lens_distr)
+  by (simp add: in_var_def)
 
 lemma out_var_plus [simp]: "out_var (x +\<^sub>L y) = out_var x +\<^sub>L out_var y"
-  by (simp add: out_var_def plus_lens_distr)
+  by (simp add: out_var_def)
   
 text \<open> Similar properties follow for sublens \<close>
   

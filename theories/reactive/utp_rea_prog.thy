@@ -46,7 +46,7 @@ lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
 lemma rea_lens_equiv_st_rest: "\<Sigma>\<^sub>R \<approx>\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S"
 proof -
   have "st +\<^sub>L \<Sigma>\<^sub>S = (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s) ;\<^sub>L \<Sigma>\<^sub>R"
-    by (simp add: plus_lens_distr st_def rsp_vars_child_lens_def)
+    by (simp add: st_def rsp_vars_child_lens_def)
   also have "... \<approx>\<^sub>L 1\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
     using lens_equiv_via_bij st_bij_lemma by auto
   also have "... = \<Sigma>\<^sub>R"

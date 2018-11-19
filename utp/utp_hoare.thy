@@ -24,6 +24,14 @@ method hoare_split uses hr =
 method hoare_auto uses hr = (hoare_split hr: hr; (rel_simp)?, auto?)
 
 subsection \<open> Basic Laws \<close>
+
+lemma hoare_meaning:
+  "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s s'. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> \<lbrakk>S\<rbrakk>\<^sub>e (s, s') \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e s')"
+  by (rel_auto)
+
+lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
+  by (rel_auto)
+
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
   by rel_auto
 

@@ -126,6 +126,9 @@ text \<open> Sometimes it is convenient to cast HOL terms to UTP expressions, an
 
 named_theorems mkuexpr
 
+lemma mkuexpr_lens_get [mkuexpr]: "mk\<^sub>e get\<^bsub>x\<^esub> = &x"
+  by (transfer, simp add: pr_var_def)
+
 lemma mkuexpr_zero [mkuexpr]: "mk\<^sub>e (\<lambda> s. 0) = 0"
   by (simp add: zero_uexpr_def, transfer, simp)
 
