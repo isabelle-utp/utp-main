@@ -42,9 +42,8 @@ using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
-    "0 < l"
-    "\<forall>t. 0 \<le> t \<and> t \<le> l \<longrightarrow>
-            (F has_vector_derivative F' (F t)) (at t within {0..l}) \<and> (\<forall>b. \<lbrakk>B\<rbrakk>\<^sub>e (b\<lparr>cvec\<^sub>v := F t\<rparr>))"
+    "0 \<le> l"
+    "solves F F' B s l"
     "cvec\<^sub>v s = F 0"
     "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (F' (cvec\<^sub>v A)) = 0"
     "\<lbrakk>e\<rbrakk>\<^sub>e s = 0"
@@ -91,9 +90,8 @@ using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
-    "0 < l"
-    "\<forall>t. 0 \<le> t \<and> t \<le> l \<longrightarrow>
-            (F has_vector_derivative F' (F t)) (at t within {0..l}) \<and> (\<forall>b. \<lbrakk>B\<rbrakk>\<^sub>e (b\<lparr>cvec\<^sub>v := F t\<rparr>))"
+    "0 \<le> l"
+    "solves F F' B s l"
     "cvec\<^sub>v s = F 0"
     "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (F' (cvec\<^sub>v A)) \<ge> 0"
 

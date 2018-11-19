@@ -12,12 +12,16 @@ text \<open> An ODE consists of equations @{term \<F>'} and a boundary condition
   holds on at each instant, and the before and after value of variable $x$ is equal to 
   @{term "\<F>(0)"} and @{term "\<F>(l)"}, respectively. \<close>
 
+abbreviation solves :: 
+  "(real \<Rightarrow> 'a::executable_euclidean_space) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a, 's) hybs_scheme upred \<Rightarrow> ('a, 's) hybs_scheme \<Rightarrow> real \<Rightarrow> bool" where
+  "solves F F' B s l \<equiv>  (\<forall>x. 0 \<le> x \<and> x \<le> l \<longrightarrow> (F has_vector_derivative F' (F x)) (at x within {0..l}) \<and> (\<lbrakk>B\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F x\<rparr>)))"
+
+abbreviation solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
+"solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<F>') \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
+                      \<guillemotright> \<and> \<lceil>B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec\<rbrakk>\<rceil>\<^sub><)"
+
 definition ode :: "('c::executable_euclidean_space \<Rightarrow> 'c) \<Rightarrow> ('c, 's) hypred \<Rightarrow> ('c, 's) hyrel" where
-[upred_defs]: "ode \<F>' B = 
-  cvec:[\<^bold>\<exists> (\<F>, l) \<bullet> 
-        \<guillemotleft>l\<guillemotright> >\<^sub>u 0 \<and> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<F>') \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
-                    \<and> `B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec\<rbrakk>`\<guillemotright>)
-      \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
+[upred_defs]: "ode \<F>' B = cvec:[\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> \<ge>\<^sub>u 0 \<and> solves\<^sub>u \<F> \<F>' B l \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
 
 text \<open> A framed ODE allows us to explicitly specify only certain continuous variables using a
   suitable lens that selects those variables we are interested in. The remainder are held constant
@@ -63,7 +67,7 @@ term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"
 subsection \<open> ODE laws \<close>
 
 lemma ode_post: "ode F' B ;; ?[B] = ode F' B"
-  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective less_imp_le order_refl)
+  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective order_refl)
 
 lemma ode_mono:
   "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
