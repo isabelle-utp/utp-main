@@ -213,11 +213,12 @@ text \<open> These non-terminals correspond to the following syntactic entities.
   syntax constructors. \<close>
    
 syntax \<comment> \<open> Identifiers \<close>
-  "_svid"        :: "id \<Rightarrow> svid" ("_" [999] 999)
-  "_svid_unit"   :: "svid \<Rightarrow> svids" ("_")
-  "_svid_list"   :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
-  "_svid_alpha"  :: "svid" ("\<^bold>v")
-  "_svid_dot"    :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [998,999] 998)
+  "_svid"         :: "id \<Rightarrow> svid" ("_" [999] 999)
+  "_svid_unit"    :: "svid \<Rightarrow> svids" ("_")
+  "_svid_list"    :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
+  "_svid_alpha"   :: "svid" ("\<^bold>v")
+  "_svid_dot"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [998,999] 998)
+  "_mk_svid_list" :: "svids \<Rightarrow> logic" \<comment> \<open> Helper function for summing a list of identifiers \<close>
 
 text \<open> A variable identifier can either be a HOL identifier, the complete set of variables in the
   alphabet $\textbf{v}$, or a composite identifier separated by colons, which
@@ -284,6 +285,8 @@ translations
   "_svid x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
+  "_mk_svid_list (_svid_unit x)" \<rightharpoonup> "x"
+  "_mk_svid_list (_svid_list x xs)" \<rightharpoonup> "x +\<^sub>L _mk_svid_list xs"
 
   \<comment> \<open> Decorations \<close>
   "_spvar \<Sigma>"  \<leftharpoondown>  "CONST svar CONST id_lens"

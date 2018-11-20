@@ -148,6 +148,9 @@ lemma mu_hoare_r':
 
 subsection \<open> Iteration Rules \<close>
 
+lemma iter_hoare_r: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
+  by (rel_simp', metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
+
 lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"

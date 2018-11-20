@@ -414,6 +414,16 @@ lemma assign_unfold:
   apply (rel_auto, auto simp add: comp_def)
   using vwb_lens.put_eq by fastforce
 
+subsection \<open> Non-deterministic Assignment Laws \<close>
+
+lemma nd_assign_comp:
+  "x \<bowtie> y \<Longrightarrow> x := * ;; y := * = x,y := *"
+  apply (rel_auto) using lens_indep_comm by fastforce+
+
+lemma nd_assign_assign:
+  "\<lbrakk> vwb_lens x; x \<sharp> e \<rbrakk> \<Longrightarrow> x := * ;; x := e = x := e"
+  by (rel_auto)
+
 subsection \<open> Converse Laws \<close>
 
 lemma convr_invol [simp]: "p\<^sup>-\<^sup>- = p"

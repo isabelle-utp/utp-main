@@ -152,6 +152,12 @@ definition skip_r :: "'\<alpha> hrel" where
 adhoc_overloading
   uskip skip_r
 
+text \<open> Non-deterministic assignment, also known as ``choose'', assigns an arbitrarily chosen value 
+  to the given variable \<close>
+
+definition nd_assign :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "nd_assign x = (\<Sqinter> v \<bullet> assigns_r [x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>])"
+
 text \<open> We set up iterated sequential composition which iterates an indexed predicate over the
   elements of a list. \<close>
   
@@ -286,6 +292,8 @@ syntax
   \<comment> \<open> Single and multiple assignement \<close>
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  ("'(_') := '(_')")  
   "_assignment"     :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> hrel"  (infixr ":=" 62)
+  \<comment> \<open> Non-deterministic assignment \<close>
+  "_nd_assign" :: "svids \<Rightarrow> logic" ("_ := *" [62] 62)
   \<comment> \<open> Substitution constructor \<close>
   "_mk_usubst"      :: "svids \<Rightarrow> uexprs \<Rightarrow> '\<alpha> usubst"
   \<comment> \<open> Alphabetised skip \<close>
@@ -311,6 +319,8 @@ translations
   "_assignment xs vs" => "CONST uassigns (_mk_usubst (CONST id) xs vs)"
   "_assignment x v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
   "_assignment x v" <= "_assignment (_spvar x) v"
+  "_nd_assign x" => "CONST nd_assign (_mk_svid_list x)"
+  "_nd_assign x" <= "CONST nd_assign x"
   "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
