@@ -34,7 +34,7 @@ text \<open> The following predicate wraps the relation with assumptions that th
   size before and after execution. \<close>
   
 definition local_num where
-"local_num n P = [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top> ;; P ;; [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top>"
+"local_num n P = [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top> ;; P ;; [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top>"
   
 declare inj_univ.from_univ_def [upred_defs]
 declare inj_univ.to_univ_lens_def [upred_defs]
