@@ -292,7 +292,7 @@ lemma lit_fun_simps [lit_simps]:
 text \<open> The following two theorems also set up interpretation of numerals, meaning a UTP numeral
   can always be converted to a HOL numeral. \<close>
     
-lemma numeral_uexpr_rep_eq: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
+lemma numeral_uexpr_rep_eq [ueval]: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
   apply (induct x)
     apply (simp add: lit.rep_eq one_uexpr_def)
    apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
