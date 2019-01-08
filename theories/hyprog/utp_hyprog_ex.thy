@@ -30,11 +30,8 @@ abbreviation
               then v := (-0.8 * &v) ;; t := 0 
               else II))\<^sup>\<star>"
 
-lemma hoare_iter: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
-  by (rel_simp', metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
-
 lemma "\<lbrace>[&v\<^sup>2 \<le>\<^sub>P 2*\<guillemotleft>g\<guillemotright>*(\<guillemotleft>H\<guillemotright>-&h) \<and>\<^sub>P 0 \<le>\<^sub>P \<guillemotleft>H\<guillemotright>]\<^sub>P\<rbrace> BBall \<lbrace>[&v\<^sup>2 \<le>\<^sub>P 2*\<guillemotleft>g\<guillemotright>*(\<guillemotleft>H\<guillemotright>-&h) \<and>\<^sub>P 0 \<le>\<^sub>P \<guillemotleft>H\<guillemotright>]\<^sub>P\<rbrace>\<^sub>u"
-  apply (rule hoare_iter)
+  apply (rule iter_hoare_r)
   apply (rule seq_hoare_invariant)
    apply (rule dInv)
     apply (simp add: closure)
