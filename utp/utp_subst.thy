@@ -468,7 +468,7 @@ lemma usubst_cond_upd_3 [usubst]:
      (metis (full_types, hide_lams) id_apply pr_var_def subst_upd_uvar_def usubst_upd_pr_var_id var.rep_eq)
     
 lemma usubst_cond_id [usubst]:
-  "id \<triangleleft> b \<triangleright>\<^sub>s id = id"
+  "\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<sigma> = \<sigma>"
   by (auto simp add: cond_subst_def)
     
 subsection \<open> Parallel Substitution Laws \<close>
