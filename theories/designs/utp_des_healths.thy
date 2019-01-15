@@ -410,6 +410,9 @@ proof -
   ultimately show ?thesis by simp
 qed
 
+lemma H1_H2_left_unit: "P is \<^bold>H \<Longrightarrow> II\<^sub>D ;; P = P"
+  by (metis H1_H2_eq_rdesign Healthy_def' rdesign_left_unit)
+
 lemma UINF_H1_H2_closed [closure]:
   assumes "A \<noteq> {}" "\<forall> P \<in> A. P is \<^bold>H"
   shows "(\<Sqinter> A) is H1_H2"
@@ -657,7 +660,19 @@ lemma H1_H3_intro:
   assumes "P is \<^bold>H" "out\<alpha> \<sharp> pre\<^sub>D(P)"
   shows "P is \<^bold>N"
   by (metis H1_H2_eq_rdesign H1_rdesign H3_rdesign_pre Healthy_def' assms)
-    
+
+lemma H1_H3_left_unit: "P is \<^bold>N \<Longrightarrow> II\<^sub>D ;; P = P"
+  by (metis H1_H2_left_unit H1_H3_commute H2_H3_absorb H3_idem Healthy_def)
+  
+lemma H1_H3_right_unit: "P is \<^bold>N \<Longrightarrow> P ;; II\<^sub>D = P"
+  by (metis H1_H3_commute H3_def H3_idem Healthy_def)
+
+lemma H1_H3_top_left: "P is \<^bold>N \<Longrightarrow> \<top>\<^sub>D ;; P = \<top>\<^sub>D"
+  by (metis H1_H2_eq_design H2_H3_absorb Healthy_if design_top_left_zero)
+  
+lemma H1_H3_bot_left: "P is \<^bold>N \<Longrightarrow> \<bottom>\<^sub>D ;; P = \<bottom>\<^sub>D"
+  by (metis H1_idem H1_left_zero Healthy_def bot_d_true)
+
 lemma H1_H3_impl_H2 [closure]: "P is \<^bold>N \<Longrightarrow> P is \<^bold>H"
   by (metis H1_H2_commute H1_idem H2_H3_absorb Healthy_def')
 

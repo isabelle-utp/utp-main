@@ -1,7 +1,7 @@
 section {* Design Signature and Core Laws *}
 
 theory utp_des_core
-imports UTP.utp
+imports "UTP-KAT.utp_kleene"
 begin
 
 text {* UTP designs~\cite{Cavalcanti04,Hoare&98} are a subset of the alphabetised relations that
