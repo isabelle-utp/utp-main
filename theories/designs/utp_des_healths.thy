@@ -168,6 +168,9 @@ proof -
     by (simp add: USUP_as_Inf_image Healthy_def, presburger)
 qed
 
+lemma msubst_H1: "(\<And>x. P x is H1) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>v\<rbrakk> is H1"
+  by (rel_auto)
+
 subsection {* H2: A specification cannot require non-termination *}
 
 definition J :: "'\<alpha> hrel_des" where 
@@ -619,6 +622,9 @@ theorem H3_ndesign: "H3(p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n Q)"
 theorem ndesign_is_H3 [closure]: "p \<turnstile>\<^sub>n Q is H3"
   by (simp add: H3_ndesign Healthy_def)
 
+lemma msubst_pre_H3: "(\<And>x. P x is H3) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub><\<rbrakk> is H3"
+  by (rel_auto)
+
 subsection {* Normal Designs as $H1$-$H3$ predicates *}
 
 text \<open> A normal design~\cite{Guttman2010} refers only to initial state variables in the precondition. \<close>
@@ -760,6 +766,9 @@ qed
 lemma USUP_ind_H1_H3_closed [closure]:
   "\<lbrakk> \<And> i. P i is \<^bold>N \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is \<^bold>N"
   by (rule H1_H3_intro, simp_all add: H1_H3_impl_H2 USUP_ind_H1_H2_closed preD_USUP_ind unrest)
+
+lemma msubst_pre_H1_H3 [closure]: "(\<And>x. P x is \<^bold>N) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub><\<rbrakk> is \<^bold>N"
+  by (metis H1_H3_right_unit H3_def Healthy_if Healthy_intro msubst_H1 msubst_pre_H3)
 
 subsection {* H4: Feasibility *}
 
