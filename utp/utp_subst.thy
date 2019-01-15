@@ -178,6 +178,11 @@ lemma usubst_upd_idem [usubst]:
   shows "\<sigma>(x \<mapsto>\<^sub>s u, x \<mapsto>\<^sub>s v) = \<sigma>(x \<mapsto>\<^sub>s v)"
   by (simp add: subst_upd_uvar_def assms comp_def)
 
+lemma usubst_upd_idem_sub [usubst]:
+  assumes "x \<subseteq>\<^sub>L y" "mwb_lens y"
+  shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v) = \<sigma>(y \<mapsto>\<^sub>s v)"
+  by (simp add: subst_upd_uvar_def assms comp_def fun_eq_iff sublens_put_put)
+
 text \<open> Substitution updates commute when the lenses are independent. \<close>
     
 lemma usubst_upd_comm:
