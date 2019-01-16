@@ -55,6 +55,10 @@ lemma eucl_vwb_lens [simp]:
   apply (metis eucl_of_list_list_of_eucl list_of_eucl_nth list_update_id)
   done
 
+lemma eucl_lens_indep [simp]:
+  "\<lbrakk> i < DIM('a); j < DIM('a); i \<noteq> j \<rbrakk> \<Longrightarrow> (eucl_lens i :: real \<Longrightarrow> 'a::executable_euclidean_space) \<bowtie> eucl_lens j"
+  by (unfold_locales, simp_all add: lens_defs list_update_swap eucl_of_list_inner)
+
 lemma bounded_linear_eucl_get [simp]:
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> bounded_linear (get\<^bsub>\<Pi>[k] :: real \<Longrightarrow> 'a\<^esub>)"
   by (metis bounded_linear_eucl_nth eucl_lens_def lens.simps(1))

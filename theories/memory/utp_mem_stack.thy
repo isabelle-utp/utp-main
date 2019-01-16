@@ -34,7 +34,7 @@ text \<open> The following predicate wraps the relation with assumptions that th
   size before and after execution. \<close>
   
 definition local_num where
-"local_num n P = [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top> ;; P ;; [#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>]\<^sup>\<top>"
+"local_num n P = [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top> ;; P ;; [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top>"
   
 declare inj_univ.from_univ_def [upred_defs]
 declare inj_univ.to_univ_lens_def [upred_defs]
@@ -273,15 +273,10 @@ lemma des_var_close_H1_H3_closed [closure]:
    
 lemma unrest_ok_vtop_des [unrest]: "ok \<sharp> top[\<L>\<^sub>D['a::countable]]"
   by (simp add: utp_local_state.top_var_def, simp add: des_local_state_def  unrest)
-    
-lemma msubst_H1_H3_closed [closure]:
-  "\<lbrakk> $ok \<sharp> v; out\<alpha> \<sharp> v; (\<And>x. P x is \<^bold>N) \<rbrakk> \<Longrightarrow> (P(x)\<lbrakk>x\<rightarrow>v\<rbrakk>) is \<^bold>N"
-  by (rel_auto, metis+)
   
 lemma var_block_H1_H3_closed [closure]:
   "(\<And>x. P x is \<^bold>N) \<Longrightarrow> \<V>[\<L>\<^sub>D['a::countable], P] is \<^bold>N"
-  apply (simp add: utp_local_state.var_scope_def closure unrest)
-  oops
+  by (simp add: utp_local_state.var_scope_def closure unrest)
 
 lemma inj_local_rel [simp]: "inj_local R\<^sub>l = \<U>\<^sub>\<nat>"
   by (simp add: rel_local_state_def)

@@ -79,11 +79,25 @@ lemma design_lat_top: "\<^bold>\<top>\<^bsub>DES\<^esub> = \<^bold>H(false)"
 lemma design_lat_bottom: "\<^bold>\<bottom>\<^bsub>DES\<^esub> = \<^bold>H(true)"
   by (simp add: design_theory_continuous.healthy_bottom, simp add: des_hcond_def)
 
-lemma ndesign_lat_top: "\<^bold>\<top>\<^bsub>NDES\<^esub> = \<^bold>N(false)"
-  by (metis ndes_hcond_def normal_design_theory_continuous.healthy_top)
+lemma ndesign_lat_top: "\<^bold>\<top>\<^bsub>NDES\<^esub> = \<top>\<^sub>D"
+  by (metis (mono_tags, lifting) H1_below_top antisym_conv des_top_is_H1_H3 ndes_hcond_def 
+      normal_design_theory_continuous.healthy_top normal_design_theory_continuous.top_higher)
 
 lemma ndesign_lat_bottom: "\<^bold>\<bottom>\<^bsub>NDES\<^esub> = \<^bold>N(true)"
   by (metis ndes_hcond_def normal_design_theory_continuous.healthy_bottom)
+
+interpretation ndes_kleene: utp_theory_kleene "UTHY(NDES, '\<alpha> des)"
+  rewrites "\<And> P. P \<in> carrier (uthy_order NDES) \<longleftrightarrow> P is \<^bold>N"
+  and "P is \<H>\<^bsub>NDES\<^esub> \<longleftrightarrow> P is \<^bold>N"
+  and "carrier (uthy_order NDES) \<rightarrow> carrier (uthy_order NDES) \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
+  and "\<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
+  and "\<^bold>\<top>\<^bsub>NDES\<^esub> = \<top>\<^sub>D"
+  and "\<I>\<I>\<^bsub>NDES\<^esub> = II\<^sub>D"
+  and "le (uthy_order NDES) = (\<sqsubseteq>)"
+  by (unfold_locales, simp_all add: ndesign_lat_top, simp_all add: H1_H3_top_left ndes_hcond_def ndes_unit_def closure)
+
+abbreviation ndes_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>D" [999] 999) where
+"P\<^sup>\<star>\<^sup>D \<equiv> P\<^bold>\<star>\<^bsub>NDES\<^esub>"
 
 subsection {* Galois Connection *}
 

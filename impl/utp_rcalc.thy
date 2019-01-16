@@ -36,6 +36,9 @@ abbreviation "chose x \<equiv> {&x}:[true,true]"
 abbreviation passume :: "'\<alpha> upred \<Rightarrow> '\<alpha> prog" ("{_}\<^sub>p") where
 "{b}\<^sub>p \<equiv> \<emptyset>:[b, true]"
 
+abbreviation passert :: "'\<alpha> upred \<Rightarrow> '\<alpha> prog" ("[_]\<^sub>p") where
+"[b]\<^sub>p \<equiv> \<emptyset>:[true, b]"
+
 subsection {* Refinement Laws *}
   
 lemma spec_abort:
@@ -72,7 +75,7 @@ lemma rc_assign:
       
 lemma rc_seq:
   assumes "vwb_lens w" "w \<natural> mid"
-  shows "w:[pre, post] \<sqsubseteq> w:[pre, mid] ; w:[mid, post]"
+  shows "w:[pre, post] \<sqsubseteq> w:[pre, mid] ;; w:[mid, post]"
   using assms by (prefine, metis mwb_lens.put_put vwb_lens_mwb)
    
 lemma rc_intro_log_const:
@@ -125,5 +128,5 @@ lemma rc_iterate_single:
   assumes "vwb_lens w"
   shows "w:[ivr, ivr \<and> \<not> g] \<sqsubseteq> (do g \<rightarrow> w:[ivr \<and> g, ivr \<and> (V <\<^sub>u [V]\<^sub>0)] od)"
 oops
-  
+
 end

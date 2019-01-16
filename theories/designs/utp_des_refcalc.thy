@@ -5,7 +5,7 @@ theory utp_des_refcalc
 begin
   
 definition des_spec :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha> upred) \<Rightarrow> '\<alpha> hrel_des" where
-[upred_defs]: "des_spec x p q = (\<Squnion> v \<bullet> ((p \<and> &\<^bold>v =\<^sub>u \<guillemotleft>v\<guillemotright>) \<turnstile>\<^sub>n x:[\<lceil>q(v)\<rceil>\<^sub>>]))"
+[upred_defs, ndes_simp]: "des_spec x p q = (\<Squnion> v \<bullet> ((p \<and> &\<^bold>v =\<^sub>u \<guillemotleft>v\<guillemotright>) \<turnstile>\<^sub>n x:[\<lceil>q(v)\<rceil>\<^sub>>]))"
 
 syntax
   "_init_var"      :: "logic"
@@ -67,8 +67,6 @@ lemma rc_iter:
   apply (rule IterateD_mono_refine)
     apply (simp_all add: ndes_simp closure)
    apply (rel_auto)
-  using assms
-  apply (rel_auto)
   done
   
 end

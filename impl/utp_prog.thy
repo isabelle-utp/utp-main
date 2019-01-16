@@ -68,7 +68,7 @@ abbreviation abort :: "'\<alpha> prog" where "abort \<equiv> \<bottom>"
 abbreviation magic :: "'\<alpha> prog" where "magic \<equiv> \<top>"
 
 lift_definition skip     :: "'\<alpha> prog" is "II\<^sub>D" by (simp add: closure)
-lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" (infixr ";" 71) is "(;;)" by (simp add: closure)
+lift_definition pseq     :: "'\<alpha> prog \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "(;;)" by (simp add: closure)
 lift_definition passigns :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog" ("\<langle>_\<rangle>\<^sub>p") is "assigns_d" by (simp add: closure)
 lift_definition psubst   :: "'\<alpha> usubst \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is "\<lambda> \<sigma> P. ((\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D) \<oplus>\<^sub>s in\<alpha>) \<dagger> P" by (simp add: closure)
 lift_definition paltern  :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> prog) \<Rightarrow> '\<alpha> prog \<Rightarrow> '\<alpha> prog" is AlternateD by (simp add: closure)
@@ -101,13 +101,17 @@ declare plocal.rep_eq [prog_rep_eq]
 subsection {* Syntax Translations *}
     
 adhoc_overloading
+  useq pseq and
   usubst psubst and
   uassigns passigns and
   ualtern paltern and
   ualtern_list paltern_list and
   uiterate piterate and
   uiterate_list piterate_list
-  
+
+no_adhoc_overloading
+  useq seqr
+
 translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
   "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"
@@ -132,7 +136,7 @@ method peq'     = ((simp add: prog_defs)?, transfer, ndes_eq)
 subsection {* Substitution Laws *}
   
 lemma psubst_seq [usubst]:
-  "\<sigma> \<dagger> (P ; Q) = (\<sigma> \<dagger> P) ; Q"
+  "\<sigma> \<dagger> (P ;; Q) = (\<sigma> \<dagger> P) ;; Q"
   by pauto
     
 lemma psubst_assigns [usubst]:
@@ -147,22 +151,22 @@ lemma psubst_binary_altern [usubst]:
 subsection {* Laws of Programming *}
   
 theorem skip_left_unit [simp]:
-  "skip ; P = P"
+  "skip ;; P = P"
   by (peq')
   
 theorem skip_right_unit [simp]:
-  "P ; skip = P"
+  "P ;; skip = P"
   by (peq')
        
 theorem abort_left_zero [simp]:
-  "abort ; P = abort"
+  "abort ;; P = abort"
   by (peq')
 
 theorem magic_left_zero [simp]:
-  "magic ; P = magic"
+  "magic ;; P = magic"
   by (peq')
 
-lemma passigns_comp: "\<langle>\<sigma>\<rangle>\<^sub>p ; P = \<sigma> \<dagger> P"
+lemma passigns_comp: "\<langle>\<sigma>\<rangle>\<^sub>p ;; P = \<sigma> \<dagger> P"
   by (transfer, rel_blast)
     
 end

@@ -121,7 +121,7 @@ lemma wait_tr_bij_lemma: "bij_lens (wait\<^sub>a +\<^sub>L tr\<^sub>a +\<^sub>L 
 lemma des_lens_equiv_wait_tr_rest: "\<Sigma>\<^sub>D \<approx>\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R"
 proof -
   have "wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R = (wait\<^sub>a +\<^sub>L tr\<^sub>a +\<^sub>L \<Sigma>\<^sub>r) ;\<^sub>L \<Sigma>\<^sub>D"
-    by (simp add: plus_lens_distr wait_def tr_def rp_vars_child_lens_def)
+    by (simp add: wait_def tr_def rp_vars_child_lens_def)
   also have "... \<approx>\<^sub>L 1\<^sub>L ;\<^sub>L \<Sigma>\<^sub>D"
     using lens_equiv_via_bij wait_tr_bij_lemma by auto
   also have "... = \<Sigma>\<^sub>D"

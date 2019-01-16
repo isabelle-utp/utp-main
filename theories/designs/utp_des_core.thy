@@ -1,7 +1,7 @@
 section {* Design Signature and Core Laws *}
 
 theory utp_des_core
-imports UTP.utp
+imports "UTP-KAT.utp_kleene"
 begin
 
 text {* UTP designs~\cite{Cavalcanti04,Hoare&98} are a subset of the alphabetised relations that
@@ -200,10 +200,18 @@ lemma design_ok_false [usubst]: "(P \<turnstile> Q)\<lbrakk>false/$ok\<rbrakk> =
   by (simp add: design_def usubst)
 
 lemma ok_pre: "($ok \<and> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (\<not> P\<^sup>f))"
-  by (pred_auto robust)
+  apply (simp add: pre_design_def alpha unrest usubst)
+  apply (subst aext_arestr')
+   apply (rel_simp)
+  apply (rel_auto)
+  done
 
 lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<and> (P\<^sup>t))"
-  by (pred_auto robust)
+  apply (simp add: post_design_def alpha unrest usubst)
+  apply (subst aext_arestr')
+   apply (rel_simp)
+  apply (rel_auto)
+  done
 
 subsection {* Basic Design Laws *}
 

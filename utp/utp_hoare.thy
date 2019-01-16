@@ -24,6 +24,14 @@ method hoare_split uses hr =
 method hoare_auto uses hr = (hoare_split hr: hr; (rel_simp)?, auto?)
 
 subsection \<open> Basic Laws \<close>
+
+lemma hoare_meaning:
+  "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s s'. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> \<lbrakk>S\<rbrakk>\<^sub>e (s, s') \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e s')"
+  by (rel_auto)
+
+lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
+  by (rel_auto)
+
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
   by rel_auto
 
@@ -139,6 +147,9 @@ lemma mu_hoare_r':
   by (meson I0 M WF induct_step mu_hoare_r pre_str_hoare_r)
 
 subsection \<open> Iteration Rules \<close>
+
+lemma iter_hoare_r: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
+  by (rel_simp', metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
 
 lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"

@@ -105,6 +105,24 @@ lemma GrdCommD_false [simp]: "false \<rightarrow>\<^sub>D P = \<top>\<^sub>D"
 lemma GrdCommD_abort [simp]: "b \<rightarrow>\<^sub>D true = ((\<not> b) \<turnstile>\<^sub>n false)"
   by (rel_auto)
 
+subsection \<open> Frames and Extensions \<close>
+  
+definition des_frame :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> hrel_des \<Rightarrow> '\<beta> hrel_des" where
+[upred_defs]: "des_frame x P = frame (ok +\<^sub>L x ;\<^sub>L \<Sigma>\<^sub>D) P"
+
+definition des_frame_ext :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<alpha> hrel_des \<Rightarrow> '\<beta> hrel_des" where
+[upred_defs]: "des_frame_ext a P = des_frame a (rel_aext P (lmap\<^sub>D a))"
+
+syntax
+  "_des_frame"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>D" [99,0] 100)
+  "_des_frame_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sub>D\<^sup>+" [99,0] 100)
+
+translations
+  "_des_frame x P" => "CONST des_frame x P"
+  "_des_frame (_salphaset (_salphamk x)) P" <= "CONST des_frame x P"
+  "_des_frame_ext x P" => "CONST des_frame_ext x P"
+  "_des_frame_ext (_salphaset (_salphamk x)) P" <= "CONST des_frame_ext x P"
+
 subsection {* Alternation *}
   
 consts

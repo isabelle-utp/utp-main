@@ -2,7 +2,7 @@ section \<open> Alphabet Manipulation \<close>
 
 theory utp_alphabet
   imports
-    utp_pred
+    utp_pred utp_usedby
 begin
 
 subsection \<open> Preliminaries \<close>
@@ -195,6 +195,13 @@ proof -
     apply (metis lens_indep_comm mwb_lens_weak weak_lens.put_get)
     done
 qed
+
+text \<open> Alternative formulation of the above law using used-by instead of unrestriction. \<close>
+
+lemma aext_arestr' [alpha]:
+  assumes "a \<natural> P"
+  shows "(P \<restriction>\<^sub>e a) \<oplus>\<^sub>p a = P"
+  by (rel_simp, metis assms lens_override_def usedBy_uexpr.rep_eq)
 
 lemma arestr_lit [simp]: "\<guillemotleft>v\<guillemotright> \<restriction>\<^sub>e a = \<guillemotleft>v\<guillemotright>"
   by (pred_auto)
