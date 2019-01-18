@@ -321,7 +321,10 @@ lemma aext_upred_eq [alpha]:
 lemma subst_aext_comp [usubst]:
   "vwb_lens a \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s a) \<circ> (\<rho> \<oplus>\<^sub>s a) = (\<sigma> \<circ> \<rho>) \<oplus>\<^sub>s a"
   by pred_auto
-    
+
+lemma subst_arestr [usubst]: "vwb_lens a \<Longrightarrow> \<sigma> \<dagger> (P \<restriction>\<^sub>e a) = (((\<sigma> \<oplus>\<^sub>s a) \<dagger> P) \<restriction>\<^sub>e a)"
+  by (pred_auto)
+
 subsection \<open> Substitution Alphabet Restriction \<close>
 
 text \<open> This allows us to reduce the alphabet of a substitution, in a similar way to expressions. \<close>
