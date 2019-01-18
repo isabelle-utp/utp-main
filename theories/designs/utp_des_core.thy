@@ -18,8 +18,6 @@ named_theorems ndes and ndes_simp
 
 alphabet des_vars =
   ok :: bool
-
-declare des_vars.defs [lens_defs]
   
 text {*
   The two locale interpretations below are a technicality to improve automatic

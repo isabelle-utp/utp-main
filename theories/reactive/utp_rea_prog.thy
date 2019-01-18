@@ -13,12 +13,12 @@ text \<open> @{term R3} as presented in the UTP book and related publications is
   observational variable that capture the program state that we call $st$. Upon this foundation,
   we can define operators for reactive programs~\cite{Foster17c}. \<close>
 
-alphabet 's rsp_vars = "'t rp_vars" +
+alphabet ('t, 's) rsp_vars = "'t::trace rp_vars" +
   st :: 's
 
-declare rsp_vars.defs [lens_defs]
+print_theorems
 
-type_synonym ('s,'t,'\<alpha>) rsp = "('t, ('s, '\<alpha>) rsp_vars_scheme) rp"
+type_synonym ('s,'t,'\<alpha>) rsp = "('t, 's, '\<alpha>) rsp_vars_scheme"
 type_synonym ('s,'t,'\<alpha>,'\<beta>) rel_rsp  = "(('s,'t,'\<alpha>) rsp, ('s,'t,'\<beta>) rsp) urel"
 type_synonym ('s,'t,'\<alpha>) hrel_rsp  = "('s,'t,'\<alpha>) rsp hrel"
 type_synonym ('s,'t) rdes = "('s,'t,unit) hrel_rsp"
@@ -31,29 +31,16 @@ translations
   (type) "('s,'t,'\<alpha>) hrel_rsp"  <= (type) "('s, 't, '\<alpha>) rsp hrel"
   (type) "('s,'t) rdes" <= (type) "('s, 't, unit) hrel_rsp"
   
-notation rsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>s")
-notation rsp_vars_child_lens ("\<Sigma>\<^sub>S")
+notation rsp_vars.more\<^sub>L ("\<Sigma>\<^sub>S")
 
 syntax
   "_svid_st_alpha"  :: "svid" ("\<Sigma>\<^sub>S")
 
 translations
-  "_svid_st_alpha" => "CONST rsp_vars_child_lens"
-
-lemma st_bij_lemma: "bij_lens (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s)"
-  by (unfold_locales, auto simp add: lens_defs)
+  "_svid_st_alpha" => "CONST rsp_vars.more\<^sub>L"
 
 lemma rea_lens_equiv_st_rest: "\<Sigma>\<^sub>R \<approx>\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S"
-proof -
-  have "st +\<^sub>L \<Sigma>\<^sub>S = (st\<^sub>a +\<^sub>L \<Sigma>\<^sub>s) ;\<^sub>L \<Sigma>\<^sub>R"
-    by (simp add: st_def rsp_vars_child_lens_def)
-  also have "... \<approx>\<^sub>L 1\<^sub>L ;\<^sub>L \<Sigma>\<^sub>R"
-    using lens_equiv_via_bij st_bij_lemma by auto
-  also have "... = \<Sigma>\<^sub>R"
-    by (simp)
-  finally show ?thesis
-    using lens_equiv_sym by blast
-qed
+  by simp
 
 lemma srea_lens_bij: "bij_lens (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L \<Sigma>\<^sub>S)"
 proof -
@@ -68,6 +55,14 @@ qed
 lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^sub>L st = ($st:x)\<^sub>v"
   by (metis (no_types, hide_lams) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
 
+(* FIXME: Nasty Hack. Can we automate this? *)
+
+declare des_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits]
+declare des_vars.splits [alpha_splits]
+
+(*
 interpretation alphabet_state:
   lens_interp "\<lambda>(ok, wait, tr, r). (ok, wait, tr, st\<^sub>v r, more r)"
   apply (unfold_locales)
@@ -81,6 +76,7 @@ interpretation alphabet_state_rel: lens_interp "\<lambda>(ok, ok', wait, wait', 
   apply (rule injI)
   apply (clarsimp)
   done
+*)
 
 lemma unrest_st'_neg_RC [unrest]:
   assumes "P is RR" "P is RC"
@@ -365,25 +361,29 @@ text \<open> We introduce state abstraction by creating some lens functors that 
   a lens on the state-space to one on the whole stateful reactive alphabet. \<close>
 
 definition lmap\<^sub>R :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('t::trace, 'a) rp \<Longrightarrow> ('t, 'b) rp" where
-[lens_defs]: "lmap\<^sub>R = lmap\<^sub>D \<circ> lmap[rp_vars]"
+[lens_defs]: "lmap\<^sub>R = lmap[rp_vars]"
 
-definition map_rsp_st ::
-  "('\<sigma> \<Rightarrow> '\<tau>) \<Rightarrow>
-   ('\<sigma>, '\<alpha>) rsp_vars_scheme \<Rightarrow> ('\<tau>, '\<alpha>) rsp_vars_scheme" where
-[lens_defs]: "map_rsp_st f = (\<lambda>r. \<lparr>st\<^sub>v = f (st\<^sub>v r), \<dots> = rsp_vars.more r\<rparr>)"
+text \<open> This construction lens is useful for conversion between a record and its product representation;
+  it would be helpful if this could be automatically generated. \<close>
+
+definition rsp_make_lens :: "('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> bool \<times> bool \<times> '\<tau> \<times> '\<sigma> \<times> '\<alpha>" where
+[lens_defs]: "rsp_make_lens = \<lparr> lens_get = \<lambda> (ok, wait, tr, st, more). \<lparr> ok\<^sub>v = ok, wait\<^sub>v = wait, tr\<^sub>v = tr, st\<^sub>v = st, \<dots> = more \<rparr>
+                              , lens_put = (\<lambda> s v. (ok\<^sub>v v, wait\<^sub>v v, tr\<^sub>v v, st\<^sub>v v, more v)) \<rparr>"
+
+lemma rsp_make_lens_alt: "rsp_make_lens = inv\<^sub>L (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L rsp_vars.more\<^sub>L)"
+  by (auto simp add: lens_defs)
+
+lemma make_lens_bij [simp]: "bij_lens rsp_make_lens"
+  by (unfold_locales, simp_all add: lens_defs prod.case_eq_if)
 
 definition map_st_lens ::
   "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
    (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_st\<^sub>L") where
 [lens_defs]:
-"map_st_lens l = lmap\<^sub>R \<lparr>
-  lens_get = map_rsp_st (get\<^bsub>l\<^esub>),
-  lens_put = map_rsp_st o (put\<^bsub>l\<^esub>) o rsp_vars.st\<^sub>v\<rparr>"
+"map_st_lens l = rsp_make_lens ;\<^sub>L (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (l ;\<^sub>L st) +\<^sub>L rsp_vars.more\<^sub>L)"
 
 lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
-  apply (unfold_locales, simp_all add: lens_defs)
-   apply (metis des_vars.surjective rp_vars.surjective rsp_vars.surjective)+
-  done
+  by (simp add: map_st_lens_def)
 
 syntax
   "_map_st_lens" :: "logic \<Rightarrow> salpha" ("map'_st\<^sub>L[_]")
@@ -496,7 +496,7 @@ lemma rea_frame_ext_R2_closed [closure]:
 lemma rea_frame_ext_RR_closed [closure]:
   "P is RR \<Longrightarrow> x:[P]\<^sub>r\<^sup>+ is RR"
   by (simp add: rea_frame_ext_def closure)
-  
+
 lemma rel_aext_st_Instant_closed [closure]:
   "P is Instant \<Longrightarrow> rel_aext P (map_st\<^sub>L x) is Instant"
   by (rel_auto)

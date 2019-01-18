@@ -21,14 +21,14 @@ alphabet 't::trace rp_vars = des_vars +
   wait :: bool
   tr   :: "'t"
 
-type_synonym ('t, '\<alpha>) rp = "('t, '\<alpha>) rp_vars_scheme des"
+type_synonym ('t, '\<alpha>) rp = "('t, '\<alpha>) rp_vars_scheme"
 
 type_synonym ('t,'\<alpha>,'\<beta>) rel_rp  = "(('t,'\<alpha>) rp, ('t,'\<beta>) rp) urel"
 type_synonym ('t,'\<alpha>) hrel_rp  = "('t,'\<alpha>) rp hrel"
 
 translations
-  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme des"
-  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_ext des"
+  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_scheme"
+  (type) "('t,'\<alpha>) rp" <= (type) "('t, '\<alpha>) rp_vars_ext"
   (type) "('t,'\<alpha>,'\<beta>) rel_rp" <= (type) "(('t,'\<alpha>) rp, ('\<gamma>,'\<beta>) rp) urel"
   (type) "('t, '\<alpha>) hrel_rp"  <= (type) "('t, '\<alpha>) rp hrel"
 
@@ -37,24 +37,28 @@ text \<open> As for designs, we set up various types to represent reactive proce
   to heterogeneous/homogeneous reactive processes whose trace model is @{typ "'t"} and alphabet 
   types are @{typ "'\<alpha>"} and @{typ "'\<beta>"}. We also set up some useful syntax translations for these. \<close>
 
-notation rp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>r")
-notation rp_vars_child_lens ("\<Sigma>\<^sub>R")
+notation rp_vars.more\<^sub>L ("\<Sigma>\<^sub>R")
 
 syntax
   "_svid_rea_alpha"  :: "svid" ("\<Sigma>\<^sub>R")
 
 translations
-  "_svid_rea_alpha" => "CONST rp_vars_child_lens"
+  "_svid_rea_alpha" => "CONST rp_vars.more\<^sub>L"
 
 text \<open> Lens @{term "\<Sigma>\<^sub>R"} exists because reactive alphabets are extensible. @{term "\<Sigma>\<^sub>R"} points
   to the portion of the alphabet / state space that is neither $ok$, $wait$, or $tr$. \<close>
 
-declare rp_vars.splits [alpha_splits]
-declare rp_vars.defs [lens_defs]
+(* FIXME: We have to remove the design record splitting simplication theorems here and add them
+  again to ensure that reactive splitter theorems have priority. Is it possible to have the
+  alphabet command do this? *)
+
+declare des_vars.splits [alpha_splits del]
+declare des_vars.splits [alpha_splits]
 declare zero_list_def [upred_defs]
 declare plus_list_def [upred_defs]
 declare prefixE [elim]
-  
+
+(*
 text \<open>
   The two locale interpretations below are a technicality to improve automatic
   proof support via the predicate and relational tactics. This is to enable the
@@ -66,18 +70,19 @@ text \<open>
 \<close>
 
 interpretation rp_vars:
-  lens_interp "\<lambda>(ok, r). (ok, wait\<^sub>v r, tr\<^sub>v r, more r)"
+  lens_interp "\<lambda> r. (ok\<^sub>v r, wait\<^sub>v r, tr\<^sub>v r, more r)"
   apply (unfold_locales)
   apply (rule injI)
   apply (clarsimp)
   done
 
-interpretation rp_vars_rel: lens_interp "\<lambda>(ok, ok', r, r').
-  (ok, ok', wait\<^sub>v r, wait\<^sub>v r', tr\<^sub>v r, tr\<^sub>v r', more r, more r')"
+interpretation rp_vars_rel: lens_interp "\<lambda>(r, r').
+  (ok\<^sub>v r, ok\<^sub>v r', wait\<^sub>v r, wait\<^sub>v r', tr\<^sub>v r, tr\<^sub>v r', more r, more r')"
   apply (unfold_locales)
   apply (rule injI)
   apply (clarsimp)
   done
+*)
 
 abbreviation wait_f::"('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
@@ -115,25 +120,13 @@ lemma unrest_tr_lift_rea [unrest]:
   "$tr \<sharp> \<lceil>P\<rceil>\<^sub>R" "$tr\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>R"
   by (pred_auto)+
 
-lemma wait_tr_bij_lemma: "bij_lens (wait\<^sub>a +\<^sub>L tr\<^sub>a +\<^sub>L \<Sigma>\<^sub>r)"
-  by (unfold_locales, auto simp add: lens_defs)
-
 lemma des_lens_equiv_wait_tr_rest: "\<Sigma>\<^sub>D \<approx>\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R"
-proof -
-  have "wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R = (wait\<^sub>a +\<^sub>L tr\<^sub>a +\<^sub>L \<Sigma>\<^sub>r) ;\<^sub>L \<Sigma>\<^sub>D"
-    by (simp add: wait_def tr_def rp_vars_child_lens_def)
-  also have "... \<approx>\<^sub>L 1\<^sub>L ;\<^sub>L \<Sigma>\<^sub>D"
-    using lens_equiv_via_bij wait_tr_bij_lemma by auto
-  also have "... = \<Sigma>\<^sub>D"
-    by (simp)
-  finally show ?thesis
-    using lens_equiv_sym by blast
-qed
+  by simp
 
 lemma rea_lens_bij: "bij_lens (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R)"
 proof -
   have "ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L \<Sigma>\<^sub>R \<approx>\<^sub>L ok +\<^sub>L \<Sigma>\<^sub>D"
-    using des_lens_equiv_wait_tr_rest des_vars_indeps lens_equiv_sym lens_plus_eq_right by blast
+    using des_lens_equiv_wait_tr_rest des_vars.indeps lens_equiv_sym lens_plus_eq_right by blast
   also have "... \<approx>\<^sub>L 1\<^sub>L"
     using bij_lens_equiv_id[of "ok +\<^sub>L \<Sigma>\<^sub>D"] by (simp add: ok_des_bij_lens)
   finally show ?thesis
