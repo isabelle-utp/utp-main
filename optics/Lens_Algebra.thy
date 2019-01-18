@@ -199,6 +199,12 @@ lemma id_bij_lens: "bij_lens 1\<^sub>L"
 lemma inv_id_lens: "inv\<^sub>L 1\<^sub>L = 1\<^sub>L"
   by (auto simp add: lens_inv_def id_lens_def lens_create_def)
 
+lemma inv_inv_lens: "bij_lens X \<Longrightarrow> inv\<^sub>L (inv\<^sub>L X) = X"
+  apply (cases X)
+  apply (auto simp add: lens_defs fun_eq_iff)
+  apply (metis (no_types) bij_lens.strong_get_put bij_lens_def select_convs(2) weak_lens.put_get)
+  done
+
 lemma lens_inv_bij: "bij_lens X \<Longrightarrow> bij_lens (inv\<^sub>L X)"
   by (unfold_locales, simp_all add: lens_inv_def lens_create_def)
 

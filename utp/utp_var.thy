@@ -28,6 +28,8 @@ purge_notation
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
 declare comp_vwb_lens [simp]
+declare lens_inv_bij [simp]
+declare id_bij_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
 declare lens_comp_quotient [simp]

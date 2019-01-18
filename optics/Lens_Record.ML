@@ -43,6 +43,7 @@ val alpha_splitsN = "alpha_splits"
 val alpha_splits = [Token.make_src (alpha_splitsN, Position.none) []]
 val equivN = "equivs"
 val splits_suffix = ".splits"
+val defs_suffix = ".defs"
 val prod_case_eq_ifN = "prod.case_eq_if"
 
 (* The following code is adapted from the record package. We generate a record, but also create
@@ -87,33 +88,31 @@ fun lens_proof tname x thy =
                                                                          context))])
   end
 
-fun prove_lens_goal tname parent thy ctx =
+fun prove_lens_goal tname thy ctx =
   let open Simplifier; open Global_Theory in
   auto_tac (fold add_simp (get_thms thy lens_defsN @ 
-                           get_thms thy (tname ^ splits_suffix) @
-                           get_thms thy (tname ^ ".defs") @
-                           (case parent of NONE => [] | SOME (_,pname) => get_thms thy (pname ^ ".defs"))) ctx)
+                           get_thms thy (tname ^ splits_suffix)) ctx)
 end
 
 fun prove_indep tname thy = 
   let open Simplifier; open Global_Theory in
   (fn {context, prems = _} =>
           EVERY [auto_tac (add_simp @{thm lens_indep_vwb_iff} context)
-                ,prove_lens_goal tname NONE thy context])
+                ,prove_lens_goal tname thy context])
 end
 
 fun prove_sublens tname thy = 
   let open Simplifier; open Global_Theory in
   (fn {context, prems = _} =>
           EVERY [auto_tac (add_simp @{thm sublens_iff_sublens'} context)
-                ,prove_lens_goal tname NONE thy context])
+                ,prove_lens_goal tname thy context])
 end
 
-fun prove_equiv tname parent thy = 
+fun prove_equiv tname thy = 
   let open Simplifier; open Global_Theory in
   (fn {context, prems = _} =>
           EVERY [auto_tac (add_simp @{thm lens_equiv_iff_lens_equiv'} context)
-                ,prove_lens_goal tname parent thy context])
+                ,prove_lens_goal tname thy context])
 end
 
 fun lens_bij_proof tname thy =
@@ -127,8 +126,7 @@ fun lens_bij_proof tname thy =
                                            $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ child_lensN, dummyT)))]))
       (fn {context = context, prems = _}
                            => EVERY [ Locale.intro_locales_tac true context []
-                                    , auto_tac (fold add_simp (get_thms thy (tname ^ ".defs") @ 
-                                                                          get_thms thy lens_defsN @ [get_thm thy prod_case_eq_ifN])
+                                    , auto_tac (fold add_simp (get_thms thy lens_defsN @ [get_thm thy prod_case_eq_ifN])
                                                                          context)])
   end
 
@@ -176,7 +174,7 @@ fun equiv_more_proof tname pname thy fs =
                 $ foldr1 (fn (x, y) => Const (lens_plus, dummyT) $ x $ y) 
                          (map (fn n => Const (theory_name thy ^ "." ^ tname ^ "." ^ n, dummyT)) (fs @ [child_lensN]))
                 )]))
-      (prove_equiv tname NONE thy)
+      (prove_equiv tname thy)
   end
 
 fun equiv_base_proof tname parent thy fs =
@@ -191,7 +189,7 @@ fun equiv_base_proof tname parent thy fs =
                          ((case parent of NONE => [] | SOME (_, pname) => [Const (pname ^ "." ^ base_lensN, dummyT)]) @ 
                           map (fn n => Const (theory_name thy ^ "." ^ tname ^ "." ^ n, dummyT)) fs)
                 )]))
-      (prove_equiv tname parent thy)
+      (prove_equiv tname thy)
   end
 
 fun equiv_partition_proof tname thy =
@@ -206,7 +204,7 @@ fun equiv_partition_proof tname thy =
                   $ Const (theory_name thy ^ "." ^ tname ^ "." ^ child_lensN, dummyT))
                 $ Const (id_lens, dummyT)
                 )]))
-      (prove_equiv tname NONE thy)
+      (prove_equiv tname thy)
   end
 
 (* The next function is similar, but does not unfold locales instead relying on existing independence
@@ -345,6 +343,8 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
                     @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensN)
  in thy     (* Add a new record for the new alphabet lenses *)
          |> add_record_cmd {overloaded = false} (raw_params, binding) raw_parent fields
+            (* Add the record definition theorems to lens_defs *)
+         |> Named_Target.theory_map (snd o Specification.theorems_cmd "" [((Binding.empty, []), [(Facts.named (tname ^ defs_suffix), snd lens_defs)])] [] false)
             (* Add the record splitting theorems to the alpha_splits set for proof automation *)
          |> Named_Target.theory_map (snd o Specification.theorems_cmd "" [((Binding.empty, []), [(Facts.named (tname ^ splits_suffix), alpha_splits)])] [] false)
             (* Add definitions for each of the lenses corresponding to each record field in-situ *)
