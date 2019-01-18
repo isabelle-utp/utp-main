@@ -154,7 +154,7 @@ lemma plus_wb_lens:
   apply (simp add: lens_indep_sym prod.case_eq_if)
 done
 
-lemma plus_vwb_lens:
+lemma plus_vwb_lens [simp]:
   assumes "vwb_lens x" "vwb_lens y" "x \<bowtie> y"
   shows "vwb_lens (x +\<^sub>L y)"
   using assms

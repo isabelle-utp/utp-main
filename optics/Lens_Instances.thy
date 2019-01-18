@@ -211,8 +211,32 @@ text \<open>We also add support for record lenses. Every record created can yiel
   
 abbreviation (input) "fld_put f \<equiv> (\<lambda> \<sigma> u. f (\<lambda>_. u) \<sigma>)"
 
-syntax "_FLDLENS" :: "id \<Rightarrow> ('a \<Longrightarrow> 'r)"  ("FLDLENS _")
-translations "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
+syntax 
+  "_FLDLENS" :: "id \<Rightarrow> logic"  ("FLDLENS _")
+translations 
+  "FLDLENS x" => "\<lparr> lens_get = x, lens_put = CONST fld_put (_update_name x) \<rparr>"
+
+text \<open> We also allow the extraction of the "base lens", which characterises all the fields added
+  by a record without the extension. \<close>
+
+syntax
+  "_BASELENS" :: "id \<Rightarrow> logic"  ("BASELENS _")
+
+abbreviation (input) "base_lens t e m \<equiv> \<lparr> lens_get = t, lens_put = \<lambda> s v. e v (m s) \<rparr>"
+
+ML \<open>
+  fun baselens_tr [Free (name, _)] =
+    let
+      val extend = Free (name ^ ".extend", dummyT);
+      val truncate = Free (name ^ ".truncate", dummyT);
+      val more = Free (name ^ ".more", dummyT);
+    in
+      Const (@{const_syntax "base_lens"}, dummyT) $ truncate $ extend $ more
+    end
+  | baselens_tr _ = raise Match;
+\<close>
+
+parse_translation \<open>[(@{syntax_const "_BASELENS"}, K baselens_tr)]\<close>  
 
 text \<open>We also introduce the \textbf{alphabet} command that creates a record with lenses for each field.
   For each field a lens is created together with a proof that it is very well-behaved, and for each 

@@ -295,9 +295,9 @@ locale lens_indep =
 notation lens_indep (infix "\<bowtie>" 50)
 
 lemma lens_indepI:
-  "\<lbrakk> \<And> u v \<sigma>. lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v;
-     \<And> v \<sigma>. lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>;
-     \<And> u \<sigma>. lens_get y (lens_put x \<sigma> u) = lens_get y \<sigma> \<rbrakk> \<Longrightarrow> x \<bowtie> y"
+  "\<lbrakk> \<And> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v;
+     \<And> v \<sigma>. get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) = get\<^bsub>x\<^esub> \<sigma>;
+     \<And> u \<sigma>. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) = get\<^bsub>y\<^esub> \<sigma> \<rbrakk> \<Longrightarrow> x \<bowtie> y"
   by (simp add: lens_indep_def)
 
 text \<open>Lens independence is symmetric.\<close>
@@ -306,12 +306,28 @@ lemma lens_indep_sym:  "x \<bowtie> y \<Longrightarrow> y \<bowtie> x"
   by (simp add: lens_indep_def)
 
 lemma lens_indep_comm:
-  "x \<bowtie> y \<Longrightarrow> lens_put x (lens_put y \<sigma> v) u = lens_put y (lens_put x \<sigma> u) v"
+  "x \<bowtie> y \<Longrightarrow> put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
   by (simp add: lens_indep_def)
 
 lemma lens_indep_get [simp]:
   assumes "x \<bowtie> y"
-  shows "lens_get x (lens_put y \<sigma> v) = lens_get x \<sigma>"
+  shows "get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) = get\<^bsub>x\<^esub> \<sigma>"
   using assms lens_indep_def by fastforce
+
+text \<open> Characterisation of independence for two very well-behaved lenses \<close>
+
+lemma lens_indep_vwb_iff:
+  assumes "vwb_lens x" "vwb_lens y"
+  shows "x \<bowtie> y \<longleftrightarrow> (\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v)"
+proof
+  assume "x \<bowtie> y"
+  thus "\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
+    by (simp add: lens_indep_comm)
+next
+  assume "\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
+  thus "x \<bowtie> y"
+    by (unfold_locales, auto, (metis assms mwb_lens_weak vwb_lens_mwb vwb_lens_wb wb_lens.get_put weak_lens.put_get)+)
+
+qed
 
 end

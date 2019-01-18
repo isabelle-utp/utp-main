@@ -72,6 +72,10 @@ lemma sublens_pres_indep:
   apply (simp add: lens_indep_sym)
 done
 
+lemma sublens_pres_indep':
+  "\<lbrakk> X \<subseteq>\<^sub>L Y; Z \<bowtie> Y \<rbrakk> \<Longrightarrow> Z \<bowtie> X"
+  by (meson lens_indep_sym sublens_pres_indep)
+
 text \<open>Well-behavedness of lens quotient has sublens as a proviso. This is because we can only
   remove $X$ from $Y$ if $X$ is smaller than $Y$. \<close>
   
@@ -238,8 +242,6 @@ lemma lens_unit_prod_sublens_2: "0\<^sub>L +\<^sub>L X \<subseteq>\<^sub>L X"
   apply (auto simp add: sublens_def)
   apply (rule_tac x="0\<^sub>L +\<^sub>L 1\<^sub>L" in exI)
   apply (auto)
-   apply (rule plus_vwb_lens)
-     apply (simp_all)
   apply (auto simp add: lens_plus_def zero_lens_def lens_comp_def id_lens_def prod.case_eq_if comp_def)
   apply (rule ext)
   apply (rule ext)
