@@ -8,6 +8,8 @@ alphabet mylens =
   x :: nat
   y :: string
 
+thm lens_defs
+
 thm base_more_bij_lens
 thm indeps
 thm equivs
@@ -32,6 +34,8 @@ lemma mylens_bij_lens:
 alphabet mylens_2 = mylens +
   z :: int
   k :: "string list"
+
+thm lens_defs
 
 thm base_more_bij_lens
 thm indeps
