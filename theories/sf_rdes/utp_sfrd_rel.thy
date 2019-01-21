@@ -32,10 +32,7 @@ lemma CRR_seqr_form:
   "CRR(P) ;; CRR(Q) = 
     (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>, $ref} \<bullet> P)\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; 
                       (\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>, $ref} \<bullet> Q)\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
-  apply (rel_auto)
-  apply (metis (no_types, hide_lams) Prefix_Order.prefixE append.assoc plus_list_def trace_class.add_diff_cancel_left)
-  apply (metis append.assoc le_add plus_list_def trace_class.add_diff_cancel_left)
-  done
+  by (simp add: CRR_form, rel_auto; fastforce)
 
 text \<open> CSP Reactive Conditions \<close>
 

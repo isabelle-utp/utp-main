@@ -52,6 +52,16 @@ translations
 
 notation csp_vars.more\<^sub>L ("\<Sigma>\<^sub>C")
 
+(* FIXME: Nasty hack below *)
+
+declare des_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits del]
+declare des_vars.splits [alpha_splits del]
+declare rsp_vars.splits [alpha_splits del]
+declare rsp_vars.splits [alpha_splits]
+declare rp_vars.splits [alpha_splits]
+declare des_vars.splits [alpha_splits]
+
 subsection \<open> Basic laws \<close>
 
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
