@@ -54,7 +54,7 @@ syntax
   "_ue_conj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<and>" 135)
   "_ue_disj"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<or>" 130)
   "_ue_impl"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<Rightarrow>" 125)
-  "_ue_iff"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<Rightarrow>" 125)
+  "_ue_iff"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<Leftrightarrow>" 125)
   "_ue_mem"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<in> _)" [151, 151] 150)
   "_ue_nmem"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<notin> _)" [151, 151] 150)
 

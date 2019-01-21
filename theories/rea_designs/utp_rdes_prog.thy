@@ -433,7 +433,7 @@ translations
 
 lemma R1_state_srea: "R1(state 'a \<bullet> P) = (state 'a \<bullet> R1(P))"
   by (rel_auto)
-
+ 
 lemma R2c_state_srea: "R2c(state 'a \<bullet> P) = (state 'a \<bullet> R2c(P))"
   by (rel_auto)
 

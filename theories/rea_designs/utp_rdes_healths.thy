@@ -13,6 +13,13 @@ type_synonym ('s,'t) rdes = "('s,'t,unit) hrel_rsp"
 translations
   (type) "('s,'t) rdes" <= (type) "('s, 't, unit) hrel_rsp"
 
+(* FIXME: Nasty Hack. Can we automate this? *)
+
+declare des_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits]
+declare des_vars.splits [alpha_splits]
+
 lemma R2_st_ex: "R2 (\<exists> $st \<bullet> P) = (\<exists> $st \<bullet> R2(P))"
   by (rel_auto)
 

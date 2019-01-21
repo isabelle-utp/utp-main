@@ -123,6 +123,10 @@ translations
   "_des_frame_ext x P" => "CONST des_frame_ext x P"
   "_des_frame_ext (_salphaset (_salphamk x)) P" <= "CONST des_frame_ext x P"
 
+lemma lmapD_rel_aext_ndes [ndes_simp]:
+  "(p \<turnstile>\<^sub>n Q) \<oplus>\<^sub>r lmap\<^sub>D[a] = (p \<oplus>\<^sub>p a \<turnstile>\<^sub>n Q \<oplus>\<^sub>r a)"
+  by (rel_auto)
+
 subsection {* Alternation *}
   
 consts

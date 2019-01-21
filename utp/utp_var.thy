@@ -28,6 +28,8 @@ purge_notation
 declare fst_vwb_lens [simp]
 declare snd_vwb_lens [simp]
 declare comp_vwb_lens [simp]
+declare lens_inv_bij [simp]
+declare id_bij_lens [simp]
 declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
 declare lens_comp_quotient [simp]
@@ -214,6 +216,7 @@ text \<open> These non-terminals correspond to the following syntactic entities.
    
 syntax \<comment> \<open> Identifiers \<close>
   "_svid"         :: "id \<Rightarrow> svid" ("_" [999] 999)
+  "_svlongid"     :: "longid \<Rightarrow> svid" ("_" [999] 999)
   "_svid_unit"    :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"    :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
   "_svid_alpha"   :: "svid" ("\<^bold>v")
@@ -283,6 +286,7 @@ text \<open> The functions above turn a representation of a variable (type @{typ
 translations
   \<comment> \<open> Identifiers \<close>
   "_svid x" \<rightharpoonup> "x"
+  "_svlongid x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
   "_mk_svid_list (_svid_unit x)" \<rightharpoonup> "x"

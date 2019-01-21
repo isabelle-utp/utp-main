@@ -18,8 +18,6 @@ named_theorems ndes and ndes_simp
 
 alphabet des_vars =
   ok :: bool
-
-declare des_vars.defs [lens_defs]
   
 text {*
   The two locale interpretations below are a technicality to improve automatic
@@ -31,6 +29,7 @@ text {*
   alphabets.
 *}
 
+(*
 interpretation des_vars: lens_interp "\<lambda>r. (ok\<^sub>v r, more r)"
 apply (unfold_locales)
 apply (rule injI)
@@ -43,6 +42,7 @@ apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
+*)
 
 type_synonym '\<alpha> des  = "'\<alpha> des_vars_scheme"
 type_synonym ('\<alpha>, '\<beta>) rel_des = "('\<alpha> des, '\<beta> des) urel"
@@ -54,21 +54,29 @@ translations
   (type) "('\<alpha>, '\<beta>) rel_des" <= (type) "('\<alpha> des, '\<beta> des) urel"
   (type) "'\<alpha> hrel_des" <= (type) "'\<alpha> des hrel"
   
-notation des_vars_child_lens ("\<Sigma>\<^sub>D")
+notation des_vars.more\<^sub>L ("\<Sigma>\<^sub>D")
 
 syntax
   "_svid_des_alpha"  :: "svid" ("\<^bold>v\<^sub>D")
 
 translations
-  "_svid_des_alpha" => "CONST des_vars_child_lens"
+  "_svid_des_alpha" => "CONST des_vars.more\<^sub>L"
 
-lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)"
-  by (unfold_locales, simp_all add: ok_def des_vars_child_lens_def lens_plus_def prod.case_eq_if)
+lemma ok_des_bij_lens: "bij_lens (ok +\<^sub>L \<Sigma>\<^sub>D)" (is "bij_lens ?P")
+proof -
+  have "?P \<approx>\<^sub>L 1\<^sub>L"
+    by (meson des_vars.equivs(1) des_vars.equivs(2) des_vars.indeps(1) lens_equiv_sym lens_equiv_trans lens_plus_eq_left)
+  thus ?thesis
+    by (simp add: bij_lens_equiv_id)
+qed
 
 text {* Define the lens functor for designs *}
   
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
 where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
+
+syntax "_lmap_des_vars" :: "salpha \<Rightarrow> salpha" ("lmap\<^sub>D[_]")
+translations "_lmap_des_vars a" => "CONST lmap_des_vars a"
 
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
   by (unfold_locales, auto simp add: lens_defs)
@@ -152,7 +160,7 @@ proof -
     have "?P \<approx>\<^sub>L (ok +\<^sub>L \<Sigma>\<^sub>D) \<times>\<^sub>L (ok +\<^sub>L \<Sigma>\<^sub>D)" (is "?P \<approx>\<^sub>L ?Q")
       apply (simp add: in_var_def out_var_def prod_as_plus)
       apply (simp add: prod_as_plus[THEN sym])
-      apply (meson lens_equiv_sym lens_equiv_trans lens_indep_prod lens_plus_comm lens_plus_prod_exchange des_vars_indeps(1))
+      apply (meson lens_equiv_sym lens_equiv_trans lens_indep_prod lens_plus_comm lens_plus_prod_exchange des_vars.indeps(1))
     done
     moreover have "bij_lens ?Q"
       by (simp add: ok_des_bij_lens prod_bij_lens)
@@ -164,7 +172,7 @@ proof -
     apply (rule_tac aext_arestr[of _ "in_var ok +\<^sub>L out_var ok"])
     apply (simp add: prod_mwb_lens)
     apply (simp)
-    apply (metis alpha_in_var lens_indep_prod lens_indep_sym des_vars_indeps(1) out_var_def prod_as_plus)
+    apply (metis alpha_in_var lens_indep_prod lens_indep_sym des_vars.indeps(1) out_var_def prod_as_plus)
     using unrest_var_comp apply blast
   done
 qed
