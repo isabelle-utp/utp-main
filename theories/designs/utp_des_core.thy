@@ -75,6 +75,9 @@ text {* Define the lens functor for designs *}
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
 where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
 
+syntax "_lmap_des_vars" :: "salpha \<Rightarrow> salpha" ("lmap\<^sub>D[_]")
+translations "_lmap_des_vars a" => "CONST lmap_des_vars a"
+
 lemma lmap_des_vars: "vwb_lens f \<Longrightarrow> vwb_lens (lmap_des_vars f)"
   by (unfold_locales, auto simp add: lens_defs)
 
