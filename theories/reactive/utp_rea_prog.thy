@@ -376,14 +376,28 @@ lemma rsp_make_lens_alt: "rsp_make_lens = inv\<^sub>L (ok +\<^sub>L wait +\<^sub
 lemma make_lens_bij [simp]: "bij_lens rsp_make_lens"
   by (unfold_locales, simp_all add: lens_defs prod.case_eq_if)
 
+text \<open> The following is an intuitive definition of the @{term st} functorial lens, which
+  frames all the state space excluding @{term st}, to which another lens @{term l} is
+  applied. We do this by splitting the state space into a product, including the application
+  of @{term l} to @{term st}, and then invert the product creation lens to reconstruct
+  the reactive state space. \<close>
+
 definition map_st_lens ::
   "('\<sigma> \<Longrightarrow> '\<psi>) \<Rightarrow>
    (('\<sigma>, '\<tau>::trace, '\<alpha>) rsp \<Longrightarrow> ('\<psi>, '\<tau>::trace, '\<alpha>) rsp)" ("map'_st\<^sub>L") where
-[lens_defs]:
-"map_st_lens l = rsp_make_lens ;\<^sub>L (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (l ;\<^sub>L st) +\<^sub>L rsp_vars.more\<^sub>L)"
+"map_st_lens l = inv\<^sub>L (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L rsp_vars.more\<^sub>L) ;\<^sub>L 
+                 (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (l ;\<^sub>L st) +\<^sub>L rsp_vars.more\<^sub>L)"
+
+text \<open> The above definition is intuitive, but helpful in proof automaton. Consequently,
+  we the following optimised definition below. \<close>
+
+lemma map_st_lens_alt_def [lens_defs]:
+  "map_st_lens l = \<lparr> lens_get = \<lambda> s. \<lparr> ok\<^sub>v = ok\<^sub>v s, wait\<^sub>v = wait\<^sub>v s, tr\<^sub>v = tr\<^sub>v s, st\<^sub>v = get\<^bsub>l\<^esub> (st\<^sub>v s), \<dots> = more s \<rparr>
+                  , lens_put = \<lambda> s v. \<lparr> ok\<^sub>v = ok\<^sub>v v, wait\<^sub>v = wait\<^sub>v v, tr\<^sub>v = tr\<^sub>v v, st\<^sub>v = put\<^bsub>l\<^esub> (st\<^sub>v s) (st\<^sub>v v), \<dots> = more v \<rparr> \<rparr>"
+  by (auto simp add: map_st_lens_def lens_defs fun_eq_iff)
 
 lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
-  by (simp add: map_st_lens_def)
+  by (simp add: map_st_lens_def rsp_make_lens_alt[THEN sym])
 
 syntax
   "_map_st_lens" :: "logic \<Rightarrow> salpha" ("map'_st\<^sub>L[_]")

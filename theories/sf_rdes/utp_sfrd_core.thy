@@ -6,11 +6,8 @@ begin
 
 subsection \<open> SFRD Alphabet \<close>
 
-alphabet '\<phi> csp_vars = "'\<sigma> rsp_vars" +
+alphabet ('\<sigma>, '\<phi>) csp_vars = "('\<phi> list, '\<sigma>) rsp_vars" +
   ref :: "'\<phi> set"
-
-declare csp_vars.defs [lens_defs]
-declare csp_vars.splits [alpha_splits]
 
 text \<open>
   The following two locale interpretations are a technicality to improve the
@@ -21,6 +18,7 @@ text \<open>
   interpretations automatically as part of the @{command alphabet} command.
 \<close>
 
+(*
 interpretation alphabet_csp_prd:
   lens_interp "\<lambda>(ok, wait, tr, m). (ok, wait, tr, ref\<^sub>v m, more m)"
 apply (unfold_locales)
@@ -35,9 +33,10 @@ apply (unfold_locales)
 apply (rule injI)
 apply (clarsimp)
 done
+*)
 
-type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi> list, ('\<phi>, unit) csp_vars_scheme) rsp"
-type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>,'\<phi>) st_csp hrel"
+type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi>) csp_vars"
+type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>, '\<phi>) st_csp hrel"
 type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
 type_synonym '\<phi> process  = "'\<phi> csp hrel"
   
@@ -47,12 +46,11 @@ text \<open> There is some slight imprecision with the translations, in that we 
   be better to add a proper ML print translation in the future. \<close>
   
 translations
-  (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<sigma>, '\<phi> list, '\<phi>1 csp_vars) rsp"
+  (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<sigma>, '\<phi>) csp_vars"
   (type) "('\<sigma>,'\<phi>) action" <= (type) "('\<sigma>, '\<phi>) st_csp hrel"
   (type) "'\<phi> process" <= (type) "(unit,'\<phi>) action"
 
-notation csp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>c")
-notation csp_vars_child_lens ("\<Sigma>\<^sub>C")
+notation csp_vars.more\<^sub>L ("\<Sigma>\<^sub>C")
 
 subsection \<open> Basic laws \<close>
 
