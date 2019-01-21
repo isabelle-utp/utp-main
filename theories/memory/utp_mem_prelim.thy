@@ -18,7 +18,7 @@ alphabet 'h mem =
   hp :: "'h"
 
 abbreviation str :: "'s \<Longrightarrow> ('a :: sep_alg, 's) mem_ext" where
-"str \<equiv> mem_child_lens"
+"str \<equiv> mem.more\<^sub>L"
 
 text \<open> We define an order on memory by lifting of the containment order on finite functions. \<close>
 
