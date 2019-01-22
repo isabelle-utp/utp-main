@@ -6,7 +6,7 @@ begin
 
 subsection \<open> SFRD Alphabet \<close>
 
-alphabet ('\<sigma>, '\<phi>) csp_vars = "('\<phi> list, '\<sigma>) rsp_vars" +
+alphabet ('\<sigma>, '\<phi>) sfrd_vars = "('\<phi> list, '\<sigma>) rsp_vars" +
   ref :: "'\<phi> set"
 
 text \<open>
@@ -35,9 +35,9 @@ apply (clarsimp)
 done
 *)
 
-type_synonym ('\<sigma>,'\<phi>) st_csp = "('\<sigma>, '\<phi>) csp_vars"
-type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>, '\<phi>) st_csp hrel"
-type_synonym '\<phi> csp = "(unit,'\<phi>) st_csp"
+type_synonym ('\<sigma>,'\<phi>) sfrd = "('\<sigma>, '\<phi>) sfrd_vars"
+type_synonym ('\<sigma>,'\<phi>) action  = "('\<sigma>, '\<phi>) sfrd hrel"
+type_synonym '\<phi> csp = "(unit,'\<phi>) sfrd"
 type_synonym '\<phi> process  = "'\<phi> csp hrel"
   
 text \<open> There is some slight imprecision with the translations, in that we don't bother to check
@@ -46,11 +46,11 @@ text \<open> There is some slight imprecision with the translations, in that we 
   be better to add a proper ML print translation in the future. \<close>
   
 translations
-  (type) "('\<sigma>,'\<phi>) st_csp" <= (type) "('\<sigma>, '\<phi>) csp_vars"
-  (type) "('\<sigma>,'\<phi>) action" <= (type) "('\<sigma>, '\<phi>) st_csp hrel"
+  (type) "('\<sigma>,'\<phi>) sfrd" <= (type) "('\<sigma>, '\<phi>) sfrd_vars"
+  (type) "('\<sigma>,'\<phi>) action" <= (type) "('\<sigma>, '\<phi>) sfrd hrel"
   (type) "'\<phi> process" <= (type) "(unit,'\<phi>) action"
 
-notation csp_vars.more\<^sub>L ("\<Sigma>\<^sub>C")
+notation sfrd_vars.more\<^sub>L ("\<Sigma>\<^sub>C")
 
 (* FIXME: Nasty hack below *)
 
@@ -68,7 +68,7 @@ lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<
   by (rel_auto)
 
 lemma circus_alpha_bij_lens:
-  "bij_lens ({$ok,$ok\<acute>,$wait,$wait\<acute>,$tr,$tr\<acute>,$st,$st\<acute>,$ref,$ref\<acute>}\<^sub>\<alpha> :: _ \<Longrightarrow> ('s,'e) st_csp \<times> ('s,'e) st_csp)"
+  "bij_lens ({$ok,$ok\<acute>,$wait,$wait\<acute>,$tr,$tr\<acute>,$st,$st\<acute>,$ref,$ref\<acute>}\<^sub>\<alpha> :: _ \<Longrightarrow> ('s,'e) sfrd \<times> ('s,'e) sfrd)"
   by (unfold_locales, lens_simp+)
 
 subsection \<open> Unrestriction laws \<close>

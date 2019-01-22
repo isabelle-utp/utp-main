@@ -8,13 +8,13 @@ section \<open> Definitions \<close>
 
 text {* We here define extra healthiness conditions for stateful-failure reactive designs. *}
 
-abbreviation CSP1 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health"
+abbreviation CSP1 :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health"
 where "CSP1(P) \<equiv> RD1(P)"
 
-abbreviation CSP2 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health"
+abbreviation CSP2 :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health"
 where "CSP2(P) \<equiv> RD2(P)"
 
-abbreviation CSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health"
+abbreviation CSP :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health"
 where "CSP(P) \<equiv> SRD(P)"
 
 definition STOP :: "'\<phi> process" where
@@ -29,13 +29,13 @@ definition Stop :: "('\<sigma>, '\<phi>) action" where
 definition Skip :: "('\<sigma>, '\<phi>) action" where
 [upred_defs]: "Skip = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> $st\<acute> =\<^sub>u $st))"
 
-definition CSP3 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
+definition CSP3 :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health" where
 [upred_defs]: "CSP3(P) = (Skip ;; P)"
 
-definition CSP4 :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
+definition CSP4 :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health" where
 [upred_defs]: "CSP4(P) = (P ;; Skip)"
 
-definition NCSP :: "(('\<sigma>, '\<phi>) st_csp \<times> ('\<sigma>, '\<phi>) st_csp) health" where
+definition NCSP :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health" where
 [upred_defs]: "NCSP = CSP3 \<circ> CSP4 \<circ> CSP"
 
 text \<open> Productive and normal processes \<close>
@@ -658,19 +658,19 @@ subsection {* CSP theories *}
 
 typedecl TCSP
 
-abbreviation "TCSP \<equiv> UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+abbreviation "TCSP \<equiv> UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
 
 overloading
-  tcsp_hcond   == "utp_hcond :: (TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health"
-  tcsp_unit    == "utp_unit :: (TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action"
+  tcsp_hcond   == "utp_hcond :: (TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> (('\<sigma>,'\<phi>) sfrd \<times> ('\<sigma>,'\<phi>) sfrd) health"
+  tcsp_unit    == "utp_unit :: (TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action"
 begin
-  definition tcsp_hcond :: "(TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> (('\<sigma>,'\<phi>) st_csp \<times> ('\<sigma>,'\<phi>) st_csp) health" where
+  definition tcsp_hcond :: "(TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> (('\<sigma>,'\<phi>) sfrd \<times> ('\<sigma>,'\<phi>) sfrd) health" where
   [upred_defs]: "tcsp_hcond T = NCSP"
-  definition tcsp_unit :: "(TCSP, ('\<sigma>,'\<phi>) st_csp) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action" where
+  definition tcsp_unit :: "(TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action" where
   [upred_defs]: "tcsp_unit T = Skip"
 end
 
-interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
   rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
   and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
   and "\<I>\<I>\<^bsub>TCSP\<^esub> = Skip"
@@ -679,12 +679,12 @@ interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) st_
   and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
   and "le (uthy_order TCSP) = (\<sqsubseteq>)"
 proof -
-  interpret lat: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+  interpret lat: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
     by (unfold_locales, simp_all add: tcsp_hcond_def closure Healthy_if)
   show 1: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = (Miracle :: ('\<sigma>,'\<phi>) action)"
     by (metis NCSP_Miracle NCSP_implies_CSP lat.top_healthy lat.utp_theory_continuous_axioms srdes_theory_continuous.meet_top tcsp_hcond_def upred_semiring.add_commute utp_theory_continuous.meet_top)
     
-  thus "utp_theory_kleene UTHY(TCSP, ('\<sigma>,'\<phi>) st_csp)"
+  thus "utp_theory_kleene UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
     by (unfold_locales, simp_all add: tcsp_hcond_def tcsp_unit_def Skip_left_unit Skip_right_unit closure Healthy_if Miracle_left_zero  )
 qed (simp_all add: tcsp_hcond_def tcsp_unit_def closure Healthy_if)
 
