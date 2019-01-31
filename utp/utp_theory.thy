@@ -57,43 +57,8 @@ lemma upred_lattice_Monotonic [simp]: "Mono\<^bsub>\<P>\<^esub> H = Monotonic H"
     
 subsection \<open> UTP theories hierarchy \<close>
 
-typedef ('\<T>, '\<alpha>) uthy = "UNIV :: unit set"
-  by auto
-
-text \<open> We create a unitary parametric type to represent UTP theories. These are merely tags
-  and contain no data other than to help the type-system resolve polymorphic definitions. The
-  two parameters denote the name of the UTP theory -- as a unique type -- and the minimal
-  alphabet that the UTP theory requires. We will then use Isabelle's ad-hoc overloading
-  mechanism to associate theory constructs, like healthiness conditions and units, with
-  each of these types. This will allow the type system to retrieve definitions based
-  on a particular theory context. \<close>
-
-definition uthy :: "('a, 'b) uthy" where
-"uthy = Abs_uthy ()"
-
-lemma uthy_eq [intro]:
-  fixes x y :: "('a, 'b) uthy"
-  shows "x = y"
-  by (cases x, cases y, simp)
-
-syntax
-  "_UTHY" :: "type \<Rightarrow> type \<Rightarrow> logic" ("UTHY'(_, _')")
-
-translations
-  "UTHY('T, '\<alpha>)" == "CONST uthy :: ('T, '\<alpha>) uthy"
-
-text \<open> We set up polymorphic constants to denote the healthiness conditions associated with
-  a UTP theory. Unfortunately we can currently only characterise UTP theories of homogeneous
-  relations; this is due to restrictions in the instantiation of Isabelle's polymorphic constants
-  which apparently cannot specialise types in this way. \<close>
-
-consts
-  utp_hcond :: "('\<T>, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health" ("\<H>\<index>")
-
 definition utp_order :: "('\<alpha> \<times> '\<alpha>) health \<Rightarrow> '\<alpha> hrel gorder" where
 "utp_order H = \<lparr> carrier = {P. P is H}, eq = (=), le = (\<sqsubseteq>) \<rparr>"
-
-abbreviation "uthy_order T \<equiv> utp_order \<H>\<^bsub>T\<^esub>"
 
 text \<open> Constant @{term utp_order} obtains the order structure associated with a UTP theory.
   Its carrier is the set of healthy predicates, equality is HOL equality, and the order is
@@ -136,46 +101,16 @@ text \<open> The UTP order can equivalently be characterised as the fixed point 
 lemma utp_order_fpl: "utp_order H = fpl \<P> H"
   by (auto simp add: utp_order_def upred_lattice_def fps_def Healthy_def)
 
-definition uth_eq :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2, '\<alpha>) uthy \<Rightarrow> bool" (infix "\<approx>\<^sub>T" 50) where
-"T\<^sub>1 \<approx>\<^sub>T T\<^sub>2 \<longleftrightarrow> \<lbrakk>\<H>\<^bsub>T\<^sub>1\<^esub>\<rbrakk>\<^sub>H = \<lbrakk>\<H>\<^bsub>T\<^sub>2\<^esub>\<rbrakk>\<^sub>H"
-
-lemma uth_eq_refl: "T \<approx>\<^sub>T T"
-  by (simp add: uth_eq_def)
-
-lemma uth_eq_sym: "T\<^sub>1 \<approx>\<^sub>T T\<^sub>2 \<longleftrightarrow> T\<^sub>2 \<approx>\<^sub>T T\<^sub>1"
-  by (auto simp add: uth_eq_def)
-
-lemma uth_eq_trans: "\<lbrakk> T\<^sub>1 \<approx>\<^sub>T T\<^sub>2; T\<^sub>2 \<approx>\<^sub>T T\<^sub>3 \<rbrakk> \<Longrightarrow> T\<^sub>1 \<approx>\<^sub>T T\<^sub>3"
-  by (auto simp add: uth_eq_def)
-
-definition uthy_plus :: "('T\<^sub>1, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy" (infixl "+\<^sub>T" 65) where
-"uthy_plus T\<^sub>1 T\<^sub>2 = uthy"
-
-overloading
-  prod_hcond == "utp_hcond :: ('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
-begin
-
-  text \<open> The healthiness condition of a relation is simply identity, since every alphabetised
-    relation is healthy. \<close>
-
-  definition prod_hcond :: "('T\<^sub>1 \<times> 'T\<^sub>2, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred" where
-  "prod_hcond T = \<H>\<^bsub>UTHY('T\<^sub>1, '\<alpha>)\<^esub> \<circ> \<H>\<^bsub>UTHY('T\<^sub>2, '\<alpha>)\<^esub>"
-
-end
-
 subsection \<open> UTP theory hierarchy \<close>
 
 text \<open> We next define a hierarchy of locales that characterise different classes of UTP theory.
   Minimally we require that a UTP theory's healthiness condition is idempotent. \<close>
 
 locale utp_theory =
-  fixes \<T> :: "('\<T>, '\<alpha>) uthy" (structure)
+  fixes hcond :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("\<H>")
   assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
 
-  lemma uthy_simp:
-    "uthy = \<T>"
-    by blast
 
   text \<open> A UTP theory fixes @{term "\<T>"}, the structural element denoting the UTP theory. All
     constants associated with UTP theories can then be resolved by the type system. \<close>
@@ -183,57 +118,49 @@ begin
   lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
 
-  sublocale partial_order "uthy_order \<T>"
+  sublocale utp_po: partial_order "utp_order \<H>"
     by (unfold_locales, simp_all add: utp_order_def)
 end
 
-text \<open> Theory summation is commutative provided the healthiness conditions commute. \<close>
+locale utp_theory_lattice = utp_theory + 
+  assumes uthy_lattice: "complete_lattice (utp_order \<H>)"
+begin
 
-lemma uthy_plus_comm:
-  assumes "\<H>\<^bsub>T\<^sub>1\<^esub> \<circ> \<H>\<^bsub>T\<^sub>2\<^esub> = \<H>\<^bsub>T\<^sub>2\<^esub> \<circ> \<H>\<^bsub>T\<^sub>1\<^esub>"
-  shows "T\<^sub>1 +\<^sub>T T\<^sub>2 \<approx>\<^sub>T T\<^sub>2 +\<^sub>T T\<^sub>1"
-proof -
-  have "T\<^sub>1 = uthy" "T\<^sub>2 = uthy"
-    by blast+
-  thus ?thesis
-    using assms by (simp add: uth_eq_def prod_hcond_def)
-qed
+sublocale complete_lattice "utp_order \<H>"
+  by (simp add: uthy_lattice)
 
-lemma uthy_plus_assoc: "T\<^sub>1 +\<^sub>T (T\<^sub>2 +\<^sub>T T\<^sub>3) \<approx>\<^sub>T (T\<^sub>1 +\<^sub>T T\<^sub>2) +\<^sub>T T\<^sub>3"
-  by (simp add: uth_eq_def prod_hcond_def comp_def)
-
-lemma uthy_plus_idem: "utp_theory T \<Longrightarrow> T +\<^sub>T T \<approx>\<^sub>T T"
-  by (simp add: uth_eq_def prod_hcond_def Healthy_def utp_theory.HCond_Idem utp_theory.uthy_simp)
-
-locale utp_theory_lattice = utp_theory \<T> + complete_lattice "uthy_order \<T>" for \<T> :: "('\<T>, '\<alpha>) uthy" (structure)
+declare top_closed [simp del]
+declare bottom_closed [simp del]
 
 text \<open> The healthiness conditions of a UTP theory lattice form a complete lattice, and allows us to make
   use of complete lattice results from HOL-Algebra, such as the Knaster-Tarski theorem. We can also
   retrieve lattice operators as below. \<close>
 
-abbreviation utp_top ("\<^bold>\<top>\<index>")
-where "utp_top \<T> \<equiv> top (uthy_order \<T>)"
+abbreviation utp_top ("\<^bold>\<top>")
+where "utp_top \<equiv> top (utp_order \<H>)"
 
-abbreviation utp_bottom ("\<^bold>\<bottom>\<index>")
-where "utp_bottom \<T> \<equiv> bottom (uthy_order \<T>)"
+abbreviation utp_bottom ("\<^bold>\<bottom>")
+where "utp_bottom \<equiv> bottom (utp_order \<H>)"
 
-abbreviation utp_join (infixl "\<^bold>\<squnion>\<index>" 65) where
-"utp_join \<T> \<equiv> join (uthy_order \<T>)"
+abbreviation utp_join (infixl "\<^bold>\<squnion>" 65) where
+"utp_join \<equiv> join (utp_order \<H>)"
 
-abbreviation utp_meet (infixl "\<^bold>\<sqinter>\<index>" 70) where
-"utp_meet \<T> \<equiv> meet (uthy_order \<T>)"
+abbreviation utp_meet (infixl "\<^bold>\<sqinter>" 70) where
+"utp_meet \<equiv> meet (utp_order \<H>)"
 
-abbreviation utp_sup ("\<^bold>\<Squnion>\<index>_" [90] 90) where
-"utp_sup \<T> \<equiv> Lattice.sup (uthy_order \<T>)"
+abbreviation utp_sup ("\<^bold>\<Squnion>_" [90] 90) where
+"utp_sup \<equiv> Lattice.sup (utp_order \<H>)"
 
-abbreviation utp_inf ("\<^bold>\<Sqinter>\<index>_" [90] 90) where
-"utp_inf \<T> \<equiv> Lattice.inf (uthy_order \<T>)"
+abbreviation utp_inf ("\<^bold>\<Sqinter>_" [90] 90) where
+"utp_inf \<equiv> Lattice.inf (utp_order \<H>)"
 
-abbreviation utp_gfp ("\<^bold>\<nu>\<index>") where
-"utp_gfp \<T> \<equiv> GREATEST_FP (uthy_order \<T>)"
+abbreviation utp_gfp ("\<^bold>\<nu>") where
+"utp_gfp \<equiv> GREATEST_FP (utp_order \<H>)"
 
-abbreviation utp_lfp ("\<^bold>\<mu>\<index>") where
-"utp_lfp \<T> \<equiv> LEAST_FP (uthy_order \<T>)"
+abbreviation utp_lfp ("\<^bold>\<mu>") where
+"utp_lfp \<equiv> LEAST_FP (utp_order \<H>)"
+
+end
 
 syntax
   "_tmu" :: "logic \<Rightarrow> pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<mu>\<index> _ \<bullet> _" [0, 10] 10)
@@ -243,8 +170,8 @@ notation gfp ("\<mu>")
 notation lfp ("\<nu>")
 
 translations
-  "\<^bold>\<mu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_lfp T (\<lambda> X. P)"  
-  "\<^bold>\<nu>\<^bsub>T\<^esub> X \<bullet> P" == "CONST utp_gfp T (\<lambda> X. P)"
+  "\<^bold>\<mu>\<^bsub>H\<^esub> X \<bullet> P" == "CONST LEAST_FP (CONST utp_order H) (\<lambda> X. P)"  
+  "\<^bold>\<nu>\<^bsub>H\<^esub> X \<bullet> P" == "CONST GREATEST_FP (CONST utp_order H) (\<lambda> X. P)"
 
 lemma upred_lattice_inf:
   "Lattice.inf \<P> A = \<Sqinter> A"
@@ -299,27 +226,24 @@ locale utp_theory_mono = utp_theory +
 
 sublocale utp_theory_mono \<subseteq> utp_theory_lattice
 proof -
-  text \<open> We can then use the Knaster-Tarski theorem to obtain a complete lattice, and thus
-    provide all the usual properties. \<close>
-
   interpret weak_complete_lattice "fpl \<P> \<H>"
-    by (rule Knaster_Tarski, auto simp add: upred_lattice.weak.weak_complete_lattice_axioms)
+    by (rule Knaster_Tarski, auto)
 
   have "complete_lattice (fpl \<P> \<H>)"
     by (unfold_locales, simp add: fps_def sup_exists, (blast intro: sup_exists inf_exists)+)
 
-  hence "complete_lattice (uthy_order \<T>)"
+  hence "complete_lattice (utp_order \<H>)"
     by (simp add: utp_order_def, simp add: upred_lattice_def)
 
-  thus "utp_theory_lattice \<T>"
-    by (simp add: utp_theory_axioms utp_theory_lattice_def)
+  thus "utp_theory_lattice \<H>"
+    by (simp add: utp_theory_axioms utp_theory_lattice.intro utp_theory_lattice_axioms.intro)
 qed
-
-context utp_theory_mono
-begin
 
 text \<open> In a monotone theory, the top and bottom can always be obtained by applying the healthiness
   condition to the predicate top and bottom, respectively. \<close>
+
+context utp_theory_mono
+begin
 
 lemma healthy_top: "\<^bold>\<top> = \<H>(false)"
 proof -
@@ -348,17 +272,8 @@ qed
 lemma healthy_inf:
   assumes "A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
   shows "\<^bold>\<Sqinter> A = \<H> (\<Sqinter> A)"
-proof -
-  have 1: "weak_complete_lattice (uthy_order \<T>)"
-    by (simp add: weak.weak_complete_lattice_axioms)
-  have 2: "Mono\<^bsub>uthy_order \<T>\<^esub> \<H>"
-    by (simp add: HCond_Mono isotone_utp_orderI)
-  have 3: "Idem\<^bsub>uthy_order \<T>\<^esub> \<H>"
-    by (simp add: HCond_Idem idempotent_def)
-  show ?thesis
-    using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
-    by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
-qed
+  using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
+  by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
 
 end
 
@@ -484,7 +399,7 @@ lemma upower_Suc_Healthy [closure]:
 
 end
 
-locale utp_theory_cont_rel = utp_theory_continuous + utp_theory_rel
+locale utp_theory_cont_rel = utp_theory_rel + utp_theory_continuous
 begin
 
   lemma seq_cont_Sup_distl:
@@ -514,40 +429,37 @@ begin
 
 end
 
-text \<open> There also exist UTP theories with units, and the following operator is a theory specific
-  operator for them. \<close>
+text \<open> There also exist UTP theories with units. Not all theories have both a left and a right unit 
+  (e.g. H1-H2 designs) and so we split up the locale into two cases. \<close>
 
-consts
-  utp_unit  :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" ("\<I>\<I>\<index>")
+locale utp_theory_units =
+  utp_theory_rel +
+  fixes utp_unit ("\<I>\<I>")
+  assumes Healthy_Unit [closure]: "\<I>\<I> is \<H>"
+begin
 
 text \<open> We can characterise the theory Kleene star by lifting the relational one. \<close>
 
-definition utp_star ("_\<^bold>\<star>\<index>" [999] 999) where
-[upred_defs]: "utp_star \<T> P = (P\<^sup>\<star> ;; \<I>\<I>\<^bsub>\<T>\<^esub>)"
+definition utp_star ("_\<^bold>\<star>" [999] 999) where
+[upred_defs]: "utp_star P = (P\<^sup>\<star> ;; \<I>\<I>)"
 
 text \<open> We can then characterise tests as refinements of units. \<close>
 
-definition utest :: "('\<T>, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" where
-[upred_defs]: "utest \<T> b = (\<I>\<I>\<^bsub>\<T>\<^esub> \<sqsubseteq> b)"
+definition utp_test :: "'a hrel \<Rightarrow> bool" where
+[upred_defs]: "utp_test b = (\<I>\<I> \<sqsubseteq> b)"
 
-text \<open> Not all theories have both a left and a right unit (e.g. H1-H2 designs) and so we split
-  up the locale into two cases. \<close>
+end
 
 locale utp_theory_left_unital =
-  utp_theory_rel +
-  assumes Healthy_Left_Unit [closure]: "\<I>\<I> is \<H>"
-  and Left_Unit: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
+  utp_theory_units +
+  assumes Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
 
 locale utp_theory_right_unital =
-  utp_theory_rel +
-  assumes Healthy_Right_Unit [closure]: "\<I>\<I> is \<H>"
-  and Right_Unit: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
+  utp_theory_units +
+  assumes Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
 
 locale utp_theory_unital =
-  utp_theory_rel +
-  assumes Healthy_Unit [closure]: "\<I>\<I> is \<H>"
-  and Unit_Left: "P is \<H> \<Longrightarrow> (\<I>\<I> ;; P) = P"
-  and Unit_Right: "P is \<H> \<Longrightarrow> (P ;; \<I>\<I>) = P"
+  utp_theory_left_unital + utp_theory_right_unital
 begin
 
 lemma Unit_self [simp]:
@@ -555,27 +467,21 @@ lemma Unit_self [simp]:
   by (simp add: Healthy_Unit Unit_Right)
 
 lemma utest_intro:
-  "\<I>\<I> \<sqsubseteq> P \<Longrightarrow> utest \<T> P"
-  by (simp add: utest_def)
+  "\<I>\<I> \<sqsubseteq> P \<Longrightarrow> utp_test P"
+  by (simp add: utp_test_def)
 
 lemma utest_Unit [closure]:
-  "utest \<T> \<I>\<I>"
-  by (simp add: utest_def)
+  "utp_test \<I>\<I>"
+  by (simp add: utp_test_def)
 
 end
 
-sublocale utp_theory_unital \<subseteq> utp_theory_left_unital
-  by (simp add: Healthy_Unit Unit_Left Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_left_unital_axioms_def utp_theory_left_unital_def)
-
-sublocale utp_theory_unital \<subseteq> utp_theory_right_unital
-  by (simp add: Healthy_Unit Unit_Right Healthy_Sequence utp_theory_rel_def utp_theory_axioms utp_theory_rel_axioms_def utp_theory_right_unital_axioms_def utp_theory_right_unital_def)
-
-locale utp_theory_mono_unital = utp_theory_mono + utp_theory_unital
+locale utp_theory_mono_unital = utp_theory_unital + utp_theory_mono
 begin
 
-lemma utest_Top [closure]:
-  "utest \<T> \<^bold>\<top>"
-  by (simp add: Healthy_Unit utest_def utp_top)
+lemma utest_Top [closure]: "utp_test \<^bold>\<top>"
+  by (simp add: Healthy_Unit utp_test_def utp_top)
+
 end
 
 locale utp_theory_cont_unital = utp_theory_cont_rel + utp_theory_unital
@@ -585,6 +491,7 @@ sublocale utp_theory_cont_unital \<subseteq> utp_theory_mono_unital
 
 locale utp_theory_unital_zerol =
   utp_theory_unital +
+  utp_theory_lattice +
   assumes Top_Left_Zero: "P is \<H> \<Longrightarrow> \<^bold>\<top> ;; P = \<^bold>\<top>"
 
 locale utp_theory_cont_unital_zerol =
@@ -592,11 +499,11 @@ locale utp_theory_cont_unital_zerol =
 begin
   
 lemma Top_test_Right_Zero:
-  assumes "b is \<H>" "utest \<T> b"
+  assumes "b is \<H>" "utp_test b"
   shows "b ;; \<^bold>\<top> = \<^bold>\<top>"
 proof -
   have "b \<sqinter> \<I>\<I> = \<I>\<I>"
-    by (meson assms(2) semilattice_sup_class.le_iff_sup utest_def)
+    by (meson assms(2) semilattice_sup_class.le_iff_sup utp_test_def)
   then show ?thesis
     by (metis (no_types) Top_Left_Zero Unit_Left assms(1) meet_top top_healthy upred_semiring.distrib_right)
 qed
@@ -605,52 +512,21 @@ end
 
 subsection \<open> Theory of relations \<close>
 
-text \<open> We can exemplify the creation of a UTP theory with the theory of relations, a trivial theory. \<close>
-
-typedecl REL
-abbreviation "REL \<equiv> UTHY(REL, '\<alpha>)"
-
-text \<open> We declare the type @{type REL} to be the tag for this theory. We need know nothing about
-  this type (other than it's non-empty), since it is merely a name. We also create the corresponding
-  constant to refer to the theory. Then we can use it to instantiate the relevant polymorphic
-  constants. \<close>
-
-overloading
-  rel_hcond == "utp_hcond :: (REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) health"
-  rel_unit == "utp_unit :: (REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel"
-begin
-
-  text \<open> The healthiness condition of a relation is simply identity, since every alphabetised
-    relation is healthy. \<close>
-
-  definition rel_hcond :: "(REL, '\<alpha>) uthy \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred \<Rightarrow> ('\<alpha> \<times> '\<alpha>) upred" where
-  [upred_defs]: "rel_hcond T = id"
-
-  text \<open> The unit of the theory is simply the relational unit. \<close>
-
-  definition rel_unit :: "(REL, '\<alpha>) uthy \<Rightarrow> '\<alpha> hrel" where
-  [upred_defs]: "rel_unit T = II"
-    
-end
-
-text \<open> Finally we can show that relations are a monotone and unital theory using a locale interpretation,
-  which requires that we prove all the relevant properties. It's convenient to rewrite some
-  of the theorems so that the provisos are more UTP like; e.g. that the carrier is the
-  set of healthy predicates. \<close>
-
-interpretation rel_theory: utp_theory_mono_unital REL
-  rewrites "carrier (uthy_order REL) = \<lbrakk>id\<rbrakk>\<^sub>H"
-  by (unfold_locales, simp_all add: rel_hcond_def rel_unit_def Healthy_def)
-    
-text \<open> We can then, for instance, determine what the top and bottom of our new theory is. \<close>
-
-lemma REL_top: "\<^bold>\<top>\<^bsub>REL\<^esub> = false"
-  by (simp add: rel_theory.healthy_top, simp add: rel_hcond_def)
-
-lemma REL_bottom: "\<^bold>\<bottom>\<^bsub>REL\<^esub> = true"
-  by (simp add: rel_theory.healthy_bottom, simp add: rel_hcond_def)
-
-text \<open> A number of theorems have been exported, such at the fixed point unfolding laws. \<close>
+interpretation rel_theory: utp_theory_mono_unital id skip_r
+  rewrites "rel_theory.utp_top = false"
+  and "rel_theory.utp_bottom = true"
+  and "carrier (utp_order id) = UNIV"
+  and "(P is id) = True"
+proof -
+  show "utp_theory_mono_unital id II"
+    by (unfold_locales, simp_all add: Healthy_def)
+  then interpret utp_theory_mono_unital id skip_r
+    by simp
+  show "utp_top = false" "utp_bottom = true"
+    by (simp_all add: healthy_top healthy_bottom)
+  show "carrier (utp_order id) = UNIV" "(P is id) = True"
+    by (auto simp add: utp_order_def Healthy_def)
+qed
 
 thm rel_theory.GFP_unfold
 
@@ -661,9 +537,6 @@ text \<open> We can also describe links between theories, such a Galois connecti
 
 definition mk_conn ("_ \<Leftarrow>\<langle>_,_\<rangle>\<Rightarrow> _" [90,0,0,91] 91) where
 "H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2 \<equiv> \<lparr> orderA = utp_order H1, orderB = utp_order H2, lower = \<H>\<^sub>2, upper = \<H>\<^sub>1 \<rparr>"
-
-abbreviation mk_conn' ("_ \<leftarrow>\<langle>_,_\<rangle>\<rightarrow> _" [90,0,0,91] 91) where
-"T1 \<leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<rightarrow> T2 \<equiv> \<H>\<^bsub>T1\<^esub> \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> \<H>\<^bsub>T2\<^esub>"
 
 lemma mk_conn_orderA [simp]: "\<X>\<^bsub>H1 \<Leftarrow>\<langle>\<H>\<^sub>1,\<H>\<^sub>2\<rangle>\<Rightarrow> H2\<^esub> = utp_order H1"
   by (simp add:mk_conn_def)

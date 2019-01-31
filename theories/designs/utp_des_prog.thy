@@ -50,7 +50,6 @@ lemma assigns_d_comp:
   by (simp add: assigns_d_def rdesign_composition assigns_comp)
 
 lemma assigns_d_comp_ext:
-  fixes P :: "'\<alpha> hrel_des"
   assumes "P is \<^bold>H"
   shows "(\<langle>\<sigma>\<rangle>\<^sub>D ;; P) = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
 proof -
@@ -62,7 +61,7 @@ proof -
     by (rel_auto)
   also have "... = \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P"
     by (metis H1_H2_commute H1_H2_is_rdesign H2_idem Healthy_def' assms)
-  finally show ?thesis .
+  finally show ?thesis by (simp_all add: closure assms)
 qed
 
 text {* Normal designs are closed under substitutions on state variables only *}

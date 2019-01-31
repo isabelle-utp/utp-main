@@ -164,9 +164,9 @@ lemma Star_invol:
   by (metis (no_types) RA1 Unit_Left Unit_self assms urel_ka.star_invol urel_ka.star_sim3 utp_star_def)
 
 lemma Star_test: 
-  assumes "P is \<H>" "utest \<T> P"
+  assumes "P is \<H>" "utp_test P"
   shows "P\<^bold>\<star> = \<I>\<I>"
-  by (metis utp_star_def Star_alt_def Unit_Right Unit_self assms semilattice_sup_class.sup.absorb1 semilattice_sup_class.sup_left_idem urel_ka.star_inductr_var_eq2 urel_ka.star_sim1 utest_def)
+  by (metis utp_star_def Star_alt_def Unit_Right Unit_self assms semilattice_sup_class.sup.absorb1 semilattice_sup_class.sup_left_idem urel_ka.star_inductr_var_eq2 urel_ka.star_sim1 utp_test_def)
 
 lemma Star_lemma_1:
   "P is \<H> \<Longrightarrow> \<I>\<I> ;; P\<^sup>\<star> ;; \<I>\<I> = P\<^sup>\<star> ;; \<I>\<I>"
