@@ -388,7 +388,7 @@ translations
   
 definition IterateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" where
 [upred_defs, ndes_simp]:
-"IterateD A g P = (\<^bold>\<mu>\<^bsub>NDES\<^esub> X \<bullet> if i\<in>A \<bullet> g(i) \<rightarrow> P(i) ;; X else II\<^sub>D fi)"
+"IterateD A g P = (\<mu>\<^sub>N X \<bullet> if i\<in>A \<bullet> g(i) \<rightarrow> P(i) ;; X else II\<^sub>D fi)"
 
 definition IterateD_list :: "('\<alpha> upred \<times> '\<alpha> hrel_des) list \<Rightarrow> '\<alpha> hrel_des" where 
 [upred_defs, ndes_simp]:
@@ -413,7 +413,7 @@ qed
 
 lemma IterateD_empty:
   "do i\<in>{} \<bullet> g(i) \<rightarrow> P(i) od = II\<^sub>D"
-  by (simp add: IterateD_def AlternateD_empty normal_design_theory_continuous.LFP_const skip_d_is_H1_H3)
+  by (simp add: IterateD_def AlternateD_empty ndes_theory.LFP_const skip_d_is_H1_H3)
 
 lemma IterateD_list_single_expand:
   "do b \<rightarrow> P od = (\<^bold>\<mu>\<^bsub>NDES\<^esub> X \<bullet> if b \<rightarrow> P ;; X else II\<^sub>D fi)"
@@ -433,12 +433,11 @@ lemma IterateD_mono_refine:
     "\<And> i. P i is \<^bold>N" "\<And> i. Q i is \<^bold>N"
     "\<And> i. P i \<sqsubseteq> Q i"
   shows "(do i\<in>A \<bullet> g(i) \<rightarrow> P(i) od) \<sqsubseteq> (do i\<in>A \<bullet> g(i) \<rightarrow> Q(i) od)"
-  apply (simp add: IterateD_def normal_design_theory_continuous.utp_lfp_def)
-  apply (subst normal_design_theory_continuous.utp_lfp_def)
+  apply (simp add: IterateD_def ndes_theory.utp_lfp_def)
+  apply (subst ndes_theory.utp_lfp_def)
   apply (simp_all add: closure assms)
-  apply (subst normal_design_theory_continuous.utp_lfp_def)
+  apply (subst ndes_theory.utp_lfp_def)
   apply (simp_all add: closure assms)
-  apply (simp add: ndes_hcond_def)
   apply (rule gfp_mono)
   apply (rule AlternateD_mono_refine)
   apply (simp_all add: closure seqr_mono assms)

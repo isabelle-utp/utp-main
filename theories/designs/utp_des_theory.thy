@@ -6,12 +6,10 @@ begin
   
 subsection {* UTP theories *}
 
-declare [[show_sorts]]
-
-interpretation des_theory: utp_theory_continuous "\<^bold>H :: ('\<alpha> des \<times> '\<alpha> des) health"
-  rewrites "\<And> P :: '\<alpha> hrel_des. P \<in> carrier (utp_order \<^bold>H) \<longleftrightarrow> P is \<^bold>H"
-  and "le (utp_order \<^bold>H) = (\<sqsubseteq>)"
-  and "eq (utp_order \<^bold>H) = (=)"  
+interpretation des_theory: utp_theory_continuous "\<^bold>H"
+  rewrites "P \<in> carrier des_theory.thy_order \<longleftrightarrow> P is \<^bold>H"
+  and "le des_theory.thy_order = (\<sqsubseteq>)"
+  and "eq des_theory.thy_order = (=)"  
   and des_top: "des_theory.utp_top = \<top>\<^sub>D"
   and des_bottom: "des_theory.utp_bottom = \<bottom>\<^sub>D"
 proof -
@@ -23,13 +21,12 @@ proof -
     by (simp_all add: H1_H2_false healthy_top H1_H2_true healthy_bottom)
 qed (simp_all)
 
-interpretation ndes_theory: utp_theory_continuous "\<^bold>N :: ('\<alpha> des \<times> '\<alpha> des) health"
-  rewrites "\<And> P :: '\<alpha> hrel_des. P \<in> carrier (utp_order \<^bold>N) \<longleftrightarrow> P is \<^bold>N"
-  and "carrier (utp_order \<^bold>N) = \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
-  and "le (utp_order \<^bold>N) = (\<sqsubseteq>)"
-  and "eq (utp_order \<^bold>N) = (=)"  
+interpretation ndes_theory: utp_theory_continuous "\<^bold>N"
+  rewrites "P \<in> carrier ndes_theory.thy_order \<longleftrightarrow> P is \<^bold>N"
+  and "le ndes_theory.thy_order = (\<sqsubseteq>)"
+  and "eq ndes_theory.thy_order = (=)"  
   and ndes_top: "ndes_theory.utp_top = \<top>\<^sub>D"
-  and ndes_bot: "ndes_theory.utp_bottom = \<bottom>\<^sub>D"
+  and ndes_bottom: "ndes_theory.utp_bottom = \<bottom>\<^sub>D"
 proof -
   show "utp_theory_continuous \<^bold>N"
     by (unfold_locales, simp_all add: H1_H3_idempotent H1_H3_Continuous)
@@ -126,10 +123,14 @@ notation ndes_theory.utp_gfp ("\<nu>\<^sub>N")
 syntax
   "_dmu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>D _ \<bullet> _" [0, 10] 10)
   "_dnu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>D _ \<bullet> _" [0, 10] 10)
+  "_ndmu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>N _ \<bullet> _" [0, 10] 10)
+  "_ndnu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>N _ \<bullet> _" [0, 10] 10)
 
 translations
   "\<mu>\<^sub>D X \<bullet> P" == "\<mu>\<^sub>D (\<lambda> X. P)"
   "\<nu>\<^sub>D X \<bullet> P" == "\<nu>\<^sub>D (\<lambda> X. P)"
+  "\<mu>\<^sub>N X \<bullet> P" == "\<mu>\<^sub>N (\<lambda> X. P)"
+  "\<nu>\<^sub>N X \<bullet> P" == "\<nu>\<^sub>N (\<lambda> X. P)"
 
 thm des_theory.LFP_unfold
 thm des_theory.GFP_unfold
@@ -174,9 +175,9 @@ proof -
     case (less st)
     hence 0: "(P \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> \<mu>\<^sub>D F"
       by rel_blast
-    from M H des_theory.LFP_lemma3 mono_Monotone_utp_order
+    from M H
     have 1: "\<mu>\<^sub>D F \<sqsubseteq>  F (\<mu>\<^sub>D F)"
-      by blast
+      by (simp add: des_theory.LFP_lemma3 mono_Monotone_utp_order)
     from 0 1 have 2:"(P \<and> (\<lceil>e\<rceil>\<^sub><,\<guillemotleft>st\<guillemotright>)\<^sub>u\<in>\<^sub>u\<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> F (\<mu>\<^sub>D F)"
       by simp
     have 3: "F ((P \<and> (\<lceil>e\<rceil>\<^sub><, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>) \<turnstile>\<^sub>r Q) \<sqsubseteq> F (\<mu>\<^sub>D F)"
@@ -184,8 +185,8 @@ proof -
     have 4:"(P \<and> \<lceil>e\<rceil>\<^sub>< =\<^sub>u \<guillemotleft>st\<guillemotright>) \<turnstile>\<^sub>r Q \<sqsubseteq> \<dots>" 
       by (rule induct_step)
     show ?case
-      using order_trans[OF 3 4] H M des_theory.LFP_lemma2 dual_order.trans mono_Monotone_utp_order 
-      by blast
+      using order_trans[OF 3 4] H M des_theory.LFP_lemma2 dual_order.trans mono_Monotone_utp_order
+      by (metis (no_types) partial_object.simps(1) utp_order_def)
   qed
   }
   thus ?thesis
@@ -228,7 +229,7 @@ proof -
       by (rule induct_step)
     show ?case
       using order_trans[OF 3 4] H M ndes_theory.LFP_lemma2 dual_order.trans mono_Monotone_utp_order 
-      by blast
+      by (metis (no_types) partial_object.simps(1) utp_order_def)
   qed
   }
   thus ?thesis

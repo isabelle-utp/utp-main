@@ -848,11 +848,11 @@ lemma RP_skip:
   "RP(II) = II"
   by (simp add: R1_skip R2c_skip_r R3_skipr RP_def)
 
-lemma RP_skip_closure:
+lemma RP_skip_closure [closure]:
   "II is RP"
   by (simp add: Healthy_def' RP_skip)
 
-lemma RP_seq_closure:
+lemma RP_seq_closure [closure]:
   assumes "P is RP" "Q is RP"
   shows "(P ;; Q) is RP"
 proof (rule RP_intro)
@@ -866,35 +866,25 @@ qed
 
 subsection \<open> UTP theories \<close>
 
-typedecl REA
-abbreviation "REA \<equiv> UTHY(REA, ('t::trace,'\<alpha>) rp)"
-
-overloading
-  rea_hcond == "utp_hcond :: (REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  rea_unit == "utp_unit :: (REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
-begin
-  definition rea_hcond :: "(REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  where [upred_defs]: "rea_hcond T = RP"
-  definition rea_unit :: "(REA, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
-  where [upred_defs]: "rea_unit T = II"
-end
-
-interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::trace,'\<alpha>) rp)"
-  rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
-  by (simp_all add: rea_hcond_def utp_theory_def RP_idem)
-
-interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::trace,'\<alpha>) rp)"
-  rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
-  by (unfold_locales, simp_all add: RP_Continuous rea_hcond_def)
-
-interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::trace,'\<alpha>) rp)"
-  rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
-  by (unfold_locales, simp_all add: rea_hcond_def rea_unit_def RP_seq_closure RP_skip_closure)
-
-lemma rea_top: "\<^bold>\<top>\<^bsub>REA\<^esub> = ($wait \<and> II)"
+interpretation rea_theory: utp_theory_continuous RP
+  rewrites "P \<in> carrier rea_theory.thy_order \<longleftrightarrow> P is RP"
+  and "le des_theory.thy_order = (\<sqsubseteq>)"
+  and "eq des_theory.thy_order = (=)"  
 proof -
-  have "\<^bold>\<top>\<^bsub>REA\<^esub> = RP(false)"
-    by (simp add: rea_utp_theory_mono.healthy_top, simp add: rea_hcond_def)
+  show "utp_theory_continuous RP"
+    by (unfold_locales, simp_all add: RP_idem RP_Continuous)
+qed (simp_all)
+
+notation rea_theory.utp_top ("\<^bold>\<top>\<^sub>r")
+notation rea_theory.utp_bottom ("\<^bold>\<bottom>\<^sub>r")
+
+interpretation rea_theory_rel: utp_theory_unital RP skip_r
+  by (unfold_locales, simp_all add: closure)
+
+lemma rea_top: "\<^bold>\<top>\<^sub>r = ($wait \<and> II)"
+proof -
+  have "\<^bold>\<top>\<^sub>r = RP(false)"
+    by (simp add: rea_theory.healthy_top)
   also have "... = ($wait \<and> II)"
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
@@ -902,23 +892,23 @@ qed
 
 lemma rea_top_left_zero:
   assumes "P is RP"
-  shows "(\<^bold>\<top>\<^bsub>REA\<^esub> ;; P) = \<^bold>\<top>\<^bsub>REA\<^esub>"
+  shows "(\<^bold>\<top>\<^sub>r ;; P) = \<^bold>\<top>\<^sub>r"
 proof -
-  have "(\<^bold>\<top>\<^bsub>REA\<^esub> ;; P) = (($wait \<and> II) ;; R3(P))"
+  have "(\<^bold>\<top>\<^sub>r ;; P) = (($wait \<and> II) ;; R3(P))"
     by (metis (no_types, lifting) Healthy_def R1_R2c_is_R2 R2_R3_commute R3_idem RP_def assms rea_top)
   also have "... = ($wait \<and> R3(P))"
     by (rel_auto)
   also have "... = ($wait \<and> II)"
     by (metis R3_skipr wait_R3)
-  also have "... = \<^bold>\<top>\<^bsub>REA\<^esub>"
+  also have "... = \<^bold>\<top>\<^sub>r"
     by (simp add: rea_top)
   finally show ?thesis .
 qed
 
-lemma rea_bottom: "\<^bold>\<bottom>\<^bsub>REA\<^esub> = R1($wait \<Rightarrow> II)"
+lemma rea_bottom: "\<^bold>\<bottom>\<^sub>r = R1($wait \<Rightarrow> II)"
 proof -
-  have "\<^bold>\<bottom>\<^bsub>REA\<^esub> = RP(true)"
-    by (simp add: rea_utp_theory_mono.healthy_bottom, simp add: rea_hcond_def)
+  have "\<^bold>\<bottom>\<^sub>r = RP(true)"
+    by (simp add: rea_theory.healthy_bottom)
   also have "... = R1($wait \<Rightarrow> II)"
     by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .

@@ -111,6 +111,8 @@ locale utp_theory =
   assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
 
+  abbreviation thy_order :: "'\<alpha> hrel gorder" where
+  "thy_order \<equiv> utp_order \<H>"
 
   text \<open> A UTP theory fixes @{term "\<T>"}, the structural element denoting the UTP theory. All
     constants associated with UTP theories can then be resolved by the type system. \<close>
@@ -120,6 +122,11 @@ begin
 
   sublocale utp_po: partial_order "utp_order \<H>"
     by (unfold_locales, simp_all add: utp_order_def)
+
+  text \<open> We need to remove some transitivity rules to stop them being applied in calculations \<close>
+
+  declare utp_po.trans [trans del]
+
 end
 
 locale utp_theory_lattice = utp_theory + 

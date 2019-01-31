@@ -67,6 +67,6 @@ lemma conj_hoare_rp [hoare_safe]:
 
 lemma iter_hoare_rp [hoare_safe]: 
   "\<lbrace>I\<rbrace> P \<lbrace>I\<rbrace>\<^sub>r \<Longrightarrow> \<lbrace>I\<rbrace> P\<^sup>\<star>\<^sup>r \<lbrace>I\<rbrace>\<^sub>r"
-  by (simp add: star_hoare_rp utp_star_def rrel_unit_def seq_inv_hoare_rp skip_hoare_rp)
+  by (metis rrel_theory.utp_star_def seq_hoare_rp skip_hoare_rp star_hoare_rp)
     
 end
