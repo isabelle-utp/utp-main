@@ -189,10 +189,10 @@ lemma AssumeR_refine_skip: "II\<^sub>R \<sqsubseteq> [b]\<^sup>\<top>\<^sub>R"
   by (rdes_refine)
 
 lemma AssumeR_test [closure]: "test\<^sub>R [b]\<^sup>\<top>\<^sub>R"
-  by (simp add: AssumeR_refine_skip nsrd_thy.utest_intro)
+  by (simp add: AssumeR_refine_skip nsrdes_theory.utest_intro)
 
 lemma Star_AssumeR: "[b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R = II\<^sub>R"
-  by (simp add: AssumeR_NSRD AssumeR_test nsrd_thy.Star_test)
+  by (simp add: StarR_def AssumeR_NSRD AssumeR_test nsrdes_theory.Star_test)
 
 lemma AssumeR_choice_skip: "II\<^sub>R \<sqinter> [b]\<^sup>\<top>\<^sub>R = II\<^sub>R"
   by (rdes_eq)
@@ -236,7 +236,7 @@ lemma gcmd_true[simp]: "(true \<rightarrow>\<^sub>R A) = A"
 lemma gcmd_SRD: 
   assumes "A is SRD"
   shows "(g \<rightarrow>\<^sub>R A) is SRD"
-  by (simp add: gcmd_def SRD_cond_srea assms srdes_theory_continuous.weak.top_closed)
+  by (simp add: gcmd_def SRD_cond_srea assms srdes_theory.top_closed)
 
 lemma gcmd_NSRD [closure]: 
   assumes "A is NSRD"
@@ -614,7 +614,7 @@ proof -
       case 0
       thm if_eq_cancel
       then show ?case
-        by (simp, metis srdes_hcond_def srdes_theory_continuous.healthy_top) 
+        by (simp, metis srdes_theory.healthy_top) 
     next
       case (Suc i)
       show ?case
@@ -625,12 +625,12 @@ proof -
         also have "... = P ;; SRD ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
           using Suc.hyps by auto
         also have "... = P ;; ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
-          by (metis (no_types, lifting) Healthy_if NSRD_cond_srea NSRD_is_SRD NSRD_power_Suc NSRD_srd_skip SRD_cond_srea SRD_seqr_closure assms(1) power.power_eq_if seqr_left_unit srdes_theory_continuous.top_closed)
+          by (metis (no_types, lifting) Healthy_if NSRD_cond_srea NSRD_is_SRD NSRD_power_Suc NSRD_srd_skip SRD_cond_srea SRD_seqr_closure assms(1) power.power_eq_if seqr_left_unit srdes_theory.top_closed)
         also have "... = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ Suc i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
         proof (induct i)
           case 0
           then show ?case
-            by (simp add: NSRD_is_SRD SRD_cond_srea SRD_left_unit SRD_seqr_closure SRD_srdes_skip assms(1) cond_L6 cond_st_distr srdes_theory_continuous.top_closed)
+            by (simp add: NSRD_is_SRD SRD_cond_srea SRD_left_unit SRD_seqr_closure SRD_srdes_skip assms(1) cond_L6 cond_st_distr srdes_theory.top_closed)
         next
           case (Suc i)
           have 1: "II\<^sub>R ;; ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i) = ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) ;; (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i)"
@@ -664,14 +664,14 @@ proof -
   also have "... = ((P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star> ;; II\<^sub>R) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
     by (simp add: seqr_assoc SRD_left_unit closure assms)
   also have "... = (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-    by (simp add: nsrd_thy.Star_def)
+    by (simp add: StarR_def nsrdes_theory.Star_def)
   finally show ?thesis .
 qed
 
 lemma WhileR_NSRD_closed [closure]:
   assumes "P is NSRD" "P is Productive"
   shows "while\<^sub>R b do P od is NSRD"
-  by (simp add: WhileR_star_expand assms closure)
+  by (simp add: StarR_def WhileR_star_expand assms closure)
 
 theorem WhileR_iter_form_lemma:
   assumes "P is NSRD"
@@ -680,11 +680,11 @@ proof -
   have "(P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) = (([b]\<^sup>\<top>\<^sub>R ;; P) \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
     by (simp add: AssumeR_NSRD NSRD_right_unit NSRD_srd_skip assms(1) cond_srea_AssumeR_form)
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-    by (simp add: AssumeR_NSRD NSRD_seqr_closure nsrd_thy.Star_denest assms(1))
+    by (simp add: StarR_def AssumeR_NSRD NSRD_seqr_closure nsrdes_theory.Star_denest assms(1))
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-    by (metis (no_types, hide_lams) RD3_def RD3_idem Star_AssumeR nsrd_thy.Star_def)
+    by (metis (no_types, hide_lams) StarR_def RD3_def RD3_idem Star_AssumeR nsrdes_theory.Star_def)
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-    by (simp add: AssumeR_NSRD NSRD_seqr_closure nsrd_thy.Star_invol assms(1))
+    by (simp add: StarR_def AssumeR_NSRD NSRD_seqr_closure nsrdes_theory.Star_invol assms(1))
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; (([b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle) \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R)"
     by (simp add: AssumeR_NSRD NSRD_Miracle NSRD_right_unit NSRD_seqr_closure NSRD_srd_skip assms(1) cond_srea_AssumeR_form)
   also have "... = ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle) \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not>b]\<^sup>\<top>\<^sub>R)"
@@ -692,9 +692,9 @@ proof -
   also have "... = ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   proof -
     have "(([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not>b]\<^sup>\<top>\<^sub>R = (II\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P)) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
-      by (simp add: AssumeR_NSRD NSRD_seqr_closure nsrd_thy.Star_unfoldr_eq assms(1))
+      by (simp add: StarR_def AssumeR_NSRD NSRD_seqr_closure nsrdes_theory.Star_unfoldr_eq assms(1))
     also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P) ;; [\<not> b]\<^sup>\<top>\<^sub>R)"
-      by (metis (no_types, lifting) AssumeR_NSRD AssumeR_as_gcmd NSRD_srd_skip Star_AssumeR nsrd_thy.Star_slide gcmd_seq_distr skip_srea_self_unit urel_dioid.distrib_right')
+      by (metis (no_types, lifting) StarR_def AssumeR_NSRD AssumeR_as_gcmd NSRD_srd_skip Star_AssumeR nsrdes_theory.Star_slide gcmd_seq_distr skip_srea_self_unit urel_dioid.distrib_right')
     also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [b \<or> \<not> b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R)"
       by (simp add: AssumeR_true NSRD_right_unit assms(1))
     also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R)
@@ -724,8 +724,8 @@ theorem WhileR_outer_refine_intro:
     "P is NSRD" "P is Productive"
     "S \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>R ;; P) ;; S" "S \<sqsubseteq> [\<not> b]\<^sup>\<top>\<^sub>R"
   shows "S \<sqsubseteq> while\<^sub>R b do P od"
-  apply (simp add: assms WhileR_iter_form)
-  apply (rule nsrd_thy.Star_inductl)
+  apply (simp add: assms StarR_def WhileR_iter_form)
+  apply (rule nsrdes_theory.Star_inductl)
   apply (simp_all add: closure assms)
   done
 
@@ -740,15 +740,15 @@ proof -
   have "S \<sqsubseteq> I ;; (([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   proof -
     have "S \<sqsubseteq> I ;; ([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R"
-      by (metis (no_types, hide_lams) AssumeR_NSRD NSRD_seqr_closure RA1 assms(1) assms(2) assms(5) assms(6) nsrd_thy.Star_inductr semilattice_sup_class.le_sup_iff)
+      by (metis (no_types, hide_lams) StarR_def AssumeR_NSRD NSRD_seqr_closure RA1 assms(1) assms(2) assms(5) assms(6) nsrdes_theory.Star_inductr semilattice_sup_class.le_sup_iff)
     thus ?thesis
-      by (metis (no_types, lifting) AssumeR_NSRD AssumeR_refine_skip NSRD_right_unit NSRD_seqr_closure assms(1) dual_order.trans nsrd_thy.Star_Healthy urel_dioid.mult_isol)      
+      by (metis (no_types, lifting) AssumeR_NSRD AssumeR_seq_refines StarR_def assms(1) dual_order.trans nsrdes_theory.Healthy_Sequence nsrdes_theory.utp_theory_kleene_axioms urel_dioid.mult_isol utp_theory_kleene.Star_Healthy)
   qed
   moreover have "S \<sqsubseteq> I ;; II\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R"
-    by (simp add: AssumeR_NSRD assms nsrd_thy.Unit_Left)
+    by (simp add: AssumeR_NSRD assms nsrdes_theory.Unit_Left)
   ultimately show ?thesis
-    apply (simp add: assms WhileR_iter_form)
-    apply (subst nsrd_thy.Star_unfoldl_eq[THEN sym])
+    apply (simp add: assms WhileR_iter_form StarR_def)
+    apply (subst nsrdes_theory.Star_unfoldl_eq[THEN sym])
      apply (auto simp add: closure assms seqr_inf_distr)
     done
 qed
@@ -756,7 +756,7 @@ qed
 theorem WhileR_false:
   assumes "P is NSRD"
   shows "while\<^sub>R false do P od = II\<^sub>R"
-  by (simp add: WhileR_def rpred closure srdes_theory_continuous.LFP_const)
+  by (simp add: WhileR_def rpred closure srdes_theory.LFP_const)
 
 theorem WhileR_true:
   assumes "P is NSRD" "P is Productive"
@@ -800,14 +800,14 @@ proof (simp add: rdes_def assms, rule srdes_tri_refine_intro')
   show "P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2)"
   proof -
     have "P\<^sub>2 \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>2"
-      by (simp add: assms rea_assume_RR rrel_thy.Star_inductl seq_RR_closed seqr_assoc)
+      by (simp add: assms rea_assume_RR rrel_theory.Star_inductl seq_RR_closed seqr_assoc)
     thus ?thesis
       by (simp add: utp_pred_laws.le_infI2)
   qed
   show "P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)"
   proof -
     have "P\<^sub>3 \<sqsubseteq> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r"
-      by (simp add: assms rea_assume_RR rrel_thy.Star_inductl seqr_assoc)
+      by (simp add: assms rea_assume_RR rrel_theory.Star_inductl seqr_assoc)
     thus ?thesis
       by (simp add: utp_pred_laws.le_infI2)
   qed
@@ -1063,10 +1063,9 @@ lemma R_D_mono:
   shows "\<^bold>R\<^sub>D(P) \<sqsubseteq> \<^bold>R\<^sub>D(Q)"
   apply (simp add: des_rea_lift_def)
   apply (rule srdes_tri_refine_intro')
-    apply (auto intro: H1_H2_refines assms aext_mono)
-   apply (rel_auto)
-  apply (metis (no_types, hide_lams) aext_mono assms(3) design_post_choice
-      semilattice_sup_class.sup.orderE utp_pred_laws.inf.coboundedI1 utp_pred_laws.inf.commute utp_pred_laws.sup.order_iff)
+  apply (meson aext_mono assms(3) design_refine_thms(1) refBy_order)
+  apply (rel_auto)
+  apply (smt aext_and aext_mono assms(1) assms(2) assms(3) rdesign_ref_monos(2) utp_pred_laws.inf.cobounded2 utp_pred_laws.inf.coboundedI2 utp_pred_laws.inf_left_commute utp_pred_laws.le_inf_iff) 
   done
 
 text {* Homomorphism laws *}

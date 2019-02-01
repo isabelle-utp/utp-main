@@ -547,35 +547,29 @@ subsection \<open> UTP theories \<close>
 text \<open> We create two theory objects: one for reactive designs and one for stateful reactive
         designs. \<close>
 
-typedecl RDES
-typedecl SRDES
+interpretation rdes_theory: utp_theory_continuous RD
+  rewrites "P \<in> carrier rdes_theory.thy_order \<longleftrightarrow> P is RD"
+  and "carrier rdes_theory.thy_order \<rightarrow> carrier rdes_theory.thy_order \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
+  and "le rdes_theory.thy_order = (\<sqsubseteq>)"
+  and "eq rdes_theory.thy_order = (=)"  
+proof -
+  show "utp_theory_continuous RD"
+    by (unfold_locales, simp_all add: RD_idem RD_Continuous)
+qed (simp_all)
 
-abbreviation "RDES \<equiv> UTHY(RDES, ('t::trace,'\<alpha>) rp)"
-abbreviation "SRDES \<equiv> UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
-
-overloading
-  rdes_hcond   == "utp_hcond :: (RDES, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  srdes_hcond   == "utp_hcond :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
-begin
-  definition rdes_hcond :: "(RDES, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
-  [upred_defs]: "rdes_hcond T = RD"
-  definition srdes_hcond :: "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
-  [upred_defs]: "srdes_hcond T = SRD"
-end
-
-interpretation rdes_theory: utp_theory "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
-  by (unfold_locales, simp_all add: rdes_hcond_def RD_idem)
-
-interpretation rdes_theory_continuous: utp_theory_continuous "UTHY(RDES, ('t::trace,'\<alpha>) rp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order RDES) \<longleftrightarrow> P is RD"
-  and "carrier (uthy_order RDES) \<rightarrow> carrier (uthy_order RDES) \<equiv> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
-  and "le (uthy_order RDES) = (\<sqsubseteq>)"
-  and "eq (uthy_order RDES) = (=)"
-  by (unfold_locales, simp_all add: rdes_hcond_def RD_Continuous)
+interpretation srdes_theory: utp_theory_continuous SRD
+  rewrites "P \<in> carrier srdes_theory.thy_order \<longleftrightarrow> P is SRD"
+  and "carrier srdes_theory.thy_order \<rightarrow> carrier srdes_theory.thy_order \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
+  and "le srdes_theory.thy_order = (\<sqsubseteq>)"
+  and "eq srdes_theory.thy_order = (=)"  
+proof -
+  show "utp_theory_continuous SRD"
+    by (unfold_locales, simp_all add: SRD_idem SRD_Continuous)
+qed (simp_all)
 
 interpretation rdes_rea_galois:
-  galois_connection "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
-proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order rdes_hcond_def rea_hcond_def)
+  galois_connection "(RD \<Leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<Rightarrow> RP)"
+proof (simp add: mk_conn_def, rule galois_connectionI', simp_all add: utp_partial_order)
   show "R3 \<in> \<lbrakk>RD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RP\<rbrakk>\<^sub>H"
     by (metis (no_types, lifting) Healthy_def' Pi_I R3_RD_RP RP_idem mem_Collect_eq)
   show "RD1 \<circ> RD2 \<in> \<lbrakk>RP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RD\<rbrakk>\<^sub>H"
@@ -603,40 +597,24 @@ next
 qed
 
 interpretation rdes_rea_retract:
-  retract "(RDES \<leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<rightarrow> REA)"
-  by (unfold_locales, simp_all add: mk_conn_def utp_partial_order rdes_hcond_def rea_hcond_def)
+  retract "(RD \<Leftarrow>\<langle>RD1 \<circ> RD2,R3\<rangle>\<Rightarrow> RP)"
+  by (unfold_locales, simp_all add: mk_conn_def utp_partial_order)
      (metis Healthy_if R3_RD_RP RD_def RP_idem eq_refl)
 
-interpretation srdes_theory: utp_theory "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
-  by (unfold_locales, simp_all add: srdes_hcond_def SRD_idem)
-
-interpretation srdes_theory_continuous: utp_theory_continuous "UTHY(SRDES, ('s,'t::trace,'\<alpha>) rsp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order SRDES) \<longleftrightarrow> P is SRD"
-  and "P is \<H>\<^bsub>SRDES\<^esub> \<longleftrightarrow> P is SRD"
-  and "(\<mu> X \<bullet> F (\<H>\<^bsub>SRDES\<^esub> X)) = (\<mu> X \<bullet> F (SRD X))"
-  and "carrier (uthy_order SRDES) \<rightarrow> carrier (uthy_order SRDES) \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
-  and "\<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>SRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
-  and "le (uthy_order SRDES) = (\<sqsubseteq>)"
-  and "eq (uthy_order SRDES) = (=)"
-  by (unfold_locales, simp_all add: srdes_hcond_def SRD_Continuous)
-
-declare srdes_theory_continuous.top_healthy [simp del]
-declare srdes_theory_continuous.bottom_healthy [simp del]
-
 abbreviation Chaos :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
-"Chaos \<equiv> \<^bold>\<bottom>\<^bsub>SRDES\<^esub>"
+"Chaos \<equiv> srdes_theory.utp_bottom"
 
 abbreviation Miracle :: "('s,'t::trace,'\<alpha>) hrel_rsp" where
-"Miracle \<equiv> \<^bold>\<top>\<^bsub>SRDES\<^esub>"
+"Miracle \<equiv> srdes_theory.utp_top"
 
-thm srdes_theory_continuous.weak.bottom_lower
-thm srdes_theory_continuous.weak.top_higher
-thm srdes_theory_continuous.meet_bottom
-thm srdes_theory_continuous.meet_top
+thm srdes_theory.weak.bottom_lower
+thm srdes_theory.weak.top_higher
+thm srdes_theory.meet_bottom
+thm srdes_theory.meet_top
 
-abbreviation srd_lfp ("\<mu>\<^sub>R") where "\<mu>\<^sub>R F \<equiv> \<^bold>\<mu>\<^bsub>SRDES\<^esub> F"
+abbreviation srd_lfp ("\<mu>\<^sub>R") where "\<mu>\<^sub>R F \<equiv> srdes_theory.utp_lfp F"
 
-abbreviation srd_gfp ("\<nu>\<^sub>R") where "\<nu>\<^sub>R F \<equiv> \<^bold>\<nu>\<^bsub>SRDES\<^esub> F"
+abbreviation srd_gfp ("\<nu>\<^sub>R") where "\<nu>\<^sub>R F \<equiv> srdes_theory.utp_gfp F"
 
 syntax
   "_srd_mu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>R _ \<bullet> _" [0, 10] 10)
@@ -651,6 +629,6 @@ text \<open> The reactive design weakest fixed-point can be defined in terms of 
 lemma srd_mu_equiv:
   assumes "Monotonic F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<mu>\<^sub>R X \<bullet> F(X)) = (\<mu> X \<bullet> F(SRD(X)))"
-  by (metis assms srdes_hcond_def srdes_theory_continuous.utp_lfp_def)
+  by (metis assms srdes_theory.utp_lfp_def)
 
 end

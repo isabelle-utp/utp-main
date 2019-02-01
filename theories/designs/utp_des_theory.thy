@@ -8,6 +8,7 @@ subsection {* UTP theories *}
 
 interpretation des_theory: utp_theory_continuous "\<^bold>H"
   rewrites "P \<in> carrier des_theory.thy_order \<longleftrightarrow> P is \<^bold>H"
+  and "carrier des_theory.thy_order \<rightarrow> carrier des_theory.thy_order \<equiv> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>H\<rbrakk>\<^sub>H"
   and "le des_theory.thy_order = (\<sqsubseteq>)"
   and "eq des_theory.thy_order = (=)"  
   and des_top: "des_theory.utp_top = \<top>\<^sub>D"
@@ -23,6 +24,7 @@ qed (simp_all)
 
 interpretation ndes_theory: utp_theory_continuous "\<^bold>N"
   rewrites "P \<in> carrier ndes_theory.thy_order \<longleftrightarrow> P is \<^bold>N"
+  and "carrier ndes_theory.thy_order \<rightarrow> carrier ndes_theory.thy_order \<equiv> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<^bold>N\<rbrakk>\<^sub>H"
   and "le ndes_theory.thy_order = (\<sqsubseteq>)"
   and "eq ndes_theory.thy_order = (=)"  
   and ndes_top: "ndes_theory.utp_top = \<top>\<^sub>D"

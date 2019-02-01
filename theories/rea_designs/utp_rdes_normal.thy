@@ -126,9 +126,12 @@ lemma NSRD_is_SRD [closure]: "P is NSRD \<Longrightarrow> P is SRD"
 lemma NSRD_elim [RD_elim]: 
   "\<lbrakk> P is NSRD; Q(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: RD_elim closure)
-    
+
+lemma NSRD_idem: "NSRD(NSRD(P)) = NSRD(P)"
+  by (metis (no_types, hide_lams) Healthy_def NSRD_def RD1_RD2_commute RD1_RD3_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RD3_def RD3_idem RD3_left_subsumes_RD2 RHS_idem SRD_def comp_apply fun.map_comp srdes_left_unital.Healthy_Sequence srdes_left_unital.Healthy_Unit)
+  
 lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
-  by (clarsimp simp add: Idempotent_def NSRD_def, metis (no_types, hide_lams) Healthy_def RD1_RD3_commute RD3_def RD3_idem RD3_left_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
+  by (simp add: Idempotent_def NSRD_idem)
 
 lemma NSRD_Continuous [closure]: "Continuous NSRD"
   by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
@@ -706,7 +709,7 @@ theorem uplus_rdes_def [rdes_def]:
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>+ = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>r wp\<^sub>r P \<turnstile> (R\<^sup>\<star>\<^sup>r ;; Q) \<diamondop> R\<^sup>+)"
 proof -
   have 1:"(\<Sqinter> i \<bullet> R \<^bold>^ i) ;; Q = R\<^sup>\<star>\<^sup>r ;; Q"
-    by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rrel_thy.Star_def ustar_alt_def)
+    by (metis (no_types) RA1 assms(2) rea_skip_unit(2) rrel_theory.Star_def ustar_alt_def)
   show ?thesis
     by (simp add: uplus_power_def seq_UINF_distr wp closure assms rdes_def)
        (metis "1" seq_UINF_distr')       
@@ -714,57 +717,44 @@ qed
 
 subsection \<open> UTP theory \<close>
 
-typedecl NSRDES
+lemma NSRD_false: "NSRD false = Miracle"
+  by (metis Healthy_if NSRD_Miracle NSRD_alt_def NSRD_is_RD3 srdes_theory.healthy_top)
 
-abbreviation "NSRDES \<equiv> UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
-
-overloading
-  nsrdes_hcond  == "utp_hcond :: (NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health"
-  nsrdes_unit   == "utp_unit  :: (NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp"
-begin
-  definition nsrdes_hcond :: "(NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> (('s,'t,'\<alpha>) rsp \<times> ('s,'t,'\<alpha>) rsp) health" where
-  [upred_defs]: "nsrdes_hcond T = NSRD"
-  definition nsrdes_unit :: "(NSRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
-  [upred_defs]: "nsrdes_unit T = II\<^sub>R"
-end
-
-text \<open> Here, we show that normal stateful reactive designs form a Kleene UTP theory, and thus
-  a Kleene algebra~\cite{Kozen90,Armstrong2015}. This provides the basis for reasoning about 
-  iterative reactive contracts. \<close>
-
-interpretation nsrd_thy: utp_theory_kleene "UTHY(NSRDES, ('s,'t::trace,'\<alpha>) rsp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order NSRDES) \<longleftrightarrow> P is NSRD"
-  and "P is \<H>\<^bsub>NSRDES\<^esub> \<longleftrightarrow> P is NSRD"
-  and "(\<mu> X \<bullet> F (\<H>\<^bsub>NSRDES\<^esub> X)) = (\<mu> X \<bullet> F (NSRD X))"
-  and "carrier (uthy_order NSRDES) \<rightarrow> carrier (uthy_order NSRDES) \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
-  and "\<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>NSRDES\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
-  and "\<^bold>\<top>\<^bsub>NSRDES\<^esub> = Miracle"
-  and "\<I>\<I>\<^bsub>NSRDES\<^esub> = II\<^sub>R"
-  and "le (uthy_order NSRDES) = (\<sqsubseteq>)"
+lemma NSRD_true: "NSRD true = Chaos"
+  by (metis Healthy_if NSRD_Chaos NSRD_alt_def NSRD_is_RD3 srdes_theory.healthy_bottom)
+ 
+interpretation nsrdes_theory: utp_theory_kleene NSRD II\<^sub>R
+  rewrites "P \<in> carrier nsrdes_theory.thy_order \<longleftrightarrow> P is NSRD"
+  and "carrier nsrdes_theory.thy_order \<rightarrow> carrier nsrdes_theory.thy_order \<equiv> \<lbrakk>NSRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NSRD\<rbrakk>\<^sub>H"
+  and "le nsrdes_theory.thy_order = (\<sqsubseteq>)"
+  and "eq nsrdes_theory.thy_order = (=)"
+  and nsrdes_top: "nsrdes_theory.utp_top = Miracle" 
+  and nsrdes_bottom: "nsrdes_theory.utp_bottom = Chaos"
 proof -
-  interpret lat: utp_theory_continuous "UTHY(NSRDES, ('s,'t,'\<alpha>) rsp)"
-    by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if)
-  show 1: "\<^bold>\<top>\<^bsub>NSRDES\<^esub> = (Miracle :: ('s,'t,'\<alpha>) hrel_rsp)"
-    by (metis NSRD_Miracle NSRD_is_SRD lat.top_healthy lat.utp_theory_continuous_axioms nsrdes_hcond_def srdes_theory_continuous.meet_top upred_semiring.add_commute utp_theory_continuous.meet_top)
-    
-  thus "utp_theory_kleene UTHY(NSRDES, ('s,'t,'\<alpha>) rsp)"
-    by (unfold_locales, simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if Miracle_left_zero SRD_left_unit NSRD_right_unit)
-qed (simp_all add: nsrdes_hcond_def nsrdes_unit_def closure Healthy_if)
-
-declare nsrd_thy.top_healthy [simp del]
-declare nsrd_thy.bottom_healthy [simp del]
+  have "utp_theory_continuous NSRD"
+    by (unfold_locales, simp_all add: NSRD_idem NSRD_Continuous)
+  then interpret utp_theory_continuous NSRD
+    by simp
+  show t: "utp_top = Miracle" and b:"utp_bottom = Chaos"
+    by (simp_all add: healthy_top healthy_bottom NSRD_false NSRD_true)
+  show "utp_theory_kleene NSRD II\<^sub>R"
+    by (unfold_locales, simp_all add: closure srdes_left_unital.Unit_Left NSRD_right_unit Miracle_left_zero t)
+qed (simp_all)
 
 abbreviation TestR ("test\<^sub>R") where
-"test\<^sub>R P \<equiv> utest NSRDES P"
+"test\<^sub>R P \<equiv> nsrdes_theory.utp_test P"
 
-abbreviation StarR :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_\<^sup>\<star>\<^sup>R" [999] 999) where
-"StarR P \<equiv> P\<^bold>\<star>\<^bsub>NSRDES\<^esub>"
+definition StarR :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" ("_\<^sup>\<star>\<^sup>R" [999] 999) where
+"StarR \<equiv> nsrdes_theory.utp_star"
 
 text \<open> We also show how to calculate the Kleene closure of a reactive design. \<close>
+
+thm rdes_def
 
 lemma StarR_rdes_def [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR" "$st\<acute> \<sharp> Q"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>R = \<^bold>R\<^sub>s((R\<^sup>\<star>\<^sup>r wp\<^sub>r P) \<turnstile> (R\<^sup>\<star>\<^sup>r ;; Q) \<diamondop> R\<^sup>\<star>\<^sup>r)"
-  by (simp add: rrel_thy.Star_alt_def nsrd_thy.Star_alt_def assms closure rdes_def unrest rpred disj_upred_def)
+  by (simp add: StarR_def rrel_theory.Star_alt_def nsrdes_theory.Star_alt_def closure assms)
+     (simp add: rrel_theory.Star_alt_def assms closure rdes_def unrest rpred disj_upred_def)
 
 end

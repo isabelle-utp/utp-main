@@ -771,7 +771,7 @@ proof -
   moreover hence "cmt\<^sub>R(Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P) = false"
     by (simp add: rdes closure wait'_cond_idem SRD_healths assms)
   ultimately have "Miracle \<parallel>\<^sub>R\<^bsub>M\<^esub> P = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
-    by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
+    by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory.weak.top_closed)
   thus ?thesis
     by (simp add: Miracle_def R1_design_R1_pre)
 qed
@@ -785,7 +785,7 @@ proof -
   moreover hence "cmt\<^sub>R(P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle) = false"
     by (simp add: wait'_cond_idem rdes closure SRD_healths assms)
   ultimately have "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Miracle = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false)"
-    by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory_continuous.weak.top_closed)
+    by (metis NSRD_iff SRD_reactive_design_alt assms par_rdes_NSRD srdes_theory.weak.top_closed)
   thus ?thesis
     by (simp add: Miracle_def R1_design_R1_pre)
 qed
