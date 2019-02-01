@@ -1260,7 +1260,7 @@ lemma rename_extChoice:
 
 lemma interleave_commute:
   "P ||| Q = Q ||| P"
-  using parallel_commutative zero_lens_indep by blast
+  by (auto intro: parallel_commutative zero_lens_indep)
 
 lemma interleave_unit:
   assumes "P is CPROC"

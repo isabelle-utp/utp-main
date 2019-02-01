@@ -656,52 +656,35 @@ lemma Miracle_ICSP [closure]: "Miracle is ICSP"
 
 subsection {* CSP theories *}
 
-typedecl TCSP
+lemma NCSP_false: "NCSP false = Miracle"
+  by (simp add: NCSP_def srdes_theory.healthy_top[THEN sym], simp add: closure Healthy_if)
 
-abbreviation "TCSP \<equiv> UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
-
-overloading
-  tcsp_hcond   == "utp_hcond :: (TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> (('\<sigma>,'\<phi>) sfrd \<times> ('\<sigma>,'\<phi>) sfrd) health"
-  tcsp_unit    == "utp_unit :: (TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action"
-begin
-  definition tcsp_hcond :: "(TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> (('\<sigma>,'\<phi>) sfrd \<times> ('\<sigma>,'\<phi>) sfrd) health" where
-  [upred_defs]: "tcsp_hcond T = NCSP"
-  definition tcsp_unit :: "(TCSP, ('\<sigma>,'\<phi>) sfrd) uthy \<Rightarrow> ('\<sigma>, '\<phi>) action" where
-  [upred_defs]: "tcsp_unit T = Skip"
-end
-
-interpretation csp_theory: utp_theory_kleene "UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order TCSP) \<longleftrightarrow> P is NCSP"
-  and "P is \<H>\<^bsub>TCSP\<^esub> \<longleftrightarrow> P is NCSP"
-  and "\<I>\<I>\<^bsub>TCSP\<^esub> = Skip"
-  and "\<^bold>\<top>\<^bsub>TCSP\<^esub> = Miracle"
-  and "carrier (uthy_order TCSP) \<rightarrow> carrier (uthy_order TCSP) \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
-  and "A \<subseteq> carrier (uthy_order TCSP) \<longleftrightarrow> A \<subseteq> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
-  and "le (uthy_order TCSP) = (\<sqsubseteq>)"
+lemma NCSP_true: "NCSP true = Chaos"
+  by (simp add: NCSP_def srdes_theory.healthy_bottom[THEN sym], simp add: closure Healthy_if)
+ 
+interpretation csp_theory: utp_theory_kleene NCSP Skip
+  rewrites "P \<in> carrier csp_theory.thy_order \<longleftrightarrow> P is NCSP"
+  and "carrier csp_theory.thy_order \<rightarrow> carrier csp_theory.thy_order \<equiv> \<lbrakk>NCSP\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>NCSP\<rbrakk>\<^sub>H"
+  and "le csp_theory.thy_order = (\<sqsubseteq>)"
+  and "eq csp_theory.thy_order = (=)"
+  and csp_top: "csp_theory.utp_top = Miracle" 
+  and csp_bottom: "csp_theory.utp_bottom = Chaos"
 proof -
-  interpret lat: utp_theory_continuous "UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
-    by (unfold_locales, simp_all add: tcsp_hcond_def closure Healthy_if)
-  show 1: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = (Miracle :: ('\<sigma>,'\<phi>) action)"
-    by (metis NCSP_Miracle NCSP_implies_CSP lat.top_healthy lat.utp_theory_continuous_axioms srdes_theory_continuous.meet_top tcsp_hcond_def upred_semiring.add_commute utp_theory_continuous.meet_top)
-    
-  thus "utp_theory_kleene UTHY(TCSP, ('\<sigma>,'\<phi>) sfrd)"
-    by (unfold_locales, simp_all add: tcsp_hcond_def tcsp_unit_def Skip_left_unit Skip_right_unit closure Healthy_if Miracle_left_zero  )
-qed (simp_all add: tcsp_hcond_def tcsp_unit_def closure Healthy_if)
-
-declare csp_theory.top_healthy [simp del]
-declare csp_theory.bottom_healthy [simp del]
+  have "utp_theory_continuous NCSP"
+    by (unfold_locales, simp_all add: Healthy_Idempotent Healthy_if NCSP_Idempotent NCSP_Continuous)
+  then interpret utp_theory_continuous NCSP
+    by simp
+  show t: "utp_top = Miracle" and b:"utp_bottom = Chaos"
+    by (simp_all add: healthy_top healthy_bottom NCSP_false NCSP_true)
+  show "utp_theory_kleene NCSP Skip"
+    by (unfold_locales, simp_all add: closure Skip_left_unit Skip_right_unit Miracle_left_zero t)
+qed (simp_all)
 
 abbreviation TestC ("test\<^sub>C") where
-"test\<^sub>C P \<equiv> utest TCSP P"
+"test\<^sub>C P \<equiv> csp_theory.utp_test P"
 
 abbreviation StarC :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" ("_\<^sup>\<star>\<^sup>C" [999] 999) where
-"StarC P \<equiv> P\<^bold>\<star>\<^bsub>TCSP\<^esub>"
-
-lemma csp_bottom_Chaos: "\<^bold>\<bottom>\<^bsub>TCSP\<^esub> = Chaos"
-  using NCSP_Chaos NCSP_implies_CSP by auto
-
-lemma csp_top_Miracle: "\<^bold>\<top>\<^bsub>TCSP\<^esub> = Miracle"
-  by (simp add: csp_theory.healthy_top csp_theory.utp_theory_mono_axioms utp_theory_mono.healthy_top)
+"StarC P \<equiv> csp_theory.utp_star P"
 
 subsection \<open> Algebraic laws \<close>
 
