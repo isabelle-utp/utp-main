@@ -8,7 +8,7 @@ begin
 
 subsection \<open> Merge predicates \<close>
 
-definition CSPInnerMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>C") where
+definition CSPInnerMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("N\<^sub>C") where
   [upred_defs]:
   "CSPInnerMerge ns1 cs ns2 = (
     $ref\<acute> \<subseteq>\<^sub>u (($0-ref \<union>\<^sub>u $1-ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0-ref \<inter>\<^sub>u $1-ref) - \<guillemotleft>cs\<guillemotright>) \<and>
@@ -17,7 +17,7 @@ definition CSPInnerMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarro
     ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
     $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
 
-definition CSPInnerInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("N\<^sub>I") where
+definition CSPInnerInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("N\<^sub>I") where
   [upred_defs]:
   "N\<^sub>I ns1 ns2 = (
     $ref\<acute> \<subseteq>\<^sub>u ($0-ref \<inter>\<^sub>u $1-ref) \<and>
@@ -112,10 +112,10 @@ lemma CSPInnerMerge_empty_Interleave:
   "N\<^sub>C ns1 {} ns2 = N\<^sub>I ns1 ns2"
   by (rel_auto)
 
-definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>C") where
+definition CSPMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("M\<^sub>C") where
 [upred_defs]: "M\<^sub>C ns1 cs ns2 = M\<^sub>R(N\<^sub>C ns1 cs ns2) ;; Skip"
 
-definition CSPInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) st_csp) merge" ("M\<^sub>I") where
+definition CSPInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("M\<^sub>I") where
 [upred_defs]: "M\<^sub>I ns1 ns2 = M\<^sub>R(N\<^sub>I ns1 ns2) ;; Skip"
 
 lemma swap_CSPInnerMerge:
@@ -1260,7 +1260,7 @@ lemma rename_extChoice:
 
 lemma interleave_commute:
   "P ||| Q = Q ||| P"
-  using parallel_commutative zero_lens_indep by blast
+  by (auto intro: parallel_commutative zero_lens_indep)
 
 lemma interleave_unit:
   assumes "P is CPROC"

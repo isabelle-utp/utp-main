@@ -17,8 +17,8 @@ lemma OIH_design:
   assumes "D is H1_H2"
   shows "OIH(\<psi>)(D) = ((\<not> D\<^sup>f) \<turnstile> (D\<^sup>t \<and> \<psi>))"
 proof -
-  have "OIH(\<psi>)(D) = (((\<not> D\<^sup>f) \<turnstile> D\<^sup>t) \<and> ($ok \<and> \<not> D\<^sup>f \<Rightarrow> \<psi>))"
-    by (metis H1_H2_commute H1_H2_is_design H1_idem Healthy_def' OIH_def assms)
+  from assms have "OIH(\<psi>)(D) = (((\<not> D\<^sup>f) \<turnstile> D\<^sup>t) \<and> ($ok \<and> \<not> D\<^sup>f \<Rightarrow> \<psi>))"
+    by (metis H1_H2_commute H1_H2_is_design H1_idem Healthy_def' OIH_def)
   also have "... = (($ok \<and> \<not> D\<^sup>f \<Rightarrow> $ok\<acute> \<and> D\<^sup>t) \<and> ($ok \<and> \<not> D\<^sup>f \<Rightarrow> \<psi>))"
     by (simp add: design_def)
   also have "... = ((\<not> D\<^sup>f) \<turnstile> (D\<^sup>t \<and> \<psi>))"

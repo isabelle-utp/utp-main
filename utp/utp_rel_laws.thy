@@ -781,7 +781,7 @@ lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
 lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
   by (induct n, rel_auto+)
 
-subsubsection \<open> Kleene Star \<close>
+subsection \<open> Kleene Star \<close>
 
 definition ustar :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("_\<^sup>\<star>" [999] 999) where
 "P\<^sup>\<star> = (\<Sqinter>i\<in>{0..} \<bullet> P\<^bold>^i)"

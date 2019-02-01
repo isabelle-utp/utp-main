@@ -386,6 +386,12 @@ lemma H1_H2_monotonic [closure]: "Monotonic \<^bold>H"
 lemma H1_H2_Continuous [closure]: "Continuous \<^bold>H"
   by (simp add: Continuous_comp H1_Continuous H1_H2_comp H2_Continuous)
 
+lemma H1_H2_false: "\<^bold>H false = \<top>\<^sub>D"
+  by (rel_auto)
+
+lemma H1_H2_true: "\<^bold>H true = \<bottom>\<^sub>D"
+  by (rel_auto)
+
 lemma design_is_H1_H2 [closure]:
   "\<lbrakk> $ok\<acute> \<sharp> P; $ok\<acute> \<sharp> Q \<rbrakk> \<Longrightarrow> (P \<turnstile> Q) is \<^bold>H"
   by (simp add: H1_design H2_design Healthy_def')
@@ -661,6 +667,12 @@ lemma H1_H3_monotonic [closure]: "Monotonic \<^bold>N"
 
 lemma H1_H3_Continuous [closure]: "Continuous \<^bold>N"
   by (simp add: Continuous_comp H1_Continuous H1_H3_comp H3_Continuous)
+
+lemma H1_H3_false: "\<^bold>N false = \<top>\<^sub>D"
+  by (rel_auto)
+
+lemma H1_H3_true: "\<^bold>N true = \<bottom>\<^sub>D"
+  by (rel_auto)
 
 lemma H1_H3_intro:
   assumes "P is \<^bold>H" "out\<alpha> \<sharp> pre\<^sub>D(P)"

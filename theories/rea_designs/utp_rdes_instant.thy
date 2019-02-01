@@ -145,7 +145,7 @@ lemma ISRD_recurse_Chaos:
   shows "(\<mu>\<^sub>R X \<bullet> P ;; X) = Chaos"
 proof -
   have 1: "(\<mu>\<^sub>R X \<bullet> P ;; X) = (\<mu> X \<bullet> P ;; SRD(X))"
-    by (auto simp add: srdes_theory_continuous.utp_lfp_def closure assms)
+    by (auto simp add: srdes_theory.utp_lfp_def closure assms)
   have "(\<mu> X \<bullet> P ;; SRD(X)) \<sqsubseteq> Chaos"
   proof (rule gfp_upperbound)
     have "P ;; Chaos \<sqsubseteq> Chaos"
@@ -154,10 +154,10 @@ proof -
        apply (rel_auto)+
       done
     thus "P ;; SRD Chaos \<sqsubseteq> Chaos"
-      by (simp add: Healthy_if srdes_theory_continuous.bottom_closed)
+      by (simp add: Healthy_if srdes_theory.bottom_closed)
   qed
   thus ?thesis
-    by (metis "1" dual_order.antisym srdes_theory_continuous.LFP_closed srdes_theory_continuous.bottom_lower)
+    by (metis "1" dual_order.antisym srdes_theory.LFP_closed srdes_theory.bottom_lower)
 qed
 
 lemma recursive_assign_Chaos:

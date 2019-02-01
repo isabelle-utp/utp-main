@@ -301,11 +301,11 @@ proof -
     proof (induct i)
       case 0
       then show ?case
-        by (simp, metis srdes_hcond_def srdes_theory_continuous.healthy_top)
+        by (simp, metis srdes_theory.healthy_top)
     next
       case (Suc i)
       then show ?case
-        by (simp add: Healthy_if NSRD_is_SRD SRD_power_comp SRD_seqr_closure assms(1) seqr_assoc[THEN sym] srdes_theory_continuous.weak.top_closed)
+        by (simp add: Healthy_if NSRD_is_SRD SRD_power_comp SRD_seqr_closure assms(1) seqr_assoc[THEN sym] srdes_theory.top_closed)
     qed
   qed
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"

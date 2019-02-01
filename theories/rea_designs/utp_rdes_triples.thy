@@ -985,8 +985,7 @@ lemma SRD_UINF [rdes_def]:
   shows "\<Sqinter> A = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
 proof -
   have "\<Sqinter> A = \<^bold>R\<^sub>s(pre\<^sub>R(\<Sqinter> A) \<turnstile> peri\<^sub>R(\<Sqinter> A) \<diamondop> post\<^sub>R(\<Sqinter> A))"
-    by (metis SRD_as_reactive_tri_design assms srdes_hcond_def
-              srdes_theory_continuous.healthy_inf srdes_theory_continuous.healthy_inf_def)
+    by (metis SRD_as_reactive_tri_design assms srdes_theory.healthy_inf srdes_theory.healthy_inf_def)
   also have "... = \<^bold>R\<^sub>s((\<And> P\<in>A \<bullet> pre\<^sub>R(P)) \<turnstile> (\<Or> P\<in>A \<bullet> peri\<^sub>R(P)) \<diamondop> (\<Or> P\<in>A \<bullet> post\<^sub>R(P)))"
     by (simp add: preR_INF periR_INF postR_INF assms)
   finally show ?thesis .
@@ -1106,15 +1105,8 @@ lemma SRD_right_Miracle_tri_lemma:
 
 text \<open> Stateful reactive designs are left unital \<close>
 
-overloading
-  srdes_unit == "utp_unit :: (SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
-begin
-  definition srdes_unit :: "(SRDES, ('s,'t::trace,'\<alpha>) rsp) uthy \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
-  "srdes_unit T = II\<^sub>R"
-end
-
-interpretation srdes_left_unital: utp_theory_left_unital SRDES
-  by (unfold_locales, simp_all add: srdes_hcond_def srdes_unit_def SRD_seqr_closure SRD_srdes_skip SRD_left_unit)
+interpretation srdes_left_unital: utp_theory_left_unital "SRD" "II\<^sub>R"
+  by (unfold_locales, simp_all add: closure SRD_left_unit)
 
 subsection \<open> Recursion laws \<close>
 
@@ -1141,10 +1133,10 @@ lemma mu_srd_iter:
   assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
   shows "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X)))) = F(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R(F(X)) \<turnstile> peri\<^sub>R(F(X)) \<diamondop> post\<^sub>R(F(X))))"
   apply (subst gfp_unfold)
-  apply (simp add: mono_srd_iter assms)
+   apply (simp add: mono_srd_iter assms)
   apply (subst SRD_as_reactive_tri_design[THEN sym])
-  using Healthy_func assms(1) assms(2) mu_srd_SRD apply blast
-done
+  apply (simp add: Healthy_apply_closed SRD_as_reactive_design SRD_reactive_design_alt assms(1) assms(2) mu_srd_SRD)
+  done
 
 lemma mu_srd_form:
   assumes "mono F" "F \<in> \<lbrakk>SRD\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>SRD\<rbrakk>\<^sub>H"
@@ -1152,16 +1144,16 @@ lemma mu_srd_form:
 proof -
   have 1: "F (\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) is SRD"
     by (simp add: Healthy_apply_closed assms(1) assms(2) mu_srd_SRD)
-  have 2:"Mono\<^bsub>uthy_order SRDES\<^esub> F"
+  have 2:"Mono\<^bsub>utp_order SRD\<^esub> F"
     by (simp add: assms(1) mono_Monotone_utp_order)
   hence 3:"\<mu>\<^sub>R F = F (\<mu>\<^sub>R F)"
-    by (simp add: srdes_theory_continuous.LFP_unfold[THEN sym] assms)
+    by (simp add: srdes_theory.LFP_unfold[THEN sym] assms)
   hence "\<^bold>R\<^sub>s(pre\<^sub>R (F (F (\<mu>\<^sub>R F))) \<turnstile> peri\<^sub>R (F (F (\<mu>\<^sub>R F))) \<diamondop> post\<^sub>R (F (F (\<mu>\<^sub>R F)))) = \<mu>\<^sub>R F"
     using SRD_reactive_tri_design by force
   hence "(\<mu> X \<bullet> \<^bold>R\<^sub>s(pre\<^sub>R (F X) \<turnstile> peri\<^sub>R(F X) \<diamondop> post\<^sub>R (F X))) \<sqsubseteq> F (\<mu>\<^sub>R F)"
-    by (simp add: 2 srdes_theory_continuous.weak.LFP_lemma3 gfp_upperbound assms)
+    by (simp add: 2 srdes_theory.weak.LFP_lemma3 gfp_upperbound assms)
   thus ?thesis
-    using assms 1 3 srdes_theory_continuous.weak.LFP_lowerbound eq_iff mu_srd_iter
+    using assms 1 3 srdes_theory.weak.LFP_lowerbound eq_iff mu_srd_iter
     by (metis (mono_tags, lifting))
 qed
 

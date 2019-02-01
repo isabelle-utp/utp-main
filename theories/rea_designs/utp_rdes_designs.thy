@@ -12,7 +12,7 @@ lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<ac
 lemma Chaos_def: "Chaos = \<^bold>R\<^sub>s(false \<turnstile> true)"
 proof -
   have "Chaos = SRD(true)"
-    by (metis srdes_hcond_def srdes_theory_continuous.healthy_bottom)
+    by (metis srdes_theory.healthy_bottom)
   also have "... = \<^bold>R\<^sub>s(\<^bold>H(true))"
     by (simp add: SRD_RHS_H1_H2)
   also have "... = \<^bold>R\<^sub>s(false \<turnstile> true)"
@@ -23,7 +23,7 @@ qed
 lemma Miracle_def: "Miracle = \<^bold>R\<^sub>s(true \<turnstile> false)"
 proof -
   have "Miracle = SRD(false)"
-    by (metis srdes_hcond_def srdes_theory_continuous.healthy_top)
+    by (metis srdes_theory.healthy_top)
   also have "... = \<^bold>R\<^sub>s(\<^bold>H(false))"
     by (simp add: SRD_RHS_H1_H2)
   also have "... = \<^bold>R\<^sub>s(true \<turnstile> false)"

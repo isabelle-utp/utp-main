@@ -735,46 +735,29 @@ subsection \<open> UTP theory \<close>
 
 text \<open> We create a UTP theory of reactive relations which in particular provides Kleene star theorems \<close>
 
-typedecl RREL
-
-abbreviation "RREL \<equiv> UTHY(RREL, ('t::trace,'\<alpha>) rp)"
-
-overloading
-  rrel_hcond  == "utp_hcond :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  rrel_unit   == "utp_unit  :: (RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t, '\<alpha>) hrel_rp"
-begin
-  definition rrel_hcond :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health" where
-  [upred_defs]: "rrel_hcond T = RR"
-  definition rrel_unit :: "(RREL, ('t::trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp" where
-  [upred_defs]: "rrel_unit T = II\<^sub>r"
-end
-
-interpretation rrel_thy: utp_theory_kleene "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
-  rewrites "\<And> P. P \<in> carrier (uthy_order RREL) \<longleftrightarrow> P is RR"
-  and "P is \<H>\<^bsub>RREL\<^esub> \<longleftrightarrow> P is RR"
-  and "carrier (uthy_order RREL) \<rightarrow> carrier (uthy_order RREL) \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
-  and "\<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<^bsub>RREL\<^esub>\<rbrakk>\<^sub>H \<equiv> \<lbrakk>RR\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>RR\<rbrakk>\<^sub>H"
-  and "\<^bold>\<top>\<^bsub>RREL\<^esub> = false"
-  and "\<I>\<I>\<^bsub>RREL\<^esub> = II\<^sub>r"
-  and "le (uthy_order RREL) = (\<sqsubseteq>)"
+interpretation rrel_theory: utp_theory_kleene RR II\<^sub>r
+  rewrites "P \<in> carrier rrel_theory.thy_order \<longleftrightarrow> P is RR"
+  and "le rrel_theory.thy_order = (\<sqsubseteq>)"
+  and "eq rrel_theory.thy_order = (=)"  
+  and rrel_top: "rrel_theory.utp_top = false"
+  and rrel_bottom: "rrel_theory.utp_bottom = true\<^sub>r"
 proof -
-  interpret lat: utp_theory_continuous "UTHY(RREL, ('t::trace,'\<alpha>) rp)"
-    by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
-  show 1: "\<^bold>\<top>\<^bsub>RREL\<^esub> = (false :: ('t,'\<alpha>) hrel_rp)"
-    by (metis Healthy_if lat.healthy_top rea_no_RR rea_not_rea_true rea_true_RR rrel_hcond_def)
-  thus "utp_theory_kleene UTHY(RREL, ('t,'\<alpha>) rp)"
-    by (unfold_locales, simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
-qed (simp_all add: rrel_hcond_def rrel_unit_def closure Healthy_if rpred)
-
-declare rrel_thy.top_healthy [simp del]
-declare rrel_thy.bottom_healthy [simp del]
+  interpret utp_theory_continuous RR
+    by (unfold_locales, simp_all add: add: RR_idem RR_Continuous)
+  show top:"utp_top = false"
+    by (simp add: healthy_top, rel_auto)
+  show bot:"utp_bottom = true\<^sub>r"
+    by (simp add: healthy_bottom, rel_auto)
+  show "utp_theory_kleene RR II\<^sub>r"
+    by (unfold_locales, simp_all add: closure rpred top)
+qed (simp_all)
 
 abbreviation rea_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>r" [999] 999) where
-"P\<^sup>\<star>\<^sup>r \<equiv> P\<^bold>\<star>\<^bsub>RREL\<^esub>"
+"P\<^sup>\<star>\<^sup>r \<equiv> rrel_theory.utp_star P"
 
 text \<open> The supernova tactic explodes conjectures using the Kleene star laws and relational calculus \<close>
 
-method supernova = ((safe intro!: rrel_thy.Star_inductr rrel_thy.Star_inductl, simp_all add: closure) ; rel_auto)[1]
+method supernova = ((safe intro!: rrel_theory.Star_inductr rrel_theory.Star_inductl, simp_all add: closure) ; rel_auto)[1]
 
 subsection \<open> Instantaneous Reactive Relations \<close>
 
