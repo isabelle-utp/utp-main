@@ -114,9 +114,6 @@ begin
   abbreviation thy_order :: "'\<alpha> hrel gorder" where
   "thy_order \<equiv> utp_order \<H>"
 
-  text \<open> A UTP theory fixes @{term "\<T>"}, the structural element denoting the UTP theory. All
-    constants associated with UTP theories can then be resolved by the type system. \<close>
-
   lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
 
@@ -140,7 +137,7 @@ declare top_closed [simp del]
 declare bottom_closed [simp del]
 
 text \<open> The healthiness conditions of a UTP theory lattice form a complete lattice, and allows us to make
-  use of complete lattice results from HOL-Algebra, such as the Knaster-Tarski theorem. We can also
+  use of complete lattice results from HOL-Algebra~\cite{Ballarin17}, such as the Knaster-Tarski theorem. We can also
   retrieve lattice operators as below. \<close>
 
 abbreviation utp_top ("\<^bold>\<top>")

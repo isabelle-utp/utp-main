@@ -134,8 +134,9 @@ abbreviation conv_r :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('
 where "conv_r e \<equiv> e \<oplus>\<^sub>p swap\<^sub>L"
 
 text \<open> Assignment is defined using substitutions, where latter defines what each variable should
-  map to. The definition of the operator identifies the after state binding, $b'$, with the 
-  substitution function applied to the before state binding $b$. \<close>
+  map to. This approach, which is originally due to Back~\cite{Back1998}, permits more general 
+  assignment expressions. The definition of the operator identifies the after state binding, $b'$, 
+  with the substitution function applied to the before state binding $b$. \<close>
   
 lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
   is "\<lambda> \<sigma> (b, b'). b' = \<sigma>(b)" .
