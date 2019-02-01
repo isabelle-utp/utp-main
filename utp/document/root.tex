@@ -70,16 +70,16 @@
 \section{Introduction}
 
 This document contains the description of our mechanisation of Hoare and He's \emph{Unifying Theories of
-  Programming}~\cite{Hoare&98,Cavalcanti&06} (UTP) in Isabelle/HOL. UTP uses the ``programs-as-predicate'' approach to
-encode denotational semantics and facilitate reasoning about programs. It uses the alphabetised relational calculus,
-which combines predicate calculus and relation algebra, to denote programs as relations between initial variables ($x$)
-and their subsequent values ($x'$). Isabelle/UTP\footnote{Isabelle/UTP website:
-  \url{https://www.cs.york.ac.uk/~simonf/utp-isabelle/}}~\cite{Foster16a,Foster16c,Foster14c} semantically embeds this
+  Programming}~\cite{Hoare&98,Cavalcanti&06} (UTP) in Isabelle/HOL. UTP uses the ``programs-as-predicates'' approach, 
+pioneered by Hehner~\cite{Hehner1988,Hehner1990,Hehner93}, to encode denotational semantics and facilitate reasoning about programs. 
+It uses the alphabetised relational calculus, which combines predicate calculus and relation algebra, to denote programs as relations 
+between initial variables ($x$) and their subsequent values ($x'$). Isabelle/UTP\footnote{Isabelle/UTP website:
+  \url{https://www.cs.york.ac.uk/circus/isabelle-utp/}}~\cite{Foster16a,Foster16c,Foster14c} semantically embeds this
 relational calculus into Isabelle/HOL, which enables application of the latter's proof facilities to program
 verification. For an introduction to UTP, we recommend two tutorials~\cite{Cavalcanti04,Cavalcanti&06}, and also the UTP
-book itself~\cite{Hoare&98}.
+book~\cite{Hoare&98}.
 
-The Isabelle/UTP core mechanises most of definitions and theorems from chapters 1, 2, 4, and 7, and some material
+The Isabelle/UTP core mechanises most of definitions and theorems from chapters 1, 2, 4, and 7 of \cite{Hoare&98}, and some material
 contained in chapters 5 and 10. This essentially amounts to alphabetised predicate calculus, its core laws, the UTP
 theory infrastructure, and also parallel-by-merge~\cite[chapter~5]{Hoare&98}, which adds concurrency primitives. The
 Isabelle/UTP core does not contain the theory of designs~\cite{Cavalcanti04} and CSP~\cite{Cavalcanti&06}, which are
@@ -93,19 +93,27 @@ and, additionally, use the lens laws~\cite{Foster09,Foster16a} to characterise w
 meta-logical infrastructure for dealing with free variables and substitution. All this, we believe, adds an additional
 layer rigour to the UTP.
 
-The alphabets-as-types approach does impose a number of limitations on Isabelle/UTP. For example, alphabets can only be
+The alphabets-as-types approach does impose a number of theoretical limitations. For example, alphabets can only be
 extended when an injection into a larger state-space type can be exhibited. It is therefore not possible to arbitrarily
-augment an alphabet with additional variables, but new types must be created to do this. The pay-off is that the
-Isabelle/HOL type checker can be directly applied to relational constructions, which makes proof much more automated and
+augment an alphabet with additional variables, but new types must be created to do this. This is largely because
+as in previous work~\cite{Feliachi2010,Feliachi2012}, we actually encode state spaces rather than alphabets, 
+the latter being implicit. Namely, a relation is typed by the state space type that it manipulates, and the alphabet
+is represented by collection of lenses into this state space. This aspect of our mechanisation is actually much closer 
+to the relational program model in Back's refinement calculus~\cite{Back1998}. 
+
+The pay-off is that the Isabelle/HOL type checker can be directly applied to relational constructions, which makes proof much more automated and
 efficient. Moreover, our use of lenses mitigates the limitations by providing meta-logical style operators, such as
-equality on variables, and alphabet membership~\cite{Foster16a}. For a detailed discussion of semantic embedding
-approaches, please see~\cite{Foster16c}.
+equality on variables, and alphabet membership~\cite{Foster16a}. Isabelle/UTP can therefore directly
+harness proof automation from Isabelle/HOL, which allows its use in building efficient verification
+tools~\cite{Foster18a,Foster18b}. For a detailed discussion of semantic embedding approaches, please see~\cite{Foster16c}.
 
 In addition to formalising variables, we also make a number of generalisations to UTP laws. Notably, our lens-based
 representation of state leads us to adopt Back's approach to both assignment and local
 variables~\cite{Back1998}. Assignment becomes a point-free operator that acts on state-space update functions, which
 provides a rich set of algebraic theorems. Local variables are represented using stacks, unlike in the UTP book where
 they utilise alphabet extension.
+
+\pagebreak
 
 We give a summary of the main contributions within the Isabelle/UTP core, which can all be seen in the table of
 contents.
@@ -116,11 +124,10 @@ contents.
   \item the meta-logical operators of unrestriction, used-by, substitution, alphabet extrusion, and alphabet restriction;
   \item the alphabetised predicate calculus and associated algebraic laws;
   \item the alphabetised relational calculus and associated algebraic laws;
-  \item an implementation of local variables using stacks;
   \item proof tactics for the above based on interpretation~\cite{Huffman13};
   \item a formalisation of UTP theories using locales~\cite{Ballarin06} and building on HOL-Algebra~\cite{Ballarin17};
-  \item Hoare logic;
-  \item weakest precondition and strongest postcondition calculi;
+  \item Hoare logic~\cite{Hoare1969-Logic} and dynamic logic~\cite{Harel1984-DynamicLogic};
+  \item weakest precondition and strongest postcondition calculi~\cite{Dijkstra75};
   \item concurrent programming with parallel-by-merge;
   \item relational operational semantics.
 \end{enumerate}
