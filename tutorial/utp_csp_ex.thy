@@ -72,7 +72,14 @@ lemma csp_parallel_ex2:
 lemma csp_parallel_ex3:
   assumes "a \<notin> cs" "b \<in> cs" "c \<notin> cs" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "(a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
-  using assms(1-3) by (rdes_eq cls: assms)
+  using assms(1-3) 
+  by (rdes_eq cls: assms)
+
+lemma csp_parallel_ex4:
+  assumes "a \<notin> cs" "b \<in> cs" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "(a \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (b \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> Stop \<box> b \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
+  using assms(1-2) 
+  by (rdes_eq cls: assms)
 
 lemma csp_interleave_ex1: "(a \<^bold>\<rightarrow> Skip) ||| (b \<^bold>\<rightarrow> Skip) = (a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> a \<^bold>\<rightarrow> Skip)"
   by (rdes_eq)
