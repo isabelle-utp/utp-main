@@ -610,46 +610,49 @@ lemma CSPInterMerge_UINF_ind_right [rpred]:
 
 lemma par_by_merge_seq_remove: "(P \<parallel>\<^bsub>M ;; R\<^esub> Q) = (P \<parallel>\<^bsub>M\<^esub> Q) ;; R"
   by (simp add: par_by_merge_seq_add[THEN sym])
-  
+
+lemma utrace_leq: "(x \<le>\<^sub>u y) = (\<^bold>\<exists> z \<bullet> y =\<^sub>u x ^\<^sub>u \<guillemotleft>z\<guillemotright>)"
+  by (rel_auto)
+
+lemma trace_pred_R1_true: "[P(trace)]\<^sub>t ;; R1 true =  [(\<^bold>\<exists> tt\<^sub>0 \<bullet> \<guillemotleft>tt\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>trace\<guillemotright> \<and> P(tt\<^sub>0))]\<^sub>t"
+  apply (rel_auto)
+  using minus_cancel_le apply blast
+  apply (metis diff_add_cancel_left' le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
+  done
+
+
+
 lemma merge_csp_do_right:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RC"
-  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[ns1|cs|ns2]\<^sub>C P = undefined"
+  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[ns1|cs|ns2]\<^sub>C (\<not>\<^sub>r \<I>(s\<^sub>2, t\<^sub>2)) = undefined"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = 
         (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
-              [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<not>\<^sub>r RC(P)) \<and>
+              [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> \<I>(s\<^sub>2, t\<^sub>2) \<and>
               [s\<^sub>1]\<^sub>S\<^sub>< \<and>
               $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
               [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
               $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<guillemotleft>\<sigma>\<^sub>1\<guillemotright>($st)\<^sub>a on &ns2) ;; R1 true)"
     by (simp add: wrR_def par_by_merge_seq_remove merge_csp_do_right closure assms Healthy_if rpred)
- also have "... =
-        (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
-              [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<not>\<^sub>r RC(P)) \<and>
-              [s\<^sub>1]\<^sub>S\<^sub>< \<and>
-              $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
-              [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t ;; true\<^sub>r \<and> 
-              $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<guillemotleft>\<sigma>\<^sub>1\<guillemotright>($st)\<^sub>a on &ns2))"
-   apply (rel_auto)
-
-
-oops
-
-subsection \<open> Parallel operator \<close>
-
-syntax
-  "_par_circus"   :: "logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76)
-  "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<lbrakk>_\<rbrakk>\<^sub>C _" [75,0,76] 76)
-  "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
-  
-translations
-  "_par_circus P ns1 cs ns2 Q" == "P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
-  "_par_csp P cs Q" == "_par_circus P 0\<^sub>L cs 0\<^sub>L Q"
-  "_inter_circus P ns1 ns2 Q" == "_par_circus P ns1 {} ns2 Q"
-
-abbreviation InterleaveCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "|||" 75)
-where "P ||| Q \<equiv> P \<lbrakk>\<emptyset>\<parallel>\<emptyset>\<rbrakk> Q"
+  also have "... =
+        (\<not>\<^sub>r (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<lceil>s\<^sub>2\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> [s\<^sub>1]\<^sub>S\<^sub>< \<and>
+                     [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t) ;; R1 true)"
+    by (rel_auto)
+  also have "... =
+        (\<not>\<^sub>r (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<lceil>s\<^sub>2\<rceil>\<^sub>S\<^sub>< \<and> (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<guillemotleft>tt\<^sub>0\<guillemotright> =\<^sub>u \<lceil>t\<^sub>2\<rceil>\<^sub>S\<^sub>< ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>)) \<and> [s\<^sub>1]\<^sub>S\<^sub>< \<and>
+                     [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t) ;; R1 true)"
+    by (simp add: utrace_leq)
+  also have "... =
+        (\<not>\<^sub>r (\<^bold>\<exists> tt\<^sub>1 \<bullet> [s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t) ;; R1 true)"
+    by (rel_auto)
+  also have "... =
+        (\<^bold>\<forall> tt\<^sub>1 \<bullet> \<not>\<^sub>r ([s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t ;; R1 true))"
+    by (rel_auto)
+  also have "... =
+        (\<^bold>\<forall> tt\<^sub>1 \<bullet> \<not>\<^sub>r ([s\<^sub>1 \<and> s\<^sub>2 \<and> (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<guillemotleft>tt\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>trace\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1) \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t))"
+    by (simp add: trace_pred_R1_true, rel_auto)
+  oops
 
 abbreviation SynchroniseCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "||" 75)
 where "P || Q \<equiv> P \<lbrakk>UNIV\<rbrakk>\<^sub>C Q"
