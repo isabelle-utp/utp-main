@@ -620,11 +620,10 @@ lemma trace_pred_R1_true: "[P(trace)]\<^sub>t ;; R1 true =  [(\<^bold>\<exists> 
   apply (metis diff_add_cancel_left' le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
   done
 
-
-
-lemma merge_csp_do_right:
-  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RC"
-  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[ns1|cs|ns2]\<^sub>C (\<not>\<^sub>r \<I>(s\<^sub>2, t\<^sub>2)) = undefined"
+lemma wrC_csp_do_init:
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
+  shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[ns1|cs|ns2]\<^sub>C (\<not>\<^sub>r \<I>(s\<^sub>2, t\<^sub>2)) = 
+         (\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> (\<not>\<^sub>r \<I>(s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1  \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>tt\<^sub>1\<guillemotright>)))"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = 
@@ -650,9 +649,27 @@ proof -
         (\<^bold>\<forall> tt\<^sub>1 \<bullet> \<not>\<^sub>r ([s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t ;; R1 true))"
     by (rel_auto)
   also have "... =
-        (\<^bold>\<forall> tt\<^sub>1 \<bullet> \<not>\<^sub>r ([s\<^sub>1 \<and> s\<^sub>2 \<and> (\<^bold>\<exists> tt\<^sub>0 \<bullet> \<guillemotleft>tt\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>trace\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1) \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t))"
+        (\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<not>\<^sub>r ([s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>trace\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<in>\<^sub>u (t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright>) \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> t\<^sub>2 ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t))"
     by (simp add: trace_pred_R1_true, rel_auto)
-  oops
+  also have "... = ?rhs"
+    by (rel_auto)
+  finally show ?thesis .
+qed
+
+subsection \<open> Parallel operator \<close>
+
+syntax
+  "_par_circus"   :: "logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<parallel>_\<rbrakk> _" [75,0,0,0,76] 76)
+  "_par_csp"      :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<lbrakk>_\<rbrakk>\<^sub>C _" [75,0,76] 76)
+  "_inter_circus" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic"  ("_ \<lbrakk>_\<parallel>_\<rbrakk> _" [75,0,0,76] 76)
+  
+translations
+  "_par_circus P ns1 cs ns2 Q" == "P \<parallel>\<^bsub>M\<^sub>C ns1 cs ns2\<^esub> Q"
+  "_par_csp P cs Q" == "_par_circus P 0\<^sub>L cs 0\<^sub>L Q"
+  "_inter_circus P ns1 ns2 Q" == "_par_circus P ns1 {} ns2 Q"
+
+abbreviation InterleaveCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "|||" 75)
+where "P ||| Q \<equiv> P \<lbrakk>\<emptyset>\<parallel>\<emptyset>\<rbrakk> Q"
 
 abbreviation SynchroniseCSP :: "('s, 'e) action \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" (infixr "||" 75)
 where "P || Q \<equiv> P \<lbrakk>UNIV\<rbrakk>\<^sub>C Q"
