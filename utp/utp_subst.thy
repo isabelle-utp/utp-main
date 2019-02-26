@@ -333,6 +333,9 @@ text \<open> We now prove the key laws that show how a substitution should be pe
 lemma id_subst [usubst]: "id \<dagger> v = v"
   by (transfer, simp)
 
+lemma ident_subst [usubst]: "(\<lambda>a. a) \<dagger> p = p"
+  by (simp add: subst.rep_eq uexpr_eq_iff)
+
 lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright> = \<guillemotleft>v\<guillemotright>"
   by (transfer, simp)
 

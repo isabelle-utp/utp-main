@@ -889,4 +889,25 @@ lemma nths_list_update_out: "k \<notin> A \<Longrightarrow> nths (list_update xs
 lemma nths_list_augment_out: "\<lbrakk> k < length xs; k \<notin> A \<rbrakk> \<Longrightarrow> nths (list_augment xs k x) A = nths xs A"
   by (simp add: list_augment_as_update nths_list_update_out)
 
+subsection \<open> List power \<close>
+
+overloading
+  listpow \<equiv> "compow :: nat \<Rightarrow> 'a list \<Rightarrow> 'a list"
+begin
+
+fun listpow :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list" where
+  "listpow 0 xs = []" 
+| "listpow (Suc n) xs = xs @ listpow n xs"
+
+end
+
+lemma listpow_Nil [simp]: "[] ^^ n = []"
+  by (induct n) simp_all
+
+lemma listpow_Suc_right: "xs ^^ Suc n = xs ^^ n @ xs"
+  by (induct n) simp_all
+
+lemma listpow_add: "xs ^^ (m + n) = xs ^^ m @ xs ^^ n"
+  by (induct m) simp_all
+
 end
