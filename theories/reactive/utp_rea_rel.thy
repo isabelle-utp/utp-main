@@ -590,6 +590,9 @@ lemma rea_not_and [simp]:
 lemma truer_bottom_rpred [rpred]: "P is RR \<Longrightarrow> R1(true) \<sqsubseteq> P"
   by (metis Healthy_def R1_RR R1_mono utp_pred_laws.top_greatest)
 
+lemma ext_close_weakening: "P ;; true\<^sub>r \<sqsubseteq> P"
+  by (rel_auto)
+
 lemma rea_not_INFIMUM [simp]:
   "(\<not>\<^sub>r (\<Squnion>i\<in>A. Q(i))) = (\<Sqinter>i\<in>A. \<not>\<^sub>r Q(i))"
   by (rel_auto)
