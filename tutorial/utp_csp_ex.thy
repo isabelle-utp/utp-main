@@ -8,12 +8,14 @@ subsection {* Sequential Examples *}
   
 text {* In this theory we calculate reactive designs for a number of simple CSP/Circus processes. *}
 
+datatype ev = a | b | c
+
 lemma csp_ex_1:
   "(a \<^bold>\<rightarrow> Skip) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>}\<^sub>u) \<diamondop> \<Phi>(true,id,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>))"
   by (rdes_simp)
 
 lemma csp_ex_2:
-  "(a \<^bold>\<rightarrow> Chaos) = \<^bold>R\<^sub>s ((\<not>\<^sub>r \<I>(true,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>)) \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>}\<^sub>u) \<diamondop> false)"
+  "(a \<^bold>\<rightarrow> Chaos) = \<^bold>R\<^sub>s ((\<I>(true,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>)) \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>}\<^sub>u) \<diamondop> false)"
   by (rdes_simp)
 
 lemma csp_ex_3:
@@ -27,7 +29,7 @@ lemma csp_ex_4:
   by (rdes_simp)
 
 lemma csp_ex_5:
-  "(a \<^bold>\<rightarrow> Chaos \<box> b \<^bold>\<rightarrow> Skip) = \<^bold>R\<^sub>s ((\<not>\<^sub>r \<I>(true,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>)) \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>, \<guillemotleft>b\<guillemotright>}\<^sub>u) \<diamondop> \<Phi>(true,id,\<langle>\<guillemotleft>b\<guillemotright>\<rangle>))"
+  "(a \<^bold>\<rightarrow> Chaos \<box> b \<^bold>\<rightarrow> Skip) = \<^bold>R\<^sub>s (\<I>(true,\<langle>\<guillemotleft>a\<guillemotright>\<rangle>) \<turnstile> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>a\<guillemotright>, \<guillemotleft>b\<guillemotright>}\<^sub>u) \<diamondop> \<Phi>(true,id,\<langle>\<guillemotleft>b\<guillemotright>\<rangle>))"
   by (rdes_simp)
 
 lemma csp_ex_6:
@@ -60,26 +62,24 @@ qed
 subsection {* Parallel Examples *}
   
 lemma csp_parallel_ex1:
-  assumes "a \<in> cs" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
-  shows "(a \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (a \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
-  using assms(1) by (rdes_eq cls: assms)
+  "(a \<^bold>\<rightarrow> Skip) \<lbrakk>{a}\<rbrakk>\<^sub>C (a \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
+  by (rdes_eq)
 
 lemma csp_parallel_ex2:
-  assumes "a \<in> cs" "b \<in> cs" "a \<noteq> b" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
-  shows "(a \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (b \<^bold>\<rightarrow> Skip) = Stop" (is "?lhs = ?rhs")
-  using assms(1-3) by (rdes_eq cls: assms)
+  "(a \<^bold>\<rightarrow> Skip) \<lbrakk>{a,b}\<rbrakk>\<^sub>C (b \<^bold>\<rightarrow> Skip) = Stop" (is "?lhs = ?rhs")
+  by (rdes_eq)
 
 lemma csp_parallel_ex3:
-  assumes "a \<notin> cs" "b \<in> cs" "c \<notin> cs" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
-  shows "(a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
-  using assms(1-3) 
-  by (rdes_eq cls: assms)
+  "(a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip) \<lbrakk>{b}\<rbrakk>\<^sub>C (b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs") 
+  by (rdes_eq)
 
 lemma csp_parallel_ex4:
-  assumes "a \<notin> cs" "b \<in> cs" "P is NCSP" "Q is NCSP" "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
-  shows "(a \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> Skip) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (b \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> Stop \<box> b \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs")
-  using assms(1-2) 
-  by (rdes_eq cls: assms)
+  "(a \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> Skip) \<lbrakk>{b}\<rbrakk>\<^sub>C (b \<^bold>\<rightarrow> Skip) = a \<^bold>\<rightarrow> Stop \<box> b \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs") 
+  by (rdes_eq)
+
+lemma csp_parallel_ex5:
+  "(a \<^bold>\<rightarrow> Chaos \<box> b \<^bold>\<rightarrow> Skip) \<lbrakk>{a, b}\<rbrakk>\<^sub>C (b \<^bold>\<rightarrow> Skip) = b \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs") 
+  by (rdes_eq) 
 
 lemma csp_interleave_ex1: "(a \<^bold>\<rightarrow> Skip) ||| (b \<^bold>\<rightarrow> Skip) = (a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> a \<^bold>\<rightarrow> Skip)"
   by (rdes_eq)

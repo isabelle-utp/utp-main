@@ -138,7 +138,7 @@ text {* Proofs that the input constrained parser versions of output is the same 
 lemma output_prefix_is_OutputCSP [simp]:
   assumes "A is NCSP"
   shows "x!(P) \<^bold>\<rightarrow> A = OutputCSP x P A" (is "?lhs = ?rhs")
-  by (rule SRD_eq_intro, simp_all add: assms closure rdes, rel_auto+)
+  by (rdes_eq cls: assms)
 
 lemma OutputCSP_pair_simp [simp]:
   "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j)\<guillemotright> P"
