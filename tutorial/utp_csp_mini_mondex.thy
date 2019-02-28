@@ -36,7 +36,7 @@ text \<open> The Pay action describes the protocol when a payment of $n$ is requ
   defined at the given index. In other words, the given card records must be present. \<close>
 
 definition Pay :: "index \<Rightarrow> index \<Rightarrow> money \<Rightarrow> action_mdx" where
-"Pay i j n = 
+"Pay i j n =
   pay.((\<guillemotleft>i\<guillemotright>,\<guillemotleft>j\<guillemotright>,\<guillemotleft>n\<guillemotright>)\<^sub>u) \<^bold>\<rightarrow> 
     ((reject.(\<guillemotleft>i\<guillemotright>) \<^bold>\<rightarrow> Skip) 
       \<triangleleft> (\<guillemotleft>i\<guillemotright> =\<^sub>u \<guillemotleft>j\<guillemotright> \<or> \<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> \<guillemotleft>n\<guillemotright> >\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a) \<triangleright>\<^sub>R 
@@ -91,13 +91,12 @@ text \<open> The precondition of pay requires that, under the assumption that a 
   and accept, and the states of the two cards was updated appropriately.
 
 \<close>
-  
+
 lemma Pay_contract [rdes_def]:
   assumes "i \<noteq> j"
   shows
   "Pay i j n = 
-    \<^bold>R\<^sub>s ( (\<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r 
-           [(\<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><) 
+    \<^bold>R\<^sub>s ( \<I>(\<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<and> \<guillemotleft>j\<guillemotright> \<notin>\<^sub>u insert\<^sub>u \<guillemotleft>i\<guillemotright> dom\<^sub>u(&accts),\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>)
        
        \<turnstile> (\<E>(true,\<langle>\<rangle>, {(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u}\<^sub>u) \<or>
             \<E>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>, {(reject\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u}\<^sub>u) 
@@ -108,7 +107,7 @@ lemma Pay_contract [rdes_def]:
             \<triangleleft> (\<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<triangleright>\<^sub>R
           \<Phi>(true,[&accts \<mapsto>\<^sub>s &accts(\<guillemotleft>i\<guillemotright> \<mapsto> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a - \<guillemotleft>n\<guillemotright>, \<guillemotleft>j\<guillemotright> \<mapsto> &accts(\<guillemotleft>j\<guillemotright>)\<^sub>a + \<guillemotleft>n\<guillemotright>)\<^sub>u]
                 ,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u, (accept\<cdot>\<guillemotleft>i\<guillemotright>)\<^sub>u\<rangle>)))"
-  using assms by (simp add: Pay_def closure, rdes_simp, simp add: pr_var_def, rel_auto)  
+  using assms by (simp add: Pay_def closure, rdes_eq)  
     
 lemma Pay_wf [closure]:
   "Pay i j n is NCSP"
@@ -161,9 +160,8 @@ proof (simp add: assms Pay_contract, rule CRD_refine_rdes)
 
   from assms 
   show "`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<Rightarrow>
-          \<I>(true,\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r
-          [(\<guillemotleft>i\<guillemotright> \<notin>\<^sub>u dom\<^sub>u(&accts) \<or> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<or> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright>) \<or> 
-            \<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>j\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts)]\<^sub>S\<^sub><`"
+           \<I>(\<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<not> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<and> \<not> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> 
+             \<guillemotleft>j\<guillemotright> \<notin>\<^sub>u insert\<^sub>u \<guillemotleft>i\<guillemotright> dom\<^sub>u(&accts),\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>)`"
     by (rel_auto)
 
   \<comment> \<open> The second is trivial as we don't care about intermediate states. \<close>

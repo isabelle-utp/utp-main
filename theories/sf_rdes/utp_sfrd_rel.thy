@@ -619,9 +619,9 @@ lemma rea_init_RC [closure]: "\<I>(s,t) is CRC"
 lemma rea_init_false [rpred]: "\<I>(false, t) = true\<^sub>r"
   by (rel_auto)
 
-lemma init_acts_empty [rpred]: "\<I>(true,\<langle>\<rangle>) = false"
+lemma rea_init_nil [rpred]: "\<I>(s,\<langle>\<rangle>) = [\<not> s]\<^sub>S\<^sub><"
   by (rel_auto)
-    
+
 lemma rea_not_init [rpred]: "(\<not>\<^sub>r \<I>(P,\<langle>\<rangle>)) = \<I>(\<not>P,\<langle>\<rangle>)"
   by (rel_auto)
        
@@ -854,12 +854,16 @@ lemma csp_do_id_wp [wp]:
   "P is CRR \<Longrightarrow> \<Phi>(b,id,\<langle>\<rangle>) wp\<^sub>r P = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P)"
   by (metis (no_types, lifting) CRR_implies_RR RR_implies_R1 csp_do_id rea_impl_conj rea_impl_false rea_not_CRR_closed rea_not_not wp_rea_def)
 
+lemma wp_rea_csp_do_st_pre [wp]: "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) wp\<^sub>r [s\<^sub>2]\<^sub>S\<^sub>< = \<I>(s\<^sub>1 \<and> \<not> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1)"
+  by (rel_auto)
+
 lemma wp_rea_csp_do_skip [wp]:
   fixes Q :: "('\<sigma>, '\<phi>) action"
   assumes "P is CRR"
   shows "\<Phi>(s,\<sigma>,t) wp\<^sub>r P = (\<I>(s,t) \<and> (\<sigma> \<dagger>\<^sub>S P)\<lbrakk>t\<rbrakk>\<^sub>t)"
   apply (simp add: wp_rea_def)
   apply (subst csp_do_comp)
+  apply (simp_all add: closure assms usubst)
   oops
 
 lemma msubst_csp_do [usubst]: 

@@ -83,5 +83,8 @@ lemma csp_parallel_ex5:
 
 lemma csp_interleave_ex1: "(a \<^bold>\<rightarrow> Skip) ||| (b \<^bold>\<rightarrow> Skip) = (a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> a \<^bold>\<rightarrow> Skip)"
   by (rdes_eq)
+
+lemma csp_hiding_ex1: "(a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip) \\\<^sub>C {b} = a \<^bold>\<rightarrow> Skip"
+  by (rdes_eq)
   
 end

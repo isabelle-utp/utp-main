@@ -630,9 +630,13 @@ lemma st_rel_seq [rpred]:
   by (rel_auto)
   
 lemma st_rel_conj [rpred]:
-  "[P \<and> Q]\<^sub>S = ([P]\<^sub>S \<and> [Q]\<^sub>S)"
+  "([P]\<^sub>S \<and> [Q]\<^sub>S) = [P \<and> Q]\<^sub>S"
    by (rel_auto)
-     
+
+lemma st_cond_disj [rpred]: 
+  "([P]\<^sub>S\<^sub>< \<or> [Q]\<^sub>S\<^sub><) = [P \<or> Q]\<^sub>S\<^sub><"
+  by (rel_auto)
+
 lemma rea_st_cond_RR [closure]: "[b]\<^sub>S\<^sub>< is RR"
   by (rule RR_intro, simp_all add: unrest closure)
 

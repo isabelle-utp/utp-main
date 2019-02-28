@@ -140,10 +140,16 @@ lemma SymMerge_CSPInnerInterleave [closure]:
   apply (rename_tac tr tr\<^sub>2' ref\<^sub>0 tr\<^sub>0' ref\<^sub>0' tr\<^sub>1' ref\<^sub>1' tr' ref\<^sub>2' tr\<^sub>i' ref\<^sub>3')
 oops
     
-lemma CSPInterMerge_false [rpred]: "P \<lbrakk>cs\<rbrakk>\<^sup>I false = false"
+lemma CSPInterMerge_right_false [rpred]: "P \<lbrakk>cs\<rbrakk>\<^sup>I false = false"
   by (simp add: CSPInterMerge_def)
 
-lemma CSPFinalMerge_false [rpred]: "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F false = false"
+lemma CSPInterMerge_left_false [rpred]: "false \<lbrakk>cs\<rbrakk>\<^sup>I P = false"
+  by (rel_auto)
+
+lemma CSPFinalMerge_right_false [rpred]: "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F false = false"
+  by (simp add: CSPFinalMerge_def)
+
+lemma CSPFinalMerge_left_false [rpred]: "false \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F P = false"
   by (simp add: CSPFinalMerge_def)
 
 lemma CSPInnerMerge_commute:
@@ -535,8 +541,7 @@ qed
 lemma FinalMerge_csp_do' [rpred]:
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2"
   shows "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) = 
-         (\<^bold>\<exists> trace \<in> \<lceil>t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
-                    \<Phi>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<sigma>\<^sub>1 [&ns1|&ns2]\<^sub>s \<sigma>\<^sub>2, \<guillemotleft>trace\<guillemotright>))"
+         (\<^bold>\<exists> trace \<bullet> \<Phi>(s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<sigma>\<^sub>1 [&ns1|&ns2]\<^sub>s \<sigma>\<^sub>2, \<guillemotleft>trace\<guillemotright>))"
   by (simp add: FinalMerge_csp_do assms, rel_auto)
 
 (*
@@ -608,16 +613,14 @@ qed
 
 lemma InterMerge_csp_enable' [rpred]:
   "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
-          (\<^bold>\<exists> trace \<in> \<lceil>t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
-                     \<E>( s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
+          (\<^bold>\<exists> trace \<bullet> \<E>( s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>
                       , \<guillemotleft>trace\<guillemotright>
                       , (E\<^sub>1 \<inter>\<^sub>u E\<^sub>2 \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u ((E\<^sub>1 \<union>\<^sub>u E\<^sub>2) - \<guillemotleft>cs\<guillemotright>)))"
   by (simp add: InterMerge_csp_enable, rel_auto)
 
-lemma InterMerge_csp_enable_csp_do:
+lemma InterMerge_csp_enable_csp_do [rpred]:
   "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) = 
-         ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> (\<^bold>\<forall> e\<in>\<lceil>(E\<^sub>1 - \<guillemotleft>cs\<guillemotright>)\<rceil>\<^sub>S\<^sub>< \<bullet> \<guillemotleft>e\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<and>
-         [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t)" 
+  (\<^bold>\<exists> trace \<bullet> \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>trace\<guillemotright>,E\<^sub>1 - \<guillemotleft>cs\<guillemotright>))" 
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = 
@@ -637,33 +640,22 @@ proof -
   also have "... = ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> (\<^bold>\<forall> e\<in>\<lceil>(E\<^sub>1 - \<guillemotleft>cs\<guillemotright>)\<rceil>\<^sub>S\<^sub>< \<bullet> \<guillemotleft>e\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<and>
                     [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t)"
     by (rel_auto) 
+  also have "... = (\<^bold>\<exists> trace \<bullet> \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>trace\<guillemotright>, E\<^sub>1 - \<guillemotleft>cs\<guillemotright>))"
+    by (rel_auto)
   finally show ?thesis .
 qed
 
-lemma InterMerge_csp_enable_csp_do' [rpred]:
-  "\<E>(s\<^sub>1,t\<^sub>1,E\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<Phi>(s\<^sub>2,\<sigma>\<^sub>2,t\<^sub>2) =
-       (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet>
-                   \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>trace\<guillemotright>, E\<^sub>1 - \<guillemotleft>cs\<guillemotright>))"
-  by (simp add: InterMerge_csp_enable_csp_do, rel_auto)
-
-lemma InterMerge_csp_do_csp_enable:
+lemma InterMerge_csp_do_csp_enable [rpred]:
   "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = 
-         ([s\<^sub>1 \<and> s\<^sub>2]\<^sub>S\<^sub>< \<and> (\<^bold>\<forall> e\<in>\<lceil>(E\<^sub>2 - \<guillemotleft>cs\<guillemotright>)\<rceil>\<^sub>S\<^sub>< \<bullet> \<guillemotleft>e\<guillemotright> \<notin>\<^sub>u $ref\<acute>) \<and>
-         [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t)" 
+   (\<^bold>\<exists> trace \<bullet> \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>trace\<guillemotright>,E\<^sub>2 - \<guillemotleft>cs\<guillemotright>))" 
   (is "?lhs = ?rhs")
 proof -
   have "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) = \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) \<lbrakk>cs\<rbrakk>\<^sup>I \<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1)"
     by (simp add: CSPInterMerge_commute)
   also have "... = ?rhs"
-    by (simp add: InterMerge_csp_enable_csp_do lens_indep_sym trace_merge_commute conj_comm eq_upred_sym)
+    by (simp add: rpred trace_merge_commute eq_upred_sym, rel_auto)
   finally show ?thesis .
 qed
-
-lemma InterMerge_csp_do_csp_enable' [rpred]:
-  "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>cs\<rbrakk>\<^sup>I \<E>(s\<^sub>2,t\<^sub>2,E\<^sub>2) =
-       (\<Sqinter> trace | \<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<lceil>t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<bullet> 
-                   \<E>(s\<^sub>1 \<and> s\<^sub>2 \<and> t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>2 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>, \<guillemotleft>trace\<guillemotright>, E\<^sub>2 - \<guillemotleft>cs\<guillemotright>))" 
-  by (simp add: InterMerge_csp_do_csp_enable, rel_auto)
 
 lemma CSPInterMerge_or_left [rpred]: 
   "(P \<or> Q) \<lbrakk>cs\<rbrakk>\<^sup>I R = (P \<lbrakk>cs\<rbrakk>\<^sup>I R \<or> Q \<lbrakk>cs\<rbrakk>\<^sup>I R)"
@@ -688,6 +680,18 @@ lemma CSPInterMerge_UINF_ind_left [rpred]:
 lemma CSPInterMerge_UINF_ind_right [rpred]: 
   "P \<lbrakk>cs\<rbrakk>\<^sup>I (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<lbrakk>cs\<rbrakk>\<^sup>I Q(i))"
   by (simp add: CSPInterMerge_def par_by_merge_USUP_ind_right)
+
+thm UINF_is_exists
+
+lemma CSPInterMerge_shEx_left [rpred]: 
+  "(\<^bold>\<exists> i \<bullet> P(i)) \<lbrakk>cs\<rbrakk>\<^sup>I Q = (\<^bold>\<exists> i \<bullet> P(i) \<lbrakk>cs\<rbrakk>\<^sup>I Q)"
+  using CSPInterMerge_UINF_ind_left[of P cs Q]
+  by (simp add: UINF_is_exists)
+
+lemma CSPInterMerge_shEx_right [rpred]: 
+  "P \<lbrakk>cs\<rbrakk>\<^sup>I (\<^bold>\<exists> i \<bullet> Q(i)) = (\<^bold>\<exists> i \<bullet> P \<lbrakk>cs\<rbrakk>\<^sup>I Q(i))"
+  using CSPInterMerge_UINF_ind_right[of P cs Q]
+  by (simp add: UINF_is_exists)
 
 lemma par_by_merge_seq_remove: "(P \<parallel>\<^bsub>M ;; R\<^esub> Q) = (P \<parallel>\<^bsub>M\<^esub> Q) ;; R"
   by (simp add: par_by_merge_seq_add[THEN sym])
