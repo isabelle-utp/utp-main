@@ -47,28 +47,28 @@ text \<open> We define two identities fro reactive designs, which correspond to 
   state-sensitive versions of reactive designs, respectively. The former is the one used in
   the UTP book and related publications for CSP. \<close>
 
-definition skip_rea :: "('t::trace, '\<alpha>) hrel_rp" ("II\<^sub>c") where
-skip_rea_def [urel_defs]: "II\<^sub>c = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
+definition skip_rea :: "('t::trace, '\<alpha>) hrel_rp" ("II\<^sub>C") where
+skip_rea_def [urel_defs]: "II\<^sub>C = (II \<or> (\<not> $ok \<and> $tr \<le>\<^sub>u $tr\<acute>))"
 
 definition skip_srea :: "('s, 't::trace, '\<alpha>) hrel_rsp" ("II\<^sub>R") where
-skip_srea_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>c) \<triangleleft> $wait \<triangleright> II\<^sub>c)"
+skip_srea_def [urel_defs]: "II\<^sub>R = ((\<exists> $st \<bullet> II\<^sub>C) \<triangleleft> $wait \<triangleright> II\<^sub>C)"
 
-lemma skip_rea_R1_lemma: "II\<^sub>c = R1($ok \<Rightarrow> II)"
+lemma skip_rea_R1_lemma: "II\<^sub>C = R1($ok \<Rightarrow> II)"
   by (rel_auto)
 
-lemma skip_rea_form: "II\<^sub>c = (II \<triangleleft> $ok \<triangleright> R1(true))"
+lemma skip_rea_form: "II\<^sub>C = (II \<triangleleft> $ok \<triangleright> R1(true))"
   by (rel_auto)
 
 lemma skip_srea_form: "II\<^sub>R = ((\<exists> $st \<bullet> II) \<triangleleft> $wait \<triangleright> II) \<triangleleft> $ok \<triangleright> R1(true)"
   by (rel_auto)
 
-lemma R1_skip_rea: "R1(II\<^sub>c) = II\<^sub>c"
+lemma R1_skip_rea: "R1(II\<^sub>C) = II\<^sub>C"
   by (rel_auto)
 
-lemma R2c_skip_rea: "R2c II\<^sub>c = II\<^sub>c"
+lemma R2c_skip_rea: "R2c II\<^sub>C = II\<^sub>C"
   by (simp add: skip_rea_def R2c_and R2c_disj R2c_skip_r R2c_not R2c_ok R2c_tr'_ge_tr)
 
-lemma R2_skip_rea: "R2(II\<^sub>c) = II\<^sub>c"
+lemma R2_skip_rea: "R2(II\<^sub>C) = II\<^sub>C"
   by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)
 
 lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
@@ -133,7 +133,7 @@ lemma RD1_via_R1: "R1(H1(P)) = RD1(R1(P))"
 lemma RD1_R1_cases: "RD1(R1(P)) = (R1(P) \<triangleleft> $ok \<triangleright> R1(true))"
   by (rel_auto)
 
-lemma skip_rea_RD1_skip: "II\<^sub>c = RD1(II)"
+lemma skip_rea_RD1_skip: "II\<^sub>C = RD1(II)"
   by (rel_auto)
 
 lemma skip_srea_RD1 [closure]: "II\<^sub>R is RD1"
@@ -141,10 +141,10 @@ lemma skip_srea_RD1 [closure]: "II\<^sub>R is RD1"
 
 lemma RD1_algebraic_intro:
   assumes
-    "P is R1" "(R1(true\<^sub>h) ;; P) = R1(true\<^sub>h)" "(II\<^sub>c ;; P) = P"
+    "P is R1" "(R1(true\<^sub>h) ;; P) = R1(true\<^sub>h)" "(II\<^sub>C ;; P) = P"
   shows "P is RD1"
 proof -
-  have "P = (II\<^sub>c ;; P)"
+  have "P = (II\<^sub>C ;; P)"
     by (simp add: assms(3))
   also have "... = (R1($ok \<Rightarrow> II) ;; P)"
     by (simp add: skip_rea_R1_lemma)
@@ -174,9 +174,9 @@ qed
 
 theorem RD1_left_unit:
   assumes "P is R1" "P is RD1"
-  shows "(II\<^sub>c ;; P) = P"
+  shows "(II\<^sub>C ;; P) = P"
 proof -
-  have "(II\<^sub>c ;; R1(RD1(P))) = R1(RD1(P))"
+  have "(II\<^sub>C ;; R1(RD1(P))) = R1(RD1(P))"
     by (rel_auto)
   thus ?thesis
     by (simp add: Healthy_if assms(1) assms(2))
@@ -194,16 +194,16 @@ qed
 
 theorem RD1_algebraic:
   assumes "P is R1"
-  shows "P is RD1 \<longleftrightarrow> (R1(true\<^sub>h) ;; P) = R1(true\<^sub>h) \<and> (II\<^sub>c ;; P) = P"
+  shows "P is RD1 \<longleftrightarrow> (R1(true\<^sub>h) ;; P) = R1(true\<^sub>h) \<and> (II\<^sub>C ;; P) = P"
   using RD1_algebraic_intro RD1_left_unit RD1_left_zero assms by blast
 
 subsection \<open> R3c and R3h: Reactive design versions of R3 \<close>
 
 definition R3c :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
-[upred_defs]: "R3c(P) = (II\<^sub>c \<triangleleft> $wait \<triangleright> P)"
+[upred_defs]: "R3c(P) = (II\<^sub>C \<triangleleft> $wait \<triangleright> P)"
 
 definition R3h :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
- R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>c) \<triangleleft> $wait \<triangleright> P)"
+ R3h_def [upred_defs]: "R3h(P) = ((\<exists> $st \<bullet> II\<^sub>C) \<triangleleft> $wait \<triangleright> P)"
 
 lemma R3c_idem: "R3c(R3c(P)) = R3c(P)"
   by (rel_auto)
@@ -310,15 +310,15 @@ proof -
     by (metis (no_types, lifting) cond_def conj_pos_var_subst seqr_pre_var_out skip_var utp_pred_laws.inf_left_idem wait_vwb_lens)
   also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; Q\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
-  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>c \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; (II\<^sub>C \<triangleleft> $wait \<triangleright> Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (metis Healthy_def' R3c_def assms(2))
-  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; II\<^sub>c\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+  also have "... = ((II\<lbrakk>true/$wait\<acute>\<rbrakk> ;; II\<^sub>C\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (subst_tac)
-  also have "... = (((II \<and> $wait\<acute>) ;; II\<^sub>c) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+  also have "... = (((II \<and> $wait\<acute>) ;; II\<^sub>C) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (metis seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_rel.unrest_ouvar vwb_lens_mwb wait_vwb_lens)
-  also have "... = ((II ;; II\<^sub>c) \<triangleleft> $wait \<triangleright> (P ;; Q))"
+  also have "... = ((II ;; II\<^sub>C) \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by (simp add: cond_def seqr_pre_transfer utp_rel.unrest_ouvar)
-  also have "... = (II\<^sub>c \<triangleleft> $wait \<triangleright> (P ;; Q))"
+  also have "... = (II\<^sub>C \<triangleleft> $wait \<triangleright> (P ;; Q))"
     by simp
   also have "... = R3c(P ;; Q)"
     by (simp add: R3c_def)

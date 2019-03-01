@@ -34,6 +34,59 @@ lemma CRR_seqr_form:
                       (\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>, $ref} \<bullet> Q)\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   by (simp add: CRR_form, rel_auto; fastforce)
 
+text \<open> CSP Reactive Finalisers \<close>
+    
+definition CRF :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
+[upred_defs]: "CRF(P) = (\<exists> $ref\<acute> \<bullet> CRR(P))"
+
+lemma CRF_idem: "CRF(CRF(P)) = CRF(P)"
+  by (rel_auto)
+
+lemma Idempotent_CRF [closure]: "Idempotent CRF"
+  by (simp add: CRF_idem Idempotent_def)
+
+lemma Continuous_CRF [closure]: "Continuous CRF"
+  by (rel_blast)
+
+lemma CRF_intro:
+  assumes "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "P is RR"
+  shows "P is CRF"
+  by (simp add: CRF_def CRR_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+
+lemma CRF_implies_CRR [closure]:
+  assumes "P is CRF" shows "P is CRR"
+proof -
+  have "CRR(CRF(P)) = CRF(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+definition crel_skip :: "('s, 'e) action" ("II\<^sub>c") where
+[upred_defs]: "crel_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+
+lemma crel_skip_CRR [closure]: "II\<^sub>c is CRF"
+  by (rel_auto)
+
+lemma crel_skip_via_rrel: "II\<^sub>c = CRR(II\<^sub>r)"
+  by (rel_auto)
+
+lemma crel_skip_left_unit [rpred]:  
+  assumes "P is CRR" 
+  shows "II\<^sub>c ;; P = P"
+proof -
+  have "II\<^sub>c ;; CRR(P) = CRR(P)" by (rel_auto)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+lemma crel_skip_right_unit [rpred]:  
+  assumes "P is CRF" 
+  shows "P ;; II\<^sub>c = P"
+proof -
+  have "CRF(P) ;; II\<^sub>c = CRF(P)" by (rel_auto)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
 text \<open> CSP Reactive Conditions \<close>
 
 definition CRC :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
@@ -73,7 +126,6 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
-
 
 lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
   apply (simp add: CRC_def ex_unrest  unrest)
@@ -124,7 +176,15 @@ qed
 
 lemma CRR_unrest_ref [unrest]: "P is CRR \<Longrightarrow> $ref \<sharp> P"
   by (metis CRR_def CRR_implies_RR Healthy_def in_var_uvar ref_vwb_lens unrest_as_exists)
-  
+
+lemma CRF_unrest_ref' [unrest]: 
+  assumes "P is CRF"
+  shows "$ref\<acute> \<sharp> P"
+proof -
+  have "$ref\<acute> \<sharp> CRF(P)" by (simp add: CRF_def unrest)
+  thus ?thesis by (simp add: assms Healthy_if)
+qed
+
 lemma CRC_implies_CRR [closure]:
   assumes "P is CRC"
   shows "P is CRR"
@@ -306,6 +366,11 @@ lemma seq_CRR_closed [closure]:
   shows "(P ;; Q) is CRR"
   by (rule CRR_intro, simp_all add: unrest assms closure)
 
+lemma seq_CRF_closed [closure]:
+  assumes "P is CRF" "Q is CRF"
+  shows "(P ;; Q) is CRF"
+  by (rule CRF_intro, simp_all add: unrest assms closure)
+
 lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
 
@@ -429,6 +494,28 @@ lemma CRR_refine_impl_prop:
   shows "P \<sqsubseteq> Q"
   by (rule CRR_refine_ext, simp_all add: assms closure unrest usubst)
      (rule refine_prop_intro, simp_all add: unrest unrest_all_circus_vars closure assms)
+
+subsection \<open> UTP Theory \<close>
+
+interpretation crf_theory: utp_theory_kleene CRF II\<^sub>c
+  rewrites "P \<in> carrier crf_theory.thy_order \<longleftrightarrow> P is CRF"
+  and "le rrel_theory.thy_order = (\<sqsubseteq>)"
+  and "eq rrel_theory.thy_order = (=)"  
+  and crf_top: "crf_theory.utp_top = false"
+  and crf_bottom: "crf_theory.utp_bottom = true\<^sub>r"
+proof -
+  interpret utp_theory_continuous CRF
+    by (unfold_locales, simp_all add: add: CRF_idem Continuous_CRF)
+  show top:"utp_top = false"
+    by (simp add: healthy_top, rel_auto)
+  show bot:"utp_bottom = true\<^sub>r"
+    by (simp add: healthy_bottom, rel_auto)
+  show "utp_theory_kleene CRF II\<^sub>c"
+    by (unfold_locales, simp_all add: closure rpred top)
+qed (simp_all)
+  
+abbreviation crf_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>c" [999] 999) where
+"P\<^sup>\<star>\<^sup>c \<equiv> crf_theory.utp_star P"
 
 subsection \<open> Weakest Precondition \<close>
 
@@ -760,7 +847,7 @@ lemma unrest_csp_do [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($st\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<Phi>(s,\<sigma>,t)"
   by (simp_all add: csp_do_def alpha_in_var alpha_out_var prod_as_plus unrest lens_indep_sym)
     
-lemma csp_do_CRR [closure]: "\<Phi>(s,\<sigma>,t) is CRR"
+lemma csp_do_CRF [closure]: "\<Phi>(s,\<sigma>,t) is CRF"
   by (rel_auto)
 
 lemma csp_do_R4_closed [closure]:
@@ -780,6 +867,9 @@ done
 
 lemma st_subst_csp_do [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ> \<sigma>,\<sigma> \<dagger> t)"
+  by (rel_auto)
+
+lemma csp_do_nothing: "\<Phi>(true,id,\<langle>\<rangle>) = II\<^sub>c"
   by (rel_auto)
 
 lemma csp_do_false [rpred]: "\<Phi>(false,s,t) = false"

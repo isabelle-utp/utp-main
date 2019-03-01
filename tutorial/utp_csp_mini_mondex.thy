@@ -160,7 +160,7 @@ proof (simp add: assms Pay_contract, rule CRD_refine_rdes)
 
   from assms 
   show "`[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>]\<^sub>S\<^sub>< \<Rightarrow>
-           \<I>(\<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<not> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u 0 \<and> \<not> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a <\<^sub>u \<guillemotleft>n\<guillemotright> \<and> 
+           \<I>(\<guillemotleft>i\<guillemotright> \<in>\<^sub>u dom\<^sub>u(&accts) \<and> \<guillemotleft>n\<guillemotright> >\<^sub>u 0 \<and> &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<ge>\<^sub>u \<guillemotleft>n\<guillemotright> \<and> 
              \<guillemotleft>j\<guillemotright> \<notin>\<^sub>u insert\<^sub>u \<guillemotleft>i\<guillemotright> dom\<^sub>u(&accts),\<langle>(pay\<cdot>(\<guillemotleft>i\<guillemotright>, \<guillemotleft>j\<guillemotright>, \<guillemotleft>n\<guillemotright>)\<^sub>u)\<^sub>u\<rangle>)`"
     by (rel_auto)
 

@@ -320,6 +320,10 @@ begin
     shows "P \<sqinter> Q is \<H>"
     by (metis Continuous_Disjunctous Disjunctuous_def HCond_Cont Healthy_def' assms(1) assms(2))
 
+  lemma disj_is_healthy [closure]: 
+    "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P \<or> Q) is \<H>"
+    by (simp add: disj_upred_def meet_is_healthy)
+
   lemma meet_bottom [simp]:
     assumes "P is \<H>"
     shows "P \<sqinter> \<^bold>\<bottom> = \<^bold>\<bottom>"
