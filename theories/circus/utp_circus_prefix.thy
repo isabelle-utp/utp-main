@@ -28,10 +28,10 @@ text {* Output Prefix: @{text "\<dots>![v]e"} *}
 
 text {* A variable name must currently be provided for outputs, too. Fix?! *}
 
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" (".'(_')")
+syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" (".'(_')")
 
-syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax (output) "_output_prefix_pp" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
 
 syntax
   "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem'"
