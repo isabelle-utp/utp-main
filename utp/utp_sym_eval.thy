@@ -47,4 +47,12 @@ syntax
 translations
   "terminated: \<Gamma>" == "\<Gamma> \<Turnstile> II"
 
+text \<open> Below are some theorems linking symbolic evaluation and Hoare logic. \<close>
+
+lemma hoare_symeval_link_1: "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u = (\<forall> s\<^sub>1 s\<^sub>2. `s\<^sub>1 \<dagger> b` \<and> ((s\<^sub>1 \<Turnstile> P) \<sqsubseteq> (s\<^sub>2 \<Turnstile> II)) \<longrightarrow> `s\<^sub>2 \<dagger> c`)"
+  by (simp add: utp_sym_eval_def usubst hoare_opsem_link trel.simps)
+
+lemma hoare_symeval_link_2: "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u \<Longrightarrow> `s\<^sub>1 \<dagger> b` \<and> ((s\<^sub>1 \<Turnstile> P) = (s\<^sub>2 \<Turnstile> II)) \<longrightarrow> `s\<^sub>2 \<dagger> c`"
+  by (rel_blast)
+
 end
