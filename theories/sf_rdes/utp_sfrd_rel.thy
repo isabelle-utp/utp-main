@@ -872,6 +872,9 @@ lemma st_subst_csp_do [usubst]:
 lemma csp_do_nothing: "\<Phi>(true,id,\<langle>\<rangle>) = II\<^sub>c"
   by (rel_auto)
 
+lemma csp_do_nothing_0: "\<Phi>(true,id,0) = II\<^sub>c"
+  by (rel_auto)
+
 lemma csp_do_false [rpred]: "\<Phi>(false,s,t) = false"
   by (rel_auto)
             
@@ -984,7 +987,7 @@ lemma titr_lemma:
   by (induct n, simp_all add: usubst funpow_lemma add.assoc funpow_swap1)
 
 lemma csp_do_power [rpred]:
-  "\<Phi>(s, \<sigma>, t)\<^bold>^(Suc n) = \<Phi>(\<And> i | \<guillemotleft>i\<guillemotright> \<le>\<^sub>u \<guillemotleft>n\<guillemotright> \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t)"
+  "\<Phi>(s, \<sigma>, t)\<^bold>^(Suc n) = \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t)"
   apply (induct n)
    apply (rel_auto)
   apply (simp add: power.power.power_Suc rpred usubst)
@@ -1000,9 +1003,37 @@ lemma csp_do_power [rpred]:
   apply (metis add.assoc plus_list_def plus_uexpr_def titr_lemma)
   done
 
-lemma csp_do_star [rpred]:
-  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i | \<guillemotleft>i\<guillemotright> \<le>\<^sub>u \<guillemotleft>n\<guillemotright> \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+lemma csp_do_rea_star [rpred]:
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
   by (simp add: rrel_theory.Star_alt_def closure uplus_power_def rpred)
+
+lemma csp_do_csp_star [rpred]:
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>c = (\<Sqinter> n \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  (is "?lhs = (\<Sqinter> n \<bullet> ?G(n))")
+proof -
+  have "?lhs = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+    (is "_ = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> ?F(n))")
+    by (simp add: crf_theory.Star_alt_def closure uplus_power_def rpred)
+  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1))"
+    by (simp add: UINF_atLeast_Suc)
+  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  proof -
+    have "(\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1)) = (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
+      by (rule UINF_cong, simp, metis Suc_pred atLeastLessThanSuc_atLeastAtMost diff_is_0_eq not0_implies_Suc not_less_eq_eq zero_less_Suc)
+    thus ?thesis by simp
+  qed
+  also have "... = ?G(0) \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
+    by (simp add: usubst csp_do_nothing_0)
+  also have "... = (\<Sqinter> n \<in> insert 0 {1..} \<bullet> ?G(n))"
+    by (simp)
+  also have "... = (\<Sqinter> n \<bullet> ?G(n))"
+  proof -                                     
+    have "insert (0::nat) {1..} = {0..}" by auto
+    thus ?thesis
+      by simp
+  qed
+  finally show ?thesis .
+qed
 
 subsection \<open> Downward closure of refusals \<close>
 
