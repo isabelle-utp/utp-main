@@ -979,6 +979,14 @@ fun titr :: "nat \<Rightarrow> 's usubst \<Rightarrow> ('a list, 's) uexpr \<Rig
 "titr 0 \<sigma> t = 0" |
 "titr (Suc n) \<sigma> t = (titr n \<sigma> t) + (\<sigma> ^^ n) \<dagger> t"
 
+lemma titr_as_list_sum: "titr n \<sigma> t = list_sum (map (\<lambda> i. (\<sigma> ^^ i) \<dagger> t) [0..<n])"
+  apply (induct n)
+   apply (auto simp add: usubst fold_plus_sum_list_rev foldr_conv_fold)
+  done
+        
+lemma titr_as_foldr: "titr n \<sigma> t = foldr (\<lambda> i e. (\<sigma> ^^ i) \<dagger> t + e) [0..<n] 0"
+  by (simp add: titr_as_list_sum foldr_map comp_def)
+
 lemma funpow_lemma: "(\<lambda>x. (f ^^ n) (f x)) = (f ^^ n) \<circ> f"
   by (simp add: fun_eq_iff funpow_swap1)
 
