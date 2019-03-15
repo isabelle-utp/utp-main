@@ -88,7 +88,7 @@ alphabet 'c::t2_space hybs =
 
 text \<open> The remainder of the state-space is discrete and we make no requirements of it \<close>
 
-abbreviation "dst \<equiv> hybs_child_lens"
+abbreviation "dst \<equiv> hybs.more\<^sub>L"
 
 notation cvec ("\<^bold>c")
 notation dst ("\<^bold>d")

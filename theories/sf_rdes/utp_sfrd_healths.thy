@@ -686,6 +686,19 @@ abbreviation TestC ("test\<^sub>C") where
 abbreviation StarC :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" ("_\<^sup>\<star>\<^sup>C" [999] 999) where
 "StarC P \<equiv> csp_theory.utp_star P"
 
+lemma sfrd_star_as_rdes_star:
+  "P is NCSP \<Longrightarrow> P\<^sup>\<star>\<^sup>C = P\<^sup>\<star>\<^sup>R ;; Skip"
+  by (simp add: csp_theory.Star_alt_def nsrdes_theory.Star_alt_def StarR_def closure unrest Skip_srdes_left_unit csp_theory.Unit_Right)
+
+theorem csp_star_rdes_def [rdes_def]:
+  assumes "P is CRC" "Q is CRR" "R is CRF" "$st\<acute> \<sharp> Q"
+  shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>C = \<^bold>R\<^sub>s(R\<^sup>\<star>\<^sup>c wp\<^sub>r P \<turnstile> (R\<^sup>\<star>\<^sup>c ;; Q) \<diamondop> R\<^sup>\<star>\<^sup>c)"
+  apply (simp add: wp_rea_def sfrd_star_as_rdes_star crf_star_as_rea_star assms seqr_assoc rpred closure unrest StarR_rdes_def)
+  apply (simp add: rdes_def assms closure unrest wp_rea_def[THEN sym])
+  apply (simp add: wp  rpred assms closure)
+  apply (simp add: csp_do_nothing) 
+  done
+
 subsection \<open> Algebraic laws \<close>
 
 lemma Stop_left_zero:

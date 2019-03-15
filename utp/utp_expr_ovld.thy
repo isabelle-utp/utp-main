@@ -52,7 +52,7 @@ adhoc_overloading
   uapply ffun_app and
   uupd pfun_upd and uupd ffun_upd and uupd list_augment and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
-  udom Range and uran pran and uran fran and uran set and
+  uran Range and uran pran and uran fran and uran set and
   udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length and

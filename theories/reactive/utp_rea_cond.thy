@@ -66,6 +66,48 @@ proof -
     by (simp only: assms(1) Healthy_if)
 qed
 
+text \<open> The @{term RC} healthy relations can also be defined in terms of prefix closure,
+  which is characterised by the healthiness condition below. \<close>
+
+definition RC2 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
+[upred_defs]: "RC2(P) = R1(P ;; ($tr\<acute> \<le>\<^sub>u $tr))"
+
+lemma RC2_RR_commute: 
+  "RC2(RR(P)) = RR(RC2(P))"
+  apply (rel_auto)
+  using minus_cancel_le apply blast
+  apply (metis diff_add_cancel_left' le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
+  done
+
+text \<open> Every reactive condition is prefix closed \<close>
+
+lemma RC_prefix_closed:
+  assumes "P is RC"
+  shows "P is RC2"
+proof -
+  have "RC2(RC(P)) = RC(P)"
+    apply (rel_auto) using dual_order.trans by blast
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma RC2_RR_is_RC1:
+  assumes "P is RR" "P is RC2"
+  shows "P is RC1"
+proof -
+  have "RC1(RC2(RR(P))) = RC2(RR(P))"
+    apply (rel_auto) using dual_order.trans by blast
+  thus ?thesis
+    by (metis Healthy_def assms(1) assms(2))
+qed
+
+text \<open> @{term RC} closure can be demonstrated in terms of prefix closure. \<close>
+
+lemma RC_intro_prefix_closed:
+  assumes "P is RR" "P is RC2"
+  shows "P is RC"
+  by (simp add: RC2_RR_is_RC1 RC_intro' assms)
+
 subsection \<open> Closure laws \<close>
 
 lemma RC_implies_RR [closure]: 

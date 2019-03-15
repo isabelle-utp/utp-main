@@ -357,13 +357,13 @@ definition GuardCSP ::
 [upred_defs]: "GuardCSP g A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<lceil>\<not> g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 syntax
-  "_GuardCSP" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" (infixr "&\<^sub>u" 60)
+  "_GuardCSP" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" (infixr "&\<^sub>C" 60)
 
 translations
   "_GuardCSP b P" == "CONST GuardCSP b P"
 
 lemma Guard_tri_design:
-  "g &\<^sub>u P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"
+  "g &\<^sub>C P = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<turnstile> (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P)))"
 proof -
   have "(\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R P \<or> \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>) = (peri\<^sub>R(P) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R(P))"
     by (rel_auto)
@@ -382,23 +382,23 @@ qed
   
 lemma Guard_rdes_def [rdes_def]:
   assumes "P is RR" "Q is CRR" "R is CRR"
-  shows "g &\<^sub>u \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
+  shows "g &\<^sub>C \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) = \<^bold>R\<^sub>s (([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = \<^bold>R\<^sub>s ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ((P \<Rightarrow>\<^sub>r Q) \<triangleleft> \<lceil>g\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> (P \<Rightarrow>\<^sub>r R)))"
     by (simp add: Guard_tri_design rdes assms closure)
-  also have "... = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> R))"
+  also have "... = \<^bold>R\<^sub>s (([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> R))"
     by (rel_auto)
-  also have "... = \<^bold>R\<^sub>s ((\<I>(g,\<langle>\<rangle>) \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
+  also have "... = \<^bold>R\<^sub>s (([g]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> ((\<Phi>(g, id, \<langle>\<rangle>) ;; Q) \<or> \<E>(\<not>g,\<langle>\<rangle>,{}\<^sub>u)) \<diamondop> (\<Phi>(g, id, \<langle>\<rangle>) ;; R))"
     by (simp add: assms(2) assms(3) csp_do_cond_conj)
   finally show ?thesis .
 qed
 
 lemma Guard_rdes_def':
   assumes "$ok\<acute> \<sharp> P"
-  shows "g &\<^sub>u (\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q \<or> \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+  shows "g &\<^sub>C (\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> Q \<or> \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 proof -
-  have "g &\<^sub>u (\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q))) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q)) \<or> \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
+  have "g &\<^sub>C (\<^bold>R\<^sub>s(P \<turnstile> Q)) = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q))) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q)) \<or> \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
     by (simp add: GuardCSP_def)
   also have "... = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r R1(R2c(pre\<^sub>s \<dagger> P))) \<turnstile> (\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> R1(R2c(cmt\<^sub>s \<dagger> (P \<Rightarrow> Q))) \<or>  \<lceil>\<not>g\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
     by (simp add: rea_pre_RHS_design rea_cmt_RHS_design)
@@ -427,18 +427,18 @@ proof -
    finally show ?thesis .
 qed
 
-lemma CSP_Guard [closure]: "b &\<^sub>u P is CSP"
+lemma CSP_Guard [closure]: "b &\<^sub>C P is CSP"
   by (simp add: GuardCSP_def, rule RHS_design_is_SRD, simp_all add: unrest)
 
-lemma preR_Guard [rdes]: "P is CSP \<Longrightarrow> pre\<^sub>R(b &\<^sub>u P) = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P)"
+lemma preR_Guard [rdes]: "P is CSP \<Longrightarrow> pre\<^sub>R(b &\<^sub>C P) = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P)"
   by (simp add: Guard_tri_design rea_pre_RHS_design usubst unrest R2c_preR R2c_lift_state_pre
       R2c_rea_impl R1_rea_impl R1_preR Healthy_if, rel_auto)
 
 lemma periR_Guard [rdes]:
   assumes "P is NCSP"
-  shows "peri\<^sub>R(b &\<^sub>u P) = (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R \<E>(true,\<langle>\<rangle>,{}\<^sub>u))"
+  shows "peri\<^sub>R(b &\<^sub>C P) = (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R \<E>(true,\<langle>\<rangle>,{}\<^sub>u))"
 proof -
-  have "peri\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
+  have "peri\<^sub>R(b &\<^sub>C P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)))"
     by (simp add: assms Guard_tri_design rea_peri_RHS_design usubst unrest R1_rea_impl R2c_rea_not 
         R2c_rea_impl R2c_preR R2c_periR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr closure
         Healthy_if R1_cond R1_tr'_eq_tr)
@@ -452,9 +452,9 @@ qed
       
 lemma postR_Guard [rdes]:
   assumes "P is NCSP"
-  shows "post\<^sub>R(b &\<^sub>u P) = ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R P)"
+  shows "post\<^sub>R(b &\<^sub>C P) = ([b]\<^sub>S\<^sub>< \<and> post\<^sub>R P)"
 proof -
-  have "post\<^sub>R(b &\<^sub>u P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P))"
+  have "post\<^sub>R(b &\<^sub>C P) = ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r (\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P))"
     by (simp add: Guard_tri_design rea_post_RHS_design usubst unrest R2c_rea_not R2c_and R2c_rea_impl
         R2c_preR R2c_postR R2c_tr'_minus_tr R2c_lift_state_pre R2c_condr R1_rea_impl R1_extend_conj'
         R1_post_SRD closure assms)
@@ -469,13 +469,13 @@ qed
         
 lemma CSP3_Guard [closure]:
   assumes "P is CSP" "P is CSP3"
-  shows "b &\<^sub>u P is CSP3"
+  shows "b &\<^sub>C P is CSP3"
 proof -
   from assms have 1:"$ref \<sharp> P\<lbrakk>false/$wait\<rbrakk>"
     by (simp add: CSP_Guard CSP3_iff)
   hence "$ref \<sharp> pre\<^sub>R (P\<lbrakk>0/$tr\<rbrakk>)" "$ref \<sharp> pre\<^sub>R P" "$ref \<sharp> cmt\<^sub>R P"
     by (pred_blast)+
-  hence "$ref \<sharp> (b &\<^sub>u P)\<lbrakk>false/$wait\<rbrakk>"
+  hence "$ref \<sharp> (b &\<^sub>C P)\<lbrakk>false/$wait\<rbrakk>"
     by (simp add: CSP3_iff GuardCSP_def RHS_def R1_def R2c_def R2s_def R3h_def design_def unrest usubst)
   thus ?thesis
     by (metis CSP3_intro CSP_Guard)
@@ -483,9 +483,9 @@ qed
 
 lemma CSP4_Guard [closure]:
   assumes "P is NCSP"
-  shows "b &\<^sub>u P is CSP4"
+  shows "b &\<^sub>C P is CSP4"
 proof (rule CSP4_tri_intro[OF CSP_Guard])
-  show "(\<not>\<^sub>r pre\<^sub>R (b &\<^sub>u P)) ;; R1 true = (\<not>\<^sub>r pre\<^sub>R (b &\<^sub>u P))"
+  show "(\<not>\<^sub>r pre\<^sub>R (b &\<^sub>C P)) ;; R1 true = (\<not>\<^sub>r pre\<^sub>R (b &\<^sub>C P))"
   proof -
     have a:"(\<not>\<^sub>r pre\<^sub>R P) ;; R1 true = (\<not>\<^sub>r pre\<^sub>R P)"
       by (simp add: CSP4_neg_pre_unit assms closure)
@@ -502,15 +502,15 @@ proof (rule CSP4_tri_intro[OF CSP_Guard])
     thus ?thesis
       by (simp add: preR_Guard periR_Guard NSRD_CSP4_intro closure assms unrest)
   qed
-  show "$st\<acute> \<sharp> peri\<^sub>R (b &\<^sub>u P)"
+  show "$st\<acute> \<sharp> peri\<^sub>R (b &\<^sub>C P)"
     by (simp add: preR_Guard periR_Guard NSRD_CSP4_intro closure assms unrest)
-  show "$ref\<acute> \<sharp> post\<^sub>R (b &\<^sub>u P)"
+  show "$ref\<acute> \<sharp> post\<^sub>R (b &\<^sub>C P)"
     by (simp add: preR_Guard postR_Guard NSRD_CSP4_intro closure assms unrest)
 qed
 
 lemma NCSP_Guard [closure]:
   assumes "P is NCSP"
-  shows "b &\<^sub>u P is NCSP"
+  shows "b &\<^sub>C P is NCSP"
 proof -
   have "P is CSP"
     using NCSP_implies_CSP assms by blast
@@ -520,9 +520,9 @@ qed
 
 lemma Productive_Guard [closure]:
   assumes "P is CSP" "P is Productive" "$wait\<acute> \<sharp> pre\<^sub>R(P)"
-  shows "b &\<^sub>u P is Productive"
+  shows "b &\<^sub>C P is Productive"
 proof -
-  have "b &\<^sub>u P = b &\<^sub>u \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
+  have "b &\<^sub>C P = b &\<^sub>C \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
     by (metis Healthy_def Productive_form assms(1) assms(2))
   also have "... =
         \<^bold>R\<^sub>s ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<turnstile>
@@ -532,7 +532,7 @@ proof -
         R2c_periR R2c_postR R2c_and R2c_tr_less_tr' R1_tr_less_tr')             
   also have "... = \<^bold>R\<^sub>s ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R P) \<turnstile> (peri\<^sub>R P \<triangleleft> \<lceil>b\<rceil>\<^sub>S\<^sub>< \<triangleright> ($tr\<acute> =\<^sub>u $tr)) \<diamondop> ((\<lceil>b\<rceil>\<^sub>S\<^sub>< \<and> post\<^sub>R P) \<and> $tr\<acute> >\<^sub>u $tr))"
     by (rel_auto)
-  also have "... = Productive(b &\<^sub>u P)"
+  also have "... = Productive(b &\<^sub>C P)"
     by (simp add: Productive_def Guard_tri_design RHS_tri_design_par unrest)
   finally show ?thesis
     by (simp add: Healthy_def')
@@ -540,7 +540,7 @@ qed
 
 lemma Guard_refines_sinv: 
   assumes "P is NCSP" "sinv\<^sub>R(b) \<sqsubseteq> P"
-  shows "sinv\<^sub>R(b) \<sqsubseteq> g &\<^sub>u P"
+  shows "sinv\<^sub>R(b) \<sqsubseteq> g &\<^sub>C P"
 proof -
   from assms
   have "\<^bold>R\<^sub>s([b]\<^sub>S\<^sub>< \<turnstile> R1 true \<diamondop> [b]\<^sub>S\<^sub>>) \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
@@ -711,18 +711,21 @@ lemma trace_ext_R1_closed [closure]: "P is R1 \<Longrightarrow> P\<lbrakk>$tr ^\
     
 lemma preR_PrefixCSP_NCSP [rdes]:
   assumes "P is NCSP"
-  shows "pre\<^sub>R(PrefixCSP a P) = (\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r (pre\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
+  shows "pre\<^sub>R(PrefixCSP a P) = (\<Phi>(true,id,\<langle>a\<rangle>) wp\<^sub>r pre\<^sub>R P)"
   by (simp add: PrefixCSP_def assms closure rdes rpred Healthy_if wp usubst unrest)
-  
+
+(*
 lemma periR_PrefixCSP [rdes]:
   assumes "P is NCSP"
   shows "peri\<^sub>R(PrefixCSP a P) = (\<E>(true,\<langle>\<rangle>,{a}\<^sub>u) \<or> (peri\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
 proof -
   have "peri\<^sub>R(PrefixCSP a P) =  peri\<^sub>R (do\<^sub>C a ;; P)"
     by (simp add: PrefixCSP_def closure assms Healthy_if)
-  also have "... = ((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r pre\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<Rightarrow>\<^sub>r $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
-    by (simp add: assms NSRD_CSP4_intro csp_enable_tr_empty closure rdes unrest ex_unrest usubst rpred wp)
-  also have "... = (\<E>(true,\<langle>\<rangle>,{a}\<^sub>u) \<or> ((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r pre\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<Rightarrow>\<^sub>r peri\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t))"
+  also have "... = undefined"
+    apply (simp add: rdes closure assms rpred)
+  also have "... = ((\<Phi>(true,id,\<langle>a\<rangle>) wp\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r $tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute> \<or> peri\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
+    by (simp add: assms NSRD_CSP4_intro csp_enable_tr_empty closure rdes unrest ex_unrest usubst rpred csp_do_comp wp)
+  also have "... = (\<E>(true,\<langle>\<rangle>,{a}\<^sub>u) \<or> ((\<Phi>(true,id,\<langle>a\<rangle>) wp\<^sub>r pre\<^sub>R P) \<Rightarrow>\<^sub>r peri\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t))"
     by (rel_auto)
   also have "... = (\<E>(true,\<langle>\<rangle>,{a}\<^sub>u) \<or> ((pre\<^sub>R(P) \<Rightarrow>\<^sub>r peri\<^sub>R P)\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t))"
     by (rel_auto)
@@ -746,10 +749,11 @@ proof -
     by (rel_auto)
   finally show ?thesis .
 qed
-      
+*)  
+    
 lemma PrefixCSP_RHS_tri:
   assumes "P is NCSP"
-  shows "PrefixCSP a P = \<^bold>R\<^sub>s ((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r pre\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<turnstile> (\<E>(true,\<langle>\<rangle>, {a}\<^sub>u) \<or> peri\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<diamondop> post\<^sub>R P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
+  shows "PrefixCSP a P = \<^bold>R\<^sub>s (\<Phi>(true,id,\<langle>a\<rangle>) wp\<^sub>r pre\<^sub>R P \<turnstile> (\<E>(true,\<langle>\<rangle>, {a}\<^sub>u) \<or> \<Phi>(true,id,\<langle>a\<rangle>) ;; peri\<^sub>R P) \<diamondop> \<Phi>(true,id,\<langle>a\<rangle>) ;; post\<^sub>R P)"
   by (simp add: PrefixCSP_def Healthy_if unrest assms closure NSRD_composition_wp rdes rpred usubst wp)
 
 text \<open> For prefix, we can chose whether to propagate the assumptions or not, hence there
@@ -758,13 +762,11 @@ text \<open> For prefix, we can chose whether to propagate the assumptions or no
 lemma PrefixCSP_rdes_def_1 [rdes_def]:
   assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
-  shows "PrefixCSP a (\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s((\<I>(true,\<langle>a\<rangle>) \<Rightarrow>\<^sub>r P\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<turnstile> (\<E>(true,\<langle>\<rangle>, {a}\<^sub>u) \<or> Q\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t) \<diamondop> R\<lbrakk>\<langle>a\<rangle>\<rbrakk>\<^sub>t)"
-  apply (subst PrefixCSP_RHS_tri)
-   apply (rule NCSP_rdes_intro)
-       apply (simp_all add: assms rdes closure)
-  apply (rel_auto)
-  done
+        shows "PrefixCSP a (\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = 
+               \<^bold>R\<^sub>s (\<Phi>(true,id,\<langle>a\<rangle>) wp\<^sub>r P \<turnstile> (\<E>(true,\<langle>\<rangle>, {a}\<^sub>u) \<or> \<Phi>(true,id,\<langle>a\<rangle>) ;; Q) \<diamondop> \<Phi>(true,id,\<langle>a\<rangle>) ;; R)"
+  by (simp add: PrefixCSP_def Healthy_if assms closure, rdes_simp cls: assms)
 
+(*
 lemma PrefixCSP_rdes_def_2:
   assumes "P is CRC" "Q is CRR" "R is CRR"
           "$st\<acute> \<sharp> Q" "$ref\<acute> \<sharp> R"
@@ -774,6 +776,7 @@ lemma PrefixCSP_rdes_def_2:
        apply (simp_all add: assms rdes closure)
   apply (rel_auto)
   done
+*)
 
 subsection \<open> Guarded external choice \<close>
 
@@ -789,16 +792,16 @@ translations
 lemma GuardedChoiceCSP [rdes_def]:
   assumes "\<And> x. P(x) is NCSP" "A \<noteq> {}"
   shows "(\<box> x\<in>A \<^bold>\<rightarrow> P(x)) =
-             \<^bold>R\<^sub>s ((\<Squnion> x \<in> A \<bullet> \<I>(true,\<langle>\<guillemotleft>x\<guillemotright>\<rangle>) \<Rightarrow>\<^sub>r pre\<^sub>R (P x)\<lbrakk>\<langle>\<guillemotleft>x\<guillemotright>\<rangle>\<rbrakk>\<^sub>t) \<turnstile>
-                 ((\<Squnion> x \<in> A \<bullet> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>x\<guillemotright>}\<^sub>u)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> x \<in> A \<bullet> peri\<^sub>R (P x)\<lbrakk>\<langle>\<guillemotleft>x\<guillemotright>\<rangle>\<rbrakk>\<^sub>t)) \<diamondop>
-                  (\<Sqinter> x \<in> A \<bullet> post\<^sub>R (P x)\<lbrakk>\<langle>\<guillemotleft>x\<guillemotright>\<rangle>\<rbrakk>\<^sub>t))"
+             \<^bold>R\<^sub>s ((\<Squnion> x \<in> A \<bullet> \<Phi>(true,id,\<langle>\<guillemotleft>x\<guillemotright>\<rangle>) wp\<^sub>r pre\<^sub>R (P x)) \<turnstile>
+                 ((\<Squnion> x \<in> A \<bullet> \<E>(true,\<langle>\<rangle>, {\<guillemotleft>x\<guillemotright>}\<^sub>u)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> x \<in> A \<bullet> \<Phi>(true,id,\<langle>\<guillemotleft>x\<guillemotright>\<rangle>) ;; peri\<^sub>R (P x))) \<diamondop>
+                  (\<Sqinter> x \<in> A \<bullet> \<Phi>(true,id,\<langle>\<guillemotleft>x\<guillemotright>\<rangle>) ;; post\<^sub>R (P x)))"
   by (simp add: PrefixCSP_RHS_tri assms ExtChoice_tri_rdes closure unrest, rel_auto)
 
 subsection \<open> Input prefix \<close>
 
 definition InputCSP ::
   "('a, '\<theta>) chan \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
-[upred_defs]: "InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>u PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
+[upred_defs]: "InputCSP c A P = (\<box> x\<in>UNIV \<bullet> A(x) &\<^sub>C PrefixCSP (c\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u (P x))"
 
 definition InputVarCSP :: "('a, '\<theta>) chan \<Rightarrow> ('a \<Longrightarrow> '\<sigma>) \<Rightarrow> ('a \<Rightarrow> '\<sigma> upred) \<Rightarrow> ('\<sigma>, '\<theta>) action" where
 [upred_defs, rdes_def]: "InputVarCSP c x A = InputCSP c A (\<lambda> v. \<langle>[x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>]\<rangle>\<^sub>C)"
@@ -826,6 +829,7 @@ lemma Productive_InputCSP [closure]:
   "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> InputCSP x A P is Productive"
   by (auto simp add: InputCSP_def unrest closure intro: Productive_ExtChoice)
 
+(*
 lemma preR_InputCSP [rdes]:
   assumes "\<And> v. P(v) is NCSP"
   shows "pre\<^sub>R(InputCSP a A P) = (\<Squnion> v \<bullet> [A(v)]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<I>(true,\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>) \<Rightarrow>\<^sub>r (pre\<^sub>R (P(v)))\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
@@ -844,7 +848,26 @@ lemma postR_InputCSP [rdes]:
   shows "post\<^sub>R(InputCSP a A P) =
           (\<Sqinter> x \<bullet> [A x]\<^sub>S\<^sub>< \<and> post\<^sub>R (P x)\<lbrakk>\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>\<rbrakk>\<^sub>t)"
   using assms by (simp add: InputCSP_def rdes closure assms usubst unrest)
+*)
 
+lemma R4_st_pred_conj_do [rpred]:
+  "((R4 [s\<^sub>1]\<^sub>S\<^sub><) \<and> \<Phi>(s\<^sub>2,\<sigma>,t) ;; P) = R4(\<Phi>(s\<^sub>1 \<and> s\<^sub>2,\<sigma>,t) ;; P) "
+  by (rel_auto)
+
+lemma st_pred_conj_seq [rpred]:
+  "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> ([s]\<^sub>S\<^sub>< \<and> P ;; Q) = (([s]\<^sub>S\<^sub>< \<and> P) ;; Q)"
+  by (metis (no_types, lifting) R1_seqr_closure RR_implies_R1 cond_st_distr cond_st_miracle seqr_left_zero)
+  
+lemma InputCSP_rdes_def [rdes_def]:
+  assumes "\<And> v. P(v) is CRC" "\<And> v. Q(v) is CRR" "\<And> v. R(v) is CRR"
+          "\<And> v. $st\<acute> \<sharp> Q(v)" "\<And> v. $ref\<acute> \<sharp> R(v)"
+  shows "InputCSP a A (\<lambda> v. \<^bold>R\<^sub>s(P(v) \<turnstile> Q(v) \<diamondop> R(v))) = 
+           \<^bold>R\<^sub>s((\<Squnion> x \<bullet> \<Phi>(A x,id,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) wp\<^sub>r P x) \<turnstile>
+             ((\<Squnion> x \<bullet> \<E>(A x,\<langle>\<rangle>, {(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<or> \<E>(\<not> A x,\<langle>\<rangle>, {}\<^sub>u)) \<or> (\<Sqinter> x \<bullet> \<Phi>(A x,id,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) ;; Q x)) \<diamondop> 
+             (\<Sqinter> x \<bullet> \<Phi>(A x,id,\<langle>(a\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>) ;; R x))"
+  by (simp add: InputCSP_def, rdes_simp cls: assms)
+
+(*
 lemma InputCSP_rdes_def [rdes_def]:
   assumes "\<And> v. P(v) is CRC" "\<And> v. Q(v) is CRR" "\<And> v. R(v) is CRR"
           "\<And> v. $st\<acute> \<sharp> Q(v)" "\<And> v. $ref\<acute> \<sharp> R(v)"
@@ -869,6 +892,7 @@ proof -
     by (rel_auto)
   finally show ?thesis .
 qed
+*)
 
 subsection \<open> Renaming \<close>
 
@@ -933,28 +957,28 @@ lemma AssignsCSP_id: "\<langle>id\<rangle>\<^sub>C = Skip"
   by (rel_auto)
 
 lemma Guard_comp:
-  "g &\<^sub>u h &\<^sub>u P = (g \<and> h) &\<^sub>u P"
+  "g &\<^sub>C h &\<^sub>C P = (g \<and> h) &\<^sub>C P"
   by (rule antisym, rel_blast, rel_blast)
 
-lemma Guard_false [simp]: "false &\<^sub>u P = Stop"
+lemma Guard_false [simp]: "false &\<^sub>C P = Stop"
   by (simp add: GuardCSP_def Stop_def rpred closure alpha R1_design_R1_pre)
 
 lemma Guard_true [simp]:
-  "P is CSP \<Longrightarrow> true &\<^sub>u P = P"
+  "P is CSP \<Longrightarrow> true &\<^sub>C P = P"
   by (simp add: GuardCSP_def alpha SRD_reactive_design_alt closure rpred)
 
 lemma Guard_conditional:
   assumes "P is NCSP"
-  shows "b &\<^sub>u P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"  
+  shows "b &\<^sub>C P = P \<triangleleft> b \<triangleright>\<^sub>R Stop"  
   by (rdes_eq cls: assms)
 
 lemma Guard_expansion:
-  "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>u P = (g\<^sub>1 &\<^sub>u P) \<box> (g\<^sub>2 &\<^sub>u P)"
+  "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>C P = (g\<^sub>1 &\<^sub>C P) \<box> (g\<^sub>2 &\<^sub>C P)"
   by (rel_auto)
 
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
-  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>u P \<box> (\<not> b) &\<^sub>u Q"  
+  shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>C P \<box> (\<not> b) &\<^sub>C Q"  
   by (rdes_eq cls: assms; simp add: le_less)
 
 lemma PrefixCSP_dist:
@@ -993,7 +1017,7 @@ lemma AlternateR_as_ExtChoice:
     "\<And> i. i \<in> A \<Longrightarrow> P(i) is NCSP" "Q is NCSP"
     "\<And> i j. \<lbrakk> i \<in> A; j \<in> A; i \<noteq> j \<rbrakk> \<Longrightarrow> (g i \<and> g j) = false" 
   shows "(if\<^sub>R i\<in>A \<bullet> g(i) \<rightarrow> P(i) else Q fi) = 
-         (\<box> i\<in>A \<bullet> g(i) &\<^sub>u P(i)) \<box> (\<And> i\<in>A \<bullet> \<not> g(i)) &\<^sub>u Q"
+         (\<box> i\<in>A \<bullet> g(i) &\<^sub>C P(i)) \<box> (\<And> i\<in>A \<bullet> \<not> g(i)) &\<^sub>C Q"
 proof (cases "A = {}")
   case True
   then show ?thesis by (simp add: ExtChoice_empty extChoice_Stop closure assms)
@@ -1004,7 +1028,7 @@ next
   proof -
     have 1:"(\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R P i) = (\<Sqinter> i \<in> A \<bullet> g i \<rightarrow>\<^sub>R \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
       by (rule UINF_cong, simp add: NCSP_implies_CSP SRD_reactive_tri_design assms(1))
-    have 2:"(\<box> i\<in>A \<bullet> g(i) &\<^sub>u P(i)) = (\<box> i\<in>A \<bullet> g(i) &\<^sub>u \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
+    have 2:"(\<box> i\<in>A \<bullet> g(i) &\<^sub>C P(i)) = (\<box> i\<in>A \<bullet> g(i) &\<^sub>C \<^bold>R\<^sub>s(pre\<^sub>R(P i) \<turnstile> peri\<^sub>R(P i) \<diamondop> post\<^sub>R(P i)))"
       by (rule ExtChoice_cong, simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
     from assms(3) show ?thesis
       by (simp add: AlternateR_def 1 2)

@@ -230,6 +230,17 @@ translations
   "x >\<^sub>u y"   => "y <\<^sub>u x"
   "x \<ge>\<^sub>u y"   => "y \<le>\<^sub>u x"
 
+text \<open> Overloaded power syntax \<close>
+
+overloading
+  uexprpow \<equiv> "compow :: nat \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr"
+begin
+
+definition uexprpow :: "nat \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr" where
+[uexpr_defs]: "uexprpow n e = uop (compow n) e" 
+
+end
+
 subsection \<open> Evaluation laws for expressions \<close>
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which

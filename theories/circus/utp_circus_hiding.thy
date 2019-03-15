@@ -65,6 +65,9 @@ lemma hide_rea_true_R1_true [rpred]:
   "hide\<^sub>r (R1 true) A ;; R1 true = R1 true"
   by (rel_auto, metis append_Nil2 seq_filter_Nil)
 
+lemma hide_rea_shEx [rpred]: "hide\<^sub>r (\<^bold>\<exists> i \<bullet> P(i)) cs = (\<^bold>\<exists> i \<bullet> hide\<^sub>r (P i) cs)"
+  by (rel_auto)
+
 lemma hide_rea_empty [rpred]: 
   assumes "P is RR"
   shows "hide\<^sub>r P {} = P"
@@ -213,7 +216,7 @@ lemma HideCSP_int_choice:
 
 lemma HideCSP_guard:
   assumes "P is NCSP"
-  shows "(b &\<^sub>u P) \\\<^sub>C A = b &\<^sub>u (P \\\<^sub>C A)"
+  shows "(b &\<^sub>C P) \\\<^sub>C A = b &\<^sub>C (P \\\<^sub>C A)"
   by (rdes_eq cls: assms)
 
 lemma HideCSP_seq:

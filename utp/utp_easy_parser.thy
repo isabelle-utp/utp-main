@@ -1,7 +1,7 @@
 section \<open> UTP Easy Expression Parser \<close>
 
 theory utp_easy_parser
-  imports utp_full
+  imports "utp_full"
 begin
 
 subsection \<open> Replacing the Expression Grammar \<close>
@@ -107,14 +107,30 @@ subsection \<open> Sets \<close>
 syntax
   "_ue_empset"          :: "uexp" ("{}")
   "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 80)
+  "_ue_setenum"         :: "uexprs \<Rightarrow> uexp" ("{_}")
   "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
   "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
 
 translations
   "_ue_empset" => "{}\<^sub>u"
   "_ue_setprod e f" =>  "CONST bop (CONST Product_Type.Times) e f"
+  "_ue_setenum (_uexprs x xs)" => "insert\<^sub>u x (_ue_setenum xs)"
+  "_ue_setenum x" => "insert\<^sub>u x {}\<^sub>u"
   "_ue_atLeastAtMost m n" => "{m..n}\<^sub>u"
   "_ue_atLeastLessThan m n" => "{m..<n}\<^sub>u"
+
+subsection \<open> Lists \<close>
+
+syntax
+  "_ue_nil"          :: "uexp" ("[]")
+  "_ue_listenum"     :: "uexprs \<Rightarrow> uexp" ("[_]")
+  "_ue_append"       :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "@" 65)
+
+translations
+  "_ue_nil" => "\<langle>\<rangle>"
+  "_ue_listenum (_uexprs x xs)" => "x #\<^sub>u (_ue_listenum xs)"
+  "_ue_listenum x" => "\<langle>x\<rangle>"
+  "_ue_append xs ys" => "xs ^\<^sub>u ys"
 
 subsection \<open> Imperative Program Syntax \<close>
 

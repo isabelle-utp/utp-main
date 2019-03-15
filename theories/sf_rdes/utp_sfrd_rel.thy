@@ -34,6 +34,59 @@ lemma CRR_seqr_form:
                       (\<exists> {$ok, $ok\<acute>, $wait, $wait\<acute>, $ref} \<bullet> Q)\<lbrakk>\<langle>\<rangle>/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> ^\<^sub>u \<guillemotleft>tt\<^sub>2\<guillemotright>))"
   by (simp add: CRR_form, rel_auto; fastforce)
 
+text \<open> CSP Reactive Finalisers \<close>
+    
+definition CRF :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
+[upred_defs]: "CRF(P) = (\<exists> $ref\<acute> \<bullet> CRR(P))"
+
+lemma CRF_idem: "CRF(CRF(P)) = CRF(P)"
+  by (rel_auto)
+
+lemma Idempotent_CRF [closure]: "Idempotent CRF"
+  by (simp add: CRF_idem Idempotent_def)
+
+lemma Continuous_CRF [closure]: "Continuous CRF"
+  by (rel_blast)
+
+lemma CRF_intro:
+  assumes "$ref \<sharp> P" "$ref\<acute> \<sharp> P" "P is RR"
+  shows "P is CRF"
+  by (simp add: CRF_def CRR_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+
+lemma CRF_implies_CRR [closure]:
+  assumes "P is CRF" shows "P is CRR"
+proof -
+  have "CRR(CRF(P)) = CRF(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+definition crel_skip :: "('s, 'e) action" ("II\<^sub>c") where
+[upred_defs]: "crel_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+
+lemma crel_skip_CRR [closure]: "II\<^sub>c is CRF"
+  by (rel_auto)
+
+lemma crel_skip_via_rrel: "II\<^sub>c = CRR(II\<^sub>r)"
+  by (rel_auto)
+
+lemma crel_skip_left_unit [rpred]:  
+  assumes "P is CRR" 
+  shows "II\<^sub>c ;; P = P"
+proof -
+  have "II\<^sub>c ;; CRR(P) = CRR(P)" by (rel_auto)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+lemma crel_skip_right_unit [rpred]:  
+  assumes "P is CRF" 
+  shows "P ;; II\<^sub>c = P"
+proof -
+  have "CRF(P) ;; II\<^sub>c = CRF(P)" by (rel_auto)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
 text \<open> CSP Reactive Conditions \<close>
 
 definition CRC :: "('s,'e) action \<Rightarrow> ('s,'e) action" where
@@ -73,7 +126,6 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
-
 
 lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
   apply (simp add: CRC_def ex_unrest  unrest)
@@ -124,7 +176,15 @@ qed
 
 lemma CRR_unrest_ref [unrest]: "P is CRR \<Longrightarrow> $ref \<sharp> P"
   by (metis CRR_def CRR_implies_RR Healthy_def in_var_uvar ref_vwb_lens unrest_as_exists)
-  
+
+lemma CRF_unrest_ref' [unrest]: 
+  assumes "P is CRF"
+  shows "$ref\<acute> \<sharp> P"
+proof -
+  have "$ref\<acute> \<sharp> CRF(P)" by (simp add: CRF_def unrest)
+  thus ?thesis by (simp add: assms Healthy_if)
+qed
+
 lemma CRC_implies_CRR [closure]:
   assumes "P is CRC"
   shows "P is CRR"
@@ -306,6 +366,11 @@ lemma seq_CRR_closed [closure]:
   shows "(P ;; Q) is CRR"
   by (rule CRR_intro, simp_all add: unrest assms closure)
 
+lemma seq_CRF_closed [closure]:
+  assumes "P is CRF" "Q is CRF"
+  shows "(P ;; Q) is CRF"
+  by (rule CRF_intro, simp_all add: unrest assms closure)
+
 lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
 
@@ -429,6 +494,32 @@ lemma CRR_refine_impl_prop:
   shows "P \<sqsubseteq> Q"
   by (rule CRR_refine_ext, simp_all add: assms closure unrest usubst)
      (rule refine_prop_intro, simp_all add: unrest unrest_all_circus_vars closure assms)
+
+subsection \<open> UTP Theory \<close>
+
+interpretation crf_theory: utp_theory_kleene CRF II\<^sub>c
+  rewrites "P \<in> carrier crf_theory.thy_order \<longleftrightarrow> P is CRF"
+  and "le rrel_theory.thy_order = (\<sqsubseteq>)"
+  and "eq rrel_theory.thy_order = (=)"  
+  and crf_top: "crf_theory.utp_top = false"
+  and crf_bottom: "crf_theory.utp_bottom = true\<^sub>r"
+proof -
+  interpret utp_theory_continuous CRF
+    by (unfold_locales, simp_all add: add: CRF_idem Continuous_CRF)
+  show top:"utp_top = false"
+    by (simp add: healthy_top, rel_auto)
+  show bot:"utp_bottom = true\<^sub>r"
+    by (simp add: healthy_bottom, rel_auto)
+  show "utp_theory_kleene CRF II\<^sub>c"
+    by (unfold_locales, simp_all add: closure rpred top)
+qed (simp_all)
+  
+abbreviation crf_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>c" [999] 999) where
+"P\<^sup>\<star>\<^sup>c \<equiv> crf_theory.utp_star P"
+
+lemma crf_star_as_rea_star:
+  "P is CRF \<Longrightarrow> P\<^sup>\<star>\<^sup>c = P\<^sup>\<star>\<^sup>r ;; II\<^sub>c"
+  by (simp add: crf_theory.Star_alt_def rrel_theory.Star_alt_def closure rpred unrest)
 
 subsection \<open> Weakest Precondition \<close>
 
@@ -582,22 +673,23 @@ lemma tsubst_UINF_ind [usubst]: "(\<Sqinter> i \<bullet> P(i))\<lbrakk>v\<rbrakk
 subsection \<open> Initial Interaction \<close>
 
 definition rea_init :: "'s upred \<Rightarrow> ('t::trace, 's) uexpr \<Rightarrow> ('s, 't, '\<alpha>, '\<beta>) rel_rsp" ("\<I>'(_,_')") where
-[upred_defs]: "\<I>(s,t) = (\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr + \<lceil>t\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u $tr\<acute>)"
-
-text \<open> @{term "\<I>(s, t)"} is a predicate stating that, if the initial state satisfies state predicate
-  @{term s}, then the trace @{term t} is an initial trace. \<close>
+[upred_defs]: "\<I>(s,t) = (\<lceil>s\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<not>\<^sub>r $tr + \<lceil>t\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  
+lemma usubst_rea_init' [usubst]:
+  "\<sigma> \<dagger>\<^sub>S \<I>(s,t) = \<I>(\<sigma>\<dagger>s,\<sigma>\<dagger>t)"
+  by (rel_auto)
 
 lemma unrest_rea_init [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<I>(s,t)"
   by (simp add: rea_init_def unrest lens_indep_sym)
 
 lemma rea_init_R1 [closure]: "\<I>(s,t) is R1"
-  apply (rel_auto) using dual_order.trans le_add by blast
+  by (rel_auto)
 
 lemma rea_init_R2c [closure]: "\<I>(s,t) is R2c"
   apply (rel_auto)
-  apply (metis diff_add_cancel_left' trace_class.add_left_mono)
   apply (metis le_add minus_cancel_le trace_class.add_diff_cancel_left)
+  apply (metis diff_add_cancel_left' trace_class.add_left_mono)
 done
 
 lemma rea_init_R2 [closure]: "\<I>(s,t) is R2"
@@ -605,62 +697,35 @@ lemma rea_init_R2 [closure]: "\<I>(s,t) is R2"
  
 lemma csp_init_RR [closure]: "\<I>(s,t) is RR"
   apply (rel_auto)
-  apply (metis diff_add_cancel_left' trace_class.add_left_mono)
   apply (metis le_add minus_cancel_le trace_class.add_diff_cancel_left)
-  apply (metis le_add less_le less_le_trans)
+  apply (metis diff_add_cancel_left' trace_class.add_left_mono)
 done
 
 lemma csp_init_CRR [closure]: "\<I>(s,t) is CRR"
   by (rule CRR_intro, simp_all add: unrest closure)
-    
-lemma rea_init_impl_st [closure]: "(\<I>(b,t) \<Rightarrow>\<^sub>r [c]\<^sub>S\<^sub><) is RC"
-  apply (rule RC_intro)
-  apply (simp add: closure)
-  apply (rel_auto)
-  using order_trans by auto
-    
-lemma rea_init_RC1: 
-  "\<not>\<^sub>r \<I>(P,t) is RC1"
-  apply (rel_auto) using dual_order.trans by blast
 
-lemma init_acts_empty [rpred]: "\<I>(true,\<langle>\<rangle>) = true\<^sub>r"
+lemma rea_init_RC [closure]: "\<I>(s,t) is CRC"
+  apply (rel_auto) by fastforce
+
+lemma rea_init_false [rpred]: "\<I>(false, t) = true\<^sub>r"
   by (rel_auto)
-    
-lemma rea_not_init [rpred]: 
-  "(\<not>\<^sub>r \<I>(P,\<langle>\<rangle>)) = \<I>(\<not>P,\<langle>\<rangle>)"
+
+lemma rea_init_nil [rpred]: "\<I>(s,\<langle>\<rangle>) = [\<not> s]\<^sub>S\<^sub><"
+  by (rel_auto)
+
+lemma rea_not_init [rpred]: "(\<not>\<^sub>r \<I>(P,\<langle>\<rangle>)) = \<I>(\<not>P,\<langle>\<rangle>)"
   by (rel_auto)
        
 lemma rea_init_conj [rpred]:
-  "(\<I>(P,t) \<and> \<I>(Q,t)) = \<I>(P\<and>Q,t)"
-  by (rel_auto)
-
-lemma rea_init_empty_trace [rpred]: "\<I>(s,\<langle>\<rangle>) = [s]\<^sub>S\<^sub><"
+  "(\<I>(s\<^sub>1,t) \<and> \<I>(s\<^sub>2,t)) = \<I>(s\<^sub>1\<or>s\<^sub>2,t)"
   by (rel_auto)
     
-lemma rea_init_disj_same [rpred]: "(\<I>(s\<^sub>1,t) \<or> \<I>(s\<^sub>2,t)) = \<I>(s\<^sub>1 \<or> s\<^sub>2, t)"
+lemma rea_init_disj_same [rpred]: "(\<I>(s\<^sub>1,t) \<or> \<I>(s\<^sub>2,t)) = \<I>(s\<^sub>1 \<and> s\<^sub>2, t)"
   by (rel_auto)
 
-lemma rea_init_impl_same [rpred]: "(\<I>(s\<^sub>1,t) \<Rightarrow>\<^sub>r \<I>(s\<^sub>2,t)) = (\<I>(s\<^sub>1, t) \<Rightarrow>\<^sub>r [s\<^sub>2]\<^sub>S\<^sub><)"
-  apply (rel_auto) using dual_order.trans le_add by blast+
-
-lemma tsubst_st_cond [usubst]: "[P]\<^sub>S\<^sub><\<lbrakk>t\<rbrakk>\<^sub>t = \<I>(P,t)"
-  by (rel_auto)
-
-lemma tsubst_rea_init [usubst]: "(\<I>(s,x))\<lbrakk>y\<rbrakk>\<^sub>t = \<I>(s,y+x)"
-  apply (rel_auto)
-  apply (metis add.assoc diff_add_cancel_left' trace_class.add_le_imp_le_left trace_class.add_left_mono)
-  apply (metis add.assoc diff_add_cancel_left' le_add trace_class.add_le_imp_le_left trace_class.add_left_mono)+
-done
-
-lemma tsubst_rea_not [usubst]: "(\<not>\<^sub>r P)\<lbrakk>v\<rbrakk>\<^sub>t = ((\<not>\<^sub>r P\<lbrakk>v\<rbrakk>\<^sub>t) \<and> \<I>(true,v))"
-  apply (rel_auto)
-  using le_add order_trans by blast
-    
-lemma tsubst_true [usubst]: "true\<^sub>r\<lbrakk>v\<rbrakk>\<^sub>t = \<I>(true,v)"
-  by (rel_auto)
-
+(*
 lemma R4_csp_init [rpred]: "R4(\<I>(s,bop Cons x xs)) = \<I>(s,bop Cons x xs)"
-  using less_list_def by (rel_blast)
+  using less_list_def apply (rel_auto)
 
 lemma R5_csp_init [rpred]: "R5(\<I>(s,bop Cons x xs)) = false"
   by (rel_auto)
@@ -672,6 +737,7 @@ lemma R4_trace_subst [rpred]:
 lemma R5_trace_subst [rpred]:
   "R5 (P\<lbrakk>bop Cons x xs\<rbrakk>\<^sub>t) = false"
   by (rel_auto)
+*)
 
 subsection \<open> Enabled Events \<close>
 
@@ -773,6 +839,11 @@ subsection \<open> Completed Trace Interaction \<close>
 definition csp_do :: "'s upred \<Rightarrow> ('s \<Rightarrow> 's) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
 [upred_defs]: "\<Phi>(s,\<sigma>,t) = (\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)"
 
+lemma csp_do_eq_intro:
+  assumes "s\<^sub>1 = s\<^sub>2" "\<sigma>\<^sub>1 = \<sigma>\<^sub>2" "t\<^sub>1 = t\<^sub>2"
+  shows "\<Phi>(s\<^sub>1, \<sigma>\<^sub>1, t\<^sub>1) = \<Phi>(s\<^sub>2, \<sigma>\<^sub>2, t\<^sub>2)"
+  by (simp add: assms)
+
 text \<open> Predicate @{term "\<Phi>(s,\<sigma>,t)"} states that if the initial state satisfies @{term s}, and
   the trace @{term t} is performed, then afterwards the state update @{term \<sigma>} is executed. \<close>
 
@@ -780,7 +851,7 @@ lemma unrest_csp_do [unrest]:
   "\<lbrakk> x \<bowtie> ($tr)\<^sub>v; x \<bowtie> ($tr\<acute>)\<^sub>v; x \<bowtie> ($st)\<^sub>v; x \<bowtie> ($st\<acute>)\<^sub>v \<rbrakk> \<Longrightarrow> x \<sharp> \<Phi>(s,\<sigma>,t)"
   by (simp_all add: csp_do_def alpha_in_var alpha_out_var prod_as_plus unrest lens_indep_sym)
     
-lemma csp_do_CRR [closure]: "\<Phi>(s,\<sigma>,t) is CRR"
+lemma csp_do_CRF [closure]: "\<Phi>(s,\<sigma>,t) is CRF"
   by (rel_auto)
 
 lemma csp_do_R4_closed [closure]:
@@ -802,21 +873,14 @@ lemma st_subst_csp_do [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ> \<sigma>,\<sigma> \<dagger> t)"
   by (rel_auto)
 
-lemma csp_init_do [rpred]: "(\<I>(s1,t) \<and> \<Phi>(s2,\<sigma>,t)) = \<Phi>(s1 \<and> s2, \<sigma>, t)"
+lemma csp_do_nothing: "\<Phi>(true,id,\<langle>\<rangle>) = II\<^sub>c"
+  by (rel_auto)
+
+lemma csp_do_nothing_0: "\<Phi>(true,id,0) = II\<^sub>c"
   by (rel_auto)
 
 lemma csp_do_false [rpred]: "\<Phi>(false,s,t) = false"
   by (rel_auto)
-
-lemma csp_do_assign [rpred]:
-  assumes "P is CRR"
-  shows "\<Phi>(s, \<sigma>, t) ;; P = ([s]\<^sub>S\<^sub>< \<and> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)\<lbrakk>t\<rbrakk>\<^sub>t)"
-proof -
-  have "\<Phi>(s,\<sigma>,t) ;; CRR(P) = ([s]\<^sub>S\<^sub>< \<and> (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> CRR(P))\<lbrakk>t\<rbrakk>\<^sub>t)"
-    by (rel_blast)
-  thus ?thesis
-    by (simp add: Healthy_if assms)
-qed
             
 lemma subst_state_csp_enable [usubst]:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<E>(s,t\<^sub>2,e) = \<E>(\<sigma> \<dagger> s, \<sigma> \<dagger> t\<^sub>2, \<sigma> \<dagger> e)"
@@ -824,7 +888,7 @@ lemma subst_state_csp_enable [usubst]:
     
 lemma csp_do_assign_enable [rpred]: 
   "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) ;; \<E>(s\<^sub>2,t\<^sub>2,e) = \<E>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1^\<^sub>u(\<sigma> \<dagger> t\<^sub>2), (\<sigma> \<dagger> e))"
-  by (simp add: rpred closure usubst)
+  by (rel_auto)
 
 lemma csp_do_assign_do [rpred]: 
   "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) ;; \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<and> (\<sigma> \<dagger> s\<^sub>2), \<rho> \<circ> \<sigma>, t\<^sub>1^\<^sub>u(\<sigma> \<dagger> t\<^sub>2))"
@@ -838,12 +902,12 @@ lemma rea_assm_csp_do [rpred]:
   "[b]\<^sup>\<top>\<^sub>r ;; \<Phi>(s,\<sigma>,t) = \<Phi>(b\<and>s,\<sigma>,t)"
   by (rel_auto)
 
-lemma csp_do_skip [rpred]:
+lemma csp_do_comp:
   assumes "P is CRR"
-  shows "\<Phi>(true,id,t) ;; P = P\<lbrakk>t\<rbrakk>\<^sub>t"
+  shows "\<Phi>(s,\<sigma>,t) ;; P = ([s]\<^sub>S\<^sub>< \<and> (\<sigma> \<dagger>\<^sub>S P)\<lbrakk>t\<rbrakk>\<^sub>t)"
 proof -
-  have "\<Phi>(true,id,t) ;; CRR(P) = (CRR P)\<lbrakk>t\<rbrakk>\<^sub>t"
-    by (rel_auto)
+  have "\<Phi>(s,\<sigma>,t) ;; (CRR P) = ([s]\<^sub>S\<^sub>< \<and> ((\<sigma> \<dagger>\<^sub>S CRR P))\<lbrakk>t\<rbrakk>\<^sub>t)"
+    by (rel_auto; blast)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -854,16 +918,19 @@ lemma wp_rea_csp_do_lemma:
   shows "(\<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub><) ;; P = (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)\<lbrakk>$tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub></$tr\<rbrakk>"
   using assms by (rel_auto, meson)
 
+text \<open> This operator sets an upper bound on the permissible traces, when starting from a particular state \<close>
+
 lemma wp_rea_csp_do [wp]:
-  fixes P :: "('\<sigma>, '\<phi>) action"
-  assumes "P is CRR"
-  shows "\<Phi>(s,\<sigma>,t) wp\<^sub>r P = (\<I>(s,t) \<Rightarrow>\<^sub>r (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> P)\<lbrakk>t\<rbrakk>\<^sub>t)"
-proof -
-  have "\<Phi>(s,\<sigma>,t) wp\<^sub>r CRR(P) = (\<I>(s,t) \<Rightarrow>\<^sub>r (\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> CRR(P))\<lbrakk>t\<rbrakk>\<^sub>t)"
-    by (rel_blast)
-  thus ?thesis 
-    by (simp add: assms Healthy_if)
-qed
+  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) wp\<^sub>r \<I>(s\<^sub>2,t\<^sub>2) = \<I>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 ^\<^sub>u \<sigma> \<dagger> t\<^sub>2)"
+  by (rel_auto)
+
+lemma wp_rea_csp_do_false' [wp]:
+  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) wp\<^sub>r false = \<I>(s\<^sub>1, t\<^sub>1)"
+  by (rel_auto)
+
+lemma st_pred_impl_csp_do_wp [rpred]:
+  "([s\<^sub>1]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<Phi>(s\<^sub>2,\<sigma>,t) wp\<^sub>r P) = \<Phi>(s\<^sub>1\<and>s\<^sub>2,\<sigma>,t) wp\<^sub>r P"
+  by (rel_auto)
 
 lemma csp_do_power_Suc [rpred]:
   "\<Phi>(true, id, t) \<^bold>^ (Suc i) = \<Phi>(true, id, iter[Suc i](t))"
@@ -873,18 +940,28 @@ lemma csp_power_do_comp [rpred]:
   assumes "P is CRR"
   shows "\<Phi>(true, id, t) \<^bold>^ i ;; P = \<Phi>(true, id, iter[i](t)) ;; P"
   apply (cases i)
-   apply (simp_all add: rpred usubst assms closure)
+   apply (simp_all add: csp_do_comp rpred usubst assms closure)
   done
+
+lemma csp_do_id [rpred]:
+  "P is CRR \<Longrightarrow> \<Phi>(b,id,\<langle>\<rangle>) ;; P = ([b]\<^sub>S\<^sub>< \<and> P)"
+  by (simp add: csp_do_comp usubst)
+
+lemma csp_do_id_wp [wp]: 
+  "P is CRR \<Longrightarrow> \<Phi>(b,id,\<langle>\<rangle>) wp\<^sub>r P = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P)"
+  by (metis (no_types, lifting) CRR_implies_RR RR_implies_R1 csp_do_id rea_impl_conj rea_impl_false rea_not_CRR_closed rea_not_not wp_rea_def)
+
+lemma wp_rea_csp_do_st_pre [wp]: "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) wp\<^sub>r [s\<^sub>2]\<^sub>S\<^sub>< = \<I>(s\<^sub>1 \<and> \<not> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1)"
+  by (rel_auto)
 
 lemma wp_rea_csp_do_skip [wp]:
   fixes Q :: "('\<sigma>, '\<phi>) action"
   assumes "P is CRR"
-  shows "\<Phi>(s,id,t) wp\<^sub>r P = (\<I>(s,t) \<Rightarrow>\<^sub>r P\<lbrakk>t\<rbrakk>\<^sub>t)"
-proof -
-  have "\<Phi>(s,id,t) wp\<^sub>r P = \<Phi>(s,id,t) wp\<^sub>r P"
-    by (simp add: skip_r_def)
-  thus ?thesis by (simp add: wp assms usubst alpha)
-qed
+  shows "\<Phi>(s,\<sigma>,t) wp\<^sub>r P = (\<I>(s,t) \<and> (\<sigma> \<dagger>\<^sub>S P)\<lbrakk>t\<rbrakk>\<^sub>t)"
+  apply (simp add: wp_rea_def)
+  apply (subst csp_do_comp)
+  apply (simp_all add: closure assms usubst)
+  oops
 
 lemma msubst_csp_do [usubst]: 
   "\<Phi>(s(x),\<sigma>,t(x))\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub>S\<^sub>\<leftarrow>\<rbrakk> = \<Phi>(s(x)\<lbrakk>x\<rightarrow>v\<rbrakk>,\<sigma>,t(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
@@ -893,6 +970,82 @@ lemma msubst_csp_do [usubst]:
 lemma rea_frame_ext_csp_do [frame]: 
   "vwb_lens a \<Longrightarrow> a:[\<Phi>(s,\<sigma>,t)]\<^sub>r\<^sup>+ = \<Phi>(s \<oplus>\<^sub>p a,\<sigma> \<oplus>\<^sub>s a ,t \<oplus>\<^sub>p a)"
   by (rel_auto)
+
+lemma R5_csp_do_nil [rpred]: "R5(\<Phi>(s,\<sigma>,\<langle>\<rangle>)) = \<Phi>(s,\<sigma>,\<langle>\<rangle>)"
+  by (rel_auto)
+
+lemma R5_csp_do_Cons [rpred]: "R5(\<Phi>(s,\<sigma>,x #\<^sub>u xs)) = false"
+  by (rel_auto)
+
+text \<open> Iterated do relations \<close>
+
+fun titr :: "nat \<Rightarrow> 's usubst \<Rightarrow> ('a list, 's) uexpr \<Rightarrow> ('a list, 's) uexpr" where
+"titr 0 \<sigma> t = 0" |
+"titr (Suc n) \<sigma> t = (titr n \<sigma> t) + (\<sigma> ^^ n) \<dagger> t"
+
+lemma titr_as_list_sum: "titr n \<sigma> t = list_sum (map (\<lambda> i. (\<sigma> ^^ i) \<dagger> t) [0..<n])"
+  apply (induct n)
+   apply (auto simp add: usubst fold_plus_sum_list_rev foldr_conv_fold)
+  done
+        
+lemma titr_as_foldr: "titr n \<sigma> t = foldr (\<lambda> i e. (\<sigma> ^^ i) \<dagger> t + e) [0..<n] 0"
+  by (simp add: titr_as_list_sum foldr_map comp_def)
+
+lemma funpow_lemma: "(\<lambda>x. (f ^^ n) (f x)) = (f ^^ n) \<circ> f"
+  by (simp add: fun_eq_iff funpow_swap1)
+
+lemma titr_lemma:
+  "t + (\<sigma> \<dagger> titr n \<sigma> t) + (\<sigma> ^^ n \<circ> \<sigma>) \<dagger> t = (titr n \<sigma> t + (\<sigma> ^^ n) \<dagger> t) + (\<sigma> \<circ> \<sigma> ^^ n) \<dagger> t"
+  by (induct n, simp_all add: usubst funpow_lemma add.assoc funpow_swap1)
+
+lemma csp_do_power [rpred]:
+  "\<Phi>(s, \<sigma>, t)\<^bold>^(Suc n) = \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t)"
+  apply (induct n)
+   apply (rel_auto)
+  apply (simp add: power.power.power_Suc rpred usubst)
+  apply (thin_tac "_")
+  apply (rule csp_do_eq_intro)
+    apply (rel_auto)
+     apply (case_tac "x=0")
+  apply (simp_all add: titr_lemma)
+  apply (metis Suc_le_mono funpow_simps_right(2) gr0_implies_Suc o_def)
+  apply force
+  apply (metis Suc_leI funpow_simps_right(2) less_Suc_eq_le o_apply)
+  apply (metis comp_apply funpow_swap1)
+  apply (metis add.assoc plus_list_def plus_uexpr_def titr_lemma)
+  done
+
+lemma csp_do_rea_star [rpred]:
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+  by (simp add: rrel_theory.Star_alt_def closure uplus_power_def rpred)
+
+lemma csp_do_csp_star [rpred]:
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>c = (\<Sqinter> n \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  (is "?lhs = (\<Sqinter> n \<bullet> ?G(n))")
+proof -
+  have "?lhs = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+    (is "_ = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> ?F(n))")
+    by (simp add: crf_theory.Star_alt_def closure uplus_power_def rpred)
+  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1))"
+    by (simp add: UINF_atLeast_Suc)
+  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  proof -
+    have "(\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1)) = (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
+      by (rule UINF_cong, simp, metis Suc_pred atLeastLessThanSuc_atLeastAtMost diff_is_0_eq not0_implies_Suc not_less_eq_eq zero_less_Suc)
+    thus ?thesis by simp
+  qed
+  also have "... = ?G(0) \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
+    by (simp add: usubst csp_do_nothing_0)
+  also have "... = (\<Sqinter> n \<in> insert 0 {1..} \<bullet> ?G(n))"
+    by (simp)
+  also have "... = (\<Sqinter> n \<bullet> ?G(n))"
+  proof -                                     
+    have "insert (0::nat) {1..} = {0..}" by auto
+    thus ?thesis
+      by simp
+  qed
+  finally show ?thesis .
+qed
 
 subsection \<open> Downward closure of refusals \<close>
 

@@ -9,7 +9,7 @@ definition mk_CRD :: "'s upred \<Rightarrow> ('e list \<Rightarrow> 'e set \<Rig
 
 syntax
   "_ref_var" :: "logic"
-  "_mk_CRD"  :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>C")
+  "_mk_CRD"  :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>C")
 
 parse_translation {*
 let
@@ -21,8 +21,8 @@ end
 *}
 
 translations
-  "[P \<turnstile> Q | R]\<^sub>C" => "CONST mk_CRD P (\<lambda> _trace_var _ref_var. Q) (\<lambda> _trace_var. R)"
-  "[P \<turnstile> Q | R]\<^sub>C" <= "CONST mk_CRD P (\<lambda> x r. Q) (\<lambda> y. R)"
+  "_mk_CRD P Q R" => "CONST mk_CRD P (\<lambda> _trace_var _ref_var. Q) (\<lambda> _trace_var. R)"
+  "_mk_CRD P Q R" <= "CONST mk_CRD P (\<lambda> x r. Q) (\<lambda> y. R)"
 
 lemma CSP_mk_CRD [closure]: "[P \<turnstile> Q trace refs | R(trace)]\<^sub>C is CSP"
   by (simp add: mk_CRD_def closure unrest)

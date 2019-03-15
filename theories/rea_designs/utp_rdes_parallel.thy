@@ -731,7 +731,10 @@ proof -
     by (simp add: wrR_def par_by_merge_def)
   finally show ?thesis .
 qed
-      
+
+lemma wppR_impl [wp]: "(P \<Rightarrow>\<^sub>r Q) wr\<^sub>R(M) R = ((\<not>\<^sub>r P) wr\<^sub>R(M) R \<and> Q wr\<^sub>R(M) R)"
+  by (simp add: rea_impl_def wp)
+
 lemma wppR_miracle [wp]: "false wr\<^sub>R(M) P = true\<^sub>r"
   by (simp add: wrR_def)
 
@@ -744,23 +747,68 @@ lemma parallel_precondition_wr [rdes]:
                               peri\<^sub>R(P) wr\<^sub>R(swap\<^sub>m ;; M) pre\<^sub>R(Q) \<and> post\<^sub>R(P) wr\<^sub>R(swap\<^sub>m ;; M) pre\<^sub>R(Q))"
   by (simp add: assms parallel_precondition wrR_def)
 
+lemma rea_impl_merge_left: "(P \<Rightarrow>\<^sub>r Q) \<parallel>\<^bsub>M\<^esub> R = (((\<not>\<^sub>r P) \<parallel>\<^bsub>M\<^esub> R) \<or> (Q \<parallel>\<^bsub>M\<^esub> R))"
+  by (simp add: rea_impl_def par_by_merge_or_left)
+
+lemma rea_impl_merge_right: "P \<parallel>\<^bsub>M\<^esub> (Q \<Rightarrow>\<^sub>r R) = (P \<parallel>\<^bsub>M\<^esub> (\<not>\<^sub>r Q) \<or> P \<parallel>\<^bsub>M\<^esub> R)"
+  by (simp add: rea_impl_def par_by_merge_or_right)
+
+lemma parallel_pre_lemma:
+  "((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2))
+       = ((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2))"
+  apply (simp add: par_by_merge_alt_def)
+  apply (rel_auto)
+  apply (meson order_refl)
+  apply (meson order_refl)
+  apply blast
+  apply blast
+  apply blast
+  apply blast
+  done
+
 lemma parallel_rdes_def [rdes_def]:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>1 is RC" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
           "$st\<acute> \<sharp> P\<^sub>2" "$st\<acute> \<sharp> Q\<^sub>2"
           "M is RDM"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) = 
-         \<^bold>R\<^sub>s (((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3) wr\<^sub>R(M) P\<^sub>1 \<and> 
+         \<^bold>R\<^sub>s(((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3) wr\<^sub>R(M) P\<^sub>1 \<and> 
               (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1) \<turnstile>
-          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or>
-           (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)) \<diamondop>
-          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))" (is "?lhs = ?rhs")
+          (P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub>  Q\<^sub>2 \<or>
+           P\<^sub>3 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>2 \<or> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>3) \<diamondop>
+          (P\<^sub>3 \<parallel>\<^bsub>M\<^esub> Q\<^sub>3))" (is "?lhs = ?rhs")
 proof -
   have "?lhs = \<^bold>R\<^sub>s (pre\<^sub>R ?lhs \<turnstile> peri\<^sub>R ?lhs \<diamondop> post\<^sub>R ?lhs)"
     by (simp add: SRD_reactive_tri_design assms closure)
-  also have "... = ?rhs"
+  also have "... = 
+         \<^bold>R\<^sub>s(((Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) wr\<^sub>R(M) P\<^sub>1 \<and> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3) wr\<^sub>R(M) P\<^sub>1 \<and> 
+              (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1 \<and> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) wr\<^sub>R(swap\<^sub>m ;; M) Q\<^sub>1) \<turnstile>
+          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or>
+           (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>2) \<or> (P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>2) \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)) \<diamondop>
+          ((P\<^sub>1 \<Rightarrow>\<^sub>r P\<^sub>3) \<parallel>\<^bsub>M\<^esub> (Q\<^sub>1 \<Rightarrow>\<^sub>r Q\<^sub>3)))"
+    (is "_ = \<^bold>R\<^sub>s( ?X 
+               \<turnstile> (?Y\<^sub>1 \<or> ?Y\<^sub>2 \<or> ?Y\<^sub>3)
+               \<diamondop> ?Z)")
     by (simp add: rdes closure unrest assms, rel_auto) 
+  also have "... = \<^bold>R\<^sub>s(?X \<turnstile> ((?X \<and> ?Y\<^sub>1) \<or> (?X \<and> ?Y\<^sub>2) \<or> (?X \<and> ?Y\<^sub>3)) \<diamondop> (?X \<and> ?Z))"
+    by (rel_auto)
+  also have "... = \<^bold>R\<^sub>s(?X \<turnstile> ((?X \<and> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>2) \<or> (?X \<and> P\<^sub>3 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>2) \<or> (?X \<and> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>3)) \<diamondop> (?X \<and> P\<^sub>3 \<parallel>\<^bsub>M\<^esub> Q\<^sub>3))"
+  proof -
+    have 1:"(?X \<and> ?Y\<^sub>1) = (?X \<and> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>2)"
+      by (rel_auto, meson order_refl, meson order_refl, meson order_refl, blast+)
+    have 2:"(?X \<and> ?Y\<^sub>2) = (?X \<and> P\<^sub>3 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>2)"
+      by (rel_auto, meson order_refl, meson order_refl, meson order_refl, blast+)
+    have 3:"(?X \<and> ?Y\<^sub>3) = (?X \<and> P\<^sub>2 \<parallel>\<^bsub>\<exists> $st\<acute> \<bullet> M\<^esub> Q\<^sub>3)"
+      by (rel_auto, meson order_refl, meson order_refl, meson order_refl, blast+)
+    have 4:"(?X \<and> ?Z) = (?X \<and> P\<^sub>3 \<parallel>\<^bsub>M\<^esub> Q\<^sub>3)"
+      by (rel_auto, meson order_refl, meson order_refl, meson order_refl, blast+)
+    show ?thesis
+      by (simp add: 1 2 3 4)
+  qed
+  also have "... = ?rhs"
+    by (rel_auto)
   finally show ?thesis .
 qed
+
 
 lemma Miracle_parallel_left_zero:
   assumes "P is SRD" "M is RDM"

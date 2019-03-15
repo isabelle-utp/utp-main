@@ -28,10 +28,10 @@ text {* Output Prefix: @{text "\<dots>![v]e"} *}
 
 text {* A variable name must currently be provided for outputs, too. Fix?! *}
 
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
-syntax "_output_prefix" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" (".'(_')")
+syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" (".'(_')")
 
-syntax (output) "_output_prefix_pp" :: "('a, '\<sigma>) uexpr \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax (output) "_output_prefix_pp" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
 
 syntax
   "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem'"
@@ -83,14 +83,18 @@ term "x!(\<langle>1\<rangle>)!(2)?(v:true) \<^bold>\<rightarrow> P"
 text {* Basic translations for state variable communications *}
 
 syntax
-  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_\<^bold>?$_:_" [63, 0, 60] 62)
-  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_\<^bold>?$_" [63, 60] 62)
+  "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_?'(_:_')" [63, 0, 0] 62)
+  "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_?'(_')" [63, 0] 62)
+  "_csp_output_var" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" ("_!'(_')" [63, 0] 62)
+
+term OutputCSP
 
 translations
-  "c\<^bold>?$x:A" \<rightharpoonup> "CONST InputVarCSP c x A"
-  "c\<^bold>?$x"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true)"
-  "c\<^bold>?$x:A" <= "CONST InputVarCSP c x (\<lambda> x'. A)"
-  "c\<^bold>?$x"   <= "c\<^bold>?$x:true"
+  "c?(x:A)" \<rightharpoonup> "CONST InputVarCSP c x A"
+  "c?(x)"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true)"
+  "c?(x:A)" <= "CONST InputVarCSP c x (\<lambda> x'. A)"
+  "c?(x)"   <= "c?(x:true)"
+  "_csp_output_var c e"   == "CONST DoCSP (c\<cdot>e)\<^sub>u"
 
 lemma outp_constraint_prod:
   "(outp_constraint \<guillemotleft>a\<guillemotright> x \<and> outp_constraint \<guillemotleft>b\<guillemotright> y) =
@@ -138,7 +142,7 @@ text {* Proofs that the input constrained parser versions of output is the same 
 lemma output_prefix_is_OutputCSP [simp]:
   assumes "A is NCSP"
   shows "x!(P) \<^bold>\<rightarrow> A = OutputCSP x P A" (is "?lhs = ?rhs")
-  by (rule SRD_eq_intro, simp_all add: assms closure rdes, rel_auto+)
+  by (rdes_eq cls: assms)
 
 lemma OutputCSP_pair_simp [simp]:
   "P is NCSP \<Longrightarrow> a.(\<guillemotleft>i\<guillemotright>).(\<guillemotleft>j\<guillemotright>) \<^bold>\<rightarrow> P = OutputCSP a \<guillemotleft>(i,j)\<guillemotright> P"
