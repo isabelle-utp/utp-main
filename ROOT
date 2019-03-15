@@ -154,7 +154,7 @@ session "UTP-Stateful-Failures" in "theories/sf_rdes" = "UTP-Reactive-Designs" +
 
 session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
   options [document = pdf, document_output = "output", timeout = 1000]
-  theories utp_circus
+  theories utp_circus utp_circus_easy_parser
   document_files
     "root.bib"
     "root.tex"

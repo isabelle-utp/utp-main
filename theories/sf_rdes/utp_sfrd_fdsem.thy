@@ -183,7 +183,7 @@ lemma failures_cond:
 
 lemma divergences_guard: 
   assumes "P is NCSP"
-  shows "dv\<lbrakk>g &\<^sub>u P\<rbrakk>s = (if (\<lbrakk>g\<rbrakk>\<^sub>es) then dv\<lbrakk>g &\<^sub>u P\<rbrakk>s else {})"
+  shows "dv\<lbrakk>g &\<^sub>C P\<rbrakk>s = (if (\<lbrakk>g\<rbrakk>\<^sub>es) then dv\<lbrakk>g &\<^sub>C P\<rbrakk>s else {})"
   by (rdes_simp cls: assms, simp add: divergences_def traces_def rdes closure rpred assms, rel_auto)
 
 lemma traces_do: "tr\<lbrakk>do\<^sub>C(e)\<rbrakk>s = {([\<lbrakk>e\<rbrakk>\<^sub>es], s)}"

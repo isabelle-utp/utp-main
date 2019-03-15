@@ -216,7 +216,7 @@ lemma HideCSP_int_choice:
 
 lemma HideCSP_guard:
   assumes "P is NCSP"
-  shows "(b &\<^sub>u P) \\\<^sub>C A = b &\<^sub>u (P \\\<^sub>C A)"
+  shows "(b &\<^sub>C P) \\\<^sub>C A = b &\<^sub>C (P \\\<^sub>C A)"
   by (rdes_eq cls: assms)
 
 lemma HideCSP_seq:

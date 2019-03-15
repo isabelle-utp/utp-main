@@ -1294,12 +1294,12 @@ lemma IterateC_list_CACT_closed [closure]:
 
 lemma GuardCSP_C2_closed [closure]:
   assumes "P is NCSP" "P is C2"
-  shows "g &\<^sub>u P is C2"
+  shows "g &\<^sub>C P is C2"
   by (rdes_simp cls: assms(1), rule C2_rdes_intro, simp_all add: closure assms unrest)
 
 lemma GuardCSP_CACT_closed [closure]:
   assumes "P is CACT"
-  shows "g &\<^sub>u P is CACT"
+  shows "g &\<^sub>C P is CACT"
   by (rule CACT_intro, simp_all add: closure assms)
 
 lemma DoCSP_C2 [closure]:

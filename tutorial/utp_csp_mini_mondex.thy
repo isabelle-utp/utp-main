@@ -148,7 +148,7 @@ lemma uminus_inter_insert [simp]:
 
 theorem money_constant:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" 
-  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>)]\<^sub>C \<sqsubseteq> Pay i j n"
+  shows "[(dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>) \<turnstile> true | (sum\<^sub>u($accts) =\<^sub>u sum\<^sub>u($accts\<acute>))]\<^sub>C \<sqsubseteq> Pay i j n"
 \<comment> \<open> We first calculate the reactive design contract and apply refinement introduction \<close>
 proof (simp add: assms Pay_contract, rule CRD_refine_rdes)    
 
@@ -191,7 +191,7 @@ text \<open> The next property is that no card value can go below 0, assuming it
   
 theorem no_overdrafts:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j"
-  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright> \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> \<in>\<^sub>u \<guillemotleft>cards\<guillemotright> \<and> $accts(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
+  shows "[(dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>) \<turnstile> true | (\<^bold>\<forall> k \<bullet> \<guillemotleft>k\<guillemotright> \<in>\<^sub>u \<guillemotleft>cards\<guillemotright> \<and> $accts(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0 \<Rightarrow> $accts\<acute>(\<guillemotleft>k\<guillemotright>)\<^sub>a \<ge>\<^sub>u 0)]\<^sub>C \<sqsubseteq> Pay i j n"
   using assms
   apply (simp add: Pay_contract)
   apply (rule CRD_refine_rdes)
@@ -207,8 +207,8 @@ text \<open> The next property shows liveness of transfers. If a payment is acce
   
 theorem transfer_live:
   assumes "finite cards" "i \<in> cards" "j \<in> cards" "i \<noteq> j" "n > 0"
-  shows "[dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>
-         \<turnstile> \<guillemotleft>trace\<guillemotright> \<noteq>\<^sub>u \<langle>\<rangle> \<and> last\<^sub>u(\<guillemotleft>trace\<guillemotright>) =\<^sub>u (pay\<cdot>(\<guillemotleft>(i,j,k)\<guillemotright>))\<^sub>u \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<Rightarrow> (accept\<cdot>(\<guillemotleft>(i)\<guillemotright>))\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright>
+  shows "[(dom\<^sub>u(&accts) =\<^sub>u \<guillemotleft>cards\<guillemotright>)
+         \<turnstile> (\<guillemotleft>trace\<guillemotright> \<noteq>\<^sub>u \<langle>\<rangle> \<and> last\<^sub>u(\<guillemotleft>trace\<guillemotright>) =\<^sub>u (pay\<cdot>(\<guillemotleft>(i,j,k)\<guillemotright>))\<^sub>u \<and> \<guillemotleft>n\<guillemotright> \<le>\<^sub>u &accts(\<guillemotleft>i\<guillemotright>)\<^sub>a \<Rightarrow> (accept\<cdot>(\<guillemotleft>(i)\<guillemotright>))\<^sub>u \<notin>\<^sub>u \<guillemotleft>refs\<guillemotright>)
          | true]\<^sub>C \<sqsubseteq> Pay i j n"
   using assms
   apply (simp add: Pay_contract)

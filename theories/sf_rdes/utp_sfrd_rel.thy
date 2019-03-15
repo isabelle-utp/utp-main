@@ -517,6 +517,10 @@ qed (simp_all)
 abbreviation crf_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>c" [999] 999) where
 "P\<^sup>\<star>\<^sup>c \<equiv> crf_theory.utp_star P"
 
+lemma crf_star_as_rea_star:
+  "P is CRF \<Longrightarrow> P\<^sup>\<star>\<^sup>c = P\<^sup>\<star>\<^sup>r ;; II\<^sub>c"
+  by (simp add: crf_theory.Star_alt_def rrel_theory.Star_alt_def closure rpred unrest)
+
 subsection \<open> Weakest Precondition \<close>
 
 lemma nil_least [simp]:
