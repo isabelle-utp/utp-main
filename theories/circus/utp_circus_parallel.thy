@@ -1255,7 +1255,7 @@ proof -
   also have "... = while\<^sub>C b do \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> R4(post\<^sub>R P)) od"
     by (simp add: Productive_RHS_design_form unrest assms rdes closure R4_def)
   also have "... is C2"
-    by (simp add: closure assms unrest rdes_def C2_rdes_intro)
+    by (simp add: closure assms unrest WhileC_def rdes_def C2_rdes_intro)
   finally show ?thesis .
 qed
 

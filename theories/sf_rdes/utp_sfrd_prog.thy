@@ -44,6 +44,32 @@ lemma AlternateR_list_NCSP_closed [closure]:
   apply (metis assms(1) eq_snd_iff nth_mem)
   done
 
+subsection \<open> Assumptions \<close>
+
+definition AssumeCircus ("[_]\<^sub>C") where
+"[b]\<^sub>C = b \<rightarrow>\<^sub>R Skip"
+
+lemma AssumeCircus_rdes_def [rdes_def]: "[b]\<^sub>C = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> [b]\<^sub>c)"
+  unfolding AssumeCircus_def by rdes_eq
+
+lemma AssumeCircus_NCSP [closure]: "[b]\<^sub>C is NCSP"
+  by (simp add: AssumeCircus_def GuardedCommR_NCSP_closed NCSP_Skip)
+
+lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b]\<^sup>\<top>\<^sub>R ;; Skip = [b]\<^sub>C"
+  by (rdes_eq)+
+
+lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
+  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
+
+lemma gcmd_AssumeCircus: 
+  "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
+  by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
+
+lemma rdes_assume_pre_refine:
+  assumes "P is NCSP"
+  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
+  by (rdes_refine cls: assms)
+
 subsection \<open> While Loops \<close>
 
 lemma NSRD_coerce_NCSP:
@@ -51,16 +77,49 @@ lemma NSRD_coerce_NCSP:
   by (metis (no_types, hide_lams) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
 
 definition WhileC :: "'s upred \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" ("while\<^sub>C _ do _ od") where
-[rdes_def]: "while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
+"while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
 
 lemma WhileC_NCSP_closed [closure]:
   assumes "P is NCSP" "P is Productive"
   shows "while\<^sub>C b do P od is NCSP"
   by (simp add: WhileC_def NSRD_coerce_NCSP assms closure)
 
+theorem WhileC_iter_form:
+  assumes "P is NCSP" "P is Productive"
+  shows "while\<^sub>C b do P od = ([b]\<^sub>C ;; P)\<^sup>\<star>\<^sup>C ;; [\<not> b]\<^sub>C"
+  by (simp add: WhileC_def WhileR_iter_form assms closure)
+     (metis (no_types, lifting) StarC_def AssumeCircus_AssumeR(2) AssumeCircus_NCSP RA1 assms(1) csp_theory.Healthy_Sequence csp_theory.Star_Healthy csp_theory.Unit_Left sfrd_star_as_rdes_star)
+
+theorem WhileC_rdes_def [rdes_def]:
+  assumes "P is CRC" "Q is CRR" "R is CRF" "$st\<acute> \<sharp> Q" "R is R4"
+  shows "while\<^sub>C b do \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) od = 
+         \<^bold>R\<^sub>s (([b]\<^sub>c ;; R)\<^sup>\<star>\<^sup>c wp\<^sub>r ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P) \<turnstile> (([b]\<^sub>c ;; R)\<^sup>\<star>\<^sup>c ;; [b]\<^sub>c ;; Q) \<diamondop> (([b]\<^sub>c ;; R)\<^sup>\<star>\<^sup>c ;; [\<not> b]\<^sub>c))" 
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = ([b]\<^sub>C ;; \<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))\<^sup>\<star>\<^sup>C ;; [\<not> b]\<^sub>C"
+    by (simp add: WhileC_iter_form assms closure unrest Productive_rdes_RR_intro)
+  also have "... = ?rhs"
+    by (simp add: rdes_def assms closure unrest rpred wp del: rea_star_wp)
+  finally show ?thesis .
+qed
+
 lemma WhileC_false: 
   "P is NCSP \<Longrightarrow> WhileC false P = Skip"
   by (simp add: NCSP_implies_NSRD Skip_srdes_left_unit WhileC_def WhileR_false)
+
+lemma WhileC_unfold: 
+  assumes "P is NCSP" "P is Productive"
+  shows "WhileC b P = (P ;; WhileC b P) \<triangleleft> b \<triangleright>\<^sub>R Skip"
+proof -
+  have "WhileC b P = (Skip \<or> [b]\<^sub>C ;; P ;; ([b]\<^sub>C ;; P)\<^sup>\<star>\<^sup>C) ;; [\<not> b]\<^sub>C"
+    by (simp add: WhileC_iter_form assms closure)
+       (metis (no_types, lifting) AssumeCircus_NCSP RA1 StarC_unfold assms(1) csp_theory.Healthy_Sequence disj_upred_def)
+  also have "... = ([\<not> b]\<^sub>C \<or> [b]\<^sub>C ;; P ;; ([b]\<^sub>C ;; P)\<^sup>\<star>\<^sup>C ;; [\<not> b]\<^sub>C)"
+    by (metis (no_types, lifting) AssumeCircus_AssumeR(1) RA1 csp_theory.Unit_self seqr_or_distl)
+  also have "... = (P ;; WhileC b P) \<triangleleft> b \<triangleright>\<^sub>R Skip"
+    by (metis (no_types, lifting) AssumeCircus_AssumeR(2) NCSP_implies_NSRD RA1 WhileC_NCSP_closed WhileC_iter_form assms(1) assms(2) cond_srea_AssumeR_form csp_theory.Healthy_Sequence csp_theory.Healthy_Unit csp_theory.Unit_Left uinf_or utp_pred_laws.sup_commute)
+  finally show ?thesis .
+qed
 
 subsection \<open> Iteration Construction \<close>
 
@@ -324,29 +383,6 @@ lemma NCSP_state_srea [closure]: "P is NCSP \<Longrightarrow> state 'a \<bullet>
   apply (simp_all add: closure rdes)
   apply (simp_all add: state_srea_def unrest closure)
 done
-
-subsection \<open> Assumptions \<close>
-
-definition AssumeCircus ("[_]\<^sub>C") where
-[rdes_def]: "[b]\<^sub>C = b \<rightarrow>\<^sub>R Skip"
-
-lemma AssumeCircus_NCSP [closure]: "[b]\<^sub>C is NCSP"
-  by (simp add: AssumeCircus_def GuardedCommR_NCSP_closed NCSP_Skip)
-
-lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b]\<^sup>\<top>\<^sub>R ;; Skip = [b]\<^sub>C"
-  by (rdes_eq)+
-
-lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
-  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
-
-lemma gcmd_AssumeCircus: 
-  "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
-  by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
-
-lemma rdes_assume_pre_refine:
-  assumes "P is NCSP"
-  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
-  by (rdes_refine cls: assms)
 
 subsection \<open> Guards \<close>
 
@@ -825,9 +861,15 @@ lemma InputCSP_NCSP [closure]: "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Lon
   apply (simp add: NCSP_Guard NCSP_PrefixCSP image_Collect_subsetI top_set_def)
   done
 
+lemma InputVarCSP_NCSP [closure]: "InputVarCSP c x A is NCSP"
+  by (simp add: AssignsCSP_NCSP InputCSP_NCSP InputVarCSP_def)
+
 lemma Productive_InputCSP [closure]:
   "\<lbrakk> \<And> v. P(v) is NCSP \<rbrakk> \<Longrightarrow> InputCSP x A P is Productive"
   by (auto simp add: InputCSP_def unrest closure intro: Productive_ExtChoice)
+
+lemma Productive_InputVarCSP [closure]: "InputVarCSP c x A is Productive"
+  by (simp add: InputVarCSP_def closure)
 
 (*
 lemma preR_InputCSP [rdes]:
