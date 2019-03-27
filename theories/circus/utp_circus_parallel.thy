@@ -108,6 +108,21 @@ lemma CSPFinalMerge_CRR_closed [closure]:
   shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q is CRR"
   by (simp add: CRR_implies_RR CRR_intro CSPFinalMerge_RR_closed CSPFinalMerge_unrest_ref assms)
 
+lemma CSPFinalMerge_unrest_ref' [unrest]:
+  assumes "P is CRR" "Q is CRR"
+  shows "$ref\<acute> \<sharp> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q"
+proof -
+  have "$ref\<acute> \<sharp> CRR(P) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F CRR(Q)"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma CSPFinalMerge_CRF_closed [closure]: 
+  assumes "P is CRF" "Q is CRF"
+  shows "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q is CRF"
+  by (rule CRF_intro, simp_all add: assms unrest closure)
+  
 lemma CSPInnerMerge_empty_Interleave:
   "N\<^sub>C ns1 {} ns2 = N\<^sub>I ns1 ns2"
   by (rel_auto)

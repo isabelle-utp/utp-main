@@ -19,6 +19,6 @@ no_translations
   "_uwhile_top b P" == "CONST while_top b P"
 
 translations
-  "_uwhile_top b P" == "CONST WhileR b P"
+  "_uwhile_top b P" == "CONST WhileC b P"
 
 end
