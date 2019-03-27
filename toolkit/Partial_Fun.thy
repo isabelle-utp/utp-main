@@ -236,6 +236,9 @@ lemma pfun_app_upd_1 [simp]: "x = y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)
 lemma pfun_app_upd_2 [simp]: "x \<noteq> y \<Longrightarrow> (f(x \<mapsto> v)\<^sub>p)(y)\<^sub>p = f(y)\<^sub>p"
   by (transfer, simp)
 
+lemma pfun_graph_apply [simp]: "rel_apply (pfun_graph f) x = f(x)\<^sub>p"
+  by (transfer, auto simp add: rel_apply_def map_graph_def)
+
 lemma pfun_upd_ext [simp]: "x \<in> pdom(f) \<Longrightarrow> f(x \<mapsto> f(x)\<^sub>p)\<^sub>p = f"
   by (transfer, simp add: domIff)
 

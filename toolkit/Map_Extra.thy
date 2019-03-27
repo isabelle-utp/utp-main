@@ -13,6 +13,20 @@ theory Map_Extra
   "HOL-Library.Monad_Syntax"
 begin
 
+subsection \<open> Relational Function Operations \<close>
+
+definition rel_apply :: "('a \<times> 'b) set \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>r" [999,0] 999) where
+"rel_apply R x = (if x \<in> Domain(R) then THE y. (x, y) \<in> R else undefined)"
+
+definition rel_domres :: "'a set \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set" (infixl "\<lhd>\<^sub>r" 85) where
+"rel_domres A R = {(k, v) \<in> R. k \<in> A}"
+
+definition rel_override :: "('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set" where
+"rel_override R S = (- Domain S) \<lhd>\<^sub>r R \<union> S"
+
+definition rel_update :: "('a \<times> 'b) set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<times> 'b) set" where
+"rel_update R k v = rel_override R {(k, v)}"
+
 subsection \<open> Functional Relations \<close>
 
 definition functional :: "('a * 'b) set \<Rightarrow> bool" where
@@ -81,6 +95,10 @@ lemma dom_map_graph: "dom f = Domain(map_graph f)"
 
 lemma ran_map_graph: "ran f = Range(map_graph f)"
   by (simp add: map_graph_def ran_def image_def)
+
+lemma rel_apply_map_graph:
+  "x \<in> dom(f) \<Longrightarrow> (map_graph f)(x)\<^sub>r = the (f x)"
+  by (auto simp add: rel_apply_def map_graph_def)
 
 lemma ran_map_add_subset:
   "ran (x ++ y) \<subseteq> (ran x) \<union> (ran y)"
