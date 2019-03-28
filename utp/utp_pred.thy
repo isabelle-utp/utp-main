@@ -311,6 +311,11 @@ lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<alpha> upred" ("[_]\<
 lift_definition taut :: "'\<alpha> upred \<Rightarrow> bool" ("`_`")
 is "\<lambda> P. \<forall> A. P A" .
 
+text \<open> The following function extracts the characteristic set of a predicate \<close>
+
+lift_definition upred_set :: "'a upred \<Rightarrow> 'a set" ("\<lbrakk>_\<rbrakk>\<^sub>p") is
+"\<lambda> P. Collect P" .
+
 text \<open> Configuration for UTP tactics \<close>
 
 update_uexpr_rep_eq_thms \<comment> \<open> Reread @{text rep_eq} theorems. \<close>

@@ -194,6 +194,7 @@ syntax \<comment> \<open> Core expression constructs \<close>
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
+  "_uthe"       :: "logic \<Rightarrow> logic" ("the\<^sub>u'(_')")
 
 translations
   "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
@@ -202,6 +203,7 @@ translations
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
   "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
   "x \<in>\<^sub>u A" == "CONST bop (\<in>) x A"
+  "_uthe x" == "CONST uop (CONST the) x"
 
 syntax \<comment> \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
