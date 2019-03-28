@@ -71,6 +71,13 @@ session "UTP" in "utp" = "UTP-Toolkit" +
     "root.tex"
     "document.sty"
 
+(* Pseudo Z-Notation *)
+
+session "ZedLite" in "zedlite" = "UTP" +
+  options [document = false]
+  theories [document = false]
+    zedlite
+
 (* UTP and Kleene Algebra with Tests (KAT) *)
 
 session "UTP-KAT" in "theories/kleene" = "UTP" +

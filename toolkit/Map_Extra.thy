@@ -9,62 +9,20 @@ section \<open> Map Type: extra functions and properties \<close>
 
 theory Map_Extra
   imports
+  Relation_Extra
   "HOL-Library.Countable_Set"
   "HOL-Library.Monad_Syntax"
 begin
 
-subsection \<open> Relational Function Operations \<close>
-
-definition rel_apply :: "('a \<times> 'b) set \<Rightarrow> 'a \<Rightarrow> 'b" ("_'(_')\<^sub>r" [999,0] 999) where
-"rel_apply R x = (if x \<in> Domain(R) then THE y. (x, y) \<in> R else undefined)"
-
-definition rel_domres :: "'a set \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set" (infixl "\<lhd>\<^sub>r" 85) where
-"rel_domres A R = {(k, v) \<in> R. k \<in> A}"
-
-definition rel_override :: "('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set \<Rightarrow> ('a \<times> 'b) set" where
-"rel_override R S = (- Domain S) \<lhd>\<^sub>r R \<union> S"
-
-definition rel_update :: "('a \<times> 'b) set \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> ('a \<times> 'b) set" where
-"rel_update R k v = rel_override R {(k, v)}"
-
-subsection \<open> Functional Relations \<close>
-
-definition functional :: "('a * 'b) set \<Rightarrow> bool" where
-"functional g = inj_on fst g"
-
-definition functional_list :: "('a * 'b) list \<Rightarrow> bool" where
-"functional_list xs = (\<forall> x y z. ListMem (x,y) xs \<and> ListMem (x,z) xs \<longrightarrow> y = z)"
-
-lemma functional_insert [simp]: "functional (insert (x,y) g) \<longleftrightarrow> (g``{x} \<subseteq> {y} \<and> functional g)"
-  by (auto simp add:functional_def inj_on_def image_def)
-
-lemma functional_list_nil[simp]: "functional_list []"
-  by (simp add:functional_list_def ListMem_iff)
-
-lemma functional_list: "functional_list xs \<longleftrightarrow> functional (set xs)"
-  apply (induct xs)
-   apply (simp add:functional_def)
-  apply (simp add:functional_def functional_list_def ListMem_iff)
-  apply (safe)
-         apply (force)
-        apply (force)
-       apply (force)
-      apply (force)
-     apply (force)
-    apply (force)
-   apply (force)
-  apply (force)
-  done
-
 subsection \<open> Graphing Maps \<close>
 
-definition map_graph :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a * 'b) set" where
+definition map_graph :: "('a \<rightharpoonup> 'b) \<Rightarrow> ('a \<leftrightarrow> 'b)" where
 "map_graph f = {(x,y) | x y. f x = Some y}"
 
-definition graph_map :: "('a * 'b) set \<Rightarrow> ('a \<rightharpoonup> 'b)" where
+definition graph_map :: "('a \<leftrightarrow> 'b) \<Rightarrow> ('a \<rightharpoonup> 'b)" where
 "graph_map g = (\<lambda> x. if (x \<in> fst ` g) then Some (SOME y. (x,y) \<in> g) else None)"
 
-definition graph_map' :: "('a \<times> 'b) set \<rightharpoonup> ('a \<rightharpoonup> 'b)" where
+definition graph_map' :: "('a \<leftrightarrow> 'b) \<rightharpoonup> ('a \<rightharpoonup> 'b)" where
 "graph_map' R = (if (functional R) then Some (graph_map R) else None)"
 
 lemma map_graph_mem_equiv: "(x, y) \<in> map_graph f \<longleftrightarrow> f(x) = Some y"

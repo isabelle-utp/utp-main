@@ -26,6 +26,7 @@ theory utp_toolkit
   "Optics.Lenses"
   Countable_Set_Extra
   FSet_Extra
+  Relation_Extra
   Map_Extra
   List_Extra
   List_Lexord_Alt

@@ -17,6 +17,8 @@ consts
   uempty     :: "'f"
   \<comment> \<open> Function application, map application, list application... \<close>
   uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
+  \<comment> \<open> Overriding \<close>
+  uovrd      :: "'f \<Rightarrow> 'f \<Rightarrow> 'f"
   \<comment> \<open> Function update, map update, list update... \<close>
   uupd       :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
   \<comment> \<open> Domain of maps, lists... \<close>
@@ -45,15 +47,15 @@ definition ffun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightar
 "ffun_entries d f = graph_ffun {(k, f k) | k. k \<in> d}"
 
 text \<open> We then set up the overloading for a number of useful constructs for various collections. \<close>
-  
+
 adhoc_overloading
   uempty 0 and
-  uapply fun_apply and uapply nth and uapply pfun_app and
-  uapply ffun_app and
-  uupd pfun_upd and uupd ffun_upd and uupd list_augment and
+  uapply rel_apply and uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
+  uovrd rel_override and uovrd plus
+  uupd rel_update and uupd pfun_upd and uupd ffun_upd and uupd list_augment and
   udom Domain and udom pdom and udom fdom and udom seq_dom and
   uran Range and uran pran and uran fran and uran set and
-  udomres pdom_res and udomres fdom_res and
+  udomres rel_domres and udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
   ucard card and ucard pcard and ucard length and
   usums list_sum and usums Sum and usums pfun_sum and
@@ -65,6 +67,7 @@ syntax
   "_uundef"     :: "logic" ("\<bottom>\<^sub>u")
   "_umap_empty" :: "logic" ("[]\<^sub>u")
   "_uapply"     :: "('a \<Rightarrow> 'b, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('b, '\<alpha>) uexpr" ("_'(_')\<^sub>a" [999,0] 999)
+  "_uovrd"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>" 65)
   "_umaplet"    :: "[logic, logic] => umaplet" ("_ /\<mapsto>/ _")
   ""            :: "umaplet => umaplets"             ("_")
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
@@ -81,6 +84,7 @@ syntax
 translations
   \<comment> \<open> Pretty printing for adhoc-overloaded constructs \<close>
   "f(x)\<^sub>a"    <= "CONST uapply f x"
+  "f \<oplus> g"   <= "CONST uovrd f g"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"  
   "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
@@ -94,6 +98,7 @@ translations
   "f(x,y,z)\<^sub>a" == "CONST bop CONST uapply f (x,y,z)\<^sub>u"
   "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
   "f(x)\<^sub>a"    == "CONST bop CONST uapply f x"
+  "f \<oplus> g"  == "CONST bop CONST uovrd f g"
   "#\<^sub>u(xs)"  == "CONST uop CONST ucard xs"
   "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
