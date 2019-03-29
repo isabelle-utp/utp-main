@@ -989,7 +989,17 @@ lemma Dom_disj:
 lemma Dom_inf:
   "Dom(P \<sqinter> Q) = (Dom(P) \<or> Dom(Q))"
   by (rel_auto)
-    
+
+lemma Dom_conj_rel_aext: 
+  "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> Dom(P \<oplus>\<^sub>r a \<and> Q \<oplus>\<^sub>r b) = (Dom(P \<oplus>\<^sub>r a) \<and> Dom(Q \<oplus>\<^sub>r b))"
+  by (rel_auto, metis (no_types, lifting) lens_indep_def mwb_lens_def vwb_lens_mwb weak_lens_def)
+
+text \<open> If P uses on the variables in @{term a} and @{term Q} does not refer to the variables of
+  @{term "$a\<acute>"} then we can distribute. \<close>
+
+lemma Dom_conj_indep: "\<lbrakk> {$a,$a\<acute>} \<natural> P; $a\<acute> \<sharp> Q; vwb_lens a \<rbrakk> \<Longrightarrow> Dom(P \<and> Q) = (Dom(P) \<and> Dom(Q))"
+  by (rel_auto, metis lens_override_def lens_override_idem)
+
 lemma assume_Dom:
   "[Dom(P)]\<^sup>\<top> ;; P = P"
   by (rel_auto)

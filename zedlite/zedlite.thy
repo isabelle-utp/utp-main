@@ -4,19 +4,38 @@ theory zedlite
   imports "UTP.utp_full"
 begin
 
-definition ZDelta :: "'s upred \<Rightarrow> 's hrel" ("\<Delta>[_]") where
-[upred_defs]: "\<Delta>[P] = (\<lceil>P\<rceil>\<^sub>< \<and> \<lceil>P\<rceil>\<^sub>>)"
+definition ZSpec :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b upred \<Rightarrow> 'b upred \<Rightarrow> 'b hrel" where
+[upred_defs]: "ZSpec a p q = ($a\<acute> =\<^sub>u $a \<and> \<lceil>p\<rceil>\<^sub>< \<and> \<lceil>q\<rceil>\<^sub>>)"
 
-abbreviation ZDelta_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel" ("\<Delta>[_,_]") where
-"\<Delta>[a,P] \<equiv> \<Delta>[P \<oplus>\<^sub>p a]"
+abbreviation ZDelta :: "'s upred \<Rightarrow> 's hrel" where
+"ZDelta P \<equiv> ZSpec 0\<^sub>L P P"
 
-definition ZXi_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel"  where
-[upred_defs]: "ZXi_ext a P = (\<Delta>[a,P] \<and> $a\<acute> =\<^sub>u $a)"
+abbreviation ZDelta_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel" where
+"ZDelta_ext a P \<equiv> ZDelta (P \<oplus>\<^sub>p a)"
+
+abbreviation ZXi_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel"  where
+"ZXi_ext a P \<equiv> ZSpec a (P \<oplus>\<^sub>p a) (P \<oplus>\<^sub>p a)"
 
 syntax
-  "_zxi_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<Xi>[_,_]")
+  "_zspec"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_:[_,_]\<^sub>Z")
+  "_zdelta"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<Delta>[_]")
+  "_zdelta_ext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<Delta>[_,_]")
+  "_zxi_ext"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<Xi>[_,_]")
 
 translations
+  "_zspec a p q" == "CONST ZSpec a p q"
+  "_zdelta P" == "CONST ZDelta P"
+  "_zdelta_ext a P" == "CONST ZDelta_ext a P"
   "_zxi_ext a P" == "CONST ZXi_ext a P"
+
+lemma Dom_ZSpec_empty: "q \<noteq> false \<Longrightarrow> Dom(\<emptyset>:[p,q]\<^sub>Z) = p"
+  by (rel_auto)
+
+lemma Dom_ZSpec_conj: 
+  "Dom(\<emptyset>:[p\<^sub>1,p\<^sub>2]\<^sub>Z \<and> Q) = (p\<^sub>1 \<and> Dom(Q \<and> \<lceil>p\<^sub>2\<rceil>\<^sub>>))"
+  by (rel_auto)
+
+lemma usedby_Delta [unrest]: "vwb_lens a \<Longrightarrow> {$a,$a\<acute>} \<natural> \<Delta>[a,P]"
+  by (rel_auto)
 
 end
