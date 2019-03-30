@@ -28,6 +28,12 @@ translations
   "_zdelta_ext a P" == "CONST ZDelta_ext a P"
   "_zxi_ext a P" == "CONST ZXi_ext a P"
 
+lemma ZSpec_conj: "(ZSpec a p\<^sub>1 p\<^sub>2 \<and> ZSpec b q\<^sub>1 q\<^sub>2) = ZSpec (a+\<^sub>Lb) (p\<^sub>1\<and>q\<^sub>1) (p\<^sub>2\<and>q\<^sub>2)"
+  by (rel_auto)
+
+lemma ZSpec_conj_mult: "(ZSpec a p\<^sub>1 p\<^sub>2 \<and> ZSpec b q\<^sub>1 q\<^sub>2 \<and> R) = (ZSpec (a+\<^sub>Lb) (p\<^sub>1\<and>q\<^sub>1) (p\<^sub>2\<and>q\<^sub>2) \<and> R)"
+  by (rel_auto)
+
 lemma Dom_ZSpec_empty: "q \<noteq> false \<Longrightarrow> Dom(\<emptyset>:[p,q]\<^sub>Z) = p"
   by (rel_auto)
 
