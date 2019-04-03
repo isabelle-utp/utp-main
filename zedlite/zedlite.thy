@@ -13,8 +13,16 @@ abbreviation ZDelta :: "'s upred \<Rightarrow> 's hrel" where
 abbreviation ZDelta_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel" where
 "ZDelta_ext a P \<equiv> ZDelta (P \<oplus>\<^sub>p a)"
 
+abbreviation ZSpec_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'a upred \<Rightarrow> 'b hrel" where
+"ZSpec_ext a P Q \<equiv> ZSpec a (P \<oplus>\<^sub>p a) (Q \<oplus>\<^sub>p a)"
+
 abbreviation ZXi_ext :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a upred \<Rightarrow> 'b hrel"  where
-"ZXi_ext a P \<equiv> ZSpec a (P \<oplus>\<^sub>p a) (P \<oplus>\<^sub>p a)"
+"ZXi_ext a P \<equiv> ZSpec_ext a P utrue" 
+
+translations
+  "CONST ZXi_ext a P" <= "CONST ZSpec_ext a P CONST utrue"
+
+abbreviation "pre \<equiv> Dom"
 
 syntax
   "_zspec"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_:[_,_]\<^sub>Z")
@@ -27,6 +35,12 @@ translations
   "_zdelta P" == "CONST ZDelta P"
   "_zdelta_ext a P" == "CONST ZDelta_ext a P"
   "_zxi_ext a P" == "CONST ZXi_ext a P"
+
+lemma ZDelta_unfold: "\<Delta>[P] = (\<lceil>P\<rceil>\<^sub>< \<and> \<lceil>P\<rceil>\<^sub>>)"
+  by (rel_auto)
+
+lemma ZXi_ext_unfold: "\<Xi>[a,P] = ($a\<acute> =\<^sub>u $a \<and> \<lceil>P \<oplus>\<^sub>p a\<rceil>\<^sub><)"
+  by (rel_auto)
 
 lemma ZSpec_conj: "(ZSpec a p\<^sub>1 p\<^sub>2 \<and> ZSpec b q\<^sub>1 q\<^sub>2) = ZSpec (a+\<^sub>Lb) (p\<^sub>1\<and>q\<^sub>1) (p\<^sub>2\<and>q\<^sub>2)"
   by (rel_auto)
