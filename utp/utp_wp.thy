@@ -52,4 +52,10 @@ lemma wp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wp c = (b \<and> P wp c)"
 lemma wp_assigns [wp]: "\<langle>\<sigma>\<rangle>\<^sub>a wp b = \<sigma> \<dagger> b"
   by (rel_auto)
 
+text \<open> Weakest Precondition and Weakest Liberal Precondition are equivalent for total deterministic
+  programs \<close>
+
+lemma wlp_wp_equiv_total_det: "\<lbrakk> Dom(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
+  by (rel_blast)
+
 end

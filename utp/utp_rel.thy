@@ -378,7 +378,7 @@ where [upred_defs]: "Dom P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<
 
 definition Ran :: "'\<alpha> hrel \<Rightarrow> '\<alpha> upred" 
 where [upred_defs]: "Ran P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
-  
+
 \<comment> \<open> Configuration for UTP tactics. \<close>
 
 update_uexpr_rep_eq_thms \<comment> \<open> Reread @{text rep_eq} theorems. \<close>
