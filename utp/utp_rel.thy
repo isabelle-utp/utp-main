@@ -198,6 +198,12 @@ definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 
+text \<open> We also encode ``naked'' guarded commands~\cite{Dijkstra75,Morgan90} by composing an 
+  assumption with a relation. \<close>
+
+definition rgcmd :: "'a upred \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" where
+[urel_defs]: "rgcmd b P = (rassume b ;; P)"
+
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
 
@@ -227,6 +233,7 @@ syntax
   "_uassume"        :: "uexp \<Rightarrow> logic" ("[_]\<^sup>\<top>")
   "_uassume"        :: "uexp \<Rightarrow> logic" ("?[_]")
   "_uassert"        :: "uexp \<Rightarrow> logic" ("{_}\<^sub>\<bottom>")
+  "_ugcmd"          :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("_ \<longrightarrow>\<^sub>r _" [55, 56] 55)
   "_uwhile"         :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sup>\<top> _ do _ od")
   "_uwhile_top"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
   "_uwhile_bot"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ do _ od")
@@ -237,6 +244,7 @@ syntax
 translations
   "_uassume b" == "CONST rassume b"
   "_uassert b" == "CONST rassert b"
+  "_ugcmd b P " == "CONST rgcmd b P"
   "_uwhile b P" == "CONST while_top b P"
   "_uwhile_top b P" == "CONST while_top b P"
   "_uwhile_bot b P" == "CONST while_bot b P"

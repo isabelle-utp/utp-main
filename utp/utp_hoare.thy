@@ -32,6 +32,12 @@ lemma hoare_meaning:
 lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
   by (rel_auto)
 
+lemma hoare_test [hoare_safe]: "`p \<and> b \<Rightarrow> q` \<Longrightarrow> \<lbrace>p\<rbrace>?[b]\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_simp)
+
+lemma hoare_gcmd [hoare_safe]: "\<lbrace>p \<and> b\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>b \<longrightarrow>\<^sub>r P\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_auto)
+
 lemma hoare_r_conj [hoare_safe]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u; \<lbrace>p\<rbrace>Q\<lbrace>s\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<lbrace>r \<and> s\<rbrace>\<^sub>u"
   by rel_auto
 
