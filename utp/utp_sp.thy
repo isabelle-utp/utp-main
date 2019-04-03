@@ -5,10 +5,10 @@
 (* Emails: nemouchi@vt.edu and simon.foster@york.ac.uk                                           *)
 (*************************************************************************************************)
 
-section \<open> Strong Postcondition Calculus\<close>
+section \<open> Strongest Postcondition Calculus\<close>
 
 theory utp_sp
-imports utp_wp
+imports utp_wlp
 begin
 
 named_theorems sp
@@ -61,17 +61,17 @@ lemma sp_while_r [sp]:
 theorem sp_eq_intro: "\<lbrakk>\<And>r. r sp P = r sp Q\<rbrakk> \<Longrightarrow> P = Q"
   by (rel_auto robust, fastforce+)  
     
-lemma wp_sp_sym:
-  "`prog wp (true sp prog)`"
+lemma wlp_sp_sym:
+  "`prog wlp (true sp prog)`"
   by rel_auto
      
-lemma it_is_pre_condition:"\<lbrace>C wp Q\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
+lemma it_is_pre_condition:"\<lbrace>C wlp Q\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast    
 
-lemma it_is_the_weakest_pre:"`P \<Rightarrow> C wp Q` = \<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
+lemma it_is_the_weakest_pre:"`P \<Rightarrow> C wlp Q` = \<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast  
 
-lemma s_pre:"`P \<Rightarrow> C wp Q`=\<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
+lemma s_pre:"`P \<Rightarrow> C wlp Q`=\<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast     
 
 end

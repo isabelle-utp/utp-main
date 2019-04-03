@@ -1,14 +1,11 @@
-section {* Weakest (Liberal) Precondition Calculus *}
+section \<open> Weakest Precondition Calculus \<close>
 
 theory utp_wp
-imports utp_hoare
+  imports utp_wlp
 begin
 
-text {* A very quick implementation of wlp -- more laws still needed! *}
-
-named_theorems wp
-
-method wp_tac = (simp add: wp)
+text \<open> This calculus is like the liberal version, but also accounts for termination. It is equivalent
+  to the relational preimage.  \<close>
 
 consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
@@ -19,52 +16,40 @@ syntax
 translations
   "_uwp P b" == "CONST uwp P b"
 
-definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
-"wp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub><"
+definition wp_upred :: "'a hrel \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+[upred_defs]: "wp_upred P b = Dom(P ;; ?[b])"
 
 adhoc_overloading
   uwp wp_upred
 
-declare wp_upred_def [urel_defs]
-
-lemma wp_true [wp]: "p wp true = true"
-  by (rel_simp)  
-  
-theorem wp_assigns_r [wp]:
-  "\<langle>\<sigma>\<rangle>\<^sub>a wp r = \<sigma> \<dagger> r"
-  by rel_auto
-
-theorem wp_skip_r [wp]:
-  "II wp r = r"
-  by rel_auto
-
-theorem wp_abort [wp]:
-  "r \<noteq> true \<Longrightarrow> true wp r = false"
-  by rel_auto
-
-theorem wp_conj [wp]:
-  "P wp (q \<and> r) = (P wp q \<and> P wp r)"
-  by rel_auto
-
-theorem wp_seq_r [wp]: "(P ;; Q) wp r = P wp (Q wp r)"
-  by rel_auto
-
-theorem wp_choice [wp]: "(P \<sqinter> Q) wp R = (P wp R \<and> Q wp R)"
+lemma wp_true: "P wp true = Dom(P)"
   by (rel_auto)
 
-theorem wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
-  by rel_auto
-
-lemma wp_USUP_pre [wp]: "P wp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wp Q(i))"
+lemma wp_false [wp]: "P wp false = false"
   by (rel_auto)
 
-theorem wp_hoare_link:
-  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wp r \<sqsubseteq> p)"
-  by rel_auto
+lemma wp_abort [wp]: "false wp b = false"
+  by (rel_auto)
 
-text {* If two programs have the same weakest precondition for any postcondition then the programs
-  are the same. *}
+lemma wp_seq [wp]: "(P ;; Q) wp b = P wp (Q wp b)"
+  by (simp add: wp_upred_def, metis Dom_seq RA1)
 
-theorem wp_eq_intro: "\<lbrakk> \<And> r. P wp r = Q wp r \<rbrakk> \<Longrightarrow> P = Q"
-  by (rel_auto robust, fastforce+)
+lemma wp_disj [wp]: "(P \<or> Q) wp b = (P wp b \<or> Q wp b)"
+  by (rel_auto)
+
+lemma wp_UINF_mem [wp]: "(\<Sqinter> i\<in>I \<bullet> P(i)) wp b = (\<Sqinter> i\<in>I \<bullet> P(i) wp b)"
+  by (rel_auto)
+
+lemma wp_UINF_ind [wp]: "(\<Sqinter> i \<bullet> P(i)) wp b = (\<Sqinter> i \<bullet> P(i) wp b)"
+  by (rel_auto)
+
+lemma wp_test [wp]: "?[b] wp c = (b \<and> c)"
+  by (rel_auto)
+
+lemma wp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wp c = (b \<and> P wp c)"
+  by (rel_auto)
+
+lemma wp_assigns [wp]: "\<langle>\<sigma>\<rangle>\<^sub>a wp b = \<sigma> \<dagger> b"
+  by (rel_auto)
+
 end

@@ -30,6 +30,7 @@ imports
   utp_sym_eval
   utp_tactics
   utp_hoare
+  utp_wlp
   utp_wp
   utp_sp
   utp_theory

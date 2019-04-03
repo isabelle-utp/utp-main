@@ -1,7 +1,7 @@
 section \<open> Dynamic Logic \<close>
 
 theory utp_dynlog
-  imports utp_sequent utp_wp
+  imports utp_sequent utp_wlp
 begin
 
 subsection \<open> Definitions \<close>
@@ -9,7 +9,7 @@ subsection \<open> Definitions \<close>
 named_theorems dynlog_simp and dynlog_intro
 
 definition dBox :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^bold>[_\<^bold>]_" [0,999] 999)
-where [upred_defs]: "dBox A \<Phi> = A wp \<Phi>"
+where [upred_defs]: "dBox A \<Phi> = A wlp \<Phi>"
 
 definition dDia :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^bold><_\<^bold>>_" [0,999] 999)
 where [upred_defs]: "dDia A \<Phi> = (\<not> \<^bold>[A\<^bold>] (\<not> \<Phi>))"
@@ -23,13 +23,13 @@ lemma dBox_skip [dynlog_simp]: "\<^bold>[II\<^bold>]\<Phi> = \<Phi>"
   by (rel_auto)
 
 lemma dBox_assigns [dynlog_simp]: "\<^bold>[\<langle>\<sigma>\<rangle>\<^sub>a\<^bold>]\<Phi> = (\<sigma> \<dagger> \<Phi>)"
-  by (simp add: dBox_def wp_assigns_r)
+  by (simp add: dBox_def wlp_assigns_r)
 
 lemma dBox_choice [dynlog_simp]: "\<^bold>[P \<sqinter> Q\<^bold>]\<Phi> = (\<^bold>[P\<^bold>]\<Phi> \<and> \<^bold>[Q\<^bold>]\<Phi>)"
   by (rel_auto)
 
 lemma dBox_seq: "\<^bold>[P ;; Q\<^bold>]\<Phi> = \<^bold>[P\<^bold>]\<^bold>[Q\<^bold>]\<Phi>"
-  by (simp add: dBox_def wp_seq_r)
+  by (simp add: dBox_def wlp_seq_r)
 
 lemma dBox_star_unfold: "\<^bold>[P\<^sup>\<star>\<^bold>]\<Phi> = (\<Phi> \<and> \<^bold>[P\<^bold>]\<^bold>[P\<^sup>\<star>\<^bold>]\<Phi>)"
   by (metis dBox_choice dBox_seq dBox_skip ustar_unfoldl)
@@ -52,10 +52,10 @@ lemma dDia_assigns [dynlog_simp]: "\<^bold><\<langle>\<sigma>\<rangle>\<^sub>a\<
   by (simp add: dBox_assigns dDia_def subst_not)
 
 lemma dDia_choice: "\<^bold><P \<sqinter> Q\<^bold>>\<Phi> = (\<^bold><P\<^bold>>\<Phi> \<or> \<^bold><Q\<^bold>>\<Phi>)"
-  by (simp add: dBox_def dDia_def wp_choice)
+  by (simp add: dBox_def dDia_def wlp_choice)
 
 lemma dDia_seq: "\<^bold><P ;; Q\<^bold>>\<Phi> = \<^bold><P\<^bold>>\<^bold><Q\<^bold>>\<Phi>"
-  by (simp add: dBox_def dDia_def wp_seq_r)
+  by (simp add: dBox_def dDia_def wlp_seq_r)
 
 lemma dDia_test: "\<^bold><?[p]\<^bold>>\<Phi> = (p \<and> \<Phi>)"
   by (rel_auto)
@@ -63,7 +63,7 @@ lemma dDia_test: "\<^bold><?[p]\<^bold>>\<Phi> = (p \<and> \<Phi>)"
 subsection \<open> Sequent Laws \<close>
 
 lemma sBoxSeq [dynlog_simp]: "\<Gamma> \<tturnstile> \<^bold>[P ;; Q\<^bold>]\<Phi> \<equiv> \<Gamma> \<tturnstile> \<^bold>[P\<^bold>]\<^bold>[Q\<^bold>]\<Phi>"
-  by (simp add: dBox_def wp_seq_r)
+  by (simp add: dBox_def wlp_seq_r)
 
 lemma sBoxTest [dynlog_intro]: "\<Gamma> \<tturnstile> (b \<Rightarrow> \<Psi>) \<Longrightarrow> \<Gamma> \<tturnstile> \<^bold>[?[b]\<^bold>]\<Psi>"
   by (rel_auto)
