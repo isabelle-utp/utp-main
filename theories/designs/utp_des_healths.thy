@@ -766,11 +766,11 @@ qed
     
 lemma ndes_seqr_abort: 
   assumes "P is \<^bold>N"
-  shows "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+  shows "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wlp false) \<turnstile>\<^sub>n false"
 proof -
   have "P ;; \<bottom>\<^sub>D = (\<lfloor>pre\<^sub>D(P)\<rfloor>\<^sub>< \<turnstile>\<^sub>n post\<^sub>D(P)) ;; (false \<turnstile>\<^sub>n false)"
     by (simp add: assms bot_d_true ndesign_false_pre ndesign_form)
-  also have "... = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wp false) \<turnstile>\<^sub>n false"
+  also have "... = (\<lfloor>pre\<^sub>D P\<rfloor>\<^sub>< \<and> post\<^sub>D P wlp false) \<turnstile>\<^sub>n false"
     by (simp add: ndesign_composition_wp alpha)
   finally show ?thesis .
 qed

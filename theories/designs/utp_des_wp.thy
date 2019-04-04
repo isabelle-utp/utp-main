@@ -5,7 +5,7 @@ theory utp_des_wp
 begin
 
 definition wp_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" (infix "wp\<^sub>D" 60) where
-[upred_defs]: "Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wp r))"
+[upred_defs]: "Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wlp r))"
 
 text {* If two normal designs have the same weakest precondition for any given postcondition, then
   the two designs are equivalent. *}
@@ -24,11 +24,11 @@ lemma wp_assigns_d [wp]: "\<langle>\<sigma>\<rangle>\<^sub>D wp\<^sub>D r = \<si
   by (rel_auto)
 
 theorem rdesign_wp [wp]:
-  "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wp r)"
+  "(\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q) wp\<^sub>D r = (p \<and> Q wlp r)"
   by (rel_auto)
 
 theorem ndesign_wp [wp]:
-  "(p \<turnstile>\<^sub>n Q) wp\<^sub>D r = (p \<and> Q wp r)"
+  "(p \<turnstile>\<^sub>n Q) wp\<^sub>D r = (p \<and> Q wlp r)"
   by (simp add: ndesign_def rdesign_wp)
 
 theorem wpd_seq_r:

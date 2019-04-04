@@ -342,8 +342,8 @@ qed
    
 subsection {* Iteration *}
 
-theorem ndesign_iteration_wp [ndes_simp]:
-  "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+theorem ndesign_iteration_wlp [ndes_simp]:
+  "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wlp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
 proof (induct n)
   case 0
   then show ?case by (rel_auto)
@@ -351,21 +351,21 @@ next
   case (Suc n) note hyp = this
   have "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ Suc n = (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc)
-  also have "... = (p \<turnstile>\<^sub>n Q) ;; ((\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
+  also have "... = (p \<turnstile>\<^sub>n Q) ;; ((\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wlp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
     by (simp add: hyp)
-  also have "... = (p \<and> Q wp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (p \<and> Q wlp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc ndesign_composition_wp seqr_assoc)
-  also have "... = (p \<and> (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc wp)
-  also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: USUP_as_Inf_image)
-  also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (metis (no_types, lifting) One_nat_def image_Suc_atLeastAtMost image_cong image_image)  
-  also have "... = (Q \<^bold>^ 0 wp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (Q \<^bold>^ 0 wlp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: wp)
-  also have "... = ((\<Squnion> i \<in> {0..Suc n}. Q \<^bold>^ i wp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = ((\<Squnion> i \<in> {0..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: atMost_Suc_eq_insert_0 atLeast0AtMost conj_upred_def image_Suc_atMost)      
-  also have "... = (\<Squnion> i \<in> {0..Suc n} \<bullet> Q \<^bold>^ i wp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc (Suc n)"
+  also have "... = (\<Squnion> i \<in> {0..Suc n} \<bullet> Q \<^bold>^ i wlp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc (Suc n)"
     by (simp add: upred_semiring.power_Suc USUP_as_Inf_image upred_semiring.mult_assoc)
   finally show ?case .
 qed

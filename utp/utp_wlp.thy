@@ -1,4 +1,4 @@
-section {* Weakest Liberal Precondition Calculus *}
+section \<open> Weakest Liberal Precondition Calculus \<close>
 
 theory utp_wlp
 imports utp_hoare

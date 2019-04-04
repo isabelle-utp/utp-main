@@ -1,7 +1,7 @@
 section \<open> Dynamic Logic \<close>
 
 theory utp_dynlog
-  imports utp_sequent utp_wlp
+  imports utp_sequent utp_wp
 begin
 
 subsection \<open> Definitions \<close>
@@ -12,7 +12,10 @@ definition dBox :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^
 where [upred_defs]: "dBox A \<Phi> = A wlp \<Phi>"
 
 definition dDia :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^bold><_\<^bold>>_" [0,999] 999)
-where [upred_defs]: "dDia A \<Phi> = (\<not> \<^bold>[A\<^bold>] (\<not> \<Phi>))"
+where [upred_defs]: "dDia A \<Phi> = A wp \<Phi>"
+
+lemma dDia_dBox_def: "\<^bold><A\<^bold>>\<Phi> = (\<not> \<^bold>[A\<^bold>](\<not> \<Phi>))"
+  by (simp add: dBox_def dDia_def wp_wlp_conjugate)
 
 subsection \<open> Box Laws \<close>
 
@@ -43,19 +46,19 @@ lemma dBox_test: "\<^bold>[?[p]\<^bold>]\<Phi> = (p \<Rightarrow> \<Phi>)"
 subsection \<open> Diamond Laws \<close>
 
 lemma dDia_false [dynlog_simp]: "\<^bold><false\<^bold>>\<Phi> = false"
-  by (simp add: dBox_false dDia_def)
+  by (simp add: dBox_false dDia_dBox_def)
 
 lemma dDia_skip [dynlog_simp]: "\<^bold><II\<^bold>>\<Phi> = \<Phi>"
-  by (simp add: dBox_skip dDia_def)
+  by (simp add: dBox_skip dDia_dBox_def)
 
 lemma dDia_assigns [dynlog_simp]: "\<^bold><\<langle>\<sigma>\<rangle>\<^sub>a\<^bold>>\<Phi> = (\<sigma> \<dagger> \<Phi>)"
-  by (simp add: dBox_assigns dDia_def subst_not)
+  by (simp add: dBox_assigns dDia_dBox_def subst_not)
 
 lemma dDia_choice: "\<^bold><P \<sqinter> Q\<^bold>>\<Phi> = (\<^bold><P\<^bold>>\<Phi> \<or> \<^bold><Q\<^bold>>\<Phi>)"
-  by (simp add: dBox_def dDia_def wlp_choice)
+  by (simp add: dBox_def dDia_dBox_def wlp_choice)
 
 lemma dDia_seq: "\<^bold><P ;; Q\<^bold>>\<Phi> = \<^bold><P\<^bold>>\<^bold><Q\<^bold>>\<Phi>"
-  by (simp add: dBox_def dDia_def wlp_seq_r)
+  by (simp add: dBox_def dDia_dBox_def wlp_seq_r)
 
 lemma dDia_test: "\<^bold><?[p]\<^bold>>\<Phi> = (p \<and> \<Phi>)"
   by (rel_auto)

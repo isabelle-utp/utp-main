@@ -52,8 +52,20 @@ lemma wp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wp c = (b \<and> P wp c)"
 lemma wp_assigns [wp]: "\<langle>\<sigma>\<rangle>\<^sub>a wp b = \<sigma> \<dagger> b"
   by (rel_auto)
 
-text \<open> Weakest Precondition and Weakest Liberal Precondition are equivalent for total deterministic
-  programs \<close>
+lemma wp_nd_assign [wp]: "(x := *) wp b = (\<Or> v \<bullet> b\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  by (simp add: nd_assign_def wp, rel_auto)
+
+lemma wp_rel_frext [wp]: 
+  assumes "vwb_lens a" "a \<sharp> q"
+  shows "a:[P]\<^sup>+ wp (p \<oplus>\<^sub>p a \<and> q) = ((P wp p) \<oplus>\<^sub>p a \<and> q)"
+  using assms
+  by (rel_auto, metis (full_types), metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+
+lemma wp_wlp_conjugate: "P wp b = (\<not> P wlp (\<not> b))"
+  by (rel_auto)
+
+text \<open> Weakest Precondition and Weakest Liberal Precondition are equivalent for 
+  terminating deterministic programs. \<close>
 
 lemma wlp_wp_equiv_total_det: "\<lbrakk> Dom(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
   by (rel_blast)
