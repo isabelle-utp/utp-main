@@ -154,7 +154,7 @@ lemma mu_hoare_r':
 
 subsection \<open> Iteration Rules \<close>
 
-lemma iter_hoare_r: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
+lemma iter_hoare_r [hoare_safe]: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
   by (rel_simp', metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
 
 lemma while_hoare_r [hoare_safe]:
