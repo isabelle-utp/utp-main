@@ -233,6 +233,11 @@ text \<open>If we compose a lens $X$ with lens $Y$ then naturally the resulting 
 lemma lens_comp_lb [simp]: "vwb_lens X \<Longrightarrow> X ;\<^sub>L Y \<subseteq>\<^sub>L Y"
   by (auto simp add: sublens_def)
 
+lemma sublens_comp [simp]:
+  assumes "vwb_lens b" "c \<subseteq>\<^sub>L a"
+  shows "(b ;\<^sub>L c) \<subseteq>\<^sub>L a"
+  by (metis assms sublens_def sublens_trans)
+
 text \<open>We can now also show that @{text "0\<^sub>L"} is the unit of lens plus\<close>
     
 lemma lens_unit_plus_sublens_1: "X \<subseteq>\<^sub>L 0\<^sub>L +\<^sub>L X"

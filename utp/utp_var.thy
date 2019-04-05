@@ -34,6 +34,7 @@ declare lens_indep_left_ext [simp]
 declare lens_indep_right_ext [simp]
 declare lens_comp_quotient [simp]
 declare plus_lens_distr [THEN sym, simp]
+declare lens_comp_assoc [simp]
 
 subsection \<open> Variable foundations \<close>
   
@@ -177,8 +178,10 @@ lemma out_var_sublens [simp]:
   "y \<subseteq>\<^sub>L x \<Longrightarrow> out_var y \<subseteq>\<^sub>L out_var x"
   by (metis (no_types, hide_lams) out_var_def lens_comp_assoc sublens_def)
 
-lemma pr_var_sublens [simp]:
-  "y \<subseteq>\<^sub>L x \<Longrightarrow> pr_var y \<subseteq>\<^sub>L pr_var x"
+lemma pr_var_sublens_l [simp]: "a \<subseteq>\<^sub>L b \<Longrightarrow> pr_var (a) \<subseteq>\<^sub>L b"
+  by (simp add: pr_var_def)
+
+lemma pr_var_sublens_r [simp]: "a \<subseteq>\<^sub>L b \<Longrightarrow> a \<subseteq>\<^sub>L pr_var (b)"
   by (simp add: pr_var_def)
 
 subsection \<open> Lens simplifications \<close>

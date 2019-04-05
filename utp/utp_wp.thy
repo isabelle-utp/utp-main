@@ -43,6 +43,12 @@ lemma wp_UINF_mem [wp]: "(\<Sqinter> i\<in>I \<bullet> P(i)) wp b = (\<Sqinter> 
 lemma wp_UINF_ind [wp]: "(\<Sqinter> i \<bullet> P(i)) wp b = (\<Sqinter> i \<bullet> P(i) wp b)"
   by (rel_auto)
 
+lemma wp_UINF_ind_2 [wp]: "(\<Sqinter> (i, j) \<bullet> P i j) wp b = (\<Or> (i, j) \<bullet> (P i j) wp b)"
+  by (rel_auto)
+
+lemma wp_UINF_ind_3 [wp]: "(\<Sqinter> (i, j, k) \<bullet> P i j k) wp b = (\<Or> (i, j, k) \<bullet> (P i j k) wp b)"
+  by (rel_blast)
+
 lemma wp_test [wp]: "?[b] wp c = (b \<and> c)"
   by (rel_auto)
 
@@ -60,6 +66,12 @@ lemma wp_rel_frext [wp]:
   shows "a:[P]\<^sup>+ wp (p \<oplus>\<^sub>p a \<and> q) = ((P wp p) \<oplus>\<^sub>p a \<and> q)"
   using assms
   by (rel_auto, metis (full_types), metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+
+lemma wp_rel_aext_unrest [wp]: "\<lbrakk> vwb_lens a; a \<sharp> b \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ wp b = (b \<and> (P wp true) \<oplus>\<^sub>p a)"
+  by (rel_auto, metis, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+
+lemma wp_rel_aext_usedby [wp]: "\<lbrakk> vwb_lens a; a \<natural> b \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ wp b = (P wp (b \<restriction>\<^sub>e a)) \<oplus>\<^sub>p a"
+  by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 
 lemma wp_wlp_conjugate: "P wp b = (\<not> P wlp (\<not> b))"
   by (rel_auto)

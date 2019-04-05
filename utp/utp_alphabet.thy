@@ -85,12 +85,18 @@ lemma aext_imp [alpha]: "(P \<Rightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^
 
 lemma aext_iff [alpha]: "(P \<Leftrightarrow> Q) \<oplus>\<^sub>p x = (P \<oplus>\<^sub>p x \<Leftrightarrow> Q \<oplus>\<^sub>p x)"
   by (pred_auto)
-    
+
+lemma aext_shEx [alpha]: "(\<^bold>\<exists> x \<bullet> P x) \<oplus>\<^sub>p a = (\<^bold>\<exists> x \<bullet> P x \<oplus>\<^sub>p a)"
+  by (rel_auto)
+
 lemma aext_shAll [alpha]: "(\<^bold>\<forall> x \<bullet> P(x)) \<oplus>\<^sub>p a = (\<^bold>\<forall> x \<bullet> P(x) \<oplus>\<^sub>p a)"
   by (pred_auto)
 
 lemma aext_UINF_ind [alpha]: "(\<Sqinter> x \<bullet> P x) \<oplus>\<^sub>p a =(\<Sqinter> x \<bullet> (P x \<oplus>\<^sub>p a))"
   by (pred_auto)
+
+lemma aext_UINF_ind_2 [alpha]: "(\<Sqinter> (i, j) \<bullet> P i j) \<oplus>\<^sub>p a = (\<Sqinter> (i, j) \<bullet> P i j \<oplus>\<^sub>p a)"
+  by (rel_auto)
 
 lemma aext_UINF_mem [alpha]: "(\<Sqinter> x\<in>A \<bullet> P x) \<oplus>\<^sub>p a =(\<Sqinter> x\<in>A \<bullet> (P x \<oplus>\<^sub>p a))"
   by (pred_auto)
@@ -236,6 +242,12 @@ lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>ex = (P\<restriction>\
 
 lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<Rightarrow> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
+
+lemma ares_UINF_ind [alpha]: "(\<Sqinter> i \<bullet> P i) \<restriction>\<^sub>e a = (\<Sqinter> i \<bullet> P i \<restriction>\<^sub>e a)"
+  by (rel_auto)
+
+lemma ares_UINF_ind_2 [alpha]: "(\<Sqinter> (i, j) \<bullet> P i j) \<restriction>\<^sub>e a = (\<Sqinter> (i, j) \<bullet> P i j \<restriction>\<^sub>e a)"
+  by (rel_auto)
 
 subsection \<open> Predicate Alphabet Restriction \<close>
   

@@ -287,6 +287,10 @@ text \<open> If a variable is unrestricted in an expression, then any substituti
 lemma subst_unrest [usubst]: "x \<sharp> P \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
   by (simp add: subst_upd_uvar_def, transfer, auto)
 
+lemma subst_unrest_sublens [usubst]: "\<lbrakk> a \<sharp> P; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<dagger> P = \<sigma> \<dagger> P"
+  by (simp add: subst_upd_uvar_def, transfer, auto simp add: fun_eq_iff, 
+      metis (no_types, lifting) lens.select_convs(2) lens_comp_def sublens_def)
+
 lemma subst_unrest_2 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
   assumes "x \<sharp> P" "x \<bowtie> y"

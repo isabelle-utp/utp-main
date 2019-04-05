@@ -186,11 +186,11 @@ lemma U1\<alpha>_vwb_lens [simp]: "vwb_lens U1\<alpha>"
 
 lemma U0\<alpha>_indep_right_uvar [simp]: "vwb_lens x \<Longrightarrow> U0\<alpha> \<bowtie> out_var (right_uvar x)"
   by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp
-            simp add: U0\<alpha>_def right_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])
+            simp add: U0\<alpha>_def right_uvar_def out_var_def prod_as_plus)
 
 lemma U1\<alpha>_indep_left_uvar [simp]: "vwb_lens x \<Longrightarrow> U1\<alpha> \<bowtie> out_var (left_uvar x)"
   by (force intro: plus_pres_lens_indep fst_snd_lens_indep lens_indep_left_comp
-            simp add: U1\<alpha>_def left_uvar_def out_var_def prod_as_plus lens_comp_assoc[THEN sym])
+            simp add: U1\<alpha>_def left_uvar_def out_var_def prod_as_plus)
 
 lemma U0_alpha_lift_bool_subst [usubst]:
   "\<sigma>($0-x\<acute> \<mapsto>\<^sub>s true) \<dagger> \<lceil>P\<rceil>\<^sub>0 = \<sigma> \<dagger> \<lceil>P\<lbrakk>true/$x\<acute>\<rbrakk>\<rceil>\<^sub>0"
