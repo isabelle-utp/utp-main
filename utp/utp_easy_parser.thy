@@ -116,10 +116,14 @@ translations
 
 subsection \<open> Sets \<close>
 
+
+
 syntax
   "_ue_empset"          :: "uexp" ("{}")
   "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 80)
   "_ue_setenum"         :: "uexprs \<Rightarrow> uexp" ("{_}")
+  "_ue_subseteq"        :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subseteq>" 50)
+  "_ue_subset"          :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subset>" 50)
   "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
   "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
 
@@ -128,6 +132,8 @@ translations
   "_ue_setprod e f" =>  "CONST bop (CONST Product_Type.Times) e f"
   "_ue_setenum (_uexprs x xs)" => "insert\<^sub>u x (_ue_setenum xs)"
   "_ue_setenum x" => "insert\<^sub>u x {}\<^sub>u"
+  "_ue_subseteq x y" => "x \<subseteq>\<^sub>u y"
+  "_ue_subset x y" => "x \<subset>\<^sub>u y"
   "_ue_atLeastAtMost m n" => "{m..n}\<^sub>u"
   "_ue_atLeastLessThan m n" => "{m..<n}\<^sub>u"
 
