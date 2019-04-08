@@ -26,6 +26,8 @@ syntax
   "_ue_tuple" :: "uexprs \<Rightarrow> uexp" ("'(_')")
   "_ue_lit"   :: "logic \<Rightarrow> uexp" ("\<guillemotleft>_\<guillemotright>")
   "_ue_var"   :: "svid \<Rightarrow> uexp" ("_")
+  "_ue_ivar"  :: "svid \<Rightarrow> uexp" ("$_" [990] 990)
+  "_ue_ovar"  :: "svid \<Rightarrow> uexp" ("$_\<acute>" [990] 990)
   "_ue_eq"    :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "=" 150)
   "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
   "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
@@ -39,6 +41,8 @@ translations
   "_ue_tuple x" => "x"
   "_ue_lit x"    => "CONST lit x"
   "_ue_var x"    => "CONST utp_expr.var (CONST pr_var x)"
+  "_ue_ivar x"   => "CONST utp_expr.var (CONST in_var x)"
+  "_ue_ovar x"   => "CONST utp_expr.var (CONST out_var x)"
   "_ue_eq x y"   => "x =\<^sub>u y"
   "_ue_uop f x"   => "CONST uop f x"
   "_ue_bop f x y" => "CONST bop f x y"
@@ -57,6 +61,10 @@ syntax
   "_ue_iff"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<Leftrightarrow>" 125)
   "_ue_mem"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<in> _)" [151, 151] 150)
   "_ue_nmem"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<notin> _)" [151, 151] 150)
+  "_ue_shEx"  :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
+  "_ue_shAll":: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
+  "_ue_shBEx" :: "pttrn \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ue_shBAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
 
 translations
   "_ue_true" => "CONST true_upred"
@@ -68,6 +76,10 @@ translations
   "_ue_iff p q"  => "p \<Leftrightarrow> q"
   "_ue_mem x A"  => "x \<in>\<^sub>u A"
   "_ue_nmem x A" => "x \<notin>\<^sub>u A"
+  "_ue_shEx x P" => "_ushEx x P"
+  "_ue_shAll x P" => "_ushAll x P"
+  "_ue_shBEx x P" => "_ushBEx x P"
+  "_ue_shBAll x P" => "_ushBAll x P"
 
 subsection \<open> Arithmetic Operators \<close>
 
