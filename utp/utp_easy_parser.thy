@@ -28,12 +28,17 @@ syntax
   "_ue_var"   :: "svid \<Rightarrow> uexp" ("_")
   "_ue_ivar"  :: "svid \<Rightarrow> uexp" ("$_" [990] 990)
   "_ue_ovar"  :: "svid \<Rightarrow> uexp" ("$_\<acute>" [990] 990)
+  "_ue_nexp"  :: "id \<Rightarrow> uexp" ("@_" [990] 990)
+  "_ue_nexp_p":: "logic \<Rightarrow> uexp" ("@'(_')" [990] 990)
   "_ue_eq"    :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "=" 150)
   "_ue_neq"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<noteq>" 150)
   "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
   "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
   "_ue_trop"  :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _, _')" [999,0,0,0] 999)
   "_ue_apply" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_[_]" [999] 999)
+  "_ue_aext" :: "uexp \<Rightarrow> salpha \<Rightarrow> uexp" (infixr "\<oplus>\<^sub>p" 195)
+  "_ue_ifthenelse" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
+  "_ue_ovrd"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "\<oplus>" 65)
 
 translations
   "_ue_quote e" => "e"
@@ -41,6 +46,8 @@ translations
   "_ue_tuple (_uexprs x y)" => "CONST bop CONST Pair x y"
   "_ue_tuple x" => "x"
   "_ue_lit x"    => "CONST lit x"
+  "_ue_nexp P"   => "P"
+  "_ue_nexp_p P" => "P"
   "_ue_var x"    => "CONST utp_expr.var (CONST pr_var x)"
   "_ue_ivar x"   => "CONST utp_expr.var (CONST in_var x)"
   "_ue_ovar x"   => "CONST utp_expr.var (CONST out_var x)"
@@ -50,6 +57,9 @@ translations
   "_ue_bop f x y" => "CONST bop f x y"
   "_ue_trop f x y" => "CONST trop f x y"
   "_ue_apply f x" => "f(x)\<^sub>a"
+  "_ue_ifthenelse P b Q" => "CONST cond P b Q"
+  "_ue_aext P a" => "CONST aext P a"
+  "_ue_ovrd x y" => "_uovrd x y"
 
 subsection \<open> Predicate Operators \<close>
 
@@ -65,8 +75,8 @@ syntax
   "_ue_nmem"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(_/ \<notin> _)" [151, 151] 150)
   "_ue_shEx"  :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
   "_ue_shAll":: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
-  "_ue_shBEx" :: "pttrn \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
-  "_ue_shBAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ue_shBEx" :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_ue_shBAll" :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
 
 translations
   "_ue_true" => "CONST true_upred"
@@ -80,8 +90,8 @@ translations
   "_ue_nmem x A" => "x \<notin>\<^sub>u A"
   "_ue_shEx x P" => "_ushEx x P"
   "_ue_shAll x P" => "_ushAll x P"
-  "_ue_shBEx x P" => "_ushBEx x P"
-  "_ue_shBAll x P" => "_ushBAll x P"
+  "_ue_shBEx x A P" => "_ushBEx x A P"
+  "_ue_shBAll x A P" => "_ushBAll x A P"
 
 subsection \<open> Arithmetic Operators \<close>
 
@@ -118,14 +128,12 @@ translations
 
 subsection \<open> Sets \<close>
 
-
-
 syntax
   "_ue_empset"          :: "uexp" ("{}")
-  "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 80)
+  "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 180)
   "_ue_setenum"         :: "uexprs \<Rightarrow> uexp" ("{_}")
-  "_ue_subseteq"        :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subseteq>" 50)
-  "_ue_subset"          :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subset>" 50)
+  "_ue_subseteq"        :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subseteq>" 150)
+  "_ue_subset"          :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subset>" 150)
   "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
   "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
 
