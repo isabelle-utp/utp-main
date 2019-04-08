@@ -29,6 +29,7 @@ syntax
   "_ue_ivar"  :: "svid \<Rightarrow> uexp" ("$_" [990] 990)
   "_ue_ovar"  :: "svid \<Rightarrow> uexp" ("$_\<acute>" [990] 990)
   "_ue_eq"    :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "=" 150)
+  "_ue_neq"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<noteq>" 150)
   "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
   "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
   "_ue_trop"  :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _, _')" [999,0,0,0] 999)
@@ -44,6 +45,7 @@ translations
   "_ue_ivar x"   => "CONST utp_expr.var (CONST in_var x)"
   "_ue_ovar x"   => "CONST utp_expr.var (CONST out_var x)"
   "_ue_eq x y"   => "x =\<^sub>u y"
+  "_ue_neq x y"  => "x \<noteq>\<^sub>u y"
   "_ue_uop f x"   => "CONST uop f x"
   "_ue_bop f x y" => "CONST bop f x y"
   "_ue_trop f x y" => "CONST trop f x y"
