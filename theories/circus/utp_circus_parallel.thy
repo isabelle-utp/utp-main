@@ -568,9 +568,17 @@ lemma FinalMerge_csp_do' [rpred]:
   by (simp add: FinalMerge_csp_do assms, rel_auto)
 *)
 
+lemma CSPFinalMerge_UINF_mem_left [rpred]: 
+  "(\<Sqinter> i\<in>A \<bullet> P(i)) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q = (\<Sqinter> i\<in>A \<bullet> P(i) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q)"
+  by (simp add: CSPFinalMerge_def par_by_merge_USUP_mem_left)
+
 lemma CSPFinalMerge_UINF_ind_left [rpred]: 
   "(\<Sqinter> i \<bullet> P(i)) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q = (\<Sqinter> i \<bullet> P(i) \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q)"
   by (simp add: CSPFinalMerge_def par_by_merge_USUP_ind_left)
+
+lemma CSPFinalMerge_UINF_mem_right [rpred]: 
+  "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F (\<Sqinter> i\<in>A \<bullet> Q(i)) = (\<Sqinter> i\<in>A \<bullet> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q(i))"
+  by (simp add: CSPFinalMerge_def par_by_merge_USUP_mem_right)
 
 lemma CSPFinalMerge_UINF_ind_right [rpred]: 
   "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q(i))"
@@ -688,15 +696,21 @@ lemma CSPFinalMerge_or_right [rpred]:
   "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F (Q \<or> R) = (P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F Q \<or> P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F R)"
   by (simp add: CSPFinalMerge_def par_by_merge_or_right)
 
+lemma CSPInterMerge_UINF_mem_left [rpred]: 
+  "(\<Sqinter> i\<in>A \<bullet> P(i)) \<lbrakk>cs\<rbrakk>\<^sup>I Q = (\<Sqinter> i\<in>A \<bullet> P(i) \<lbrakk>cs\<rbrakk>\<^sup>I Q)"
+  by (simp add: CSPInterMerge_def par_by_merge_USUP_mem_left)
+
 lemma CSPInterMerge_UINF_ind_left [rpred]: 
   "(\<Sqinter> i \<bullet> P(i)) \<lbrakk>cs\<rbrakk>\<^sup>I Q = (\<Sqinter> i \<bullet> P(i) \<lbrakk>cs\<rbrakk>\<^sup>I Q)"
   by (simp add: CSPInterMerge_def par_by_merge_USUP_ind_left)
 
+lemma CSPInterMerge_UINF_mem_right [rpred]: 
+  "P \<lbrakk>cs\<rbrakk>\<^sup>I (\<Sqinter> i\<in>A \<bullet> Q(i)) = (\<Sqinter> i\<in>A \<bullet> P \<lbrakk>cs\<rbrakk>\<^sup>I Q(i))"
+  by (simp add: CSPInterMerge_def par_by_merge_USUP_mem_right)
+
 lemma CSPInterMerge_UINF_ind_right [rpred]: 
   "P \<lbrakk>cs\<rbrakk>\<^sup>I (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<lbrakk>cs\<rbrakk>\<^sup>I Q(i))"
   by (simp add: CSPInterMerge_def par_by_merge_USUP_ind_right)
-
-thm UINF_is_exists
 
 lemma CSPInterMerge_shEx_left [rpred]: 
   "(\<^bold>\<exists> i \<bullet> P(i)) \<lbrakk>cs\<rbrakk>\<^sup>I Q = (\<^bold>\<exists> i \<bullet> P(i) \<lbrakk>cs\<rbrakk>\<^sup>I Q)"
@@ -1270,7 +1284,7 @@ proof -
   also have "... = while\<^sub>C b do \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> R4(post\<^sub>R P)) od"
     by (simp add: Productive_RHS_design_form unrest assms rdes closure R4_def)
   also have "... is C2"
-    by (simp add: closure assms unrest rdes_def C2_rdes_intro)
+    by (simp add: WhileC_def, simp add: closure assms unrest rdes_def C2_rdes_intro)
   finally show ?thesis .
 qed
 

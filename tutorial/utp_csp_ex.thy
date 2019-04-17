@@ -86,5 +86,22 @@ lemma csp_interleave_ex1: "(a \<^bold>\<rightarrow> Skip) ||| (b \<^bold>\<right
 
 lemma csp_hiding_ex1: "(a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip) \\\<^sub>C {b} = a \<^bold>\<rightarrow> Skip"
   by (rdes_eq)
-  
+
+lemma "(while\<^sub>C true do a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip od) \<lbrakk>{b}\<rbrakk>\<^sub>C (while\<^sub>C true do b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip od) = 
+       while\<^sub>C true do a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> c \<^bold>\<rightarrow> Skip od"
+  apply (rdes_eq_split)
+  oops
+
+(*
+lemma
+  assumes "P is NCSP" "Q is NCSP" "pre\<^sub>R P = true" "pre\<^sub>R Q = true" "B\<^sub>1 \<noteq> {}" "A\<^sub>1 \<noteq> {}"
+    "peri\<^sub>R(P) = (\<Sqinter> i\<in>A\<^sub>1\<bullet> \<E>(s\<^sub>P\<^sub>1(i),t\<^sub>P\<^sub>1(i),E\<^sub>P(i)))"
+    "post\<^sub>R(P) = (\<Sqinter> i\<in>A\<^sub>2\<bullet> \<Phi>(s\<^sub>P\<^sub>2(i),\<sigma>\<^sub>P(i),t\<^sub>P\<^sub>2(i)))"
+    "peri\<^sub>R(Q) = (\<Sqinter> i\<in>B\<^sub>1\<bullet> \<E>(s\<^sub>Q\<^sub>1(i),t\<^sub>Q\<^sub>1(i),E\<^sub>Q(i)))"
+    "post\<^sub>R(Q) = (\<Sqinter> i\<in>B\<^sub>2\<bullet> \<Phi>(s\<^sub>Q\<^sub>2(i),\<sigma>\<^sub>Q(i),t\<^sub>Q\<^sub>2(i)))"
+  shows "(a \<^bold>\<rightarrow> P) ||| (b \<^bold>\<rightarrow> Q) = (a \<^bold>\<rightarrow> (P ||| (b \<^bold>\<rightarrow> Q)) \<box> b \<^bold>\<rightarrow> ((a \<^bold>\<rightarrow> P) ||| Q))"
+  apply (rdes_eq_split cls: assms(1-2))
+    apply (simp_all add: assms wp rpred closure usubst unrest rdes_rel_norms)
+*) 
+
 end

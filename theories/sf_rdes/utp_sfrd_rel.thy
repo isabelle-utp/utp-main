@@ -371,6 +371,12 @@ lemma seq_CRF_closed [closure]:
   shows "(P ;; Q) is CRF"
   by (rule CRF_intro, simp_all add: unrest assms closure)
 
+lemma rea_st_cond_CRF [closure]: "[b]\<^sub>S\<^sub>< is CRF"
+  by (rel_auto)
+
+lemma conj_CRF [closure]: "\<lbrakk> P is CRF; Q is CRF \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRF"
+  by (simp add: CRF_implies_CRR CRF_intro CRF_unrest_ref' CRR_implies_RR CRR_unrest_ref conj_RR unrest_conj)
+
 lemma wp_rea_CRC [closure]: "\<lbrakk> P is CRR; Q is RC \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
 
@@ -932,6 +938,26 @@ lemma st_pred_impl_csp_do_wp [rpred]:
   "([s\<^sub>1]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r \<Phi>(s\<^sub>2,\<sigma>,t) wp\<^sub>r P) = \<Phi>(s\<^sub>1\<and>s\<^sub>2,\<sigma>,t) wp\<^sub>r P"
   by (rel_auto)
 
+lemma csp_do_seq_USUP_distl [rpred]:
+  assumes "\<And> i. i \<in> A \<Longrightarrow> P(i) is CRR" "A \<noteq> {}"
+  shows "\<Phi>(s,\<sigma>,t) ;; (\<And> i\<in>A \<bullet> P(i)) = (\<And> i\<in>A \<bullet> \<Phi>(s,\<sigma>,t) ;; P(i))"
+proof -
+  from assms(2) have "\<Phi>(s,\<sigma>,t) ;; (\<Squnion> i\<in>A \<bullet> CRR(P(i))) = (\<Squnion> i\<in>A \<bullet> \<Phi>(s,\<sigma>,t) ;; CRR(P(i)))"
+    by (rel_blast)    
+  thus ?thesis
+    by (simp cong: USUP_cong add: assms(1) Healthy_if)
+qed
+
+lemma csp_do_seq_conj_distl:
+  assumes "P is CRR" "Q is CRR"
+  shows "\<Phi>(s,\<sigma>,t) ;; (P \<and> Q) = (\<Phi>(s,\<sigma>,t) ;; P \<and> \<Phi>(s,\<sigma>,t) ;; Q)"
+proof -
+  have "\<Phi>(s,\<sigma>,t) ;; (CRR(P) \<and> CRR(Q)) = ((\<Phi>(s,\<sigma>,t) ;; (CRR P)) \<and> (\<Phi>(s,\<sigma>,t) ;; (CRR Q)))"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: assms Healthy_if)
+qed
+
 lemma csp_do_power_Suc [rpred]:
   "\<Phi>(true, id, t) \<^bold>^ (Suc i) = \<Phi>(true, id, iter[Suc i](t))"
   by (induct i, (rel_auto)+)
@@ -990,6 +1016,17 @@ lemma titr_as_list_sum: "titr n \<sigma> t = list_sum (map (\<lambda> i. (\<sigm
         
 lemma titr_as_foldr: "titr n \<sigma> t = foldr (\<lambda> i e. (\<sigma> ^^ i) \<dagger> t + e) [0..<n] 0"
   by (simp add: titr_as_list_sum foldr_map comp_def)
+
+lemma list_sum_uexpr_rep_eq: "\<lbrakk>list_sum xs\<rbrakk>\<^sub>e s = list_sum (map (\<lambda> e. \<lbrakk>e\<rbrakk>\<^sub>e s) xs)"
+  apply (induct xs)
+   apply (simp_all)
+   apply (pred_simp+)
+  done
+
+lemma titr_rep_eq: "\<lbrakk>titr n \<sigma> t\<rbrakk>\<^sub>e s = foldr (@) (map (\<lambda>x. \<lbrakk>t\<rbrakk>\<^sub>e ((\<sigma> ^^ x) s)) [0..<n]) []"
+  by (simp add: titr_as_list_sum list_sum_uexpr_rep_eq comp_def, rel_auto)
+
+update_uexpr_rep_eq_thms
 
 lemma funpow_lemma: "(\<lambda>x. (f ^^ n) (f x)) = (f ^^ n) \<circ> f"
   by (simp add: fun_eq_iff funpow_swap1)

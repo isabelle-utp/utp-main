@@ -153,7 +153,7 @@ qed
 text \<open> We use the @{term R4} healthiness condition to characterise that the postcondition must
   extend the trace for a reactive design to be productive. \<close>
 
-lemma Productive_rdes_RR_intro:
+lemma Productive_rdes_RR_intro [closure]:
   assumes "P is RR" "Q is RR" "R is RR" "R is R4"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is Productive"
   using assms by (simp add: Productive_rdes_intro R4_iff_refine unrest)

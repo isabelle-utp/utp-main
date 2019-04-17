@@ -95,4 +95,43 @@ lemma csp_trace_simps [simp]:
   "bop (#) x xs ^\<^sub>u ys = bop (#) x (xs ^\<^sub>u ys)"
   by (rel_auto)+
 
+text \<open> Alternative characterisation of traces, adapted from CSP-Prover \<close>
+
+inductive_set
+  parx :: "'a set => ('a list * 'a list * 'a list) set"
+  for X :: "'a set"
+
+where
+parx_nil_nil [intro]: 
+  "([], [], []) \<in> parx X" |
+
+parx_Ev_nil [intro]: 
+  "[| (u, s, []) \<in> parx X ; a \<notin> X |]
+   ==> (a # u, a # s, []) \<in> parx X" |
+
+parx_nil_Ev [intro]: 
+  "[| (u, [], t) \<in> parx X ; a \<notin> X |]
+   ==> (a # u, [], a # t) \<in> parx X" |
+
+parx_Ev_sync [intro]: 
+  "[| (u, s, t) \<in> parx X ; a \<in> X |]
+   ==> (a # u, a # s, a # t) \<in> parx X" |
+
+parx_Ev_left [intro]: 
+  "[| (u, s, t) \<in> parx X ; a \<notin> X |]
+   ==> (a # u, a # s, t) \<in> parx X" |
+
+parx_Ev_right [intro]: 
+  "[| (u, s, t) \<in> parx X ; a \<notin> X |]
+   ==> (a # u, s, a # t) \<in> parx X"
+
+lemma parx_implies_tr_par: "(t, t\<^sub>1, t\<^sub>2) \<in> parx cs \<Longrightarrow> t \<in> tr_par cs t\<^sub>1 t\<^sub>2"
+  apply (induct rule: parx.induct)
+       apply (auto)
+   apply (case_tac t)
+    apply (auto)
+  apply (case_tac s)
+   apply (auto)
+  done
+
 end

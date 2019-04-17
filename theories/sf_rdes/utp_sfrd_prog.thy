@@ -20,6 +20,29 @@ lemma GuardedCommR_NCSP_closed [closure]:
   shows "g \<rightarrow>\<^sub>R P is NCSP"
   by (simp add: gcmd_def closure assms)
 
+subsection \<open> Assumptions \<close>
+
+definition AssumeCircus ("[_]\<^sub>C") where
+[rdes_def]: "[b]\<^sub>C = b \<rightarrow>\<^sub>R Skip"
+
+lemma AssumeCircus_NCSP [closure]: "[b]\<^sub>C is NCSP"
+  by (simp add: AssumeCircus_def GuardedCommR_NCSP_closed NCSP_Skip)
+
+lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b]\<^sup>\<top>\<^sub>R ;; Skip = [b]\<^sub>C"
+  by (rdes_eq)+
+
+lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
+  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
+
+lemma gcmd_AssumeCircus: 
+  "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
+  by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
+
+lemma rdes_assume_pre_refine:
+  assumes "P is NCSP"
+  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
+  by (rdes_refine cls: assms)
+
 subsection \<open> Alternation \<close>
 
 lemma AlternateR_NCSP_closed [closure]:
@@ -51,7 +74,7 @@ lemma NSRD_coerce_NCSP:
   by (metis (no_types, hide_lams) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
 
 definition WhileC :: "'s upred \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" ("while\<^sub>C _ do _ od") where
-[rdes_def]: "while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
+"while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
 
 lemma WhileC_NCSP_closed [closure]:
   assumes "P is NCSP" "P is Productive"
@@ -61,6 +84,12 @@ lemma WhileC_NCSP_closed [closure]:
 lemma WhileC_false: 
   "P is NCSP \<Longrightarrow> WhileC false P = Skip"
   by (simp add: NCSP_implies_NSRD Skip_srdes_left_unit WhileC_def WhileR_false)
+
+theorem WhileC_iter_form [rdes_def]:
+  assumes "P is NCSP" "P is Productive"
+  shows "while\<^sub>C b do P od = ([b]\<^sub>C ;; P)\<^sup>\<star>\<^sup>C ;; [\<not> b]\<^sub>C"
+  by (simp add: WhileC_def WhileR_iter_form assms closure seqr_assoc AssumeCircus_AssumeR)
+     (metis (no_types, lifting) AssumeCircus_AssumeR(2) AssumeCircus_NCSP RA1 assms(1) csp_theory.Healthy_Sequence csp_theory.Unit_Left sfrd_star_as_rdes_star')
 
 subsection \<open> Iteration Construction \<close>
 
@@ -324,29 +353,6 @@ lemma NCSP_state_srea [closure]: "P is NCSP \<Longrightarrow> state 'a \<bullet>
   apply (simp_all add: closure rdes)
   apply (simp_all add: state_srea_def unrest closure)
 done
-
-subsection \<open> Assumptions \<close>
-
-definition AssumeCircus ("[_]\<^sub>C") where
-[rdes_def]: "[b]\<^sub>C = b \<rightarrow>\<^sub>R Skip"
-
-lemma AssumeCircus_NCSP [closure]: "[b]\<^sub>C is NCSP"
-  by (simp add: AssumeCircus_def GuardedCommR_NCSP_closed NCSP_Skip)
-
-lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b]\<^sup>\<top>\<^sub>R ;; Skip = [b]\<^sub>C"
-  by (rdes_eq)+
-
-lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
-  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
-
-lemma gcmd_AssumeCircus: 
-  "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
-  by (simp add: AssumeCircus_def NCSP_implies_NSRD Skip_left_unit gcmd_seq_distr)
-
-lemma rdes_assume_pre_refine:
-  assumes "P is NCSP"
-  shows "P \<sqsubseteq> [b]\<^sub>C ;; P"
-  by (rdes_refine cls: assms)
 
 subsection \<open> Guards \<close>
 
@@ -854,6 +860,9 @@ lemma R4_st_pred_conj_do [rpred]:
   "((R4 [s\<^sub>1]\<^sub>S\<^sub><) \<and> \<Phi>(s\<^sub>2,\<sigma>,t) ;; P) = R4(\<Phi>(s\<^sub>1 \<and> s\<^sub>2,\<sigma>,t) ;; P) "
   by (rel_auto)
 
+lemma unrest_ref'_R4 [unrest]: "$ref\<acute> \<sharp> P \<Longrightarrow> $ref\<acute> \<sharp> R4(P)"
+  by (simp add: R4_def unrest)
+
 lemma st_pred_conj_seq [rpred]:
   "\<lbrakk> P is RR; Q is RR \<rbrakk> \<Longrightarrow> ([s]\<^sub>S\<^sub>< \<and> P ;; Q) = (([s]\<^sub>S\<^sub>< \<and> P) ;; Q)"
   by (metis (no_types, lifting) R1_seqr_closure RR_implies_R1 cond_st_distr cond_st_miracle seqr_left_zero)
@@ -1041,5 +1050,7 @@ declare ExtChoice_tri_rdes' [rdes_def]
 
 declare extChoice_rdes_def [rdes_def del]
 declare extChoice_rdes_def' [rdes_def]
+
+find_theorems R4
 
 end
