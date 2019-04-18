@@ -527,6 +527,9 @@ lemma crf_star_as_rea_star:
   "P is CRF \<Longrightarrow> P\<^sup>\<star>\<^sup>c = P\<^sup>\<star>\<^sup>r ;; II\<^sub>c"
   by (simp add: crf_theory.Star_alt_def rrel_theory.Star_alt_def closure rpred unrest)
 
+lemma crf_star_inductl: "R is CRR \<Longrightarrow> Q \<sqsubseteq> (P ;; Q) \<sqinter> R \<Longrightarrow> Q \<sqsubseteq> P\<^sup>\<star>\<^sup>c ;; R"
+  by (simp add: crel_skip_left_unit crf_theory.utp_star_def upred_semiring.mult_assoc urel_ka.star_inductl)
+
 subsection \<open> Weakest Precondition \<close>
 
 lemma nil_least [simp]:

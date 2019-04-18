@@ -66,10 +66,10 @@ lemma DoBuff_contract:
 lemma Buffer_contract:
   "Buffer = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<Phi>(true,[&buff \<mapsto>\<^sub>s \<langle>\<rangle>],\<langle>\<rangle>) ;;
                        ((\<Sqinter> x \<bullet> \<Phi>(true, [&buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>, val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>], \<langle>(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>)) \<or>
-                        \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))\<^sup>\<star>\<^sup>r ;;
+                        \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))\<^sup>\<star>\<^sup>c ;;
                         \<E>(true,\<langle>\<rangle>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>head\<^sub>u(&buff))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
                        false)"
-  unfolding Buffer_def DoBuff_contract by rdes_eq
+  unfolding Buffer_def DoBuff_contract by (rdes_simp)
 
 subsection \<open> Verifications \<close>
 
@@ -79,17 +79,17 @@ abbreviation "inps t \<equiv> [x. inp x \<leftarrow> t]"
 abbreviation "outps t \<equiv> [x. outp x \<leftarrow> t]"
 
 lemma P1_lemma:
-  "[true \<turnstile> (outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | true]\<^sub>C \<sqsubseteq> while\<^sub>R true do DoBuff od"
+  "[true \<turnstile> (outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | true]\<^sub>C \<sqsubseteq> while\<^sub>C true do DoBuff od"
   apply (rdes_refine_split)
     apply (simp_all add: rpred closure usubst)
   apply (rule conjI)
-   apply (rule rrel_theory.Star_inductl)
+   apply (rule crf_star_inductl)
     apply (simp add: closure)
    apply (rule RR_refine_intro)
   apply (simp_all add: closure)
    apply (rel_auto)
    apply (smt Prefix_Order.Cons_prefix_Cons Prefix_Order.prefix_Nil append_Cons append_Nil ch_buffer.simps(6) concat_map_maps hd_Cons_tl maps_simps(1) not_Cons_self2)
-   apply (rule rrel_theory.Star_inductl)
+   apply (rule crf_star_inductl)
     apply (simp add: closure)
    apply (rule RR_refine_intro)
   apply (simp_all add: closure)

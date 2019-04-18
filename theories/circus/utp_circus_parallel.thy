@@ -1466,6 +1466,11 @@ lemma parallel_miracle:
   "P is NCSP \<Longrightarrow> Miracle \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> P = Miracle"
   by (simp add: CSPMerge_def par_by_merge_seq_add[THEN sym] Miracle_parallel_left_zero Skip_right_unit closure)
 
+lemma parallel_assigns:
+  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "x \<subseteq>\<^sub>L ns1" "y  \<subseteq>\<^sub>L ns2"
+  shows "(x :=\<^sub>C u) \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> (y :=\<^sub>C v) = x, y :=\<^sub>C u, v"
+  using assms by (rdes_eq)
+
 (* Trying to find a form of reactive design which when interleaved with Chaos yields Chaos *)
 
 definition Accept :: "('s, 'e) action" where
@@ -1502,6 +1507,7 @@ proof -
   finally show ?thesis .
 qed
 
+  
 lemma 
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RR"
   shows "P wr[cs]\<^sub>C false = undefined" (is "?lhs = ?rhs")

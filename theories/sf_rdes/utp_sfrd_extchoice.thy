@@ -690,5 +690,4 @@ proof -
     by (rdes_refine_split cls: assms(1-2), simp_all add: 1 closure assms truer_bottom_rpred  utp_pred_laws.inf_sup_distrib1)
 qed
 
-
 end
