@@ -769,6 +769,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma wrC_csp_do_false [wp]:
+  "\<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[cs]\<^sub>C false = 
+  (\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(s\<^sub>1 \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) wr[cs]\<^sub>C \<I>(true, \<langle>\<rangle>)"
+    by (simp add: rpred)
+  also have "... = ?rhs"
+    by (simp add: wp)
+  finally show ?thesis .
+qed
+  
 lemma wrC_csp_enable_init [wp]:
   fixes t\<^sub>1  t\<^sub>2 :: "('a list, 'b) uexpr"
   shows
@@ -807,6 +819,17 @@ proof -
   finally show ?thesis .
 qed
 
+lemma wrC_csp_enable_false [wp]:
+  "\<E>(s\<^sub>1,t\<^sub>1,E) wr[cs]\<^sub>C false = 
+  (\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(s\<^sub>1 \<and> \<guillemotleft>tt\<^sub>1\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>))"
+  (is "?lhs = ?rhs")
+proof -
+  have "?lhs = \<E>(s\<^sub>1,t\<^sub>1,E) wr[cs]\<^sub>C \<I>(true, \<langle>\<rangle>)"
+    by (simp add: rpred)
+  also have "... = ?rhs"
+    by (simp add: wp)
+  finally show ?thesis .
+qed
 
 subsection \<open> Parallel operator \<close>
 
@@ -1443,8 +1466,43 @@ lemma parallel_miracle:
   "P is NCSP \<Longrightarrow> Miracle \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> P = Miracle"
   by (simp add: CSPMerge_def par_by_merge_seq_add[THEN sym] Miracle_parallel_left_zero Skip_right_unit closure)
 
-(* An attempt at proving that the precondition of Chaos is false *)
-  
+(* Trying to find a form of reactive design which when interleaved with Chaos yields Chaos *)
+
+definition Accept :: "('s, 'e) action" where
+[rdes_def]: "Accept = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
+ 
+lemma Chaos_par_zero:
+  assumes "P is NCSP" "P \<sqsubseteq> Accept"
+  shows "Chaos ||| P = Chaos"
+proof -
+  have pprop: "(\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(\<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>)) = false"
+    apply (rel_simp)
+    using diff_add_cancel_left' le_less by blast
+
+  have 1:"P = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+    by (simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
+
+  have "... \<sqsubseteq> \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
+    by (metis Accept_def assms(2) 1)
+
+  hence "peri\<^sub>R P \<sqsubseteq> (pre\<^sub>R P \<and> \<E>(true,\<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>))"
+    by (auto simp add: RHS_tri_design_refine' closure assms)
+
+  hence "peri\<^sub>R(P) = ((pre\<^sub>R P \<and> \<E>(true,\<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>)) \<or> peri\<^sub>R(P))"
+    by (simp add: assms(2) utp_pred_laws.sup.absorb2)
+
+  with 1 have "P = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (pre\<^sub>R(P) \<and> \<E>(true, \<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>) \<or> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))"
+    by (simp add: NCSP_implies_CSP SRD_reactive_tri_design assms(1))
+
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (\<E>(true, \<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>) \<or> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))"
+    by (rel_auto)
+
+  also have "Chaos ||| ... = Chaos"
+    by (rdes_simp cls: assms, simp add: pprop)
+
+  finally show ?thesis .
+qed
+
 lemma 
   assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RR"
   shows "P wr[cs]\<^sub>C false = undefined" (is "?lhs = ?rhs")

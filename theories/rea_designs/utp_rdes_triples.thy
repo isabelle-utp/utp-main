@@ -6,8 +6,6 @@ begin
 
 subsection \<open> Diamond notation\<close>
 
-term "(;;)"
-
 definition wait'_cond ::
   "('t::trace,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" (infixr "\<diamondop>" 60) where
 [upred_defs]: "P \<diamondop> Q = (P \<triangleleft> $wait\<acute> \<triangleright> Q)"
