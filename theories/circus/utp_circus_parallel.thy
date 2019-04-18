@@ -1470,14 +1470,13 @@ lemma parallel_miracle:
 
 definition Accept :: "('s, 'e) action" where
 [rdes_def]: "Accept = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
- 
+    
 lemma Chaos_par_zero:
   assumes "P is NCSP" "P \<sqsubseteq> Accept"
   shows "Chaos ||| P = Chaos"
 proof -
   have pprop: "(\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(\<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>)) = false"
-    apply (rel_simp)
-    using diff_add_cancel_left' le_less by blast
+    using diff_add_cancel_left' le_less by (rel_blast)
 
   have 1:"P = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
