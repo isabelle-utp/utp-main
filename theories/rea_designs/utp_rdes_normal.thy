@@ -464,6 +464,15 @@ proof -
     by (simp add: NSRD_elim NSRD_right_Miracle_tri_lemma assms)
 qed
 
+text \<open> @{term Chaos} is a right zero of @{term P} precisely when the conjunction of the precondition
+  of @{term P} with the weakest precondition under which @{term "post\<^sub>R P"} yields @{term false} 
+  reduces to @{term false}. This is effectively a feasibility check for reactive designs. \<close>
+
+lemma Chaos_right_anhil_iff:
+  assumes "P is NSRD"
+  shows "P ;; Chaos = Chaos \<longleftrightarrow> (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r false) = false"
+  by (simp add: SRD_right_Chaos_tri_lemma assms closure, simp add: rdes_def srdes_tri_eq_iff closure assms wp)
+
 lemma upower_Suc_NSRD_closed [closure]:
   "P is NSRD \<Longrightarrow> P \<^bold>^ Suc n is NSRD"
 proof (induct n)

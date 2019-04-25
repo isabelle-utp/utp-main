@@ -911,6 +911,25 @@ lemma SRD_eq_intro:
   shows "P = Q"
   by (metis SRD_reactive_tri_design assms)
 
+lemma srdes_tri_eq_iff:
+  assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
+  shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<longleftrightarrow> (P\<^sub>1 = Q\<^sub>1 \<and> (P\<^sub>1 \<and> Q\<^sub>2) = (Q\<^sub>1 \<and> P\<^sub>2) \<and> (P\<^sub>1 \<and> Q\<^sub>3) = (Q\<^sub>1 \<and> P\<^sub>3))"
+proof -
+  have "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<longleftrightarrow> 
+        (\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<and> \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) \<sqsubseteq> \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3))"
+    by fastforce
+  also have "... = (Q\<^sub>1 \<sqsubseteq> P\<^sub>1 \<and> P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<and> P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>3) \<and> P\<^sub>1 \<sqsubseteq> Q\<^sub>1 \<and> Q\<^sub>2 \<sqsubseteq> (Q\<^sub>1 \<and> P\<^sub>2) \<and> Q\<^sub>3 \<sqsubseteq> (Q\<^sub>1 \<and> P\<^sub>3))"
+    by (simp add: RHS_tri_design_refine' assms)
+  also have "... = (P\<^sub>1 = Q\<^sub>1 \<and> P\<^sub>2 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>2) \<and> P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> Q\<^sub>3) \<and> Q\<^sub>2 \<sqsubseteq> (Q\<^sub>1 \<and> P\<^sub>2) \<and> Q\<^sub>3 \<sqsubseteq> (Q\<^sub>1 \<and> P\<^sub>3))"
+    by fastforce
+  also have "... = (P\<^sub>1 = Q\<^sub>1 \<and> (P\<^sub>1 \<and> Q\<^sub>2) = (Q\<^sub>1 \<and> P\<^sub>2) \<and> (P\<^sub>1 \<and> Q\<^sub>3) = (Q\<^sub>1 \<and> P\<^sub>3))"
+    apply (safe, simp_all)
+    apply (meson eq_iff utp_pred_laws.inf_greatest utp_pred_laws.inf_le1)+
+     apply (metis utp_pred_laws.inf_le2)+
+    done
+  finally show ?thesis .
+qed
+
 subsection \<open> Closure laws \<close>
 
 lemma SRD_srdes_skip [closure]: "II\<^sub>R is SRD"
