@@ -1474,14 +1474,26 @@ lemma parallel_assigns:
 (* Trying to find a form of reactive design which when interleaved with Chaos yields Chaos *)
 
 definition Accept :: "('s, 'e) action" where
-[rdes_def]: "Accept = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
-    
+[upred_defs, rdes_def]: "Accept = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
+
+definition [upred_defs, rdes_def]: "CACC(P) = (P \<or> Accept)"
+
+lemma DoCSP_CACC [closure]: "do\<^sub>C(e) is CACC"
+  unfolding Healthy_def by (rdes_eq)
+
+lemma 
+  assumes "P is NCSP" "P is CACC" "Q is NCSP" "Q is CACC"
+  shows "(P ;; Q) is CACC"
+  unfolding Healthy_def apply (rdes_simp cls: assms)
+  oops
+
 lemma Chaos_par_zero:
-  assumes "P is NCSP" "P \<sqsubseteq> Accept"
-  shows "Chaos ||| P = Chaos"
+  assumes "P is NCSP" "P \<sqsubseteq> Accept" "ns1 \<bowtie> ns2"
+  shows "Chaos \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> P = Chaos"
 proof -
-  have pprop: "(\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(\<guillemotleft>tt\<^sub>1\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>)) = false"
-    using diff_add_cancel_left' le_less by (rel_blast)
+  have pprop: "(\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(\<guillemotleft>tt\<^sub>1\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> \<langle>\<rangle> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<langle>\<rangle> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>)) = false"
+    by (rel_simp, auto simp add: tr_par_empty)
+       (metis append_Nil2 seq_filter_Nil takeWhile.simps(1))
 
   have 1:"P = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
@@ -1501,11 +1513,17 @@ proof -
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> (\<E>(true, \<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>) \<or> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P))"
     by (rel_auto)
 
-  also have "Chaos ||| ... = Chaos"
+  also have "Chaos \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> ... = Chaos"
     by (rdes_simp cls: assms, simp add: pprop)
 
   finally show ?thesis .
 qed
+
+lemma Chaos_inter_zero:
+  assumes "P is NCSP" "P \<sqsubseteq> Accept"
+  shows "Chaos ||| P = Chaos"
+  by (simp add: Chaos_par_zero assms(1) assms(2))
+
 
   
 lemma 

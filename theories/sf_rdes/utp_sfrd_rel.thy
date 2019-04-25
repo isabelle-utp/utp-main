@@ -1097,6 +1097,9 @@ definition CDC :: "('s, 'e) action \<Rightarrow> ('s, 'e) action" where
 lemma CDC_idem: "CDC(CDC(P)) = CDC(P)"
   by (rel_auto)
 
+lemma CDC_Continuous [closure]: "Continuous CDC"
+  by (rel_auto)
+
 lemma CDC_RR_commute: "CDC(RR(P)) = RR(CDC(P))"
   by (rel_blast)
 
