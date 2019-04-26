@@ -230,6 +230,9 @@ lemma st_post_CRR [closure]: "[b]\<^sub>S\<^sub>> is CRR"
 lemma st_cond_CRC [closure]: "[P]\<^sub>S\<^sub>< is CRC"
   by (rel_auto)
 
+lemma st_cond_CRF [closure]: "[b]\<^sub>S\<^sub>< is CRF"
+  by (rel_auto)
+
 lemma rea_rename_CRR_closed [closure]: 
   assumes "P is CRR"
   shows "P\<lparr>f\<rparr>\<^sub>r is CRR"
@@ -253,6 +256,9 @@ lemma st_subst_CRC_closed [closure]:
 lemma conj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRC"
   by (rule CRC_intro, simp_all add: unrest closure)
+
+lemma conj_CRF_closed [closure]: "\<lbrakk> P is CRF; Q is CRF \<rbrakk> \<Longrightarrow> (P \<and> Q) is CRF"
+  by (rule CRF_intro, simp_all add: unrest closure)
 
 lemma disj_CRC_closed [closure]:
   "\<lbrakk> P is CRC; Q is CRC \<rbrakk> \<Longrightarrow> (P \<or> Q) is CRC"
@@ -1089,6 +1095,14 @@ proof -
   qed
   finally show ?thesis .
 qed
+
+subsection \<open> Assumptions \<close>
+
+abbreviation crf_assume :: "'s upred \<Rightarrow> ('s, 'e) action" ("[_]\<^sub>c") where
+"[b]\<^sub>c \<equiv> \<Phi>(b, id, \<langle>\<rangle>)"
+
+lemma crf_assume_true [rpred]: "P is CRR \<Longrightarrow> [true]\<^sub>c ;; P = P"
+  by (simp add: crel_skip_left_unit csp_do_nothing)
 
 subsection \<open> Downward closure of refusals \<close>
 

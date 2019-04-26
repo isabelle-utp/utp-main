@@ -689,6 +689,9 @@ abbreviation TestC ("test\<^sub>C") where
 definition StarC :: "('\<sigma>, '\<phi>) action \<Rightarrow> ('\<sigma>, '\<phi>) action" ("_\<^sup>\<star>\<^sup>C" [999] 999) where
 "StarC P \<equiv> csp_theory.utp_star P"
 
+lemma StarC_unfold: "P is NCSP \<Longrightarrow> P\<^sup>\<star>\<^sup>C = Skip \<sqinter> (P ;; P\<^sup>\<star>\<^sup>C)"
+  by (simp add: StarC_def csp_theory.Star_unfoldl_eq)
+
 lemma sfrd_star_as_rdes_star:
   "P is NCSP \<Longrightarrow> P\<^sup>\<star>\<^sup>R ;; Skip = P\<^sup>\<star>\<^sup>C"
   by (simp add: csp_theory.Star_alt_def nsrdes_theory.Star_alt_def StarC_def StarR_def closure unrest Skip_srdes_left_unit csp_theory.Unit_Right)

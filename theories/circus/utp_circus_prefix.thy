@@ -87,8 +87,6 @@ syntax
   "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_?'(_')" [63, 0] 62)
   "_csp_output_var" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" ("_!'(_')" [63, 0] 62)
 
-term OutputCSP
-
 translations
   "c?(x:A)" \<rightharpoonup> "CONST InputVarCSP c x A"
   "c?(x)"   \<rightharpoonup> "CONST InputVarCSP c x (\<lambda> x. true)"

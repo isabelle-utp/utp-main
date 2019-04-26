@@ -1,8 +1,8 @@
 section \<open> Chemical Model \<close>
 
 theory Chemical
-imports "RoboChart-Untimed.StateMachine"
-begin
+imports "RoboChart-Untimed.StateMachine" "UTP.utp_easy_parser"
+begin recall_syntax
 
 subsection \<open> Type Declarations \<close>
 
