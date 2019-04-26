@@ -935,7 +935,6 @@ lemma srdes_tri_eq_intro':
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
   using assms by (simp)
 
-
 subsection \<open> Closure laws \<close>
 
 lemma SRD_srdes_skip [closure]: "II\<^sub>R is SRD"

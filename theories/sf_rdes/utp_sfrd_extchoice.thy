@@ -669,7 +669,7 @@ qed
 lemma extChoice_seq_distr:
   assumes "P is PCSP" "Q is PCSP" "R is NCSP"
   shows "(P \<box> Q) ;; R = (P ;; R \<box> Q ;; R)"
-  by (rdes_eq cls: assms)
+  by (rdes_eq' cls: assms)
 
 lemma extChoice_seq_distl:
   assumes "P is ICSP" "Q is ICSP" "R is NCSP"
