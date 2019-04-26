@@ -452,6 +452,11 @@ lemma NSRD_right_Miracle_tri_lemma:
   shows "P ;; Miracle = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> false)"
   by (simp add: NSRD_composition_wp closure assms rdes wp rpred)
 
+lemma Miracle_right_anhil_iff:
+  assumes "P is NSRD"
+  shows "P ;; Miracle = Miracle \<longleftrightarrow> pre\<^sub>R P = true\<^sub>r \<and> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) = false"
+  by (simp add: SRD_right_Miracle_tri_lemma assms closure, simp add: rdes_def srdes_tri_eq_iff closure assms wp rpred, fastforce)
+
 text \<open> The set of non-terminating behaviours is a subset \<close>
 
 lemma NSRD_right_Miracle_refines:

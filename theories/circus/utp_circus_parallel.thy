@@ -975,26 +975,43 @@ lemma CSP5_is_C2:
   unfolding CSP5_def C2_def by (rdes_eq cls: assms)
 
 text {* The form of C2 tells us that a normal CSP process has a downward closed set of refusals *}
+
+lemma csp_do_triv_merge:
+  assumes "P is CRF"
+  shows "P \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>) = P" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<^bold>\<exists> (st\<^sub>0, t\<^sub>0) \<bullet> [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> CRF(P) \<and> [true]\<^sub>S\<^sub>< \<and> [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>]\<^sub>t \<and> $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &\<^bold>v \<oplus> \<guillemotleft>id\<guillemotright>($st)\<^sub>a on \<emptyset>)"
+    by (simp add: FinalMerge_csp_do_right assms closure unrest Healthy_if, rel_auto)
+  also have "... = CRF(P)"
+    by (rel_auto)
+  finally show ?thesis
+    by (simp add: assms Healthy_if)
+qed
   
+lemma csp_do_triv_wr:
+  assumes "P is CRC"
+  shows "\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C P = P" (is "?lhs = ?rhs")
+proof -
+  have "?lhs = (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
+                   [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r P)) \<and>
+                    $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright> \<and> [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>]\<^sub>t \<and> 
+                    $st\<acute> =\<^sub>u $st) ;; R1 true)"
+      by (simp add: wrR_def par_by_merge_seq_remove rpred merge_csp_do_right ex_unrest Healthy_if pr_var_def closure assms unrest usubst)
+  also have "... = (\<not>\<^sub>r (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r P)) ;; R1 true)"
+    by (rel_auto, meson order_refl)
+  also have "... = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; R1 true)"
+    by (simp add: Healthy_if closure ex_unrest unrest assms)
+  also have "... = P"
+    by (metis CRC_implies_RC Healthy_def RC1_def RC_implies_RC1 assms)
+  finally show ?thesis .
+qed
+
 lemma C2_form:
   assumes "P is NCSP"
   shows "C2(P) = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
 proof -
   have 1:"\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P = pre\<^sub>R P" (is "?lhs = ?rhs")
-  proof -
-    have "?lhs = (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
-                   [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r pre\<^sub>R P)) \<and>
-                    $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright> \<and> [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>]\<^sub>t \<and> 
-                    $st\<acute> =\<^sub>u $st) ;; R1 true)"
-      by (simp add: wrR_def par_by_merge_seq_remove rpred merge_csp_do_right ex_unrest Healthy_if pr_var_def closure assms unrest usubst)
-    also have "... = (\<not>\<^sub>r (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r pre\<^sub>R P)) ;; R1 true)"
-      by (rel_auto)
-    also have "... = (\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R P) ;; R1 true)"
-      by (simp add: Healthy_if closure ex_unrest unrest assms)
-    also have "... = pre\<^sub>R P"
-      by (simp add: NCSP_implies_NSRD NSRD_neg_pre_unit R1_preR assms rea_not_not)
-    finally show ?thesis .
-  qed
+    by (simp add: csp_do_triv_wr closure assms)
   have 2: "(pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id,\<langle>\<rangle>) = 
            (\<^bold>\<exists> ref\<^sub>0 \<bullet> (peri\<^sub>R P)\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)" (is "?lhs = ?rhs")
   proof -
@@ -1015,18 +1032,7 @@ proof -
     finally show ?thesis .
   qed
   have 3: "(pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>) = post\<^sub>R(P)" (is "?lhs = ?rhs")
-  proof -
-    have "?lhs = post\<^sub>R P \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>)"
-      by (simp add: SRD_post_under_pre closure assms unrest)
-    also have "... = (\<^bold>\<exists> (st\<^sub>0, t\<^sub>0) \<bullet> 
-                        [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> RR(post\<^sub>R P) \<and>
-                        [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>]\<^sub>t \<and> $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on \<Sigma> \<oplus> \<guillemotleft>id\<guillemotright>($st)\<^sub>a on \<emptyset>)"
-      by (simp add: FinalMerge_csp_do_right pr_var_def assms closure unrest rpred Healthy_if)
-    also have "... = RR(post\<^sub>R(P))"
-      by (rel_auto)
-    finally show ?thesis
-      by (simp add: Healthy_if assms closure)
-  qed
+    by (simp add: csp_do_triv_merge SRD_post_under_pre unrest assms closure)
   show ?thesis
   proof -
     have "C2(P) = \<^bold>R\<^sub>s (\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P \<turnstile>
@@ -1478,17 +1484,68 @@ definition Accept :: "('s, 'e) action" where
 
 definition [upred_defs, rdes_def]: "CACC(P) = (P \<or> Accept)"
 
+lemma CACC_form: 
+  assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "$st\<acute> \<sharp> P\<^sub>2"  "P\<^sub>3 is RR"
+  shows "CACC(\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3)) = \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> (\<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<or> P\<^sub>2) \<diamondop> P\<^sub>3)"
+  by (rdes_eq cls: assms)
+
+lemma CACC_refines_Accept:
+  assumes "P is CACC"
+  shows "P \<sqsubseteq> Accept"
+proof -
+  have "CACC(P) \<sqsubseteq> Accept" by rel_auto
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
 lemma DoCSP_CACC [closure]: "do\<^sub>C(e) is CACC"
   unfolding Healthy_def by (rdes_eq)
 
-lemma 
-  assumes "P is NCSP" "P is CACC" "Q is NCSP" "Q is CACC"
+lemma CACC_seq_closure_left [closure]:
+  assumes "P is NCSP" "P is CACC" "Q is NCSP"
   shows "(P ;; Q) is CACC"
-  unfolding Healthy_def apply (rdes_simp cls: assms)
+proof -
+  have 1: "(P ;; Q) = CACC(P) ;; Q"
+    by (simp add: Healthy_if assms(2))
+  also have 2:"... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> \<E>(true,\<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>) \<or> post\<^sub>R P ;; peri\<^sub>R Q) \<diamondop> post\<^sub>R P ;; post\<^sub>R Q)"
+    by (rdes_simp cls: assms) 
+  also have "... = CACC(...)"
+    by (rdes_eq cls: assms)
+  also have "... = CACC(P ;; Q)"
+    by (simp add: "1" "2")
+  finally show ?thesis
+    by (simp add: Healthy_def)
+qed
+
+lemma CACC_seq_closure_right:
+  assumes "P is NCSP" "P ;; Chaos = Chaos" "Q is NCSP" "Q is CACC"
+  shows "(P ;; Q) is CACC"
   oops
 
+lemma Chaos_is_CACC [closure]: "Chaos is CACC"
+  unfolding Healthy_def by (rdes_eq)
+
+lemma intChoice_is_CACC [closure]:
+  assumes "P is NCSP" "P is CACC" "Q is NCSP" "Q is CACC"
+  shows "P \<sqinter> Q is CACC"
+proof -
+  have "CACC(P) \<sqinter> CACC(Q) is CACC"
+    unfolding Healthy_def by (rdes_eq cls: assms)
+  thus ?thesis
+    by (simp add: Healthy_if assms(2) assms(4))
+qed
+
+lemma extChoice_is_CACC [closure]:
+  assumes "P is NCSP" "P is CACC" "Q is NCSP" "Q is CACC"
+  shows "P \<box> Q is CACC"
+proof -
+  have "CACC(P) \<box> CACC(Q) is CACC"
+    unfolding Healthy_def by (rdes_eq cls: assms)
+  thus ?thesis
+    by (simp add: Healthy_if assms(2) assms(4))
+qed
+
 lemma Chaos_par_zero:
-  assumes "P is NCSP" "P \<sqsubseteq> Accept" "ns1 \<bowtie> ns2"
+  assumes "P is NCSP" "P is CACC" "ns1 \<bowtie> ns2"
   shows "Chaos \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> P = Chaos"
 proof -
   have pprop: "(\<^bold>\<forall> (tt\<^sub>0, tt\<^sub>1) \<bullet> \<I>(\<guillemotleft>tt\<^sub>1\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> \<langle>\<rangle> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<langle>\<rangle> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>)) = false"
@@ -1499,7 +1556,7 @@ proof -
     by (simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
 
   have "... \<sqsubseteq> \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,\<guillemotleft>UNIV\<guillemotright>) \<diamondop> false)"
-    by (metis Accept_def assms(2) 1)
+    by (metis "1" Accept_def CACC_refines_Accept assms(2))
 
   hence "peri\<^sub>R P \<sqsubseteq> (pre\<^sub>R P \<and> \<E>(true,\<langle>\<rangle>, \<guillemotleft>UNIV\<guillemotright>))"
     by (auto simp add: RHS_tri_design_refine' closure assms)
@@ -1520,37 +1577,8 @@ proof -
 qed
 
 lemma Chaos_inter_zero:
-  assumes "P is NCSP" "P \<sqsubseteq> Accept"
+  assumes "P is NCSP" "P is CACC"
   shows "Chaos ||| P = Chaos"
   by (simp add: Chaos_par_zero assms(1) assms(2))
-
-
-  
-lemma 
-  assumes "vwb_lens ns1" "vwb_lens ns2" "ns1 \<bowtie> ns2" "P is RR"
-  shows "P wr[cs]\<^sub>C false = undefined" (is "?lhs = ?rhs")
-proof -
-  have "?lhs = (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, ref\<^sub>1, st\<^sub>0, st\<^sub>1, tt\<^sub>0, tt\<^sub>1) \<bullet> 
-                   [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> R1 true \<and>
-                   [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>1\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> P \<and>
-                   $ref\<acute> \<subseteq>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> \<union>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> \<inter>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
-                   $tr \<le>\<^sub>u $tr\<acute> \<and>
-                   &tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and> 
-                   $st\<acute> =\<^sub>u $st) ;;
-                    R1 true)"
-    by (simp add: wrR_def par_by_merge_seq_remove CSPInnerMerge_form assms pr_var_def closure usubst unrest)
-  also have "... = (\<not>\<^sub>r (\<^bold>\<exists> (tt\<^sub>0, tt\<^sub>1) \<bullet>                    
-                   [$tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> P \<and>
-                   $tr \<le>\<^sub>u $tr\<acute> \<and>
-                   &tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;;
-                    R1 true)"
-    by (rel_blast)  
-  also have "... = (\<not>\<^sub>r (\<^bold>\<exists> (tt\<^sub>0, tt\<^sub>1) \<bullet>                    
-                   [$tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> RR(P) \<and>
-                   $tr \<le>\<^sub>u $tr\<acute> \<and>
-                   &tt \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>) ;;
-                    R1 true)"
-    by (simp add: Healthy_if assms)
-  oops
 
 end

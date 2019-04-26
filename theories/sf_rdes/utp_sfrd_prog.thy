@@ -91,6 +91,15 @@ theorem WhileC_iter_form [rdes_def]:
   by (simp add: WhileC_def WhileR_iter_form assms closure seqr_assoc AssumeCircus_AssumeR)
      (metis (no_types, lifting) AssumeCircus_AssumeR(2) AssumeCircus_NCSP RA1 assms(1) csp_theory.Healthy_Sequence csp_theory.Unit_Left sfrd_star_as_rdes_star')
 
+theorem WhileC_unfold:
+  assumes "P is NCSP" "P is Productive"
+  shows "while\<^sub>C b do P od = (P ;; while\<^sub>C b do P od) \<triangleleft> b \<triangleright>\<^sub>R Skip"
+  apply (simp add: WhileC_def)
+  apply (subst WhileR_unfold)
+  apply (simp add: closure assms)
+  apply (metis (no_types, lifting) NCSP_cond_srea NCSP_implies_NSRD NSRD_coerce_NCSP RA1 Skip_srdes_left_unit WhileR_NSRD_closed assms(1) assms(2) cond_st_distr csp_theory.Healthy_Sequence csp_theory.Healthy_Unit csp_theory.Unit_Left csp_theory.Unit_Right)
+  done
+
 subsection \<open> Iteration Construction \<close>
 
 definition IterateC :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 'e) action) \<Rightarrow> ('s, 'e) action"
@@ -988,7 +997,7 @@ lemma Guard_expansion:
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
   shows "P \<triangleleft> b \<triangleright>\<^sub>R Q = b &\<^sub>C P \<box> (\<not> b) &\<^sub>C Q"  
-  by (rdes_eq cls: assms; simp add: le_less)
+  by (rdes_eq' cls: assms; simp add: le_less)
 
 lemma PrefixCSP_dist:
   "PrefixCSP a (P \<sqinter> Q) = (PrefixCSP a P) \<sqinter> (PrefixCSP a Q)"
@@ -1041,7 +1050,7 @@ next
       by (rule ExtChoice_cong, simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
     from assms(3) show ?thesis
       by (simp add: AlternateR_def 1 2)
-         (rdes_eq cls: assms(1-2) simps: False cong: UINF_cong ExtChoice_cong)
+         (rdes_eq' cls: assms(1-2) simps: False cong: UINF_cong ExtChoice_cong)
   qed
 qed
 

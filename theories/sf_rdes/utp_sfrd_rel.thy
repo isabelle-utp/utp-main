@@ -819,6 +819,9 @@ lemma csp_enable_false [rpred]: "\<E>(false,t,E) = false"
 lemma conj_csp_enable [rpred]: "(\<E>(b\<^sub>1, t, E\<^sub>1) \<and> \<E>(b\<^sub>2, t, E\<^sub>2)) = \<E>(b\<^sub>1 \<and> b\<^sub>2, t, E\<^sub>1 \<union>\<^sub>u E\<^sub>2)"
   by (rel_auto)
 
+lemma refine_csp_enable: "\<E>(b\<^sub>1, t, E\<^sub>1) \<sqsubseteq> \<E>(b\<^sub>2, t, E\<^sub>2) \<longleftrightarrow> (`b\<^sub>2 \<Rightarrow> b\<^sub>1 \<and> E\<^sub>1 \<subseteq>\<^sub>u E\<^sub>2`)"
+  by (rel_blast)
+
 lemma USUP_csp_enable [rpred]:
   "(\<Squnion> x \<bullet> \<E>(s, t, A(x))) = \<E>(s, t, (\<Or> x \<bullet> A(x)))"
   by (rel_auto)

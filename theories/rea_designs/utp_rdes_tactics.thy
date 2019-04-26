@@ -38,10 +38,13 @@ text {* Tactic to split a refinement conjecture into three POs *}
 method rdes_refine_split uses cls cong simps =
   (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro')
 
-text {* Tactic to split an equality conjecture into three POs *}
+text {* Tactics to split an equality conjecture into three POs *}
 
 method rdes_eq_split uses cls cong simps =
   (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro))
+
+method rdes_eq_split' uses cls cong simps =
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro'))
 
 text {* Tactic to prove a refinement *}
   
@@ -52,6 +55,9 @@ text {* Tactics to prove an equality *}
 
 method rdes_eq uses cls cong simps =
   (rdes_eq_split cls: cls cong: cong simps: simps; rel_auto)
+
+method rdes_eq' uses cls cong simps =
+  (rdes_eq_split' cls: cls cong: cong simps: simps; rel_auto)
 
 text {* Via antisymmetry *}
 

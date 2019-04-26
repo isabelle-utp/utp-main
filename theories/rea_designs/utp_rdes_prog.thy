@@ -556,7 +556,10 @@ proof -
       apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
      apply (rel_auto)
       apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
-    apply (simp add: rea_frame_ext_seq)
+      apply (metis vwb_lens_wb wb_lens_def weak_lens.put_get)
+     apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
+    apply (rel_auto)
+     apply (metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
     done
   finally show ?thesis .
 qed
@@ -589,7 +592,15 @@ proof -
     by (simp)
   finally show ?thesis .
 qed
- 
+
+theorem WhileR_unfold:
+  assumes "P is NSRD"
+  shows "while\<^sub>R b do P od = (P ;; while\<^sub>R b do P od) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R"
+  apply (simp add: WhileR_def)
+  apply (subst srdes_theory.LFP_unfold)
+   apply (simp_all add: mono_Monotone_utp_order closure assms)
+  done
+
 theorem WhileR_iter_expand:
   assumes "P is NSRD" "P is Productive"
   shows "while\<^sub>R b do P od = (\<Sqinter>i \<bullet> (P \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R) \<^bold>^ i ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R))" (is "?lhs = ?rhs")
