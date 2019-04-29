@@ -88,7 +88,7 @@ text \<open> We set up some overloaded constants for sequential composition and 
   
 consts
   useq     :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infixr ";;" 61)
-  uassigns :: "'a usubst \<Rightarrow> 'b" ("\<langle>_\<rangle>\<^sub>a")
+  uassigns :: "('a, 'b) psubst \<Rightarrow> 'c" ("\<langle>_\<rangle>\<^sub>a")
   uskip    :: "'a" ("II")
   
 text \<open> We define a specialised version of the conditional where the condition can refer only to
@@ -138,7 +138,7 @@ text \<open> Assignment is defined using substitutions, where latter defines wha
   assignment expressions. The definition of the operator identifies the after state binding, $b'$, 
   with the substitution function applied to the before state binding $b$. \<close>
   
-lift_definition assigns_r :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel"
+lift_definition assigns_r :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> ('\<alpha>, '\<beta>) urel"
   is "\<lambda> \<sigma> (b, b'). b' = \<sigma>(b)" .
 
 adhoc_overloading

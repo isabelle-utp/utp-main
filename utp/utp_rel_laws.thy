@@ -353,7 +353,7 @@ lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x) := (u,v) = (x := v)"
   by (simp add: usubst)
 
 lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
-  by (simp add: assigns_r_comp usubst)
+  by (rel_auto)
 
 lemma assigns_cond: "(\<langle>f\<rangle>\<^sub>a \<triangleleft> b \<triangleright>\<^sub>r \<langle>g\<rangle>\<^sub>a) = \<langle>f \<triangleleft> b \<triangleright>\<^sub>s g\<rangle>\<^sub>a"
   by (rel_auto)

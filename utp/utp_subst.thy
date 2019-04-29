@@ -43,6 +43,11 @@ text \<open> Substitutions can be updated by associating variables with expressi
 
 consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst"
 
+text \<open> We can also represent an arbitrary substitution as below. \<close>
+
+definition subst_nil :: "('\<alpha>, '\<beta>) psubst" ("nil\<^sub>s") where
+"subst_nil = undefined"
+
 text \<open> The following function takes a substitution form state-space @{typ "'\<alpha>"} to @{typ "'\<beta>"}, a
   lens with source @{typ "'\<beta>"} and view "'a", and an expression over @{typ "'\<alpha>"} and returning
   a value of type "@{typ "'a"}, and produces an updated substitution. It does this by constructing
@@ -66,7 +71,7 @@ is "\<lambda> \<sigma> x b. get\<^bsub>x\<^esub> (\<sigma> b)" .
 text \<open> Substitutions also exhibit a natural notion of unrestriction which states that $\sigma$
   does not restrict $x$ if application of $\sigma$ to an arbitrary state $\rho$ will not effect
   the valuation of $x$. Put another way, it requires that \emph{put} and the substitution commute. \<close>
-  
+
 definition unrest_usubst :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> bool"
 where "unrest_usubst x \<sigma> = (\<forall> \<rho> v. \<sigma> (put\<^bsub>x\<^esub> \<rho> v) = put\<^bsub>x\<^esub> (\<sigma> \<rho>) v)"
 
@@ -108,14 +113,15 @@ syntax
   ""          :: "smaplet => smaplets"            ("_")
   "_SMaplets" :: "[smaplet, smaplets] => smaplets" ("_,/ _")
   "_SubstUpd" :: "['m usubst, smaplets] => 'm usubst" ("_/'(_')" [900,0] 900)
-  "_Subst"    :: "smaplets => 'a \<rightharpoonup> 'b"            ("(1[_])")
-  "_psubst"  :: "[logic, svars, uexprs] \<Rightarrow> logic"
-  "_subst"   :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
-  "_uexp_l"  :: "logic \<Rightarrow> uexp" ("_" [64] 64)
-  "_uexprs"  :: "[uexp, uexprs] => uexprs" ("_,/ _")
-  ""         :: "uexp => uexprs" ("_")
-  "_salphas" :: "[salpha, salphas] => salphas" ("_,/ _")
-  ""         :: "salpha => salphas" ("_")
+  "_Subst"    :: "smaplets => logic"            ("(1[_])")
+  "_PSubst"   :: "smaplets => logic"            ("(1\<lparr>_\<rparr>)")
+  "_psubst"   :: "[logic, svars, uexprs] \<Rightarrow> logic"
+  "_subst"    :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
+  "_uexp_l"   :: "logic \<Rightarrow> uexp" ("_" [64] 64)
+  "_uexprs"   :: "[uexp, uexprs] => uexprs" ("_,/ _")
+  ""          :: "uexp => uexprs" ("_")
+  "_salphas"  :: "[salpha, salphas] => salphas" ("_,/ _")
+  ""          :: "salpha => salphas" ("_")
   "_par_subst" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>s _" [100,0,0,101] 101)
     
 translations
@@ -123,6 +129,8 @@ translations
   "_SubstUpd m (_smaplet x y)"        == "CONST subst_upd m x y"
   "_Subst ms"                         == "_SubstUpd (CONST id) ms"
   "_Subst (_SMaplets ms1 ms2)"        <= "_SubstUpd (_Subst ms1) ms2"
+  "_PSubst ms"                        == "_SubstUpd nil\<^sub>s ms"
+  "_PSubst (_SMaplets ms1 ms2)"       <= "_SubstUpd (_PSubst ms1) ms2"
   "_SMaplets ms1 (_SMaplets ms2 ms3)" <= "_SMaplets (_SMaplets ms1 ms2) ms3"
   "_subst P es vs" => "CONST subst (_psubst (CONST id) vs es) P"
   "_psubst m (_salphas x xs) (_uexprs v vs)" => "_psubst (_psubst m x v) xs vs"
@@ -517,7 +525,7 @@ lemma par_subst_upd_right_in [usubst]:
 lemma par_subst_upd_right_out [usubst]:
   "\<lbrakk> vwb_lens B; A \<bowtie> B; x \<bowtie> B \<rbrakk> \<Longrightarrow> \<sigma> [A|B]\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> [A|B]\<^sub>s \<rho>)"
   by (simp add: par_subst_comm par_subst_upd_left_out)
-    
+
 end
 
 
