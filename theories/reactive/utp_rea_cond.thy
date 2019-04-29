@@ -79,6 +79,31 @@ lemma RC2_RR_commute:
   apply (metis diff_add_cancel_left' le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
   done
 
+text \<open> Intuitive meaning of @{term RC2} \<close>
+
+lemma RC2_form_1:
+  assumes "P is RR"
+  shows "RC2(P) = (\<^bold>\<exists> tr\<^sub>0 \<bullet> (\<exists> $\<Sigma>\<^sub>R\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and> $tr \<le>\<^sub>u $tr\<acute>)"
+proof -
+  have "RC2(RR(P)) = (\<^bold>\<exists> tr\<^sub>0 \<bullet> (\<exists> $\<Sigma>\<^sub>R\<acute> \<bullet> RR P)\<lbrakk>\<guillemotleft>tr\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> \<le>\<^sub>u \<guillemotleft>tr\<^sub>0\<guillemotright> \<and> $tr \<le>\<^sub>u $tr\<acute>)"
+    by (rel_blast)
+  thus ?thesis
+    by (metis (mono_tags, lifting) Healthy_if assms shEx_cong)
+qed
+
+lemma RC2_form_2:
+  assumes "P is RR"  
+    shows "RC2(P) = (\<^bold>\<exists> (t\<^sub>0, t\<^sub>1) \<bullet> (\<exists> $\<Sigma>\<^sub>R\<acute> \<bullet> P)\<lbrakk>0,\<guillemotleft>t\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>t\<^sub>0\<guillemotright>)"
+proof -
+  have "RC2(RR(P)) = (\<^bold>\<exists> (t\<^sub>0, t\<^sub>1) \<bullet> (\<exists> $\<Sigma>\<^sub>R\<acute> \<bullet> RR(P))\<lbrakk>0,\<guillemotleft>t\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<le>\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>t\<^sub>0\<guillemotright>)"
+    apply (rel_auto)
+    apply (metis diff_add_cancel_left' trace_class.add_le_imp_le_left)
+    apply (metis le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
+    done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 text \<open> Every reactive condition is prefix closed \<close>
 
 lemma RC_prefix_closed:
