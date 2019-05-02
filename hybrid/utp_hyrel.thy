@@ -30,8 +30,6 @@ lemma continuous_on_Pair_second:
   apply (subgoal_tac "(\<lambda>y. (x, y)) ` B = {x} \<times> B")
    apply (auto intro: continuous_on_subset)
   done
-
-thm continuous_on_fst
   
 lemma continuous_on_pairwise:
   "\<lbrakk> continuous_on A f; continuous_on B g \<rbrakk> \<Longrightarrow> continuous_on (A \<times> B) (\<lambda> (x, y). (f x, g y))"
