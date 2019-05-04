@@ -121,6 +121,11 @@ lemma cond_hoare_r_sp:
   shows \<open>\<lbrace>p\<rbrace>S \<triangleleft> b \<triangleright>\<^sub>r T\<lbrace>q \<or> s\<rbrace>\<^sub>u\<close>
   using assms by pred_simp
 
+lemma hoare_ndet [hoare_safe]: 
+  assumes "\<lbrace>pre\<rbrace>P\<lbrace>post\<rbrace>\<^sub>u" "\<lbrace>pre\<rbrace>Q\<lbrace>post\<rbrace>\<^sub>u"
+  shows "\<lbrace>pre\<rbrace>(P \<sqinter> Q)\<lbrace>post\<rbrace>\<^sub>u"
+  using assms by (rel_auto)
+
 subsection \<open> Recursion Laws \<close>
 
 lemma nu_hoare_r_partial: 

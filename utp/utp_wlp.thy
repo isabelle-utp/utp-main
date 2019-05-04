@@ -35,6 +35,10 @@ theorem wlp_assigns_r [wp]:
   "\<langle>\<sigma>\<rangle>\<^sub>a wlp r = \<sigma> \<dagger> r"
   by rel_auto
 
+theorem wlp_assign_nd [wp]:
+  "x := * wlp r = (\<forall> x \<bullet> r)"
+  by (rel_auto)
+
 theorem wlp_skip_r [wp]:
   "II wlp r = r"
   by rel_auto
@@ -51,6 +55,9 @@ theorem wlp_seq_r [wp]: "(P ;; Q) wlp r = P wlp (Q wlp r)"
   by rel_auto
 
 theorem wlp_choice [wp]: "(P \<sqinter> Q) wlp R = (P wlp R \<and> Q wlp R)"
+  by (rel_auto)
+
+theorem wlp_choice' [wp]: "(P \<or> Q) wlp R = (P wlp R \<and> Q wlp R)"
   by (rel_auto)
 
 theorem wlp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wlp r = ((b \<Rightarrow> P wlp r) \<and> ((\<not> b) \<Rightarrow> Q wlp r))"
