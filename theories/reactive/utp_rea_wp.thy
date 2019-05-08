@@ -61,7 +61,7 @@ lemma wp_rea_st_cond_div [wp]:
   by (rel_auto)
 
 lemma wp_rea_cond [wp]:
-  "out\<alpha> \<sharp> b \<Longrightarrow> (P \<triangleleft> b \<triangleright> Q) wp\<^sub>r R = P wp\<^sub>r R \<triangleleft> b \<triangleright> Q wp\<^sub>r R"
+  "out\<alpha> \<sharp> b \<Longrightarrow> (P \<triangleleft> b \<triangleright> Q) wp\<^sub>r R = (P wp\<^sub>r R) \<triangleleft> b \<triangleright> (Q wp\<^sub>r R)"
   by (simp add: wp_rea_def cond_seq_left_distr, rel_auto)
     
 lemma wp_rea_RC_false [wp]: 

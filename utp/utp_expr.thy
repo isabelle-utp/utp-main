@@ -23,6 +23,8 @@ setup_lifting type_definition_uexpr
 notation Rep_uexpr ("\<lbrakk>_\<rbrakk>\<^sub>e")
 notation Abs_uexpr ("mk\<^sub>e")
 
+nonterminal uexp and uexprs
+
 lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
   using Rep_uexpr_inject[of e f, THEN sym] by (auto)
