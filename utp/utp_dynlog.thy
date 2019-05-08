@@ -8,10 +8,10 @@ subsection \<open> Definitions \<close>
 
 named_theorems dynlog_simp and dynlog_intro
 
-definition dBox :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^bold>[_\<^bold>]_" [0,999] 999)
+definition dBox :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred \<Rightarrow> '\<alpha> upred" ("\<^bold>[_\<^bold>]_" [0,999] 999)
 where [upred_defs]: "dBox A \<Phi> = A wlp \<Phi>"
 
-definition dDia :: "'s hrel \<Rightarrow> 's upred \<Rightarrow> 's upred" ("\<^bold><_\<^bold>>_" [0,999] 999)
+definition dDia :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred \<Rightarrow> '\<alpha> upred" ("\<^bold><_\<^bold>>_" [0,999] 999)
 where [upred_defs]: "dDia A \<Phi> = A wp \<Phi>"
 
 lemma dDia_dBox_def: "\<^bold><A\<^bold>>\<Phi> = (\<not> \<^bold>[A\<^bold>](\<not> \<Phi>))"

@@ -123,8 +123,10 @@ text \<open> We provide syntax for various types of set collectors, including in
 syntax
   "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
-  "_uset_compr" :: "pttrn \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
-  "_uset_compr_nset" :: "pttrn \<Rightarrow> (bool, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" ("(1{_ |/ _ \<bullet>/ _}\<^sub>u)")
+  "_uset_compr" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
+  "_uset_compr_nset" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _ \<bullet>/ _}\<^sub>u)")
+  "_uset_compr_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _ }\<^sub>u)")
+  "_uset_compr_nset_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _ }\<^sub>u)")
 
 lift_definition ZedSetCompr ::
   "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
@@ -135,6 +137,8 @@ translations
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
   "{x | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr (CONST lit CONST UNIV) (\<lambda> x. (P, F))"
   "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))"
+  "{x : A | P}\<^sub>u" => "{x : A | P \<bullet> \<guillemotleft>x\<guillemotright>}\<^sub>u"
+  "{x | P}\<^sub>u" == "{x : \<guillemotleft>CONST UNIV\<guillemotright> | P}\<^sub>u"
 
 subsection \<open> Lifting limits \<close>
   

@@ -22,21 +22,23 @@ lemma dInv_grav_ex:
   apply (rel_simp')
   done   
 
-abbreviation "g \<equiv> - (981 / 10\<^sup>2)"
+abbreviation "g \<equiv> (981 / 10\<^sup>2)"
 
 abbreviation 
-  "BBall \<equiv> (\<langle>der(h) = v, der(v) = g, der(t) = 1 | (&h \<ge>\<^sub>u 0)\<rangle> ;;
+  "BBall \<equiv> (\<langle>der(h) = v, der(v) = -g, der(t) = 1 | (&h \<ge>\<^sub>u 0)\<rangle> ;;
             (if\<^sub>u (&h =\<^sub>u 0 \<and> &t >\<^sub>u 0)
               then v := (-0.8 * &v) ;; t := 0 
               else II))\<^sup>\<star>"
 
+lemma [usubst]: "\<sigma> \<dagger> (e ^ n) = (\<sigma> \<dagger> e) ^ n"
+  by (simp add: power_rep_eq subst.rep_eq uexpr_eq_iff)
+
 lemma "\<lbrace>[&v\<^sup>2 \<le>\<^sub>P 2*\<guillemotleft>g\<guillemotright>*(\<guillemotleft>H\<guillemotright>-&h) \<and>\<^sub>P 0 \<le>\<^sub>P \<guillemotleft>H\<guillemotright>]\<^sub>P\<rbrace> BBall \<lbrace>[&v\<^sup>2 \<le>\<^sub>P 2*\<guillemotleft>g\<guillemotright>*(\<guillemotleft>H\<guillemotright>-&h) \<and>\<^sub>P 0 \<le>\<^sub>P \<guillemotleft>H\<guillemotright>]\<^sub>P\<rbrace>\<^sub>u"
   apply (rule iter_hoare_r)
   apply (rule seq_hoare_invariant)
-   apply (rule dInv)
-    apply (simp add: closure)
-   apply (simp add: closure uderiv usubst fode_def mkuexpr alpha)
-  apply (rel_simp')
+    apply (simp add: hyprop_pred_def usubst unrest)
+   apply (rel_simp)
+  oops
   oops
 
 end

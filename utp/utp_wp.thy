@@ -16,7 +16,7 @@ syntax
 translations
   "_uwp P b" == "CONST uwp P b"
 
-definition wp_upred :: "'a hrel \<Rightarrow> 'a upred \<Rightarrow> 'a upred" where
+definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
 [upred_defs]: "wp_upred P b = Dom(P ;; ?[b])"
 
 adhoc_overloading

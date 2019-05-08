@@ -8,7 +8,7 @@
 section \<open> Strongest Postcondition Calculus\<close>
 
 theory utp_sp
-imports utp_wlp
+imports utp_wp
 begin
 
 named_theorems sp
@@ -33,19 +33,25 @@ lemma sp_true [sp]: "q \<noteq> false \<Longrightarrow> q sp true = true"
   by (rel_auto) 
     
 lemma sp_assigns_r [sp]: 
-  "vwb_lens x \<Longrightarrow> (p sp x := e ) = (\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
+  "vwb_lens x \<Longrightarrow> (p sp x := e ) = (\<^bold>\<exists> v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put, metis vwb_lens.put_eq) 
 
-lemma sp_it_is_post_condition:
+lemma sp_convr [sp]: "b sp P\<^sup>- = P wp b"
+  by (rel_auto)
+
+lemma sp_seqr [sp]: "b sp (P ;; Q) = (b sp P) sp Q"
+  by (rel_auto)
+
+lemma sp_is_post_condition:
   "\<lbrace>p\<rbrace>C\<lbrace>p sp C\<rbrace>\<^sub>u"
   by rel_blast
     
 lemma sp_it_is_the_strongest_post:
-  "`p sp C \<Rightarrow> Q`\<Longrightarrow>\<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
+  "`p sp C \<Rightarrow> Q` \<Longrightarrow> \<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast
     
 lemma sp_so:
-  "`p sp C \<Rightarrow> Q` = \<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
+  "\<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u = `p sp C \<Rightarrow> Q`"
   by rel_blast
     
 theorem sp_hoare_link:

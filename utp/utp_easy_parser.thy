@@ -136,6 +136,10 @@ syntax
   "_ue_subset"          :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subset>" 150)
   "_ue_atLeastAtMost"   :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_.._})")
   "_ue_atLeastLessThan" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_..<_})")
+  "_ue_compr"           :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_ :/ _ |/ _ \<bullet>/ _})")
+  "_ue_compr_nset"      :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_ |/ _ \<bullet>/ _})")
+  "_ue_compr_nfun"      :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_ :/ _ |/ _ })")
+  "_ue_compr_nset_nfun" :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp" ("(1{_ |/ _ })")
 
 translations
   "_ue_empset" => "{}\<^sub>u"
@@ -146,6 +150,10 @@ translations
   "_ue_subset x y" => "x \<subset>\<^sub>u y"
   "_ue_atLeastAtMost m n" => "{m..n}\<^sub>u"
   "_ue_atLeastLessThan m n" => "{m..<n}\<^sub>u"
+  "_ue_compr x A P F" => "_uset_compr x A P F"
+  "_ue_compr_nset x P F" => "_uset_compr_nset x P F"
+  "_ue_compr_nfun x A P" => "_uset_compr_nfun x A P"
+  "_ue_compr_nset_nfun x P" => "_uset_compr_nset_nfun x P"
 
 subsection \<open> Lists \<close>
 
@@ -170,6 +178,6 @@ syntax
 translations
   "_ue_if_then b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
   "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
-  "_ue_wp P b" => "P wp b"
+  "_ue_wp P b" => "P wp b" 
 
 end
