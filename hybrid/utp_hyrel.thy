@@ -449,6 +449,9 @@ subsection {* The Interval Operator *}
 definition hInt :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
+abbreviation hInt_dur :: "'c::topological_space upred \<Rightarrow> ('d,'c) hyrel" ("\<^bold>\<lceil>_\<^bold>\<rceil>") where
+"\<^bold>\<lceil>p\<^bold>\<rceil> \<equiv> hInt (\<lambda> t. \<lceil>p\<rceil>\<^sub>>)"
+
 definition hInt_at :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
@@ -587,24 +590,26 @@ lemma R2_hInt: "R2(\<lceil>P(ti)\<rceil>\<^sub>h) = \<lceil>P(ti)\<rceil>\<^sub>
 lemma hInt_RR_closed [closure]: "\<lceil>P(ti)\<rceil>\<^sub>h is RR"
   by (rel_auto)
 
+lemma hInt_prefix_closed:
+  "\<lceil>P(ti)\<rceil>\<^sub>h is RC2"
+proof (rel_auto)
+  fix tr tr' tr'' :: "'a ttrace" and b :: "'a" and t :: real
+  assume a: "tr \<le> tr'" "tr \<le> tr''" "tr' \<le> tr''" "0 \<le> t" "t < end\<^sub>t(tr' - tr)"
+    "\<forall>x. 0 \<le> x \<and> x < end\<^sub>t (tr'' - tr) \<longrightarrow> \<lbrakk>P x\<rbrakk>\<^sub>e (b, \<langle>tr''\<rangle>\<^sub>t (x + end\<^sub>t tr))"
+  hence "end\<^sub>t(tr' - tr) \<le> end\<^sub>t (tr'' - tr)"
+    by (simp add: minus_cancel_le tt_sub_end)
+  hence "t < end\<^sub>t (tr'' - tr)"
+    using a(5) by linarith
+  with a show "\<lbrakk>P t\<rbrakk>\<^sub>e (b, \<langle>tr'\<rangle>\<^sub>t (t + end\<^sub>t tr))"
+    by (drule_tac x="t" in spec, 
+        metis (full_types) less_diff_eq trace_class.le_iff_add tt_cat_ext_first tt_end_minus)
+qed
+
 text {* The following theorem demonstrates that we can use an interval specification in a reactive
   design precondition. *}
     
-lemma neg_hInt_R1_true: "(\<not>\<^sub>r \<lceil>P(ti)\<rceil>\<^sub>h) ;; R1(true) = (\<not>\<^sub>r \<lceil>P(ti)\<rceil>\<^sub>h)"
-proof (rel_auto)
-  fix tr tr' tr'' :: "'a ttrace" and b :: "'a" and t :: real
-  assume a: "tr \<le> tr''" "tr'' \<le> tr'" "0 \<le> t" "t < end\<^sub>t(tr'' - tr)" "\<not> \<lbrakk>P t\<rbrakk>\<^sub>e (b, \<langle>tr''\<rangle>\<^sub>t (t + end\<^sub>t tr))"
-  hence "tr'' - tr \<le> tr' - tr"
-    by (simp add: minus_cancel_le)
-  with a show "\<exists>x. 0 \<le> x \<and> x < end\<^sub>t (tr' - tr) \<and> \<not> \<lbrakk>P x\<rbrakk>\<^sub>e (b, \<langle>tr' - tr\<rangle>\<^sub>t x)"
-    apply (rule_tac x="t" in exI, auto)
-    using tt_sub_end apply fastforce
-    apply (metis dual_order.trans trace_class.le_iff_add tt_apply_minus tt_cat_ext_first)
-  done
-qed
-    
 lemma hInt_RC_closed [closure]: "\<lceil>P(ti)\<rceil>\<^sub>h is RC"
-  by (rule RC_intro, simp_all add: closure neg_hInt_R1_true rpred)
+  by (simp add: RC_intro_prefix_closed hInt_RR_closed hInt_prefix_closed)
     
 text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
   is fixed by the regular interval operator. This is because the regular interval operator
@@ -642,23 +647,26 @@ text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us
   predicates. Additionally we prove the following law about sequential composition of
   time-independent intervals. *}
 
-(*
-lemma hInt_seq_r: "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = \<lceil>P\<rceil>\<^sub>h"
+lemma hInt_seq_r: "(\<^bold>\<lceil>P\<^bold>\<rceil> ;; \<^bold>\<lceil>P\<^bold>\<rceil>) = \<^bold>\<lceil>P\<^bold>\<rceil>"
 proof -
-  have "(\<lceil>P\<rceil>\<^sub>h ;; \<lceil>P\<rceil>\<^sub>h) = (R2(\<lceil>P\<rceil>\<^sub>h) ;; R2(\<lceil>P\<rceil>\<^sub>h))"
+  have "(\<^bold>\<lceil>P\<^bold>\<rceil> ;; \<^bold>\<lceil>P\<^bold>\<rceil>) = (R2(\<^bold>\<lceil>P\<^bold>\<rceil>) ;; R2(\<^bold>\<lceil>P\<^bold>\<rceil>))"
     by (simp add: R2_hInt)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<lceil>P\<rceil>\<^sub>h)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<lceil>P\<rceil>\<^sub>h)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<^bold>\<lceil>P\<^bold>\<rceil>)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk> ;; (\<^bold>\<lceil>P\<^bold>\<rceil>)\<lbrakk>0/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
     by (simp add: R2_seqr_form)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) ;;
-                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
-                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-    by (simp add: hInt_def at_def usubst unrest)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>)) \<and>
-                                     (\<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
-                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
-    by (simp add: seqr_to_conj unrest)
-  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<guillemotleft>tt\<^sub>1\<guillemotright> \<ge>\<^sub>u 0 \<and> \<guillemotleft>tt\<^sub>2\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>1\<guillemotright>+\<guillemotleft>tt\<^sub>2\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and>
-                         $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<Rightarrow> \<lceil>P\<rceil>\<^sub>C\<^sub>>\<lbrakk>\<guillemotleft>\<langle>tt\<^sub>1\<rangle>\<^sub>t(t)\<guillemotright>/$st:\<^bold>c\<acute>\<rbrakk>) ;;
+                                     (\<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<Rightarrow> \<lceil>P\<rceil>\<^sub>C\<^sub>>\<lbrakk>\<guillemotleft>\<langle>tt\<^sub>2\<rangle>\<^sub>t(t)\<guillemotright>/$st:\<^bold>c\<acute>\<rbrakk>)) \<and>
+                                     ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    by (simp add: hInt_def usubst at_def tcontr_alt_def unrest, rel_auto)
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1\<guillemotright>)}\<^sub>u \<Rightarrow> \<lceil>P\<rceil>\<^sub>C\<^sub>>\<lbrakk>\<guillemotleft>\<langle>tt\<^sub>1\<rangle>\<^sub>t(t)\<guillemotright>/$st:\<^bold>c\<acute>\<rbrakk>) \<and>
+                                     (\<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>2\<guillemotright>)}\<^sub>u \<Rightarrow> \<lceil>P\<rceil>\<^sub>C\<^sub>>\<lbrakk>\<guillemotleft>\<langle>tt\<^sub>2\<rangle>\<^sub>t(t)\<guillemotright>/$st:\<^bold>c\<acute>\<rbrakk>)) \<and>
+                                     ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
+    apply (subst seqr_to_conj)
+      apply (simp_all add: unrest usubst)
+      apply (rel_auto)
+    apply (rel_auto)
+    done
+  also have "... = (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((\<^bold>\<forall> t \<bullet> \<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>1 + tt\<^sub>2\<guillemotright>)}\<^sub>u \<Rightarrow> \<lceil>P\<rceil>\<^sub>C\<^sub>>\<lbrakk>\<guillemotleft>\<langle>tt\<^sub>1 + tt\<^sub>2\<rangle>\<^sub>t(t)\<guillemotright>/$st:\<^bold>c\<acute>\<rbrakk>) \<and>
+                                     ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)))"
     apply (rule shEx_cong)
     apply (rule shEx_cong)
     apply (rel_simp robust)
@@ -666,22 +674,17 @@ proof -
     apply (rename_tac x xa P xb)
     apply (case_tac "xb < end\<^sub>t x")
     apply (auto simp add: tt_cat_ext_first tt_cat_ext_last)
-    apply (metis add.right_neutral add_less_le_mono tt_cat_ext_first tt_end_ge_0)
+    apply (metis add.commute add_strict_increasing2 tt_cat_ext_first tt_end_ge_0)
     apply (rename_tac x xa P xb)
     apply (drule_tac x="end\<^sub>t x + xb" in spec)
     apply (simp)
   done
-  also have "... = (\<^bold>\<exists> tt\<^sub>0 \<bullet> ((\<guillemotleft>tt\<^sub>0\<guillemotright> \<ge>\<^sub>u 0 \<and> (\<^bold>\<forall> t \<in> {0..<end\<^sub>u(\<guillemotleft>tt\<^sub>0\<guillemotright>)}\<^sub>u \<bullet> \<lceil>P\<rceil>\<^sub>C\<^sub><\<lbrakk>(\<guillemotleft>tt\<^sub>0\<guillemotright>)\<lparr>\<guillemotleft>t\<guillemotright>\<rparr>\<^sub>u/$\<^bold>c\<rbrakk>))) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
-    apply (rel_auto)
-    using add.assoc apply blast
-    by (metis add.assoc add.left_neutral)
-  also have "... = R2(\<lceil>P\<rceil>\<^sub>h)"
-    by (simp add: R2_form hInt_def at_def usubst unrest)
-  also have "... = \<lceil>P\<rceil>\<^sub>h"
+  also have "... = R2(\<^bold>\<lceil>P\<^bold>\<rceil>)"
+    by (rel_auto, simp_all add: add.assoc, metis add.left_neutral trace_class.add_diff_cancel_left trace_class.le_iff_add tt_apply_minus)
+  also have "... = \<^bold>\<lceil>P\<^bold>\<rceil>"
     by (simp add: R2_hInt)
   finally show ?thesis .
 qed
-*)
 
 text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
   can always be split into two intervals where the property holds of both. *}
