@@ -46,7 +46,7 @@ consts subst_upd :: "('\<alpha>,'\<beta>) psubst \<Rightarrow> 'v \<Rightarrow> 
 text \<open> We can also represent an arbitrary substitution as below. \<close>
 
 definition subst_nil :: "('\<alpha>, '\<beta>) psubst" ("nil\<^sub>s") where
-"subst_nil = undefined"
+"subst_nil = (\<lambda> s. undefined)"
 
 text \<open> The following function takes a substitution form state-space @{typ "'\<alpha>"} to @{typ "'\<beta>"}, a
   lens with source @{typ "'\<beta>"} and view "'a", and an expression over @{typ "'\<alpha>"} and returning
@@ -241,7 +241,10 @@ lemma usubst_upd_pr_var_id [usubst]:
   apply (rule ext)
   apply (auto)
   done
-  
+
+lemma subst_nil_comp [usubst]: "nil\<^sub>s \<circ> \<sigma> = nil\<^sub>s"
+  by (simp add: subst_nil_def comp_def)
+
 lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"

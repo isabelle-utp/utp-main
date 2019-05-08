@@ -130,6 +130,8 @@ subsection \<open> Sets \<close>
 
 syntax
   "_ue_empset"          :: "uexp" ("{}")
+  "_ue_union"           :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "\<union>" 165)
+  "_ue_inter"           :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "\<inter>" 170)
   "_ue_setprod"         :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixr "\<times>" 180)
   "_ue_setenum"         :: "uexprs \<Rightarrow> uexp" ("{_}")
   "_ue_subseteq"        :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infix "\<subseteq>" 150)
@@ -143,6 +145,8 @@ syntax
 
 translations
   "_ue_empset" => "{}\<^sub>u"
+  "_ue_union x y" => "x \<union>\<^sub>u y"
+  "_ue_inter x y" => "x \<inter>\<^sub>u y"
   "_ue_setprod e f" =>  "CONST bop (CONST Product_Type.Times) e f"
   "_ue_setenum (_uexprs x xs)" => "insert\<^sub>u x (_ue_setenum xs)"
   "_ue_setenum x" => "insert\<^sub>u x {}\<^sub>u"
