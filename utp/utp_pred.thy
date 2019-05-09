@@ -305,7 +305,7 @@ translations
 text \<open> We have to add a u subscript to the closure operator as I don't want to override the syntax
         for HOL lists (we'll be using them later). \<close>
 
-lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<alpha> upred" ("[_]\<^sub>u") is
+lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<beta> upred" ("[_]\<^sub>u") is
 "\<lambda> P A. \<forall>A'. P A'" .
 
 lift_definition taut :: "'\<alpha> upred \<Rightarrow> bool" ("`_`")

@@ -73,7 +73,7 @@ lemma wlp_USUP_pre [wp]: "P wlp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squ
   by (rel_auto)
 
 theorem wlp_hoare_link:
-  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (Q wlp r \<sqsubseteq> p)"
+  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> `p \<Rightarrow> Q wlp r`"
   by rel_auto
 
 text {* If two programs have the same weakest precondition for any postcondition then the programs

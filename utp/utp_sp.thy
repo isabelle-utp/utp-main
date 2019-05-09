@@ -32,11 +32,20 @@ lemma sp_false [sp]: "p sp false = false"
 lemma sp_true [sp]: "q \<noteq> false \<Longrightarrow> q sp true = true"
   by (rel_auto) 
     
-lemma sp_assigns_r [sp]: 
-  "vwb_lens x \<Longrightarrow> (p sp x := e ) = (\<^bold>\<exists> v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
+lemma sp_assign_r [sp]: 
+  "vwb_lens x \<Longrightarrow> (p sp x := e) = (\<^bold>\<exists> v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put, metis vwb_lens.put_eq) 
 
+declare [[show_sorts]]
+
+lemma sp_assigns_r [sp]: 
+  "(p sp \<langle>\<sigma>\<rangle>\<^sub>a) = (\<^bold>\<exists> v \<bullet> [p\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>v\<rbrakk>]\<^sub>u \<and> &\<^bold>v =\<^sub>u \<guillemotleft>\<sigma>(v)\<guillemotright>)"
+  by (rel_auto)
+
 lemma sp_convr [sp]: "b sp P\<^sup>- = P wp b"
+  by (rel_auto)
+
+lemma wp_convr [wp]: "P\<^sup>- wp b = b sp P"
   by (rel_auto)
 
 lemma sp_seqr [sp]: "b sp (P ;; Q) = (b sp P) sp Q"
@@ -49,13 +58,9 @@ lemma sp_is_post_condition:
 lemma sp_it_is_the_strongest_post:
   "`p sp C \<Rightarrow> Q` \<Longrightarrow> \<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast
-    
-lemma sp_so:
-  "\<lbrace>p\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u = `p sp C \<Rightarrow> Q`"
-  by rel_blast
-    
+        
 theorem sp_hoare_link:
-  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> (r \<sqsubseteq> p sp Q)"
+  "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> `p sp Q \<Rightarrow> r`"
   by rel_auto   
                              
 lemma sp_while_r [sp]: 
@@ -73,11 +78,5 @@ lemma wlp_sp_sym:
      
 lemma it_is_pre_condition:"\<lbrace>C wlp Q\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
   by rel_blast    
-
-lemma it_is_the_weakest_pre:"`P \<Rightarrow> C wlp Q` = \<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
-  by rel_blast  
-
-lemma s_pre:"`P \<Rightarrow> C wlp Q`=\<lbrace>P\<rbrace>C\<lbrace>Q\<rbrace>\<^sub>u"
-  by rel_blast     
 
 end
