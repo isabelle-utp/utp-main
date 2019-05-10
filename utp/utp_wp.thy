@@ -22,6 +22,24 @@ definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \
 adhoc_overloading
   uwp wp_upred
 
+theorem refine_iff_wp: 
+  fixes P Q :: "('\<alpha>, '\<beta>) urel"
+  shows "P \<sqsubseteq> Q \<longleftrightarrow> (\<forall> b. `P wp b \<Rightarrow> Q wp b`)"
+  apply (rel_auto)
+  oops
+
+theorem wp_refine_iff: "(\<forall> r. `Q wp r \<Rightarrow> P wp r`) \<longleftrightarrow> P \<sqsubseteq> Q"
+  by (rel_auto robust; fastforce)
+
+theorem wp_refine_intro: "(\<And> r. `Q wp r \<Rightarrow> P wp r`) \<Longrightarrow> P \<sqsubseteq> Q"
+  using wp_refine_iff by blast
+  
+theorem wp_eq_iff: "(\<forall> r. P wp r = Q wp r) \<longrightarrow> P = Q"
+  by (rel_auto robust; fastforce)
+
+theorem wp_eq_intro: "(\<And> r. P wp r = Q wp r) \<Longrightarrow> P = Q"
+  by (simp add: wp_eq_iff)
+
 lemma wp_true: "P wp true = Dom(P)"
   by (rel_auto)
 
@@ -35,6 +53,9 @@ lemma wp_seq [wp]: "(P ;; Q) wp b = P wp (Q wp b)"
   by (simp add: wp_upred_def, metis Dom_seq RA1)
 
 lemma wp_disj [wp]: "(P \<or> Q) wp b = (P wp b \<or> Q wp b)"
+  by (rel_auto)
+
+lemma wp_ndet [wp]: "(P \<sqinter> Q) wp b = (P wp b \<or> Q wp b)"
   by (rel_auto)
 
 lemma wp_UINF_mem [wp]: "(\<Sqinter> i\<in>I \<bullet> P(i)) wp b = (\<Sqinter> i\<in>I \<bullet> P(i) wp b)"
@@ -94,5 +115,10 @@ lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrighta
 
 lemma total_det_then_wlp_wp_equiv: "\<lbrakk> Dom(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
   using wlp_wp_equiv_total_det by blast
+
+method wp_calc =
+  (rule wp_refine_intro wp_eq_intro, wp_tac)
+
+method wp_auto = (wp_calc, rel_auto)
 
 end

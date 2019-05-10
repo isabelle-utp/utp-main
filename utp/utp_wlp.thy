@@ -9,7 +9,7 @@ text \<open> The calculus we here define is termed ``weakest precondition'' in t
 
 named_theorems wp
 
-method wp_tac = (simp add: wp)
+method wp_tac = (simp add: wp usubst unrest)
 
 consts
   uwlp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 

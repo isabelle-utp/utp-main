@@ -46,6 +46,7 @@ text \<open>
 
 named_theorems upred_defs "upred definitional theorems"
 named_theorems urel_defs "urel definitional theorems"
+named_theorems user_defs "user definitional theorems"
 
 subsection \<open> Generic Methods \<close>
 
@@ -65,7 +66,7 @@ text \<open>
 text \<open> \textsf{Generic Predicate Tactics} \<close>
 
 method gen_pred_tac methods transfer_tac interp_tac prove_tac = (
-  ((unfold upred_defs) [1])?;
+  ((unfold upred_defs user_defs) [1])?;
   (transfer_tac),
   (simp add: fun_eq_iff
     lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
@@ -75,7 +76,7 @@ method gen_pred_tac methods transfer_tac interp_tac prove_tac = (
 text \<open> \textsf{Generic Relational Tactics} \<close>
 
 method gen_rel_tac methods transfer_tac interp_tac prove_tac = (
-  ((unfold upred_defs urel_defs) [1])?;
+  ((unfold upred_defs urel_defs user_defs) [1])?;
   (transfer_tac),
   (simp add: fun_eq_iff relcomp_unfold OO_def
     lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
@@ -262,11 +263,11 @@ text \<open> Simpler, one-shot versions of the above tactics, but without the po
   
 method rel_simp' 
   uses simp 
-  = (simp add: upred_defs urel_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp add: upred_defs urel_defs user_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_auto' 
   uses simp intro elim dest
-  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs user_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_blast' 
   uses simp intro elim dest

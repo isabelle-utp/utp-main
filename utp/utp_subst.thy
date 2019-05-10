@@ -245,6 +245,9 @@ lemma usubst_upd_pr_var_id [usubst]:
 lemma subst_nil_comp [usubst]: "nil\<^sub>s \<circ> \<sigma> = nil\<^sub>s"
   by (simp add: subst_nil_def comp_def)
 
+lemma subst_nil_apply [simp]: "nil\<^sub>s x = undefined"
+  by (simp add: subst_nil_def)
+
 lemma usubst_upd_comm_dash [usubst]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
   shows "\<sigma>($x\<acute> \<mapsto>\<^sub>s v, $x \<mapsto>\<^sub>s u) = \<sigma>($x \<mapsto>\<^sub>s u, $x\<acute> \<mapsto>\<^sub>s v)"
