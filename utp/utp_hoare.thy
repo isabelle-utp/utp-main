@@ -29,7 +29,16 @@ lemma hoare_meaning:
   "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s s'. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> \<lbrakk>S\<rbrakk>\<^sub>e (s, s') \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e s')"
   by (rel_auto)
 
+lemma hoare_alt_def: "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u \<longleftrightarrow> (P ;; ?[c]) \<sqsubseteq> (?[b] ;; P)"
+  by (rel_auto)
+
 lemma hoare_assume: "\<lbrace>P\<rbrace>S\<lbrace>Q\<rbrace>\<^sub>u \<Longrightarrow> ?[P] ;; S = ?[P] ;; S ;; ?[Q]"
+  by (rel_auto)
+
+lemma hoare_pre_assume_1: "\<lbrace>b \<and> c\<rbrace>P\<lbrace>d\<rbrace>\<^sub>u = \<lbrace>c\<rbrace>?[b] ;; P\<lbrace>d\<rbrace>\<^sub>u"
+  by (rel_auto)
+
+lemma hoare_pre_assume_2: "\<lbrace>b \<and> c\<rbrace>P\<lbrace>d\<rbrace>\<^sub>u = \<lbrace>b\<rbrace>?[c] ;; P\<lbrace>d\<rbrace>\<^sub>u"
   by (rel_auto)
 
 lemma hoare_test [hoare_safe]: "`p \<and> b \<Rightarrow> q` \<Longrightarrow> \<lbrace>p\<rbrace>?[b]\<lbrace>q\<rbrace>\<^sub>u"
@@ -124,6 +133,11 @@ lemma cond_hoare_r_sp:
 lemma hoare_ndet [hoare_safe]: 
   assumes "\<lbrace>pre\<rbrace>P\<lbrace>post\<rbrace>\<^sub>u" "\<lbrace>pre\<rbrace>Q\<lbrace>post\<rbrace>\<^sub>u"
   shows "\<lbrace>pre\<rbrace>(P \<sqinter> Q)\<lbrace>post\<rbrace>\<^sub>u"
+  using assms by (rel_auto)
+
+lemma hoare_UINF [hoare_safe]: 
+  assumes "\<And> i. i \<in> A \<Longrightarrow> \<lbrace>pre\<rbrace>P(i)\<lbrace>post\<rbrace>\<^sub>u"
+  shows "\<lbrace>pre\<rbrace>(\<Sqinter> i \<in> A \<bullet> P(i))\<lbrace>post\<rbrace>\<^sub>u"
   using assms by (rel_auto)
 
 subsection \<open> Recursion Laws \<close>

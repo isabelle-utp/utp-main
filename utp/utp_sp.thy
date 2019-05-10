@@ -36,8 +36,6 @@ lemma sp_assign_r [sp]:
   "vwb_lens x \<Longrightarrow> (p sp x := e) = (\<^bold>\<exists> v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>)"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put, metis vwb_lens.put_eq) 
 
-declare [[show_sorts]]
-
 lemma sp_assigns_r [sp]: 
   "(p sp \<langle>\<sigma>\<rangle>\<^sub>a) = (\<^bold>\<exists> v \<bullet> [p\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>v\<rbrakk>]\<^sub>u \<and> &\<^bold>v =\<^sub>u \<guillemotleft>\<sigma>(v)\<guillemotright>)"
   by (rel_auto)
