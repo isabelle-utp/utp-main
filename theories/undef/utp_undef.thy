@@ -38,5 +38,7 @@ translations
 lemma passign_bot: "x :=\<^sub>\<D> \<bottom>\<^sub>\<D> = \<bottom>\<^sub>D"
   by (rel_auto)
 
+lemma passign_wp [wp]: "x :=\<^sub>\<D> v wp\<^sub>D b = (\<^bold>S(x) \<and> \<D>(v) \<and> b\<lbrakk>\<lfloor>v\<rfloor>\<^sub>\<D>/&x\<rbrakk>)"
+  by (simp add: partial_assign_def wp conj_assoc)
 
 end

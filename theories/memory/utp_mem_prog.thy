@@ -43,7 +43,7 @@ definition
 subsection \<open> Weakest Precondition Semantics \<close>
 
 lemma wp_UINF_pred [wp]:
-  "\<lbrakk> \<And> l. out\<alpha> \<sharp> P(l) \<rbrakk> \<Longrightarrow> (\<Sqinter> l | P(l) \<bullet> Q(l)) wp q = (\<^bold>\<forall> l \<bullet> \<lfloor>P(l)\<rfloor>\<^sub>< \<Rightarrow> (Q(l) wp q))"
+  "\<lbrakk> \<And> l. out\<alpha> \<sharp> P(l) \<rbrakk> \<Longrightarrow> (\<Sqinter> l | P(l) \<bullet> Q(l)) wlp q = (\<^bold>\<forall> l \<bullet> \<lfloor>P(l)\<rfloor>\<^sub>< \<Rightarrow> (Q(l) wlp q))"
   by (rel_blast)
 
 lemma wp_heap_alloc [wp]:

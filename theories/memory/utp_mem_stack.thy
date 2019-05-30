@@ -95,7 +95,7 @@ begin
   "var_open = (\<Sqinter> v \<bullet> \<^bold>\<langle>[store \<mapsto>\<^sub>s (&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)]\<^bold>\<rangle>)"
   
   definition var_close :: "'\<alpha> hrel" ("close\<^sub>v") where
-  "var_close = \<^bold>\<langle>[store \<mapsto>\<^sub>s front\<^sub>u(&store) \<triangleleft> #\<^sub>u(&store) >\<^sub>u 0 \<triangleright> &store]\<^bold>\<rangle>"
+  "var_close = \<^bold>\<langle>[store \<mapsto>\<^sub>s (front\<^sub>u(&store) \<triangleleft> #\<^sub>u(&store) >\<^sub>u 0 \<triangleright> &store)]\<^bold>\<rangle>"
   
   text \<open> The next operator is an expression that returns a lens pointing to the top of the stack.
     This is effectively a dynamic lens, since where it points to depends on the initial number
@@ -132,7 +132,7 @@ translations
   "_var_scope T x P" == "CONST utp_local_state.var_scope T (\<lambda> x. P)"
   "_var_scope_type T x t P" => "CONST utp_local_state.var_scope T (_abs (_constrain x (_uvar_ty t)) P)"
     
-text \<open> Next, we prove a collection of important generci laws about variable scopes using the axioms
+text \<open> Next, we prove a collection of important generic laws about variable scopes using the axioms
   defined above. \<close>
   
 context utp_local_state
@@ -147,7 +147,7 @@ begin
     by (simp add: var_close_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym)
 
   lemma var_open_close_lemma: 
-    "[store \<mapsto>\<^sub>s front\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleright> &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>] = id"
+    "[store \<mapsto>\<^sub>s (front\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleright> &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)] = id"
     by (rel_auto)
   
   lemma var_open_close: "open\<^sub>v ;; close\<^sub>v = \<^bold>\<langle>id\<^bold>\<rangle>"
