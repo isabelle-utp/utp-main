@@ -54,16 +54,16 @@ type_synonym 's mpred = "((addr, data) ffun, 's) spred"
 type_synonym 's mprog = "((addr, data) ffun, 's) sprog"
 type_synonym ('a, 's) mexpr = "('a, ((addr, data) ffun, 's) mem_ext) pexpr"
 
-subsection \<open> Dereferencing Lens \<close>
+subsection \<open> Indexed Lenses and Dereferencing Lens \<close>
 
-definition ind_lens :: "('i \<Rightarrow> ('a \<Longrightarrow> 's)) \<Rightarrow> ('i \<Longrightarrow> 's) \<Rightarrow> ('a \<Longrightarrow> 's)" where
-[lens_defs]: "ind_lens f x = \<lparr> lens_get = (\<lambda> s. get\<^bsub>f (get\<^bsub>x\<^esub> s)\<^esub> s), lens_put = (\<lambda> s v. put\<^bsub>f (get\<^bsub>x\<^esub> s)\<^esub> s v) \<rparr>"
+definition ind_lens :: "('i \<Rightarrow> ('a \<Longrightarrow> 's)) \<Rightarrow> ('i, 's) uexpr \<Rightarrow> ('a \<Longrightarrow> 's)" where
+[lens_defs]: "ind_lens f x = \<lparr> lens_get = (\<lambda> s. get\<^bsub>f (\<lbrakk>x\<rbrakk>\<^sub>e s)\<^esub> s), lens_put = (\<lambda> s v. put\<^bsub>f (\<lbrakk>x\<rbrakk>\<^sub>e s)\<^esub> s v) \<rparr>"
 
-lemma ind_lens_mwb [simp]: "\<lbrakk> \<And> i. mwb_lens (F i); \<And> i. (F i) \<bowtie> x \<rbrakk> \<Longrightarrow> mwb_lens (ind_lens F x)"
-  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2)
+lemma ind_lens_mwb [simp]: "\<lbrakk> \<And> i. mwb_lens (F i); \<And> i. unrest (F i) x \<rbrakk> \<Longrightarrow> mwb_lens (ind_lens F x)"
+  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2 unrest_uexpr.rep_eq)
 
-lemma ind_lens_vwb [simp]: "\<lbrakk> \<And> i. vwb_lens (F i); \<And> i. (F i) \<bowtie> x \<rbrakk> \<Longrightarrow> vwb_lens (ind_lens F x)"
-  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2)
+lemma ind_lens_vwb [simp]: "\<lbrakk> \<And> i. vwb_lens (F i); \<And> i. unrest (F i) x \<rbrakk> \<Longrightarrow> vwb_lens (ind_lens F x)"
+  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2 unrest_uexpr.rep_eq)
 
 text \<open> We first create a bijective lens that extracts a countable type from a natural number. \<close>
 
@@ -77,7 +77,7 @@ text \<open> The dereferencing lens obtains the heap, applies the finite functio
   address, and finally obtains the typed data. \<close>
 
 definition deref :: "(addr \<Longrightarrow> 's) \<Rightarrow> ('a::{countable,infinite} \<Longrightarrow> ((nat, nat) ffun, 's) mem_ext)" where
-[lens_defs]: "deref a = to-nat\<^sub>L ;\<^sub>L ind_lens (\<lambda> i. ffun_lens i ;\<^sub>L hp) (a ;\<^sub>L str)"
+[lens_defs]: "deref a = to-nat\<^sub>L ;\<^sub>L ind_lens (\<lambda> i. ffun_lens i ;\<^sub>L hp) &str:a"
 
 syntax \<comment> \<open> Dereferencing Variable Identifier \<close>
   "_spderef"       :: "id \<Rightarrow> svid" ("*_")
@@ -87,8 +87,8 @@ translations
 
 lemma src_deref: "vwb_lens a \<Longrightarrow> \<S>\<^bsub>deref a\<^esub> = {s. get\<^bsub>a ;\<^sub>L str\<^esub> s \<in> fdom(get\<^bsub>hp\<^esub> s)}"
   apply (simp add: deref_def source_lens_comp wb_lens.source_UNIV ffun_lens_src)
-  apply (auto simp add: lens_defs lens_source_def)
-  apply (metis ffun_upd_ext mem.surjective mem.update_convs(1))
+  apply (auto simp add: lens_defs lens_source_def var.rep_eq)
+  apply (metis ffun_upd_ext from_nat_bij_inv mem.surjective mem.update_convs(1))
   done
 
 lemma src_pred_deref [simp]: "vwb_lens a \<Longrightarrow> \<^bold>S(deref a) = (&str:a \<in>\<^sub>u dom\<^sub>u(&hp))"
