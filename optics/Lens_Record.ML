@@ -21,7 +21,9 @@ val bij_lens_suffix = "_bij_lens"
 val vwb_lens_suffix = "_vwb_lens"
 val indepsN = "indeps"
 val sublensN = "sublenses"
+val quotientN = "quotients"
 val Trueprop = "HOL.Trueprop"
+val HOLeq = "HOL.eq"
 val lens_laws_thy = "Lens_Laws"
 val lens_algebra_thy = "Lens_Algebra"
 val sublens_thy = "Lens_Order"
@@ -29,6 +31,7 @@ val bij_lens = lens_laws_thy ^ ".bij_lens"
 val vwb_lens = lens_laws_thy ^ ".vwb_lens"
 val lens_indep = lens_laws_thy ^ ".lens_indep"
 val lens_plus = lens_algebra_thy ^ ".lens_plus"
+val lens_quotient = lens_algebra_thy ^ ".lens_quotient"
 val id_lens = lens_algebra_thy ^ ".id_lens"
 val sublens = sublens_thy ^ ".sublens"
 val lens_equiv = sublens_thy ^ ".lens_equiv"
@@ -104,6 +107,13 @@ fun prove_sublens tname thy =
           EVERY [auto_tac (add_simp @{thm sublens_iff_sublens'} context)
                 ,prove_lens_goal tname thy context])
 end
+
+fun prove_quotient tname thy = 
+  let open Simplifier; open Global_Theory in
+  (fn {context, prems = _} =>
+          EVERY [prove_lens_goal tname thy context])
+end
+
 
 fun prove_equiv tname thy = 
   let open Simplifier; open Global_Theory in
@@ -207,6 +217,22 @@ fun sublens_proof tname pname thy y x =
       (prove_sublens tname thy)
 end
 
+fun quotient_proof tname thy x =
+  let open Simplifier; open Global_Theory in
+      Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types
+              (Proof_Context.init_global thy)
+              [ Const (Trueprop, dummyT)
+              $ ( Const (HOLeq, dummyT)
+                $ (Const (lens_quotient, dummyT) 
+                   $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
+                   $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
+                  )
+                $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
+                )]))
+      (prove_quotient tname thy)
+end
+
 fun pairWith _ [] = []
   | pairWith x (y :: ys) = [(x, y), (y, x)] @ pairWith x ys;
 
@@ -249,7 +275,9 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
             (* Add a bij lens proof for the base and more lenses *)
          |> (fn thy => snd (add_thm ((Binding.make (base_moreN ^ bij_lens_suffix, Position.none), lens_bij_proof tname thy), [Simplifier.simp_add]) thy))
             (* Add sublens proofs *)
-         |> (fn thy => snd (add_thmss [((Binding.make (sublensN, Position.none), map (sublens_proof tname pname thy plchild) plnames), [Simplifier.simp_add])] thy))
+         |> (fn thy => snd (add_thmss [((Binding.make (sublensN, Position.none), map (sublens_proof tname pname thy plchild) plnames @ map (sublens_proof tname (Context.theory_name thy ^ "." ^ tname) thy base_lensN) lnames), [Simplifier.simp_add])] thy))
+            (* Add quotient proofs *)
+         |> (fn thy => snd (add_thmss [((Binding.make (quotientN, Position.none), map (quotient_proof tname thy) lnames), [Simplifier.simp_add])] thy))
             (* Add independence proofs for each pairing of lenses *)
          |> (fn thy => snd (add_thmss
               [((Binding.make (indepsN, Position.none), map (indep_proof tname thy) (pairings (lnames @ [child_lensN]) @ pairings [base_lensN, child_lensN]) (*@ map (parent_indep_proof_1 tname pname thy plchild) plnames @ map (parent_indep_proof_2 tname pname thy plchild) plnames *) @ pindeps thy), [Simplifier.simp_add])] thy))
