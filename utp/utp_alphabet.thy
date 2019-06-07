@@ -221,7 +221,7 @@ lemma arestr_one [simp]: "1 \<restriction>\<^sub>e a = 1"
 lemma arestr_numeral [simp]: "numeral n \<restriction>\<^sub>e a = numeral n"
   by (pred_auto)
 
-lemma arestr_var [alpha]:
+lemma arestr_var [simp]:
   "var x \<restriction>\<^sub>e a = var (x /\<^sub>L a)"
   by (pred_auto)
 
@@ -310,7 +310,7 @@ lemma out_var_prod_lens [alpha]:
 subsection \<open> Substitution Alphabet Extension \<close>
 
 text \<open> This allows us to extend the alphabet of a substitution, in a similar way to expressions. \<close>
-  
+
 definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) where
 [upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
 

@@ -36,4 +36,5 @@ imports
   utp_theory
   utp_concurrency
   utp_rel_opsem
+  utp_blocks
 begin end

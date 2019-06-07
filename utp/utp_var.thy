@@ -161,7 +161,11 @@ lemma pr_var_lens_plus [simp]:
 lemma pr_var_lens_comp_1 [simp]: 
   "pr_var x ;\<^sub>L y = pr_var (x ;\<^sub>L y)"
   by (simp add: pr_var_def)
-    
+
+lemma pr_var_len_quotient [simp]: 
+  "pr_var x /\<^sub>L y = pr_var (x /\<^sub>L y)"
+  by (simp add: pr_var_def)
+
 lemma in_var_plus [simp]: "in_var (x +\<^sub>L y) = in_var x +\<^sub>L in_var y"
   by (simp add: in_var_def)
 
