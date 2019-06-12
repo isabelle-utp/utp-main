@@ -30,14 +30,22 @@ declare wlp_upred_def [urel_defs]
 
 lemma wlp_true [wp]: "p wlp true = true"
   by (rel_simp)  
-  
+
+lemma wlp_conj [wp]: "(P wlp (b \<and> c)) = ((P wlp b) \<and> (P wlp c))"
+  by (rel_auto)
+
 theorem wlp_assigns_r [wp]:
   "\<langle>\<sigma>\<rangle>\<^sub>a wlp r = \<sigma> \<dagger> r"
   by rel_auto
 
-theorem wlp_assign_nd [wp]:
-  "x := * wlp r = (\<forall> x \<bullet> r)"
-  by (rel_auto)
+lemma wlp_nd_assign [wp]: "(x := *) wlp b = (\<^bold>\<forall> v \<bullet> b\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
+  by (simp add: nd_assign_def wp, rel_auto)
+
+lemma wlp_rel_aext_unrest [wp]: "\<lbrakk> vwb_lens a; a \<sharp> b \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ wlp b = ((P wlp false) \<oplus>\<^sub>p a \<or> b)"
+  by (rel_simp, metis mwb_lens_def vwb_lens_def weak_lens.put_get)
+
+lemma wlp_rel_aext_usedby [wp]: "\<lbrakk> vwb_lens a; a \<natural> b \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ wlp b = (P wlp (b \<restriction>\<^sub>e a)) \<oplus>\<^sub>p a"
+  by (rel_auto, metis mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 
 theorem wlp_skip_r [wp]:
   "II wlp r = r"
@@ -45,10 +53,6 @@ theorem wlp_skip_r [wp]:
 
 theorem wlp_abort [wp]:
   "r \<noteq> true \<Longrightarrow> true wlp r = false"
-  by rel_auto
-
-theorem wlp_conj [wp]:
-  "P wlp (q \<and> r) = (P wlp q \<and> P wlp r)"
   by rel_auto
 
 theorem wlp_seq_r [wp]: "(P ;; Q) wlp r = P wlp (Q wlp r)"
@@ -62,6 +66,9 @@ theorem wlp_choice' [wp]: "(P \<or> Q) wlp R = (P wlp R \<and> Q wlp R)"
 
 theorem wlp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wlp r = ((b \<Rightarrow> P wlp r) \<and> ((\<not> b) \<Rightarrow> Q wlp r))"
   by rel_auto
+
+lemma wlp_UINF_ind [wp]: "(\<Sqinter> i \<bullet> P(i)) wlp b = (\<^bold>\<forall> i \<bullet> P(i) wlp b)"
+  by (rel_auto)
 
 lemma wlp_test [wp]: "?[b] wlp c = (b \<Rightarrow> c)"
   by (rel_auto)
