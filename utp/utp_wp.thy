@@ -79,7 +79,7 @@ lemma wp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wp c = (b \<and> P wp c)"
 lemma wp_assigns [wp]: "\<langle>\<sigma>\<rangle>\<^sub>a wp b = \<sigma> \<dagger> b"
   by (rel_auto)
 
-lemma wp_nd_assign [wp]: "(x := *) wp b = (\<exists> x \<bullet> b)"
+lemma wp_nd_assign [wp]: "(x := *) wp b = (\<^bold>\<exists> v \<bullet> b\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>)"
   by (simp add: nd_assign_def wp, rel_auto)
 
 lemma wp_rel_frext [wp]: 
