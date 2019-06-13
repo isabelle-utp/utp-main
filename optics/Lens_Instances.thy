@@ -161,9 +161,9 @@ definition list_lens :: "nat \<Rightarrow> ('a::two \<Longrightarrow> 'a list)" 
 [lens_defs]: "list_lens i = \<lparr> lens_get = (\<lambda> xs. nth' xs i)
                             , lens_put = (\<lambda> xs x. list_augment xs i x) \<rparr>"
 
-abbreviation "hd_lens \<equiv> list_lens 0"
+abbreviation hd_lens ("hd\<^sub>L") where "hd_lens \<equiv> list_lens 0"
 
-definition tl_lens :: "'a list \<Longrightarrow> 'a list" where
+definition tl_lens :: "'a list \<Longrightarrow> 'a list" ("tl\<^sub>L") where
 [lens_defs]: "tl_lens = \<lparr> lens_get = (\<lambda> xs. tl xs)
                         , lens_put = (\<lambda> xs xs'. hd xs # xs') \<rparr>"
 
@@ -180,10 +180,10 @@ lemma source_list_lens: "\<S>\<^bsub>list_lens i\<^esub> = {xs. length xs > i}"
   done
 
 lemma tail_lens_mwb:
-  "mwb_lens tl_lens"
+  "mwb_lens tl\<^sub>L"
   by (unfold_locales, simp_all add: tl_lens_def)
 
-lemma source_tail_lens: "\<S>\<^bsub>tl_lens\<^esub> = {xs. xs \<noteq> []}"
+lemma source_tail_lens: "\<S>\<^bsub>tl\<^sub>L\<^esub> = {xs. xs \<noteq> []}"
   using list.exhaust_sel by (auto simp add: tl_lens_def lens_source_def)
   
 text \<open>Independence of list lenses follows when the two indices are different.\<close>
@@ -193,13 +193,16 @@ lemma list_lens_indep:
   by (simp add: list_lens_def lens_indep_def list_augment_commute nth'_list_augment_diff)
 
 lemma hd_tl_lens_indep [simp]:
-  "hd_lens \<bowtie> tl_lens"
+  "hd\<^sub>L \<bowtie> tl\<^sub>L"
   apply (rule lens_indepI)
     apply (simp_all add: list_lens_def tl_lens_def)
     apply (metis hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def nth'_list_augment)
    apply (metis (full_types) hd_conv_nth hd_def length_greater_0_conv list.case(1) nth'_def)
-  apply (metis Nitpick.size_list_simp(2) One_nat_def add_Suc_right append.simps(1) append_Nil2 diff_Suc_Suc diff_zero hd_Cons_tl list.inject list.size(4) list_augment_0 list_augment_def list_augment_same_twice list_pad_out_def nth_list_augment replicate.simps(1) replicate.simps(2) tl_Nil)
+  apply (metis One_nat_def diff_Suc_Suc diff_zero length_0_conv length_list_augment_1 length_tl linorder_not_less list.exhaust list.sel(2) list.sel(3) list_augment_0 not_less_zero)
 done
+
+lemma hd_tl_lens_pbij: "pbij_lens (hd\<^sub>L +\<^sub>L tl\<^sub>L)"
+  by (unfold_locales, auto simp add: lens_defs)
 
 subsection \<open>Record Field Lenses\<close>
 

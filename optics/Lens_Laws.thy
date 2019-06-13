@@ -227,6 +227,31 @@ end
 
 abbreviation "eff_lens X \<equiv> (weak_lens X \<and> (\<not> ief_lens X))"
 
+subsection \<open> Partially Bijective Lenses \<close>
+
+locale pbij_lens = weak_lens +
+  assumes put_det: "put \<sigma> v = put \<rho> v"
+begin
+
+  sublocale mwb_lens
+  proof
+    fix \<sigma> v u
+    show "put (put \<sigma> v) u = put \<sigma> u"
+      using put_det by blast
+  qed
+  
+  lemma put_is_create: "put \<sigma> v = create v"
+    by (simp add: lens_create_def put_det)
+
+end
+
+lemma pbij_lens_weak [simp]:
+  "pbij_lens x \<Longrightarrow> weak_lens x"
+  by (simp_all add: pbij_lens_def)
+
+lemma pbij_lens_mwb [simp]: "pbij_lens x \<Longrightarrow> mwb_lens x"
+  by (simp add: mwb_lens_axioms.intro mwb_lens_def pbij_lens.put_is_create)
+
 subsection \<open> Bijective Lenses \<close>
 
 text \<open>Bijective lenses characterise the situation where the source and view type are equivalent:
@@ -239,22 +264,24 @@ locale bij_lens = weak_lens +
   assumes strong_get_put: "put \<sigma> (get \<rho>) = \<rho>"
 begin
 
+sublocale pbij_lens
+proof
+  fix \<sigma> v \<rho>
+  show "put \<sigma> v = put \<rho> v"
+    by (metis put_get strong_get_put)
+qed
+
 sublocale vwb_lens
 proof
   fix \<sigma> v u
   show "put \<sigma> (get \<sigma>) = \<sigma>"
     by (simp add: strong_get_put)
-  show "put (put \<sigma> v) u = put \<sigma> u"
-    by (metis bij_lens.strong_get_put bij_lens_axioms put_get)
 qed
-    
+
   lemma put_bij: "bij_betw (put \<sigma>) UNIV UNIV"
     by (metis bijI put_inj strong_get_put surj_def)
 
-  lemma put_is_create: "\<sigma> \<in> \<S> \<Longrightarrow> put \<sigma> v = create v"
-    by (metis create_get strong_get_put)
-
-  lemma get_create: "\<sigma> \<in> \<S> \<Longrightarrow> create (get \<sigma>) = \<sigma>"
+  lemma get_create: "create (get \<sigma>) = \<sigma>"
     by (simp add: lens_create_def strong_get_put)
     
 end
@@ -265,6 +292,10 @@ declare bij_lens.get_create [simp]
 lemma bij_lens_weak [simp]:
   "bij_lens x \<Longrightarrow> weak_lens x"
   by (simp_all add: bij_lens_def)
+
+lemma bij_lens_pbij [simp]:
+  "bij_lens x \<Longrightarrow> pbij_lens x"
+  by (metis bij_lens.get_create bij_lens_def pbij_lens_axioms.intro pbij_lens_def weak_lens.put_get)
 
 lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
   by (metis bij_lens.strong_get_put bij_lens_weak mwb_lens.intro mwb_lens_axioms.intro vwb_lens_def wb_lens.intro wb_lens_axioms.intro weak_lens.put_get)
