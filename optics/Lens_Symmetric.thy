@@ -4,20 +4,31 @@ theory Lens_Symmetric
   imports Lens_Order
 begin
 
+text \<open> A characterisation of Hofmann's ``Symmetric Lenses''~\cite{Hofmann2011}, where
+  a lens is accompanied by its complement. \<close>
+
 record ('a, 'b, 's) slens = 
-  view   :: "'a \<Longrightarrow> 's" ("\<V>\<index>")
-  coview :: "'b \<Longrightarrow> 's" ("\<C>\<index>")
+  view   :: "'a \<Longrightarrow> 's" ("\<V>\<index>") \<comment> \<open> The region characterised \<close>
+  coview :: "'b \<Longrightarrow> 's" ("\<C>\<index>") \<comment> \<open> The complement of the region \<close>
 
 type_notation
   slens ("<_, _> \<Longleftrightarrow> _")
 
+subsection \<open> Partial Symmetric Lenses \<close>
+
 locale psym_lens =
   fixes S :: "<'a, 'b> \<Longleftrightarrow> 's" (structure)
   assumes 
-    mwb_region: "mwb_lens \<V>" and
-    mwb_coregion: "mwb_lens \<C>" and
-    indep_region_coregion: "\<V> \<bowtie> \<C>" and
-    pbij_region_coregion: "pbij_lens (\<V> +\<^sub>L \<C>)"
+    mwb_region [simp]: "mwb_lens \<V>" and
+    mwb_coregion [simp]: "mwb_lens \<C>" and
+    indep_region_coregion [simp]: "\<V> \<bowtie> \<C>" and
+    pbij_region_coregion [simp]: "pbij_lens (\<V> +\<^sub>L \<C>)"
+
+declare psym_lens.mwb_region [simp]
+declare psym_lens.mwb_coregion [simp]
+declare psym_lens.indep_region_coregion [simp]
+
+subsection \<open> Symmetric Lenses \<close>
 
 locale sym_lens =
   fixes S :: "<'a, 'b> \<Longleftrightarrow> 's" (structure)
@@ -39,6 +50,11 @@ proof (rule psym_lens.intro)
   show "pbij_lens (\<V> +\<^sub>L \<C>)"
     by (simp add: bij_region_coregion)
 qed
+
 end
+
+declare sym_lens.vwb_region [simp]
+declare sym_lens.vwb_coregion [simp]
+declare sym_lens.indep_region_coregion [simp]
 
 end

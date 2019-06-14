@@ -33,7 +33,7 @@ text \<open> Alter an alphabet by application of a lens that demonstrates how th
   then it does not extend the alphabet. Nevertheless, it does have an effect because the type
   will be different which can be useful when converting predicates with equivalent alphabets. \<close>
 
-lift_definition aext :: "('a, '\<beta>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<alpha>) uexpr" (infixr "\<oplus>\<^sub>p" 95)
+lift_definition aext :: "('a, '\<beta>) uexpr \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr" (infixr "\<oplus>\<^sub>p" 95)
 is "\<lambda> P x b. P (get\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms
@@ -174,7 +174,7 @@ text \<open> Restrict an alphabet by application of a lens that demonstrates how
   ($\beta$) injects into the larger alphabet ($\alpha$). Unlike extension, this operation
   can lose information if the expressions refers to variables in the larger alphabet. \<close>
 
-lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta>, '\<alpha>) lens \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>e" 90)
+lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>e" 90)
 is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 
 update_uexpr_rep_eq_thms

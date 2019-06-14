@@ -243,6 +243,9 @@ begin
   lemma put_is_create: "put \<sigma> v = create v"
     by (simp add: lens_create_def put_det)
 
+  lemma partial_get_put: "\<rho> \<in> \<S> \<Longrightarrow> put \<sigma> (get \<rho>) = \<rho>"
+    by (metis put_det weak_get_put)
+
 end
 
 lemma pbij_lens_weak [simp]:
