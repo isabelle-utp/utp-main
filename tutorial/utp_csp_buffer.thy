@@ -53,20 +53,22 @@ text \<open> The @{term Init} action is represented by a simple contract with a 
   the initial state. \<close>
 
 lemma Init_contract:
-  "Init = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<Phi>(true,[&buff \<mapsto>\<^sub>s \<langle>\<rangle>],\<langle>\<rangle>))"
+  "Init = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<Phi>(true,[&buff \<mapsto>\<^sub>s []],\<langle>\<rangle>))"
   by (rdes_simp)
+
+term "[&buff \<mapsto>\<^sub>s buff @ [\<guillemotleft>x\<guillemotright>]]"
 
 lemma DoBuff_contract:
   "DoBuff = \<^bold>R\<^sub>s (true\<^sub>r \<turnstile>
                 \<E>(true,\<langle>\<rangle>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>head\<^sub>u(&buff))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
-                ((\<Sqinter> x \<bullet> \<Phi>(true,[&buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>, val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>],\<langle>(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>)) \<or>
-                 \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>)))"
+                ((\<Sqinter> x \<bullet> \<Phi>(true,[&buff \<mapsto>\<^sub>s buff @ [\<guillemotleft>x\<guillemotright>], val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>],\<langle>(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>)) \<or>
+                 \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tl(buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>)))"
   by (rdes_eq)
 
 lemma Buffer_contract:
-  "Buffer = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<Phi>(true,[&buff \<mapsto>\<^sub>s \<langle>\<rangle>],\<langle>\<rangle>) ;;
-                       ((\<Sqinter> x \<bullet> \<Phi>(true, [&buff \<mapsto>\<^sub>s &buff ^\<^sub>u \<langle>\<guillemotleft>x\<guillemotright>\<rangle>, val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>], \<langle>(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>)) \<or>
-                        \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tail\<^sub>u(&buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))\<^sup>\<star>\<^sup>c ;;
+  "Buffer = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<Phi>(true,[&buff \<mapsto>\<^sub>s []],\<langle>\<rangle>) ;;
+                       ((\<Sqinter> x \<bullet> \<Phi>(true, [&buff \<mapsto>\<^sub>s buff @ [\<guillemotleft>x\<guillemotright>], val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>], \<langle>(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u\<rangle>)) \<or>
+                        \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tl(buff)], \<langle>(outp\<cdot>head\<^sub>u(&buff))\<^sub>u\<rangle>))\<^sup>\<star>\<^sup>c ;;
                         \<E>(true,\<langle>\<rangle>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>head\<^sub>u(&buff))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
                        false)"
   unfolding Buffer_def DoBuff_contract by (rdes_simp)
