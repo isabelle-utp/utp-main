@@ -1,5 +1,6 @@
 #!/bin/sh
 # Guess name of Isabelle/UTP home directory unless already set.
+ISABELLE=${ISABELLE:-isabelle}
 ISABELLE_UTP=${ISABELLE_UTP:-$(readlink -f $(dirname $0))/..}
 CONTRIB_DIR=$ISABELLE_UTP/contrib
 BIN_DIR=$ISABELLE_UTP/bin
@@ -21,4 +22,4 @@ if [ ! $# -eq 0 ]
 fi
 
 # Open jedit while setting the root directory and heap to load.
-isabelle jedit -d $ISABELLE_UTP -d $CONTRIB_DIR -l $HEAP $@
+eval $ISABELLE jedit -d $ISABELLE_UTP -d $CONTRIB_DIR -l $HEAP $@
