@@ -51,6 +51,16 @@ proof (rule psym_lens.intro)
     by (simp add: bij_region_coregion)
 qed
 
+lemma put_region_coregion_cover:
+  "put\<^bsub>\<V>\<^esub> (put\<^bsub>\<C>\<^esub> s\<^sub>1 (get\<^bsub>\<C>\<^esub> s\<^sub>2)) (get\<^bsub>\<V>\<^esub> s\<^sub>2) = s\<^sub>2"
+proof -
+  have "put\<^bsub>\<V>\<^esub> (put\<^bsub>\<C>\<^esub> s\<^sub>1 (get\<^bsub>\<C>\<^esub> s\<^sub>2)) (get\<^bsub>\<V>\<^esub> s\<^sub>2) = put\<^bsub>\<V> +\<^sub>L \<C>\<^esub> s\<^sub>1 (get\<^bsub>\<V> +\<^sub>L \<C>\<^esub> s\<^sub>2)"
+    by (simp add: lens_defs)
+  also have "... = s\<^sub>2"
+    by (simp add: bij_region_coregion)
+  finally show ?thesis .
+qed
+
 end
 
 declare sym_lens.vwb_region [simp]
