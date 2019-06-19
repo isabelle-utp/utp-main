@@ -12,7 +12,7 @@ record ('a, 'b, 's) slens =
   coview :: "'b \<Longrightarrow> 's" ("\<C>\<index>") \<comment> \<open> The complement of the region \<close>
 
 type_notation
-  slens ("<_, _> \<Longleftrightarrow> _")
+  slens ("<_, _> \<Longleftrightarrow> _" [0, 0, 0] 0)
 
 subsection \<open> Partial Symmetric Lenses \<close>
 
