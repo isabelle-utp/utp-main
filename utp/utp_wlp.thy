@@ -83,6 +83,10 @@ theorem wlp_hoare_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> `p \<Rightarrow> Q wlp r`"
   by rel_auto
 
+text \<open> We can use the above theorem as a means to discharge Hoare triples with the following tactic \<close>
+
+method hoare_wlp_auto uses defs = (simp add: wlp_hoare_link wp unrest usubst defs; rel_auto)
+
 text {* If two programs have the same weakest precondition for any postcondition then the programs
   are the same. *}
 

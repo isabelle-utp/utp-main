@@ -58,6 +58,9 @@ lemma wp_disj [wp]: "(P \<or> Q) wp b = (P wp b \<or> Q wp b)"
 lemma wp_ndet [wp]: "(P \<sqinter> Q) wp b = (P wp b \<or> Q wp b)"
   by (rel_auto)
 
+lemma wp_cond [wp]: "(P \<triangleleft> b \<triangleright>\<^sub>r Q) wp r = ((b \<Rightarrow> P wp r) \<and> ((\<not> b) \<Rightarrow> Q wp r))"
+  by rel_auto
+
 lemma wp_UINF_mem [wp]: "(\<Sqinter> i\<in>I \<bullet> P(i)) wp b = (\<Sqinter> i\<in>I \<bullet> P(i) wp b)"
   by (rel_auto)
 
@@ -75,6 +78,10 @@ lemma wp_test [wp]: "?[b] wp c = (b \<and> c)"
 
 lemma wp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wp c = (b \<and> P wp c)"
   by (rel_auto)
+
+theorem wp_skip [wp]:
+  "II wp r = r"
+  by rel_auto
 
 lemma wp_assigns [wp]: "\<langle>\<sigma>\<rangle>\<^sub>a wp b = \<sigma> \<dagger> b"
   by (rel_auto)

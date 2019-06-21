@@ -35,7 +35,8 @@ syntax
   "_ue_uop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_')" [999,0] 999)
   "_ue_bop"   :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _')" [999,0,0] 999)
   "_ue_trop"  :: "id   \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_'(_, _, _')" [999,0,0,0] 999)
-  "_ue_apply" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_[_]" [999] 999)
+  "_ue_apply" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_[_]" [999,0] 999)
+  "_ue_image" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("_\<lparr>_\<rparr>" [999,0] 999)
   "_ue_aext" :: "uexp \<Rightarrow> salpha \<Rightarrow> uexp" (infixr "\<oplus>\<^sub>p" 195)
   "_ue_ifthenelse" :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> uexp" ("(3_ \<triangleleft> _ \<triangleright>/ _)" [52,0,53] 52)
   "_ue_ovrd"  :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp" (infixl "\<oplus>" 65)
@@ -57,6 +58,7 @@ translations
   "_ue_bop f x y" => "CONST bop f x y"
   "_ue_trop f x y" => "CONST trop f x y"
   "_ue_apply f x" => "f(x)\<^sub>a"
+  "_ue_image f A" => "f\<lparr>A\<rparr>\<^sub>u"
   "_ue_ifthenelse P b Q" => "CONST cond P b Q"
   "_ue_aext P a" => "CONST aext P a"
   "_ue_ovrd x y" => "_uovrd x y"

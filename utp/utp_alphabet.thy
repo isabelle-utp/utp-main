@@ -243,6 +243,9 @@ lemma arestr_or [alpha]: "(P \<or> Q)\<restriction>\<^sub>ex = (P\<restriction>\
 lemma arestr_imp [alpha]: "(P \<Rightarrow> Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex \<Rightarrow> Q\<restriction>\<^sub>ex)"
   by (pred_auto)
 
+lemma arestr_eq [alpha]: "(P =\<^sub>u Q)\<restriction>\<^sub>ex = (P\<restriction>\<^sub>ex =\<^sub>u Q\<restriction>\<^sub>ex)"
+  by (pred_auto)
+
 lemma ares_UINF_ind [alpha]: "(\<Sqinter> i \<bullet> P i) \<restriction>\<^sub>e a = (\<Sqinter> i \<bullet> P i \<restriction>\<^sub>e a)"
   by (rel_auto)
 
