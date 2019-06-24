@@ -319,3 +319,13 @@ session "FMI" in "fmi" = "UTP-Theories-Deep-Axm" +
     "root.tex"
     "document.sty"
 *)
+
+(* Case Studies *)
+
+session "Tokeneer" in "casestudies/Tokeneer" = "ZedLite" +
+  options [document = pdf, document_output = "output", timeout = 1000]
+  theories
+    Tokeneer
+  document_files
+    "root.tex"
+
