@@ -209,9 +209,9 @@ lemma lens_plus_right_sublens:
   apply (rename_tac Z')
   apply (rule_tac x="Z' ;\<^sub>L snd\<^sub>L" in exI)
   apply (auto)
-   using comp_vwb_lens snd_vwb_lens apply blast
-  apply (simp add: lens_comp_assoc snd_lens_plus)
-done
+  using comp_vwb_lens snd_vwb_lens apply blast
+  apply (metis lens_comp_assoc snd_lens_plus vwb_lens_def)
+  done
     
 lemma lens_plus_mono_left:
   "\<lbrakk> Y \<bowtie> Z; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> X +\<^sub>L Z \<subseteq>\<^sub>L Y +\<^sub>L Z"
@@ -221,7 +221,7 @@ lemma lens_plus_mono_left:
   apply (subst prod_lens_comp_plus)
    apply (simp_all)
   using id_vwb_lens prod_vwb_lens apply blast
-done
+  done
     
 lemma lens_plus_mono_right:
   "\<lbrakk> X \<bowtie> Z; Y \<subseteq>\<^sub>L Z \<rbrakk> \<Longrightarrow> X +\<^sub>L Y \<subseteq>\<^sub>L X +\<^sub>L Z"
@@ -438,7 +438,6 @@ lemma lens_equiv_via_bij:
   apply (rule_tac x="lens_inv Z" in exI)
   apply (auto simp add: lens_comp_assoc bij_lens_inv_left)
    using bij_lens_vwb lens_inv_bij apply blast
-  apply (simp add: bij_lens_inv_left lens_comp_assoc[THEN sym])
 done
 
 text \<open>Indeed, we actually have a stronger result than this -- the equivalent lenses are precisely

@@ -19,7 +19,7 @@ text \<open>
   Lens composition, illustrated in Figure~\ref{fig:Comp}, constructs a lens by composing the source 
   of one lens with the view of another.\<close>
 
-definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixr ";\<^sub>L" 80) where
+definition lens_comp :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'c) \<Rightarrow> ('a \<Longrightarrow> 'c)" (infixl ";\<^sub>L" 80) where
 [lens_defs]: "lens_comp Y X = \<lparr> lens_get = get\<^bsub>Y\<^esub> \<circ> lens_get X
                               , lens_put = (\<lambda> \<sigma> v. lens_put X \<sigma> (lens_put Y (lens_get X \<sigma>) v)) \<rparr>"
 
@@ -216,7 +216,7 @@ subsection \<open>Composition Laws\<close>
 text \<open>Lens composition is monoidal, with unit @{term "1\<^sub>L"}, as the following theorems demonstrate. 
   It also has @{term "0\<^sub>L"} as a right annihilator. \<close>
   
-lemma lens_comp_assoc: "(X ;\<^sub>L Y) ;\<^sub>L Z = X ;\<^sub>L (Y ;\<^sub>L Z)"
+lemma lens_comp_assoc: "X ;\<^sub>L (Y ;\<^sub>L Z) = (X ;\<^sub>L Y) ;\<^sub>L Z"
   by (auto simp add: lens_comp_def)
 
 lemma lens_comp_left_id [simp]: "1\<^sub>L ;\<^sub>L X = X"

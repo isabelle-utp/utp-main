@@ -227,7 +227,7 @@ syntax \<comment> \<open> Identifiers \<close>
   "_svid_unit"    :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"    :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
   "_svid_alpha"   :: "svid" ("\<^bold>v")
-  "_svid_dot"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [998,999] 998)
+  "_svid_dot"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 998)
   "_mk_svid_list" :: "svids \<Rightarrow> logic" \<comment> \<open> Helper function for summing a list of identifiers \<close>
 
 text \<open> A variable identifier can either be a HOL identifier, the complete set of variables in the
@@ -306,7 +306,7 @@ translations
   "_spvar (_svid_dot x y)" \<leftharpoondown> "CONST svar (CONST lens_comp y x)"
   "_sinvar (_svid_dot x y)" \<leftharpoondown> "CONST ivar (CONST lens_comp y x)"
   "_soutvar (_svid_dot x y)" \<leftharpoondown> "CONST ovar (CONST lens_comp y x)"
-  "_svid_dot (_svid_dot x y) z" \<leftharpoondown> "_svid_dot (CONST lens_comp y x) z"
+  "_svid_dot x (_svid_dot y z)" \<leftharpoondown> "_svid_dot x (CONST lens_comp z y)"
 
   "_spvar x" \<rightleftharpoons> "CONST svar x"
   "_sinvar x" \<rightleftharpoons> "CONST ivar x"
@@ -347,5 +347,5 @@ let
     | uvar_ty_tr ts = raise TERM ("uvar_ty_tr", ts);
 in [(@{syntax_const "_uvar_ty"}, K uvar_ty_tr)] end
 \<close>
-  
+
 end
