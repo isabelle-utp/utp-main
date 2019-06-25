@@ -1097,9 +1097,11 @@ definition UserTokenTorn :: "IDStation hrel" where
     \<and> iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>
   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>welcom\<guillemotright> ;; internal:status := \<guillemotleft>quiescent\<guillemotright>)"
 
-lemma "\<lbrace>IDStation_inv\<rbrace>UserTokenTorn\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
-  by (simp add: UserTokenTorn_def, hoare_auto)
-
+lemma UserTokenTorn_correct: "\<lbrace>IDStation\<rbrace>UserTokenTorn\<lbrace>IDStation\<rbrace>\<^sub>u"
+  apply (rule IDStation_correct_intro)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
 section \<open>Operations within the Enclave (1)\<close>
 
 definition EnclaveContext :: "SystemState hrel" where
@@ -1205,6 +1207,11 @@ lemma UEC_refines_RealWorldChanges:
   "(RealWorldChanges \<oplus>\<^sub>r realWorld) \<sqsubseteq> UEC(Op)"
   by (rel_auto)
 
+lemma UEC_correct: "\<lbrace>I\<rbrace>P\<lbrace>I\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>I \<oplus>\<^sub>p idStation\<rbrace>UEC(P)\<lbrace>I \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  apply (simp add: wlp_hoare_link wp UEC_def alpha unrest usubst)
+  apply (rel_simp)
+  done
+
 lemma ReadUserToken_correct: "\<lbrace>IDStation\<rbrace>ReadUserToken\<lbrace>IDStation\<rbrace>\<^sub>u"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_wlp_auto)
@@ -1228,8 +1235,8 @@ definition BioCheckNotRequired :: "IDStation hrel" where
 
 lemma BioCheckNotRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckNotRequired\<lbrace>IDStation\<rbrace>\<^sub>u"
   apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_wlp_auto)
-  apply (simp add: tis_defs, hoare_wlp_auto)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
   done
 
 definition BioCheckRequired :: "IDStation hrel" where
@@ -1240,10 +1247,16 @@ definition BioCheckRequired :: "IDStation hrel" where
   \<and> (\<not> @UserTokenWithOKAuthCert) \<and> @UserTokenOK
   ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingFinger\<guillemotright> ;; currentDisplay := \<guillemotleft>insertFinger\<guillemotright>)"
 
-lemma BioCheckRequired_correct: "\<lbrace>IDStation_inv\<rbrace>BioCheckRequired\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
-  by (simp add: BioCheckRequired_def, hoare_auto)
+lemma BioCheckRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckRequired\<lbrace>IDStation\<rbrace>\<^sub>u"
+  apply (rule IDStation_correct_intro)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
 
 definition [upred_defs, tis_defs]: "ValidateUserTokenOK = (BioCheckRequired \<or> BioCheckNotRequired)"
+
+lemma ValidateUserTokenOK_correct: "\<lbrace>IDStation\<rbrace>ValidateUserTokenOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+  by (simp add: BioCheckNotRequired_correct BioCheckRequired_correct ValidateUserTokenOK_def disj_upred_def hoare_ndet)
 
 definition ValidateUserTokenFail :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -1252,14 +1265,19 @@ definition ValidateUserTokenFail :: "IDStation hrel" where
     \<and> iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
     \<and> (\<not> @UserTokenWithOKAuthCert) \<and> (\<not> @UserTokenOK)
     ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright> ;; currentDisplay := \<guillemotleft>removeToken\<guillemotright>)"
-   
-lemma ValidateUserTokeFail_correct: "\<lbrace>IDStation_inv\<rbrace>ValidateUserTokenFail\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
-  by (simp add: ValidateUserTokenFail_def, hoare_auto)
+
+lemma ValidateUserTokenFail_correct: "\<lbrace>IDStation\<rbrace>ValidateUserTokenFail\<lbrace>IDStation\<rbrace>\<^sub>u"
+  apply (rule IDStation_correct_intro)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
 
 definition [upred_defs, tis_defs]:
   "TISValidateUserToken = (UEC(ValidateUserTokenOK) \<or> UEC(ValidateUserTokenFail) 
                            \<or> UEC(UserTokenTorn ;; ?[internal:status = \<guillemotleft>gotUserToken\<guillemotright>]))"
 
+lemma TISValidateUserToken_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISValidateUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  oops
 
 subsection \<open>Reading a Fingerprint\<close>
 
@@ -1342,8 +1360,6 @@ definition [upred_defs, tis_defs]:
   "TISWriteUserToken = 
   ((UEC(WriteUserToken) ;; UpdateUserToken)
    \<or> UEC(UserTokenTorn ;; ?[internal:status = \<guillemotleft>waitingUpdateToken\<guillemotright>]))"
-
-term "(config:entryPeriod[\<guillemotleft>role (privCert t)\<guillemotright>][\<guillemotleft>class (clearance (privCert t))\<guillemotright>])\<^sub>e"
 
 
 subsection \<open>Validating Entry\<close>
@@ -1439,6 +1455,8 @@ definition [upred_defs, tis_defs]:
 "TISUserEntryOp = (TISReadUserToken \<or> TISValidateUserToken \<or> TISReadFinger \<or> TISValidateFinger
                     \<or> TISWriteUserToken \<or> TISValidateEntry \<or> TISUnlockDoor \<or> TISCompleteFailedAccess)"
 
+lemma TISUserEntryOp_inv: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISUserEntryOp\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  sorry
 
 section \<open>Operations Within the Enclave (2)\<close>
 
@@ -1879,7 +1897,12 @@ text \<open> SFR1(a): If the system invariants hold, the door is initially locke
   transition is enabled that unlocks the door, then (1) a valid user token is present and (2)
   either a valid finger print or a valid authorisation certificate is also present. \<close>
 
-lemma FSFR1a:
+abbreviation "FSFR1 \<equiv> `(IDStation_inv) \<oplus>\<^sub>p idStation \<and> 
+     [&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+        \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
+   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p idStation`"
+
+lemma FSFR1_proof:
   "`(IDStation_inv) \<oplus>\<^sub>p idStation \<and> 
      [&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
@@ -1888,7 +1911,7 @@ lemma FSFR1a:
   apply (rel_auto)
   done
 
-text \<open> SFR1(a): If the system invariants hold, the door is initially locked, and a @{term TISAdminOp} 
+text \<open> SFR1(b): If the system invariants hold, the door is initially locked, and a @{term TISAdminOp} 
   transition is enabled that unlocks the door, then an admin token is present with the role
   ``guard'' attached. \<close>
 
