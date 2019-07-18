@@ -420,6 +420,9 @@ lemma subst_zero [usubst]: "\<sigma> \<dagger> 0 = 0"
 lemma subst_one [usubst]: "\<sigma> \<dagger> 1 = 1"
   by (simp add: one_uexpr_def subst_lit)
 
+lemma subst_numeral [usubst]: "\<sigma> \<dagger> numeral n = numeral n"
+  by (simp add: numeral_uexpr_simp subst_lit)
+  
 lemma subst_eq_upred [usubst]: "\<sigma> \<dagger> (x =\<^sub>u y) = (\<sigma> \<dagger> x =\<^sub>u \<sigma> \<dagger> y)"
   by (simp add: eq_upred_def usubst)
 
