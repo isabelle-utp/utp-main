@@ -12,6 +12,11 @@ abbreviation sequent_triv ("\<tturnstile> _" [15] 15) where "\<tturnstile> P \<e
 translations
   "\<tturnstile> P" <= "true \<tturnstile> P"
 
+text \<open> Conversion of UTP sequent to Isabelle proposition \<close>
+
+lemma sequentI: "\<lbrakk> \<And> s. \<lbrakk>\<Gamma>\<rbrakk>\<^sub>e s \<Longrightarrow> \<lbrakk>\<phi>\<rbrakk>\<^sub>e s \<rbrakk> \<Longrightarrow> \<Gamma> \<tturnstile> \<phi>"
+  by (rel_auto)
+
 lemma sTrue: "P \<tturnstile> true"
   by pred_auto
 

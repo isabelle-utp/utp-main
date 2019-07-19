@@ -68,31 +68,6 @@ lemma post_weak_hoare_r:
 lemma hoare_r_conseq: "\<lbrakk> `p\<^sub>1 \<Rightarrow> p\<^sub>2`; \<lbrace>p\<^sub>2\<rbrace>S\<lbrace>q\<^sub>2\<rbrace>\<^sub>u; `q\<^sub>2 \<Rightarrow> q\<^sub>1` \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1\<rbrace>S\<lbrace>q\<^sub>1\<rbrace>\<^sub>u"
   by rel_auto
 
-subsection \<open> Assignment Laws \<close>
-
-lemma assigns_hoare_r [hoare_safe]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrightarrow> \<lbrace>p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
-  by rel_auto
-
-lemma assigns_backward_hoare_r: 
-  "\<lbrace>\<sigma> \<dagger> p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>p\<rbrace>\<^sub>u"
-  by rel_auto
-
-lemma assign_floyd_hoare_r:
-  assumes "vwb_lens x"
-  shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
-  using assms
-  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
-
-lemma assigns_init_hoare [hoare_safe]:
-  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> v; \<lbrace>&x =\<^sub>u v \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
-  by (rel_auto)
-
-lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
-  by rel_auto
-
-lemma skip_hoare_impl_r [hoare_safe]: "`p \<Rightarrow> q` \<Longrightarrow> \<lbrace>p\<rbrace>II\<lbrace>q\<rbrace>\<^sub>u"
-  by rel_auto  
-
 subsection \<open> Sequence Laws \<close>
 
 lemma seq_hoare_r: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rbrace>\<^sub>u ; \<lbrace>s\<rbrace>Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u"
@@ -114,6 +89,35 @@ lemma seq_hoare_inv_r_2 [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace
 
 lemma seq_hoare_inv_r_3 [hoare]: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>p\<rbrace>\<^sub>u ; \<lbrace>p\<rbrace>Q\<^sub>2\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>q\<rbrace>\<^sub>u"
   by rel_auto
+
+subsection \<open> Assignment Laws \<close>
+
+lemma assigns_hoare_r [hoare_safe]: "`p \<Rightarrow> \<sigma> \<dagger> q` \<Longrightarrow> \<lbrace>p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
+  by rel_auto
+
+lemma assigns_backward_hoare_r: 
+  "\<lbrace>\<sigma> \<dagger> p\<rbrace>\<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>p\<rbrace>\<^sub>u"
+  by rel_auto
+
+lemma assign_floyd_hoare_r:
+  assumes "vwb_lens x"
+  shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
+  using assms
+  by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
+
+lemma assigns_init_hoare [hoare_safe]:
+  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> v; \<lbrace>&x =\<^sub>u v \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_auto)
+
+lemma assigns_init_hoare_general:
+  "\<lbrakk> vwb_lens x; \<And> x\<^sub>0. \<lbrace>&x =\<^sub>u v\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk> \<and> p\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk>\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
+  by (rule seq_hoare_r, rule assign_floyd_hoare_r, simp, rel_auto)
+
+lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
+  by rel_auto
+
+lemma skip_hoare_impl_r [hoare_safe]: "`p \<Rightarrow> q` \<Longrightarrow> \<lbrace>p\<rbrace>II\<lbrace>q\<rbrace>\<^sub>u"
+  by rel_auto  
 
 subsection \<open> Conditional Laws \<close>
 

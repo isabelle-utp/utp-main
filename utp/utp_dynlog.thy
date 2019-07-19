@@ -17,6 +17,11 @@ where [upred_defs]: "dDia A \<Phi> = A wp \<Phi>"
 lemma dDia_dBox_def: "\<^bold><A\<^bold>>\<Phi> = (\<not> \<^bold>[A\<^bold>](\<not> \<Phi>))"
   by (simp add: dBox_def dDia_def wp_wlp_conjugate)
 
+text \<open> Correspondence between Hoare logic and Dynamic Logic \<close>
+
+lemma hoare_as_dynlog: "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = (p \<tturnstile> \<^bold>[Q\<^bold>]r)"
+  by (rel_auto)
+
 subsection \<open> Box Laws \<close>
 
 lemma dBox_false [dynlog_simp]: "\<^bold>[false\<^bold>]\<Phi> = true"
@@ -71,13 +76,20 @@ lemma sBoxSeq [dynlog_simp]: "\<Gamma> \<tturnstile> \<^bold>[P ;; Q\<^bold>]\<P
 lemma sBoxTest [dynlog_intro]: "\<Gamma> \<tturnstile> (b \<Rightarrow> \<Psi>) \<Longrightarrow> \<Gamma> \<tturnstile> \<^bold>[?[b]\<^bold>]\<Psi>"
   by (rel_auto)
 
-lemma sBoxAssignFwd [dynlog_simp]: "\<lbrakk> vwb_lens x; x \<sharp> v; x \<sharp> \<Gamma> \<rbrakk> \<Longrightarrow> (\<Gamma> \<tturnstile> \<^bold>[x := v\<^bold>]\<Phi>) = ((&x =\<^sub>u v \<and> \<Gamma>) \<tturnstile> \<Phi>)"
+lemma sBoxAssignFwd [dynlog_intro]: 
+  assumes "vwb_lens x" "\<And> x\<^sub>0. ((\<Gamma>\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk> \<and> &x =\<^sub>u v\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk>) \<tturnstile> \<Phi>)"
+  shows "(\<Gamma> \<tturnstile> \<^bold>[x := v\<^bold>]\<Phi>)"
+proof -
+  have "\<lbrace>\<Gamma>\<rbrace> x := v ;; II \<lbrace>\<Phi>\<rbrace>\<^sub>u"
+    by (metis (no_types) assigns_init_hoare_general assms(1) assms(2) dBox_skip hoare_as_dynlog utp_pred_laws.inf_commute)
+  then show ?thesis
+    by (simp add: hoare_as_dynlog)
+qed
+
+lemma sBoxAssignFwd_simp [dynlog_simp]: "\<lbrakk> vwb_lens x; x \<sharp> v; x \<sharp> \<Gamma> \<rbrakk> \<Longrightarrow> (\<Gamma> \<tturnstile> \<^bold>[x := v\<^bold>]\<Phi>) = ((&x =\<^sub>u v \<and> \<Gamma>) \<tturnstile> \<Phi>)"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
 
 lemma sBoxIndStar: "\<tturnstile> [\<Phi> \<Rightarrow> \<^bold>[P\<^bold>]\<Phi>]\<^sub>u \<Longrightarrow> \<Phi> \<tturnstile> \<^bold>[P\<^sup>\<star>\<^bold>]\<Phi>"
   by (rel_simp, metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
-
-lemma hoare_as_dynlog: "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = (p \<tturnstile> \<^bold>[Q\<^bold>]r)"
-  by (rel_auto)
 
 end
