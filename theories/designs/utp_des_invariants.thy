@@ -1,4 +1,4 @@
-section {* Theory of Invariants *}
+section \<open> Theory of Invariants \<close>
 
 theory utp_des_invariants
   imports utp_des_theory
