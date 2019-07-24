@@ -30,8 +30,8 @@ end;
 structure Basic_Tactics : BASIC_TACTICS =
 struct
   local
-    fun apply_method_noargs name ctx =
-      Method_Closure.apply_method ctx name [] [] [] ctx;
+    fun apply_method_noargs name ctxt =
+      Method_Closure.apply_method ctxt name [] [] [] ctxt;
   in
     val slow_transfer = (apply_method_noargs @{method slow_uexpr_transfer});
     val fast_transfer = (apply_method_noargs @{method fast_uexpr_transfer});
@@ -74,7 +74,7 @@ struct
     (Scan.repeat ((Args.$$$ robustN) || (Args.$$$ no_interpN))) >> parse_args;
   end;
 
-  fun inst_gen_pred_tac (args : utp_tac_args) prove_tac ctx =
+  fun inst_gen_pred_tac (args : utp_tac_args) prove_tac ctxt =
     let
     val transfer_tac =
       (if #robust args
@@ -85,11 +85,11 @@ struct
         then (K Method.succeed)
         else (Basic_Tactics.interp_tac));
     in
-      Method_Closure.apply_method ctx @{method gen_pred_tac}
-        [] [] [transfer_tac, interp_tac, prove_tac] ctx
+      Method_Closure.apply_method ctxt @{method gen_pred_tac}
+        [] [] [transfer_tac, interp_tac, prove_tac] ctxt
     end;
 
-  fun inst_gen_rel_tac (args : utp_tac_args) prove_tac ctx =
+  fun inst_gen_rel_tac (args : utp_tac_args) prove_tac ctxt =
     let
     val transfer_tac =
       (if #robust args
@@ -100,7 +100,7 @@ struct
         then (K Method.succeed)
         else (Basic_Tactics.interp_tac));
     in
-      Method_Closure.apply_method ctx @{method gen_rel_tac}
-        [] [] [transfer_tac, interp_tac, prove_tac] ctx
+      Method_Closure.apply_method ctxt @{method gen_rel_tac}
+        [] [] [transfer_tac, interp_tac, prove_tac] ctxt
     end;
 end;

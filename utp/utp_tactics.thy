@@ -15,23 +15,25 @@ theory utp_tactics
 keywords "update_uexpr_rep_eq_thms" :: thy_decl
 begin
 
+declare image_comp [simp]
+
 text \<open>
   In this theory, we define several automatic proof tactics that use transfer
   techniques to re-interpret proof goals about UTP predicates and relations in
   terms of pure HOL conjectures. The fundamental tactics to achieve this are
-  @{text pred_simp} and @{text rel_simp}; a more detailed explanation of their
+  \<open>pred_simp\<close> and \<open>rel_simp\<close>; a more detailed explanation of their
   behaviour is given below. The tactics can be given optional arguments to
   fine-tune their behaviour. By default, they use a weaker but faster form of
-  transfer using rewriting; the option @{text robust}, however, forces them to
+  transfer using rewriting; the option \<open>robust\<close>, however, forces them to
   use the slower but more powerful transfer of Isabelle's lifting package. A
-  second option @{text no_interp} suppresses the re-interpretation of state
+  second option \<open>no_interp\<close> suppresses the re-interpretation of state
   spaces in order to eradicate record for tuple types prior to automatic proof.
 \<close>
 
 text \<open>
-  In addition to @{text pred_simp} and @{text rel_simp}, we also provide the
-  tactics @{text pred_auto} and @{text rel_auto}, as well as @{text pred_blast}
-  and @{text rel_blast}; they, in essence, sequence the simplification tactics
+  In addition to \<open>pred_simp\<close> and \<open>rel_simp\<close>, we also provide the
+  tactics \<open>pred_auto\<close> and \<open>rel_auto\<close>, as well as \<open>pred_blast\<close>
+  and \<open>rel_blast\<close>; they, in essence, sequence the simplification tactics
   with the methods @{method auto} and @{method blast}, respectively.
 \<close>
 
@@ -40,13 +42,12 @@ subsection \<open> Theorem Attributes \<close>
 text \<open>
   The following named attributes have to be introduced already here since our
   tactics must be able to see them. Note that we do not want to import the
-  theories @{text utp_pred} and @{text utp_rel} here, so that both can
+  theories \<open>utp_pred\<close> and \<open>utp_rel\<close> here, so that both can
   potentially already make use of the tactics we define in this theory.
 \<close>
 
 named_theorems upred_defs "upred definitional theorems"
 named_theorems urel_defs "urel definitional theorems"
-named_theorems user_defs "user definitional theorems"
 
 subsection \<open> Generic Methods \<close>
 
@@ -66,7 +67,7 @@ text \<open>
 text \<open> \textsf{Generic Predicate Tactics} \<close>
 
 method gen_pred_tac methods transfer_tac interp_tac prove_tac = (
-  ((unfold upred_defs user_defs) [1])?;
+  ((unfold upred_defs) [1])?;
   (transfer_tac),
   (simp add: fun_eq_iff
     lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
@@ -76,7 +77,7 @@ method gen_pred_tac methods transfer_tac interp_tac prove_tac = (
 text \<open> \textsf{Generic Relational Tactics} \<close>
 
 method gen_rel_tac methods transfer_tac interp_tac prove_tac = (
-  ((unfold upred_defs urel_defs user_defs) [1])?;
+  ((unfold upred_defs urel_defs) [1])?;
   (transfer_tac),
   (simp add: fun_eq_iff relcomp_unfold OO_def
     lens_defs upred_defs alpha_splits Product_Type.split_beta)?,
@@ -97,7 +98,7 @@ subsubsection \<open> Faster Transfer \<close>
 
 text \<open>
   Fast transfer side-steps the use of the (@{method transfer}) method in favour
-  of plain rewriting with the underlying @{text "rep_eq_..."} laws of lifted
+  of plain rewriting with the underlying \<open>rep_eq_...\<close> laws of lifted
   definitions. For moderately complex terms, surprisingly, the transfer step
   turned out to be a bottle-neck in some proofs; we observed that faster
   transfer resulted in a speed-up of approximately 30\% when building the UTP
@@ -113,8 +114,8 @@ text \<open>
 paragraph \<open> Attribute Setup \<close>
 
 text \<open>
-  We first configure a dynamic attribute @{text uexpr_rep_eq_thms} to
-  automatically collect all @{text "rep_eq_"} laws of lifted definitions on the
+  We first configure a dynamic attribute \<open>uexpr_rep_eq_thms\<close> to
+  automatically collect all \<open>rep_eq_\<close> laws of lifted definitions on the
   @{type uexpr} type.
 \<close>
 
@@ -127,7 +128,7 @@ setup \<open>
 
 text \<open>
   We next configure a command @{command update_uexpr_rep_eq_thms} in order to
-  update the content of the @{text uexpr_rep_eq_thms} attribute. Although the
+  update the content of the \<open>uexpr_rep_eq_thms\<close> attribute. Although the
   relevant theorems are collected automatically, for efficiency reasons, the
   user has to manually trigger the update process. The command must hence be
   executed whenever new lifted definitions for type @{type uexpr} are created.
@@ -177,7 +178,7 @@ subsection \<open> Interpretation \<close>
 text \<open>
   The interpretation of record state spaces as products is done using the laws
   provided by the utility theory \emph{Interp}. Note that this step can be
-  suppressed by using the @{text no_interp} option.
+  suppressed by using the \<open>no_interp\<close> option.
 \<close>
 
 method uexpr_interp_tac = (simp add: lens_interp_laws)?
@@ -185,9 +186,9 @@ method uexpr_interp_tac = (simp add: lens_interp_laws)?
 subsection \<open> User Tactics \<close>
 
 text \<open>
-  In this section, we finally set-up the six user tactics: @{text pred_simp},
-  @{text rel_simp}, @{text pred_auto}, @{text rel_auto}, @{text pred_blast}
-  and @{text rel_blast}. For this, we first define the proof strategies that
+  In this section, we finally set-up the six user tactics: \<open>pred_simp\<close>,
+  \<open>rel_simp\<close>, \<open>pred_auto\<close>, \<open>rel_auto\<close>, \<open>pred_blast\<close>
+  and \<open>rel_blast\<close>. For this, we first define the proof strategies that
   are to be applied \emph{after} the transfer steps.
 \<close>
 
@@ -213,61 +214,61 @@ text \<open>
 
 method_setup pred_simp = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-  (fn args => fn ctx =>
+  (fn args => fn ctxt =>
     let val prove_tac = Basic_Tactics.utp_simp_tac in
-      (UTP_Tactics.inst_gen_pred_tac args prove_tac ctx)
-    end);
+      (UTP_Tactics.inst_gen_pred_tac args prove_tac ctxt)
+    end)
 \<close>
 
 method_setup rel_simp = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-    (fn args => fn ctx =>
+    (fn args => fn ctxt =>
       let val prove_tac = Basic_Tactics.utp_simp_tac in
-        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctx)
-      end);
+        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctxt)
+      end)
 \<close>
 
 method_setup pred_auto = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-    (fn args => fn ctx =>
+    (fn args => fn ctxt =>
       let val prove_tac = Basic_Tactics.utp_auto_tac in
-        (UTP_Tactics.inst_gen_pred_tac args prove_tac ctx)
-      end);
+        (UTP_Tactics.inst_gen_pred_tac args prove_tac ctxt)
+      end)
 \<close>
 
 method_setup rel_auto = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-    (fn args => fn ctx =>
+    (fn args => fn ctxt =>
       let val prove_tac = Basic_Tactics.utp_auto_tac in
-        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctx)
-      end);
+        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctxt)
+      end)
 \<close>
 
 method_setup pred_blast = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-    (fn args => fn ctx =>
+    (fn args => fn ctxt =>
       let val prove_tac = Basic_Tactics.utp_blast_tac in
-        (UTP_Tactics.inst_gen_pred_tac args prove_tac ctx)
-      end);
+        (UTP_Tactics.inst_gen_pred_tac args prove_tac ctxt)
+      end)
 \<close>
 
 method_setup rel_blast = \<open>
   (Scan.lift UTP_Tactics.scan_args) >>
-    (fn args => fn ctx =>
+    (fn args => fn ctxt =>
       let val prove_tac = Basic_Tactics.utp_blast_tac in
-        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctx)
-      end);
+        (UTP_Tactics.inst_gen_rel_tac args prove_tac ctxt)
+      end)
 \<close>
   
 text \<open> Simpler, one-shot versions of the above tactics, but without the possibility of dynamic arguments. \<close>
   
 method rel_simp' 
   uses simp 
-  = (simp add: upred_defs urel_defs user_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp add: upred_defs urel_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_auto' 
   uses simp intro elim dest
-  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs user_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_blast' 
   uses simp intro elim dest

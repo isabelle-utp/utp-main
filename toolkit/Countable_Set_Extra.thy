@@ -361,8 +361,7 @@ lemma image_csets_surj:
   apply (simp add: image_comp)
   apply (auto simp add: image_Collect)
   apply (erule subset_imageE)
-  apply (auto)
-  apply (metis countable_image rcset_inverse rcset_to_rcset subset_inj_on the_inv_into_onto)
+  apply (metis countable_image subset_inj_on the_inv_into_onto)
   done
 
 lemma bij_betw_image_csets:
