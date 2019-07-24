@@ -272,7 +272,7 @@ proof (clarsimp simp add: Guarded_def)
   done
 qed
 
-subsection {* Tail recursive fixed-point calculations *}
+subsection \<open> Tail recursive fixed-point calculations \<close>
 
 declare upred_semiring.power_Suc [simp]
 

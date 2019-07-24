@@ -95,10 +95,10 @@ lemma RHS_tri_design_RD3_intro:
   apply (simp_all add:assms ex_unrest rpred)
 done
 
-text {* RD3 reactive designs are those whose assumption can be written as a conjunction of a
+text \<open> RD3 reactive designs are those whose assumption can be written as a conjunction of a
   precondition on (undashed) program variables, and a negated statement about the trace. The latter
   allows us to state that certain events must not occur in the trace -- which are effectively safety
-  properties. *}
+  properties. \<close>
 
 lemma R1_right_unit_lemma:
   "\<lbrakk> out\<alpha> \<sharp> b; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (\<not>\<^sub>r b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) ;; R1(true) = (\<not>\<^sub>r b\<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
@@ -426,8 +426,8 @@ proof -
     by (simp add: RHS_tri_normal_design_composition assms closure unrest RR_implies_R2c)
 qed
 
-text {* If a normal reactive design has postcondition false, then it is a left zero for sequential
-  composition. *}
+text \<open> If a normal reactive design has postcondition false, then it is a left zero for sequential
+  composition. \<close>
 
 lemma NSRD_seq_post_false:
   assumes "P is NSRD" "Q is SRD" "post\<^sub>R(P) = false"

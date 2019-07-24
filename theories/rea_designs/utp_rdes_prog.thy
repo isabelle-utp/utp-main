@@ -267,7 +267,7 @@ lemma AssumeR_gcomm:
   shows "[b]\<^sup>\<top>\<^sub>R ;; (c \<rightarrow>\<^sub>R P) = (b \<and> c) \<rightarrow>\<^sub>R P"
   by (rdes_eq cls: assms)
 
-subsection {* Generalised Alternation *}
+subsection \<open> Generalised Alternation \<close>
 
 definition AlternateR 
   :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp) \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
@@ -1082,7 +1082,7 @@ lemma R_D_mono:
   apply (smt aext_and aext_mono assms(1) assms(2) assms(3) rdesign_ref_monos(2) utp_pred_laws.inf.cobounded2 utp_pred_laws.inf.coboundedI2 utp_pred_laws.inf_left_commute utp_pred_laws.le_inf_iff) 
   done
 
-text {* Homomorphism laws *}
+text \<open> Homomorphism laws \<close>
 
 lemma R_D_Miracle:
   "\<^bold>R\<^sub>D(\<top>\<^sub>D) = Miracle"
@@ -1130,7 +1130,7 @@ lemma R_D_seq:
   shows "\<^bold>R\<^sub>D(P) ;; \<^bold>R\<^sub>D(Q) = \<^bold>R\<^sub>D(P ;; Q)"
   by (metis R_D_seq_ndesign assms ndesign_form)
 
-text {* These laws are applicable only when there is no further alphabet extension *}
+text \<open> These laws are applicable only when there is no further alphabet extension \<close>
 
 lemma R_D_skip:
   "\<^bold>R\<^sub>D(II\<^sub>D) = (II\<^sub>R :: ('s,'t::trace,unit) hrel_rsp)"

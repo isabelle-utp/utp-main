@@ -1,4 +1,4 @@
-section {* Reactive design parallel-by-merge *}
+section \<open> Reactive design parallel-by-merge \<close>
 
 theory utp_rdes_parallel
   imports 
@@ -6,9 +6,9 @@ theory utp_rdes_parallel
     utp_rdes_tactics
 begin
 
-text {* R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
+text \<open> R3h implicitly depends on RD1, and therefore it requires that both sides be RD1. We also
   require that both sides are R3c, and that @{term "wait\<^sub>m"} is a quasi-unit, and @{term "div\<^sub>m"} yields
-  divergence. *}
+  divergence. \<close>
 
 lemma st_U0_alpha: "\<lceil>\<exists> $st \<bullet> II\<rceil>\<^sub>0 = (\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>0)"
   by (rel_auto)
@@ -123,7 +123,7 @@ definition merge_rd ("M\<^sub>R") where
 abbreviation rdes_par ("_ \<parallel>\<^sub>R\<^bsub>_\<^esub> _" [85,0,86] 85) where
 "P \<parallel>\<^sub>R\<^bsub>M\<^esub> Q \<equiv> P \<parallel>\<^bsub>M\<^sub>R(M)\<^esub> Q"
 
-text {* Healthiness condition for reactive design merge predicates *}
+text \<open> Healthiness condition for reactive design merge predicates \<close>
 
 definition [upred_defs]: "RDM(M) = R2m(\<exists> $0-ok;$1-ok;$ok\<^sub><;$ok\<acute>;$0-wait;$1-wait;$wait\<^sub><;$wait\<acute> \<bullet> M)"
 
@@ -662,7 +662,7 @@ proof -
     by (simp add: parallel_assm closure assms a b c, rel_auto)
 qed
 
-text {* Weakest Parallel Precondition *}
+text \<open> Weakest Parallel Precondition \<close>
 
 definition wrR :: 
   "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> 
@@ -838,7 +838,7 @@ proof -
     by (simp add: Miracle_def R1_design_R1_pre)
 qed
 
-subsection {* Example basic merge *}
+subsection \<open> Example basic merge \<close>
   
 definition BasicMerge :: "(('s, 't::trace, unit) rsp) merge" ("N\<^sub>B") where
 [upred_defs]: "BasicMerge = ($tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $0-tr - $tr\<^sub>< \<and> $tr\<acute> - $tr\<^sub>< =\<^sub>u $1-tr - $tr\<^sub>< \<and> $st\<acute> =\<^sub>u $st\<^sub><)"
@@ -868,7 +868,7 @@ proof -
     by (simp add: P Q)
 qed 
   
-subsection {* Simple parallel composition *}
+subsection \<open> Simple parallel composition \<close>
 
 definition rea_design_par ::
   "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" (infixr "\<parallel>\<^sub>R" 85)

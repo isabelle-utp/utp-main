@@ -1,4 +1,4 @@
-section {* Meta Theory for UTP Designs *}
+section \<open> Meta Theory for UTP Designs \<close>
 
 theory utp_designs
   imports 

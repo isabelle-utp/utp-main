@@ -1,4 +1,4 @@
-section {* Stateful-Failure Reactive Contracts *}
+section \<open> Stateful-Failure Reactive Contracts \<close>
 
 theory utp_sfrd_contracts
   imports utp_sfrd_healths
@@ -11,14 +11,14 @@ syntax
   "_ref_var" :: "logic"
   "_mk_CRD"  :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>C")
 
-parse_translation {*
+parse_translation \<open>
 let
   fun ref_var_tr [] = Syntax.free "refs"
     | ref_var_tr _  = raise Match;
 in
 [(@{syntax_const "_ref_var"}, K ref_var_tr)]
 end
-*}
+\<close>
 
 translations
   "_mk_CRD P Q R" => "CONST mk_CRD P (\<lambda> _trace_var _ref_var. Q) (\<lambda> _trace_var. R)"
@@ -38,7 +38,7 @@ lemma postR_mk_CRD [rdes]: "post\<^sub>R([P \<turnstile> Q trace refs | R(trace)
   by (simp add: mk_CRD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre
                 impl_alt_def R2c_disj R2c_msubst_tt R1_disj, rel_auto)
 
-text {* Refinement introduction law for contracts *}
+text \<open> Refinement introduction law for contracts \<close>
 
 lemma CRD_contract_refine:
   assumes

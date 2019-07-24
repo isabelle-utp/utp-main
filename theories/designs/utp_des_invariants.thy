@@ -4,10 +4,10 @@ theory utp_des_invariants
   imports utp_des_theory
 begin
 
-text {* The theory of invariants formalises operation and state invariants based on the theory
-  of designs. For more information, please see the associated paper~\cite[Section~4]{Cavalcanti2012}. *}
+text \<open> The theory of invariants formalises operation and state invariants based on the theory
+  of designs. For more information, please see the associated paper~\cite[Section~4]{Cavalcanti2012}. \<close>
 
-subsection {* Operation Invariants *}
+subsection \<open> Operation Invariants \<close>
 
 definition "OIH(\<psi>)(D) = (D \<and> ($ok \<and> \<not> D\<^sup>f \<Rightarrow> \<psi>))"
 
@@ -36,7 +36,7 @@ lemma OIH_of_design:
   "$ok\<acute> \<sharp> P \<Longrightarrow> OIH(\<psi>)(P \<turnstile> Q) = (P \<turnstile> (Q \<and> \<psi>))"
   by (simp add: OIH_def design_def usubst, rel_auto)
 
-subsection {* State Invariants *}
+subsection \<open> State Invariants \<close>
 
 definition "ISH(\<psi>)(D) = (D \<or> ($ok \<and> \<not> D\<^sup>f \<and> \<lceil>\<psi>\<rceil>\<^sub>< \<Rightarrow> $ok\<acute> \<and> D\<^sup>t))"
 

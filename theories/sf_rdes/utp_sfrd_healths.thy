@@ -6,7 +6,7 @@ begin
 
 section \<open> Definitions \<close>
 
-text {* We here define extra healthiness conditions for stateful-failure reactive designs. *}
+text \<open> We here define extra healthiness conditions for stateful-failure reactive designs. \<close>
 
 abbreviation CSP1 :: "(('\<sigma>, '\<phi>) sfrd \<times> ('\<sigma>, '\<phi>) sfrd) health"
 where "CSP1(P) \<equiv> RD1(P)"
@@ -48,10 +48,10 @@ abbreviation "ICSP \<equiv> ISRD1 \<circ> NCSP"
 
 subsection \<open> Healthiness condition properties \<close>
 
-text {* @{term SKIP} is the same as @{term Skip}, and @{term STOP} is the same as @{term Stop},
+text \<open> @{term SKIP} is the same as @{term Skip}, and @{term STOP} is the same as @{term Stop},
   when we consider stateless CSP processes. This is because any reference to the @{term st}
   variable degenerates when the alphabet type coerces its type to be empty. We therefore
-  need not consider @{term SKIP} and @{term STOP} actions. *}
+  need not consider @{term SKIP} and @{term STOP} actions. \<close>
 
 theorem SKIP_is_Skip [simp]: "SKIP = Skip"
   by (rel_auto)
@@ -657,7 +657,7 @@ lemma seq_ICSP_closed [closure]:
 lemma Miracle_ICSP [closure]: "Miracle is ICSP"
   by (rule ICSP_intro, simp add: closure, simp add: ISRD1_rdes_intro rdes_def closure)
 
-subsection {* CSP theories *}
+subsection \<open> CSP theories \<close>
 
 lemma NCSP_false: "NCSP false = Miracle"
   by (simp add: NCSP_def srdes_theory.healthy_top[THEN sym], simp add: closure Healthy_if)

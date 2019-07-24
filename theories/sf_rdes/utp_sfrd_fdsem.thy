@@ -422,7 +422,7 @@ lemma traces_prefix:
   apply (meson assms trace_divergence_disj)
   done
 
-subsection {* Deadlock Freedom *}
+subsection \<open> Deadlock Freedom \<close>
 
 text \<open> The following is a specification for deadlock free actions. In any intermediate observation,
   there must be at least one enabled event. \<close>

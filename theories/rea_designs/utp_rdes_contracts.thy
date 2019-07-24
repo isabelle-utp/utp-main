@@ -1,14 +1,14 @@
-section {* Syntax for reactive design contracts *}
+section \<open> Syntax for reactive design contracts \<close>
 
 theory utp_rdes_contracts
   imports utp_rdes_normal
 begin
 
-text {* We give an experimental syntax for reactive design contracts $[P \vdash Q | R]_R$, where $P$ is
+text \<open> We give an experimental syntax for reactive design contracts $[P \vdash Q | R]_R$, where $P$ is
   a precondition on undashed state variables only, $Q$ is a pericondition that can refer to the
   trace and before state but not the after state, and $R$ is a postcondition. Both $Q$ and $R$
   can refer only to the trace contribution through a HOL variable $trace$ which is bound to
-  @{term "&tt"}. *}
+  @{term "&tt"}. \<close>
 
 definition mk_RD :: "'s upred \<Rightarrow> ('t::trace \<Rightarrow> 's upred) \<Rightarrow> ('t \<Rightarrow> 's hrel) \<Rightarrow> ('s, 't, 'a) hrel_rsp" where
 "mk_RD P Q R = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>S\<^sub>< \<turnstile> \<lceil>Q(x)\<rceil>\<^sub>S\<^sub><\<lbrakk>x\<rightarrow>&tt\<rbrakk> \<diamondop> \<lceil>R(x)\<rceil>\<^sub>S\<lbrakk>x\<rightarrow>&tt\<rbrakk>)"
@@ -21,14 +21,14 @@ syntax
   "_mk_RD"    :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("[_/ \<turnstile> _/ | _]\<^sub>R")
   "_trace_pred"    :: "logic \<Rightarrow> logic" ("[_]\<^sub>t")
 
-parse_translation {*
+parse_translation \<open>
 let
   fun trace_var_tr [] = Syntax.free "trace"
     | trace_var_tr _  = raise Match;
 in
 [(@{syntax_const "_trace_var"}, K trace_var_tr)]
 end
-*}
+\<close>
 
 translations
   "[P \<turnstile> Q | R]\<^sub>R" => "CONST mk_RD P (\<lambda> _trace_var. Q) (\<lambda> _trace_var. R)"
@@ -62,7 +62,7 @@ lemma postR_mk_RD [rdes]: "post\<^sub>R([P \<turnstile> Q(trace) | R(trace) ]\<^
   by (simp add: mk_RD_def rea_post_RHS_design usubst unrest R2c_not R2c_lift_state_pre
       impl_alt_def R2c_disj R2c_msubst_tt R2c_rea_impl R1_rea_impl)
 
-text {* Refinement introduction law for contracts *}
+text \<open> Refinement introduction law for contracts \<close>
 
 lemma RD_contract_refine:
   assumes

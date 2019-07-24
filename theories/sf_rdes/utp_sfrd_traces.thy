@@ -1,4 +1,4 @@
-section {* Circus Trace Merge *}
+section \<open> Circus Trace Merge \<close>
 
 theory utp_circus_traces
   imports utp_circus_core
@@ -34,37 +34,37 @@ fun tr_par ::
 abbreviation tr_inter :: "'\<theta> list \<Rightarrow> '\<theta> list \<Rightarrow> '\<theta> list set" (infixr "|||\<^sub>t" 100) where
 "x |||\<^sub>t y \<equiv> tr_par {} x y"
 
-subsection {* Lifted Trace Merge *}
+subsection \<open> Lifted Trace Merge \<close>
 
 syntax "_utr_par" ::
   "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_ \<star>\<^bsub>_\<^esub>/ _)" [100, 0, 101] 100)
 
-text {* The function @{const trop} is used to lift ternary operators. *}
+text \<open> The function @{const trop} is used to lift ternary operators. \<close>
 
 translations
   "t1 \<star>\<^bsub>cs\<^esub> t2" == "(CONST trop) (CONST tr_par) cs t1 t2"
 
-subsection {* Trace Merge Lemmas *}
+subsection \<open> Trace Merge Lemmas \<close>
 
 lemma tr_par_empty:
 "tr_par cs t1 [] = {takeWhile (\<lambda>x. x \<notin> cs) t1}"
 "tr_par cs [] t2 = {takeWhile (\<lambda>x. x \<notin> cs) t2}"
--- {* Subgoal 1 *}
+-- \<open> Subgoal 1 \<close>
 apply (induct t1; simp)
--- {* Subgoal 2 *}
+-- \<open> Subgoal 2 \<close>
 apply (induct t2; simp)
 done
 
 lemma tr_par_sym:
 "tr_par cs t1 t2 = tr_par cs t2 t1"
 apply (induct t1 arbitrary: t2)
--- {* Subgoal 1 *}
+-- \<open> Subgoal 1 \<close>
 apply (simp add: tr_par_empty)
--- {* Subgoal 2 *}
+-- \<open> Subgoal 2 \<close>
 apply (induct_tac t2)
--- {* Subgoal 2.1 *}
+-- \<open> Subgoal 2.1 \<close>
 apply (clarsimp)
--- {* Subgoal 2.2 *}
+-- \<open> Subgoal 2.2 \<close>
 apply (clarsimp)
 apply (blast)
 done
