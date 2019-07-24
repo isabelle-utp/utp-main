@@ -1,4 +1,4 @@
-section {* Train Hybrid System *}
+section \<open> Train Hybrid System \<close>
 
 theory utp_trains
   imports 
@@ -6,7 +6,7 @@ theory utp_trains
     "HOL-Decision_Procs.Approximation"
 begin recall_syntax
 
-subsection {* Constants *}
+subsection \<open> Constants \<close>
   
 abbreviation "max_speed :: real \<equiv> 4.16"
 abbreviation "normal_accel :: real \<equiv> 0.25"
@@ -14,7 +14,7 @@ abbreviation "normal_deceleration :: real \<equiv> -1.4"
   
 abbreviation "track1_length \<equiv> 100"
   
-subsection {* State-space *}
+subsection \<open> State-space \<close>
   
 alphabet cst_train =
   accel :: real \<comment> \<open> Acceleration \<close>
@@ -105,7 +105,7 @@ lemma train_sol':
     {&accel,&vel,&pos} \<leftarrow>\<^sub>h \<guillemotleft>train_sol\<guillemotright>(($accel,$vel,$pos)\<^sub>u)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a"
   by (ode_solve train_sol) (rel_auto)
   
-subsection {* Braking train scenario *}
+subsection \<open> Braking train scenario \<close>
   
 definition 
 "BrakingTrain = 

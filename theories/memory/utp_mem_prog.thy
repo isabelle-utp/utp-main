@@ -67,7 +67,7 @@ lemma [simp]: "\<D>(\<guillemotleft>Some v\<guillemotright>) = true"
   by (rel_auto)
 
 lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>u\<guillemotright>) ;; *x :=\<^sub>\<D> \<guillemotleft>Some v\<guillemotright>) = (x := alloc(\<guillemotleft>v\<guillemotright>))"  
-  by (ndes_simp, rel_auto)
+  by (ndes_simp, rel_auto')
 
 lemma "dealloc(e) ;; dealloc(e) = \<bottom>\<^sub>D"
   by (ndes_simp, rel_auto)

@@ -1,4 +1,4 @@
-section {* Hybrid Reactive Designs *}
+section \<open> Hybrid Reactive Designs \<close>
 
 theory utp_hrd
   imports
@@ -6,10 +6,10 @@ theory utp_hrd
     utp_differential
 begin
   
-subsection {* Constructs *}
+subsection \<open> Constructs \<close>
   
-text {* Lift an arbitrary hybrid relation to the peri condition of a reactive design. Usually used
-  to specify constraints on continuous variables. *}
+text \<open> Lift an arbitrary hybrid relation to the peri condition of a reactive design. Usually used
+  to specify constraints on continuous variables. \<close>
   
 definition hrdPred :: "('d,'c::topological_space) hyrel \<Rightarrow> ('d,'c) hyrel" ("[_]\<^sub>H") where
 [upred_defs, rdes_def]: "hrdPred P = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P \<diamondop> false)"
@@ -25,8 +25,8 @@ definition hrdEvolveBounds ::
    ('d,'c) hyrel" where
 [upred_defs, rdes_def]: "hrdEvolveBounds x l u f = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (x \<leftarrow>\<^sub>h\<le>(u) f(ti)) \<diamondop> ((x \<leftarrow>[l,u]\<^sub>h f(ti)) \<triangleleft> (u >\<^sub>u 0) \<triangleright>\<^sub>R II\<^sub>r))"
 
-text {* Evolve according to a continuous function for a definite time length. Currently this
-  duplicates the state where t = l as the pre-emption operator does as well. *}
+text \<open> Evolve according to a continuous function for a definite time length. Currently this
+  duplicates the state where t = l as the pre-emption operator does as well. \<close>
   
 abbreviation hrdEvolveTil :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real, 'd \<times> 'c) uexpr \<Rightarrow> (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> ('d,'c) hyrel" where
 "hrdEvolveTil x t f \<equiv> hrdEvolveBounds x t t f"
@@ -50,7 +50,7 @@ definition hrdODE ::
    'a ODE \<Rightarrow> ('d, 'c) hyrel" where
 [upred_defs, rdes_def]: "hrdODE x \<F>' = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<langle>x \<bullet> \<F>'(ti)\<rangle>\<^sub>h \<diamondop> false)"
 
-subsection {* Syntax Translations *} 
+subsection \<open> Syntax Translations \<close> 
 
 syntax
   "_hrdEvolve"       :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ \<leftarrow>\<^sub>H _" [90,91] 90)
@@ -79,7 +79,7 @@ translations
   "_hrdPreempt P b c Q" => "CONST hrdPreempt P (\<lambda> _time_var. b) (\<lambda> _time_var. c) Q"
   "_hrdPreempt P b c Q" <= "CONST hrdPreempt P (\<lambda> t. b) (\<lambda> t'. c) Q"
 
-subsection {* Contract Calculations *}
+subsection \<open> Contract Calculations \<close>
   
 lemma preR_hrdPred [rdes]: "pre\<^sub>R([P]\<^sub>H) = true\<^sub>r"
   by (rel_auto)
@@ -147,7 +147,7 @@ lemma postR_hrdUntil [rdes]:
   (pre\<^sub>R P \<Rightarrow>\<^sub>r (post\<^sub>R(P) \<or> (peri\<^sub>R(P) inv b(ti) until\<^sub>h c(ti))))"
   by (simp add: hrdUntil_def rdes closure unrest)
     
-text {* It should be possible to simplify this surely. *}
+text \<open> It should be possible to simplify this surely. \<close>
   
 lemma hrdPreempt_nz_rdes_def [rdes_def]:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "$st\<acute> \<sharp> P\<^sub>2" "P\<^sub>3 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
@@ -157,7 +157,7 @@ lemma hrdPreempt_nz_rdes_def [rdes_def]:
              \<diamondop> (P\<^sub>3 \<or> P\<^sub>2 inv b(ti) until\<^sub>h c(ti)) ;; Q\<^sub>3)"
   by (simp add: hrdPreempt_nz_def rdes_def assms closure unrest)
     
-subsection {* Closure Laws *}
+subsection \<open> Closure Laws \<close>
     
 lemma hrdPred_NSRD [closure]: 
   "\<lbrakk> P is RR; $st\<acute> \<sharp> P \<rbrakk> \<Longrightarrow> [P]\<^sub>H is NSRD"
@@ -192,7 +192,7 @@ lemma hrdPreempt_nz_NSRD [closure]:
   shows "P [b|c]\<^sub>H\<^sup>+ Q is NSRD"
   by (simp add: hrdPreempt_nz_def closure assms)
 
-subsection {* Algebraic Laws *}
+subsection \<open> Algebraic Laws \<close>
    
 lemma hrdPred_non_term: 
   assumes "P is RR" "$st\<acute> \<sharp> P" "Q is SRD"
@@ -229,8 +229,8 @@ lemma hrdUntil_true:
   shows "P until\<^sub>H true = \<^bold>R\<^sub>s(pre\<^sub>R P \<turnstile> (peri\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr) \<diamondop> (post\<^sub>R P))"
   by (simp add: hrdUntil_def hInt_false alpha, rel_auto)
            
-text {* This isn't quite right; if $P$ terminates $Q$ should not be enabled. However, since for
-  what we do $P$ actually never terminates this is fine for now but should be fixed later. *}
+text \<open> This isn't quite right; if $P$ terminates $Q$ should not be enabled. However, since for
+  what we do $P$ actually never terminates this is fine for now but should be fixed later. \<close>
     
 lemma hrdPreempt_nz_false:
   assumes "P is NSRD" "Q is NSRD"
@@ -319,7 +319,7 @@ lemma hrdUntil_solve:
   using assms
   by (rule_tac hrdUntil_inv_solve, simp_all, rel_auto+)
   
-subsection {* Stepping a Hybrid Reactive Design *}
+subsection \<open> Stepping a Hybrid Reactive Design \<close>
 
 definition hrdStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("Step[_]\<^sub>H") where
 [upred_defs]: "Step[t]\<^sub>H P = HyStep[t](peri\<^sub>R(P))"

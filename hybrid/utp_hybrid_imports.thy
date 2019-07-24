@@ -1,4 +1,4 @@
-section {* Imports for UTP Hybrid *}
+section \<open> Imports for UTP Hybrid \<close>
 
 theory utp_hybrid_imports
   imports

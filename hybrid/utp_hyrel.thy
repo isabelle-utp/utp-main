@@ -1,4 +1,4 @@
-section {* Hybrid Relational Calculus *}
+section \<open> Hybrid Relational Calculus \<close>
 
 theory utp_hyrel
 imports
@@ -11,7 +11,7 @@ imports
   "HOL-Analysis.Topology_Euclidean_Space"
 begin recall_syntax
   
-subsection {* Continuous Lenses and Preliminaries *}
+subsection \<open> Continuous Lenses and Preliminaries \<close>
 
 lemma continuous_on_Pair_first:
   "\<lbrakk> continuous_on (A \<times> B) f; y \<in> B \<rbrakk> \<Longrightarrow> continuous_on A (\<lambda> x. f (x, y))"
@@ -101,13 +101,13 @@ lemma fst_continuous_lens [closure]:
   apply (simp_all add: continuous_on_fst continuous_on_snd)
 done
   
-text {* The one lens is continuous *}
+text \<open> The one lens is continuous \<close>
   
 lemma one_lens_continuous [simp]:
   "continuous_on UNIV get\<^bsub>1\<^sub>L\<^esub>"
   by (simp add: lens_defs continuous_on_id)
   
-text {* Lens summation of two continuous lenses is continuous *}
+text \<open> Lens summation of two continuous lenses is continuous \<close>
   
 lemma continuous_on_plus_lens [continuous_intros]:
   "\<lbrakk> continuous_on A get\<^bsub>x\<^esub>; continuous_on A get\<^bsub>y\<^esub> \<rbrakk> \<Longrightarrow> continuous_on A get\<^bsub>x +\<^sub>L y\<^esub>"
@@ -154,17 +154,17 @@ qed
 
 no_notation inner (infix "\<bullet>" 70)
 
-text {* We set up adhoc overloading to apply timed traces and contiguous functions *}
+text \<open> We set up adhoc overloading to apply timed traces and contiguous functions \<close>
 
 adhoc_overloading uapply cgf_apply and uapply tt_apply
 
-text {* This section contains a mechanisation of the hybrid relational calculus described
+text \<open> This section contains a mechanisation of the hybrid relational calculus described
   in~\cite{Foster16b}, though with a new semantic model based on generalised reactive processes
-  and timed traces~\cite{Hayes2006, Hayes2010, Hofner2009}. *}
+  and timed traces~\cite{Hayes2006, Hayes2010, Hofner2009}. \<close>
 
-subsection {* Types and Preliminaries *}
+subsection \<open> Types and Preliminaries \<close>
 
-text {* We first set up some types to represent hybrid relations. *}
+text \<open> We first set up some types to represent hybrid relations. \<close>
 
 type_synonym ('d,'c) hybs = "('d \<times> 'c, 'c ttrace, unit) rsp"
 type_synonym ('d,'c) hyrel  = "('d,'c) hybs hrel"
@@ -176,7 +176,7 @@ translations
   (type) "('d,'c) hyrel" <= (type) "('d, 'c) hybs hrel"
   (type) "('a,'d,'c) hyexpr" <= (type) "('a, ('d, 'c) hybs) hexpr"
   
-text {* Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discrete part is stored
+text \<open> Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discrete part is stored
   in @{typ "'d"} and the continuous part in @{typ "'c"}. It is defined in terms of
   @{typ "('s, 't, '\<alpha>) rsp"}, the type of reactive stateful process which includes the observational
   variables like @{term ok} and @{term tr}. The type @{typ "'s"} corresponds to the state space of
@@ -192,7 +192,7 @@ text {* Type @{typ "('d, 'c) hybs"} represents a hybrid state, where the discret
   state. Finally, @{typ "('a,'d, 'c) hyexpr"} is an expression over the hybrid state.
 
   Next we set up some necessary syntax and operators.
-*}
+\<close>
 
 syntax
   "_ulens_expr" :: "logic \<Rightarrow> svid \<Rightarrow> logic" ("_:'(_')" [100,100] 100)
@@ -200,15 +200,15 @@ syntax
 translations
   "_ulens_expr e x" == "CONST uop get\<^bsub>x\<^esub> e"
 
-text {* The syntax annotation @{term "e:(x)"} allows us to apply a variable lens $x$ to an
+text \<open> The syntax annotation @{term "e:(x)"} allows us to apply a variable lens $x$ to an
   expression $e$. This can be used, for example, to lookup a field of the given record or
-  variable of a given state space. *}
+  variable of a given state space. \<close>
 
 abbreviation time_length :: "(real, 'd, 'c::topological_space) hyexpr" ("\<^bold>l")
   where "\<^bold>l \<equiv> uop end\<^sub>t (&tt)"
     
-text {* @{term "\<^bold>l"} refers to the length of the time length of the current computation, and is
-  obtained by taking length of the trace contribution. *}
+text \<open> @{term "\<^bold>l"} refers to the length of the time length of the current computation, and is
+  obtained by taking length of the trace contribution. \<close>
   
 abbreviation cvar ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> 'a, 'd, 'c) hyexpr"
@@ -220,10 +220,10 @@ abbreviation cvar_app ::
   ("_~'(_')" [999,0] 999)
 where "x~(t) \<equiv> &tt(t)\<^sub>a:(x)"
   
-text {* The syntax @{term "x~(t)"} is a convenient way of refer to the value of a continuous
-  variable $x$ at a particular instant $t$. *}
+text \<open> The syntax @{term "x~(t)"} is a convenient way of refer to the value of a continuous
+  variable $x$ at a particular instant $t$. \<close>
 
-text {* We also set up some useful syntax to refer to the end of a continuous trace. *}
+text \<open> We also set up some useful syntax to refer to the end of a continuous trace. \<close>
 
 syntax
   "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
@@ -241,9 +241,9 @@ definition disc_alpha :: "'d \<Longrightarrow> ('d \<times> 'c::topological_spac
 definition cont_alpha :: "'c \<Longrightarrow> ('d \<times> 'c::topological_space)" ("\<^bold>c") where
 [lens_defs]: "cont_alpha = snd\<^sub>L"
 
-text {* We also set up some lenses to focus on the discrete and continuous parts of the state,
+text \<open> We also set up some lenses to focus on the discrete and continuous parts of the state,
   which we call @{term "\<^bold>d"} and @{term "\<^bold>c"}, respectively. We then prove some of the key lens
-  theorems about these. *}
+  theorems about these. \<close>
 
 lemma disc_alpha_vwb_lens [simp]: "vwb_lens \<^bold>d"
   by (simp add: comp_vwb_lens disc_alpha_def fst_vwb_lens)
@@ -272,9 +272,9 @@ lemma var_out_var_prod [simp]:
   shows "utp_expr.var ((out_var x) ;\<^sub>L X \<times>\<^sub>L Y) = $Y\<acute>:(x)"
   by (pred_auto)
 
-text {* We next define some useful "lifting" operators. These operators effectively extend the state
+text \<open> We next define some useful "lifting" operators. These operators effectively extend the state
   space of an expression by adding additional variables. This is useful, for instance, to lift an
-  expression only on discrete variables to a hybrid expression. *}
+  expression only on discrete variables to a hybrid expression. \<close>
 
 abbreviation disc_lift :: "('a, 'd \<times> 'd) uexpr \<Rightarrow> ('a, 'd, 'c::topological_space) hyexpr" ("\<lceil>_\<rceil>\<^sub>\<delta>") where
 "\<lceil>P\<rceil>\<^sub>\<delta> \<equiv> \<lceil>P \<oplus>\<^sub>p (\<^bold>d \<times>\<^sub>L \<^bold>d)\<rceil>\<^sub>S"
@@ -315,14 +315,14 @@ lemma unrest_lift_cont_disc [unrest]:
   "$st:\<^bold>d \<sharp> \<lceil>P\<rceil>\<^sub>C" "$st:\<^bold>d\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>C"
   by (rel_auto)+
     
-text {* @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
+text \<open> @{term "\<lceil>P\<rceil>\<^sub>\<delta>"} takes an expression @{term "P"}, whose state space is the relational on
   the discrete state @{typ "'d"}, that is @{typ "'d \<times> 'd"} and lifts it into the hybrid state
   space, @{typ "('d, 'c) hybs"}. Note that following this lifting all continuous variables will
   be unconstrained -- this operator simply extends the alphabet. Similarly, @{term "\<lceil>P\<rceil>\<^sub>C"} lifts
   an expression on the relational continuous state to one on the whole hybrid state. Finally,
   @{term "\<lceil>P\<rceil>\<^sub>C\<^sub><"} lifts an expression on a scalar continuous state space @{typ "'c"} to one
   on the hybrid state. Effectively this is building a precondition, since it can only
-  refer to unprimed continuous variables. *}
+  refer to unprimed continuous variables. \<close>
 
 definition cont_st_post :: "'c::topological_space upred \<Rightarrow> ('d, 'c) hyrel" ("[_]\<^sub>C\<^sub>>") where
 [upred_defs]: "cont_st_post b = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>b\<rceil>\<^sub>C\<^sub>>)"
@@ -348,23 +348,23 @@ lemma zero_least_uexpr [simp]:
   "0 \<le>\<^sub>u (x::('a::trace, '\<alpha>) uexpr) = true"
   by (rel_auto)
     
-text {* The next properties states that the end point of an empty timed trace is 0. *}
+text \<open> The next properties states that the end point of an empty timed trace is 0. \<close>
 
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
   by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
 
-subsection {* Instant Predicates *}
+subsection \<open> Instant Predicates \<close>
 
 definition at ::
   "('a, 'c::topological_space \<times> 'c) uexpr \<Rightarrow> real \<Rightarrow> ('a, 'd, 'c) hyexpr"
   (infix "@\<^sub>u" 60) where
 [upred_defs]: "P @\<^sub>u t = [$st:\<^bold>c\<acute> \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a] \<dagger> \<lceil>P\<rceil>\<^sub>C"
 
-text {* The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
+text \<open> The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
   the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
   on the flat continuous state. The operator is implemented by first extending the alphabet
   of @{term "P"} to include all the hybrid variables, and then substituting the continuous
-  state for the continuous state at @{term "t"}. *}
+  state for the continuous state at @{term "t"}. \<close>
 
 lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
   by (simp add: at_def R2c_def cond_idem usubst unrest R2s_def, rel_auto)
@@ -372,14 +372,14 @@ lemma R2c_at: "R2c(P @\<^sub>u t) = P @\<^sub>u t"
 lemma R2c_time_length: "R2c (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u) = (\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u)"
   by (rel_auto ; simp add: tt_end_minus)
 
-text {* @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R2c"}, meaning that it
+text \<open> @{term "P @\<^sub>u t"} always satisfies healthiness condition @{term "R2c"}, meaning that it
   is history independent -- it does not refer to the variable @{term "tr"}, and only refers
   to the contribution of the present trace contained in @{term "&tt"}. This in an important
   property of hybrid predicates, since in a sequential hybrid program @{term "P ;; Q ;; R"}
   satisfaction of @{term "R2c"} ensures that $P$, $Q$, and $R$ all refer to different parts
   of the trace and cannot interfere with each other. We can show this is also the case of
   the predicate @{term "\<guillemotleft>t\<guillemotright> \<in>\<^sub>u {0..<\<^bold>l}\<^sub>u"}, since this only refers to @{term "\<^bold>l"}, which
-  denotes the length of the present computation, and does not depend on the history. *}
+  denotes the length of the present computation, and does not depend on the history. \<close>
 
 lemma at_unrest_cont [unrest]: "$st:\<^bold>c\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest)
@@ -393,9 +393,9 @@ lemma at_unrest_ok [unrest]: "$ok \<sharp> (P @\<^sub>u t)" "$ok\<acute> \<sharp
 lemma at_unrest_wait [unrest]: "$wait \<sharp> (P @\<^sub>u t)" "$wait\<acute> \<sharp> (P @\<^sub>u t)"
   by (simp_all add: at_def unrest alpha)
 
-text {* The above results tell us that the continuous state, @{term "ok"}, and @{term "wait"} are
+text \<open> The above results tell us that the continuous state, @{term "ok"}, and @{term "wait"} are
   all not referred to by @{term "P @\<^sub>u t"}. We also prove some distributivity properties for
-  the operator. *}
+  the operator. \<close>
 
 lemma at_true [simp]: "true @\<^sub>u t = true"
   by (simp add: at_def alpha usubst)
@@ -437,14 +437,14 @@ lemma at_var [simp]:
   shows "$x\<acute> @\<^sub>u t = &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)"
   by (pred_auto)
 
-text {* Lemma @{thm [source] "at_var"} tells us the result of lifting a flat continuous variable
+text \<open> Lemma @{thm [source] "at_var"} tells us the result of lifting a flat continuous variable
   @{term "x"}. It results in an expression which refers to that particular variable within the
-  timed trace at instant @{term "t"}. *}
+  timed trace at instant @{term "t"}. \<close>
 
 lemma subst_cvar_traj [usubst]: "\<langle>[$st:\<^bold>c \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a]\<rangle>\<^sub>s (x ;\<^sub>L \<^bold>c ;\<^sub>L in_var st) = x~(\<guillemotleft>t\<guillemotright>)"
   by (pred_auto)
 
-subsection {* The Interval Operator *}
+subsection \<open> The Interval Operator \<close>
 
 definition hInt :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hInt P = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
@@ -455,13 +455,13 @@ abbreviation hInt_dur :: "'c::topological_space upred \<Rightarrow> ('d,'c) hyre
 definition hInt_at :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> real \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hInt_at P n = ($tr \<le>\<^sub>u $tr\<acute> \<and> (\<^bold>\<forall> t \<in> {0..<\<guillemotleft>n\<guillemotright>}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
 
-text {* The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
+text \<open> The interval operator, @{term "hInt P"}, asserts that a predicate on the continuous state
   is satisfied at every instant between the beginning and end of the evolution, that is on the
   right-open interval $[0, \textbf{l})$. This is specified using the instant operator,
   @{term "(P t) @\<^sub>u t"}. Note that in this version of the interval operator we also allow that
   $P$ itself can depend on the instant $t$. We also require that the trace is \emph{strictly}
   increasing, meaning that the trace cannot be over an empty interval. The next couple of
-  results that the interval does not constrain the $ok$, $wait$, or discrete variables. *}
+  results that the interval does not constrain the $ok$, $wait$, or discrete variables. \<close>
 
 lemma hInt_unrest_ok [unrest]: "$ok \<sharp> hInt P" "$ok\<acute> \<sharp> hInt P"
   by (simp_all add: hInt_def unrest)
@@ -475,8 +475,8 @@ lemma hInt_unrest_dis [unrest]: "$st:\<^bold>d \<sharp> hInt P" "$st:\<^bold>d\<
 definition init_cont :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "init_cont x = ($tr \<le>\<^sub>u $tr\<acute> \<and> $st:\<^bold>c:x =\<^sub>u &tt(0)\<^sub>a:(x))"
 
-text {* Take the continuous state space at the limit. If the duration is 0 then take the initial
-  value of the continuous state instead. *}
+text \<open> Take the continuous state space at the limit. If the duration is 0 then take the initial
+  value of the continuous state instead. \<close>
 
 definition tt_final :: "('c::t2_space, 'd, 'c) hyexpr" ("\<^bold>t\<^sup>\<rightarrow>") where
 [upred_defs]: "tt_final = lim\<^sub>u(t \<rightarrow> \<^bold>l\<^sup>-)(&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a) \<triangleleft> \<^bold>l >\<^sub>u 0 \<triangleright> $st:\<^bold>c\<acute>"
@@ -528,7 +528,7 @@ lemma rl_RR_closed [closure]: "rl(x) is RR"
 definition hDisInt :: "(real \<Rightarrow> 'c::t2_space hrel) \<Rightarrow> ('d, 'c) hyrel" where
 [upred_defs]: "hDisInt P = (hInt P \<and> \<^bold>l >\<^sub>u 0 \<and> ll(&\<^bold>v) \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d)"
 
-text {* We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
+text \<open> We also set up the adapted version of the interval operator, @{term "hDisInt P"}, that
   conjoins an interval specification with three predicates, which also happen to be coupling
   invariants, and yield what we might call a ``hybrid interval''. The first invariant
   states that the continuous state within the trace at instant 0 must
@@ -541,7 +541,7 @@ text {* We also set up the adapted version of the interval operator, @{term "hDi
   continuous variables in the before and after state, and continuous evolution in the timed trace.
   The final predicate states that the discrete state does not change during a continuous evolution.
 
-  We next set up some useful syntax translations for the interval operator. *}
+  We next set up some useful syntax translations for the interval operator. \<close>
 
 syntax
   "_time_var" :: "logic"
@@ -549,14 +549,14 @@ syntax
   "_hInt_at"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>h'(_')")
   "_hDisInt"  :: "logic \<Rightarrow> logic" ("\<^bold>\<lceil>_\<^bold>\<rceil>\<^sub>h")
 
-parse_translation {*
+parse_translation \<open>
 let
   fun time_var_tr [] = Syntax.free "ti"
     | time_var_tr _  = raise Match;
 in
 [(@{syntax_const "_time_var"}, K time_var_tr)]
 end
-*}
+\<close>
 
 translations
   "\<lceil>P\<rceil>\<^sub>h"    => "CONST hInt (\<lambda> _time_var. P)"
@@ -566,10 +566,10 @@ translations
   "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    => "CONST hDisInt (\<lambda> _time_var. P)"
   "\<^bold>\<lceil>P\<^bold>\<rceil>\<^sub>h"    <= "CONST hDisInt (\<lambda> x. P)"
   
-text {* A regular interval can be written using the notation @{term "\<lceil>P(ti)\<rceil>\<^sub>h"}, where $ti$ is
+text \<open> A regular interval can be written using the notation @{term "\<lceil>P(ti)\<rceil>\<^sub>h"}, where $ti$ is
   a free variable denoting the present time. Having the present time as a free variable means
   we can write algebraic equations that depend on time, such as @{term "\<lceil>&x =\<^sub>u 2 * \<guillemotleft>ti\<guillemotright>\<rceil>\<^sub>h"} for
-  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(ti)\<^bold>\<rceil>\<^sub>h"}. *}
+  example. Similarly, a hybrid interval can be written using a boldface as @{term "\<^bold>\<lceil>P(ti)\<^bold>\<rceil>\<^sub>h"}. \<close>
 
 lemma hInt_unrest_cont [unrest]: "$st:\<^bold>c\<acute> \<sharp> \<lceil>P(ti)\<rceil>\<^sub>h"
   by (simp add: hInt_def unrest)
@@ -605,19 +605,19 @@ proof (rel_auto)
         metis (full_types) less_diff_eq trace_class.le_iff_add tt_cat_ext_first tt_end_minus)
 qed
 
-text {* The following theorem demonstrates that we can use an interval specification in a reactive
-  design precondition. *}
+text \<open> The following theorem demonstrates that we can use an interval specification in a reactive
+  design precondition. \<close>
     
 lemma hInt_RC_closed [closure]: "\<lceil>P(ti)\<rceil>\<^sub>h is RC"
   by (simp add: RC_intro_prefix_closed hInt_RR_closed hInt_prefix_closed)
     
-text {* Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
+text \<open> Theorem @{thm [source] "hInt_unrest_cont"} states that no continuous before variable
   is fixed by the regular interval operator. This is because the regular interval operator
   does not refer to state variables but only the evolution of the trajectory. We can also
   show that the interval operator is both @{term "R1"} healthy, since the trajectory can
   only get longer, and also @{term "R2c"} healthy, since it does not refer to the history.
 
-  We also prove some laws about intervals. *}
+  We also prove some laws about intervals. \<close>
 
 lemma hInt_subst_init_cont [usubst]:
   "\<sigma>($st:\<^bold>c:x \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>) \<dagger> \<lceil>P(ti)\<rceil>\<^sub>h = \<sigma> \<dagger> \<lceil>P(ti)\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>\<rceil>\<^sub>h"
@@ -638,14 +638,14 @@ lemma hInt_disj: "\<lceil>P(ti) \<or> Q(ti)\<rceil>\<^sub>h \<sqsubseteq> (\<lce
 lemma hInt_refine: "`\<^bold>\<forall> ti \<bullet> P(ti) \<Rightarrow> Q(ti)` \<Longrightarrow> \<lceil>Q(ti)\<rceil>\<^sub>h \<sqsubseteq> \<lceil>P(ti)\<rceil>\<^sub>h"
   by (rel_auto)
         
-text {* Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
+text \<open> Theorem @{thm [source] hInt_false} and @{thm [source] hInt_true} give us obvious results
   about intervals over false and true. Theorem @{thm [source] hInt_conj} allows us to rewrite
   and interval conjunction as a conjunction of intervals. The same is not true of disjunction,
   as @{thm [source] hInt_disj} shows, because at each instant each $P$ or $Q$ may hold, and thus an
   inequality is present in the rule. Finally, theorem @{thm [source] hInt_refine} tells us that
   an interval can be refined to another is we can show that an implication between the two interval
   predicates. Additionally we prove the following law about sequential composition of
-  time-independent intervals. *}
+  time-independent intervals. \<close>
 
 lemma hInt_seq_r: "(\<^bold>\<lceil>P\<^bold>\<rceil> ;; \<^bold>\<lceil>P\<^bold>\<rceil>) = \<^bold>\<lceil>P\<^bold>\<rceil>"
 proof -
@@ -686,8 +686,8 @@ proof -
   finally show ?thesis .
 qed
 
-text {* The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
-  can always be split into two intervals where the property holds of both. *}
+text \<open> The proof of the theorem is quite long, but the theorem intuitively tells us that an interval
+  can always be split into two intervals where the property holds of both. \<close>
 
 lemma seq_var_ident_liftr:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
@@ -695,9 +695,9 @@ lemma seq_var_ident_liftr:
   using assms apply (rel_auto)
   by (metis (no_types, lifting) vwb_lens_wb wb_lens_weak weak_lens.put_get)
 
-subsection {* Somewhere operator *}
+subsection \<open> Somewhere operator \<close>
   
-text {* Dual of the interval operator *}
+text \<open> Dual of the interval operator \<close>
   
 definition hSomewhere :: "(real \<Rightarrow> 'c::topological_space hrel) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hSomewhere P = ($tr <\<^sub>u $tr\<acute> \<and> (\<^bold>\<exists> t \<in> {0..<\<^bold>l}\<^sub>u \<bullet> (P t) @\<^sub>u t))"
@@ -731,12 +731,12 @@ lemma rea_not_hSomewhere [rpred]:
   "(\<not>\<^sub>r \<lfloor>P(ti)\<rfloor>\<^sub>h) = \<lceil>\<not> P(ti)\<rceil>\<^sub>h"
   apply (rel_auto) using tt_end_gr_zero_iff by fastforce
   
-subsection {* Continuous Frames *}
+subsection \<open> Continuous Frames \<close>
 
-text {* A continuous variable frame states that all variables other than those enumerated are
+text \<open> A continuous variable frame states that all variables other than those enumerated are
   held constant during evolution. This is implemented essentially by lifting the regular
   relational frame operator to an interval specification. It is useful for implementing
-  discrete variables. *}
+  discrete variables. \<close>
   
 definition hFrame :: "('a \<Longrightarrow> 'c::t2_space) \<Rightarrow> ('d, 'c) hyrel \<Rightarrow> ('d, 'c) hyrel" where
 [upred_defs]: "hFrame x P = (P \<and> \<lceil>x:[true]\<rceil>\<^sub>h)"
@@ -747,9 +747,9 @@ syntax
 translations
   "_hFrame a P" == "CONST hFrame a P"
 
-subsection {* At Limit *}
+subsection \<open> At Limit \<close>
 
-text {* Predicate evaluated at the limit of the trajectory. *}
+text \<open> Predicate evaluated at the limit of the trajectory. \<close>
   
 definition hAtLimit :: "'c::t2_space hrel \<Rightarrow> ('d,'c) hyrel" ("\<lceil>_\<rceil>\<^sup>\<rightarrow>") where
 [upred_defs]: "hAtLimit P = ($tr <\<^sub>u $tr\<acute> \<and> [$st:\<^bold>c\<acute> \<mapsto>\<^sub>s \<^bold>t\<^sup>\<rightarrow>] \<dagger> \<lceil>P\<rceil>\<^sub>C)"
@@ -757,7 +757,7 @@ definition hAtLimit :: "'c::t2_space hrel \<Rightarrow> ('d,'c) hyrel" ("\<lceil
 lemma hAtLimit_RR_closed [closure]: "\<lceil>P\<rceil>\<^sup>\<rightarrow> is RR"
   by (rel_auto)
 
-subsection {* Evolve by continuous function *}
+subsection \<open> Evolve by continuous function \<close>
  
 definition hEvolve :: "('a::t2_space \<Longrightarrow> 'c::t2_space) \<Rightarrow> (real \<Rightarrow> ('a, 'c) hexpr) \<Rightarrow> ('d,'c) hyrel" where
 [upred_defs]: "hEvolve x f = (\<lceil>$x\<acute> =\<^sub>u f(ti)\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
@@ -833,12 +833,12 @@ lemma hEvolve_spec_refine:
   apply (metis vwb_lens.put_eq)
 done
 
-subsection {* Evolve by Assignment *}
+subsection \<open> Evolve by Assignment \<close>
 
-text {* The following alternative operator for specifying an evolution used a variable assignment
+text \<open> The following alternative operator for specifying an evolution used a variable assignment
   substitution to specify the value of each variable at each interval in terms of time and
   the initial value of the variables. They are quite useful for expressing solutions to ODEs
-  though are less general than the above operator. *}
+  though are less general than the above operator. \<close>
   
 definition hEvolves :: "(real \<Rightarrow> 'c::t2_space usubst) \<Rightarrow> ('d, 'c) hyrel" where
 [upred_defs]: "hEvolves s = (\<lceil>\<langle>s(ti)\<rangle>\<^sub>a\<rceil>\<^sub>h \<and> \<^bold>l >\<^sub>u 0)"
@@ -854,7 +854,7 @@ lemma hEvolves_id:
   "{id}\<^sub>h = \<^bold>v \<leftarrow>\<^sub>h $\<^bold>v"
   by (rel_auto)
   
-subsection {* Pre-emption *}
+subsection \<open> Pre-emption \<close>
 
 definition hUntil ::
   "('d, 'c::t2_space) hyrel \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> (real \<Rightarrow> 'c hrel) \<Rightarrow> ('d,'c) hyrel"  where
@@ -874,12 +874,12 @@ definition hPreempt ::
     ('d,'c) hyrel \<Rightarrow> ('d,'c) hyrel" ("_ [_]\<^sub>h _" [64,0,65] 64)
 where [upred_defs]: "P [b]\<^sub>h Q = (((Q \<triangleleft> \<lceil>b\<lbrakk>$\<^bold>v/$\<^bold>v\<acute>\<rbrakk>\<rceil>\<^sub>C \<triangleright> (P \<and> \<lceil>\<not> b\<rceil>\<^sub>h)) \<sqinter> ((P \<and> \<lceil>\<not> b\<rceil>\<^sub>h \<and> $tr <\<^sub>u $tr\<acute> \<and> rl(&\<^bold>v) \<and> \<lceil>b\<rceil>\<^sub>C) ;; (Q))))"
 
-text {* The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
+text \<open> The pre-emption operator @{term "P [b]\<^sub>h Q"} states that $P$ is active until $b$ is satisfied
   by the continuous variables. At this point $Q$ will be activated. Usually $P$ will be an evolution
   of the continuous variables, and $b$ some kind of barrier condition. The operator can be used
   to write hybrid systems where an evolution occurs until some condition is satisfied, e.g. a
   particular temperature or other quantity is reached, and then some discrete activity is executed.
-  We prove a few simple properties about this operator. *}
+  We prove a few simple properties about this operator. \<close>
 
 lemma hPreempt_false:
   "P is R1 \<Longrightarrow> P [false]\<^sub>h Q = P"
@@ -1105,11 +1105,11 @@ proof -
     using assms(1) c gL vwb_lens.put_eq by fastforce    
 qed
     
-text {* The following theorem can be used to ascertain the bounds on when a hybrid evolution can
+text \<open> The following theorem can be used to ascertain the bounds on when a hybrid evolution can
   terminate. We require two time instants, $k$ and $l$, such that $k \le l$. Up until $l$, the 
   invariant of the evolution ($b$) holds, but it becomes false at this point. Up until $k$,
   condition $c$ does not hold, but it becomes true and stays true from $k$ through to $l$. Thus,
-  the evolution can terminate at any point between $k$ and $l$. *}
+  the evolution can terminate at any point between $k$ and $l$. \<close>
   
 theorem hUntil_inv_solve:
   assumes 
@@ -1222,7 +1222,7 @@ lemma hUntil_solve:
   using assms
   by (rule_tac hUntil_inv_solve, simp_all, (rel_auto)+)
       
-subsection {* Stepping a Hybrid Relation Forward *}
+subsection \<open> Stepping a Hybrid Relation Forward \<close>
   
 definition hStepRel :: "real \<Rightarrow> ('d, 'c::t2_space) hyrel \<Rightarrow> 'c hrel" ("HyStep[_]'(_')") where
 [upred_defs]: "hStepRel t P = ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>t\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>p (&st:\<^bold>c \<times> &st:\<^bold>c))"
@@ -1317,7 +1317,7 @@ lemma HyStep_hEvolveAt:
   shows "HyStep[n](&\<^bold>v \<leftarrow>\<^sub>h(\<guillemotleft>m\<guillemotright>) \<guillemotleft>f(ti)\<guillemotright> ;; RR(P)) = ($\<^bold>v\<acute> =\<^sub>u \<guillemotleft>f(m)\<guillemotright>) ;; HyStep[n-m](RR(P))" (is "?lhs = ?rhs")
   oops
     
-subsection {* Linking Hybrid and Timed Relations *}
+subsection \<open> Linking Hybrid and Timed Relations \<close>
 
 definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2T'(_')") where
 [upred_defs]: "hyrel2trel P = R1(\<^bold>\<exists> l \<bullet> ((P \<and> \<^bold>l =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d) \<restriction>\<^sub>r (&st:\<^bold>c)) \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos(l)\<guillemotright>)"
@@ -1450,15 +1450,15 @@ lemma hyrel2trel_skip: "H2T(II\<^sub>r) = II\<^sub>r"
   apply force
 done
     
-subsection {* Pertubation *}
+subsection \<open> Pertubation \<close>
     
 abbreviation (input) "lens_upd s k v \<equiv> lens_put k s v"
 
 adhoc_overloading
   uupd lens_upd
  
-text {* The following function take a hybrid relation and makes it more non-deterministic by allowing
-  that each continuous variable need only be within eps of its original value at each instant. *}
+text \<open> The following function take a hybrid relation and makes it more non-deterministic by allowing
+  that each continuous variable need only be within eps of its original value at each instant. \<close>
   
 definition perturb :: "('d, 'c :: t2_space) hyrel \<Rightarrow> ('a :: metric_space \<Longrightarrow> 'c) \<Rightarrow> real \<Rightarrow> ('d, 'c) hyrel"
   where [upred_defs]:

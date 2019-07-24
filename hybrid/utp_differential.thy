@@ -1,4 +1,4 @@
-section {* Differential Equations and their Solutions *}
+section \<open> Differential Equations and their Solutions \<close>
 
 theory utp_differential
   imports utp_hyrel
@@ -6,7 +6,7 @@ begin
   
 type_synonym 'c ODE = "real \<Rightarrow> 'c \<Rightarrow> 'c"
 
-text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specified as a function
+text \<open> An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specified as a function
   from a real number, denoting the present time, and the continuous state @{typ "'c"} to the
   continuous state. Intuitively, the input @{typ "'c"} is the present value of the continuous
   variables, and that output @{typ "'c"} gives the derivative, that is the rate at which
@@ -16,7 +16,7 @@ text {* An ordinary differential equation, @{typ "'c ODE"} is Isabelle is specif
   type @{typ "'c"} and so we will usually require that @{typ "'c"} is a vector of real numbers,
   or some isomorphic structure. For more information on ODEs in Isabelle, please see~\cite{Immler2012}
   for a paper on an Isabelle analysis library for ODEs that this work depends on.
-  *}
+  \<close>
 
 abbreviation hasDerivAtBefore ::
   "(real \<Rightarrow> 'a :: real_normed_vector, '\<alpha>) uexpr \<Rightarrow>
@@ -60,11 +60,11 @@ lemma lensHasDeriv_RR_closed [closure]: "(x has-der v(ti)) is RR"
 lemma unrest_st'_lensHasDeriv [unrest]: "$st\<acute> \<sharp> (x has-der v(ti))"
   by (rel_auto)
   
-text {* We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
+text \<open> We introduce the notation @{term "\<F> has-ode-deriv \<F>' at t < \<tau>"} to mean that the derivative
   of a function @{term "\<F>"} is given by the ODE @{term "\<F>'"} at a point $t$ in the time domain
   $[0,\tau]$. Note, that unlike for our hybrid relational calculus we deal with ODEs over closed
   intervals; the final value at $\tau$ will correspond to the after value of the continuous
-  state and justify that our timed trace is piecewise convergent. *}
+  state and justify that our timed trace is piecewise convergent. \<close>
  
 definition hODE ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
@@ -87,7 +87,7 @@ lemma hODE_unrests [unrest]:
   "$st\<acute> \<sharp> \<langle>x \<bullet> F(ti)\<rangle>\<^sub>h"  
   by (rel_auto)+
   
-text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that continuous state lens
+text \<open> We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that continuous state lens
   $x$ evolves according the ODE described by @{term "\<F>'"}. The lens $x$ identifies a portion of
   the continuous state; that is it is not necessary that this construct define evolution for
   all continuous variables, only those specified. The others will evolve arbitrarily. The definition states that there is a function
@@ -99,15 +99,15 @@ text {* We next introduce the construct @{term "\<langle>x \<bullet> \<F>'\<rang
   that since we use the hybrid interval operator here, the ODE will automatically pick up its
   initial value from the before value of $x$; thus an initial value problem is posed by this
   construct. Moreover, the final value of $x$ will be the value that the ODE tends toward at
-  the limit, which is always defined as per our previous definition. *}
+  the limit, which is always defined as per our previous definition. \<close>
 
 abbreviation hODE_IVP ("\<langle>_ := _ \<bullet> _\<rangle>\<^sub>h") where
 "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h \<equiv> (st:\<^bold>c:x := x\<^sub>0 ;; \<langle>x \<bullet> \<F>'\<rangle>\<^sub>h)"
 
-text {* We also set up notation that explicitly sets up the initial value for the continuous state,
+text \<open> We also set up notation that explicitly sets up the initial value for the continuous state,
   @{term "\<langle>x := x\<^sub>0 \<bullet> \<F>'\<rangle>\<^sub>h"}, which states that the initial value of @{term "x"} in the ODE
   @{term "\<F>'"} takes its value from @{term "x\<^sub>0"}. We next prove some important theorems about
-  solutions to ODEs. *}
+  solutions to ODEs. \<close>
 
 abbreviation hODE_frame ::
   "('a::ordered_euclidean_space \<Longrightarrow> 'c::t2_space) \<Rightarrow>
@@ -121,9 +121,9 @@ translations
   "_hODE_frame a P" => "CONST hODE_frame a (\<lambda> _time_var. P)"
   "_hODE_frame a P" <= "CONST hODE_frame a (\<lambda> t. P)"    
 
-text {* ODEs can also have a frame attached, which the above operator provides. It implicitly
+text \<open> ODEs can also have a frame attached, which the above operator provides. It implicitly
   contains the assumption that all variables not mentioned in the ODE are held constant
-  during evolution. *}  
+  during evolution. \<close>  
   
 lemma at_has_deriv [simp]:
   "(f has-ode-deriv f' at ti < l) @\<^sub>u t = (f @\<^sub>u t) has-ode-deriv (f' @\<^sub>u t) at (ti @\<^sub>u t) < (l @\<^sub>u t)"
@@ -285,30 +285,30 @@ proof -
     using assms(3) uos.solution_usolves_ode usolves_ode_solves_odeI by blast
 qed
  
-text {* \emph{ode\_cert} is a simple tactic for certifying solutions to systems of differential equations *}
+text \<open> \emph{ode\_cert} is a simple tactic for certifying solutions to systems of differential equations \<close>
 
 method ode_cert = (rule_tac solves_odeI, simp_all add: has_vderiv_on_def, safe intro!: has_vector_derivative_Pair, (rule has_vector_derivative_eq_rhs, (rule derivative_intros; (simp)?)+, simp)+)
 
-text {* \emph{linear\_ode} certifies unique solutions for linears ODEs. *}
+text \<open> \emph{linear\_ode} certifies unique solutions for linears ODEs. \<close>
 
 method linear_ode = 
   (rule_tac uos_impl_uniq_sol[where L=1], (unfold_locales, auto intro!: continuous_on_Pair continuous_on_const Topological_Spaces.continuous_on_fst Topological_Spaces.continuous_on_snd continuous_on_snd simp add: lipschitz_on_def dist_Pair_Pair prod.case_eq_if)[1], (auto)[1], ode_cert)  
 
-text {* \emph{ode\_solve} tries to rewrite an ODE to a solution. The solution must be passed
-  as a mandatory term parameter. *}
+text \<open> \emph{ode\_solve} tries to rewrite an ODE to a solution. The solution must be passed
+  as a mandatory term parameter. \<close>
 
 method ode_solve
   for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
   = ((subst ode_solution'[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
   
-text {* Version of above with frame *}
+text \<open> Version of above with frame \<close>
   
 method ode_fsolve
   for sol :: "'a::ordered_euclidean_space \<Rightarrow> real \<Rightarrow> 'a" 
   = ((subst ode_frame_solution[where \<F> = "sol"]; (simp add: prod.case_eq_if)?), linear_ode)
   
-text {* Example illustrating the relationship between derivative constrains and ordinary differential
-  equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. *}
+text \<open> Example illustrating the relationship between derivative constrains and ordinary differential
+  equations. If a variable has a constant derivative then this is equivalent to a trivial ODE. \<close>
     
 lemma der_const_ode:
   assumes "vwb_lens x" "continuous_on UNIV get\<^bsub>x\<^esub>"

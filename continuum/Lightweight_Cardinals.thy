@@ -157,7 +157,7 @@ apply (erule subset_inj_on)
   apply (assumption)
 \<comment> \<open> Subgoal 2 \<close>
 apply (simp add: image_comp[THEN sym])
-apply (metis image_mono order.trans)
+apply blast
 done
 
 theorem leq_card_linear :

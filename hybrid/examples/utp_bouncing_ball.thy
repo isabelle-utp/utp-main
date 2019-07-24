@@ -1,12 +1,12 @@
-section {* Bouncing Ball *}
+section \<open> Bouncing Ball \<close>
 
 theory utp_bouncing_ball
   imports "../utp_hybrid"
 begin
   
-subsection {* State-space *}
+subsection \<open> State-space \<close>
   
-text {* We first setup the state-space and prove this is a topological (T2) space *}
+text \<open> We first setup the state-space and prove this is a topological (T2) space \<close>
   
 alphabet bball =
   height :: real
@@ -20,23 +20,23 @@ begin
   instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
 end
 
-subsection {* Constants *}
+subsection \<open> Constants \<close>
   
-text {* Next we define some constants; the ODE (ordinary differential equation) and its solution *}
+text \<open> Next we define some constants; the ODE (ordinary differential equation) and its solution \<close>
   
 abbreviation grav :: real where
 "grav \<equiv> -9.81"
 
-subsection {* Differential Equations and Solutions *}
+subsection \<open> Differential Equations and Solutions \<close>
 
-text {* The ODE specifies two continuous variables, for velocity and height respectively. It
-  does not depend on time which makes it an autonomous ODE. *}
+text \<open> The ODE specifies two continuous variables, for velocity and height respectively. It
+  does not depend on time which makes it an autonomous ODE. \<close>
 
 abbreviation grav_ode :: "(real \<times> real) ODE" where
 "grav_ode \<equiv> (\<lambda> t (v, h). (- grav, v))"
 
-text {* We also present the following solution to the ODE, which is a function from initial values
-  of the continuous variables to a continuous function that shows how the variables change with time. *}
+text \<open> We also present the following solution to the ODE, which is a function from initial values
+  of the continuous variables to a continuous function that shows how the variables change with time. \<close>
 
 abbreviation grav_sol :: "real \<times> real \<Rightarrow> real \<Rightarrow> real \<times> real" where
 "grav_sol \<equiv> \<lambda> (v\<^sub>0, h\<^sub>0) \<tau>. (v\<^sub>0 - grav * \<tau>, v\<^sub>0 * \<tau> - grav * (\<tau> * \<tau>) / 2 + h\<^sub>0)"
@@ -58,7 +58,7 @@ proof -
   done
 qed
 
-subsection {* System Definition *}
+subsection \<open> System Definition \<close>
 
 definition bouncing_ball :: "(unit, bball) hyrel" where
   "bouncing_ball =
@@ -66,7 +66,7 @@ definition bouncing_ball :: "(unit, bball) hyrel" where
       (\<langle>{&velocity,&height} \<bullet> grav_ode(ti)\<rangle>\<^sub>h until\<^sub>h ($height\<acute> \<le>\<^sub>u 0) ;;
        \<^bold>c:velocity :=\<^sub>r (- 0.8 * &\<^bold>c:velocity))\<^sup>\<star>"
   
-subsection {* Example Properties *}
+subsection \<open> Example Properties \<close>
   
 lemma "\<lceil>$height\<acute> \<ge>\<^sub>u 0\<rceil>\<^sub>h \<sqsubseteq> bouncing_ball"
   apply (simp add: bouncing_ball_def)

@@ -1,10 +1,10 @@
-section {* Thermostat *}
+section \<open> Thermostat \<close>
 
 theory utp_thermostat
   imports "../utp_hybrid"
 begin
 
-subsection {* State-space *}
+subsection \<open> State-space \<close>
   
 alphabet thermo_c =
   temp :: real
@@ -20,7 +20,7 @@ begin
   instance by (intro_classes, (transfer, auto simp add: separation_t2)+)
 end
   
-subsection {* Constants *}
+subsection \<open> Constants \<close>
   
 abbreviation init_temp :: real where
 "init_temp \<equiv> 20"
@@ -31,7 +31,7 @@ abbreviation max_temp :: real where
 abbreviation min_temp :: real where
 "min_temp \<equiv> 19"
 
-subsection {* Differential Equations and Solutions *}
+subsection \<open> Differential Equations and Solutions \<close>
 
 abbreviation heating_ode :: "real ODE" where
 "heating_ode \<equiv> (\<lambda> t temp. 5 - 0.1 * temp)"
@@ -39,7 +39,7 @@ abbreviation heating_ode :: "real ODE" where
 abbreviation cooling_ode :: "real ODE" where
 "cooling_ode \<equiv> (\<lambda> t temp. - 0.1 * temp)"
 
-subsection {* System Definition *}
+subsection \<open> System Definition \<close>
   
 definition thermostat :: "(thermo_d, thermo_c) hyrel" where
   "thermostat =
@@ -47,6 +47,6 @@ definition thermostat :: "(thermo_d, thermo_c) hyrel" where
      \<^bold>d:isOn :=\<^sub>r false ;;
      (\<nu> X \<bullet> (\<langle>temp \<bullet> heating_ode(ti)\<rangle>\<^sub>h \<triangleleft> &\<^bold>d:isOn \<triangleright>\<^sub>R \<langle>temp \<bullet> cooling_ode(ti)\<rangle>\<^sub>h)
               [$temp\<acute> <\<^sub>u \<guillemotleft>min_temp\<guillemotright> \<or> $temp\<acute> >\<^sub>u \<guillemotleft>max_temp\<guillemotright>]\<^sub>h
-            (\<^bold>d:isOn :=\<^sub>r true \<triangleleft> &\<^bold>c:temp <\<^sub>u \<guillemotleft>min_temp\<guillemotright> \<triangleright>\<^sub>R \<^bold>d:isOn :=\<^sub>r false) ;; X))"
+            (\<^bold>d:isOn :=\<^sub>r true \<triangleleft> (&\<^bold>c:temp <\<^sub>u \<guillemotleft>min_temp\<guillemotright>) \<triangleright>\<^sub>R\<^bold>d:isOn :=\<^sub>r false) ;; X))"
 
 end

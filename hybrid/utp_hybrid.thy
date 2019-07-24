@@ -1,4 +1,4 @@
-section {* Hybrid computation in UTP *}
+section \<open> Hybrid computation in UTP \<close>
 theory utp_hybrid
 imports
   utp_hyrel

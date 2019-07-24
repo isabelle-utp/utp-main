@@ -56,9 +56,9 @@ proof -
   with assms(3-4) show ?thesis
     apply (simp add: C D local_wrt_def wp)
     apply (auto)
-    apply (metis wp_conj)
-    apply (metis utp_pred_laws.inf.absorb_iff2 utp_pred_laws.le_infE wp_conj)
-    apply (metis utp_pred_laws.inf.absorb_iff2 utp_pred_laws.inf_assoc wp_conj)
+    apply (metis wlp_conj)
+    apply (metis utp_pred_laws.inf.absorb_iff2 utp_pred_laws.le_infE wlp_conj)
+    apply (metis utp_pred_laws.inf.absorb_iff2 utp_pred_laws.inf_assoc wlp_conj)
     done
 qed
 

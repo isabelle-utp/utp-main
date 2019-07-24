@@ -455,11 +455,10 @@ definition UserTokenWithOKAuthCert :: "IDStation upred" where
 "UserTokenWithOKAuthCert =
   (&iuserToken:currentUserToken \<in>\<^sub>u \<guillemotleft>range(goodT)\<guillemotright> \<and>
    (\<^bold>\<exists> t\<in>\<guillemotleft>TokenWithValidAuth\<guillemotright> \<bullet>
-      (\<guillemotleft>goodT(t)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken 
-(*      \<and> &doorLatchAlarm:currentTime \<in>\<^sub>u \<guillemotleft>validityPeriod (the(authCert t))\<guillemotright> *)
+      (\<guillemotleft>goodT(t)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken   
       \<and> (\<^bold>\<exists> c \<in> \<guillemotleft>IDCert\<guillemotright> \<bullet> \<guillemotleft>c = idCert t\<guillemotright> \<and> CertOK c) \<oplus>\<^sub>p keyStore
       \<and> (\<^bold>\<exists> c \<in> \<guillemotleft>AuthCert\<guillemotright> \<bullet> \<guillemotleft>c = the (authCert t)\<guillemotright> \<and> AuthCertOK c) \<oplus>\<^sub>p keyStore))
-  )"
+  )" (* \<and> &doorLatchAlarm:currentTime \<in>\<^sub>u \<guillemotleft>validityPeriod (the(authCert t))\<guillemotright> *)
 
 definition UserTokenOK :: "IDStation upred" where
 [upred_defs, tis_defs]:
