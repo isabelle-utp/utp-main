@@ -107,9 +107,9 @@ lemma list_augment_0 [simp]:
 lemma list_augment_Suc [simp]:
   "list_augment (x # xs) (Suc n) y = x # list_augment xs n y"
   by (simp add: list_augment_def list_pad_out_def)
-    
+
 lemma list_augment_twice:
-  "list_augment (list_augment xs i u) j v = list_pad_out xs (max i j)[i := u, j := v]"
+  "list_augment (list_augment xs i u) j v = (list_pad_out xs (max i j))[i:=u, j:=v]"
   apply (auto simp add: list_augment_def list_pad_out_def list_update_append_lemma1 replicate_add[THEN sym] max_def)
   apply (metis Suc_le_mono add.commute diff_diff_add diff_le_mono le_add_diff_inverse2)
 done

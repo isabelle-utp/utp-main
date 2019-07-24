@@ -81,7 +81,7 @@ fun lens_proof tname x thy =
               [ Const (Trueprop, dummyT)
               $ (Const (vwb_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT))]))
       (fn {context = context, prems = _}
-                           => EVERY [ Locale.intro_locales_tac true context []
+                           => EVERY [ Locale.intro_locales_tac {strict = true, eager = true} context []
                                     , PARALLEL_ALLGOALS (asm_simp_tac 
                                                           (fold add_simp (get_thm thy (x ^ "_def") :: get_thms thy (tname ^ ".defs"))
                                                                          context))])
@@ -134,7 +134,7 @@ fun lens_bij_proof tname thy =
                 (Const (lens_plus, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
                                            $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ child_lensN, dummyT)))]))
       (fn {context = context, prems = _}
-                           => EVERY [ Locale.intro_locales_tac true context []
+                           => EVERY [ Locale.intro_locales_tac {strict = true, eager = true} context []
                                     , auto_tac (fold add_simp (get_thms thy lens_defsN @ [get_thm thy prod_case_eq_ifN])
                                                                          context)])
   end
