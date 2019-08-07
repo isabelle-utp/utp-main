@@ -110,7 +110,7 @@ instance uexpr :: (ordered_ab_group_add_abs, type) ordered_ab_group_add_abs
 text \<open> The next theorem lifts powers. \<close>
 
 lemma power_rep_eq [ueval]: "\<lbrakk>P ^ n\<rbrakk>\<^sub>e = (\<lambda> b. \<lbrakk>P\<rbrakk>\<^sub>e b ^ n)"
-  by (induct n, simp_all add: lit.rep_eq one_uexpr_def bop.rep_eq times_uexpr_def)
+  by (induct n, simp_all add: lit.rep_eq one_uexpr_def times_uexpr_def fun_eq_iff uexpr_appl.rep_eq)
 
 lemma of_nat_uexpr_rep_eq [ueval]: "\<lbrakk>of_nat x\<rbrakk>\<^sub>e b = of_nat x"
   by (induct x, simp_all add: uexpr_defs ueval)

@@ -49,23 +49,31 @@ text \<open> A literal is simply a constant function expression, always returnin
 
 lift_definition lit :: "'t \<Rightarrow> ('t, '\<alpha>) uexpr" ("\<guillemotleft>_\<guillemotright>") is "\<lambda> v b. v" .
 
+text \<open> The following operator is the general function application for expressions. \<close>
+
+lift_definition uexpr_appl :: "('a \<Rightarrow> 'b, 's) uexpr \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('b, 's) uexpr" (infixl "|>" 85)
+is "\<lambda> f x s. f s (x s)" .
+
 text \<open> We define lifting for unary, binary, ternary, and quaternary expression constructs, that 
   simply take a HOL function with correct number of arguments and apply it function to all possible 
   results of the expressions. \<close>
 
-lift_definition uop :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr"
-  is "\<lambda> f e b. f (e b)" .
-lift_definition bop ::
+abbreviation uop :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr"
+  where "uop f e \<equiv> \<guillemotleft>f\<guillemotright> |> e"
+
+abbreviation bop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr"
-  is "\<lambda> f u v b. f (u b) (v b)" .
-lift_definition trop ::
+  where "bop f u v \<equiv> \<guillemotleft>f\<guillemotright> |> u |> v"
+
+abbreviation trop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr"
-  is "\<lambda> f u v w b. f (u b) (v b) (w b)" .
-lift_definition qtop ::
+  where "trop f u v w \<equiv> \<guillemotleft>f\<guillemotright> |> u |> v |> w"
+
+abbreviation qtop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c \<Rightarrow> 'd \<Rightarrow> 'e) \<Rightarrow>
    ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr \<Rightarrow> ('d, '\<alpha>) uexpr \<Rightarrow>
    ('e, '\<alpha>) uexpr"
-  is "\<lambda> f u v w x b. f (u b) (v b) (w b) (x b)" .
+  where "qtop f u v w x \<equiv> \<guillemotleft>f\<guillemotright> |> u |> v |> w |> x"
 
 text \<open> We also define a UTP expression version of function ($\lambda$) abstraction, that takes
   a function producing an expression and produces an expression producing a function. \<close>
@@ -314,8 +322,8 @@ text \<open> The following two theorems also set up interpretation of numerals, 
 lemma numeral_uexpr_rep_eq [ueval]: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
   apply (induct x)
     apply (simp add: lit.rep_eq one_uexpr_def)
-   apply (simp add: bop.rep_eq numeral_Bit0 plus_uexpr_def)
-  apply (simp add: bop.rep_eq lit.rep_eq numeral_code(3) one_uexpr_def plus_uexpr_def)
+  apply (simp add: bop_ueval numeral_Bit0 plus_uexpr_def)
+  apply (simp add: bop_ueval numeral_Bit1 plus_uexpr_def lit_ueval one_uexpr_def)
   done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"
@@ -333,7 +341,7 @@ text \<open> In general unliteralising converts function applications to corresp
   hence the following two simplification rules. \<close>
 
 lemma lit_numeral_1: "uop numeral x = Abs_uexpr (\<lambda>b. numeral (\<lbrakk>x\<rbrakk>\<^sub>e b))"
-  by (simp add: uop_def)
+  by (simp add: uexpr_appl_def lit.rep_eq)
 
 lemma lit_numeral_2: "Abs_uexpr (\<lambda> b. numeral v) = numeral v"
   by (metis lit.abs_eq lit_numeral)

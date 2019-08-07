@@ -262,33 +262,33 @@ lemma UINF_cong_eq:
  by (unfold UINF_def, pred_simp, metis)
 
 lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
    apply (auto)
   done
 
 lemma UINF_as_Sup_collect: "(\<Sqinter>P\<in>A \<bullet> f(P)) = (\<Sqinter>P\<in>A. f(P))"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: Setcompr_eq_image)
   done
 
 lemma UINF_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
   done
 
 lemma UINF_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
    apply (auto)
   done
 
 lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
    apply (auto)
@@ -300,13 +300,13 @@ lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<i
   done
 
 lemma USUP_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Sup_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
   done
 
 lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> (f ` \<P>)"
-  apply (simp add: upred_defs bop.rep_eq lit.rep_eq Inf_uexpr_def)
+  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
    apply (auto)
@@ -381,7 +381,7 @@ lemma USUP_atLeast_Suc:
 
 lemma conj_UINF_dist:
   "(P \<and> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<and> F(Q))"
-  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
+  by (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq, pred_auto)
 
 lemma conj_UINF_ind_dist:
   "(P \<and> (\<Sqinter> Q \<bullet> F(Q))) = (\<Sqinter> Q \<bullet> P \<and> F(Q))"
@@ -389,7 +389,7 @@ lemma conj_UINF_ind_dist:
 
 lemma disj_UINF_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<or> (\<Sqinter> Q\<in>S \<bullet> F(Q))) = (\<Sqinter> Q\<in>S \<bullet> P \<or> F(Q))"
-  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
+  by (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq, pred_auto)
 
 lemma UINF_conj_UINF [simp]: 
   "((\<Sqinter> i\<in>I \<bullet> P(i)) \<or> (\<Sqinter> i\<in>I \<bullet> Q(i))) = (\<Sqinter> i\<in>I \<bullet> P(i) \<or> Q(i))"
@@ -397,10 +397,10 @@ lemma UINF_conj_UINF [simp]:
 
 lemma conj_USUP_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
-  by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUP.rep_eq inf_uexpr.rep_eq bop.rep_eq lit.rep_eq)
+  by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUP.rep_eq inf_uexpr.rep_eq uexpr_appl.rep_eq lit.rep_eq)
 
 lemma USUP_conj_USUP [simp]: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
-  by (simp add: upred_defs bop.rep_eq lit.rep_eq, pred_auto)
+  by (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq, pred_auto)
 
 lemma UINF_all_cong [cong]:
   assumes "\<And> P. F(P) = G(P)"
