@@ -295,7 +295,7 @@ subsection \<open> Syntax Translations \<close>
     
 syntax
   \<comment> \<open> Alternative traditional conditional syntax \<close>
-  "_utp_if" :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if\<^sub>u (_)/ then (_)/ else (_))" [0, 0, 71] 71)
+  "_utp_if" :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if (_)/ then (_)/ else (_)/ fi)")
   \<comment> \<open> Iterated sequential composition \<close>
   "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   \<comment> \<open> Single and multiple assignement \<close>

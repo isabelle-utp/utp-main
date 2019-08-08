@@ -160,18 +160,21 @@ lemma unrest_ouvar_iuvar [unrest]:
 
 text \<open> Unrestriction distributes through the various function lifting expression constructs;
   this allows us to prove unrestrictions for the majority of the expression language. \<close>
-    
-lemma unrest_uop [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> uop f e"
+
+lemma unrest_appl [unrest]: "\<lbrakk> x \<sharp> f; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> f |> v"
   by (transfer, simp)
+
+lemma unrest_uop [unrest]: "x \<sharp> e \<Longrightarrow> x \<sharp> uop f e"
+  by (simp add: unrest)
 
 lemma unrest_bop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> bop f u v"
-  by (transfer, simp)
+  by (simp add: unrest)
 
 lemma unrest_trop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w \<rbrakk> \<Longrightarrow> x \<sharp> trop f u v w"
-  by (transfer, simp)
+  by (simp add: unrest)
 
 lemma unrest_qtop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w; x \<sharp> y \<rbrakk> \<Longrightarrow> x \<sharp> qtop f u v w y"
-  by (transfer, simp)
+  by (simp add: unrest)
 
 text \<open> For convenience, we also prove unrestriction rules for the bespoke operators on equality,
   numbers, arithmetic etc. \<close>

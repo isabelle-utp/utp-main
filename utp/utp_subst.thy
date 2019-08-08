@@ -370,6 +370,9 @@ lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<
 text \<open> We add the symmetric definition of input and output variables to substitution laws
         so that the variables are correctly normalised after substitution. \<close>
 
+lemma subst_appl [usubst]: "\<sigma> \<dagger> f |> v = (\<sigma> \<dagger> f) |> (\<sigma> \<dagger> v)"
+  by (transfer, simp)
+
 lemma subst_uop [usubst]: "\<sigma> \<dagger> uop f v = uop f (\<sigma> \<dagger> v)"
   by (transfer, simp)
 

@@ -58,7 +58,10 @@ lemma usedBy_var [unrest]:
   using assms
   by (transfer, simp add: uexpr_defs pr_var_def)
      (metis lens_override_def sublens_obs_get vwb_lens_def wb_lens.get_put)    
-  
+
+lemma usedBy_appl [unrest]: "\<lbrakk> x \<natural> f; x \<natural> v \<rbrakk> \<Longrightarrow> x \<natural> f |> v"
+  by (transfer, simp)
+
 lemma usedBy_uop [unrest]: "x \<natural> e \<Longrightarrow> x \<natural> uop f e"
   by (transfer, simp)
 

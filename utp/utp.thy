@@ -27,6 +27,7 @@ imports
   utp_rel_laws
   utp_sequent
   utp_state_parser
+  utp_lift_parser
   utp_sym_eval
   utp_tactics
   utp_hoare

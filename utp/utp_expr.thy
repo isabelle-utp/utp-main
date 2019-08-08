@@ -270,16 +270,7 @@ lemma lit_ueval [ueval]: "\<lbrakk>\<guillemotleft>x\<guillemotright>\<rbrakk>\<
 lemma var_ueval [ueval]: "\<lbrakk>var x\<rbrakk>\<^sub>eb = get\<^bsub>x\<^esub> b"
   by (transfer, simp)
 
-lemma uop_ueval [ueval]: "\<lbrakk>uop f x\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb)"
-  by (transfer, simp)
-
-lemma bop_ueval [ueval]: "\<lbrakk>bop f x y\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb)"
-  by (transfer, simp)
-
-lemma trop_ueval [ueval]: "\<lbrakk>trop f x y z\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb) (\<lbrakk>z\<rbrakk>\<^sub>eb)"
-  by (transfer, simp)
-
-lemma qtop_ueval [ueval]: "\<lbrakk>qtop f x y z w\<rbrakk>\<^sub>eb = f (\<lbrakk>x\<rbrakk>\<^sub>eb) (\<lbrakk>y\<rbrakk>\<^sub>eb) (\<lbrakk>z\<rbrakk>\<^sub>eb) (\<lbrakk>w\<rbrakk>\<^sub>eb)"
+lemma appl_ueval [ueval]: "\<lbrakk>f |> x\<rbrakk>\<^sub>eb = \<lbrakk>f\<rbrakk>\<^sub>eb (\<lbrakk>x\<rbrakk>\<^sub>eb)"
   by (transfer, simp)
 
 subsection \<open> Misc laws \<close>
@@ -322,8 +313,8 @@ text \<open> The following two theorems also set up interpretation of numerals, 
 lemma numeral_uexpr_rep_eq [ueval]: "\<lbrakk>numeral x\<rbrakk>\<^sub>e b = numeral x"
   apply (induct x)
     apply (simp add: lit.rep_eq one_uexpr_def)
-  apply (simp add: bop_ueval numeral_Bit0 plus_uexpr_def)
-  apply (simp add: bop_ueval numeral_Bit1 plus_uexpr_def lit_ueval one_uexpr_def)
+  apply (simp add: ueval numeral_Bit0 plus_uexpr_def)
+  apply (simp add: ueval numeral_Bit1 plus_uexpr_def one_uexpr_def)
   done
 
 lemma numeral_uexpr_simp: "numeral x = \<guillemotleft>numeral x\<guillemotright>"

@@ -9,7 +9,7 @@ text \<open> Create a mutable data structure to store the names of constants tha
 
 ML \<open>
 structure NoLift = Theory_Data
-  (type T = string Symtab.table
+  (type T = int list Symtab.table
    val empty = Symtab.empty
    val extend = I
    val merge = Symtab.merge (K true));
@@ -17,7 +17,7 @@ structure NoLift = Theory_Data
 val _ =
   let fun nolift_const thy n =  
           let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
-          in NoLift.map (Symtab.update (c, "")) thy end
+          in NoLift.map (Symtab.update (c, [])) thy end
   in
 
   Outer_Syntax.command @{command_keyword no_utp_lift} "declare that certain constants should not be lifted"
@@ -65,6 +65,8 @@ ML \<open>
 *)
 
   val list_appl = Library.foldl (fn (f, x) => Const (@{const_name "uexpr_appl"}, dummyT) $ f $ x);
+
+  (* FIXME: Have the lifting stop for arguments in the associated list *)
 
   fun utp_lift_aux ctx (Const (n, t), args) = 
     if (member (op =) (Symtab.keys (NoLift.get @{theory})) n)
@@ -146,9 +148,13 @@ term "UTP\<open>(length xs + 1 + n \<le> 0) \<or> true\<close>"
 
 term "UTP\<open>\<^bold>\<exists> n \<bullet> (length xs + 1 + n \<le> 0) \<or> true\<close>"
 
+term "UTP\<open>\<lambda> x. x + y\<close>"
+
 locale test =
   fixes x :: "int \<Longrightarrow> 's"
 begin
+
+  text \<open> The lens x and HOL variable y are automatically distinguished \<close>
 
   term "if \<open>x \<le> y\<close> then P else Q fi"
 

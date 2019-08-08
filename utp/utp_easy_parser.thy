@@ -177,12 +177,10 @@ translations
 subsection \<open> Imperative Program Syntax \<close>
 
 syntax
-  "_ue_if_then"    :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _ then _ else _ fi")
   "_ue_hoare"      :: "uexp \<Rightarrow> logic \<Rightarrow> uexp \<Rightarrow> logic" ("{{_}} / _ / {{_}}")
   "_ue_wp"         :: "logic \<Rightarrow> uexp \<Rightarrow> uexp" (infix "wp" 60)
 
 translations
-  "_ue_if_then b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
   "_ue_hoare b P c" => "\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u"
   "_ue_wp P b" => "P wp b" 
 
