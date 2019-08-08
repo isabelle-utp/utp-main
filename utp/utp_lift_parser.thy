@@ -5,7 +5,16 @@ theory utp_lift_parser
   keywords "no_utp_lift" :: "thy_decl_block"
 begin
 
-text \<open> Create a mutable data structure to store the names of constants that should not be lifted \<close>
+text \<open> Here, we derive a parser for UTP expressions that mimicks (and indeed reuses) the syntax of
+  HOL expressions. It has two main features: (1) it lifts HOL functions into UTP expressions using 
+  the @{term "(|>)"} construct; and (2) it recognises when a free variable is a declared lens
+  and treats it as a UTP variable, whilst lifting HOL variables. The parser therefore allows
+  free mixing of HOL operators and lenses. 
+
+  Sometimes it is necessary that operators are handled
+  in a special way however. We, therefore, first create a mutable data structure to store the names 
+  of constants that should not be lifted, and arguments of those constants that should not be 
+  further processed. \<close>
 
 ML \<open>
 structure NoLift = Theory_Data
@@ -15,25 +24,35 @@ structure NoLift = Theory_Data
    val merge = Symtab.merge (K true));
 
 val _ =
-  let fun nolift_const thy n =  
+  let fun nolift_const thy (n, opt) =  
           let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
-          in NoLift.map (Symtab.update (c, [])) thy end
+          in NoLift.map (Symtab.update (c, (map Value.parse_int opt))) thy end
   in
 
   Outer_Syntax.command @{command_keyword no_utp_lift} "declare that certain constants should not be lifted"
-    (Scan.repeat1 Parse.term
+    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
      >> (fn ns => 
          Toplevel.theory 
          (fn thy => Library.foldl (fn (thy, n) => nolift_const thy n) (thy, ns))))  
   end
 \<close>
 
-text \<open> The core UTP operators should not be lifted \<close>
+text \<open> The core UTP operators should not be lifted. Certain operators have arguments that also
+  should not be processed further by expression lifting. For example, in a substitution update
+  @{term "subst_upd \<sigma> x v"}, the lens x (i.e. the second argument) should not be lifted as its 
+  target is not an expression. Consequently, constants names in the command @{command no_utp_lift}  
+  can be accompanied by a list of numbers stating the arguments that should be not be further
+  processed. \<close>
 
 no_utp_lift
-  Groups.zero Groups.one plus uminus minus times divide numeral
-  shEx ushEx uconj udisj uimpl utrue ufalse var ivar ovar 
-  cond rcond uassigns
+  uexpr_appl uop (0) bop (0) trop (0) qtop (0) lit (0)
+  Groups.zero Groups.one plus uminus minus times divide
+  shEx ushEx shAll ushAll unot uconj udisj uimpl utrue ufalse 
+  UINF USUP
+  var ivar ovar 
+  cond rcond uassigns id seqr useq uskip rcond rassume rassert 
+  rgcmd while_top while_bot while_inv while_inv_bot while_vrt
+  subst_upd (1) numeral (0) ivar (0) ovar (0) refineBy
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -70,7 +89,8 @@ ML \<open>
 
   fun utp_lift_aux ctx (Const (n, t), args) = 
     if (member (op =) (Symtab.keys (NoLift.get @{theory})) n)
-      then Term.list_comb (Const (n, t), map (utp_lift ctx) args)
+      then let val (SOME aopt) = Symtab.lookup (NoLift.get @{theory}) n in
+           Term.list_comb (Const (n, t), map_index (fn (i, t) => if (member (op =) aopt i) then t else utp_lift ctx t) args) end
       else
         list_appl
         (case (Syntax.check_term ctx (Const (n, t))) of
@@ -121,7 +141,8 @@ parse_translation \<open>
     (fn ctx => utp_tr ctx (Symbol_Pos.implode o Symbol_Pos.cartouche_content o Symbol_Pos.explode)))]
 \<close>
 
-text \<open> Cartouche parser for UTP expressions \<close>
+text \<open> Cartouche parser for UTP expressions. We can either surround the whole of a UTP relation
+  with a the cartouche, or alternatively just the program text. \<close>
 
 syntax "_uexpr_cartouche" :: \<open>cartouche_position \<Rightarrow> uexp\<close>  ("_")
 
@@ -150,8 +171,12 @@ term "UTP\<open>\<^bold>\<exists> n \<bullet> (length xs + 1 + n \<le> 0) \<or> 
 
 term "UTP\<open>\<lambda> x. x + y\<close>"
 
+term "UTP\<open>$x + 1 \<le> $y\<acute>\<close>"
+
+term "UTP\<open>\<Sqinter> x \<in> A \<bullet> x < y\<close>"
+
 locale test =
-  fixes x :: "int \<Longrightarrow> 's"
+  fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's"
 begin
 
   text \<open> The lens x and HOL variable y are automatically distinguished \<close>
@@ -159,6 +184,14 @@ begin
   term "if \<open>x \<le> y\<close> then P else Q fi"
 
   term "x := \<open>x + y\<close>"
+
+  term "UTP\<open>x := to_nat (xs ! 5)\<close>"
+
+  term "UTP\<open>while (x \<le> 10) do x := x + 1 od\<close>"
+
+  term "UTP\<open>if (x \<le> y) then x := x + 1 ;; x := x + y else II fi\<close>"
+
+  term "UTP\<open>($x < $x\<acute>) \<sqsubseteq> x := x + 1\<close>"
 
 end
 
