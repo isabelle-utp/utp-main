@@ -68,37 +68,27 @@ text \<open> The following function takes a parser, but not-yet type-checked ter
 
 ML \<open> 
 
-(*
-  fun
-  utp_lift ctx (f $ x) = Const (@{const_name "uexpr_appl"}, dummyT) $ utp_lift ctx f $ utp_lift ctx x |
-  utp_lift ctx (Const (n, t)) =
-    if (member (op =) (Symtab.keys (NoLift.get @{theory})) n)
-      then Const (n, t) else
-    (case (Syntax.check_term ctx (Const (n, t))) of
-      Const (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
-      _ => Const (@{const_name lit}, dummyT) $ Const (n, t)) |
-  utp_lift _ (Free c) = Const (@{const_name lit}, dummyT) $ Free c |
-  utp_lift _ (Bound c) = Const (@{const_name lit}, dummyT) $ Bound c |
-  utp_lift ctx (Abs (x, ty, tm)) = Abs (x, ty, utp_lift ctx tm) |
-  utp_lift _ t = raise TERM ("_utp", [t]); 
-*)
-
   val list_appl = Library.foldl (fn (f, x) => Const (@{const_name "uexpr_appl"}, dummyT) $ f $ x);
 
-  (* FIXME: Have the lifting stop for arguments in the associated list *)
-
   fun utp_lift_aux ctx (Const (n, t), args) = 
-    if (member (op =) (Symtab.keys (NoLift.get @{theory})) n)
-      then let val (SOME aopt) = Symtab.lookup (NoLift.get @{theory}) n in
+    \<comment> \<open> If the name of the given constant is in the ``no lifting'' list... \<close>
+    if (member (op =) (Symtab.keys (NoLift.get (Proof_Context.theory_of ctx))) n)
+      \<comment> \<open> ... then do not lift it, and also do not process any arguments in the given list of integers. \<close>
+      then let val (SOME aopt) = Symtab.lookup (NoLift.get (Proof_Context.theory_of ctx)) n in
            Term.list_comb (Const (n, t), map_index (fn (i, t) => if (member (op =) aopt i) then t else utp_lift ctx t) args) end
+      \<comment> \<open> If the name is not in the ``no lifting'' list... \<close>
       else
         list_appl
         (case (Syntax.check_term ctx (Const (n, t))) of
+          \<comment> \<open> ... and it's a lens, then lift it as a UTP variable... \<close>
           Const (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
+          \<comment> \<open> ...otherwise, lift it is a HOL literal \<close>
           _ => Const (@{const_name lit}, dummyT) $ Const (n, t)
         , map (utp_lift ctx) args)
     |
-  utp_lift_aux ctx (Free (n, t), args) = 
+
+  \<comment> \<open> Free variables are handled as constants, except that they are always lifted \<close>
+  utp_lift_aux ctx (Free (n, t), args) =
         list_appl
         (case (Syntax.check_term ctx (Free (n, t))) of
           Free (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
@@ -106,21 +96,17 @@ ML \<open>
         , map (utp_lift ctx) args)
     |
 
-(* utp_lift_aux ctx (Free c, args) = list_appl (Const (@{const_name lit}, dummyT) $ Free c, map (utp_lift ctx) args) | *)
+  \<comment> \<open> Bound variables are always lifted as well \<close>
   utp_lift_aux ctx (Bound n, args) = list_appl (Const (@{const_name lit}, dummyT) $ Bound n, map (utp_lift ctx) args) |
   utp_lift_aux _ (t, args) = raise TERM ("_utp_lift_aux", t :: args)
   and
-  (* FIXME: Think more about abstractions *)
+  (* FIXME: Think more about abstractions; at the moment they are essentially passed over. *)
   utp_lift ctx (Abs (x, ty, tm)) = Abs (x, ty, utp_lift ctx tm) |
   utp_lift ctx t = utp_lift_aux ctx (Term.strip_comb t);
 
+  \<comment> \<open> Apply the Isabelle term parser, strip type constraints, perform lifting, and finally type
+      check the resulting lifted term. \<close>
 
- \<close>
-
-text \<open> Apply the Isabelle term parser, strip type constraints, perform lifting, and finally type
-  check the resulting lifted term. \<close>
-
-ML \<open>
   fun utp_tr ctx content args =
     let fun err () = raise TERM ("utp_tr", args) in
       (case args of
