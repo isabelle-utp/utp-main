@@ -171,6 +171,8 @@ begin
 
   term "x := \<open>x + y\<close>"
 
+  term "UTP\<open>x := to_nat (hd xs)\<close>"
+
   term "UTP\<open>x := to_nat (xs ! 5)\<close>"
 
   term "UTP\<open>while (x \<le> 10) do x := x + 1 od\<close>"
