@@ -1,4 +1,4 @@
-section {* Cardinality of the continuum *}
+section \<open> Cardinality of the continuum \<close>
 
 theory Continuum
   imports
@@ -10,9 +10,9 @@ theory Continuum
     "UTP-Toolkit.Positive"
 begin
 
-subsection {* Cardinality $\mathfrak{c}$ *}
+subsection \<open> Cardinality $\mathfrak{c}$ \<close>
 
-text {* This theory introduces definitions and type class that group Isabelle types that have
+text \<open> This theory introduces definitions and type class that group Isabelle types that have
         cardinality of up to the cardinality of the continuum (i.e. $|\mathbb{R}| = \mathfrak{c}$). We can
         then use the type class to exhibit injections into a universe of types of up to cardinality
         $\mathfrak{c}$, which we can then can then be used to introduce deeply encoded types into the UTP model.
@@ -26,7 +26,7 @@ text {* This theory introduces definitions and type class that group Isabelle ty
         Since we don't have the continuum hypothesis in HOL, we explicitly require that types of up to cardinality $\mathfrak{c}$
         either exhibit an injection into the natural numbers (for types of finite or $\aleph_0$ cardinality)
         or a bijection with the set of natural numbers ($\mathbb{P}\,\mathbb{N}$). With informal justification by
-        the continuum hypothesis there should be no types in between these two possibilities. *}
+        the continuum hypothesis there should be no types in between these two possibilities. \<close>
 
 definition continuum :: "'a set \<Rightarrow> bool" where
 "continuum A \<longleftrightarrow> (\<exists> to_nat :: 'a \<Rightarrow> nat. inj_on to_nat A) \<or> (\<exists> to_nat_set :: 'a \<Rightarrow> nat set. bij_betw to_nat_set A UNIV)"
@@ -34,14 +34,14 @@ definition continuum :: "'a set \<Rightarrow> bool" where
 abbreviation "\<N> \<equiv> UNIV :: nat set"
 abbreviation "\<P>\<N> \<equiv> UNIV :: nat set set"
 
-text {* The continuum can be equivalently characterised using HOL cardinals as types whose cardinality
-        is less than or equal to $\aleph_0$, or else with cardinality equal to $\mathfrak{c}$. *}
+text \<open> The continuum can be equivalently characterised using HOL cardinals as types whose cardinality
+        is less than or equal to $\aleph_0$, or else with cardinality equal to $\mathfrak{c}$. \<close>
 
 lemma continuum_as_card:
   "continuum A \<longleftrightarrow> |A| \<le>o |\<N>| \<or> |A| =o |\<P>\<N>|"
   by (simp add: continuum_def card_of_ordIso[THEN sym] card_of_ordLeq[THEN sym])
 
-text {* We now prove that certain sets are within the continuum; firstly empty sets. *}
+text \<open> We now prove that certain sets are within the continuum; firstly empty sets. \<close>
 
 lemma continuum_empty [simp]:
   "continuum {}"
@@ -79,7 +79,7 @@ proof -
     using ordIso_transitive by (blast)
 qed
 
-text {* The product of two types, both of whose cardinality is up to $\mathfrak{c}$, is again $\mathfrak{c}$ *}
+text \<open> The product of two types, both of whose cardinality is up to $\mathfrak{c}$, is again $\mathfrak{c}$ \<close>
 
 lemma continuum_prod:
   assumes "continuum A" "continuum B"
@@ -126,14 +126,14 @@ next
   done
 qed
 
-text {* A list of continuum sets is in the continuum *}
+text \<open> A list of continuum sets is in the continuum \<close>
 
 lemma continuum_lists:
   assumes "continuum A"
   shows "continuum (lists A)"
   by (meson assms bij_betw_inv continuum_bij_betw countable_continuum countable_lists lists_infinite_bij_betw uncountable_infinite)
 
-text {* A countable set over a type of cardinality up to $\mathfrak{c}$ has cardinality up to $\mathfrak{c}$. *}
+text \<open> A countable set over a type of cardinality up to $\mathfrak{c}$ has cardinality up to $\mathfrak{c}$. \<close>
 
 lemma continuum_csets:
   assumes "continuum A"
@@ -177,7 +177,7 @@ next
     by (auto simp add: continuum_def)
 qed
 
-subsection {* Continuum class *}
+subsection \<open> Continuum class \<close>
 
 class continuum =
   assumes ex_continuum_inj: "(\<exists> to_nat :: 'a \<Rightarrow> nat. inj to_nat) \<or> (\<exists> to_nat_set :: 'a \<Rightarrow> nat set. bij to_nat_set)"
@@ -241,12 +241,12 @@ lemma from_nat_set_to_nat_set [simp]:
   "from_nat_set (to_nat_set x) = x"
   by (simp add: from_nat_set_def)
 
-text {* Every countable type is within the continuum *}
+text \<open> Every countable type is within the continuum \<close>
 
 instance countable \<subseteq> continuum
   by (intro_classes, simp add: countable_infinite_type_inj_ex)
 
-text {* We construct bijective versions of @{const to_nat_set} and @{const from_nat_set} *}
+text \<open> We construct bijective versions of @{const to_nat_set} and @{const from_nat_set} \<close>
 
 definition to_nat_set_bij :: "'a::{continuum, infinite} \<Rightarrow> nat set" where
 "to_nat_set_bij = (SOME f. bij f)"
@@ -256,13 +256,13 @@ lemma to_nat_set_bij:
   apply (auto simp add: bij_def)
   oops
 
-text {* The real numbers are in the continuum -- this requires a proof that $|\mathbb{P}\,\mathbb{N}| = |\mathbb{R}|$
- that we have proved elsewhere. *}
+text \<open> The real numbers are in the continuum -- this requires a proof that $|\mathbb{P}\,\mathbb{N}| = |\mathbb{R}|$
+ that we have proved elsewhere. \<close>
 
 instance real :: continuum
   using real_nats_bij by (intro_classes, blast)
 
-text {* Any set over a countable type is within the continuum *}
+text \<open> Any set over a countable type is within the continuum \<close>
 
 instance set :: (countable) continuum
 proof
@@ -302,7 +302,7 @@ proof
   qed
 qed
 
-text {* A product of two continuum types is within the continuum *}
+text \<open> A product of two continuum types is within the continuum \<close>
 
 instance prod :: (continuum, continuum) continuum
 proof
@@ -316,7 +316,7 @@ proof
     by (simp add: continuum_def)
 qed
 
-text {* A list over a continuum type is within the continuum *}
+text \<open> A list over a continuum type is within the continuum \<close>
 
 instance list :: (continuum) continuum
 proof
@@ -328,7 +328,7 @@ proof
     by (simp add: continuum_def)
 qed
 
-text {* A countable set over a continuum type is within the continuum *}
+text \<open> A countable set over a continuum type is within the continuum \<close>
 
 instance cset :: (continuum) continuum
 proof
@@ -338,7 +338,7 @@ proof
     by (simp add: continuum_def)
 qed
 
-text {* A positive number over a continuum type is within the continuum *}
+text \<open> A positive number over a continuum type is within the continuum \<close>
 
 lemma ge_num_infinite_if_no_top:
   "infinite {x::'a::{linorder, no_top}. n \<le> x}"
@@ -361,7 +361,7 @@ done
 
 instance pos :: ("{zero, linorder, no_top}") two ..
 
-text {* The next theorem is not entirely trivial to prove! *}
+text \<open> The next theorem is not entirely trivial to prove! \<close>
 
 instance pos :: ("{linordered_ab_group_add, no_top, continuum}") continuum
   apply (intro_classes)
@@ -373,7 +373,7 @@ instance pos :: ("{linordered_ab_group_add, no_top, continuum}") continuum
     apply (clarsimp)
     apply (thin_tac "countable UNIV")
     apply (rule_tac x = "to_nat o Rep_pos" in exI)
-    apply (rule inj_comp)
+    apply (rule inj_compose)
      apply (assumption)
     apply (meson Rep_pos_inject injI)
     \<comment> \<open> Subgoal 1.2 \<close>

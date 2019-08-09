@@ -1,4 +1,4 @@
-section {* Encoding real numbers as bit sequences *}
+section \<open> Encoding real numbers as bit sequences \<close>
 
 theory Real_Bit
 imports
@@ -8,11 +8,11 @@ imports
   Dyadic
 begin
 
-text {* The objective of this theory is to show how every real number can be encoded as an infinite
+text \<open> The objective of this theory is to show how every real number can be encoded as an infinite
   sequences of bits. Whilst being an interesting property in its own right, this in particular
   means that we can show that the real numbers can be encoded as a a set of natural numbers
   (i.e. a function of type @{typ "nat \<Rightarrow> bool"} -- a bit sequence), and thus have the same
-  cardinality. *}
+  cardinality. \<close>
 
 declare [[linarith_split_limit=12]]
 
@@ -21,8 +21,8 @@ definition bits_to_nats :: "(nat \<Rightarrow> bit) \<Rightarrow> nat set" where
 
 lemma bij_bits_to_nats: "bij bits_to_nats"
   apply (rule bijI)
-  apply (rule injI)
-  apply (auto simp add: bits_to_nats_def set_eq_iff)
+   apply (rule injI)
+   apply (simp add: bits_to_nats_def set_eq_iff)
   apply (rule ext)
   apply (rename_tac x y i)
   apply (case_tac "x i", auto)
@@ -31,7 +31,7 @@ lemma bij_bits_to_nats: "bij bits_to_nats"
   apply (rename_tac x)
   apply (rule_tac x="\<lambda> i. if (i \<in> x) then 1 else 0" in exI)
   apply (auto)
-done
+  done
 
 lemma card_of_bit_seq: "|UNIV :: (nat \<Rightarrow> bit) set| =o |UNIV :: nat set set|"
   using bij_bits_to_nats card_of_ordIsoI by blast
@@ -89,7 +89,7 @@ lemma recurrent_recur: "recurrent (recur xs)"
   apply (auto)
 done
 
-text {* Convert a binary representation to a real number in [0..1] *}
+text \<open> Convert a binary representation to a real number in [0..1] \<close>
 
 definition binlist :: "bit list \<Rightarrow> real" where
 "binlist xs = (\<Sum> i<length xs. of_bit(xs!i)/2^(i+1))"
@@ -109,16 +109,16 @@ lemma "bij_betw binlist {xs. length xs > 0 \<longrightarrow> last xs = 1} \<rat>
   apply (rule bij_betwI')
 *)
 
-text {* For real number x, calculate the nth binary digit, given all the bits from 0..n-1 *}
+text \<open> For real number x, calculate the nth binary digit, given all the bits from 0..n-1 \<close>
 
 definition rbit :: "real \<Rightarrow> nat \<Rightarrow> bit list \<Rightarrow> bit" where
   "rbit x n xs = of_int \<lfloor>(x - binlist xs) * 2^(n+2)\<rfloor>"
 
-text {* Convert a real number in the range [0..1) to a sequence of binary digits *}
+text \<open> Convert a real number in the range [0..1) to a sequence of binary digits \<close>
 
-text {* Extract the nth bit of a real number by shifting it to the left n+1 places (power multiplication),
+text \<open> Extract the nth bit of a real number by shifting it to the left n+1 places (power multiplication),
         chopping off the fractional part (flooring it), and removing all but the first bit of
-        the integer part (by takes modulus 2). *}
+        the integer part (by takes modulus 2). \<close>
 
 definition rbseq :: "real \<Rightarrow> (nat \<Rightarrow> bit)" where
 "rbseq x = (\<lambda> i.  of_int (\<lfloor>(x * (2 ^ (i+1)))\<rfloor> mod 2))"
@@ -336,12 +336,12 @@ lemma binseq_rbseq: "binseq (rbseq x) i = (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod
   apply (metis not_mod_2_eq_0_eq_1 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1)
 done
 
-text {* The contribution of the nth bit to a real number *}
+text \<open> The contribution of the nth bit to a real number \<close>
 
 definition nth_cont :: "real \<Rightarrow> nat \<Rightarrow> real" where
 "nth_cont x i = \<lfloor>x * (2^(i+1))\<rfloor> mod 2 / (2^(i+1))"
 
-text {* Every bit contribution is less than the whole *}
+text \<open> Every bit contribution is less than the whole \<close>
 
 lemma nth_cont_cases [case_names zero nzero]:
   "\<lbrakk> nth_cont x i = 0 \<Longrightarrow> P; nth_cont x i = 1/2^(i+1) \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
@@ -388,8 +388,8 @@ proof -
   finally show ?thesis .
 qed
 
-text {* The removal of the (contribution of) the ith bit from a real number does not affect
-        the jth bit. *}
+text \<open> The removal of the (contribution of) the ith bit from a real number does not affect
+        the jth bit. \<close>
 
 lemma nth_cont_removed:
   "nth_cont (x - nth_cont x i) i = 0"
@@ -702,7 +702,7 @@ proof -
   have "(\<Sum> i<n. f (i + k)) = sum (\<lambda> i . f (i + k)) {0..<n}"
     by (simp add: atLeast0LessThan)
   thus ?thesis
-    by (simp, subst sum_shift_bounds_nat_ivl[THEN sym], auto)
+    by (simp, subst sum.shift_bounds_nat_ivl[THEN sym], auto)
 qed
 
 lemma binseq_upper: "(\<Sum> i. binseq x (i+k)) \<le> 1/2^k"
@@ -863,7 +863,7 @@ proof -
     by auto
 qed
 
-text {* There is an injection from non-terminal infinite bit sequences to the real numbers *}
+text \<open> There is an injection from non-terminal infinite bit sequences to the real numbers \<close>
 
 lemma bin_real_inj: "inj_on bin_real NonTermBitSeqs"
   using bin_real_nonterminal_inj_aux by (blast intro: inj_onI)

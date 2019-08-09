@@ -5,7 +5,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 27 March 2014 *)
 
-section {* Type Universe *}
+section \<open> Type Universe \<close>
 
 theory UNIV_TYPE
 imports Main

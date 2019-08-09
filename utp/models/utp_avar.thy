@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Feb 2017 *)
 
-section {* Axiomatic Variables *}
+section \<open> Axiomatic Variables \<close>
 
 theory utp_avar
   imports
@@ -16,24 +16,24 @@ begin recall_syntax
 
 default_sort type
 
-text {*
+text \<open>
   Note that theory @{text ulens} already includes key definitions and laws
   for defining the required lenses for axiomatic variables. Our concern here
   is merely to integrate them smoothly into Isabelle/UTP.
-*}
+\<close>
 
-subsection {* Compatibility with Isabelle/UTP *}
+subsection \<open> Compatibility with Isabelle/UTP \<close>
 
-subsubsection {* Late-Inclusion Side-effects *}
+subsubsection \<open> Late-Inclusion Side-effects \<close>
 
-text {*
+text \<open>
   A problem in Isabelle/HOL is that depending on the order in which imported
   theories are processed, undeclaration of syntax and notations may be lost
   after the inclusion; in particular, if a theory is imported that does not
   depend on the theory that undeclares the respective notation or syntax. We
   use the @{text TotalRecall} utility and @{command purge_notation} command
   to solve this problem here.
-*}
+\<close>
 
 \<comment> \<open> From @{text utype}. \<close>
 
@@ -41,20 +41,20 @@ purge_notation
   Set.member  ("op :") and
   Set.member  ("(_/ : _)" [51, 51] 50)
 
-subsubsection {* Syntactic Adjustments *}
+subsubsection \<open> Syntactic Adjustments \<close>
 
-text {*
+text \<open>
   We undeclare several notations here to avoid inherent ambiguities with those
   used in Isabelle/UTP. We note that it is sufficient to remove them as input
   notations, namely to be still able to take advantage of them being printed.
-*}
+\<close>
 
 purge_notation (input)
   dash ("_\<acute>" [1000] 1000) and
   undash ("_\<inverse>" [1000] 1000) and
   subscr ("_\<^bsub>_\<^esub>" [1000, 0] 1000)
 
-text {* The prefix @{text "uvar."} is important to avoid errors by the tool. *}
+text \<open> The prefix @{text "uvar."} is important to avoid errors by the tool. \<close>
 
 purge_syntax (input)
   "_MkPVar1" :: "id \<Rightarrow>         'a uvar.var" ("$_" [1000] 1000)
@@ -70,19 +70,19 @@ purge_notation (input)
   ustate_app_mono ("_\<cdot>_" [1000, 1000] 1000) and
   ustate_app_poly ("_\<star>_" [1000, 1000] 1000)
 
-subsubsection {* Hiding Constants and Types *}
+subsubsection \<open> Hiding Constants and Types \<close>
 
 hide_type (open) uvar.uvar
 
-subsubsection {* Forgetting Liftings *}
+subsubsection \<open> Forgetting Liftings \<close>
 
-text {* The liftings below can interfere with the automatic proof tactics. *}
+text \<open> The liftings below can interfere with the automatic proof tactics. \<close>
 
 lifting_forget Strings.literal.lifting
 lifting_forget uvar.var.lifting
 lifting_forget ustate.ustate.lifting
 
-subsection {* Variable Constructors *}
+subsection \<open> Variable Constructors \<close>
 
 definition in_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\<alpha>::ust \<times> '\<beta>)" where
 [simp]: "in_avar x = in_var (avar_ust\<^sub>L x)"
@@ -95,7 +95,7 @@ adhoc_overloading
   ovar out_avar and
   svar avar_lens
 
-subsection {* Variable Syntax *}
+subsection \<open> Variable Syntax \<close>
 
 syntax "_MkAxVar1" :: "id \<Rightarrow>         svid" ("{_}" [1000] 1000)
 syntax "_MkAxVar2" :: "id \<Rightarrow> type \<Rightarrow> svid" ("{_::_}"  [1000, 0] 1000)

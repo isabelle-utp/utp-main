@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 22 Mar 2017 *)
 
-section {* Meta-Theory for UTP with Axiomatic Variables *}
+section \<open> Meta-Theory for UTP with Axiomatic Variables \<close>
 
 theory utp_axm
 imports UTP.utp

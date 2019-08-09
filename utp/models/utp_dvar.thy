@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-subsection {* Deep Variables *}
+subsection \<open> Deep Variables \<close>
 
 theory utp_dvar
   imports 
@@ -13,7 +13,7 @@ theory utp_dvar
   "Continuum.Continuum"
 begin recall_syntax
 
-text {* UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
+text \<open> UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
         static in nature, since a new record field can only be introduced definitionally and cannot be
         otherwise arbitrarily created. They are nevertheless very useful as proof automation is excellent,
         and they can fully make use of the Isabelle type system. However, for constructs like alphabet
@@ -28,32 +28,32 @@ text {* UTP variables represented by record fields are shallow, nameless entitie
         have any type, but only a type whose cardinality is up to $\mathfrak{c}$, the cardinality
         of the continuum. This is why we need both deep and shallow variables, as the latter are
         unrestricted in this respect. Each deep variable will therefore specify the cardinality
-        of the type it possesses. *}
+        of the type it possesses. \<close>
 
-subsection {* Cardinalities *}
+subsection \<open> Cardinalities \<close>
 
-text {* We first fix a datatype representing all possible cardinalities for a deep variable. These
+text \<open> We first fix a datatype representing all possible cardinalities for a deep variable. These
         include finite cardinalities, $\aleph_0$ (countable), and $\mathfrak{c}$ (uncountable up
-        to the continuum). *}
+        to the continuum). \<close>
 
 datatype ucard = fin nat | aleph0 ("\<aleph>\<^sub>0") | cont ("\<c>")
 
-text {* Our universe is simply the set of natural numbers; this is sufficient for all types up
-        to cardinality $\mathfrak{c}$. *}
+text \<open> Our universe is simply the set of natural numbers; this is sufficient for all types up
+        to cardinality $\mathfrak{c}$. \<close>
 
 type_synonym uuniv = "nat set"
 
-text {* We introduce a function that gives the set of values within our universe of the given
+text \<open> We introduce a function that gives the set of values within our universe of the given
         cardinality. Since a cardinality of 0 is no proper type, we use finite cardinality 0 to
-        mean cardinality 1, 1 to mean 2 etc. *}
+        mean cardinality 1, 1 to mean 2 etc. \<close>
 
 fun uuniv :: "ucard \<Rightarrow> uuniv set" ("\<U>'(_')") where
 "\<U>(fin n) = {{x} | x. x \<le> n}" |
 "\<U>(\<aleph>\<^sub>0) = {{x} | x. True}" |
 "\<U>(\<c>) = UNIV"
 
-text {* We also define the following function that gives the cardinality of a type within
-        the @{class continuum} type class. *}
+text \<open> We also define the following function that gives the cardinality of a type within
+        the @{class continuum} type class. \<close>
 
 definition ucard_of :: "'a::continuum itself \<Rightarrow> ucard" where
 "ucard_of x = (if (finite (UNIV :: 'a set))
@@ -86,7 +86,7 @@ lemma ucard_of_uncountably_infinite [simp]:
   using countable_finite apply blast
 done
 
-subsection {* Injection functions *}
+subsection \<open> Injection functions \<close>
 
 definition uinject_finite :: "'a::finite \<Rightarrow> uuniv" where
 "uinject_finite x = {to_nat_fin x}"
@@ -125,8 +125,8 @@ proof -
     by linarith
 qed
 
-text {* This is a key theorem that shows that the injection function provides a bijection between
-        any continuum type and the subuniverse of types with a matching cardinality. *}
+text \<open> This is a key theorem that shows that the injection function provides a bijection between
+        any continuum type and the subuniverse of types with a matching cardinality. \<close>
 
 lemma uinject_bij:
   "bij_betw (uinject :: 'a::continuum \<Rightarrow> uuniv) UNIV \<U>(UCARD('a))"
@@ -162,9 +162,9 @@ lemma uproject_inv [simp]:
   "x \<in> \<U>(UCARD('a::continuum)) \<Longrightarrow> uinject ((uproject :: nat set \<Rightarrow> 'a)  x) = x"
   by (metis bij_betw_inv_into_right uinject_bij uproject_def)
 
-subsection {* Deep variables *}
+subsection \<open> Deep variables \<close>
 
-text {* A deep variable name stores both a name and the cardinality of the type it points to *}
+text \<open> A deep variable name stores both a name and the cardinality of the type it points to \<close>
 
 record dname =
   dname_name :: "string"
@@ -172,8 +172,8 @@ record dname =
 
 declare dname.splits [alpha_splits]
 
-text {* A vstore is a function mapping deep variable names to corresponding values in the universe, such
-        that the deep variables specified cardinality is matched by the value it points to. *}
+text \<open> A vstore is a function mapping deep variable names to corresponding values in the universe, such
+        that the deep variables specified cardinality is matched by the value it points to. \<close>
 
 typedef vstore = "{f :: dname \<Rightarrow> uuniv. \<forall> x. f(x) \<in> \<U>(dname_card x)}"
   apply (rule_tac x="\<lambda> x. {0}" in exI)
@@ -249,7 +249,7 @@ proof -
   qed
 qed
 
-text {* The vst class provides the location of the store in a larger type via a lens *}
+text \<open> The vst class provides the location of the store in a larger type via a lens \<close>
 
 class vst =
   fixes vstore_lens :: "vstore \<Longrightarrow> 'a" ("\<V>")
@@ -261,13 +261,10 @@ definition dvar_lift :: "'a::continuum dvar \<Rightarrow> ('a \<Longrightarrow> 
 definition [simp]: "in_dvar x = in_var (x\<up>)"
 definition [simp]: "out_dvar x = out_var (x\<up>)"
 
-adhoc_overloading
-  ivar in_dvar and ovar out_dvar and svar dvar_lift
-
 lemma uvar_dvar: "vwb_lens (x\<up>)"
   by (auto intro: comp_vwb_lens simp add: dvar_lift_def)
 
-text {* Deep variables with different names are independent *}
+text \<open> Deep variables with different names are independent \<close>
 
 lemma dvar_lift_indep_iff:
   fixes x :: "'a::{continuum,two} dvar" and y :: "'b::{continuum,two} dvar"
@@ -284,7 +281,7 @@ lemma dvar_indep_diff_name' [simp]:
   "x \<noteq> y \<Longrightarrow> \<lceil>x\<rceil>\<^sub>d\<up> \<bowtie> \<lceil>y\<rceil>\<^sub>d\<up>"
   by (simp add: dvar_lift_indep_iff mk_dvar.rep_eq)
 
-text {* A basic record structure for vstores *}
+text \<open> A basic record structure for vstores \<close>
 
 record vstore_d =
   vstore :: vstore
@@ -319,7 +316,7 @@ lemma MkDVar_put_comm [simp]:
   "m <\<^sub>l n \<Longrightarrow> put\<^bsub>MkDVar n\<^esub> (put\<^bsub>MkDVar m\<^esub> s u) v = put\<^bsub>MkDVar m\<^esub> (put\<^bsub>MkDVar n\<^esub> s v) u"
   by (simp add: lens_indep_comm)
 
-text {* Set up parsing and pretty printing for deep variables *}
+text \<open> Set up parsing and pretty printing for deep variables \<close>
 
 syntax
   "_dvar"     :: "id \<Rightarrow> svid" ("<_>")
@@ -333,14 +330,14 @@ translations
   "_dvard x" => "CONST MkDVar IDSTR(x)"
   "_dvar_tyd x a" => "_constrain (CONST MkDVar IDSTR(x)) (_uvar_ty a)"
 
-print_translation {*
+print_translation \<open>
 let fun MkDVar_tr' _ [name] =
        Const (@{syntax_const "_dvar"}, dummyT) $
          Name_Utils.mk_id (HOLogic.dest_string (Name_Utils.deep_unmark_const name))
     | MkDVar_tr' _ _ = raise Match in
   [(@{const_syntax "MkDVar"}, MkDVar_tr')]
 end
-*}
+\<close>
 
 definition dvar_exp :: "'t::continuum dvar \<Rightarrow> ('t, '\<alpha>::vst) uexpr"
 where "dvar_exp x = utp_expr.var (dvar_lift x)"

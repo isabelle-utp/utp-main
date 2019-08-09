@@ -1,23 +1,23 @@
-section {* Finite bijections *}
+section \<open> Finite bijections \<close>
 
 theory Finite_Bijection
   imports "HOL-Library.Countable_Set"
 begin
 
-text {* This theory shows that there exists a bijection between any finite type and the set
-        of natural numbers bounded by the cardinality of the finite type. *}
+text \<open> This theory shows that there exists a bijection between any finite type and the set
+        of natural numbers bounded by the cardinality of the finite type. \<close>
 
 definition is_to_nat_ind :: "'a \<Rightarrow> nat \<Rightarrow> bool" where
 "is_to_nat_ind x i \<longleftrightarrow> (finite (UNIV :: 'a set) \<and>
                         i < card (UNIV :: 'a set) \<and>
                         sorted_list_of_set (to_nat_on (UNIV :: 'a set) ` (UNIV :: 'a set)) ! i = to_nat_on (UNIV :: 'a set) x)"
 
-text {* The function @{const to_nat} from the countable class makes no guarantees about
+text \<open> The function @{const to_nat} from the countable class makes no guarantees about
         which natural numbers will be picked for each element. Nevertheless it guaranatees
         a unique natural for each element. We use this to map each of these elements to
         a number in the range 0..|A| by creating a sorted list of the corresponding naturals
         from @{const to_nat} and then assigning each element its index in this list. Thus
-        we end up with a more predictable set of numbers. *}
+        we end up with a more predictable set of numbers. \<close>
 
 definition to_nat_fin :: "'a \<Rightarrow> nat" where
 "to_nat_fin x = (THE i. is_to_nat_ind x i)"

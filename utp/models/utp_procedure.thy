@@ -1,4 +1,4 @@
-subsection {* Procedures *}
+subsection \<open> Procedures \<close>
 
 theory utp_procedure
 imports utp_dvar
