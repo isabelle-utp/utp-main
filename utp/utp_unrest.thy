@@ -178,9 +178,6 @@ lemma unrest_qtop [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v; x \<sharp> w;
 
 text \<open> For convenience, we also prove unrestriction rules for the bespoke operators on equality,
   numbers, arithmetic etc. \<close>
-    
-lemma unrest_eq [unrest]: "\<lbrakk> x \<sharp> u; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> u =\<^sub>u v"
-  by (simp add: eq_upred_def, transfer, simp)
 
 lemma unrest_zero [unrest]: "x \<sharp> 0"
   by (simp add: unrest_lit zero_uexpr_def)

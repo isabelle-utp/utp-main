@@ -425,9 +425,6 @@ lemma subst_one [usubst]: "\<sigma> \<dagger> 1 = 1"
 
 lemma subst_numeral [usubst]: "\<sigma> \<dagger> numeral n = numeral n"
   by (simp add: numeral_uexpr_simp subst_lit)
-  
-lemma subst_eq_upred [usubst]: "\<sigma> \<dagger> (x =\<^sub>u y) = (\<sigma> \<dagger> x =\<^sub>u \<sigma> \<dagger> y)"
-  by (simp add: eq_upred_def usubst)
 
 text \<open> This laws shows the effect of applying one substitution after another -- we simply
   use function composition to compose them. \<close>

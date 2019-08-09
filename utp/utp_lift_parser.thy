@@ -116,7 +116,7 @@ ML \<open>
       (case args of
         [(Const (\<^syntax_const>\<open>_constrain\<close>, _)) $ Free (s, _) $ p] =>
           (case Term_Position.decode_position p of
-            SOME (pos, _) => Syntax.check_term ctx (utp_lift ctx (Type.strip_constraints (Syntax.parse_term ctx (content (s, pos)))))
+            SOME (pos, _) => (utp_lift ctx (Type.strip_constraints (Syntax.parse_term ctx (content (s, pos)))))
           | NONE => err ())
       | _ => err ())
     end;
@@ -162,6 +162,8 @@ term "UTP\<open>\<^bold>\<exists> n \<bullet> (length xs + 1 + n \<le> 0) \<or> 
 term "UTP\<open>\<lambda> x. x + y\<close>"
 
 term "UTP\<open>$x + 1 \<le> $y\<acute>\<close>"
+
+term "UTP\<open>$x\<acute> = $x + 1 \<and> $y\<acute> = $y\<close>"
 
 term "UTP\<open>\<Sqinter> x \<in> A \<bullet> x < y\<close>"
 

@@ -97,8 +97,8 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop uIf b P Q"
 text \<open> UTP expression is equality is simply HOL equality lifted using the @{term bop} binary 
   expression constructor. \<close>
     
-definition eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infixl "=\<^sub>u" 50)
-where [uexpr_defs]: "eq_upred x y = bop HOL.eq x y"
+abbreviation eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infixl "=\<^sub>u" 50)
+where "eq_upred x y \<equiv> bop HOL.eq x y"
 
 text \<open> A literal is the expression @{term "\<guillemotleft>v\<guillemotright>"}, where @{term v} is any HOL term. Actually, the
   literal construct is very versatile and also allows us to refer to HOL variables within UTP

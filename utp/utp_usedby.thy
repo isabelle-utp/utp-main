@@ -77,9 +77,6 @@ lemma usedBy_qtop [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v; x \<natur
 text \<open> For convenience, we also prove used-by rules for the bespoke operators on equality,
   numbers, arithmetic etc. \<close>
     
-lemma usedBy_eq [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v \<rbrakk> \<Longrightarrow> x \<natural> u =\<^sub>u v"
-  by (simp add: eq_upred_def, transfer, simp)
-
 lemma usedBy_zero [unrest]: "x \<natural> 0"
   by (simp add: usedBy_lit zero_uexpr_def)
 
