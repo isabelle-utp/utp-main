@@ -269,26 +269,7 @@ text \<open> For various reasons, the syntax constructors above all yield specif
   will not parser at the HOL top level (basically this is to do with us wanting to reuse the syntax
   for expressions). As a result we provide some quotation constructors above. 
 
-  Next we need to construct the syntax translations rules. First we need a few polymorphic constants. \<close>
- 
-consts
-  svar :: "'v \<Rightarrow> 'e"
-  ivar :: "'v \<Rightarrow> 'e"
-  ovar :: "'v \<Rightarrow> 'e"
-
-adhoc_overloading
-  svar pr_var and ivar in_var and ovar out_var
-  
-text \<open> The functions above turn a representation of a variable (type @{typ "'v"}), including
-  its name and type, into some lens type @{typ "'e"}. @{term "svar"} constructs a predicate variable,
-  @{term "ivar"} and input variables, and @{term "ovar"} and output variable. The functions bridge 
-  between the model and encoding of the variable and its interpretation as a lens in order to integrate it 
-  into the general lens-based framework. Overriding these functions is then all we need to make 
-  use of any kind of variables in terms of interfacing it with the system. Although in core UTP
-  variables are always modelled using record field, we can overload these constants to allow other
-  kinds of variables, such as deep variables with explicit syntax and type information.
-
-  Finally, we set up the translations rules. \<close>
+  Next we need to construct the syntax translations rules. Finally, we set up the translations rules. \<close>
 
 translations
   \<comment> \<open> Identifiers \<close>
@@ -300,17 +281,17 @@ translations
   "_mk_svid_list (_svid_list x xs)" \<rightharpoonup> "x +\<^sub>L _mk_svid_list xs"
 
   \<comment> \<open> Decorations \<close>
-  "_spvar \<Sigma>"  \<leftharpoondown>  "CONST svar CONST id_lens"
-  "_sinvar \<Sigma>"  \<leftharpoondown> "CONST ivar 1\<^sub>L"
-  "_soutvar \<Sigma>" \<leftharpoondown> "CONST ovar 1\<^sub>L"
-  "_spvar (_svid_dot x y)" \<leftharpoondown> "CONST svar (CONST lens_comp y x)"
-  "_sinvar (_svid_dot x y)" \<leftharpoondown> "CONST ivar (CONST lens_comp y x)"
-  "_soutvar (_svid_dot x y)" \<leftharpoondown> "CONST ovar (CONST lens_comp y x)"
+  "_spvar \<Sigma>"  \<leftharpoondown>  "CONST pr_var CONST id_lens"
+  "_sinvar \<Sigma>"  \<leftharpoondown> "CONST in_var 1\<^sub>L"
+  "_soutvar \<Sigma>" \<leftharpoondown> "CONST out_var 1\<^sub>L"
+  "_spvar (_svid_dot x y)" \<leftharpoondown> "CONST pr_var (CONST lens_comp y x)"
+  "_sinvar (_svid_dot x y)" \<leftharpoondown> "CONST in_var (CONST lens_comp y x)"
+  "_soutvar (_svid_dot x y)" \<leftharpoondown> "CONST out_var (CONST lens_comp y x)"
   "_svid_dot x (_svid_dot y z)" \<leftharpoondown> "_svid_dot x (CONST lens_comp z y)"
 
-  "_spvar x" \<rightleftharpoons> "CONST svar x"
-  "_sinvar x" \<rightleftharpoons> "CONST ivar x"
-  "_soutvar x" \<rightleftharpoons> "CONST ovar x"
+  "_spvar x" \<rightleftharpoons> "CONST pr_var x"
+  "_sinvar x" \<rightleftharpoons> "CONST in_var x"
+  "_soutvar x" \<rightleftharpoons> "CONST out_var x"
 
   \<comment> \<open> Alphabets \<close>
   "_salphaparen a" \<rightharpoonup> "a"

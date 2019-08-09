@@ -258,11 +258,11 @@ lemma subst_upd_lens_plus [usubst]:
   by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto)
 
 lemma subst_upd_in_lens_plus [usubst]: 
-  "subst_upd \<sigma> (ivar (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
+  "subst_upd \<sigma> (in_var (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
   by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto simp add: prod.case_eq_if)
 
 lemma subst_upd_out_lens_plus [usubst]: 
-  "subst_upd \<sigma> (ovar (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x\<acute> \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
+  "subst_upd \<sigma> (out_var (x +\<^sub>L y)) \<guillemotleft>(u,v)\<guillemotright> = \<sigma>($y\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $x\<acute> \<mapsto>\<^sub>s \<guillemotleft>u\<guillemotright>)"
   by (simp add: lens_defs uexpr_defs subst_upd_uvar_def, transfer, auto simp add: prod.case_eq_if)
     
 lemma usubst_lookup_upd_indep [usubst]:

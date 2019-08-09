@@ -61,6 +61,8 @@ text \<open> We define lifting for unary, binary, ternary, and quaternary expres
 abbreviation uop :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr"
   where "uop f e \<equiv> \<guillemotleft>f\<guillemotright> |> e"
 
+declare [[coercion_map uop]] \<comment> \<open> @{const uop} is useful as a coercion map \<close>
+
 abbreviation bop ::
   "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr \<Rightarrow> ('c, '\<alpha>) uexpr"
   where "bop f u v \<equiv> \<guillemotleft>f\<guillemotright> |> u |> v"

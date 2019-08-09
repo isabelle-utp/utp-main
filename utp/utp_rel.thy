@@ -30,21 +30,21 @@ lemma in\<alpha>_uvar [simp]: "vwb_lens in\<alpha>"
 lemma out\<alpha>_uvar [simp]: "vwb_lens out\<alpha>"
   by (unfold_locales, auto simp add: out\<alpha>_def)
 
-lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = ivar x"
+lemma var_in_alpha [simp]: "x ;\<^sub>L in\<alpha> = in_var x"
   by (simp add: fst_lens_def in\<alpha>_def in_var_def)
 
-lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = ovar x"
+lemma var_out_alpha [simp]: "x ;\<^sub>L out\<alpha> = out_var x"
   by (simp add: out\<alpha>_def out_var_def snd_lens_def)
 
 lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrightarrow> \<lceil>\<lfloor>p\<rfloor>\<^sub><\<rceil>\<^sub>< = p"
   by (pred_simp)
 
-lemma usubst_lookup_ivar_unrest [usubst]:
-  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ivar x) = $x"
+lemma usubst_lookup_in_var_unrest [usubst]:
+  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (in_var x) = $x"
   by (rel_simp, metis fstI)
 
-lemma usubst_lookup_ovar_unrest [usubst]:
-  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (ovar x) = $x\<acute>"
+lemma usubst_lookup_out_var_unrest [usubst]:
+  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (out_var x) = $x\<acute>"
   by (rel_simp, metis sndI)
     
 lemma out_alpha_in_indep [simp]:
@@ -330,7 +330,7 @@ translations
   "_assignment x v" <= "_assignment (_spvar x) v"
   "_nd_assign x" => "CONST nd_assign (_mk_svid_list x)"
   "_nd_assign x" <= "CONST nd_assign x"
-  "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
   "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
