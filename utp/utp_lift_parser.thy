@@ -70,9 +70,13 @@ ML \<open>
 
   val list_appl = Library.foldl (fn (f, x) => Const (@{const_name "uexpr_appl"}, dummyT) $ f $ x);
 
-  fun utp_lift_aux ctx (Const (n, t), args) = 
-    \<comment> \<open> If the name of the given constant is in the ``no lifting'' list... \<close>
-    if (member (op =) (Symtab.keys (NoLift.get (Proof_Context.theory_of ctx))) n)
+  fun utp_lift_aux ctx (Const (n, t), args) =
+    \<comment> \<open> If the leading constructor is an already lifted UTP variable...\<close>
+    if ((n = @{const_name "var"}) andalso (length args > 0))
+    \<comment> \<open> ... then we take the first argument as the variable contents, and apply the remaining arguments \<close>
+    then list_appl (Const (n, t) $ hd args, tl args)
+    \<comment> \<open> Otheriwse, if the name of the given constant is in the ``no lifting'' list... \<close>
+    else if (member (op =) (Symtab.keys (NoLift.get (Proof_Context.theory_of ctx))) n)
       \<comment> \<open> ... then do not lift it, and also do not process any arguments in the given list of integers. \<close>
       then let val (SOME aopt) = Symtab.lookup (NoLift.get (Proof_Context.theory_of ctx)) n in
            Term.list_comb (Const (n, t), map_index (fn (i, t) => if (member (op =) aopt i) then t else utp_lift ctx t) args) end
