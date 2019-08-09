@@ -140,9 +140,9 @@ syntax
   "_top_d" :: "logic" ("\<top>\<^sub>D")
 
 translations
-  "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) false) P"
-  "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
-  "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
+  "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST out_var CONST ok) false) P"
+  "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST out_var CONST ok) true) P"
+  "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST in_var CONST ok))"
 
 subsection \<open> Lifting, Unrestriction, and Substitution \<close>
 

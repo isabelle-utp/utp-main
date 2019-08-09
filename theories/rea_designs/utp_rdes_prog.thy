@@ -55,7 +55,7 @@ translations
   "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (CONST id) xs vs)"
   "_assign_srd x v" <= "CONST assigns_srd (CONST subst_upd (CONST id) x v)"
   "_assign_srd x v" <= "_assign_srd (_spvar x) v"
-  "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
 
 lemma assigns_srd_RHS_tri_des [rdes_def]:
   "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<langle>\<sigma>\<rangle>\<^sub>r)"

@@ -240,7 +240,7 @@ translations
   "_assign_rea xs vs" => "CONST rea_assigns (_mk_usubst (CONST id) xs vs)"
   "_assign_rea x v" <= "CONST rea_assigns (CONST subst_upd (CONST id) x v)"
   "_assign_rea x v" <= "_assign_rea (_spvar x) v"
-  "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
   
 lemma rea_assigns_RR_closed [closure]: 
   "\<langle>\<sigma>\<rangle>\<^sub>r is RR"

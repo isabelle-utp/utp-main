@@ -16,7 +16,7 @@ translations
   "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
   "_assignmentd x v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
   "_assignmentd x v" <= "_assignmentd (_spvar x) v"
-  "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST svar x) u) (CONST svar y) v)"
+  "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
 
 lemma assigns_d_is_H1_H2 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>H"
   by (simp add: assigns_d_def rdesign_is_H1_H2)
