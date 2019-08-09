@@ -222,8 +222,8 @@ text \<open> These non-terminals correspond to the following syntactic entities.
   syntax constructors. \<close>
    
 syntax \<comment> \<open> Identifiers \<close>
-  "_svid"         :: "id \<Rightarrow> svid" ("_" [999] 999)
-  "_svlongid"     :: "longid \<Rightarrow> svid" ("_" [999] 999)
+  "_svid"         :: "id_position \<Rightarrow> svid" ("_" [999] 999)
+  "_svlongid"     :: "longid_position \<Rightarrow> svid" ("_" [999] 999)
   "_svid_unit"    :: "svid \<Rightarrow> svids" ("_")
   "_svid_list"    :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
   "_svid_alpha"   :: "svid" ("\<^bold>v")
