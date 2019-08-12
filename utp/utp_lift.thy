@@ -19,6 +19,8 @@ text \<open> We define operators for converting an expression to and from a rela
 abbreviation lift_pre :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub><")
 where "\<lceil>P\<rceil>\<^sub>< \<equiv> P \<oplus>\<^sub>p fst\<^sub>L"
 
+notation lift_pre ("_\<^sup><" [999] 999)
+
 abbreviation drop_pre :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub><")
 where "\<lfloor>P\<rfloor>\<^sub>< \<equiv> P \<restriction>\<^sub>e fst\<^sub>L"
 
@@ -28,6 +30,8 @@ text \<open> The following two functions lift and drop an expression, respective
   
 abbreviation lift_post :: "('a, '\<beta>) uexpr \<Rightarrow> ('a, '\<alpha> \<times> '\<beta>) uexpr" ("\<lceil>_\<rceil>\<^sub>>")
 where "\<lceil>P\<rceil>\<^sub>> \<equiv> P \<oplus>\<^sub>p snd\<^sub>L"
+
+notation lift_post ("_\<^sup>>" [999] 999)
 
 abbreviation drop_post :: "('a, '\<alpha> \<times> '\<beta>) uexpr \<Rightarrow> ('a, '\<beta>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>>")
 where "\<lfloor>P\<rfloor>\<^sub>> \<equiv> P \<restriction>\<^sub>e snd\<^sub>L"

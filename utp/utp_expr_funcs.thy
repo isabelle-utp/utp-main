@@ -123,22 +123,28 @@ text \<open> We provide syntax for various types of set collectors, including in
 syntax
   "_uset_atLeastAtMost" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_.._}\<^sub>u)")
   "_uset_atLeastLessThan" :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("(1{_..<_}\<^sub>u)")
-  "_uset_compr" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _ \<bullet>/ _}\<^sub>u)")
-  "_uset_compr_nset" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _ \<bullet>/ _}\<^sub>u)")
-  "_uset_compr_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _ }\<^sub>u)")
-  "_uset_compr_nset_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _ }\<^sub>u)")
+  "_uset_compr" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _ \<bullet>/ _})")
+  "_uset_compr_nset" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _ \<bullet>/ _})")
+  "_uset_compr_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ :/ _ |/ _})")
+  "_uset_compr_nset_nfun" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ |/ _})")
+  "_uset_compr_nvar" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("(1{_ \<bullet>/ _})")
 
 lift_definition ZedSetCompr ::
-  "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool, '\<alpha>) uexpr \<times> ('b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
-is "\<lambda> A PF b. { snd (PF x) b | x. x \<in> A b \<and> fst (PF x) b}" .
+  "('a set, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> (bool \<times> 'b, '\<alpha>) uexpr) \<Rightarrow> ('b set, '\<alpha>) uexpr"
+is "\<lambda> A PF b. { snd (PF x b) | x. x \<in> A b \<and> fst (PF x b)}" .
+
+abbreviation ZedImage :: 
+  "(bool \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b set, '\<alpha>) uexpr" where
+"ZedImage PF \<equiv> ZedSetCompr \<guillemotleft>UNIV\<guillemotright> (\<lambda> x::unit. PF)"
 
 translations
   "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
   "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
-  "{x | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr (CONST lit CONST UNIV) (\<lambda> x. (P, F))"
-  "{x : A | P \<bullet> F}\<^sub>u" == "CONST ZedSetCompr A (\<lambda> x. (P, F))"
-  "{x : A | P}\<^sub>u" => "{x : A | P \<bullet> \<guillemotleft>x\<guillemotright>}\<^sub>u"
-  "{x | P}\<^sub>u" == "{x : \<guillemotleft>CONST UNIV\<guillemotright> | P}\<^sub>u"
+  "{x | P \<bullet> F}" == "CONST ZedSetCompr (CONST lit CONST UNIV) (\<lambda> x. (P, F)\<^sub>u)"
+  "{x : A | P \<bullet> F}" == "CONST ZedSetCompr A (\<lambda> x. (P, F)\<^sub>u)"
+  "{x : A | P}" => "{x : A | P \<bullet> \<guillemotleft>x\<guillemotright>}"
+  "{x | P}" == "{x : \<guillemotleft>CONST UNIV\<guillemotright> | P}"
+  "{P \<bullet> F}" == "CONST ZedImage (P, F)\<^sub>u"
 
 subsection \<open> Lifting limits \<close>
   

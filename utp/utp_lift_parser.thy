@@ -49,10 +49,10 @@ no_utp_lift
   Groups.zero Groups.one plus uminus minus times divide
   shEx ushEx shAll ushAll unot uconj udisj uimpl utrue ufalse 
   UINF USUP
-  var (0) in_var (0) out_var  (0)
+  var (0) in_var (0) out_var (0) lift_pre lift_post
   cond rcond uassigns id seqr useq uskip rcond rassume rassert 
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
-  subst_upd (1) numeral (0) refineBy
+  subst_upd (1) numeral (0) refineBy ZedSetCompr
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -86,7 +86,9 @@ ML \<open>
         (case (Syntax.check_term ctx (Const (n, t))) of
           \<comment> \<open> ... and it's a lens, then lift it as a UTP variable... \<close>
           Const (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
-          \<comment> \<open> ...otherwise, lift it is a HOL literal \<close>
+          \<comment> \<open> ... or, if it's a UTP expression already, then leave it alone... \<close>
+          Const (_, Type ("utp_expr.uexpr", _)) => Const (n, t) |
+          \<comment> \<open> ...otherwise, lift it to a HOL literal. \<close>
           _ => Const (@{const_name lit}, dummyT) $ Const (n, t)
         , map (utp_lift ctx) args)
     |
@@ -96,6 +98,7 @@ ML \<open>
         list_appl
         (case (Syntax.check_term ctx (Free (n, t))) of
           Free (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
+          Free (_, Type ("utp_expr.uexpr", _)) => Free (n, t) |
           _ => Const (@{const_name lit}, dummyT) $ Free (n, t)
         , map (utp_lift ctx) args)
     |
@@ -177,6 +180,8 @@ begin
 
   term "x := \<open>x + y\<close>"
 
+  term "UTP\<open>x\<^sup>< = x\<^sup>>\<close>"
+  
   term "UTP\<open>x := to_nat (hd xs)\<close>"
 
   term "UTP\<open>x := to_nat (xs ! 5)\<close>"
