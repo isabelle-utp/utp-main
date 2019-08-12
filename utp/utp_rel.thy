@@ -373,11 +373,11 @@ where [urel_defs]: "ufunctional R \<longleftrightarrow> II \<sqsubseteq> R\<^sup
 definition uinj :: "('a, 'b) urel \<Rightarrow> bool"
 where [urel_defs]: "uinj R \<longleftrightarrow> II \<sqsubseteq> R ;; R\<^sup>-"
   
-definition Dom :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<alpha> upred" 
-where [upred_defs]: "Dom P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<rfloor>\<^sub><"
+definition Pre :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<alpha> upred" 
+where [upred_defs]: "Pre P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<rfloor>\<^sub><"
 
-definition Ran :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred" 
-where [upred_defs]: "Ran P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
+definition Post :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred" 
+where [upred_defs]: "Post P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
 
 \<comment> \<open> Configuration for UTP tactics. \<close>
 

@@ -17,7 +17,7 @@ translations
   "_uwp P b" == "CONST uwp P b"
 
 definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
-[upred_defs]: "wp_upred P b = Dom(P ;; ?[b])"
+[upred_defs]: "wp_upred P b = Pre(P ;; ?[b])"
 
 adhoc_overloading
   uwp wp_upred
@@ -40,7 +40,7 @@ theorem wp_eq_iff: "(\<forall> r. P wp r = Q wp r) \<longrightarrow> P = Q"
 theorem wp_eq_intro: "(\<And> r. P wp r = Q wp r) \<Longrightarrow> P = Q"
   by (simp add: wp_eq_iff)
 
-lemma wp_true: "P wp true = Dom(P)"
+lemma wp_true: "P wp true = Pre(P)"
   by (rel_auto)
 
 lemma wp_false [wp]: "P wp false = false"
@@ -50,7 +50,7 @@ lemma wp_abort [wp]: "false wp b = false"
   by (rel_auto)
 
 lemma wp_seq [wp]: "(P ;; Q) wp b = P wp (Q wp b)"
-  by (simp add: wp_upred_def, metis Dom_seq RA1)
+  by (simp add: wp_upred_def, metis Pre_seq RA1)
 
 lemma wp_disj [wp]: "(P \<or> Q) wp b = (P wp b \<or> Q wp b)"
   by (rel_auto)
@@ -110,7 +110,7 @@ text \<open> Weakest Precondition and Weakest Liberal Precondition are equivalen
 lemma wlp_wp_equiv_lem: "\<lbrakk>(Pair a) \<dagger> (II::'a hrel)\<rbrakk>\<^sub>e a"
   by (rel_auto)
 
-lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrightarrow> (Dom(P) = true \<and> ufunctional P)"
+lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrightarrow> (Pre(P) = true \<and> ufunctional P)"
   apply (rel_auto)
     apply blast
    apply (rename_tac a b y)
@@ -120,7 +120,7 @@ lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrighta
   apply blast
   done
 
-lemma total_det_then_wlp_wp_equiv: "\<lbrakk> Dom(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
+lemma total_det_then_wlp_wp_equiv: "\<lbrakk> Pre(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
   using wlp_wp_equiv_total_det by blast
 
 method wp_calc =

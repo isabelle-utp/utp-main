@@ -931,9 +931,9 @@ lemma conj_refine_left:
   by (rel_auto)
   
 lemma pre_weak_rel:
-  assumes "`Pre \<Rightarrow> I`"
-  and     "(I \<Rightarrow> Post) \<sqsubseteq> P"
-  shows "(Pre \<Rightarrow> Post) \<sqsubseteq> P"
+  assumes "`pre \<Rightarrow> I`"
+  and     "(I \<Rightarrow> post) \<sqsubseteq> P"
+  shows "(pre \<Rightarrow> post) \<sqsubseteq> P"
   using assms by(rel_auto)
     
 lemma cond_refine_rel: 
@@ -952,58 +952,58 @@ lemma seq_refine_unrest:
   shows "(b \<Rightarrow> c) \<sqsubseteq> (P ;; Q)"
   using assms by rel_blast 
     
-subsection \<open> Domain and Range Laws \<close>
+subsection \<open> Preain and Postge Laws \<close>
 
 named_theorems domran
 
-lemma Dom_conv_Ran [domran]:
-  "Dom(P\<^sup>-) = Ran(P)"
+lemma Pre_conv_Post [domran]:
+  "Pre(P\<^sup>-) = Post(P)"
   by (rel_auto)
 
-lemma Ran_conv_Dom [domran]:
-  "Ran(P\<^sup>-) = Dom(P)"
+lemma Post_conv_Pre [domran]:
+  "Post(P\<^sup>-) = Pre(P)"
   by (rel_auto)  
 
-lemma Dom_skip [domran]:
-  "Dom(II) = true"
+lemma Pre_skip [domran]:
+  "Pre(II) = true"
   by (rel_auto)
 
-lemma Dom_assigns [domran]:
-  "Dom(\<langle>\<sigma>\<rangle>\<^sub>a) = true"
+lemma Pre_assigns [domran]:
+  "Pre(\<langle>\<sigma>\<rangle>\<^sub>a) = true"
   by (rel_auto)
    
-lemma Dom_miracle [domran]:
-  "Dom(false) = false"
+lemma Pre_miracle [domran]:
+  "Pre(false) = false"
   by (rel_auto)
 
-lemma Dom_assume [domran]:
-  "Dom([b]\<^sup>\<top>) = b"
+lemma Pre_assume [domran]:
+  "Pre([b]\<^sup>\<top>) = b"
   by (rel_auto)
     
-lemma Dom_seq:
-  "Dom(P ;; Q) = Dom(P ;; [Dom(Q)]\<^sup>\<top>)"
+lemma Pre_seq:
+  "Pre(P ;; Q) = Pre(P ;; [Pre(Q)]\<^sup>\<top>)"
   by (rel_auto)
     
-lemma Dom_disj [domran]:
-  "Dom(P \<or> Q) = (Dom(P) \<or> Dom(Q))"
+lemma Pre_disj [domran]:
+  "Pre(P \<or> Q) = (Pre(P) \<or> Pre(Q))"
   by (rel_auto)
 
-lemma Dom_inf [domran]:
-  "Dom(P \<sqinter> Q) = (Dom(P) \<or> Dom(Q))"
+lemma Pre_inf [domran]:
+  "Pre(P \<sqinter> Q) = (Pre(P) \<or> Pre(Q))"
   by (rel_auto)
 
-lemma Dom_conj_rel_aext [domran]: 
-  "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> Dom(P \<oplus>\<^sub>r a \<and> Q \<oplus>\<^sub>r b) = (Dom(P \<oplus>\<^sub>r a) \<and> Dom(Q \<oplus>\<^sub>r b))"
+lemma Pre_conj_rel_aext [domran]: 
+  "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> Pre(P \<oplus>\<^sub>r a \<and> Q \<oplus>\<^sub>r b) = (Pre(P \<oplus>\<^sub>r a) \<and> Pre(Q \<oplus>\<^sub>r b))"
   by (rel_auto, metis (no_types, lifting) lens_indep_def mwb_lens_def vwb_lens_mwb weak_lens_def)
 
 text \<open> If P uses on the variables in @{term a} and @{term Q} does not refer to the variables of
   @{term "$a\<acute>"} then we can distribute. \<close>
 
-lemma Dom_conj_indep [domran]: "\<lbrakk> {$a,$a\<acute>} \<natural> P; $a\<acute> \<sharp> Q; vwb_lens a \<rbrakk> \<Longrightarrow> Dom(P \<and> Q) = (Dom(P) \<and> Dom(Q))"
+lemma Pre_conj_indep [domran]: "\<lbrakk> {$a,$a\<acute>} \<natural> P; $a\<acute> \<sharp> Q; vwb_lens a \<rbrakk> \<Longrightarrow> Pre(P \<and> Q) = (Pre(P) \<and> Pre(Q))"
   by (rel_auto, metis lens_override_def lens_override_idem)
 
-lemma assume_Dom [domran]:
-  "[Dom(P)]\<^sup>\<top> ;; P = P"
+lemma assume_Pre [domran]:
+  "[Pre(P)]\<^sup>\<top> ;; P = P"
   by (rel_auto)
 
 end

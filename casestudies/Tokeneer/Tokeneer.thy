@@ -674,7 +674,7 @@ definition RealWorldChanges :: "RealWorld hrel" where
 lemma RealWorldChanges_original: "RealWorldChanges = ($monitored:now\<acute> \<ge>\<^sub>u $monitored:now)"
   by (rel_auto, simp add: nat_le_iff_add)
 
-lemma pre_RealWorldChanges: "Dom(RealWorldChanges) = true"
+lemma pre_RealWorldChanges: "Pre(RealWorldChanges) = true"
   by (rel_auto) 
 
 
@@ -1066,7 +1066,7 @@ definition UserEntryContext :: "SystemState hrel" where
     ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r idStation
     )"
 
-lemma "pre UserEntryContext = IDStation \<oplus>\<^sub>p idStation"
+lemma "Pre UserEntryContext = IDStation \<oplus>\<^sub>p idStation"
   apply (unfold UserEntryContext_def)
   apply (simp)
   apply (zcalcpre)
@@ -1090,7 +1090,7 @@ lemma UserEntryContext_alt_def [upred_defs]:
    )"
   oops
 
-lemma "pre((RealWorldChanges \<and> \<Xi>[controlled, TISControlledRealWorld]) \<oplus>\<^sub>r realWorld) = true"
+lemma "Pre((RealWorldChanges \<and> \<Xi>[controlled, TISControlledRealWorld]) \<oplus>\<^sub>r realWorld) = true"
   by (rel_auto)
 
 
@@ -1172,7 +1172,7 @@ proof (rule antisym)
 qed
 
 lemma pre_KeyStore:
-  "e \<in> ValidEnrol \<Longrightarrow> Dom(UpdateKeyStore e) = KeyStore"
+  "e \<in> ValidEnrol \<Longrightarrow> Pre(UpdateKeyStore e) = KeyStore"
   apply (rel_auto)
    apply (auto intro: rclos intro!: rel_pfun_override)
   done

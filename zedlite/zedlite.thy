@@ -51,11 +51,11 @@ lemma ZSpec_conj: "(ZSpec a p\<^sub>1 p\<^sub>2 \<and> ZSpec b q\<^sub>1 q\<^sub
 lemma ZSpec_conj_mult: "(ZSpec a p\<^sub>1 p\<^sub>2 \<and> ZSpec b q\<^sub>1 q\<^sub>2 \<and> R) = (ZSpec (a+\<^sub>Lb) (p\<^sub>1\<and>q\<^sub>1) (p\<^sub>2\<and>q\<^sub>2) \<and> R)"
   by (rel_auto)
 
-lemma Dom_ZSpec_empty: "q \<noteq> false \<Longrightarrow> Dom(\<emptyset>:[p,q]\<^sub>Z) = p"
+lemma Dom_ZSpec_empty: "q \<noteq> false \<Longrightarrow> Pre(\<emptyset>:[p,q]\<^sub>Z) = p"
   by (rel_auto)
 
 lemma Dom_ZSpec_conj: 
-  "Dom(\<emptyset>:[p\<^sub>1,p\<^sub>2]\<^sub>Z \<and> Q) = (p\<^sub>1 \<and> Dom(Q \<and> \<lceil>p\<^sub>2\<rceil>\<^sub>>))"
+  "Pre(\<emptyset>:[p\<^sub>1,p\<^sub>2]\<^sub>Z \<and> Q) = (p\<^sub>1 \<and> Pre(Q \<and> \<lceil>p\<^sub>2\<rceil>\<^sub>>))"
   by (rel_auto)
 
 lemma usedby_Delta [unrest]: "vwb_lens a \<Longrightarrow> {$a,$a\<acute>} \<natural> \<Delta>[a,P]"
@@ -106,7 +106,6 @@ lemma mark_alpha_all_conj [mark_alpha]:
 
 subsection \<open> Calculating Preconditions \<close>
 
-abbreviation "pre \<equiv> Dom"
 named_theorems pre
 
 declare domran [pre]
@@ -115,14 +114,14 @@ text \<open> Calculation of preconditions for conjoined relations is in general 
   if we have annotations for disjoint alphabets then the following easier law applies. \<close>
 
 lemma pre_conj_disj_alphas [pre]:
-  "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> pre(a \<lhd>\<^sub>\<alpha> P \<and> b \<lhd>\<^sub>\<alpha> Q) = (pre(a \<lhd>\<^sub>\<alpha> P) \<and> pre(b \<lhd>\<^sub>\<alpha> Q))"
+  "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> Pre(a \<lhd>\<^sub>\<alpha> P \<and> b \<lhd>\<^sub>\<alpha> Q) = (Pre(a \<lhd>\<^sub>\<alpha> P) \<and> Pre(b \<lhd>\<^sub>\<alpha> Q))"
   by (rel_auto, metis lens_indep_get mwb_lens_def vwb_lens_mwb weak_lens.put_get)
 
-lemma pre_marked_aext [pre]: "vwb_lens a \<Longrightarrow> pre(a \<lhd>\<^sub>\<alpha> (P \<oplus>\<^sub>r a)) = pre (\<Sigma> \<lhd>\<^sub>\<alpha> P) \<oplus>\<^sub>p a"
+lemma pre_marked_aext [pre]: "vwb_lens a \<Longrightarrow> Pre(a \<lhd>\<^sub>\<alpha> (P \<oplus>\<^sub>r a)) = Pre (\<Sigma> \<lhd>\<^sub>\<alpha> P) \<oplus>\<^sub>p a"
   by (rel_auto, metis vwb_lens_wb wb_lens_def weak_lens.put_get)
 
 lemma pre_apply_res:
-  "pre P = pre (\<Sigma> \<lhd>\<^sub>\<alpha> P)"
+  "Pre P = Pre (\<Sigma> \<lhd>\<^sub>\<alpha> P)"
   by (rel_auto)
 
 text \<open> We can attempt to calculate a precondition by first marking all the alphabets, and
