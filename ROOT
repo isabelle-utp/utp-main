@@ -71,6 +71,13 @@ session "UTP" in "utp" = "UTP-Toolkit" +
     "root.tex"
     "document.sty"
 
+(* UTP Calculi *)
+
+session "UTP-Calculi" in "calculi" = "UTP" +
+  options [document = false]
+  theories 
+    utp_wprespec
+
 (* Pseudo Z-Notation *)
 
 session "ZedLite" in "zedlite" = "UTP" +
