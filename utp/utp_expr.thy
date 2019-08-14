@@ -80,7 +80,7 @@ abbreviation qtop ::
 text \<open> We also define a UTP expression version of function ($\lambda$) abstraction, that takes
   a function producing an expression and produces an expression producing a function. \<close>
 
-lift_definition ulambda :: "('a \<Rightarrow> ('b, '\<alpha>) uexpr) \<Rightarrow> ('a \<Rightarrow> 'b, '\<alpha>) uexpr"
+lift_definition uabs :: "('a \<Rightarrow> ('b, '\<alpha>) uexpr) \<Rightarrow> ('a \<Rightarrow> 'b, '\<alpha>) uexpr"
 is "\<lambda> f A x. f x A" .
 
 text \<open> We set up syntax for the conditional. This is effectively an infix version of
@@ -202,7 +202,7 @@ nonterminal utuple_args and umaplet and umaplets
 
 syntax \<comment> \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
-  "_ulambda"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
+  "_uabs"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
   "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
@@ -211,7 +211,7 @@ syntax \<comment> \<open> Core expression constructs \<close>
   "_uthe"       :: "logic \<Rightarrow> logic" ("the\<^sub>u'(_')")
 
 translations
-  "\<lambda> x \<bullet> p" == "CONST ulambda (\<lambda> x. p)"
+  "\<lambda> x \<bullet> p" == "CONST uabs (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
