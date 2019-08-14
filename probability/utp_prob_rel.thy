@@ -4,9 +4,8 @@ theory utp_prob_rel
   imports "UTP-Calculi.utp_wprespec" "UTP-Designs.utp_designs" "HOL-Probability.Probability_Mass_Function"
 begin recall_syntax
 
-no_notation inner (infix "\<bullet>" 70)
+purge_notation inner (infix "\<bullet>" 70)
 declare [[coercion pmf]]
-
 
 alphabet 's prss = 
   prob :: "'s pmf"
@@ -21,16 +20,23 @@ lemma prob_lemma1:
 
 no_utp_lift ndesign
 
-definition fprb :: "('s prss, 's) rel_des" ("\<rho>") where
-[upred_defs]: "fprb = UTP\<open>true \<turnstile>\<^sub>n ($prob($\<^bold>v\<acute>) > 0)\<close>"
+type_synonym ('a, 'b) rel_pdes = "('a, 'b prss) rel_des"
 
-definition pemb ("\<K>") where [upred_defs]: "pemb D = \<rho> \\ D"
+translations
+  (type) "('a, 'b) rel_pdes" <= (type) "('a, 'b prss) rel_des"
+
+definition forget_prob :: "('s prss, 's) rel_des" ("\<^bold>f\<^bold>p") where
+[upred_defs]: "forget_prob = UTP\<open>true \<turnstile>\<^sub>n ($prob($\<^bold>v\<acute>) > 0)\<close>"
+
+definition pemb :: "('a, 'b) rel_des \<Rightarrow> ('a, 'b) rel_pdes" ("\<K>")
+  where [upred_defs]: "pemb D = \<^bold>f\<^bold>p \\ D"
+
+lemma pemb_mono: "P \<sqsubseteq> Q \<Longrightarrow> \<K>(P) \<sqsubseteq> \<K>(Q)"
+  by (metis (mono_tags, lifting) dual_order.trans order_refl pemb_def wprespec)
+
+text \<open> Can this law be generalised for normal or arbitrary designs? \<close>
 
 lemma wdprespec: "(true \<turnstile>\<^sub>n R) \\ (p \<turnstile>\<^sub>n Q) = (p \<turnstile>\<^sub>n (R \\ Q))"
-  by (rel_auto)
-
-lemma seqr_unfold_heterogeneous:
-  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> \<lparr>$\<^bold>v\<acute> \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $\<^bold>v \<mapsto>\<^sub>s $\<^bold>v\<rparr> \<dagger> P \<and> \<lparr>$\<^bold>v \<mapsto>\<^sub>s \<guillemotleft>v\<guillemotright>, $\<^bold>v\<acute> \<mapsto>\<^sub>s $\<^bold>v\<acute>\<rparr> \<dagger> Q)"
   by (rel_auto)
 
 syntax
@@ -66,9 +72,20 @@ term "UTP\<open>$prob\<acute> i\<close>"
 
 term "UTP\<open>\<Sum>\<^sub>a i\<in>{s' | (R wp (&\<^bold>v = s'))\<^sup><} \<bullet> $prob\<acute> i\<close>"
 
+lemma "R wp (&\<^bold>v =\<^sub>u \<guillemotleft>s'\<guillemotright>) = Pre(R\<lbrakk>\<guillemotleft>s'\<guillemotright>/$\<^bold>v\<acute>\<rbrakk>)"
+  apply (rel_auto)
+  oops
+
+  term shEx
+
+  term uabs
+
+lemma "shEx P = \<guillemotleft>Ex\<guillemotright> |> (uabs P)"
+  apply (rel_simp)
+  oops
 
 lemma prob_lift:
-  fixes R :: "'s hrel"
+  fixes R :: "('a, 'b) urel"
   shows "\<K>(p \<turnstile>\<^sub>n R) = p \<turnstile>\<^sub>n UTP\<open>infsetsum $prob\<acute> {s' | (R wp (&\<^bold>v = s'))\<^sup><} = 1\<close>"
 proof -
   have 1:"\<K>(p \<turnstile>\<^sub>n R) = p \<turnstile>\<^sub>n ((($prob |> $\<^bold>v\<acute>) >\<^sub>u 0) \\ R)"
@@ -93,10 +110,11 @@ proof -
     by (simp add: "1" "2")
 qed
 
-lemma "vwb_lens x \<Longrightarrow> \<K>(x :=\<^sub>D e) = (true \<turnstile>\<^sub>n ($prob\<acute> |> ($\<^bold>v\<lbrakk>\<lceil>e\<rceil>\<^sub></$x\<rbrakk>) =\<^sub>u 1))"
+lemma assign_prob:
+  "vwb_lens x \<Longrightarrow> \<K>(x :=\<^sub>D e) = (true \<turnstile>\<^sub>n ($prob\<acute> |> ($\<^bold>v\<lbrakk>\<lceil>e\<rceil>\<^sub></$x\<rbrakk>) =\<^sub>u 1))"
   unfolding assigns_d_ndes_def
   apply (simp add: prob_lift wp usubst)
   apply (rel_auto)
   done
-
+  
 end
