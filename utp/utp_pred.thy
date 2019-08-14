@@ -42,16 +42,20 @@ consts
   unot   :: "'a \<Rightarrow> 'a" ("\<not> _" [40] 40)
   uex    :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
   uall   :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> 'p \<Rightarrow> 'p"
-  ushEx  :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
-  ushAll :: "['a \<Rightarrow> 'p] \<Rightarrow> 'p"
   
 adhoc_overloading
   uconj conj and
   udisj disj and
   unot Not
 
+abbreviation shEx :: "['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" where
+"shEx P \<equiv> \<guillemotleft>Ex\<guillemotright> |> uabs P"
+
+abbreviation shAll :: "['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" where
+"shAll P \<equiv> \<guillemotleft>All\<guillemotright> |> uabs P"
+
 text \<open> We set up two versions of each of the quantifiers: @{const uex} / @{const uall} and
-        @{const ushEx} / @{const ushAll}. The former pair allows quantification of UTP variables,
+        @{const shEx} / @{const shAll}. The former pair allows quantification of UTP variables,
         whilst the latter allows quantification of HOL variables in concert with the literal
         expression constructor @{term "\<guillemotleft>x\<guillemotright>"}. Both varieties will be needed at various points. 
         Syntactically they are distinguished by a boldface quantifier
@@ -64,7 +68,7 @@ syntax
   "_idt_list" :: "idt \<Rightarrow> idt_list \<Rightarrow> idt_list" ("(_,/ _)" [0, 1])
   "_uex"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
   "_uall"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
-  "_ushEx"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
+  "_shEx"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
   "_ushAll"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
   "_ushBEx"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
   "_ushBAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
@@ -78,9 +82,9 @@ translations
   "_uex (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uex (x +\<^sub>L y) P"
   "_uall x P"                  == "CONST uall x P"
   "_uall (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uall (x +\<^sub>L y) P"
-  "_ushEx x P"                 == "CONST ushEx (\<lambda> x. P)"
+  "_shEx x P"                 == "CONST shEx (\<lambda> x. P)"
   "\<^bold>\<exists> x \<in> A \<bullet> P"                => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
-  "_ushAll x P"                == "CONST ushAll (\<lambda> x. P)"
+  "_ushAll x P"                == "CONST shAll (\<lambda> x. P)"
   "\<^bold>\<forall> x \<in> A \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
   "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
   "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> >\<^sub>u y \<Rightarrow> P"
@@ -284,14 +288,8 @@ lift_definition iff_upred ::"'\<alpha> upred \<Rightarrow> '\<alpha> upred \<Rig
 lift_definition ex :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> x P b. (\<exists> v. P(put\<^bsub>x\<^esub> b v))" .
 
-lift_definition shEx ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
-"\<lambda> P A. \<exists> x. (P x) A" .
-
 lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> x P b. (\<forall> v. P(put\<^bsub>x\<^esub> b v))" .
-
-lift_definition shAll ::"['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" is
-"\<lambda> P A. \<forall> x. (P x) A" .
     
 text \<open> We define the following operator which is dual of existential quantification. It hides the
   valuation of variables other than $x$ through existential quantification. \<close>
@@ -331,9 +329,7 @@ adhoc_overloading
   uimpl impl and
   uiff iff_upred and
   uex ex and
-  uall all and
-  ushEx shEx and
-  ushAll shAll
+  uall all
 
 syntax
   "_uneq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<noteq>\<^sub>u" 50)

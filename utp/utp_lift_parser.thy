@@ -2,7 +2,7 @@ section \<open> Lifting Parser \<close>
 
 theory utp_lift_parser
   imports "utp_rel"
-  keywords "no_utp_lift" :: "thy_decl_block" and "binder_utp_lift" :: "thy_decl_block"
+  keywords "no_utp_lift" :: "thy_decl_block"
 begin
 
 text \<open> Here, we derive a parser for UTP expressions that mimicks (and indeed reuses) the syntax of
@@ -22,12 +22,6 @@ structure NoLiftUTP = Theory_Data
    val empty = Symtab.empty
    val extend = I
    val merge = Symtab.merge (K true));
-
-structure BinderLiftUTP = Theory_Data
-  (type T = int Symtab.table
-   val empty = Symtab.empty
-   val extend = I
-   val merge = Symtab.merge (K true));
    
 val _ =
   let fun nolift_const thy (n, opt) =  
@@ -40,19 +34,6 @@ val _ =
      >> (fn ns => 
          Toplevel.theory 
          (fn thy => Library.foldl (fn (thy, n) => nolift_const thy n) (thy, ns))))  
-  end
-
-val _ =
-  let fun bind_const thy (n, opt) =  
-          let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
-          in BinderLiftUTP.map (Symtab.update (c, (Value.parse_int opt))) thy end
-  in
-
-  Outer_Syntax.command @{command_keyword binder_utp_lift} "declare that certain constants have a binder-like argument"
-    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.number --| Parse.$$$ ")")) "0")
-     >> (fn ns => 
-         Toplevel.theory 
-         (fn thy => Library.foldl (fn (thy, n) => bind_const thy n) (thy, ns))))  
   end
 \<close>
 
@@ -67,18 +48,12 @@ text \<open> The core UTP operators should not be lifted. Certain operators have
 no_utp_lift
   uexpr_appl uop (0) bop (0) trop (0) qtop (0) lit (0)
   Groups.zero Groups.one plus uminus minus times divide
-  shEx ushEx shAll ushAll unot uconj udisj uimpl utrue ufalse 
-  UINF USUP
+  shEx shAll unot uconj udisj uimpl utrue ufalse 
+  usubst subst UINF USUP
   var (0) in_var (0) out_var (0) lift_pre lift_post
   cond rcond uassigns id seqr useq uskip rcond rassume rassert 
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
   subst_upd (1) numeral (0) refineBy ZedSetCompr
-
-text \<open> Sometimes it is convenient to declare that a given constant is "binder-like", and so
-  one of its arguments should be a lifted lambda abstraction. The following command allows
-  us to specify this for one argument. \<close>
-
-binder_utp_lift Ex (0)
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -100,7 +75,7 @@ ML \<open>
     \<comment> \<open> If the leading constructor is an already lifted UTP variable...\<close>
     if ((n = @{const_name "var"}) andalso (length args > 0))
     \<comment> \<open> ... then we take the first argument as the variable contents, and apply the remaining arguments \<close>
-    then list_appl (Const (n, t) $ hd args, tl args)
+    then list_appl (Const (n, t) $ hd args, map (utp_lift ctx) (tl args))
     \<comment> \<open> Otherwise, if the name of the given constant is in the ``no lifting'' list... \<close>
     else if (member (op =) (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))) n)
       \<comment> \<open> ... then do not lift it, and also do not process any arguments in the given list of integers. \<close>
@@ -116,9 +91,7 @@ ML \<open>
           Const (_, Type ("utp_expr.uexpr", _)) => Const (n, t) |
           \<comment> \<open> ...otherwise, lift it to a HOL literal. \<close>
           _ => Const (@{const_name lit}, dummyT) $ Const (n, t)
-        , map_index (fn (i, t) => if (Symtab.lookup (BinderLiftUTP.get (Proof_Context.theory_of ctx)) n = SOME i) 
-                                  then Const (@{const_name uabs}, dummyT) $ t 
-                                  else t) (map (utp_lift ctx) args))
+        , map (utp_lift ctx) args)
     |
 
   \<comment> \<open> Free variables are handled as constants, except that they are always lifted \<close>
@@ -136,7 +109,9 @@ ML \<open>
   utp_lift_aux _ (t, args) = raise TERM ("_utp_lift_aux", t :: args)
   and
   (* FIXME: Think more about abstractions; at the moment they are essentially passed over. *)
-  utp_lift ctx (Abs (x, ty, tm)) = Abs (x, ty, utp_lift ctx tm) |
+(*  utp_lift ctx (Abs (x, ty, tm)) = Abs (x, ty, utp_lift ctx tm) | *)
+  utp_lift ctx (Abs (x, ty, tm)) = Const (@{const_name uabs}, dummyT) $ Abs (x, ty, utp_lift ctx tm) |
+  utp_lift ctx (Bound n) = (Const (@{const_name lit}, dummyT) $ Bound n) |
   utp_lift ctx t = utp_lift_aux ctx (Term.strip_comb t);
 
   \<comment> \<open> Apply the Isabelle term parser, strip type constraints, perform lifting, and finally type
@@ -156,6 +131,7 @@ ML \<open>
 text \<open> Set up Cartouche syntax using the above. \<close>
 
 syntax "_utp" :: \<open>cartouche_position \<Rightarrow> string\<close>  ("UTP_")
+syntax "_utp" :: \<open>cartouche_position \<Rightarrow> string\<close>  ("\<^U>_")
 
 parse_translation \<open>
   [(\<^syntax_const>\<open>_utp\<close>,
@@ -186,11 +162,13 @@ term "UTP\<open>xs ! i\<close>"
 
 term "UTP\<open>A \<union> B\<close>"
 
-term "UTP\<open>\<^bold>\<exists> x \<bullet> x \<le> xs ! i\<close>"
+term "UTP\<open>\<exists> x. x \<le> xs ! i\<close>"
 
 term "UTP\<open>(length xs + 1 + n \<le> 0) \<or> true\<close>"
 
-term "UTP\<open>\<^bold>\<exists> n \<bullet> (length xs + 1 + n \<le> 0) \<or> true\<close>"
+term "UTP\<open>\<exists> n. (length xs + 1 + n \<le> 0) \<or> true\<close>"
+
+term "UTP\<open>{x + y | x. 1 < x}\<close>"
 
 term "UTP\<open>\<lambda> x. x + y\<close>"
 
@@ -198,7 +176,7 @@ term "UTP\<open>$x + 1 \<le> $y\<acute>\<close>"
 
 term "UTP\<open>$x\<acute> = $x + 1 \<and> $y\<acute> = $y\<close>"
 
-term "UTP\<open>\<Sqinter> x \<in> A \<bullet> x < y\<close>"
+term "UTP\<open>\<Sqinter> x \<in> A. x < y\<close>"
 
 locale test =
   fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's"
@@ -222,7 +200,12 @@ begin
 
   term "UTP\<open>($x < $x\<acute>) \<sqsubseteq> x := x + 1\<close>"
 
+  term "UTP\<open>$f v\<close>"
+
+  term "UTP\<open>{2<..}\<close>"
+
 end
+
 
 end
 
