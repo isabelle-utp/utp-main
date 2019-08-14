@@ -2,7 +2,7 @@ section \<open> Lifting Parser \<close>
 
 theory utp_lift_parser
   imports "utp_rel"
-  keywords "no_utp_lift" :: "thy_decl_block"
+  keywords "no_utp_lift" :: "thy_decl_block" and "binder_utp_lift" :: "thy_decl_block"
 begin
 
 text \<open> Here, we derive a parser for UTP expressions that mimicks (and indeed reuses) the syntax of
@@ -17,16 +17,22 @@ text \<open> Here, we derive a parser for UTP expressions that mimicks (and inde
   further processed. \<close>
 
 ML \<open>
-structure NoLift = Theory_Data
+structure NoLiftUTP = Theory_Data
   (type T = int list Symtab.table
    val empty = Symtab.empty
    val extend = I
    val merge = Symtab.merge (K true));
 
+structure BinderLiftUTP = Theory_Data
+  (type T = int Symtab.table
+   val empty = Symtab.empty
+   val extend = I
+   val merge = Symtab.merge (K true));
+   
 val _ =
   let fun nolift_const thy (n, opt) =  
           let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
-          in NoLift.map (Symtab.update (c, (map Value.parse_int opt))) thy end
+          in NoLiftUTP.map (Symtab.update (c, (map Value.parse_int opt))) thy end
   in
 
   Outer_Syntax.command @{command_keyword no_utp_lift} "declare that certain constants should not be lifted"
@@ -35,7 +41,21 @@ val _ =
          Toplevel.theory 
          (fn thy => Library.foldl (fn (thy, n) => nolift_const thy n) (thy, ns))))  
   end
+
+val _ =
+  let fun bind_const thy (n, opt) =  
+          let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
+          in BinderLiftUTP.map (Symtab.update (c, (Value.parse_int opt))) thy end
+  in
+
+  Outer_Syntax.command @{command_keyword binder_utp_lift} "declare that certain constants have a binder-like argument"
+    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Parse.number --| Parse.$$$ ")")) "0")
+     >> (fn ns => 
+         Toplevel.theory 
+         (fn thy => Library.foldl (fn (thy, n) => bind_const thy n) (thy, ns))))  
+  end
 \<close>
+
 
 text \<open> The core UTP operators should not be lifted. Certain operators have arguments that also
   should not be processed further by expression lifting. For example, in a substitution update
@@ -53,6 +73,12 @@ no_utp_lift
   cond rcond uassigns id seqr useq uskip rcond rassume rassert 
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
   subst_upd (1) numeral (0) refineBy ZedSetCompr
+
+text \<open> Sometimes it is convenient to declare that a given constant is "binder-like", and so
+  one of its arguments should be a lifted lambda abstraction. The following command allows
+  us to specify this for one argument. \<close>
+
+binder_utp_lift Ex (0)
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -76,9 +102,9 @@ ML \<open>
     \<comment> \<open> ... then we take the first argument as the variable contents, and apply the remaining arguments \<close>
     then list_appl (Const (n, t) $ hd args, tl args)
     \<comment> \<open> Otherwise, if the name of the given constant is in the ``no lifting'' list... \<close>
-    else if (member (op =) (Symtab.keys (NoLift.get (Proof_Context.theory_of ctx))) n)
+    else if (member (op =) (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))) n)
       \<comment> \<open> ... then do not lift it, and also do not process any arguments in the given list of integers. \<close>
-      then let val (SOME aopt) = Symtab.lookup (NoLift.get (Proof_Context.theory_of ctx)) n in
+      then let val (SOME aopt) = Symtab.lookup (NoLiftUTP.get (Proof_Context.theory_of ctx)) n in
            Term.list_comb (Const (n, t), map_index (fn (i, t) => if (member (op =) aopt i) then t else utp_lift ctx t) args) end
       \<comment> \<open> If the name is not in the ``no lifting'' list... \<close>
       else
@@ -90,7 +116,9 @@ ML \<open>
           Const (_, Type ("utp_expr.uexpr", _)) => Const (n, t) |
           \<comment> \<open> ...otherwise, lift it to a HOL literal. \<close>
           _ => Const (@{const_name lit}, dummyT) $ Const (n, t)
-        , map (utp_lift ctx) args)
+        , map_index (fn (i, t) => if (Symtab.lookup (BinderLiftUTP.get (Proof_Context.theory_of ctx)) n = SOME i) 
+                                  then Const (@{const_name uabs}, dummyT) $ t 
+                                  else t) (map (utp_lift ctx) args))
     |
 
   \<comment> \<open> Free variables are handled as constants, except that they are always lifted \<close>
@@ -149,6 +177,8 @@ term "UTP\<open>f x\<close>"
 term "UTP\<open>(xs @ ys) ! i\<close>"
 
 term "UTP\<open>mm i\<close>"
+
+term "UTP\<open>\<exists> x. f x\<close>"
 
 term "UTP\<open>xs ! (x + y)\<close>"
 

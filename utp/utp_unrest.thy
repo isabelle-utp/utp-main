@@ -215,7 +215,7 @@ lemma unrest_case_prod [unrest]: "\<lbrakk> \<And> i j. x \<sharp> P i j \<rbrak
 text \<open> For a $\lambda$-term we need to show that the characteristic function expression does
   not restrict $v$ for any input value $x$. \<close>
     
-lemma unrest_ulambda [unrest]:
+lemma unrest_ulam [unrest]:
   "\<lbrakk> \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
   by (transfer, simp)
 

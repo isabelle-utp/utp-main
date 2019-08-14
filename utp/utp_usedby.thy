@@ -107,7 +107,7 @@ lemma usedBy_times [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v \<rbrakk>
 lemma usedBy_divide [unrest]: "\<lbrakk> x \<natural> u; x \<natural> v \<rbrakk> \<Longrightarrow> x \<natural> u / v"
   by (simp add: divide_uexpr_def unrest)
     
-lemma usedBy_ulambda [unrest]:
+lemma usedBy_uabs [unrest]:
   "\<lbrakk> \<And> x. v \<natural> F x \<rbrakk> \<Longrightarrow> v \<natural> (\<lambda> x \<bullet> F x)"
   by (transfer, simp)      
 

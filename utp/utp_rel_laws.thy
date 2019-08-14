@@ -123,6 +123,10 @@ lemma seqr_unfold:
   "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<rbrakk>)"
   by (rel_auto)
 
+lemma seqr_unfold_heterogeneous:
+  "(P ;; Q) = (\<^bold>\<exists> v \<bullet> (Pre(P\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<acute>\<rbrakk>))\<^sup>< \<and> (Post(Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$\<^bold>v\<rbrakk>))\<^sup>>)"
+  by (rel_auto)
+
 lemma seqr_middle:
   assumes "vwb_lens x"
   shows "(P ;; Q) = (\<^bold>\<exists> v \<bullet> P\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<acute>\<rbrakk> ;; Q\<lbrakk>\<guillemotleft>v\<guillemotright>/$x\<rbrakk>)"
