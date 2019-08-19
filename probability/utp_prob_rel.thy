@@ -21,6 +21,7 @@ lemma prob_lemma1:
 no_utp_lift ndesign wprespec uwp
 
 type_synonym ('a, 'b) rel_pdes = "('a, 'b prss) rel_des"
+type_synonym 's hrel_pdes = "('s, 's) rel_pdes"
 
 translations
   (type) "('a, 'b) rel_pdes" <= (type) "('a, 'b prss) rel_des"
@@ -68,14 +69,141 @@ proof -
     by (simp add: "1" "2")
 qed
 
-no_utp_lift usubst subst
+no_utp_lift usubst (0) subst (1)
 
-lemma assign_prob:
+lemma prob_assigns: "\<K>(\<langle>\<sigma>\<rangle>\<^sub>D) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>((\<sigma> \<dagger> &\<^bold>v)\<^sup><) = 1)\<close>"
+  by (simp add: assigns_d_ndes_def prob_lift wp usubst, rel_auto)
+
+lemma prob_skip: "\<K>(II\<^sub>D) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v) = 1)\<close>"
+  by (simp only: assigns_d_id[THEN sym] prob_assigns usubst, rel_auto)
+
+lemma prob_assign:
   fixes e :: "(_, _) uexpr" 
   shows "\<K>(x :=\<^sub>D e) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v\<lbrakk>e\<^sup></$x\<rbrakk>) = 1)\<close>"
-  unfolding assigns_d_ndes_def
-  apply (simp add: prob_lift wp usubst)
+  by (simp add: prob_assigns wp usubst, rel_auto)
+
+definition wplus :: "'a pmf \<Rightarrow> real \<Rightarrow> 'a pmf \<Rightarrow> 'a pmf" ("(_ +\<^bsub>_\<^esub> _)" [64, 0, 65] 64) where
+"wplus P w Q = join_pmf (pmf_of_list [(P, w), (Q, 1 - w)])"
+
+lemma pmf_wplus: 
+  assumes "w \<in> {0..1}"
+  shows "pmf (P +\<^bsub>w\<^esub> Q) i = pmf P i * w + pmf Q i * (1 - w)"
+proof -
+  from assms have pmf_wf_list: "pmf_of_list_wf [(P, w), (Q, 1 - w)]"
+    by (auto intro!: pmf_of_list_wfI) 
+  show ?thesis
+  proof (cases "w \<in> {0<..<1}")
+    case True
+    hence set_pmf:"set_pmf (pmf_of_list [(P, w), (Q, 1 - w)]) = {P, Q}"
+      by (subst set_pmf_of_list_eq, auto simp add: pmf_wf_list)
+    thus ?thesis
+    proof (cases "P = Q")
+      case True
+      from assms show ?thesis
+        apply (auto simp add: wplus_def join_pmf_def pmf_bind)
+        apply (subst integral_measure_pmf[of "{P, Q}"])
+          apply (auto simp add: set_pmf_of_list pmf_wf_list set_pmf pmf_pmf_of_list)
+        apply (simp add: True)
+        apply (metis distrib_right eq_iff_diff_eq_0 le_add_diff_inverse mult.commute mult_cancel_left1)
+        done
+    next
+      case False
+      then show ?thesis
+        apply (auto simp add: wplus_def join_pmf_def pmf_bind)
+        apply (subst integral_measure_pmf[of "{P, Q}"])
+          apply (auto simp add: set_pmf_of_list pmf_wf_list set_pmf pmf_pmf_of_list)
+        done
+    qed
+  next
+    case False
+    thm disjE
+    with assms have "w = 0 \<or> w = 1"
+      by (auto)
+    with assms show ?thesis 
+    proof (erule_tac disjE, simp_all)
+      assume w: "w = 0"
+      with pmf_wf_list have "set_pmf (pmf_of_list [(P, w), (Q, 1 - w)]) = {Q}"
+        apply (simp add: pmf_of_list_remove_zeros(2)[THEN sym])
+        apply (subst set_pmf_of_list_eq, auto simp add: pmf_of_list_wf_def)
+        done
+      with w show "pmf (P +\<^bsub>0\<^esub> Q) i = pmf Q i"
+        apply (auto simp add: wplus_def join_pmf_def pmf_bind pmf_wf_list pmf_of_list_remove_zeros(2)[THEN sym])
+        apply (subst integral_measure_pmf[of "{Q}"])
+          apply (simp_all add: set_pmf_of_list_eq pmf_pmf_of_list pmf_of_list_wf_def)
+        done
+    next
+      assume w: "w = 1"
+      with pmf_wf_list have "set_pmf (pmf_of_list [(P, w), (Q, 1 - w)]) = {P}"
+        apply (simp add: pmf_of_list_remove_zeros(2)[THEN sym])
+        apply (subst set_pmf_of_list_eq, auto simp add: pmf_of_list_wf_def)
+        done
+      with w show "pmf (P +\<^bsub>1\<^esub> Q) i = pmf P i"
+        apply (auto simp add: wplus_def join_pmf_def pmf_bind pmf_wf_list pmf_of_list_remove_zeros(2)[THEN sym])
+        apply (subst integral_measure_pmf[of "{P}"])
+          apply (simp_all add: set_pmf_of_list_eq pmf_pmf_of_list pmf_of_list_wf_def)
+        done
+    qed
+  qed
+qed
+
+lemma wplus_commute: 
+  assumes "w \<in>{0..1}"
+  shows "P +\<^bsub>w\<^esub> Q = Q +\<^bsub>(1 - w)\<^esub> P"
+  using assms by (auto intro: pmf_eqI simp add: pmf_wplus)
+
+lemma wplus_zero: "P +\<^bsub>0\<^esub> Q = Q"
+  by (auto intro: pmf_eqI simp add: pmf_wplus)
+
+lemma wplus_assoc:
+  assumes "w\<^sub>1 \<in> {0..1}" "w\<^sub>2 \<in> {0..1}"
+  defines "w\<^sub>2' \<equiv> w\<^sub>1+w\<^sub>2 - w\<^sub>1\<cdot>w\<^sub>2" and "w\<^sub>1' \<equiv> w\<^sub>1 / w\<^sub>1+w\<^sub>2 - w\<^sub>1\<cdot>w\<^sub>2"
+  shows "P +\<^bsub>w\<^sub>1\<^esub> (Q +\<^bsub>w\<^sub>2\<^esub> R) = (P +\<^bsub>w\<^sub>1'\<^esub> Q) +\<^bsub>w\<^sub>2'\<^esub> R"
+proof (rule pmf_eqI)
+  fix i
+  from assms(1-2) have "w\<^sub>1+w\<^sub>2 - w\<^sub>1\<cdot>w\<^sub>2 \<in> {0..1}"
+    using mult_right_le_one_le sum_le_prod1 by fastforce
+  with assms show "pmf (P +\<^bsub>w\<^sub>1\<^esub> (Q +\<^bsub>w\<^sub>2\<^esub> R)) i = pmf (P +\<^bsub>w\<^sub>1'\<^esub> Q +\<^bsub>w\<^sub>2'\<^esub> R) i"
+    apply (simp add: pmf_wplus add.assoc)
+    apply (subst pmf_wplus)
+    apply (auto)
+    oops
+
+    term "\<lparr>$0-\<^bold>v \<mapsto>\<^sub>s $0-\<^bold>v\<^sub>D, $1-\<^bold>v \<mapsto>\<^sub>s $1-\<^bold>v\<^sub>D, $\<^bold>v\<acute> \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<acute>\<rparr>"
+
+(*
+definition des_merge :: "(('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel \<Rightarrow> (('\<alpha> des, '\<beta> des, '\<gamma> des) mrg, '\<delta> des) urel" ("\<^bold>D\<^bold>M'(_')") where
+[upred_defs]: "\<^bold>D\<^bold>M(M) \<equiv> ((($0-ok \<and> $1-ok) \<Rightarrow> $ok\<acute> \<and> \<lparr>$\<^bold>v\<^sub>< \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<^sub><, $0-\<^bold>v \<mapsto>\<^sub>s $0-\<^bold>v\<^sub>D, $1-\<^bold>v \<mapsto>\<^sub>s $1-\<^bold>v\<^sub>D, $\<^bold>v\<acute> \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<acute>\<rparr> \<dagger> M))"
+
+consts IM :: "(('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel"
+*)
+
+
+definition prob_merge :: "real \<Rightarrow> (('s, 's prss, 's prss) mrg, 's prss) urel" ("\<^bold>P\<^bold>M\<^bsub>_\<^esub>") where
+[upred_defs]: "prob_merge r = \<^U>\<open>$prob\<acute> = $0-prob +\<^bsub>r\<^esub> $1-prob\<close>"
+
+lemma swap_prob_merge:
+  assumes "r \<in> {0..1}"
+  shows "swap\<^sub>m ;; \<^bold>P\<^bold>M\<^bsub>r\<^esub> = \<^bold>P\<^bold>M\<^bsub>1 - r\<^esub>"
+  by (rel_auto, (metis assms wplus_commute)+)
+
+
+abbreviation prob_des_merge :: "real \<Rightarrow> (('s des, 's prss des, 's prss des) mrg, 's prss des) urel" ("\<^bold>P\<^bold>D\<^bold>M\<^bsub>_\<^esub>") where
+"\<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub> \<equiv> \<^bold>D\<^bold>M(\<^bold>P\<^bold>M\<^bsub>r\<^esub>)"
+
+lemma swap_prob_des_merge:
+  assumes "r \<in> {0..1}"
+  shows "swap\<^sub>m ;; \<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub> = \<^bold>P\<^bold>D\<^bold>M\<^bsub>1 - r\<^esub>"
+  by (metis assms swap_des_merge swap_prob_merge)
+
+definition prob_choice :: "'s hrel_pdes \<Rightarrow> real \<Rightarrow> 's hrel_pdes \<Rightarrow> 's hrel_pdes" ("(_ \<oplus>\<^bsub>_\<^esub> _)" [164, 0, 165] 164) where
+[upred_defs]: "prob_choice P r Q = P \<parallel>\<^bsub>\<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub>\<^esub> Q"
+
+lemma prob_choice: "r \<in> {0..1} \<Longrightarrow> (p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<oplus>\<^bsub>r\<^esub> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = (p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<parallel>\<^bsub>\<^bold>P\<^bold>M\<^bsub>r\<^esub>\<^esub> Q\<^sub>2)"
   apply (rel_auto)
-  done
-  
+
+lemma prob_choice_commute: "r \<in> {0..1} \<Longrightarrow> P \<oplus>\<^bsub>r\<^esub> Q = Q \<oplus>\<^bsub>1 - r\<^esub> P"
+  by (simp add: prob_choice_def swap_prob_des_merge[THEN sym], metis par_by_merge_commute_swap)
+
+
+
 end

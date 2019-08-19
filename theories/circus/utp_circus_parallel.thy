@@ -11,19 +11,19 @@ subsection \<open> Merge predicates \<close>
 definition CSPInnerMerge :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> '\<psi> set \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("N\<^sub>C") where
   [upred_defs]:
   "CSPInnerMerge ns1 cs ns2 = (
-    $ref\<acute> \<subseteq>\<^sub>u (($0-ref \<union>\<^sub>u $1-ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0-ref \<inter>\<^sub>u $1-ref) - \<guillemotleft>cs\<guillemotright>) \<and>
-    $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
-    ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>cs\<^esub> ($1-tr - $tr\<^sub><) \<and>
-    ($0-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1-tr - $tr\<^sub><) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
-    $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
+    $ref\<acute> \<subseteq>\<^sub>u (($0:ref \<union>\<^sub>u $1:ref) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright>) \<union>\<^sub>u (($0:ref \<inter>\<^sub>u $1:ref) - \<guillemotleft>cs\<guillemotright>) \<and>
+    $<:tr \<le>\<^sub>u $tr\<acute> \<and>
+    ($tr\<acute> - $<:tr) \<in>\<^sub>u ($0:tr - $<:tr) \<star>\<^bsub>cs\<^esub> ($1:tr - $<:tr) \<and>
+    ($0:tr - $<:tr) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u ($1:tr - $<:tr) \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> \<and>
+    $st\<acute> =\<^sub>u ($<:st \<oplus> $0:st on &ns1) \<oplus> $1:st on &ns2)"
 
 definition CSPInnerInterleave :: "('\<alpha> \<Longrightarrow> '\<sigma>) \<Rightarrow> ('\<beta> \<Longrightarrow> '\<sigma>) \<Rightarrow> (('\<sigma>,'\<psi>) sfrd) merge" ("N\<^sub>I") where
   [upred_defs]:
   "N\<^sub>I ns1 ns2 = (
-    $ref\<acute> \<subseteq>\<^sub>u ($0-ref \<inter>\<^sub>u $1-ref) \<and>
-    $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and>
-    ($tr\<acute> - $tr\<^sub><) \<in>\<^sub>u ($0-tr - $tr\<^sub><) \<star>\<^bsub>{}\<^esub> ($1-tr - $tr\<^sub><) \<and>
-    $st\<acute> =\<^sub>u ($st\<^sub>< \<oplus> $0-st on &ns1) \<oplus> $1-st on &ns2)"
+    $ref\<acute> \<subseteq>\<^sub>u ($0:ref \<inter>\<^sub>u $1:ref) \<and>
+    $<:tr \<le>\<^sub>u $tr\<acute> \<and>
+    ($tr\<acute> - $<:tr) \<in>\<^sub>u ($0:tr - $<:tr) \<star>\<^bsub>{}\<^esub> ($1:tr - $<:tr) \<and>
+    $st\<acute> =\<^sub>u ($<:st \<oplus> $0:st on &ns1) \<oplus> $1:st on &ns2)"
   
 text \<open> An intermediate merge hides the state, whilst a final merge hides the refusals. \<close>
   
@@ -60,8 +60,8 @@ proof -
 qed
   
 lemma CSPInnerMerge_unrests [unrest]: 
-  "$ok\<^sub>< \<sharp> N\<^sub>C ns1 cs ns2"
-  "$wait\<^sub>< \<sharp> N\<^sub>C ns1 cs ns2"
+  "$<:ok \<sharp> N\<^sub>C ns1 cs ns2"
+  "$<:wait \<sharp> N\<^sub>C ns1 cs ns2"
   by (rel_auto)+
     
 lemma CSPInterMerge_RR_closed [closure]: 
@@ -339,7 +339,7 @@ lemma CSPInterleave_merge: "M\<^sub>I ns1 ns2 = M\<^sub>C ns1 {} ns2"
   by (rel_auto)
 
 lemma csp_wrR_def:
-  "P wr[cs]\<^sub>C Q = (\<not>\<^sub>r ((\<not>\<^sub>r Q) ;; U0 \<and> P ;; U1 \<and> $st\<^sub><\<acute> =\<^sub>u $st \<and> $tr\<^sub><\<acute> =\<^sub>u $tr) ;; N\<^sub>C 0\<^sub>L cs 0\<^sub>L ;; R1 true)"
+  "P wr[cs]\<^sub>C Q = (\<not>\<^sub>r ((\<not>\<^sub>r Q) ;; U0 \<and> P ;; U1 \<and> $<:st\<acute> =\<^sub>u $st \<and> $<:tr\<acute> =\<^sub>u $tr) ;; N\<^sub>C 0\<^sub>L cs 0\<^sub>L ;; R1 true)"
   by (rel_auto, metis+)
 
 lemma csp_wrR_ns_irr:

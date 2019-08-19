@@ -90,10 +90,10 @@ translations
   "_ue_iff p q"  => "p \<Leftrightarrow> q"
   "_ue_mem x A"  => "x \<in>\<^sub>u A"
   "_ue_nmem x A" => "x \<notin>\<^sub>u A"
-  "_ue_shEx x P" => "_ushEx x P"
-  "_ue_shAll x P" => "_ushAll x P"
-  "_ue_shBEx x A P" => "_ushBEx x A P"
-  "_ue_shBAll x A P" => "_ushBAll x A P"
+  "_ue_shEx x P" => "_shEx x P"
+  "_ue_shAll x P" => "_shAll x P"
+  "_ue_shBEx x A P" => "_shBEx x A P"
+  "_ue_shBAll x A P" => "_shBAll x A P"
 
 subsection \<open> Arithmetic Operators \<close>
 

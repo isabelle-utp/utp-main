@@ -69,12 +69,12 @@ syntax
   "_uex"     :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<exists> _ \<bullet> _" [0, 10] 10)
   "_uall"    :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<forall> _ \<bullet> _" [0, 10] 10)
   "_shEx"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<bullet> _" [0, 10] 10)
-  "_ushAll"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
-  "_ushBEx"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
-  "_ushBAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
-  "_ushGAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_ushGtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ > _ \<bullet> _" [0, 0, 10] 10)
-  "_ushLtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ < _ \<bullet> _" [0, 0, 10] 10)
+  "_shAll"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<bullet> _" [0, 10] 10)
+  "_shBEx"  :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<exists> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_shBAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ \<in> _ \<bullet> _" [0, 0, 10] 10)
+  "_shGAll" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"   ("\<^bold>\<forall> _ | _ \<bullet> _" [0, 0, 10] 10)
+  "_shGtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ > _ \<bullet> _" [0, 0, 10] 10)
+  "_shLtAll" :: "idt \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>\<forall> _ < _ \<bullet> _" [0, 0, 10] 10)
   "_uvar_res" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>v" 90)
   
 translations
@@ -84,7 +84,7 @@ translations
   "_uall (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_uall (x +\<^sub>L y) P"
   "_shEx x P"                 == "CONST shEx (\<lambda> x. P)"
   "\<^bold>\<exists> x \<in> A \<bullet> P"                => "\<^bold>\<exists> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<and> P"
-  "_ushAll x P"                == "CONST shAll (\<lambda> x. P)"
+  "_shAll x P"                == "CONST shAll (\<lambda> x. P)"
   "\<^bold>\<forall> x \<in> A \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
   "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
   "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> >\<^sub>u y \<Rightarrow> P"

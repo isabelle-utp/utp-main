@@ -9,30 +9,30 @@ text \<open> We show closure of parallel by merge under the reactive healthiness
   conditions for $R1$ and $R2$ merge predicates. \<close>
 
 definition R1m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
+  where [upred_defs]: "R1m(M) = (M \<and> $<:tr \<le>\<^sub>u $tr\<acute>)"
 
 definition R1m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
+  where [upred_defs]: "R1m'(M) = (M \<and> $<:tr \<le>\<^sub>u $tr\<acute> \<and> $<:tr \<le>\<^sub>u $0:tr \<and> $<:tr \<le>\<^sub>u $1:tr)"
 
 text \<open> A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
   $1.tr$. Thus we have to remove the latter two histories as well to satisfy R2 for the overall
   construction. \<close>
   
 definition R2m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+  where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>0,($tr\<acute>-$<:tr),($0:tr-$<:tr),($1:tr-$<:tr)/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)"
 
 definition R2m' :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
+  where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>0,($tr\<acute>-$<:tr),($0:tr-$<:tr),($1:tr-$<:tr)/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)"
 
 definition R2cm :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
-  where [upred_defs]: "R2cm(M) = M\<lbrakk>0,($tr\<acute>-$tr\<^sub><),($0-tr-$tr\<^sub><),($1-tr-$tr\<^sub><)/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M"
+  where [upred_defs]: "R2cm(M) = M\<lbrakk>0,($tr\<acute>-$<:tr),($0:tr-$<:tr),($1:tr-$<:tr)/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk> \<triangleleft> $<:tr \<le>\<^sub>u $tr\<acute> \<triangleright> M"
 
 lemma R2m'_form:
   "R2m'(M) =
-  (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>
-                    \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>p\<guillemotright>
-                    \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright>
-                    \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
+  (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>
+                    \<and> $tr\<acute> =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>p\<guillemotright>
+                    \<and> $0:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>0\<guillemotright>
+                    \<and> $1:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
   by (rel_auto, metis diff_add_cancel_left')
 
 lemma R1m_idem: "R1m(R1m(P)) = R1m(P)"
@@ -76,32 +76,32 @@ lemma R1_par_by_merge [closure]:
 lemma R2_R2m'_pbm: "R2(P \<parallel>\<^bsub>M\<^esub> Q) = (R2(P) \<parallel>\<^bsub>R2m'(M)\<^esub> R2(Q))"
 proof -
   have "(R2(P) \<parallel>\<^bsub>R2m'(M)\<^esub> R2(Q)) = ((R2(P) \<parallel>\<^sub>s R2(Q)) ;;
-                   (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>
-                                     \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>p\<guillemotright>
-                                     \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright>
-                                     \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>))"
+                   (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>
+                                     \<and> $tr\<acute> =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>p\<guillemotright>
+                                     \<and> $0:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>0\<guillemotright>
+                                     \<and> $1:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>1\<guillemotright>))"
     by (simp add: par_by_merge_def R2m'_form)
-  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> ((R2(P) \<parallel>\<^sub>s R2(Q)) ;; (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>
-                                                  \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>p\<guillemotright>
-                                                  \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright>
-                                                  \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)))"
+  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> ((R2(P) \<parallel>\<^sub>s R2(Q)) ;; (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>
+                                                  \<and> $tr\<acute> =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>p\<guillemotright>
+                                                  \<and> $0:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>0\<guillemotright>
+                                                  \<and> $1:tr =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)))"
     by (rel_blast)
-  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> (((R2(P) \<parallel>\<^sub>s R2(Q)) \<and> $0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
-                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>p\<guillemotright>)))"
+  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> (((R2(P) \<parallel>\<^sub>s R2(Q)) \<and> $0:tr\<acute> =\<^sub>u $<:tr\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1:tr\<acute> =\<^sub>u $<:tr\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk> \<and> $tr\<acute> =\<^sub>u $<:tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)))"
     by (rel_blast)
-  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> (((R2(P) \<parallel>\<^sub>s R2(Q)) \<and> $0-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1-tr\<acute> =\<^sub>u $tr\<^sub><\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
-                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
+  also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> (((R2(P) \<parallel>\<^sub>s R2(Q)) \<and> $0:tr\<acute> =\<^sub>u $<:tr\<acute> + \<guillemotleft>tt\<^sub>0\<guillemotright> \<and> $1:tr\<acute> =\<^sub>u $<:tr\<acute> + \<guillemotleft>tt\<^sub>1\<guillemotright>) ;;
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
     by (rel_blast)
   also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> (((R2(P) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>) \<parallel>\<^sub>s (R2(Q) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;;
-                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
     by (rel_auto, blast, metis le_add trace_class.add_diff_cancel_left)
   also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> ((   ((\<^bold>\<exists> tt\<^sub>0' \<bullet> P\<lbrakk>0,\<guillemotleft>tt\<^sub>0'\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0'\<guillemotright>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)
                                        \<parallel>\<^sub>s ((\<^bold>\<exists> tt\<^sub>1' \<bullet> Q\<lbrakk>0,\<guillemotleft>tt\<^sub>1'\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1'\<guillemotright>) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;;
-                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
     by (simp add: R2_form usubst)
   also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> ((   (P\<lbrakk>0,\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr,$tr\<acute>\<rbrakk>  \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)
                                        \<parallel>\<^sub>s (Q\<lbrakk>0,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;;
-                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
+                                      (M\<lbrakk>0,\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$<:tr,$tr\<acute>,$0:tr,$1:tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
     by (rel_auto, metis left_cancel_monoid_class.add_left_imp_eq, blast)
   also have "... = R2(P \<parallel>\<^bsub>M\<^esub> Q)"
     by (rel_auto, blast, metis diff_add_cancel_left')
@@ -140,7 +140,7 @@ lemma R2m_conj: "R2m(P \<and> Q) = (R2m(P) \<and> R2m(Q))"
   by (rel_auto)
 
 definition R3m :: "('t :: trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" where
-  [upred_defs]: "R3m(M) = skip\<^sub>m \<triangleleft> $wait\<^sub>< \<triangleright> M"
+  [upred_defs]: "R3m(M) = skip\<^sub>m \<triangleleft> $<:wait \<triangleright> M"
 
 lemma R3_par_by_merge:
   assumes
@@ -149,9 +149,9 @@ lemma R3_par_by_merge:
 proof -
   have "(P \<parallel>\<^bsub>M\<^esub> Q) = ((P \<parallel>\<^bsub>M\<^esub> Q)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (metis cond_L6 cond_var_split in_var_uvar wait_vwb_lens)
-  also have "... = (((R3 P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>(R3m M)\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> (R3 Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = (((R3 P)\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>(R3m M)\<lbrakk>true/$<:wait\<rbrakk>\<^esub> (R3 Q)\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (subst_tac, simp add: Healthy_if assms)
-  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>skip\<^sub>m\<lbrakk>true/$wait\<^sub><\<rbrakk>\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
+  also have "... = ((II\<lbrakk>true/$wait\<rbrakk> \<parallel>\<^bsub>skip\<^sub>m\<lbrakk>true/$<:wait\<rbrakk>\<^esub> II\<lbrakk>true/$wait\<rbrakk>) \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (simp add: R3_def R3m_def usubst)
   also have "... = ((II \<parallel>\<^bsub>skip\<^sub>m\<^esub> II)\<lbrakk>true/$wait\<rbrakk> \<triangleleft> $wait \<triangleright> (P \<parallel>\<^bsub>M\<^esub> Q))"
     by (subst_tac)
