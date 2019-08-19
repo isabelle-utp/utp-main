@@ -1,6 +1,6 @@
-section \<open> Probabilistic Relations \<close>
+section \<open> Probabilistic Designs \<close>
 
-theory utp_prob_rel
+theory utp_prob_des
   imports "UTP-Calculi.utp_wprespec" "UTP-Designs.utp_designs" "HOL-Probability.Probability_Mass_Function"
 begin recall_syntax
 
@@ -154,6 +154,9 @@ lemma wplus_commute:
 lemma wplus_zero: "P +\<^bsub>0\<^esub> Q = Q"
   by (auto intro: pmf_eqI simp add: pmf_wplus)
 
+lemma wplus_one: "P +\<^bsub>1\<^esub> Q = P"
+  by (auto intro: pmf_eqI simp add: pmf_wplus)
+
 lemma wplus_assoc:
   assumes "w\<^sub>1 \<in> {0..1}" "w\<^sub>2 \<in> {0..1}"
   defines "w\<^sub>2' \<equiv> w\<^sub>1+w\<^sub>2 - w\<^sub>1\<cdot>w\<^sub>2" and "w\<^sub>1' \<equiv> w\<^sub>1 / w\<^sub>1+w\<^sub>2 - w\<^sub>1\<cdot>w\<^sub>2"
@@ -168,24 +171,13 @@ proof (rule pmf_eqI)
     apply (auto)
     oops
 
-    term "\<lparr>$0-\<^bold>v \<mapsto>\<^sub>s $0-\<^bold>v\<^sub>D, $1-\<^bold>v \<mapsto>\<^sub>s $1-\<^bold>v\<^sub>D, $\<^bold>v\<acute> \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<acute>\<rparr>"
-
-(*
-definition des_merge :: "(('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel \<Rightarrow> (('\<alpha> des, '\<beta> des, '\<gamma> des) mrg, '\<delta> des) urel" ("\<^bold>D\<^bold>M'(_')") where
-[upred_defs]: "\<^bold>D\<^bold>M(M) \<equiv> ((($0-ok \<and> $1-ok) \<Rightarrow> $ok\<acute> \<and> \<lparr>$\<^bold>v\<^sub>< \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<^sub><, $0-\<^bold>v \<mapsto>\<^sub>s $0-\<^bold>v\<^sub>D, $1-\<^bold>v \<mapsto>\<^sub>s $1-\<^bold>v\<^sub>D, $\<^bold>v\<acute> \<mapsto>\<^sub>s $\<^bold>v\<^sub>D\<acute>\<rparr> \<dagger> M))"
-
-consts IM :: "(('\<alpha>, '\<beta>, '\<gamma>) mrg, '\<delta>) urel"
-*)
-
-
 definition prob_merge :: "real \<Rightarrow> (('s, 's prss, 's prss) mrg, 's prss) urel" ("\<^bold>P\<^bold>M\<^bsub>_\<^esub>") where
-[upred_defs]: "prob_merge r = \<^U>\<open>$prob\<acute> = $0-prob +\<^bsub>r\<^esub> $1-prob\<close>"
+[upred_defs]: "prob_merge r = \<^U>\<open>$prob\<acute> = $0:prob +\<^bsub>r\<^esub> $1:prob\<close>"
 
 lemma swap_prob_merge:
   assumes "r \<in> {0..1}"
   shows "swap\<^sub>m ;; \<^bold>P\<^bold>M\<^bsub>r\<^esub> = \<^bold>P\<^bold>M\<^bsub>1 - r\<^esub>"
   by (rel_auto, (metis assms wplus_commute)+)
-
 
 abbreviation prob_des_merge :: "real \<Rightarrow> (('s des, 's prss des, 's prss des) mrg, 's prss des) urel" ("\<^bold>P\<^bold>D\<^bold>M\<^bsub>_\<^esub>") where
 "\<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub> \<equiv> \<^bold>D\<^bold>M(\<^bold>P\<^bold>M\<^bsub>r\<^esub>)"
@@ -195,15 +187,10 @@ lemma swap_prob_des_merge:
   shows "swap\<^sub>m ;; \<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub> = \<^bold>P\<^bold>D\<^bold>M\<^bsub>1 - r\<^esub>"
   by (metis assms swap_des_merge swap_prob_merge)
 
-definition prob_choice :: "'s hrel_pdes \<Rightarrow> real \<Rightarrow> 's hrel_pdes \<Rightarrow> 's hrel_pdes" ("(_ \<oplus>\<^bsub>_\<^esub> _)" [164, 0, 165] 164) where
-[upred_defs]: "prob_choice P r Q = P \<parallel>\<^bsub>\<^bold>P\<^bold>D\<^bold>M\<^bsub>r\<^esub>\<^esub> Q"
-
-lemma prob_choice: "r \<in> {0..1} \<Longrightarrow> (p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2) \<oplus>\<^bsub>r\<^esub> (q\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>2) = (p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (P\<^sub>2 \<parallel>\<^bsub>\<^bold>P\<^bold>M\<^bsub>r\<^esub>\<^esub> Q\<^sub>2)"
-  apply (rel_auto)
+abbreviation prob_choice :: "'s hrel_pdes \<Rightarrow> real \<Rightarrow> 's hrel_pdes \<Rightarrow> 's hrel_pdes" ("(_ \<oplus>\<^bsub>_\<^esub> _)" [164, 0, 165] 164) where
+"prob_choice P r Q \<equiv> P \<parallel>\<^sup>D\<^bsub>\<^bold>P\<^bold>M\<^bsub>r\<^esub>\<^esub> Q"
 
 lemma prob_choice_commute: "r \<in> {0..1} \<Longrightarrow> P \<oplus>\<^bsub>r\<^esub> Q = Q \<oplus>\<^bsub>1 - r\<^esub> P"
-  by (simp add: prob_choice_def swap_prob_des_merge[THEN sym], metis par_by_merge_commute_swap)
-
-
+  by (simp add: swap_prob_des_merge[THEN sym], metis par_by_merge_commute_swap)
 
 end
