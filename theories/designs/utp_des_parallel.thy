@@ -35,7 +35,7 @@ text \<open> The following laws explain the meaning of a merge of two normal (@{
   occurs, divergence is effectively overshadowed by miraculous behaviour, and so the precondition
   needs to involve the relational preconditions of both the design commitments ($P$ and $Q$). \<close>
 
-lemma ndes_merge_aux: 
+lemma ndes_par_aux: 
   "(p \<turnstile>\<^sub>n P) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q \<turnstile>\<^sub>n Q) =(\<not> Pre(\<not> p\<^sup>< \<and> (q\<^sup>< \<Rightarrow> Q)) \<and> \<not> Pre(\<not> q\<^sup>< \<and> (p\<^sup>< \<Rightarrow> P))) \<turnstile>\<^sub>n (P \<parallel>\<^bsub>M\<^esub> Q)"
 proof -
   have p2: "(\<lceil>p \<turnstile>\<^sub>n P\<rceil>\<^sub>0 \<and> \<lceil>q \<turnstile>\<^sub>n Q\<rceil>\<^sub>1 \<and> $<\<acute> =\<^sub>u $\<^bold>v) ;; 
@@ -46,28 +46,47 @@ proof -
     by (simp add: des_merge_def par_by_merge_alt_def seqr_assoc[THEN sym] ndesign_composition_wp wp p2)
 qed
 
-lemma ndes_merge: 
+lemma ndes_par [ndes_simp]: 
   "(p \<turnstile>\<^sub>n P) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q \<turnstile>\<^sub>n Q) =((p \<or> q \<and> \<not>Pre(Q)) \<and> (q \<or> p \<and> \<not>Pre(P))) \<turnstile>\<^sub>n (P \<parallel>\<^bsub>M\<^esub> Q)"
-  by (simp add: ndes_merge_aux, rel_auto)
+  by (simp add: ndes_par_aux, rel_auto)
 
-lemma ndes_merge_wlp: 
+lemma ndes_par_wlp: 
   "(p \<turnstile>\<^sub>n P) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q \<turnstile>\<^sub>n Q) =((p \<or> q \<and> Q wlp false) \<and> (q \<or> p \<and> P wlp false)) \<turnstile>\<^sub>n (P \<parallel>\<^bsub>M\<^esub> Q)"
-  by (simp add: ndes_merge_aux, rel_auto)
+  by (simp add: ndes_par_aux, rel_auto)
 
 text \<open> If the commitments are both total relations, then we do indeed get a precondition of simply
   $p \wedge q$. \<close>
 
-lemma ndes_merge_total: 
+lemma ndes_par_total: 
   assumes "Pre(P) = true" "Pre(Q) = true"
   shows "(p \<turnstile>\<^sub>n P) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q \<turnstile>\<^sub>n Q) =(p \<and> q) \<turnstile>\<^sub>n (P \<parallel>\<^bsub>M\<^esub> Q)"
-  by (simp add: ndes_merge assms)
+  by (simp add: ndes_par assms)
 
-lemma ndes_merge_assigns: "(p\<^sub>1 \<turnstile>\<^sub>n \<langle>\<sigma>\<rangle>\<^sub>a) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q\<^sub>1 \<turnstile>\<^sub>n \<langle>\<rho>\<rangle>\<^sub>a) = (p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (\<langle>\<sigma>\<rangle>\<^sub>a \<parallel>\<^bsub>M\<^esub> \<langle>\<rho>\<rangle>\<^sub>a)" (is "?lhs = ?rhs")
-  by (rule ndes_merge_total, simp_all add: Pre_assigns)
+lemma ndes_par_assigns: "(p\<^sub>1 \<turnstile>\<^sub>n \<langle>\<sigma>\<rangle>\<^sub>a) \<parallel>\<^sup>D\<^bsub>M\<^esub> (q\<^sub>1 \<turnstile>\<^sub>n \<langle>\<rho>\<rangle>\<^sub>a) = (p\<^sub>1 \<and> q\<^sub>1) \<turnstile>\<^sub>n (\<langle>\<sigma>\<rangle>\<^sub>a \<parallel>\<^bsub>M\<^esub> \<langle>\<rho>\<rangle>\<^sub>a)" (is "?lhs = ?rhs")
+  by (rule ndes_par_total, simp_all add: Pre_assigns)
 
-lemma ndes_merge_H1_H3_closed [closure]: 
+lemma ndes_par_H1_H3_closed [closure]: 
   assumes "P is \<^bold>N" "Q is \<^bold>N"
   shows "P \<parallel>\<^sup>D\<^bsub>M\<^esub> Q is \<^bold>N"
-  by (metis assms ndes_merge ndesign_H1_H3 ndesign_form)
+  by (metis assms ndes_par ndesign_H1_H3 ndesign_form)
+
+lemma ndes_par_commute:
+  "P \<parallel>\<^sup>D\<^bsub>swap\<^sub>m ;; M\<^esub> Q = Q \<parallel>\<^sup>D\<^bsub>M\<^esub> P"
+  by (metis par_by_merge_commute_swap swap_des_merge)
+
+lemma ndes_merge_miracle:
+  assumes "P is \<^bold>N"
+  shows "P \<parallel>\<^sup>D\<^bsub>M\<^esub> \<top>\<^sub>D = \<top>\<^sub>D"
+  by (ndes_simp cls: assms, simp add: prepost)
+
+lemma ndes_merge_chaos:
+  assumes "P is \<^bold>N" "Pre(post\<^sub>D(P)) = true"
+  shows "P \<parallel>\<^sup>D\<^bsub>M\<^esub> \<bottom>\<^sub>D = \<bottom>\<^sub>D"
+proof -
+  obtain p\<^sub>1 P\<^sub>2 where "P = p\<^sub>1 \<turnstile>\<^sub>n P\<^sub>2"
+    by (metis assms(1) ndesign_form)
+  with assms(2) show ?thesis
+    by (simp add: ndes_simp, rel_auto)
+qed
 
 end
