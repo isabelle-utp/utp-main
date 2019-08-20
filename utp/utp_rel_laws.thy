@@ -958,29 +958,29 @@ lemma seq_refine_unrest:
     
 subsection \<open> Preain and Postge Laws \<close>
 
-named_theorems domran
+named_theorems prepost
 
-lemma Pre_conv_Post [domran]:
+lemma Pre_conv_Post [prepost]:
   "Pre(P\<^sup>-) = Post(P)"
   by (rel_auto)
 
-lemma Post_conv_Pre [domran]:
+lemma Post_conv_Pre [prepost]:
   "Post(P\<^sup>-) = Pre(P)"
   by (rel_auto)  
 
-lemma Pre_skip [domran]:
+lemma Pre_skip [prepost]:
   "Pre(II) = true"
   by (rel_auto)
 
-lemma Pre_assigns [domran]:
+lemma Pre_assigns [prepost]:
   "Pre(\<langle>\<sigma>\<rangle>\<^sub>a) = true"
   by (rel_auto)
    
-lemma Pre_miracle [domran]:
+lemma Pre_miracle [prepost]:
   "Pre(false) = false"
   by (rel_auto)
 
-lemma Pre_assume [domran]:
+lemma Pre_assume [prepost]:
   "Pre([b]\<^sup>\<top>) = b"
   by (rel_auto)
     
@@ -988,25 +988,25 @@ lemma Pre_seq:
   "Pre(P ;; Q) = Pre(P ;; [Pre(Q)]\<^sup>\<top>)"
   by (rel_auto)
     
-lemma Pre_disj [domran]:
+lemma Pre_disj [prepost]:
   "Pre(P \<or> Q) = (Pre(P) \<or> Pre(Q))"
   by (rel_auto)
 
-lemma Pre_inf [domran]:
+lemma Pre_inf [prepost]:
   "Pre(P \<sqinter> Q) = (Pre(P) \<or> Pre(Q))"
   by (rel_auto)
 
-lemma Pre_conj_rel_aext [domran]: 
+lemma Pre_conj_rel_aext [prepost]: 
   "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> Pre(P \<oplus>\<^sub>r a \<and> Q \<oplus>\<^sub>r b) = (Pre(P \<oplus>\<^sub>r a) \<and> Pre(Q \<oplus>\<^sub>r b))"
   by (rel_auto, metis (no_types, lifting) lens_indep_def mwb_lens_def vwb_lens_mwb weak_lens_def)
 
 text \<open> If P uses on the variables in @{term a} and @{term Q} does not refer to the variables of
   @{term "$a\<acute>"} then we can distribute. \<close>
 
-lemma Pre_conj_indep [domran]: "\<lbrakk> {$a,$a\<acute>} \<natural> P; $a\<acute> \<sharp> Q; vwb_lens a \<rbrakk> \<Longrightarrow> Pre(P \<and> Q) = (Pre(P) \<and> Pre(Q))"
+lemma Pre_conj_indep [prepost]: "\<lbrakk> {$a,$a\<acute>} \<natural> P; $a\<acute> \<sharp> Q; vwb_lens a \<rbrakk> \<Longrightarrow> Pre(P \<and> Q) = (Pre(P) \<and> Pre(Q))"
   by (rel_auto, metis lens_override_def lens_override_idem)
 
-lemma assume_Pre [domran]:
+lemma assume_Pre [prepost]:
   "[Pre(P)]\<^sup>\<top> ;; P = P"
   by (rel_auto)
 

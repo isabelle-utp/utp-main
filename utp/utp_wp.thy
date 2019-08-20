@@ -107,14 +107,14 @@ lemma wp_wlp_conjugate: "P wp b = (\<not> P wlp (\<not> b))"
 text \<open> Weakest Precondition and Weakest Liberal Precondition are equivalent for 
   terminating deterministic programs. \<close>
 
-lemma wlp_wp_equiv_lem: "\<lbrakk>(Pair a) \<dagger> (II::'a hrel)\<rbrakk>\<^sub>e a"
+lemma wlp_wp_equiv_lem: "\<lbrakk>(Pair a) \<dagger> II\<rbrakk>\<^sub>e a"
   by (rel_auto)
 
 lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrightarrow> (Pre(P) = true \<and> ufunctional P)"
   apply (rel_auto)
     apply blast
    apply (rename_tac a b y)
-  apply (subgoal_tac "\<lbrakk>(Pair a) \<dagger> (II::'a hrel)\<rbrakk>\<^sub>e b")
+  apply (subgoal_tac "\<lbrakk>(Pair a) \<dagger> II\<rbrakk>\<^sub>e b")
   apply (simp add: assigns_r.rep_eq skip_r_def subst.rep_eq)
   using wlp_wp_equiv_lem apply fastforce
   apply blast
@@ -122,6 +122,9 @@ lemma wlp_wp_equiv_total_det: "(\<forall> b . P wp b = P wlp b) \<longleftrighta
 
 lemma total_det_then_wlp_wp_equiv: "\<lbrakk> Pre(P) = true; ufunctional P \<rbrakk> \<Longrightarrow> P wp b = P wlp b"
   using wlp_wp_equiv_total_det by blast
+
+lemma Pre_as_wp: "Pre(P) = P wp true"
+  by (simp add: wp_true)
 
 method wp_calc =
   (rule wp_refine_intro wp_eq_intro, wp_tac)
