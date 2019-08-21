@@ -8,7 +8,7 @@ subsection \<open> dL Rules \<close>
 
 theorem dWeakening: \<comment> \<open> Differential Weakening \<close>
   "`B \<Rightarrow> C` \<Longrightarrow> \<^bold>[ode F' B\<^bold>]C = true"
-  by (rel_simp, simp add: bop_ueval lit.rep_eq)
+  by (rel_simp, simp add: lit.rep_eq uexpr_appl.rep_eq)
 
 lemma hoare_ode_meaning:
   "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s F l. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> l \<ge> 0 \<and> solves F F' B s l \<and> cvec\<^sub>v s = F 0 \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>))"
