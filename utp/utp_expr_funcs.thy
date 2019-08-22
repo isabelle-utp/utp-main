@@ -2,65 +2,42 @@ theory utp_expr_funcs
   imports utp_expr_insts
 begin
 
-syntax \<comment> \<open> Polymorphic constructs \<close>
-  "_uceil"      :: "logic \<Rightarrow> logic" ("\<lceil>_\<rceil>\<^sub>u")
-  "_ufloor"     :: "logic \<Rightarrow> logic" ("\<lfloor>_\<rfloor>\<^sub>u")
-  "_umin"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("min\<^sub>u'(_, _')")
-  "_umax"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("max\<^sub>u'(_, _')")
-  "_ugcd"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("gcd\<^sub>u'(_, _')")
+\<comment> \<open> Polymorphic constructs \<close>
 
-translations
-  \<comment> \<open> Type-class polymorphic constructs \<close>
-  "min\<^sub>u(x, y)"  == "CONST bop (CONST min) x y"
-  "max\<^sub>u(x, y)"  == "CONST bop (CONST max) x y"
-  "gcd\<^sub>u(x, y)"  == "CONST bop (CONST gcd) x y"
-  "\<lceil>x\<rceil>\<^sub>u" == "CONST uop CONST ceiling x"
-  "\<lfloor>x\<rfloor>\<^sub>u" == "CONST uop CONST floor x"
+abbreviation uceil  ("\<lceil>_\<rceil>\<^sub>u") where "\<lceil>x\<rceil>\<^sub>u \<equiv> uop ceiling x"
+abbreviation ufloor ("\<lfloor>_\<rfloor>\<^sub>u") where "\<lfloor>x\<rfloor>\<^sub>u \<equiv> uop floor x"
+abbreviation umin   ("min\<^sub>u'(_, _')") where "min\<^sub>u(x, y) \<equiv> bop min x y"
+abbreviation umax   ("max\<^sub>u'(_, _')") where "max\<^sub>u(x, y) \<equiv> bop max x y"
+abbreviation ugcd   ("gcd\<^sub>u'(_, _')") where "gcd\<^sub>u(x, y) \<equiv> bop gcd x y"
 
-syntax \<comment> \<open> Lists / Sequences \<close>
-  "_ucons"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "#\<^sub>u" 65)
-  "_unil"       :: "('a list, '\<alpha>) uexpr" ("\<langle>\<rangle>")
+\<comment> \<open> Lists / Sequences \<close>
+
+abbreviation ucons    (infixr "#\<^sub>u" 65) where "x #\<^sub>u xs \<equiv> bop (#) x xs"
+abbreviation unil     ("\<langle>\<rangle>") where "\<langle>\<rangle> \<equiv> \<guillemotleft>[]\<guillemotright>"
+abbreviation uappend  (infixr "^\<^sub>u" 80) where "x ^\<^sub>u y \<equiv> bop (@) x y"
+abbreviation udconcat (infixr "\<^sup>\<frown>\<^sub>u" 90) where "x \<^sup>\<frown>\<^sub>u y \<equiv> bop (\<^sup>\<frown>) x y"
+abbreviation ulast    ("last\<^sub>u'(_')") where "last\<^sub>u(x) \<equiv> uop last x"
+abbreviation ufront   ("front\<^sub>u'(_')") where "front\<^sub>u(x) \<equiv> uop butlast x"
+abbreviation uhead    ("head\<^sub>u'(_')") where "head\<^sub>u(x) \<equiv> uop hd x"
+abbreviation utail    ("tail\<^sub>u'(_')") where "tail\<^sub>u(x) \<equiv> uop tl x"
+abbreviation utake    ("take\<^sub>u'(_,/ _')") where "take\<^sub>u(n, xs) \<equiv> bop take n xs"
+abbreviation udrop    ("drop\<^sub>u'(_,/ _')") where "drop\<^sub>u(n, xs) \<equiv> bop drop n xs"
+abbreviation ufilter  (infixl "\<restriction>\<^sub>u" 75) where "xs \<restriction>\<^sub>u A \<equiv> bop seq_filter xs A"
+abbreviation uextract (infixl "\<upharpoonleft>\<^sub>u" 75) where "xs \<upharpoonleft>\<^sub>u A \<equiv> bop (\<upharpoonleft>\<^sub>l) A xs"
+abbreviation uelems   ("elems\<^sub>u'(_')") where "elems\<^sub>u(xs) \<equiv> uop set xs"
+abbreviation usorted   ("sorted\<^sub>u'(_')") where "sorted\<^sub>u(xs) \<equiv> uop sorted xs"
+abbreviation udistinct ("distinct\<^sub>u'(_')") where "distinct\<^sub>u(xs) \<equiv> uop set xs"
+abbreviation uupto     ("\<langle>_.._\<rangle>") where "\<langle>n..k\<rangle> \<equiv> bop upto n k"
+abbreviation uupt      ("\<langle>_..<_\<rangle>") where "\<langle>n..<k\<rangle> \<equiv> bop upt n k"
+abbreviation umap      ("map\<^sub>u") where "map\<^sub>u \<equiv> bop map"
+abbreviation uzip      ("zip\<^sub>u") where "zip\<^sub>u \<equiv> bop zip"
+
+syntax
   "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
-  "_uappend"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixr "^\<^sub>u" 80)
-  "_udconcat"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<^sup>\<frown>\<^sub>u" 90)
-  "_ulast"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("last\<^sub>u'(_')")
-  "_ufront"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("front\<^sub>u'(_')")
-  "_uhead"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("head\<^sub>u'(_')")
-  "_utail"      :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("tail\<^sub>u'(_')")
-  "_utake"      :: "(nat, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("take\<^sub>u'(_,/ _')")
-  "_udrop"      :: "(nat, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" ("drop\<^sub>u'(_,/ _')")
-  "_ufilter"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<restriction>\<^sub>u" 75)
-  "_uextract"   :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr \<Rightarrow> ('a list, '\<alpha>) uexpr" (infixl "\<upharpoonleft>\<^sub>u" 75)
-  "_uelems"     :: "('a list, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" ("elems\<^sub>u'(_')")
-  "_usorted"    :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("sorted\<^sub>u'(_')")
-  "_udistinct"  :: "('a list, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" ("distinct\<^sub>u'(_')")
-  "_uupto"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_.._\<rangle>")
-  "_uupt"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_..<_\<rangle>")
-  "_umap"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("map\<^sub>u")
-  "_uzip"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("zip\<^sub>u")
 
 translations
-  "x #\<^sub>u ys" == "CONST bop (#) x ys"
-  "\<langle>\<rangle>"       == "\<guillemotleft>[]\<guillemotright>"
   "\<langle>x, xs\<rangle>"  == "x #\<^sub>u \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "x #\<^sub>u \<guillemotleft>[]\<guillemotright>"
-  "x ^\<^sub>u y"   == "CONST bop (@) x y"
-  "A \<^sup>\<frown>\<^sub>u B" == "CONST bop (\<^sup>\<frown>) A B"
-  "last\<^sub>u(xs)" == "CONST uop CONST last xs"
-  "front\<^sub>u(xs)" == "CONST uop CONST butlast xs"
-  "head\<^sub>u(xs)" == "CONST uop CONST hd xs"
-  "tail\<^sub>u(xs)" == "CONST uop CONST tl xs"
-  "drop\<^sub>u(n,xs)" == "CONST bop CONST drop n xs"
-  "take\<^sub>u(n,xs)" == "CONST bop CONST take n xs"
-  "elems\<^sub>u(xs)" == "CONST uop CONST set xs"
-  "sorted\<^sub>u(xs)" == "CONST uop CONST sorted xs"
-  "distinct\<^sub>u(xs)" == "CONST uop CONST distinct xs"
-  "xs \<restriction>\<^sub>u A"   == "CONST bop CONST seq_filter xs A"
-  "A \<upharpoonleft>\<^sub>u xs"   == "CONST bop (\<upharpoonleft>\<^sub>l) A xs"
-  "\<langle>n..k\<rangle>" == "CONST bop CONST upto n k"
-  "\<langle>n..<k\<rangle>" == "CONST bop CONST upt n k"
-  "map\<^sub>u f xs" == "CONST bop CONST map f xs"
-  "zip\<^sub>u xs ys" == "CONST bop CONST zip xs ys"
 
 syntax \<comment> \<open> Sets \<close>
   "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")

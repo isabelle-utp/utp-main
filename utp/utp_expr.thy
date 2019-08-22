@@ -205,10 +205,6 @@ syntax \<comment> \<open> Core expression constructs \<close>
   "_uabs"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
-  "_umem"       :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<in>\<^sub>u" 50)
-  "_uNone"      :: "logic" ("None\<^sub>u")
-  "_uSome"      :: "logic \<Rightarrow> logic" ("Some\<^sub>u'(_')")
-  "_uthe"       :: "logic \<Rightarrow> logic" ("the\<^sub>u'(_')")
 
 translations
   "\<lambda> x \<bullet> p" == "CONST uabs (\<lambda> x. p)"
@@ -216,37 +212,31 @@ translations
   "_ulens_ovrd f g a" => "CONST bop (CONST ulens_override a) f g"
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
   "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
-  "x \<in>\<^sub>u A" == "CONST bop (\<in>) x A"
-  "_uNone" == "CONST lit CONST None"
-  "_uSome e" == "CONST uop CONST Some e"
-  "_uthe x" == "CONST uop (CONST the) x"
+
+abbreviation umem (infix "\<in>\<^sub>u" 50) where "(x \<in>\<^sub>u A) \<equiv> bop (\<in>) x A"
+abbreviation uNone ("None\<^sub>u") where "None\<^sub>u \<equiv> \<guillemotleft>None\<guillemotright>"
+abbreviation uSome ("Some\<^sub>u'(_')") where "Some\<^sub>u(e) \<equiv> uop Some e"
+abbreviation uthe ("the\<^sub>u'(_')") where "the\<^sub>u(e) \<equiv> uop the e"
 
 syntax \<comment> \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
   "_utuple_arg"  :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args" ("_")
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
-  "_uunit"      :: "('a, '\<alpha>) uexpr" ("'(')\<^sub>u")
-  "_ufst"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<pi>\<^sub>1'(_')")
-  "_usnd"       :: "('a \<times> 'b, '\<alpha>) uexpr \<Rightarrow> ('b, '\<alpha>) uexpr" ("\<pi>\<^sub>2'(_')")
 
 translations
-  "()\<^sub>u"      == "\<guillemotleft>()\<guillemotright>"
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
-  "\<pi>\<^sub>1(x)"    == "CONST uop CONST fst x"
-  "\<pi>\<^sub>2(x)"    == "CONST uop CONST snd x"
 
-syntax \<comment> \<open> Orders \<close>
-  "_uless"      :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "<\<^sub>u" 50)
-  "_uleq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<le>\<^sub>u" 50)
-  "_ugreat"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix ">\<^sub>u" 50)
-  "_ugeq"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<ge>\<^sub>u" 50)
+abbreviation uunit ("'(')\<^sub>u") where "()\<^sub>u \<equiv> \<guillemotleft>()\<guillemotright>"
+abbreviation ufst ("\<pi>\<^sub>1'(_')") where "\<pi>\<^sub>1(x) \<equiv> uop fst x"
+abbreviation usnd ("\<pi>\<^sub>2'(_')") where "\<pi>\<^sub>2(x) \<equiv> uop snd x"
 
-translations
-  "x <\<^sub>u y"   == "CONST bop (<) x y"
-  "x \<le>\<^sub>u y"   == "CONST bop (\<le>) x y"
-  "x >\<^sub>u y"   => "y <\<^sub>u x"
-  "x \<ge>\<^sub>u y"   => "y \<le>\<^sub>u x"
+\<comment> \<open> Orders \<close>
+
+abbreviation uless (infix "<\<^sub>u" 50) where "x <\<^sub>u y \<equiv> bop (<) x y"
+abbreviation ugreat (infix ">\<^sub>u" 50) where "x >\<^sub>u y \<equiv> bop (\<lambda>x y. y < x) x y"
+abbreviation uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<equiv> bop (\<le>) x y"
+abbreviation ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> bop (\<lambda>x y. y \<le> x) x y"
 
 text \<open> Overloaded power syntax \<close>
 
