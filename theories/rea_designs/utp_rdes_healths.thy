@@ -66,7 +66,7 @@ lemma R1_skip_rea: "R1(II\<^sub>C) = II\<^sub>C"
   by (rel_auto)
 
 lemma R2c_skip_rea: "R2c II\<^sub>C = II\<^sub>C"
-  by (simp add: skip_rea_def R2c_and R2c_disj R2c_skip_r R2c_not R2c_ok R2c_tr'_ge_tr)
+  by (simp add: skip_rea_def R2c_and R2c_disj R2c_skip_r R2c_not R2c_ok R2c_tr_le_tr')
 
 lemma R2_skip_rea: "R2(II\<^sub>C) = II\<^sub>C"
   by (metis R1_R2c_is_R2 R1_skip_rea R2c_skip_rea)

@@ -72,7 +72,7 @@ ML \<open>
   val list_appl = Library.foldl (fn (f, x) => Const (@{const_name "uexpr_appl"}, dummyT) $ f $ x);
 
   fun utp_lift_aux ctx (Const (n', t), args) =
-    let val n = if (Lexicon.is_marked n') then Lexicon.unmark_const n' else n' in
+    let val n = (if (Lexicon.is_marked n') then Lexicon.unmark_const n' else n') in
     \<comment> \<open> If the leading constructor is an already lifted UTP variable...\<close>
     if ((n = @{const_name "var"}) andalso (length args > 0))
     \<comment> \<open> ... then we take the first argument as the variable contents, and apply the remaining arguments \<close>
@@ -87,7 +87,7 @@ ML \<open>
         list_appl
         (case (Type_Infer_Context.const_type ctx n) of
           \<comment> \<open> ... and it's a lens, then lift it as a UTP variable... \<close>
-          SOME (Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
+          SOME (Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n', t)) |
           \<comment> \<open> ... or, if it's a UTP expression already, then leave it alone... \<close>
           SOME (Type (\<^type_name>\<open>uexpr\<close>, _)) => Const (n, t) |
           \<comment> \<open> ...otherwise, lift it to a HOL literal. \<close>
@@ -143,8 +143,6 @@ parse_translation \<open>
 
 text \<open> Cartouche parser for UTP expressions. We can either surround the whole of a UTP relation
   with a the cartouche, or alternatively just the program text. \<close>
-
-ML \<open> Lexicon.is_marked "hello" \<close>
                      
 syntax "_uexpr_cartouche" :: \<open>cartouche_position \<Rightarrow> uexp\<close>  ("_")
 
@@ -206,6 +204,8 @@ begin
 
   term "x := \<open>x + y + z\<close>"
 
+  term "U(x + y)"
+
   term "UTP\<open>x\<^sup>< = x\<^sup>>\<close>"
   
   term "UTP\<open>x := to_nat (hd xs)\<close>"
@@ -223,6 +223,7 @@ begin
   term "UTP\<open>{2<..}\<close>"
 
 end
+
 
 end
 

@@ -103,16 +103,16 @@ text \<open> RD3 reactive designs are those whose assumption can be written as a
 lemma R1_right_unit_lemma:
   "\<lbrakk> out\<alpha> \<sharp> b; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (\<not>\<^sub>r b \<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) ;; R1(true) = (\<not>\<^sub>r b\<or> $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>)"
   by (rel_auto, blast, metis (no_types, lifting) dual_order.trans)
-    
+
 lemma RHS_tri_design_RD3_intro_form:
   assumes
     "out\<alpha> \<sharp> b" "out\<alpha> \<sharp> e" "$ok\<acute> \<sharp> Q" "$st\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
   shows "\<^bold>R\<^sub>s((b \<and> \<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute>) \<turnstile> Q \<diamondop> R) is RD3"
   apply (rule RHS_tri_design_RD3_intro)
-  apply (simp_all add: assms unrest closure rpred)
+        apply (simp_all add: assms unrest closure rpred)
   apply (subst R1_right_unit_lemma)
-  apply (simp_all add: assms unrest)
-done
+    apply (simp_all add: assms unrest)
+  done
 
 definition NSRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
