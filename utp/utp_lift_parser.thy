@@ -84,11 +84,11 @@ ML \<open>
       \<comment> \<open> If the name is not in the ``no lifting'' list... \<close>
       else
         list_appl
-        (case (Syntax.check_term ctx (Const (n, t))) of
+        (case (Type_Infer_Context.const_type ctx n) of
           \<comment> \<open> ... and it's a lens, then lift it as a UTP variable... \<close>
-          Const (_, Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
+          SOME (Type ("Lens_Laws.lens.lens_ext", _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Const (n, t)) |
           \<comment> \<open> ... or, if it's a UTP expression already, then leave it alone... \<close>
-          Const (_, Type ("utp_expr.uexpr", _)) => Const (n, t) |
+          SOME (Type ("utp_expr.uexpr", _)) => Const (n, t) |
           \<comment> \<open> ...otherwise, lift it to a HOL literal. \<close>
           _ => Const (@{const_name lit}, dummyT) $ Const (n, t)
         , map (utp_lift ctx) args)
@@ -111,7 +111,7 @@ ML \<open>
   (* FIXME: Think more about abstractions; at the moment they are essentially passed over. *)
 (*  utp_lift ctx (Abs (x, ty, tm)) = Abs (x, ty, utp_lift ctx tm) | *)
   utp_lift ctx (Abs (x, ty, tm)) = Const (@{const_name uabs}, dummyT) $ Abs (x, ty, utp_lift ctx tm) |
-  utp_lift ctx (Bound n) = (Const (@{const_name lit}, dummyT) $ Bound n) |
+  utp_lift _ (Bound n) = (Const (@{const_name lit}, dummyT) $ Bound n) |
   utp_lift ctx t = utp_lift_aux ctx (Term.strip_comb t);
 
   \<comment> \<open> Apply the Isabelle term parser, strip type constraints, perform lifting, and finally type
@@ -182,11 +182,15 @@ locale test =
   fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's"
 begin
 
+  abbreviation (input) "z \<equiv> x"
+
   text \<open> The lens x and HOL variable y are automatically distinguished \<close>
 
   term "if \<open>x \<le> y\<close> then P else Q fi"
 
   term "x := \<open>x + y\<close>"
+
+  term "x := \<open>x + y + z\<close>"
 
   term "UTP\<open>x\<^sup>< = x\<^sup>>\<close>"
   
