@@ -97,7 +97,7 @@ where "P \<triangleleft> b \<triangleright> Q \<equiv> trop uIf b P Q"
 text \<open> UTP expression is equality is simply HOL equality lifted using the @{term bop} binary 
   expression constructor. \<close>
     
-abbreviation eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infixl "=\<^sub>u" 50)
+abbreviation (input) eq_upred :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infixl "=\<^sub>u" 50)
 where "eq_upred x y \<equiv> bop HOL.eq x y"
 
 text \<open> A literal is the expression @{term "\<guillemotleft>v\<guillemotright>"}, where @{term v} is any HOL term. Actually, the
@@ -233,9 +233,9 @@ abbreviation usnd ("\<pi>\<^sub>2'(_')") where "\<pi>\<^sub>2(x) \<equiv> uop sn
 
 \<comment> \<open> Orders \<close>
 
-abbreviation uless (infix "<\<^sub>u" 50) where "x <\<^sub>u y \<equiv> bop (<) x y"
+abbreviation (input) uless (infix "<\<^sub>u" 50) where "x <\<^sub>u y \<equiv> bop (<) x y"
 abbreviation (input) ugreat (infix ">\<^sub>u" 50) where "x >\<^sub>u y \<equiv> y <\<^sub>u x"
-abbreviation uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<equiv> bop (\<le>) x y"
+abbreviation (input) uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<equiv> bop (\<le>) x y"
 abbreviation (input) ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> y \<le>\<^sub>u x"
 
 text \<open> Overloaded power syntax \<close>

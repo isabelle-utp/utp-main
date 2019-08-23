@@ -4,6 +4,7 @@ theory utp_rel_laws
   imports 
     utp_rel
     utp_recursion
+    utp_lift_parser
 begin
 
 subsection \<open> Conditional Laws \<close>

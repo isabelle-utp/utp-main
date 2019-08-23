@@ -243,6 +243,69 @@ end
 
 (* FIXME: Finish the experimental pretty printer below *)
 
+translations
+  "&x" <= "CONST pr_var x"
+  "$x" <= "CONST in_var x"
+  "$x\<acute>" <= "CONST out_var x"
+  "&\<^bold>v"  <= "&_salpha_all"
+  "$\<^bold>v"  <= "$_salpha_all"
+  "$\<^bold>v\<acute>"  <= "$_salpha_all\<acute>"
+
+translations
+  "U(x)" <= "CONST lit x"
+  "U(f x)" <= "CONST uop f U(x)"
+  "U(f x y)" <= "CONST bop f U(x) U(y)"
+  "U(f x y)" <= "f U(x) U(y)"
+  "U(f x)" <= "f U(x)"
+
+ML \<open>
+
+  val utp_consts = [@{syntax_const "_UTP"}, @{const_syntax lit}, @{const_syntax uop}, @{const_syntax bop}, @{const_syntax trop}, @{const_syntax qtop}, @{const_syntax var}];
+
+  fun needs_mark t = 
+    case Term.strip_comb t of
+      (Const (c, _), _) => not (member (op =) utp_consts c) |
+      _ => false;
+
+  fun utp_mark_term (Const (c, t), ts) = 
+    if (needs_mark (Const (c, t))) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (c, t), ts) else Term.list_comb (Const (c, t), ts) |
+  utp_mark_term (t, ts) = Term.list_comb (t, ts);
+
+  fun uop_insert_U [f, x] = 
+    if (needs_mark x) then Const (@{const_syntax "uop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x))
+    else raise Match |
+  uop_insert_U _ = raise Match;
+
+  fun bop_insert_U [f, x, y] =
+    if (needs_mark x orelse needs_mark y) then Const (@{const_syntax "bop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
+    else raise Match |
+  bop_insert_U _ = raise Match;
+    
+\<close>
+
+print_translation \<open>
+  [(@{const_syntax "lit"}, fn ctx => fn terms => Const (@{syntax_const "_UTP"}, dummyT) $ hd terms)]
+\<close>
+
+print_translation \<open>
+  [(@{const_syntax "uop"}, fn ctx => fn terms => (uop_insert_U terms)),
+   (@{const_syntax "bop"}, fn ctx => fn terms => (bop_insert_U terms)),
+   (@{const_syntax "var"}, fn ctx => fn terms => Const (@{syntax_const "_UTP"}, dummyT) $ hd terms)]
+\<close>
+
+
+term "\<guillemotleft>x\<guillemotright> + $y"
+
+term "\<^U>(&v < 0)"
+
+term "U($y = 5)"
+
+term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y = 1 + $y)"
+
+term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
+
+term "\<^U>(f x)"
+
 (*
 translations
   "U(x)" <= "CONST lit x"
