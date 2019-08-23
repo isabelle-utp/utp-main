@@ -27,7 +27,7 @@ translations
   (type) "('a, 'b) rel_pdes" <= (type) "('a, 'b prss) rel_des"
 
 definition forget_prob :: "('s prss, 's) rel_des" ("\<^bold>f\<^bold>p") where
-[upred_defs]: "forget_prob = UTP\<open>true \<turnstile>\<^sub>n ($prob($\<^bold>v\<acute>) > 0)\<close>"
+[upred_defs]: "forget_prob = U(true \<turnstile>\<^sub>n ($prob($\<^bold>v\<acute>) > 0))"
 
 definition pemb :: "('a, 'b) rel_des \<Rightarrow> ('a, 'b) rel_pdes" ("\<K>")
   where [upred_defs]: "pemb D = \<^bold>f\<^bold>p \\ D"
@@ -45,11 +45,11 @@ lemma "R wp (&\<^bold>v =\<^sub>u \<guillemotleft>s'\<guillemotright>) = Pre(R\<
 
 lemma pemb_form:
   fixes R :: "('a, 'b) urel"
-  shows "\<^U>\<open>($prob($\<^bold>v\<acute>) > 0) \\ R\<close> = \<^U>\<open>(\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1\<close>" (is "?lhs = ?rhs")
+  shows "\<^U>(($prob($\<^bold>v\<acute>) > 0) \\ R) = \<^U>((\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1)" (is "?lhs = ?rhs")
 proof -
-  have "?lhs = \<^U>\<open>(\<not> (\<not> R) ;; (0 < $prob\<acute>$\<^bold>v))\<close>"
+  have "?lhs = \<^U>((\<not> (\<not> R) ;; (0 < $prob\<acute>$\<^bold>v)))"
     by (rel_auto)
-  also have "... = \<^U>\<open>(\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1\<close>"
+  also have "... = \<^U>((\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1)"
     apply (rel_auto)
     apply (metis (no_types, lifting) infsetsum_pmf_eq_1 mem_Collect_eq pmf_positive subset_eq)
     apply (metis AE_measure_pmf_iff UNIV_I measure_pmf.prob_eq_1 measure_pmf_conv_infsetsum mem_Collect_eq set_pmf_eq' sets_measure_pmf)
@@ -59,11 +59,11 @@ qed
 
 lemma prob_lift:
   fixes R :: "('a, 'b) urel" and p :: "'a upred"
-  shows "\<K>(p \<turnstile>\<^sub>n R) = \<^U>\<open>p \<turnstile>\<^sub>n ((\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1)\<close>"
+  shows "\<K>(p \<turnstile>\<^sub>n R) = \<^U>(p \<turnstile>\<^sub>n ((\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1))"
 proof -
-  have 1:"\<K>(p \<turnstile>\<^sub>n R) = p \<turnstile>\<^sub>n \<^U>\<open>($prob($\<^bold>v\<acute>) > 0) \\ R\<close>"
+  have 1:"\<K>(p \<turnstile>\<^sub>n R) = \<^U>(p \<turnstile>\<^sub>n (($prob($\<^bold>v\<acute>) > 0) \\ R))"
     by (rel_auto)
-  have 2:"\<^U>\<open>($prob($\<^bold>v\<acute>) > 0) \\ R\<close> = \<^U>\<open>(\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1\<close>"
+  have 2:"\<^U>(($prob($\<^bold>v\<acute>) > 0) \\ R) = \<^U>((\<Sum>\<^sub>a i\<in>{s'.(R wp (&\<^bold>v = s'))\<^sup><}. $prob\<acute> i) = 1)"
     by (simp add: pemb_form)
   show ?thesis
     by (simp add: "1" "2")
@@ -71,15 +71,15 @@ qed
 
 no_utp_lift usubst (0) subst (1)
 
-lemma prob_assigns: "\<K>(\<langle>\<sigma>\<rangle>\<^sub>D) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>((\<sigma> \<dagger> &\<^bold>v)\<^sup><) = 1)\<close>"
+lemma prob_assigns: "\<K>(\<langle>\<sigma>\<rangle>\<^sub>D) = \<^U>(true \<turnstile>\<^sub>n ($prob\<acute>((\<sigma> \<dagger> &\<^bold>v)\<^sup><) = 1))"
   by (simp add: assigns_d_ndes_def prob_lift wp usubst, rel_auto)
 
-lemma prob_skip: "\<K>(II\<^sub>D) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v) = 1)\<close>"
+lemma prob_skip: "\<K>(II\<^sub>D) = \<^U>(true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v) = 1))"
   by (simp only: assigns_d_id[THEN sym] prob_assigns usubst, rel_auto)
 
 lemma prob_assign:
   fixes e :: "(_, _) uexpr" 
-  shows "\<K>(x :=\<^sub>D e) = \<^U>\<open>true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v\<lbrakk>e\<^sup></$x\<rbrakk>) = 1)\<close>"
+  shows "\<K>(x :=\<^sub>D e) = \<^U>(true \<turnstile>\<^sub>n ($prob\<acute>($\<^bold>v\<lbrakk>e\<^sup></$x\<rbrakk>) = 1))"
   by (simp add: prob_assigns wp usubst, rel_auto)
 
 definition wplus :: "'a pmf \<Rightarrow> real \<Rightarrow> 'a pmf \<Rightarrow> 'a pmf" ("(_ +\<^bsub>_\<^esub> _)" [64, 0, 65] 64) where
@@ -172,7 +172,7 @@ proof (rule pmf_eqI)
     oops
 
 definition prob_merge :: "real \<Rightarrow> (('s, 's prss, 's prss) mrg, 's prss) urel" ("\<^bold>P\<^bold>M\<^bsub>_\<^esub>") where
-[upred_defs]: "prob_merge r = \<^U>\<open>$prob\<acute> = $0:prob +\<^bsub>r\<^esub> $1:prob\<close>"
+[upred_defs]: "prob_merge r = \<^U>($prob\<acute> = $0:prob +\<^bsub>r\<^esub> $1:prob)"
 
 lemma swap_prob_merge:
   assumes "r \<in> {0..1}"

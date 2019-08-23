@@ -234,9 +234,9 @@ abbreviation usnd ("\<pi>\<^sub>2'(_')") where "\<pi>\<^sub>2(x) \<equiv> uop sn
 \<comment> \<open> Orders \<close>
 
 abbreviation uless (infix "<\<^sub>u" 50) where "x <\<^sub>u y \<equiv> bop (<) x y"
-abbreviation ugreat (infix ">\<^sub>u" 50) where "x >\<^sub>u y \<equiv> y <\<^sub>u x"
+abbreviation (input) ugreat (infix ">\<^sub>u" 50) where "x >\<^sub>u y \<equiv> y <\<^sub>u x"
 abbreviation uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<equiv> bop (\<le>) x y"
-abbreviation ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> y \<le>\<^sub>u x"
+abbreviation (input) ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> y \<le>\<^sub>u x"
 
 text \<open> Overloaded power syntax \<close>
 
