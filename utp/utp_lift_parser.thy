@@ -51,7 +51,7 @@ no_utp_lift
   shEx shAll unot uconj udisj uimpl utrue ufalse 
   usubst subst UINF USUP
   var (0) in_var (0) out_var (0) lift_pre lift_post
-  cond rcond uassigns id seqr useq uskip rcond rassume rassert 
+  cond rcond uassigns id seqr useq uskip rcond rassume rassert
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
   subst_upd (1) numeral (0) refineBy ZedSetCompr
 
@@ -96,14 +96,28 @@ ML \<open>
     end
     |
 
-  \<comment> \<open> Free variables are handled as constants, except that they are always lifted \<close>
+  \<comment> \<open> Free variables are handled similarly to constants; that they are usually
+      lifted. The exception is when the free variable actually refers to a constant,
+      which can occur if lifting is applied during syntax translation. In this 
+      case, we convert it to a constant first and then apply lifting to it. \<close>
   utp_lift_aux ctx (Free (n, t), args) =
-        list_appl
-        (case (Syntax.check_term ctx (Free (n, t))) of
-          Free (_, Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
-          Free (_, Type (\<^type_name>\<open>uexpr\<close>, _)) => Free (n, t) |
-          _ => Const (@{const_name lit}, dummyT) $ Free (n, t)
-        , map (utp_lift ctx) args)
+    \<comment> \<open> We first extract the constant table from the context. \<close>
+    let val consts = (Proof_Context.consts_of ctx)
+        val {const_space, ...} = Consts.dest consts
+        \<comment> \<open> The name must be internalised in case it needs qualifying. \<close>
+        val c = Consts.intern consts n in
+        \<comment> \<open> If the name refers to a declared constant, then we lift it as a constant. \<close>
+        if (Name_Space.declared const_space c) then
+          utp_lift_aux ctx (Const (c, t), args)
+        \<comment> \<open> Otherwise, we simply apply normal lifting.\<close>
+        else
+          list_appl
+          (case (Syntax.check_term ctx (Free (n, t))) of
+            Free (_, Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
+            Free (_, Type (\<^type_name>\<open>uexpr\<close>, _)) => Free (n, t) |
+            _ => Const (@{const_name lit}, dummyT) $ Free (n, t)
+          , map (utp_lift ctx) args)
+    end
     |
 
   \<comment> \<open> Bound variables are always lifted as well \<close>
@@ -153,6 +167,7 @@ text \<open> A more conventional parse translation version of the above \<close>
 
 syntax
   "_UTP" :: "logic \<Rightarrow> logic" ("U'(_')")
+  "_UTP" :: "logic \<Rightarrow> logic" ("\<^U>'(_')")
 
 parse_translation \<open>
   [(@{syntax_const "_UTP"}, fn ctx => fn term => utp_lift ctx (Term_Position.strip_positions (hd term)))]
@@ -161,6 +176,8 @@ parse_translation \<open>
 text \<open> A couple of examples \<close>
 
 term "UTP\<open>f x\<close>"
+
+term "\<^U>\<open>f x\<close>"
 
 term "UTP\<open>(xs @ ys) ! i\<close>"
 
@@ -224,6 +241,22 @@ begin
 
 end
 
+(* FIXME: Finish the experimental pretty printer below *)
+
+(*
+translations
+  "U(x)" <= "CONST lit x"
+  "CONST uop f U(CONST var x)" <= "CONST uop f (CONST var x)"
+  "U(f x)" <= "CONST uop f U(x)"
+  "CONST bop f U(CONST var x) y" <= "CONST bop f (CONST var x) y"
+  "CONST bop f x U(CONST var y)" <= "CONST bop f x (CONST var y)"
+  "U(f x y)" <= "CONST bop f U(x) U(y)"
+  "CONST trop f U(CONST var x) y z" <= "CONST trop f (CONST var x) y z"
+  "CONST trop f x U(CONST var y) z" <= "CONST trop f x (CONST var y) z"
+  "CONST trop f x y U(CONST var z)" <= "CONST trop f x y (CONST var z)"
+  "U(f x y z)" <= "CONST trop f U(x) U(y) U(z)"
+  "U(f x y)" <= "f U(x) U(y)"
+*)
 
 end
 
