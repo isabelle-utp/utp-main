@@ -220,6 +220,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(f x y z)" , "f U(x) U(y) U(z)"),
 
   ("U(f x y)" , "f U(x) U(y)"),
+
 (*
   ("U(f x y z)" , "f x y U(z)"),
   ("U(f x y z)" , "f x U(y) z"),
@@ -230,7 +231,18 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(f x)" , "f U(x)"),
   ("U(f x)" , "_UTP f x") *)
   ("U(f x)" , "_UTP f (_UTP x)")]
-  val utp_consts = [@{syntax_const "_UTP"}, @{const_syntax lit}, @{const_syntax uop}, @{const_syntax bop}, @{const_syntax trop}, @{const_syntax qtop}];
+
+
+  (* FIXME: Thist list needs to be dynamically updated whenever we "adopt" a HOL constant to UTP *)
+  val utp_consts =
+    [@{syntax_const "_UTP"}, 
+     @{const_syntax lit}, 
+     @{const_syntax uop}, 
+     @{const_syntax bop}, 
+     @{const_syntax trop}, 
+     @{const_syntax qtop}, 
+     @{const_syntax plus}, 
+     @{const_syntax udisj}];
 
   fun needs_mark t = 
     case Term.strip_comb t of
@@ -240,32 +252,29 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   fun utp_mark_term (f, ts) = 
     if (needs_mark f) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (f, ts) else Term.list_comb (f, ts);
 
-  fun uop_insert_U [f, x] = 
-    if (needs_mark x) then Const (@{const_syntax "uop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x))
-    else raise Match |
+  fun insert_U pre ts =
+    if (Library.foldl (fn (x, y) => needs_mark y orelse x) (false, ts)) 
+    then Library.foldl1 (op $) (pre @ map (Term.strip_comb #> utp_mark_term) ts)
+    else raise Match;
+
+  fun uop_insert_U (f :: ts) = insert_U [Const (@{const_syntax "uop"}, dummyT), f] ts |
   uop_insert_U _ = raise Match;
 
-  fun bop_insert_U [f, x, y] =
-    if (needs_mark x orelse needs_mark y) then Const (@{const_syntax "bop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
-    else raise Match |
+  fun bop_insert_U (f :: ts) = insert_U [Const (@{const_syntax "bop"}, dummyT), f] ts |
   bop_insert_U _ = raise Match;
 
-  fun trop_insert_U [f, x, y, z] =
-    if (needs_mark x orelse needs_mark y orelse needs_mark z) 
-      then Const (@{const_syntax "trop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
-      else raise Match |
+  fun trop_insert_U (f :: ts) =
+    insert_U [Const (@{const_syntax "trop"}, dummyT), f] ts |
   trop_insert_U _ = raise Match;
 
-  fun appl_insert_U [f, x] =
-    if (needs_mark f orelse needs_mark x)
-      then utp_mark_term (Term.strip_comb f) $ utp_mark_term (Term.strip_comb x)
-      else raise Match |
-  appl_insert_U _ = raise Match;
+  fun appl_insert_U ts = insert_U [] ts;
 
   val print_tr = [ (@{const_syntax "trop"}, K trop_insert_U)
                  , (@{const_syntax "bop"}, K bop_insert_U)
                  , (@{const_syntax "uop"}, K uop_insert_U)
-                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)];
+                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)
+                 , (@{const_syntax plus}, K (insert_U [Const (@{const_syntax plus}, dummyT)]))
+                 , (@{const_syntax udisj}, K (insert_U [Const (@{const_syntax udisj}, dummyT)]))];
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
 in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
     (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> Sign.print_translation print_tr)));
@@ -280,6 +289,8 @@ utp_pretty
 subsection \<open> Examples \<close>
 
 text \<open> A couple of examples \<close>
+
+term "U(x @ y)"
 
 term "UTP\<open>f x\<close>"
 
