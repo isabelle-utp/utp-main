@@ -1,9 +1,11 @@
-section \<open> Lifting Parser \<close>
+section \<open> Lifting Parser and Pretty Printer \<close>
 
 theory utp_lift_parser
   imports "utp_rel"
-  keywords "no_utp_lift" :: "thy_decl_block"
+  keywords "no_utp_lift" :: "thy_decl_block" and "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block"
 begin
+
+subsection \<open> Parser \<close>
 
 text \<open> Here, we derive a parser for UTP expressions that mimicks (and indeed reuses) the syntax of
   HOL expressions. It has two main features: (1) it lifts HOL functions into UTP expressions using 
@@ -173,6 +175,110 @@ parse_translation \<open>
   [(@{syntax_const "_UTP"}, fn ctx => fn term => utp_lift ctx (Term_Position.strip_positions (hd term)))]
 \<close>
 
+subsection \<open> Pretty Printer\<close>
+
+text \<open> The pretty printer infers when a HOL expression is actually a UTP expression by determing
+  whether it contains operators like @{const bop}, @{const lit} etc. If so, it inserts the syntactic
+  UTP quote defined above and then pushes these upwards through the expression syntax as far as possible, removing
+  expression operators along the way. In this way, lifted HOL expressions are printed exactly as the
+  HOL expression with a quote around.
+
+  There are two phases to this implementation. Firstly, a collection of print translation functions
+  for each of the combinators for functions, such as @{const uop} and @{const bop} insert a UTP quote
+  for each subexpression that is not also headed by such a combinator. This is effectively trying
+  to find ``leaf nodes'' in an expression. Secondly, a set of translation rules push the UTP quotes
+  upwards, combining where necessary, to the highest possible level, removing the expression operators
+  as they go.
+
+  We manifest the pretty printer through two commands that enable and disable it. Disabling allows
+  us to inspect the syntactic structure of a term.
+ \<close>
+
+
+(* FIXME: We need a general way of recognising which functions should insert term markings. For example,
+  in the case of plus, we may encounter a term like $U(x) + y$, which should be treated as a UTP
+  expression and thus turned into $U(x + y)$. We can't do this in general though, because terms 
+  with meta-implication should not be dealt with in this way. We really need a mechanism for
+  specifying when these ``hints'' should be inserted. *)
+
+ML \<open>
+let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
+  [("U(x)" , "CONST lit x"),
+  ("U(t)" , "U(U(t))"),
+  ("U(f x)" , "U(f) |> U(x)"),
+(*  ("U(f x)" , "f |> U(x)"),
+  ("U(f x)" , "U(f) |> x"), *)
+  ("U(\<lambda> x. f)", "(\<lambda> x \<bullet> U(f))"),
+  ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
+  ("U(f x)" , "CONST uop f U(x)"),
+  ("U(f x y)" , "CONST bop f U(x) U(y)"),
+(*  ("U(f x y)" , "CONST bop f x U(y)"),
+  ("U(f x y)" , "CONST bop f U(x) y"), *)
+  ("U(f x y z)" , "CONST trop f x y U(z)"),
+  ("U(f x y z)" , "CONST trop f x U(y) z"),
+  ("U(f x y z)" , "CONST trop f U(x) y z"),
+  ("U(f x y z)" , "f U(x) U(y) U(z)"),
+
+  ("U(f x y)" , "f U(x) U(y)"),
+(*
+  ("U(f x y z)" , "f x y U(z)"),
+  ("U(f x y z)" , "f x U(y) z"),
+  ("U(f x y z)" , "f U(x) y z"),
+
+  ("U(f x y)" , "f x U(y)"),
+  ("U(f x y)" , "f U(x) y"),
+  ("U(f x)" , "f U(x)"),
+  ("U(f x)" , "_UTP f x") *)
+  ("U(f x)" , "_UTP f (_UTP x)")]
+  val utp_consts = [@{syntax_const "_UTP"}, @{const_syntax lit}, @{const_syntax uop}, @{const_syntax bop}, @{const_syntax trop}, @{const_syntax qtop}];
+
+  fun needs_mark t = 
+    case Term.strip_comb t of
+      (Const (c, _), _) => not (member (op =) utp_consts c) |
+      _ => false;
+
+  fun utp_mark_term (f, ts) = 
+    if (needs_mark f) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (f, ts) else Term.list_comb (f, ts);
+
+  fun uop_insert_U [f, x] = 
+    if (needs_mark x) then Const (@{const_syntax "uop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x))
+    else raise Match |
+  uop_insert_U _ = raise Match;
+
+  fun bop_insert_U [f, x, y] =
+    if (needs_mark x orelse needs_mark y) then Const (@{const_syntax "bop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
+    else raise Match |
+  bop_insert_U _ = raise Match;
+
+  fun trop_insert_U [f, x, y, z] =
+    if (needs_mark x orelse needs_mark y orelse needs_mark z) 
+      then Const (@{const_syntax "trop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
+      else raise Match |
+  trop_insert_U _ = raise Match;
+
+  fun appl_insert_U [f, x] =
+    if (needs_mark f orelse needs_mark x)
+      then utp_mark_term (Term.strip_comb f) $ utp_mark_term (Term.strip_comb x)
+      else raise Match |
+  appl_insert_U _ = raise Match;
+
+  val print_tr = [ (@{const_syntax "trop"}, K trop_insert_U)
+                 , (@{const_syntax "bop"}, K bop_insert_U)
+                 , (@{const_syntax "uop"}, K uop_insert_U)
+                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)];
+  val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
+in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
+    (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> Sign.print_translation print_tr)));
+   (* FIXME: It actually isn't currently possible to disable pretty printing without destroying the term rewriting *)
+   Outer_Syntax.command @{command_keyword no_utp_pretty} "disable pretty printing of UTP expressions"
+    (Scan.succeed (Toplevel.theory (Isar_Cmd.no_translations utp_tr_rules #> Sign.print_translation no_print_tr)))
+ end
+\<close>
+
+utp_pretty
+
+subsection \<open> Examples \<close>
+
 text \<open> A couple of examples \<close>
 
 term "UTP\<open>f x\<close>"
@@ -224,7 +330,7 @@ begin
   term "U(x + y)"
 
   term "UTP\<open>x\<^sup>< = x\<^sup>>\<close>"
-  
+
   term "UTP\<open>x := to_nat (hd xs)\<close>"
 
   term "UTP\<open>x := to_nat (xs ! 5)\<close>"
@@ -241,58 +347,7 @@ begin
 
 end
 
-(* FIXME: Finish the experimental pretty printer below *)
-
-translations
-  "&x" <= "CONST pr_var x"
-  "$x" <= "CONST in_var x"
-  "$x\<acute>" <= "CONST out_var x"
-  "&\<^bold>v"  <= "&_salpha_all"
-  "$\<^bold>v"  <= "$_salpha_all"
-  "$\<^bold>v\<acute>"  <= "$_salpha_all\<acute>"
-
-translations
-  "U(x)" <= "CONST lit x"
-  "U(f x)" <= "CONST uop f U(x)"
-  "U(f x y)" <= "CONST bop f U(x) U(y)"
-  "U(f x y)" <= "f U(x) U(y)"
-  "U(f x)" <= "f U(x)"
-
-ML \<open>
-
-  val utp_consts = [@{syntax_const "_UTP"}, @{const_syntax lit}, @{const_syntax uop}, @{const_syntax bop}, @{const_syntax trop}, @{const_syntax qtop}, @{const_syntax var}];
-
-  fun needs_mark t = 
-    case Term.strip_comb t of
-      (Const (c, _), _) => not (member (op =) utp_consts c) |
-      _ => false;
-
-  fun utp_mark_term (Const (c, t), ts) = 
-    if (needs_mark (Const (c, t))) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (c, t), ts) else Term.list_comb (Const (c, t), ts) |
-  utp_mark_term (t, ts) = Term.list_comb (t, ts);
-
-  fun uop_insert_U [f, x] = 
-    if (needs_mark x) then Const (@{const_syntax "uop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x))
-    else raise Match |
-  uop_insert_U _ = raise Match;
-
-  fun bop_insert_U [f, x, y] =
-    if (needs_mark x orelse needs_mark y) then Const (@{const_syntax "bop"}, dummyT) $ f $ (utp_mark_term (Term.strip_comb x)) $ (utp_mark_term (Term.strip_comb y))
-    else raise Match |
-  bop_insert_U _ = raise Match;
-    
-\<close>
-
-print_translation \<open>
-  [(@{const_syntax "lit"}, fn ctx => fn terms => Const (@{syntax_const "_UTP"}, dummyT) $ hd terms)]
-\<close>
-
-print_translation \<open>
-  [(@{const_syntax "uop"}, fn ctx => fn terms => (uop_insert_U terms)),
-   (@{const_syntax "bop"}, fn ctx => fn terms => (bop_insert_U terms)),
-   (@{const_syntax "var"}, fn ctx => fn terms => Const (@{syntax_const "_UTP"}, dummyT) $ hd terms)]
-\<close>
-
+term "\<guillemotleft>x\<guillemotright> + $y"
 
 term "\<guillemotleft>x\<guillemotright> + $y"
 
@@ -304,22 +359,9 @@ term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y = 1 + $y)"
 
 term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
 
-term "\<^U>(f x)"
+term "\<^U>($f x)"
 
-(*
-translations
-  "U(x)" <= "CONST lit x"
-  "CONST uop f U(CONST var x)" <= "CONST uop f (CONST var x)"
-  "U(f x)" <= "CONST uop f U(x)"
-  "CONST bop f U(CONST var x) y" <= "CONST bop f (CONST var x) y"
-  "CONST bop f x U(CONST var y)" <= "CONST bop f x (CONST var y)"
-  "U(f x y)" <= "CONST bop f U(x) U(y)"
-  "CONST trop f U(CONST var x) y z" <= "CONST trop f (CONST var x) y z"
-  "CONST trop f x U(CONST var y) z" <= "CONST trop f x (CONST var y) z"
-  "CONST trop f x y U(CONST var z)" <= "CONST trop f x y (CONST var z)"
-  "U(f x y z)" <= "CONST trop f U(x) U(y) U(z)"
-  "U(f x y)" <= "f U(x) U(y)"
-*)
+term "U($f $\<^bold>v\<acute>)"
 
 end
 
