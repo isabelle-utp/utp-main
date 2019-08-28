@@ -233,16 +233,14 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(f x)" , "_UTP f (_UTP x)")]
 
 
-  (* FIXME: Thist list needs to be dynamically updated whenever we "adopt" a HOL constant to UTP *)
+  (* FIXME: This list needs to be dynamically updated whenever we "adopt" a HOL constant to UTP *)
   val utp_consts =
     [@{syntax_const "_UTP"}, 
      @{const_syntax lit}, 
      @{const_syntax uop}, 
      @{const_syntax bop}, 
      @{const_syntax trop}, 
-     @{const_syntax qtop}, 
-     @{const_syntax plus}, 
-     @{const_syntax udisj}];
+     @{const_syntax qtop}];
 
   fun needs_mark t = 
     case Term.strip_comb t of
@@ -272,9 +270,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   val print_tr = [ (@{const_syntax "trop"}, K trop_insert_U)
                  , (@{const_syntax "bop"}, K bop_insert_U)
                  , (@{const_syntax "uop"}, K uop_insert_U)
-                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)
-                 , (@{const_syntax plus}, K (insert_U [Const (@{const_syntax plus}, dummyT)]))
-                 , (@{const_syntax udisj}, K (insert_U [Const (@{const_syntax udisj}, dummyT)]))];
+                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)];
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
 in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
     (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> Sign.print_translation print_tr)));
