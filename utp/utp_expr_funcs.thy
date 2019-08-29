@@ -51,8 +51,6 @@ abbreviation (input) uconverse ("(_\<^sup>~)" [1000] 999) where "P\<^sup>~ \<equ
 
 syntax \<comment> \<open> Sets \<close>
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
-  "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
-  "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
   "_ucarrier"   :: "type \<Rightarrow> logic" ("[_]\<^sub>T")
   "_uid"        :: "type \<Rightarrow> logic" ("id[_]")
   "_uproduct"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<times>\<^sub>u" 80)
