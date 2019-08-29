@@ -203,7 +203,9 @@ text \<open> The pretty printer infers when a HOL expression is actually a UTP e
 
 ML \<open>
 let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
-  [("U(x)" , "CONST lit x"),
+  [("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
+  ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
+  ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
   ("U(t)" , "U(U(t))"),
   ("U(f x)" , "U(f) |> U(x)"),
 (*  ("U(f x)" , "f |> U(x)"),
@@ -237,6 +239,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   val utp_consts =
     [@{syntax_const "_UTP"}, 
      @{const_syntax lit}, 
+     @{const_syntax var},
      @{const_syntax uop}, 
      @{const_syntax bop}, 
      @{const_syntax trop}, 
@@ -267,7 +270,9 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
 
   fun appl_insert_U ts = insert_U [] ts;
 
-  val print_tr = [ (@{const_syntax "trop"}, K trop_insert_U)
+  val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
+                 , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
+                 , (@{const_syntax "trop"}, K trop_insert_U)
                  , (@{const_syntax "bop"}, K bop_insert_U)
                  , (@{const_syntax "uop"}, K uop_insert_U)
                  , (@{const_syntax "uexpr_appl"}, K appl_insert_U)];
@@ -369,6 +374,16 @@ term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
 term "\<^U>($f x)"
 
 term "U($f $\<^bold>v\<acute>)"
+
+term "e \<oplus> f on A"
+
+translations
+  "U(x + y)" <= "U(x) + y"
+  "U(x + y)" <= "x + U(y)"
+
+term "U($x = v)"
+
+term "[$x\<acute> \<mapsto>\<^sub>s $x + 1]"
 
 end
 
