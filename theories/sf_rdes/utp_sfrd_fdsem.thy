@@ -140,7 +140,7 @@ lemma divergences_Stop:
   by (simp add: divergences_def, rdes_calc)
 
 lemma traces_AssignsCSP:
-  "tr\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {([], \<sigma>(s))}"
+  "tr\<lbrakk>\<langle>\<sigma>\<rangle>\<^sub>C\<rbrakk>s = {([], \<lbrakk>\<sigma>\<rbrakk>\<^sub>e s)}"
   by (simp add: traces_def rdes closure usubst alpha, rel_auto)
 
 lemma failures_AssignsCSP:

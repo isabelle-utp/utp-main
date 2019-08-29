@@ -239,7 +239,7 @@ abbreviation (input) uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<
 abbreviation (input) ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> y \<le>\<^sub>u x"
 
 text \<open> Overloaded power syntax. This is one motivation for having @{typ "('a, 's) uexpr"} as a
-  distinct type; we would not otherwise be able to overload this and other polymorphic operators. } \<close>
+  distinct type; we would not otherwise be able to overload this and other polymorphic operators. \<close>
 
 overloading
   uexprpow \<equiv> "compow :: nat \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr"

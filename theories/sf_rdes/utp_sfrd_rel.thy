@@ -854,7 +854,7 @@ lemma rel_aext_csp_enable [alpha]:
 
 subsection \<open> Completed Trace Interaction \<close>
 
-definition csp_do :: "'s upred \<Rightarrow> ('s \<Rightarrow> 's) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
+definition csp_do :: "'s upred \<Rightarrow> ('s usubst) \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) action" ("\<Phi>'(_,_,_')") where
 [upred_defs]: "\<Phi>(s,\<sigma>,t) = (\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)"
 
 lemma csp_do_eq_intro:
@@ -888,13 +888,13 @@ lemma trea_subst_csp_do [usubst]:
 done
 
 lemma st_subst_csp_do [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ> \<sigma>,\<sigma> \<dagger> t)"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<dagger> \<Phi>(s,\<rho>,t) = \<Phi>(\<sigma> \<dagger> s,\<rho> \<circ>\<^sub>s \<sigma>,\<sigma> \<dagger> t)"
   by (rel_auto)
 
-lemma csp_do_nothing: "\<Phi>(true,id,\<langle>\<rangle>) = II\<^sub>c"
+lemma csp_do_nothing: "\<Phi>(true,id\<^sub>s,\<langle>\<rangle>) = II\<^sub>c"
   by (rel_auto)
 
-lemma csp_do_nothing_0: "\<Phi>(true,id,0) = II\<^sub>c"
+lemma csp_do_nothing_0: "\<Phi>(true,id\<^sub>s,0) = II\<^sub>c"
   by (rel_auto)
 
 lemma csp_do_false [rpred]: "\<Phi>(false,s,t) = false"
@@ -909,11 +909,11 @@ lemma csp_do_assign_enable [rpred]:
   by (rel_auto)
 
 lemma csp_do_assign_do [rpred]: 
-  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) ;; \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<and> (\<sigma> \<dagger> s\<^sub>2), \<rho> \<circ> \<sigma>, t\<^sub>1^\<^sub>u(\<sigma> \<dagger> t\<^sub>2))"
+  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) ;; \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<and> (\<sigma> \<dagger> s\<^sub>2), \<rho> \<circ>\<^sub>s \<sigma>, t\<^sub>1^\<^sub>u(\<sigma> \<dagger> t\<^sub>2))"
   by (rel_auto)
 
 lemma csp_do_cond [rpred]:
-  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, \<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2)"
+  "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) \<triangleleft> b \<triangleright>\<^sub>R \<Phi>(s\<^sub>2,\<rho>,t\<^sub>2) = \<Phi>(s\<^sub>1 \<triangleleft> b \<triangleright> s\<^sub>2, \<sigma> \<triangleleft> b \<triangleright> \<rho>, t\<^sub>1 \<triangleleft> b \<triangleright> t\<^sub>2)"
   by (rel_auto)
 
 lemma rea_assm_csp_do [rpred]: 
@@ -971,22 +971,22 @@ proof -
 qed
 
 lemma csp_do_power_Suc [rpred]:
-  "\<Phi>(true, id, t) \<^bold>^ (Suc i) = \<Phi>(true, id, iter[Suc i](t))"
+  "\<Phi>(true, id\<^sub>s, t) \<^bold>^ (Suc i) = \<Phi>(true, id\<^sub>s, iter[Suc i](t))"
   by (induct i, (rel_auto)+)
 
 lemma csp_power_do_comp [rpred]:
   assumes "P is CRR"
-  shows "\<Phi>(true, id, t) \<^bold>^ i ;; P = \<Phi>(true, id, iter[i](t)) ;; P"
+  shows "\<Phi>(true, id\<^sub>s, t) \<^bold>^ i ;; P = \<Phi>(true, id\<^sub>s, iter[i](t)) ;; P"
   apply (cases i)
    apply (simp_all add: csp_do_comp rpred usubst assms closure)
   done
 
 lemma csp_do_id [rpred]:
-  "P is CRR \<Longrightarrow> \<Phi>(b,id,\<langle>\<rangle>) ;; P = ([b]\<^sub>S\<^sub>< \<and> P)"
+  "P is CRR \<Longrightarrow> \<Phi>(b,id\<^sub>s,\<langle>\<rangle>) ;; P = ([b]\<^sub>S\<^sub>< \<and> P)"
   by (simp add: csp_do_comp usubst)
 
 lemma csp_do_id_wp [wp]: 
-  "P is CRR \<Longrightarrow> \<Phi>(b,id,\<langle>\<rangle>) wp\<^sub>r P = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P)"
+  "P is CRR \<Longrightarrow> \<Phi>(b,id\<^sub>s,\<langle>\<rangle>) wp\<^sub>r P = ([b]\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r P)"
   by (metis (no_types, lifting) CRR_implies_RR RR_implies_R1 csp_do_id rea_impl_conj rea_impl_false rea_not_CRR_closed rea_not_not wp_rea_def)
 
 lemma wp_rea_csp_do_st_pre [wp]: "\<Phi>(s\<^sub>1,\<sigma>,t\<^sub>1) wp\<^sub>r [s\<^sub>2]\<^sub>S\<^sub>< = \<I>(s\<^sub>1 \<and> \<not> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1)"
@@ -1019,14 +1019,14 @@ text \<open> Iterated do relations \<close>
 
 fun titr :: "nat \<Rightarrow> 's usubst \<Rightarrow> ('a list, 's) uexpr \<Rightarrow> ('a list, 's) uexpr" where
 "titr 0 \<sigma> t = 0" |
-"titr (Suc n) \<sigma> t = (titr n \<sigma> t) + (\<sigma> ^^ n) \<dagger> t"
+"titr (Suc n) \<sigma> t = (titr n \<sigma> t) + (\<sigma> ^\<^sub>s n) \<dagger> t"
 
-lemma titr_as_list_sum: "titr n \<sigma> t = list_sum (map (\<lambda> i. (\<sigma> ^^ i) \<dagger> t) [0..<n])"
+lemma titr_as_list_sum: "titr n \<sigma> t = list_sum (map (\<lambda> i. (\<sigma> ^\<^sub>s i) \<dagger> t) [0..<n])"
   apply (induct n)
    apply (auto simp add: usubst fold_plus_sum_list_rev foldr_conv_fold)
   done
         
-lemma titr_as_foldr: "titr n \<sigma> t = foldr (\<lambda> i e. (\<sigma> ^^ i) \<dagger> t + e) [0..<n] 0"
+lemma titr_as_foldr: "titr n \<sigma> t = foldr (\<lambda> i e. (\<sigma> ^\<^sub>s i) \<dagger> t + e) [0..<n] 0"
   by (simp add: titr_as_list_sum foldr_map comp_def)
 
 lemma list_sum_uexpr_rep_eq: "\<lbrakk>list_sum xs\<rbrakk>\<^sub>e s = list_sum (map (\<lambda> e. \<lbrakk>e\<rbrakk>\<^sub>e s) xs)"
@@ -1035,20 +1035,17 @@ lemma list_sum_uexpr_rep_eq: "\<lbrakk>list_sum xs\<rbrakk>\<^sub>e s = list_sum
    apply (pred_simp+)
   done
 
-lemma titr_rep_eq: "\<lbrakk>titr n \<sigma> t\<rbrakk>\<^sub>e s = foldr (@) (map (\<lambda>x. \<lbrakk>t\<rbrakk>\<^sub>e ((\<sigma> ^^ x) s)) [0..<n]) []"
-  by (simp add: titr_as_list_sum list_sum_uexpr_rep_eq comp_def, rel_auto)
+lemma titr_rep_eq: "\<lbrakk>titr n \<sigma> t\<rbrakk>\<^sub>e s = foldr (@) (map (\<lambda>x. \<lbrakk>t\<rbrakk>\<^sub>e ((\<lbrakk>\<sigma>\<rbrakk>\<^sub>e ^^ x) s)) [0..<n]) []"
+  by (simp add: titr_as_list_sum list_sum_uexpr_rep_eq comp_def, rel_simp)
 
 update_uexpr_rep_eq_thms
 
-lemma funpow_lemma: "(\<lambda>x. (f ^^ n) (f x)) = (f ^^ n) \<circ> f"
-  by (simp add: fun_eq_iff funpow_swap1)
-
 lemma titr_lemma:
-  "t + (\<sigma> \<dagger> titr n \<sigma> t) + (\<sigma> ^^ n \<circ> \<sigma>) \<dagger> t = (titr n \<sigma> t + (\<sigma> ^^ n) \<dagger> t) + (\<sigma> \<circ> \<sigma> ^^ n) \<dagger> t"
-  by (induct n, simp_all add: usubst funpow_lemma add.assoc funpow_swap1)
+  "t + (\<sigma> \<dagger> titr n \<sigma> t) + (\<sigma> ^\<^sub>s n \<circ>\<^sub>s \<sigma>) \<dagger> t = (titr n \<sigma> t + (\<sigma> ^\<^sub>s n) \<dagger> t) + (\<sigma> \<circ>\<^sub>s \<sigma> ^\<^sub>s n) \<dagger> t"
+  by (induct n, simp_all add: usubst add.assoc, metis subst_monoid.power_Suc subst_monoid.power_Suc2)
 
 lemma csp_do_power [rpred]:
-  "\<Phi>(s, \<sigma>, t)\<^bold>^(Suc n) = \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t)"
+  "\<Phi>(s, \<sigma>, t)\<^bold>^(Suc n) = \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^\<^sub>si) \<dagger> s, \<sigma>^\<^sub>sSuc n, titr (Suc n) \<sigma> t)"
   apply (induct n)
    apply (rel_auto)
   apply (simp add: power.power.power_Suc rpred usubst)
@@ -1060,24 +1057,24 @@ lemma csp_do_power [rpred]:
   apply (metis Suc_le_mono funpow_simps_right(2) gr0_implies_Suc o_def)
   apply force
   apply (metis Suc_leI funpow_simps_right(2) less_Suc_eq_le o_apply)
-  apply (metis comp_apply funpow_swap1)
+  apply (metis subst_monoid.power_Suc subst_monoid.power_Suc2)
   apply (metis add.assoc plus_list_def plus_uexpr_def titr_lemma)
   done
 
 lemma csp_do_rea_star [rpred]:
-  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>r = II\<^sub>r \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^\<^sub>si) \<dagger> s, \<sigma>^\<^sub>sSuc n, titr (Suc n) \<sigma> t))"
   by (simp add: rrel_theory.Star_alt_def closure uplus_power_def rpred)
 
 lemma csp_do_csp_star [rpred]:
-  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>c = (\<Sqinter> n \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  "\<Phi>(s, \<sigma>, t)\<^sup>\<star>\<^sup>c = (\<Sqinter> n \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^\<^sub>s i) \<dagger> s,\<sigma> ^\<^sub>s n,titr n \<sigma> t))"
   (is "?lhs = (\<Sqinter> n \<bullet> ?G(n))")
 proof -
-  have "?lhs = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^^i) \<dagger> s, \<sigma>^^Suc n, titr (Suc n) \<sigma> t))"
+  have "?lhs = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> \<Phi>(\<And> i\<in>{0..n} \<bullet> (\<sigma>^\<^sub>si) \<dagger> s, \<sigma>^\<^sub>sSuc n, titr (Suc n) \<sigma> t))"
     (is "_ = II\<^sub>c \<sqinter> (\<Sqinter> n \<bullet> ?F(n))")
     by (simp add: crf_theory.Star_alt_def closure uplus_power_def rpred)
   also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1))"
     by (simp add: UINF_atLeast_Suc)
-  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^^ i) \<dagger> s,\<sigma> ^^ n,titr n \<sigma> t))"
+  also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^\<^sub>s i) \<dagger> s,\<sigma> ^\<^sub>s n,titr n \<sigma> t))"
   proof -
     have "(\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1)) = (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
       by (rule UINF_cong, simp, metis Suc_pred atLeastLessThanSuc_atLeastAtMost diff_is_0_eq not0_implies_Suc not_less_eq_eq zero_less_Suc)
@@ -1099,7 +1096,7 @@ qed
 subsection \<open> Assumptions \<close>
 
 abbreviation crf_assume :: "'s upred \<Rightarrow> ('s, 'e) action" ("[_]\<^sub>c") where
-"[b]\<^sub>c \<equiv> \<Phi>(b, id, \<langle>\<rangle>)"
+"[b]\<^sub>c \<equiv> \<Phi>(b, id\<^sub>s, \<langle>\<rangle>)"
 
 lemma crf_assume_true [rpred]: "P is CRR \<Longrightarrow> [true]\<^sub>c ;; P = P"
   by (simp add: crel_skip_left_unit csp_do_nothing)

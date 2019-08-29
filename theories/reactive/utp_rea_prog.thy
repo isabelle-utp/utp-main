@@ -301,7 +301,7 @@ translations
   "_cond_srea P b Q" == "CONST cond_srea P b Q"
 
 lemma st_cond_assigns [rpred]:
-  "\<langle>\<sigma>\<rangle>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>\<rangle>\<^sub>r"
+  "\<langle>\<sigma>\<rangle>\<^sub>r \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<sigma> \<triangleleft> b \<triangleright> \<rho>\<rangle>\<^sub>r"
   by (rel_auto)
 
 lemma cond_srea_RR_closed [closure]:

@@ -71,7 +71,7 @@ lemma Skip_RHS_tri_design:
   by (rel_auto)
 
 lemma Skip_RHS_tri_design' [rdes_def]: 
-  "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (false \<diamondop> \<Phi>(true,id,\<langle>\<rangle>)))"
+  "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (false \<diamondop> \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)))"
   by (rel_auto)
 
 lemma Skip_frame [frame]: "vwb_lens a \<Longrightarrow> a:[Skip]\<^sub>R\<^sup>+ = Skip"
@@ -93,7 +93,7 @@ lemma preR_Skip [rdes]: "pre\<^sub>R(Skip) = true\<^sub>r"
 lemma periR_Skip [rdes]: "peri\<^sub>R(Skip) = false"
   by (rel_auto)
 
-lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = \<Phi>(true,id,\<langle>\<rangle>)"
+lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)"
   by (rel_auto)
 
 lemma Productive_Stop [closure]:

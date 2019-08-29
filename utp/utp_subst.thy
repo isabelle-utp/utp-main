@@ -53,16 +53,12 @@ lift_definition subst_id :: "'\<alpha> usubst" ("id\<^sub>s") is "\<lambda>s. s"
 lift_definition subst_comp :: "('\<beta>, '\<gamma>) psubst \<Rightarrow> ('\<alpha>, '\<beta>) psubst \<Rightarrow> ('\<alpha>, '\<gamma>) psubst" (infixl "\<circ>\<^sub>s" 55) is
 "(\<circ>)" .
 
-lift_definition subst_pow :: "'\<alpha> usubst \<Rightarrow> nat \<Rightarrow> '\<alpha> usubst" (infixr "^\<^sub>s" 80) is
-"(^^)" .
-
 lift_definition inv_subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> ('\<beta>, '\<alpha>) psubst" ("inv\<^sub>s") is inv .
 lift_definition inj_subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> bool" ("inj\<^sub>s") is inj .
 lift_definition bij_subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> bool" ("bij\<^sub>s") is bij .
 
 declare inj_subst_def [uexpr_transfer_extra]
 declare bij_subst_def [uexpr_transfer_extra]
-
 
 text \<open> The following function takes a substitution form state-space @{typ "'\<alpha>"} to @{typ "'\<beta>"}, a
   lens with source @{typ "'\<beta>"} and view "'a", and an expression over @{typ "'\<alpha>"} and returning
@@ -554,6 +550,18 @@ lemma par_subst_upd_right_in [usubst]:
 lemma par_subst_upd_right_out [usubst]:
   "\<lbrakk> vwb_lens B; A \<bowtie> B; x \<bowtie> B \<rbrakk> \<Longrightarrow> \<sigma> [A|B]\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> [A|B]\<^sub>s \<rho>)"
   by (simp add: par_subst_comm par_subst_upd_left_out)
+
+subsection \<open> Power Substitutions \<close>
+
+interpretation subst_monoid: monoid_mult subst_id subst_comp
+  by (unfold_locales, transfer, auto)
+
+notation subst_monoid.power (infixr "^\<^sub>s" 80)
+
+lemma subst_power_rep_eq: "\<lbrakk>\<sigma> ^\<^sub>s n\<rbrakk>\<^sub>e = \<lbrakk>\<sigma>\<rbrakk>\<^sub>e ^^ n"
+  by (induct n, simp_all add: subst_id.rep_eq subst_comp.rep_eq)
+
+update_uexpr_rep_eq_thms
 
 end
 

@@ -228,9 +228,9 @@ lemma CSPInnerMerge_form:
   (is "?lhs = ?rhs")
 proof -
   have P:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(P)) = P" (is "?P' = _")
-    by (simp add: ex_unrest ex_plus Healthy_if assms RR_implies_R2 unrest closure)
+    by (simp add: ex_unrest ex_plus Healthy_if assms unrest closure)
   have Q:"(\<exists> {$ok\<acute>,$wait\<acute>} \<bullet> R2(Q)) = Q" (is "?Q' = _")
-    by (simp add: ex_unrest ex_plus Healthy_if assms RR_implies_R2 unrest closure)
+    by (simp add: ex_unrest ex_plus Healthy_if assms unrest closure)
   from assms(1,2)
   have "?P' \<parallel>\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> ?Q' = 
         (\<^bold>\<exists> (ref\<^sub>0, ref\<^sub>1, st\<^sub>0, st\<^sub>1, tt\<^sub>0, tt\<^sub>1) \<bullet> 
@@ -380,7 +380,7 @@ lemma merge_csp_do_left:
         [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>1\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> P \<and>
         $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>1\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
         [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>0 \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> t\<^sub>0 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-        $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>\<sigma>\<^sub>0\<guillemotright>($st)\<^sub>a on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+        $st\<acute> =\<^sub>u $st \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>0 on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = 
@@ -397,7 +397,7 @@ proof -
         [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>1\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> P \<and>
         $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>1\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
         [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>0 \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> t\<^sub>0 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-        $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>\<sigma>\<^sub>0\<guillemotright>($st)\<^sub>a on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+        $st\<acute> =\<^sub>u $st \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>0 on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
     by (rel_blast)
   finally show ?thesis .
 qed
@@ -410,7 +410,7 @@ lemma merge_csp_do_right:
         [s\<^sub>1]\<^sub>S\<^sub>< \<and>
         $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
         [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-        $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<guillemotleft>\<sigma>\<^sub>1\<guillemotright>($st)\<^sub>a on &ns2 )"
+        $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>1 on &ns2 )"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = \<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<parallel>\<^bsub>N\<^sub>C ns2 cs ns1\<^esub> P"
@@ -487,7 +487,7 @@ lemma FinalMerge_csp_do_left:
              [s\<^sub>0]\<^sub>S\<^sub>< \<and>
              [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>1\<guillemotright>] \<dagger> P \<and>
              [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>0 \<star>\<^bsub>cs\<^esub> \<guillemotleft>t\<^sub>1\<guillemotright> \<and> t\<^sub>0 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-             $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>\<sigma>\<^sub>0\<guillemotright>($st)\<^sub>a on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+             $st\<acute> =\<^sub>u $st \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>0 on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
   (is "?lhs = ?rhs")
 proof -
   have "?lhs = 
@@ -502,14 +502,14 @@ proof -
              [s\<^sub>0]\<^sub>S\<^sub>< \<and>
              [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>1\<guillemotright>] \<dagger> RR(\<exists> $ref\<acute> \<bullet> P) \<and>
              [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>0 \<star>\<^bsub>cs\<^esub> \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> t\<^sub>0 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-             $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>\<sigma>\<^sub>0\<guillemotright>($st)\<^sub>a on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+             $st\<acute> =\<^sub>u $st \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>0 on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
     by (rel_blast)
   also have "... = 
         (\<^bold>\<exists> (st\<^sub>1, t\<^sub>1) \<bullet> 
              [s\<^sub>0]\<^sub>S\<^sub>< \<and>
              [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>1\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>1\<guillemotright>] \<dagger> P \<and>
              [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u t\<^sub>0 \<star>\<^bsub>cs\<^esub> \<guillemotleft>t\<^sub>1\<guillemotright> \<and> t\<^sub>0 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u \<guillemotleft>t\<^sub>1\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-             $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>\<sigma>\<^sub>0\<guillemotright>($st)\<^sub>a on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
+             $st\<acute> =\<^sub>u $st \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>0 on &ns1 \<oplus> \<guillemotleft>st\<^sub>1\<guillemotright> on &ns2)"
     by (simp add: ex_unrest Healthy_if unrest closure assms)
   finally show ?thesis .
 qed
@@ -521,7 +521,7 @@ lemma FinalMerge_csp_do_right:
              [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> P \<and>
              [s\<^sub>1]\<^sub>S\<^sub>< \<and>
              [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>t\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
-             $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<guillemotleft>\<sigma>\<^sub>1\<guillemotright>($st)\<^sub>a on &ns2)"
+             $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &ns1 \<oplus> \<lparr>&\<^bold>v \<mapsto>\<^sub>s $st\<rparr> \<dagger> \<sigma>\<^sub>1 on &ns2)"
   (is "?lhs = ?rhs")
 proof -
   have "P \<lbrakk>ns1|cs|ns2\<rbrakk>\<^sup>F \<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) = \<Phi>(s\<^sub>1,\<sigma>\<^sub>1,t\<^sub>1) \<lbrakk>ns2|cs|ns1\<rbrakk>\<^sup>F P"
@@ -865,7 +865,7 @@ lemma Skip_right_form:
   assumes "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR" "$st\<acute> \<sharp> P\<^sub>2"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) ;; Skip = \<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> (\<exists> $ref\<acute> \<bullet> P\<^sub>3))"
 proof -
-  have 1:"RR(P\<^sub>3) ;; \<Phi>(true,id,\<langle>\<rangle>) = (\<exists> $ref\<acute> \<bullet> RR(P\<^sub>3))"
+  have 1:"RR(P\<^sub>3) ;; \<Phi>(true,id\<^sub>s,\<langle>\<rangle>) = (\<exists> $ref\<acute> \<bullet> RR(P\<^sub>3))"
     by (rel_auto)
   show ?thesis
     by (rdes_simp cls: assms, metis "1" Healthy_if assms(3))
@@ -926,7 +926,7 @@ proof -
   finally show ?thesis .
 qed
        
-subsection {* Parallel Laws *}
+subsection \<open> Parallel Laws \<close>
 
 lemma ParCSP_expand:
   "P \<lbrakk>ns1\<parallel>cs\<parallel>ns2\<rbrakk> Q = (P \<parallel>\<^sub>R\<^bsub>N\<^sub>C ns1 cs ns2\<^esub> Q) ;; Skip"
@@ -974,11 +974,11 @@ lemma CSP5_is_C2:
   shows "CSP5(P) = C2(P)"
   unfolding CSP5_def C2_def by (rdes_eq cls: assms)
 
-text {* The form of C2 tells us that a normal CSP process has a downward closed set of refusals *}
+text \<open> The form of C2 tells us that a normal CSP process has a downward closed set of refusals \<close>
 
 lemma csp_do_triv_merge:
   assumes "P is CRF"
-  shows "P \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>) = P" (is "?lhs = ?rhs")
+  shows "P \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id\<^sub>s,\<langle>\<rangle>) = P" (is "?lhs = ?rhs")
 proof -
   have "?lhs = (\<^bold>\<exists> (st\<^sub>0, t\<^sub>0) \<bullet> [$st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<^sub>0\<guillemotright>] \<dagger> CRF(P) \<and> [true]\<^sub>S\<^sub>< \<and> [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>t\<^sub>0\<guillemotright>]\<^sub>t \<and> $st\<acute> =\<^sub>u $st \<oplus> \<guillemotleft>st\<^sub>0\<guillemotright> on &\<^bold>v \<oplus> \<guillemotleft>id\<guillemotright>($st)\<^sub>a on \<emptyset>)"
     by (simp add: FinalMerge_csp_do_right assms closure unrest Healthy_if, rel_auto)
@@ -990,7 +990,7 @@ qed
   
 lemma csp_do_triv_wr:
   assumes "P is CRC"
-  shows "\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C P = P" (is "?lhs = ?rhs")
+  shows "\<Phi>(true,id\<^sub>s,\<langle>\<rangle>) wr[{}]\<^sub>C P = P" (is "?lhs = ?rhs")
 proof -
   have "?lhs = (\<not>\<^sub>r (\<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
                    [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r P)) \<and>
@@ -1010,14 +1010,14 @@ lemma C2_form:
   assumes "P is NCSP"
   shows "C2(P) = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
 proof -
-  have 1:"\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P = pre\<^sub>R P" (is "?lhs = ?rhs")
+  have 1:"\<Phi>(true,id\<^sub>s,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P = pre\<^sub>R P" (is "?lhs = ?rhs")
     by (simp add: csp_do_triv_wr closure assms)
-  have 2: "(pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id,\<langle>\<rangle>) = 
+  have 2: "(pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id\<^sub>s,\<langle>\<rangle>) = 
            (\<^bold>\<exists> ref\<^sub>0 \<bullet> (peri\<^sub>R P)\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>)" (is "?lhs = ?rhs")
   proof -
-    have "?lhs = peri\<^sub>R P \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id,\<langle>\<rangle>)"
+    have "?lhs = peri\<^sub>R P \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)"
       by (simp add: SRD_peri_under_pre closure assms unrest)
-    also have "... = (\<exists> $st\<acute> \<bullet> (peri\<^sub>R P \<parallel>\<^bsub> N\<^sub>C 0\<^sub>L {} 0\<^sub>L\<^esub> \<Phi>(true,id,\<langle>\<rangle>)))"
+    also have "... = (\<exists> $st\<acute> \<bullet> (peri\<^sub>R P \<parallel>\<^bsub> N\<^sub>C 0\<^sub>L {} 0\<^sub>L\<^esub> \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)))"
       by (simp add: CSPInterMerge_def par_by_merge_def seqr_exists_right)
     also have "... = 
          (\<exists> $st\<acute> \<bullet> \<^bold>\<exists> (ref\<^sub>0, st\<^sub>0, tt\<^sub>0) \<bullet> 
@@ -1031,13 +1031,13 @@ proof -
       by (simp add: closure ex_unrest Healthy_if unrest assms)
     finally show ?thesis .
   qed
-  have 3: "(pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>) = post\<^sub>R(P)" (is "?lhs = ?rhs")
+  have 3: "(pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id\<^sub>s,\<langle>\<rangle>) = post\<^sub>R(P)" (is "?lhs = ?rhs")
     by (simp add: csp_do_triv_merge SRD_post_under_pre unrest assms closure)
   show ?thesis
   proof -
-    have "C2(P) = \<^bold>R\<^sub>s (\<Phi>(true,id,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P \<turnstile>
-          (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id,\<langle>\<rangle>) \<diamondop> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id,\<langle>\<rangle>))"
-      by (simp add: C2_def, rdes_simp cls: assms, simp add: id_def pr_var_def)
+    have "C2(P) = \<^bold>R\<^sub>s (\<Phi>(true,id\<^sub>s,\<langle>\<rangle>) wr[{}]\<^sub>C pre\<^sub>R P \<turnstile>
+          (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P) \<lbrakk>{}\<rbrakk>\<^sup>I \<Phi>(true,id\<^sub>s,\<langle>\<rangle>) \<diamondop> (pre\<^sub>R P \<Rightarrow>\<^sub>r post\<^sub>R P) \<lbrakk>\<Sigma>|{}|\<emptyset>\<rbrakk>\<^sup>F \<Phi>(true,id\<^sub>s,\<langle>\<rangle>))"
+      by (simp add: C2_def, rdes_simp cls: assms)
     also have "... = \<^bold>R\<^sub>s (pre\<^sub>R P \<turnstile> (\<^bold>\<exists> ref\<^sub>0 \<bullet> peri\<^sub>R P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright>) \<diamondop> post\<^sub>R P)"
       by (simp add: 1 2 3)
     finally show ?thesis .
