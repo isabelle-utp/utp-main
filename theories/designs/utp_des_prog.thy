@@ -13,10 +13,10 @@ syntax
   "_assignmentd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>D" 62)
 
 translations
-  "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (CONST id) xs vs)"
-  "_assignmentd x v" <= "CONST assigns_d (CONST subst_upd (CONST id) x v)"
+  "_assignmentd xs vs" => "CONST assigns_d (_mk_usubst (id\<^sub>s) xs vs)"
+  "_assignmentd x v" <= "CONST assigns_d (CONST subst_upd (id\<^sub>s) x v)"
   "_assignmentd x v" <= "_assignmentd (_spvar x) v"
-  "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
+  "x,y :=\<^sub>D u,v" <= "CONST assigns_d (CONST subst_upd (CONST subst_upd (id\<^sub>s) (CONST pr_var x) u) (CONST pr_var y) v)"
 
 lemma assigns_d_is_H1_H2 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>H"
   by (simp add: assigns_d_def rdesign_is_H1_H2)
@@ -34,7 +34,7 @@ lemma assigns_d_ndes_def [ndes_simp]:
   "\<langle>\<sigma>\<rangle>\<^sub>D = (true \<turnstile>\<^sub>n \<langle>\<sigma>\<rangle>\<^sub>a)"
   by (rel_auto)
     
-lemma assigns_d_id [simp]: "\<langle>id\<rangle>\<^sub>D = II\<^sub>D"
+lemma assigns_d_id [simp]: "\<langle>id\<^sub>s\<rangle>\<^sub>D = II\<^sub>D"
   by (rel_auto)
 
 lemma assign_d_left_comp:
@@ -46,7 +46,7 @@ lemma assign_d_right_comp:
   by (simp add: assigns_d_def rdesign_composition)
 
 lemma assigns_d_comp:
-  "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ> f\<rangle>\<^sub>D"
+  "(\<langle>f\<rangle>\<^sub>D ;; \<langle>g\<rangle>\<^sub>D) = \<langle>g \<circ>\<^sub>s f\<rangle>\<^sub>D"
   by (simp add: assigns_d_def rdesign_composition assigns_comp)
 
 lemma assigns_d_comp_ext:

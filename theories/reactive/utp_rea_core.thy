@@ -95,8 +95,8 @@ syntax
   "_wait_t"  :: "logic \<Rightarrow> logic" ("_\<^sub>t" [1000] 1000)
 
 translations
-  "P \<^sub>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST in_var CONST wait) false) P"
-  "P \<^sub>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST in_var CONST wait) true) P"
+  "P \<^sub>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd id\<^sub>s (CONST in_var CONST wait) false) P"
+  "P \<^sub>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd id\<^sub>s (CONST in_var CONST wait) true) P"
 
 abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
 "\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
@@ -139,7 +139,7 @@ lemma seqr_wait_true [usubst]: "(P ;; Q) \<^sub>t = (P \<^sub>t ;; Q)"
 lemma seqr_wait_false [usubst]: "(P ;; Q) \<^sub>f = (P \<^sub>f ;; Q)"
   by (rel_auto)
 
-subsection {* Trace contribution lens *}
+subsection \<open> Trace contribution lens \<close>
 
 text \<open> The following lens represents the portion of the state-space that is the difference
   between $tr'$ and $tr$, that is the contribution that a process is making to the trace

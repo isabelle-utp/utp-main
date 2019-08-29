@@ -40,11 +40,11 @@ lemma drop_pre_inv [simp]: "\<lbrakk> out\<alpha> \<sharp> p \<rbrakk> \<Longrig
   by (pred_simp)
 
 lemma usubst_lookup_in_var_unrest [usubst]:
-  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (in_var x) = $x"
+  "in\<alpha> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (in_var x) = $x"
   by (rel_simp, metis fstI)
 
 lemma usubst_lookup_out_var_unrest [usubst]:
-  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (out_var x) = $x\<acute>"
+  "out\<alpha> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s (out_var x) = $x\<acute>"
   by (rel_simp, metis sndI)
     
 lemma out_alpha_in_indep [simp]:
@@ -148,7 +148,7 @@ text \<open> Relational identity, or skip, is then simply an assignment with the
   it simply identifies all variables. \<close>
     
 definition skip_r :: "'\<alpha> hrel" where
-[urel_defs]: "skip_r = assigns_r id"
+[urel_defs]: "skip_r = assigns_r id\<^sub>s"
 
 adhoc_overloading
   uskip skip_r
@@ -325,12 +325,12 @@ translations
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
-  "_assignment xs vs" => "CONST uassigns (_mk_usubst (CONST id) xs vs)"
-  "_assignment x v" <= "CONST uassigns (CONST subst_upd (CONST id) x v)"
+  "_assignment xs vs" => "CONST uassigns (_mk_usubst id\<^sub>s xs vs)"
+  "_assignment x v" <= "CONST uassigns (CONST subst_upd id\<^sub>s x v)"
   "_assignment x v" <= "_assignment (_spvar x) v"
   "_nd_assign x" => "CONST nd_assign (_mk_svid_list x)"
   "_nd_assign x" <= "CONST nd_assign x"
-  "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
+  "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd id\<^sub>s (CONST pr_var x) u) (CONST pr_var y) v)"
   "_skip_ra v" \<rightleftharpoons> "CONST skip_ra v"
   "_frame x P" => "CONST frame x P"
   "_frame (_salphaset (_salphamk x)) P" <= "CONST frame x P"
@@ -460,7 +460,7 @@ lemma unrest_out_rel_var_res [unrest]:
   by (simp add: rel_var_res_def unrest)
 
 lemma unrest_out_alpha_usubst_rel_lift [unrest]: 
-  "out\<alpha> \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>s"
+  "out\<alpha> \<sharp>\<^sub>s \<lceil>\<sigma>\<rceil>\<^sub>s"
   by (rel_auto)
     
 lemma unrest_in_rel_aext [unrest]: "x \<bowtie> y \<Longrightarrow> $y \<sharp> P \<oplus>\<^sub>r x"
@@ -488,11 +488,11 @@ lemma rel_aext_cond [alpha]:
 subsection \<open> Substitution laws \<close>
 
 lemma subst_seq_left [usubst]:
-  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (\<sigma> \<dagger> P) ;; Q"
+  "out\<alpha> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = (\<sigma> \<dagger> P) ;; Q"
   by (rel_simp, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 lemma subst_seq_right [usubst]:
-  "in\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = P ;; (\<sigma> \<dagger> Q)"
+  "in\<alpha> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P ;; Q) = P ;; (\<sigma> \<dagger> Q)"
   by (rel_simp, (metis (no_types, lifting) Pair_inject surjective_pairing)+)
 
 text \<open> The following laws support substitution in heterogeneous relations for polymorphically
@@ -530,7 +530,7 @@ lemma usubst_condr [usubst]:
   by (rel_auto)
 
 lemma subst_skip_r [usubst]:
-  "out\<alpha> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> II = \<langle>\<lfloor>\<sigma>\<rfloor>\<^sub>s\<rangle>\<^sub>a"
+  "out\<alpha> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<dagger> II = \<langle>\<lfloor>\<sigma>\<rfloor>\<^sub>s\<rangle>\<^sub>a"
   by (rel_simp, (metis (mono_tags, lifting) prod.sel(1) sndI surjective_pairing)+)
 
 lemma subst_pre_skip [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> II = \<langle>\<sigma>\<rangle>\<^sub>a"
@@ -541,7 +541,7 @@ lemma subst_rel_lift_seq [usubst]:
   by (rel_auto)
   
 lemma subst_rel_lift_comp [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>s \<circ> \<lceil>\<rho>\<rceil>\<^sub>s = \<lceil>\<sigma> \<circ> \<rho>\<rceil>\<^sub>s"
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<circ>\<^sub>s \<lceil>\<rho>\<rceil>\<^sub>s = \<lceil>\<sigma> \<circ>\<^sub>s \<rho>\<rceil>\<^sub>s"
   by (rel_auto)
     
 lemma usubst_upd_in_comp [usubst]:
@@ -571,7 +571,7 @@ lemma unrest_usubst_lift_in [unrest]:
 
 lemma unrest_usubst_lift_out [unrest]:
   fixes x :: "('a \<Longrightarrow> '\<alpha>)"
-  shows "$x\<acute> \<sharp> \<lceil>P\<rceil>\<^sub>s"
+  shows "$x\<acute> \<sharp>\<^sub>s \<lceil>P\<rceil>\<^sub>s"
   by pred_simp
 
 lemma subst_lift_cond [usubst]: "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<lceil>s\<rceil>\<^sub>\<leftarrow> = \<lceil>\<sigma> \<dagger> s\<rceil>\<^sub>\<leftarrow>"
@@ -670,13 +670,13 @@ lemma conj_RID [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbra
   by (metis Healthy_if Healthy_intro RID_conj)
     
 lemma RID_assigns_r_diff:
-  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
+  "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
   apply (rel_auto)
    apply (metis vwb_lens.put_eq)
   apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
   done
 
-lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
+lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
   by (simp add: Healthy_def RID_assigns_r_diff)
   
 lemma RID_assign_r_same:
@@ -762,7 +762,7 @@ lemma skip_r_runrest [unrest]:
   by (simp add: unrest_relation_def closure)
 
 lemma assigns_r_runrest:
-  "\<lbrakk> vwb_lens x; x \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
+  "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
   by (simp add: unrest_relation_def closure)
 
 lemma seq_r_runrest [unrest]:

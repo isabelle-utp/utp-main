@@ -15,7 +15,7 @@ named_theorems symeval
 lemma seq_symeval [symeval]: "\<Gamma> \<Turnstile> P ;; Q = (\<Gamma> \<Turnstile> P) ;; Q"
   by (rel_auto)
 
-lemma assigns_symeval [symeval]: "\<Gamma> \<Turnstile> \<langle>\<sigma>\<rangle>\<^sub>a = (\<sigma> \<circ> \<Gamma>) \<Turnstile> II"
+lemma assigns_symeval [symeval]: "\<Gamma> \<Turnstile> \<langle>\<sigma>\<rangle>\<^sub>a = (\<sigma> \<circ>\<^sub>s \<Gamma>) \<Turnstile> II"
   by (rel_auto)
 
 lemma term_symeval [symeval]: "(\<Gamma> \<Turnstile> II) ;; P = \<Gamma> \<Turnstile> P"

@@ -37,7 +37,7 @@ lemma sp_assign_r [sp]:
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put, metis vwb_lens.put_eq) 
 
 lemma sp_assigns_r [sp]: 
-  "(p sp \<langle>\<sigma>\<rangle>\<^sub>a) = (\<^bold>\<exists> v \<bullet> [p\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>v\<rbrakk>]\<^sub>u \<and> &\<^bold>v =\<^sub>u \<guillemotleft>\<sigma>(v)\<guillemotright>)"
+  "(p sp \<langle>\<sigma>\<rangle>\<^sub>a) = (\<^bold>\<exists> v \<bullet> [p\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>v\<rbrakk>]\<^sub>u \<and> &\<^bold>v =\<^sub>u \<sigma>\<lbrakk>\<guillemotleft>v\<guillemotright>/&\<^bold>v\<rbrakk>)"
   by (rel_auto)
 
 lemma sp_convr [sp]: "b sp P\<^sup>- = P wp b"

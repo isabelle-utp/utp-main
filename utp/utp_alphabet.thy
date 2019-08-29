@@ -314,11 +314,13 @@ subsection \<open> Substitution Alphabet Extension \<close>
 
 text \<open> This allows us to extend the alphabet of a substitution, in a similar way to expressions. \<close>
 
-definition subst_ext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) where
-[upred_defs]: "\<sigma> \<oplus>\<^sub>s x = (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))"
+lift_definition subst_aext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) 
+is "\<lambda> \<sigma> x. (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))" .
+
+update_uexpr_rep_eq_thms
 
 lemma id_subst_ext [usubst]:
-  "wb_lens x \<Longrightarrow> id \<oplus>\<^sub>s x = id"
+  "wb_lens x \<Longrightarrow> id\<^sub>s \<oplus>\<^sub>s x = id\<^sub>s"
   by pred_auto
 
 lemma upd_subst_ext [alpha]:
@@ -334,7 +336,7 @@ lemma aext_upred_eq [alpha]:
   by (pred_auto)
 
 lemma subst_aext_comp [usubst]:
-  "vwb_lens a \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s a) \<circ> (\<rho> \<oplus>\<^sub>s a) = (\<sigma> \<circ> \<rho>) \<oplus>\<^sub>s a"
+  "vwb_lens a \<Longrightarrow> (\<sigma> \<oplus>\<^sub>s a) \<circ>\<^sub>s (\<rho> \<oplus>\<^sub>s a) = (\<sigma> \<circ>\<^sub>s \<rho>) \<oplus>\<^sub>s a"
   by pred_auto
 
 lemma subst_arestr [usubst]: "vwb_lens a \<Longrightarrow> \<sigma> \<dagger> (P \<restriction>\<^sub>e a) = (((\<sigma> \<oplus>\<^sub>s a) \<dagger> P) \<restriction>\<^sub>e a)"
@@ -344,11 +346,13 @@ subsection \<open> Substitution Alphabet Restriction \<close>
 
 text \<open> This allows us to reduce the alphabet of a substitution, in a similar way to expressions. \<close>
   
-definition subst_res :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65) where
-[upred_defs]: "\<sigma> \<restriction>\<^sub>s x = (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))"
+lift_definition subst_ares :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65)
+is "\<lambda> \<sigma> x. (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))" .
+
+update_uexpr_rep_eq_thms
 
 lemma id_subst_res [usubst]:
-  "mwb_lens x \<Longrightarrow> id \<restriction>\<^sub>s x = id"
+  "mwb_lens x \<Longrightarrow> id\<^sub>s \<restriction>\<^sub>s x = id\<^sub>s"
   by pred_auto
 
 lemma upd_subst_res [alpha]:
@@ -360,6 +364,6 @@ lemma subst_ext_res [usubst]:
   by (pred_auto)
 
 lemma unrest_subst_alpha_ext [unrest]:
-  "x \<bowtie> y \<Longrightarrow> x \<sharp> (P \<oplus>\<^sub>s y)"
+  "x \<bowtie> y \<Longrightarrow> x \<sharp>\<^sub>s (\<sigma> \<oplus>\<^sub>s y)"
   by (pred_simp robust, metis lens_indep_def)
 end

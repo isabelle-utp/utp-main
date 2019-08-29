@@ -176,21 +176,21 @@ translations
 
 lemma st_lift_lemma:
   "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> = \<sigma> \<oplus>\<^sub>s (fst\<^sub>L ;\<^sub>L (st \<times>\<^sub>L st))"
-  by (auto simp add: upred_defs lens_defs prod.case_eq_if)
+  by (rel_auto)
     
 lemma unrest_st_lift [unrest]:
   fixes x :: "'a \<Longrightarrow> ('s, 't::trace, '\<alpha>) rsp \<times> ('s, 't, '\<alpha>) rsp"
   assumes "x \<bowtie> ($st)\<^sub>v"
-  shows "x \<sharp> \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>" (is "?P")
+  shows "x \<sharp>\<^sub>s \<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma>" (is "?P")
   by (simp add: st_lift_lemma)
      (metis assms in_var_def in_var_prod_lens lens_comp_left_id st_vwb_lens unrest_subst_alpha_ext vwb_lens_wb)
 
 lemma id_st_subst [usubst]: 
-  "\<lceil>id\<rceil>\<^sub>S\<^sub>\<sigma> = id"
+  "\<lceil>id\<^sub>s\<rceil>\<^sub>S\<^sub>\<sigma> = id\<^sub>s"
   by (pred_auto)
     
 lemma st_subst_comp [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<circ> \<lceil>\<rho>\<rceil>\<^sub>S\<^sub>\<sigma> = \<lceil>\<sigma> \<circ> \<rho>\<rceil>\<^sub>S\<^sub>\<sigma>"
+  "\<lceil>\<sigma>\<rceil>\<^sub>S\<^sub>\<sigma> \<circ>\<^sub>s \<lceil>\<rho>\<rceil>\<^sub>S\<^sub>\<sigma> = \<lceil>\<sigma> \<circ>\<^sub>s \<rho>\<rceil>\<^sub>S\<^sub>\<sigma>"
   by (rel_auto)
 
 definition lift_cond_srea ("\<lceil>_\<rceil>\<^sub>S\<^sub>\<leftarrow>") where
@@ -229,7 +229,7 @@ done
 
 subsubsection \<open> Assignment \<close>
 
-definition rea_assigns :: "('s \<Rightarrow> 's) \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>r") where
+definition rea_assigns :: "('s usubst) \<Rightarrow> ('s, 't::trace, '\<alpha>) hrel_rsp" ("\<langle>_\<rangle>\<^sub>r") where
 [upred_defs]: "\<langle>\<sigma>\<rangle>\<^sub>r = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
 
 syntax
@@ -237,17 +237,17 @@ syntax
   "_assign_rea" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>r" 62)
 
 translations
-  "_assign_rea xs vs" => "CONST rea_assigns (_mk_usubst (CONST id) xs vs)"
-  "_assign_rea x v" <= "CONST rea_assigns (CONST subst_upd (CONST id) x v)"
+  "_assign_rea xs vs" => "CONST rea_assigns (_mk_usubst (id\<^sub>s) xs vs)"
+  "_assign_rea x v" <= "CONST rea_assigns (CONST subst_upd (id\<^sub>s) x v)"
   "_assign_rea x v" <= "_assign_rea (_spvar x) v"
-  "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
+  "x,y :=\<^sub>r u,v" <= "CONST rea_assigns (CONST subst_upd (CONST subst_upd (id\<^sub>s) (CONST pr_var x) u) (CONST pr_var y) v)"
   
 lemma rea_assigns_RR_closed [closure]: 
   "\<langle>\<sigma>\<rangle>\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by auto
      
 lemma st_subst_assigns_rea [usubst]:
-  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>r"
+  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>r"
   by (rel_auto)
     
 lemma st_subst_rea_skip [usubst]:
@@ -279,7 +279,7 @@ proof -
 qed
 
 lemma rea_assigns_st_subst [usubst]:
-  "\<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>r"
+  "\<lceil>\<sigma> \<oplus>\<^sub>s st\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>r = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>r"
   by (rel_auto)
 
 subsubsection \<open> Conditional \<close>

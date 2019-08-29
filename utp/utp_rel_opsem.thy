@@ -19,7 +19,7 @@ lemma trans_trel:
 lemma skip_trel: "(\<sigma>, II) \<rightarrow>\<^sub>u (\<sigma>, II)"
   by simp
 
-lemma assigns_trel: "(\<sigma>, \<langle>\<rho>\<rangle>\<^sub>a) \<rightarrow>\<^sub>u (\<rho> \<circ> \<sigma>, II)"
+lemma assigns_trel: "(\<sigma>, \<langle>\<rho>\<rangle>\<^sub>a) \<rightarrow>\<^sub>u (\<rho> \<circ>\<^sub>s \<sigma>, II)"
   by (simp add: assigns_comp)
 
 lemma assign_trel:
@@ -47,13 +47,13 @@ lemma rcond_true_trel:
   assumes "\<sigma> \<dagger> b = true"
   shows "(\<sigma>, P \<triangleleft> b \<triangleright>\<^sub>r Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
   using assms
-  by (simp add: assigns_r_comp usubst alpha cond_unit_T)
+  by (simp add: assigns_r_comp usubst alpha)
 
 lemma rcond_false_trel:
   assumes "\<sigma> \<dagger> b = false"
   shows "(\<sigma>, P \<triangleleft> b \<triangleright>\<^sub>r Q) \<rightarrow>\<^sub>u (\<sigma>, Q)"
   using assms
-  by (simp add: assigns_r_comp usubst alpha cond_unit_F)
+  by (simp add: assigns_r_comp usubst alpha)
 
 lemma while_true_trel:
   assumes "\<sigma> \<dagger> b = true"
@@ -67,13 +67,12 @@ lemma while_false_trel:
 
 text \<open> Theorem linking Hoare calculus and operational semantics. If we start $Q$ in a state $\sigma_0$
   satisfying $p$, and $Q$ reaches final state $\sigma_1$ then $r$ holds in this final state. \<close>
-    
+
 theorem hoare_opsem_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = (\<forall> \<sigma>\<^sub>0 \<sigma>\<^sub>1. `\<sigma>\<^sub>0 \<dagger> p` \<and> (\<sigma>\<^sub>0, Q) \<rightarrow>\<^sub>u (\<sigma>\<^sub>1, II) \<longrightarrow> `\<sigma>\<^sub>1 \<dagger> r`)"
   apply (rel_auto)
   apply (rename_tac a b)
-  apply (drule_tac x="\<lambda> _. a" in spec, simp)
-  apply (drule_tac x="\<lambda> _. b" in spec, simp)
+  apply (metis (full_types) lit.rep_eq)
   done
     
 declare trel.simps [simp del]

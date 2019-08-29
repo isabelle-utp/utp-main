@@ -52,10 +52,10 @@ syntax
   "_assign_srd" :: "svids \<Rightarrow> uexprs \<Rightarrow> logic"  (infixr ":=\<^sub>R" 62)
 
 translations
-  "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (CONST id) xs vs)"
-  "_assign_srd x v" <= "CONST assigns_srd (CONST subst_upd (CONST id) x v)"
+  "_assign_srd xs vs" => "CONST assigns_srd (_mk_usubst (id\<^sub>s) xs vs)"
+  "_assign_srd x v" <= "CONST assigns_srd (CONST subst_upd (id\<^sub>s) x v)"
   "_assign_srd x v" <= "_assign_srd (_spvar x) v"
-  "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (CONST id) (CONST pr_var x) u) (CONST pr_var y) v)"
+  "x,y :=\<^sub>R u,v" <= "CONST assigns_srd (CONST subst_upd (CONST subst_upd (id\<^sub>s) (CONST pr_var x) u) (CONST pr_var y) v)"
 
 lemma assigns_srd_RHS_tri_des [rdes_def]:
   "\<langle>\<sigma>\<rangle>\<^sub>R = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> \<langle>\<sigma>\<rangle>\<^sub>r)"
@@ -967,15 +967,15 @@ lemma srd_subst_skip [usubst]:
   by (rdes_eq)
     
 lemma srd_subst_assigns [usubst]:
-  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+  "\<sigma> \<dagger>\<^sub>S \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
 
 subsection \<open> Algebraic Laws \<close>
 
-theorem assigns_srd_id: "\<langle>id\<rangle>\<^sub>R = II\<^sub>R"
+theorem assigns_srd_id: "\<langle>id\<^sub>s\<rangle>\<^sub>R = II\<^sub>R"
   by (rdes_eq)
 
-theorem assigns_srd_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>R"
+theorem assigns_srd_comp: "\<langle>\<sigma>\<rangle>\<^sub>R ;; \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>R"
   by (rdes_eq)
 
 theorem assigns_srd_Miracle: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Miracle = Miracle"
@@ -984,7 +984,7 @@ theorem assigns_srd_Miracle: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Miracle = Mi
 theorem assigns_srd_Chaos: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Chaos = Chaos"
   by (rdes_eq)
 
-theorem assigns_srd_cond : "\<langle>\<sigma>\<rangle>\<^sub>R \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<sigma> \<triangleleft> b \<triangleright>\<^sub>s \<rho>\<rangle>\<^sub>R"
+theorem assigns_srd_cond : "\<langle>\<sigma>\<rangle>\<^sub>R \<triangleleft> b \<triangleright>\<^sub>R \<langle>\<rho>\<rangle>\<^sub>R = \<langle>\<sigma> \<triangleleft> b \<triangleright> \<rho>\<rangle>\<^sub>R"
   by (rdes_eq)
 
 theorem assigns_srd_left_seq:

@@ -174,15 +174,15 @@ lemma rea_impl_unrest [unrest]:
   by (simp add: rea_impl_def unrest)
 
 lemma rea_true_usubst [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> true\<^sub>r = true\<^sub>r"
+  "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; $tr\<acute> \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> true\<^sub>r = true\<^sub>r"
   by (simp add: R1_def usubst)
   
 lemma rea_not_usubst [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (\<not>\<^sub>r P) = (\<not>\<^sub>r \<sigma> \<dagger> P)"
+  "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; $tr\<acute> \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (\<not>\<^sub>r P) = (\<not>\<^sub>r \<sigma> \<dagger> P)"
   by (simp add: rea_not_def R1_def usubst)
 
 lemma rea_impl_usubst [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; $tr\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<Rightarrow>\<^sub>r Q) = (\<sigma> \<dagger> P \<Rightarrow>\<^sub>r \<sigma> \<dagger> Q)"
+  "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; $tr\<acute> \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<Rightarrow>\<^sub>r Q) = (\<sigma> \<dagger> P \<Rightarrow>\<^sub>r \<sigma> \<dagger> Q)"
   by (simp add: rea_impl_def usubst R1_def)
 
 lemma rea_true_usubst_tt [usubst]: 

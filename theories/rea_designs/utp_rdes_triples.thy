@@ -15,7 +15,7 @@ lemma wait'_cond_unrest [unrest]:
   by (simp add: wait'_cond_def unrest)
 
 lemma wait'_cond_subst [usubst]:
-  "$wait\<acute> \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
+  "$wait\<acute> \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<dagger> (P \<diamondop> Q) = (\<sigma> \<dagger> P) \<diamondop> (\<sigma> \<dagger> Q)"
   by (simp add: wait'_cond_def usubst unrest)
 
 lemma wait'_cond_left_false: "false \<diamondop> P = (\<not> $wait\<acute> \<and> P)"

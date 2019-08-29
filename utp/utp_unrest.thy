@@ -27,7 +27,7 @@ consts
 
 syntax
   "_unrest" :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" (infix "\<sharp>" 20)
-  
+
 translations
   "_unrest x p" == "CONST unrest x p"                                           
   "_unrest (_salphaset (_salphamk (x +\<^sub>L y))) P"  <= "_unrest (x +\<^sub>L y) P"

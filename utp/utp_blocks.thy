@@ -20,24 +20,24 @@ definition subst_ext :: "(<'\<alpha>, '\<beta>> \<Longleftrightarrow> '\<gamma>)
 
 definition subst_con :: "(<'\<alpha>, '\<beta>> \<Longleftrightarrow> '\<gamma>) \<Rightarrow> ('\<gamma>, '\<alpha>) psubst" ("con\<^sub>s") where
 \<comment> \<open> Contract the state space with get \<close>
-"con\<^sub>s a = (\<lambda> s. get\<^bsub>\<V>\<^bsub>a\<^esub>\<^esub> s)"
+[upred_defs]: "con\<^sub>s a = &\<V>[a]"
 
-lemma subst_con_alt_def [upred_defs]: "con\<^sub>s a = \<lparr>\<^bold>v \<mapsto>\<^sub>s &\<V>[a]\<rparr>"
+lemma subst_con_alt_def: "con\<^sub>s a = \<lparr>\<^bold>v \<mapsto>\<^sub>s &\<V>[a]\<rparr>"
   unfolding subst_con_def by (rel_auto)
 
-lemma subst_ext_con [usubst]: "psym_lens a \<Longrightarrow> con\<^sub>s a \<circ> ext\<^sub>s a = id"
+lemma subst_ext_con [usubst]: "psym_lens a \<Longrightarrow> con\<^sub>s a \<circ>\<^sub>s ext\<^sub>s a = id\<^sub>s"
   by (rel_simp)
 
 text \<open> Variables in the global state space will be retained after a state is contracted \<close>
 
 lemma subst_con_update_sublens [usubst]: 
-  "\<lbrakk> psym_lens a; x \<subseteq>\<^sub>L \<V>\<^bsub>a\<^esub> \<rbrakk> \<Longrightarrow> con\<^sub>s a \<circ> subst_upd \<sigma> x v = subst_upd (con\<^sub>s a \<circ> \<sigma>) (x /\<^sub>L \<V>\<^bsub>a\<^esub>) v"
+  "\<lbrakk> psym_lens a; x \<subseteq>\<^sub>L \<V>\<^bsub>a\<^esub> \<rbrakk> \<Longrightarrow> con\<^sub>s a \<circ>\<^sub>s subst_upd \<sigma> x v = subst_upd (con\<^sub>s a \<circ>\<^sub>s \<sigma>) (x /\<^sub>L \<V>\<^bsub>a\<^esub>) v"
   by (simp add: subst_con_def usubst alpha, rel_simp)
 
 text \<open> Variables in the local state space will be lost after a state is contracted \<close>
 
 lemma subst_con_update_indep [usubst]: 
-  "\<lbrakk> mwb_lens x; psym_lens a; \<V>\<^bsub>a\<^esub> \<bowtie> x \<rbrakk> \<Longrightarrow> con\<^sub>s a \<circ> subst_upd \<sigma> x v = (con\<^sub>s a \<circ> \<sigma>)"
+  "\<lbrakk> mwb_lens x; psym_lens a; \<V>\<^bsub>a\<^esub> \<bowtie> x \<rbrakk> \<Longrightarrow> con\<^sub>s a \<circ>\<^sub>s subst_upd \<sigma> x v = (con\<^sub>s a \<circ>\<^sub>s \<sigma>)"
   by (simp add: subst_con_alt_def usubst alpha)
 
 lemma subst_ext_apply [usubst]: "\<langle>ext\<^sub>s a\<rangle>\<^sub>s x = &x \<restriction>\<^sub>e \<V>\<^bsub>a\<^esub>"
@@ -75,8 +75,11 @@ lemma block_open_close:
 
 text \<open> I needed this property for the assignment open law below. \<close>
 
-lemma usubst_prop: "\<sigma> \<oplus>\<^sub>s a = [a \<mapsto>\<^sub>s uop \<sigma> &a]"
+lemma usubst_prop: "\<sigma> \<oplus>\<^sub>s a = [a \<mapsto>\<^sub>s &a \<dagger> \<sigma>]"
   by (rel_simp)
+
+lemma [usubst]: "\<langle>\<sigma>\<rangle>\<^sub>s (&\<^bold>v)\<^sub>v = \<sigma>"
+  by (rel_auto)
 
 lemma block_assigns_open:
   "psym_lens a \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a ;; open\<^bsub>a\<^esub> = open\<^bsub>a\<^esub> ;; \<langle>\<sigma> \<oplus>\<^sub>s \<V>\<^bsub>a\<^esub>\<rangle>\<^sub>a"

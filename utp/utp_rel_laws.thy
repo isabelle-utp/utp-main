@@ -322,7 +322,7 @@ lemma skip_res_as_ra:
 subsection \<open> Assignment Laws \<close>
   
 lemma assigns_subst [usubst]:
-  "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>a = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>a"
+  "\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> \<langle>\<rho>\<rangle>\<^sub>a = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>a"
   by (rel_auto)
 
 lemma assigns_r_comp: "(\<langle>\<sigma>\<rangle>\<^sub>a ;; P) = (\<lceil>\<sigma>\<rceil>\<^sub>s \<dagger> P)"
@@ -357,14 +357,14 @@ lemma assign_simultaneous:
 lemma assigns_idem: "mwb_lens x \<Longrightarrow> (x,x) := (u,v) = (x := v)"
   by (simp add: usubst)
 
-lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ> f\<rangle>\<^sub>a"
+lemma assigns_comp: "(\<langle>f\<rangle>\<^sub>a ;; \<langle>g\<rangle>\<^sub>a) = \<langle>g \<circ>\<^sub>s f\<rangle>\<^sub>a"
   by (rel_auto)
 
-lemma assigns_cond: "(\<langle>f\<rangle>\<^sub>a \<triangleleft> b \<triangleright>\<^sub>r \<langle>g\<rangle>\<^sub>a) = \<langle>f \<triangleleft> b \<triangleright>\<^sub>s g\<rangle>\<^sub>a"
+lemma assigns_cond: "(\<langle>f\<rangle>\<^sub>a \<triangleleft> b \<triangleright>\<^sub>r \<langle>g\<rangle>\<^sub>a) = \<langle>f \<triangleleft> b \<triangleright> g\<rangle>\<^sub>a"
   by (rel_auto)
 
 lemma assigns_r_conv:
-  "bij f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv f\<rangle>\<^sub>a"
+  "bij\<^sub>s f \<Longrightarrow> \<langle>f\<rangle>\<^sub>a\<^sup>- = \<langle>inv\<^sub>s f\<rangle>\<^sub>a"
   by (rel_auto, simp_all add: bij_is_inj bij_is_surj surj_f_inv_f)
 
 lemma assign_pred_transfer:
@@ -407,7 +407,7 @@ lemma assign_r_alt_def:
 lemma assigns_r_ufunc: "ufunctional \<langle>f\<rangle>\<^sub>a"
   by (rel_auto)
 
-lemma assigns_r_uinj: "inj f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
+lemma assigns_r_uinj: "inj\<^sub>s f \<Longrightarrow> uinj \<langle>f\<rangle>\<^sub>a"
   by (rel_simp, simp add: inj_eq)
     
 lemma assigns_r_swap_uinj:
@@ -712,7 +712,7 @@ next
 qed
 
 lemma upower_rep_eq_alt:
-  "\<lbrakk>power.power \<langle>id\<rangle>\<^sub>a (;;) P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
+  "\<lbrakk>power.power \<langle>id\<^sub>s\<rangle>\<^sub>a (;;) P i\<rbrakk>\<^sub>e = (\<lambda>b. b \<in> ({p. \<lbrakk>P\<rbrakk>\<^sub>e p} ^^ i))"
   by (metis skip_r_def upower_rep_eq)
 
 update_uexpr_rep_eq_thms
@@ -783,7 +783,7 @@ lemma SUP_atLeastAtMost_first:
 lemma upower_seqr_iter: "P \<^bold>^ n = (;; Q : replicate n P \<bullet> Q)"
   by (induct n, simp_all add: upred_semiring.power_Suc)
 
-lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^^ n\<rangle>\<^sub>a"
+lemma assigns_power: "\<langle>f\<rangle>\<^sub>a \<^bold>^ n = \<langle>f ^\<^sub>s n\<rangle>\<^sub>a"
   by (induct n, rel_auto+)
 
 subsection \<open> Kleene Star \<close>

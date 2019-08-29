@@ -140,8 +140,8 @@ syntax
   "_top_d" :: "logic" ("\<top>\<^sub>D")
 
 translations
-  "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST out_var CONST ok) false) P"
-  "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST out_var CONST ok) true) P"
+  "P\<^sup>f" \<rightleftharpoons> "CONST usubst (CONST subst_upd id\<^sub>s (CONST out_var CONST ok) false) P"
+  "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd id\<^sub>s (CONST out_var CONST ok) true) P"
   "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST in_var CONST ok))"
 
 subsection \<open> Lifting, Unrestriction, and Substitution \<close>
@@ -197,7 +197,7 @@ lemma state_subst_design [usubst]:
   by (rel_auto)
 
 lemma design_subst [usubst]:
-  "\<lbrakk> $ok \<sharp> \<sigma>; $ok\<acute> \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
+  "\<lbrakk> $ok \<sharp>\<^sub>s \<sigma>; $ok\<acute> \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
   by (simp add: design_def usubst)
 
 lemma design_msubst [usubst]:

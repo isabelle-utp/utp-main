@@ -346,7 +346,6 @@ declare disj_upred_def [upred_defs]
 declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
 declare subst_upd_uvar_def [upred_defs]
-declare cond_subst_def [upred_defs]
 declare par_subst_def [upred_defs]
 declare subst_del_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
@@ -551,7 +550,7 @@ lemma subst_ex_indep [usubst]:
   done
 
 lemma subst_ex_unrest [usubst]:
-  "x \<sharp> \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
+  "x \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<dagger> (\<exists> x \<bullet> P) = (\<exists> x \<bullet> \<sigma> \<dagger> P)"
   by (pred_auto)
 
 lemma subst_all_same [usubst]:
