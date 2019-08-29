@@ -39,58 +39,37 @@ translations
   "\<langle>x, xs\<rangle>"  == "x #\<^sub>u \<langle>xs\<rangle>"
   "\<langle>x\<rangle>"      == "x #\<^sub>u \<guillemotleft>[]\<guillemotright>"
 
+abbreviation (input) ufinite ("finite\<^sub>u'(_')") where "finite\<^sub>u(x) \<equiv> uop finite x"
+abbreviation (input) uempset ("{}\<^sub>u") where "{}\<^sub>u \<equiv> \<guillemotleft>{}\<guillemotright>"
+abbreviation (input) uunion  (infixl "\<union>\<^sub>u" 65) where "A \<union>\<^sub>u B \<equiv> bop (\<union>) A B"
+abbreviation (input) uinter  (infixl "\<inter>\<^sub>u" 70) where "A \<inter>\<^sub>u B \<equiv> bop (\<inter>) A B"
+abbreviation (input) uimage ("_\<lparr>_\<rparr>\<^sub>u" [10,0] 10) where "f\<lparr>A\<rparr>\<^sub>u \<equiv> bop image f A"
+abbreviation (input) uinsert ("insert\<^sub>u") where "insert\<^sub>u x xs \<equiv> bop insert x xs"
+abbreviation (input) usubset (infix "\<subset>\<^sub>u" 50) where "A \<subset>\<^sub>u B \<equiv> bop (\<subset>) A B"
+abbreviation (input) usubseteq (infix "\<subseteq>\<^sub>u" 50) where "A \<subseteq>\<^sub>u B \<equiv> bop (\<subseteq>) A B"
+abbreviation (input) uconverse ("(_\<^sup>~)" [1000] 999) where "P\<^sup>~ \<equiv> uop converse P"
+
 syntax \<comment> \<open> Sets \<close>
-  "_ufinite"    :: "logic \<Rightarrow> logic" ("finite\<^sub>u'(_')")
-  "_uempset"    :: "('a set, '\<alpha>) uexpr" ("{}\<^sub>u")
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
-  "_uunion"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<union>\<^sub>u" 65)
-  "_uinter"     :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr" (infixl "\<inter>\<^sub>u" 70)
-  "_uinsert"    :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("insert\<^sub>u")
-  "_uimage"     :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_\<lparr>_\<rparr>\<^sub>u" [10,0] 10)
   "_usubset"    :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subset>\<^sub>u" 50)
   "_usubseteq"  :: "('a set, '\<alpha>) uexpr \<Rightarrow> ('a set, '\<alpha>) uexpr \<Rightarrow> (bool, '\<alpha>) uexpr" (infix "\<subseteq>\<^sub>u" 50)
-  "_uconverse"  :: "logic \<Rightarrow> logic" ("(_\<^sup>~)" [1000] 999)
   "_ucarrier"   :: "type \<Rightarrow> logic" ("[_]\<^sub>T")
   "_uid"        :: "type \<Rightarrow> logic" ("id[_]")
   "_uproduct"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<times>\<^sub>u" 80)
   "_urelcomp"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr ";\<^sub>u" 75)
 
 translations
-  "finite\<^sub>u(x)" == "CONST uop (CONST finite) x"
-  "{}\<^sub>u"      == "\<guillemotleft>{}\<guillemotright>"
-  "insert\<^sub>u x xs" == "CONST bop CONST insert x xs"
   "{x, xs}\<^sub>u" == "insert\<^sub>u x {xs}\<^sub>u"
   "{x}\<^sub>u"     == "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
-  "A \<union>\<^sub>u B"   == "CONST bop (\<union>) A B"
-  "A \<inter>\<^sub>u B"   == "CONST bop (\<inter>) A B"
-  "f\<lparr>A\<rparr>\<^sub>u"     == "CONST bop CONST image f A"
-  "A \<subset>\<^sub>u B"   == "CONST bop (\<subset>) A B"
-  "f \<subset>\<^sub>u g"   <= "CONST bop (\<subset>\<^sub>p) f g"
-  "f \<subset>\<^sub>u g"   <= "CONST bop (\<subset>\<^sub>f) f g"
-  "A \<subseteq>\<^sub>u B"   == "CONST bop (\<subseteq>) A B"
-  "f \<subseteq>\<^sub>u g"   <= "CONST bop (\<subseteq>\<^sub>p) f g"
-  "f \<subseteq>\<^sub>u g"   <= "CONST bop (\<subseteq>\<^sub>f) f g"
-  "P\<^sup>~"        == "CONST uop CONST converse P"
   "['a]\<^sub>T"     == "\<guillemotleft>CONST set_of TYPE('a)\<guillemotright>"
   "id['a]"    == "\<guillemotleft>CONST Id_on (CONST set_of TYPE('a))\<guillemotright>"
   "A \<times>\<^sub>u B"    == "CONST bop CONST Product_Type.Times A B"
   "A ;\<^sub>u B"    == "CONST bop CONST relcomp A B"
 
-syntax \<comment> \<open> Partial functions \<close>
-  "_umap_plus"  :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<oplus>\<^sub>u" 85)
-  "_umap_minus" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<ominus>\<^sub>u" 85)
+\<comment> \<open> Sum types \<close>
 
-translations
-  "f \<oplus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) + g"
-  "f \<ominus>\<^sub>u g"   => "(f :: ((_, _) pfun, _) uexpr) - g"
-  
-syntax \<comment> \<open> Sum types \<close>
-  "_uinl"       :: "logic \<Rightarrow> logic" ("inl\<^sub>u'(_')")
-  "_uinr"       :: "logic \<Rightarrow> logic" ("inr\<^sub>u'(_')")
-  
-translations
-  "inl\<^sub>u(x)" == "CONST uop CONST Inl x"
-  "inr\<^sub>u(x)" == "CONST uop CONST Inr x"
+abbreviation uinl ("inl\<^sub>u'(_')") where "inl\<^sub>u(x) \<equiv> uop Inl x"
+abbreviation uinr ("inr\<^sub>u'(_')") where "inr\<^sub>u(x) \<equiv> uop Inr x"
 
 subsection \<open> Lifting set collectors \<close>
 

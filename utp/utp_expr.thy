@@ -238,18 +238,6 @@ abbreviation (input) ugreat (infix ">\<^sub>u" 50) where "x >\<^sub>u y \<equiv>
 abbreviation (input) uleq (infix "\<le>\<^sub>u" 50) where "x \<le>\<^sub>u y \<equiv> bop (\<le>) x y"
 abbreviation (input) ugeq (infix "\<ge>\<^sub>u" 50) where "x \<ge>\<^sub>u y \<equiv> y \<le>\<^sub>u x"
 
-text \<open> Overloaded power syntax. This is one motivation for having @{typ "('a, 's) uexpr"} as a
-  distinct type; we would not otherwise be able to overload this and other polymorphic operators. \<close>
-
-overloading
-  uexprpow \<equiv> "compow :: nat \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr"
-begin
-
-definition uexprpow :: "nat \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr" where
-[uexpr_defs]: "uexprpow n e = uop (compow n) e" 
-
-end
-
 subsection \<open> Evaluation laws for expressions \<close>
   
 text \<open> The following laws show how to evaluate the core expressions constructs in terms of which
