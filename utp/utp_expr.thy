@@ -112,7 +112,7 @@ syntax
 
 translations
   "_uuvar x" == "CONST var x"
-  
+
 text \<open> Since we already have a parser for variables, we can directly reuse it and simply apply
   the @{term var} expression construct to lift the resulting variable to an expression. \<close>
   

@@ -203,10 +203,19 @@ text \<open> The pretty printer infers when a HOL expression is actually a UTP e
 
 ML \<open>
 let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
-  [("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
+  [("U(t)" , "U(U(t))"),
+  ("U(x + y)", "U(x) + U(y)"),
+  ("U(x + y)", "U(x) + y"),
+  ("U(x + y)", "x + U(y)"),
+  ("U(x - y)", "U(x) - y"),
+  ("U(x - y)", "x - U(y)"),
+  ("U(x * y)", "U(x) * y"),
+  ("U(x * y)", "x * U(y)"),
+  ("U(x / y)", "U(x) / y"),
+  ("U(x / y)", "x / U(y)"),
+  ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
   ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
   ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
-  ("U(t)" , "U(U(t))"),
   ("U(f x)" , "U(f) |> U(x)"),
 (*  ("U(f x)" , "f |> U(x)"),
   ("U(f x)" , "U(f) |> x"), *)
@@ -214,11 +223,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
   ("U(f x)" , "CONST uop f U(x)"),
   ("U(f x y)" , "CONST bop f U(x) U(y)"),
-(*  ("U(f x y)" , "CONST bop f x U(y)"),
-  ("U(f x y)" , "CONST bop f U(x) y"), *)
-  ("U(f x y z)" , "CONST trop f x y U(z)"),
-  ("U(f x y z)" , "CONST trop f x U(y) z"),
-  ("U(f x y z)" , "CONST trop f U(x) y z"),
+  ("U(f x y z)" , "CONST trop f U(x) U(y) U(z)"),
   ("U(f x y z)" , "f U(x) U(y) U(z)"),
 
   ("U(f x y)" , "f U(x) U(y)"),
@@ -243,7 +248,12 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
      @{const_syntax uop}, 
      @{const_syntax bop}, 
      @{const_syntax trop}, 
-     @{const_syntax qtop}];
+     @{const_syntax qtop},
+     @{const_syntax subst_upd},
+     @{const_syntax plus},
+     @{const_syntax minus},
+     @{const_syntax times},
+     @{const_syntax divide}];
 
   fun needs_mark t = 
     case Term.strip_comb t of
@@ -367,7 +377,11 @@ term "\<^U>(&v < 0)"
 
 term "U($y = 5)"
 
-term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y = 1 + $y)"
+term "\<^U>($y\<acute> = 1 + $y)"
+
+term "U($x + $y + $z + $u / $f\<acute>)"
+
+term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y\<acute> = 1 + $y)"
 
 term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
 
@@ -377,13 +391,12 @@ term "U($f $\<^bold>v\<acute>)"
 
 term "e \<oplus> f on A"
 
-translations
-  "U(x + y)" <= "U(x) + y"
-  "U(x + y)" <= "x + U(y)"
-
 term "U($x = v)"
 
 term "[$x\<acute> \<mapsto>\<^sub>s $x + 1]"
+term "U($y = [$x\<acute> \<mapsto>\<^sub>s $y])"
+
+term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute>)"
 
 end
 
