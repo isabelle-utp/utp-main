@@ -560,6 +560,8 @@ lemma subst_power_rep_eq: "\<lbrakk>\<sigma> ^\<^sub>s n\<rbrakk>\<^sub>e = \<lb
 
 update_uexpr_rep_eq_thms
 
+no_utp_lift subst_upd (1)
+
 end
 
 

@@ -67,4 +67,6 @@ lemma unrest_dash_var_pre [unrest]:
   shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
   by (pred_auto)
 
+no_utp_lift usubst subst utp_no_lift lift_pre lift_post
+
 end

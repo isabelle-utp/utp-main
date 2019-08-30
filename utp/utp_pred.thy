@@ -345,7 +345,7 @@ declare conj_upred_def [upred_defs]
 declare disj_upred_def [upred_defs]
 declare not_upred_def [upred_defs]
 declare diff_upred_def [upred_defs]
-declare subst_upd_uvar_def [upred_defs]
+declare subst_upd_def [upred_defs]
 declare par_subst_def [upred_defs]
 declare subst_del_def [upred_defs]
 declare unrest_usubst_def [upred_defs]
@@ -609,5 +609,7 @@ definition utp_sandbox :: "'\<alpha> upred \<Rightarrow> bool" ("TRY'(_')") wher
 
 translations
   "P" <= "CONST utp_sandbox P"
+
+no_utp_lift shEx shAll unot uconj udisj uimpl utrue ufalse UINF USUP refineBy
 
 end

@@ -1,7 +1,7 @@
 section \<open> Lifting Parser and Pretty Printer \<close>
 
 theory utp_lift_parser
-  imports "utp_rel"
+  imports utp_expr_insts
   keywords "no_utp_lift" :: "thy_decl_block" and "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block"
 begin
 
@@ -42,7 +42,7 @@ val _ =
 
 text \<open> The core UTP operators should not be lifted. Certain operators have arguments that also
   should not be processed further by expression lifting. For example, in a substitution update
-  @{term "subst_upd \<sigma> x v"}, the lens x (i.e. the second argument) should not be lifted as its 
+  $\sigma(x \mapsto v)$, the lens x (i.e. the second argument) should not be lifted as its 
   target is not an expression. Consequently, constants names in the command @{command no_utp_lift}  
   can be accompanied by a list of numbers stating the arguments that should be not be further
   processed. \<close>
@@ -50,12 +50,11 @@ text \<open> The core UTP operators should not be lifted. Certain operators have
 no_utp_lift
   uexpr_appl uop (0) bop (0) trop (0) qtop (0) lit (0)
   Groups.zero Groups.one plus uminus minus times divide
-  shEx shAll unot uconj udisj uimpl utrue ufalse 
-  usubst subst UINF USUP
-  var (0) in_var (0) out_var (0) lift_pre lift_post
-  cond rcond uassigns id seqr useq uskip rcond rassume rassert
-  rgcmd while_top while_bot while_inv while_inv_bot while_vrt
-  subst_upd (1) numeral (0) refineBy ZedSetCompr
+  var (0) in_var (0) out_var (0) cond numeral (0)
+
+
+
+ML \<open> map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get @{theory})); @{const_syntax bop} \<close>
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -239,53 +238,59 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(f x)" , "_UTP f x") *)
   ("U(f x)" , "_UTP f (_UTP x)")]
 
-
   (* FIXME: This list needs to be dynamically updated whenever we "adopt" a HOL constant to UTP *)
-  val utp_consts =
-    [@{syntax_const "_UTP"}, 
+  val utp_terminals = [@{const_syntax zero_class.zero}, @{const_syntax one_class.one}, @{const_syntax numeral}];
+  fun utp_consts ctx = 
+  [@{syntax_const "_UTP"}, 
      @{const_syntax lit}, 
      @{const_syntax var},
      @{const_syntax uop}, 
      @{const_syntax bop}, 
      @{const_syntax trop}, 
      @{const_syntax qtop},
-     @{const_syntax subst_upd},
+(*     @{const_syntax subst_upd}, *)
      @{const_syntax plus},
      @{const_syntax minus},
      @{const_syntax times},
      @{const_syntax divide}];
 
-  fun needs_mark t = 
+(*
+  val utp_terminals = [@{const_syntax zero_class.zero}, @{const_syntax one_class.one}, @{const_syntax numeral}];
+  fun utp_consts ctx = @{syntax_const "_UTP"} :: filter (not o member (op =) utp_terminals) (map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))));
+
+*)
+  
+  fun needs_mark ctx t = 
     case Term.strip_comb t of
-      (Const (c, _), _) => not (member (op =) utp_consts c) |
+      (Const (c, _), _) => not (member (op =) (utp_consts ctx) c) |
       _ => false;
 
-  fun utp_mark_term (f, ts) = 
-    if (needs_mark f) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (f, ts) else Term.list_comb (f, ts);
+  fun utp_mark_term ctx (f, ts) = 
+    if (needs_mark ctx f) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (f, ts) else Term.list_comb (f, ts);
 
-  fun insert_U pre ts =
-    if (Library.foldl (fn (x, y) => needs_mark y orelse x) (false, ts)) 
-    then Library.foldl1 (op $) (pre @ map (Term.strip_comb #> utp_mark_term) ts)
+  fun insert_U ctx pre ts =
+    if (Library.foldl (fn (x, y) => needs_mark ctx y orelse x) (false, ts)) 
+    then Library.foldl1 (op $) (pre @ map (Term.strip_comb #> utp_mark_term ctx) ts)
     else raise Match;
 
-  fun uop_insert_U (f :: ts) = insert_U [Const (@{const_syntax "uop"}, dummyT), f] ts |
-  uop_insert_U _ = raise Match;
+  fun uop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "uop"}, dummyT), f] ts |
+  uop_insert_U _ _ = raise Match;
 
-  fun bop_insert_U (f :: ts) = insert_U [Const (@{const_syntax "bop"}, dummyT), f] ts |
-  bop_insert_U _ = raise Match;
+  fun bop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "bop"}, dummyT), f] ts |
+  bop_insert_U _ _ = raise Match;
 
-  fun trop_insert_U (f :: ts) =
-    insert_U [Const (@{const_syntax "trop"}, dummyT), f] ts |
-  trop_insert_U _ = raise Match;
+  fun trop_insert_U ctx (f :: ts) =
+    insert_U ctx [Const (@{const_syntax "trop"}, dummyT), f] ts |
+  trop_insert_U _ _ = raise Match;
 
-  fun appl_insert_U ts = insert_U [] ts;
+  fun appl_insert_U ctx ts = insert_U ctx [] ts;
 
   val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
                  , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
-                 , (@{const_syntax "trop"}, K trop_insert_U)
-                 , (@{const_syntax "bop"}, K bop_insert_U)
-                 , (@{const_syntax "uop"}, K uop_insert_U)
-                 , (@{const_syntax "uexpr_appl"}, K appl_insert_U)];
+                 , (@{const_syntax "trop"}, trop_insert_U)
+                 , (@{const_syntax "bop"}, bop_insert_U)
+                 , (@{const_syntax "uop"}, uop_insert_U)
+                 , (@{const_syntax "uexpr_appl"}, appl_insert_U)];
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
 in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
     (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> Sign.print_translation print_tr)));
@@ -320,6 +325,10 @@ term "UTP\<open>xs ! i\<close>"
 term "UTP\<open>A \<union> B\<close>"
 
 term "UTP\<open>\<exists> x. x \<le> xs ! i\<close>"
+
+term "UTP\<open>(x \<le> 0)\<close>"
+
+term "UTP\<open>(length xs + 1 + n \<le> 0)\<close>"
 
 term "UTP\<open>(length xs + 1 + n \<le> 0) \<or> true\<close>"
 
@@ -396,7 +405,12 @@ term "U($x = v)"
 term "[$x\<acute> \<mapsto>\<^sub>s $x + 1]"
 term "U($y = [$x\<acute> \<mapsto>\<^sub>s $y])"
 
-term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute>)"
+translations
+  "_SubstUpd m (_smaplet x y)"        => "CONST subst_upd m x U(y)"
+
+term "xs := &xs + &ys"
+
+term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute> \<and> $x\<acute> = $x + 1)"
 
 end
 
