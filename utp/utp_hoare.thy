@@ -11,6 +11,8 @@ subsection \<open> Hoare Triple Definitions and Tactics \<close>
 definition hoare_r :: "'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>u") where
 "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
 
+utp_lift_notation hoare_r (0 2)
+
 declare hoare_r_def [upred_defs]
 
 named_theorems hoare and hoare_safe
@@ -101,16 +103,16 @@ lemma assigns_backward_hoare_r:
 
 lemma assign_floyd_hoare_r:
   assumes "vwb_lens x"
-  shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<^bold>\<exists>v \<bullet> p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x =\<^sub>u e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
+  shows "\<lbrace>p\<rbrace> assign_r x e \<lbrace>\<exists> v . p\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> \<and> &x = e\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk>\<rbrace>\<^sub>u"
   using assms
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put)
 
 lemma assigns_init_hoare [hoare_safe]:
-  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> v; \<lbrace>&x =\<^sub>u v \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
+  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> v; \<lbrace>&x = v \<and> p\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
   by (rel_auto)
 
 lemma assigns_init_hoare_general:
-  "\<lbrakk> vwb_lens x; \<And> x\<^sub>0. \<lbrace>&x =\<^sub>u v\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk> \<and> p\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk>\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
+  "\<lbrakk> vwb_lens x; \<And> x\<^sub>0. \<lbrace>&x = v\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk> \<and> p\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk>\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
   by (rule seq_hoare_r, rule assign_floyd_hoare_r, simp, rel_auto)
 
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
@@ -156,7 +158,7 @@ lemma mu_hoare_r:
   assumes WF: "wf R"
   assumes M:"mono F"  
   assumes induct_step:
-    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace>F P\<lbrace>q\<rbrace>\<^sub>u"   
+    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>) \<in> \<guillemotleft>R\<guillemotright>\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e = \<guillemotleft>st\<guillemotright>\<rbrace>F P\<lbrace>q\<rbrace>\<^sub>u"   
   shows "\<lbrace>p\<rbrace>\<mu> F \<lbrace>q\<rbrace>\<^sub>u"  
   unfolding hoare_r_def
 proof (rule mu_rec_total_utp_rule[OF WF M , of _ e ], goal_cases)
@@ -170,7 +172,7 @@ lemma mu_hoare_r':
   assumes WF: "wf R"
   assumes M:"mono F"  
   assumes induct_step:
-    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace> P \<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace> F P \<lbrace>q\<rbrace>\<^sub>u" 
+    "\<And> st P. \<lbrace>p \<and> (e,\<guillemotleft>st\<guillemotright>) \<in> \<guillemotleft>R\<guillemotright>\<rbrace> P \<lbrace>q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p \<and> e = \<guillemotleft>st\<guillemotright>\<rbrace> F P \<lbrace>q\<rbrace>\<^sub>u" 
   assumes I0: "`p' \<Rightarrow> p`"  
   shows "\<lbrace>p'\<rbrace> \<mu> F \<lbrace>q\<rbrace>\<^sub>u"
   by (meson I0 M WF induct_step mu_hoare_r pre_str_hoare_r)
@@ -205,7 +207,7 @@ text \<open> Total correctness law for Hoare logic, based on constructive chains
   variants that have naturals numbers as their range. \<close>
     
 lemma while_term_hoare_r:
-  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v =\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v <\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u"
+  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v = \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v < \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u"
   shows "\<lbrace>p\<rbrace>while\<^sub>\<bottom> b do S od\<lbrace>\<not>b \<and> p\<rbrace>\<^sub>u"
 proof -
   have "(\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>\<not> b \<and> p\<rceil>\<^sub>>) \<sqsubseteq> (\<mu> X \<bullet> S ;; X \<triangleleft> b \<triangleright>\<^sub>r II)"
@@ -249,8 +251,10 @@ proof -
     by (simp add: hoare_r_def while_bot_def)
 qed
 
+term while_vrt
+
 lemma while_vrt_hoare_r [hoare_safe]:
-  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v =\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v <\<^sub>u \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
+  assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v = \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v < \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
   shows "\<lbrace>pre\<rbrace>while b invr p vrt v do S od\<lbrace>post\<rbrace>\<^sub>u"
   apply (rule hoare_r_conseq[OF assms(2) _ assms(3)])
   apply (simp add: while_vrt_def)
@@ -262,7 +266,7 @@ text \<open> General total correctness law based on well-founded induction \<clo
 lemma while_wf_hoare_r:
   assumes WF: "wf R"
   assumes I0: "`pre \<Rightarrow> p`"
-  assumes induct_step:"\<And> st. \<lbrace>b \<and> p \<and> e =\<^sub>u \<guillemotleft>st\<guillemotright>\<rbrace>Q\<lbrace>p \<and> (e, \<guillemotleft>st\<guillemotright>)\<^sub>u \<in>\<^sub>u \<guillemotleft>R\<guillemotright>\<rbrace>\<^sub>u"
+  assumes induct_step:"\<And> st. \<lbrace>b \<and> p \<and> e = \<guillemotleft>st\<guillemotright>\<rbrace>Q\<lbrace>p \<and> (e, \<guillemotleft>st\<guillemotright>) \<in> \<guillemotleft>R\<guillemotright>\<rbrace>\<^sub>u"
   assumes PHI:"`(\<not>b \<and> p) \<Rightarrow> post`"  
   shows "\<lbrace>pre\<rbrace>while\<^sub>\<bottom> b invr p do Q od\<lbrace>post\<rbrace>\<^sub>u"
 unfolding hoare_r_def while_inv_bot_def while_bot_def

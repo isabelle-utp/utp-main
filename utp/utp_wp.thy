@@ -10,6 +10,8 @@ text \<open> This calculus is like the liberal version, but also accounts for te
 consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
 
+no_utp_lift uwp
+
 syntax
   "_uwp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wp" 60)
 

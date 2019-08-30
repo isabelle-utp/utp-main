@@ -346,7 +346,7 @@ text \<open> The following law shows the case for the above law when $x$ is only
 
 lemma assign_vacuous_assume:
   assumes "mwb_lens x"
-  shows "[(&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>)]\<^sup>\<top> ;; (x := &x) = [(&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>)]\<^sup>\<top>"
+  shows "[&\<^bold>v \<in> \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top> ;; (x := &x) = [&\<^bold>v \<in> \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>]\<^sup>\<top>"
   using assms by rel_auto
 
 lemma assign_simultaneous:

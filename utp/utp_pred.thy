@@ -6,6 +6,7 @@ imports
   utp_subst
   utp_meta_subst
   utp_tactics
+  utp_lift_parser
 begin
   
 text \<open> In this theory we begin to create an Isabelle version of the alphabetised predicate calculus
@@ -608,5 +609,7 @@ definition utp_sandbox :: "'\<alpha> upred \<Rightarrow> bool" ("TRY'(_')") wher
 
 translations
   "P" <= "CONST utp_sandbox P"
+
+no_utp_lift shEx shAll unot uconj udisj uimpl utrue ufalse UINF USUP refineBy
 
 end

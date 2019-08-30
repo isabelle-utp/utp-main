@@ -227,9 +227,9 @@ translations
   "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
   "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
 
-abbreviation uunit ("'(')\<^sub>u") where "()\<^sub>u \<equiv> \<guillemotleft>()\<guillemotright>"
-abbreviation ufst ("\<pi>\<^sub>1'(_')") where "\<pi>\<^sub>1(x) \<equiv> uop fst x"
-abbreviation usnd ("\<pi>\<^sub>2'(_')") where "\<pi>\<^sub>2(x) \<equiv> uop snd x"
+abbreviation (input) uunit ("'(')\<^sub>u") where "()\<^sub>u \<equiv> \<guillemotleft>()\<guillemotright>"
+abbreviation (input) ufst ("\<pi>\<^sub>1'(_')") where "\<pi>\<^sub>1(x) \<equiv> uop fst x"
+abbreviation (input) usnd ("\<pi>\<^sub>2'(_')") where "\<pi>\<^sub>2(x) \<equiv> uop snd x"
 
 \<comment> \<open> Orders \<close>
 

@@ -21,6 +21,8 @@ consts
 definition sp_upred :: "'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond" where
 "sp_upred p Q = \<lfloor>(\<lceil>p\<rceil>\<^sub>> ;; Q) :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub>>"
 
+no_utp_lift usp
+
 adhoc_overloading
   usp sp_upred
 

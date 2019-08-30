@@ -5,6 +5,7 @@ imports
   utp_expr
   utp_unrest
   utp_tactics
+  utp_lift_parser
 begin
 
 subsection \<open> Substitution definitions \<close>
@@ -98,7 +99,9 @@ text \<open> Parallel substitutions allow us to divide the state space into thre
   
 lift_definition par_subst :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> usubst" is
 "\<lambda> \<sigma>\<^sub>1 A B \<sigma>\<^sub>2. (\<lambda> s. (s \<oplus>\<^sub>L (\<sigma>\<^sub>1 s) on A) \<oplus>\<^sub>L (\<sigma>\<^sub>2 s) on B)" .
-  
+
+no_utp_lift subst_upd (1) subst usubst
+
 subsection \<open> Syntax translations \<close>
 
 text \<open> We support two kinds of syntax for substitutions, one where we construct a substitution
@@ -132,7 +135,8 @@ syntax
     
 translations
   "_SubstUpd m (_SMaplets xy ms)"     == "_SubstUpd (_SubstUpd m xy) ms"
-  "_SubstUpd m (_smaplet x y)"        == "CONST subst_upd m x y"
+  "_SubstUpd m (_smaplet x y)"        => "CONST subst_upd m x U(y)"
+  "_SubstUpd m (_smaplet x y)"        <= "CONST subst_upd m x y"
   "_Subst ms"                         == "_SubstUpd id\<^sub>s ms"
   "_Subst (_SMaplets ms1 ms2)"        <= "_SubstUpd (_Subst ms1) ms2"
   "_PSubst ms"                        == "_SubstUpd nil\<^sub>s ms"
@@ -290,7 +294,7 @@ lemma usubst_lookup_upd_indep [usubst]:
   by (simp add: subst_upd_def, transfer, simp)
 
 lemma subst_upd_plus [usubst]: 
-  "x \<bowtie> y \<Longrightarrow> subst_upd s (x +\<^sub>L y) e = s(x \<mapsto>\<^sub>s \<pi>\<^sub>1(e), y \<mapsto>\<^sub>s \<pi>\<^sub>2(e))"
+  "x \<bowtie> y \<Longrightarrow> subst_upd s (x +\<^sub>L y) e = s(x \<mapsto>\<^sub>s fst(e), y \<mapsto>\<^sub>s snd(e))"
   by (simp add: subst_upd_def lens_defs, transfer, auto simp add: fun_eq_iff prod.case_eq_if lens_indep_comm)
 
 text \<open> If a variable is unrestricted in a substitution then it's application has no effect. \<close>

@@ -36,6 +36,8 @@ text \<open> Alter an alphabet by application of a lens that demonstrates how th
 lift_definition aext :: "('a, '\<beta>) uexpr \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) uexpr" (infixr "\<oplus>\<^sub>p" 95)
 is "\<lambda> P x b. P (get\<^bsub>x\<^esub> b)" .
 
+no_utp_lift aext
+
 update_uexpr_rep_eq_thms
 
 text \<open> Next we prove some of the key laws. Extending an alphabet twice is equivalent to extending
@@ -177,6 +179,8 @@ text \<open> Restrict an alphabet by application of a lens that demonstrates how
 lift_definition arestr :: "('a, '\<alpha>) uexpr \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<beta>) uexpr" (infixr "\<restriction>\<^sub>e" 90)
 is "\<lambda> P x b. P (create\<^bsub>x\<^esub> b)" .
 
+no_utp_lift arestr
+
 update_uexpr_rep_eq_thms
 
 lemma arestr_id [simp]: "P \<restriction>\<^sub>e 1\<^sub>L = P"
@@ -262,7 +266,9 @@ text \<open> In order to restrict the variables of a predicate, we also need to 
 
 definition upred_ares :: "'\<alpha> upred \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> upred" 
 where [upred_defs]: "upred_ares P a = (P \<restriction>\<^sub>v a) \<restriction>\<^sub>e a"
-    
+
+no_utp_lift upred_ares
+
 syntax
   "_upred_ares" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infixl "\<restriction>\<^sub>p" 90)
 
@@ -317,6 +323,8 @@ text \<open> This allows us to extend the alphabet of a substitution, in a simil
 lift_definition subst_aext :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> '\<beta> usubst" (infix "\<oplus>\<^sub>s" 65) 
 is "\<lambda> \<sigma> x. (\<lambda> s. put\<^bsub>x\<^esub> s (\<sigma> (get\<^bsub>x\<^esub> s)))" .
 
+no_utp_lift subst_aext
+
 update_uexpr_rep_eq_thms
 
 lemma id_subst_ext [usubst]:
@@ -348,6 +356,8 @@ text \<open> This allows us to reduce the alphabet of a substitution, in a simil
   
 lift_definition subst_ares :: "'\<alpha> usubst \<Rightarrow> ('\<beta> \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<beta> usubst" (infix "\<restriction>\<^sub>s" 65)
 is "\<lambda> \<sigma> x. (\<lambda> s. get\<^bsub>x\<^esub> (\<sigma> (create\<^bsub>x\<^esub> s)))" .
+
+no_utp_lift subst_ares
 
 update_uexpr_rep_eq_thms
 

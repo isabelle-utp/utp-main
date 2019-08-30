@@ -1,8 +1,8 @@
 section \<open> Lifting Parser and Pretty Printer \<close>
 
 theory utp_lift_parser
-  imports "utp_rel"
-  keywords "no_utp_lift" :: "thy_decl_block" and "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block"
+  imports utp_expr_insts
+  keywords "no_utp_lift" :: "thy_decl_block" and "utp_lit_vars" :: "thy_decl_block" and "utp_expr_vars" :: "thy_decl_block" and "utp_lift_notation" :: "thy_decl_block"
 begin
 
 subsection \<open> Parser \<close>
@@ -19,6 +19,12 @@ text \<open> Here, we derive a parser for UTP expressions that mimicks (and inde
   further processed. \<close>
 
 ML \<open>
+structure VarOption = Theory_Data
+  (type T = bool
+   val empty = false
+   val extend = I
+   val merge = (fn (x, y) => x orelse y));
+
 structure NoLiftUTP = Theory_Data
   (type T = int list Symtab.table
    val empty = Symtab.empty
@@ -36,13 +42,19 @@ val _ =
      >> (fn ns => 
          Toplevel.theory 
          (fn thy => Library.foldl (fn (thy, n) => nolift_const thy n) (thy, ns))))  
-  end
+  end;
+
+  Outer_Syntax.command @{command_keyword utp_lit_vars} "parse free variables as literals in UTP expressions" 
+    (Scan.succeed (Toplevel.theory (VarOption.put false)));
+
+  Outer_Syntax.command @{command_keyword utp_expr_vars} "parse free variables as expressions in UTP expressions" 
+    (Scan.succeed (Toplevel.theory (VarOption.put true)));
 \<close>
 
 
 text \<open> The core UTP operators should not be lifted. Certain operators have arguments that also
   should not be processed further by expression lifting. For example, in a substitution update
-  @{term "subst_upd \<sigma> x v"}, the lens x (i.e. the second argument) should not be lifted as its 
+  $\sigma(x \mapsto v)$, the lens x (i.e. the second argument) should not be lifted as its 
   target is not an expression. Consequently, constants names in the command @{command no_utp_lift}  
   can be accompanied by a list of numbers stating the arguments that should be not be further
   processed. \<close>
@@ -50,12 +62,11 @@ text \<open> The core UTP operators should not be lifted. Certain operators have
 no_utp_lift
   uexpr_appl uop (0) bop (0) trop (0) qtop (0) lit (0)
   Groups.zero Groups.one plus uminus minus times divide
-  shEx shAll unot uconj udisj uimpl utrue ufalse 
-  usubst subst UINF USUP
-  var (0) in_var (0) out_var (0) lift_pre lift_post
-  cond rcond uassigns id seqr useq uskip rcond rassume rassert
-  rgcmd while_top while_bot while_inv while_inv_bot while_vrt
-  subst_upd (1) numeral (0) refineBy ZedSetCompr
+  var (0) in_var (0) out_var (0) cond numeral (0)
+
+ML \<open> Symbol.is_ascii_upper (hd (Symbol.explode "H")) \<close>
+
+ML \<open> map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get @{theory})); @{const_syntax bop} \<close>
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have
@@ -117,13 +128,14 @@ ML \<open>
           (case (Syntax.check_term ctx (Free (n, t))) of
             Free (_, Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
             Free (_, Type (\<^type_name>\<open>uexpr\<close>, _)) => Free (n, t) |
-            _ => Const (@{const_name lit}, dummyT) $ Free (n, t)
+            _ => if (VarOption.get (Proof_Context.theory_of ctx)) then Free (n, t) else Const (@{const_name lit}, dummyT) $ Free (n, t)
+            (* if (Symbol.is_ascii_upper (hd (Symbol.explode n))) then Free (n, t) else Const (@{const_name lit}, dummyT) $ Free (n, t) *)
           , map (utp_lift ctx) args)
     end
     |
 
   \<comment> \<open> Bound variables are always lifted as well \<close>
-  utp_lift_aux ctx (Bound n, args) = list_appl (Const (@{const_name lit}, dummyT) $ Bound n, map (utp_lift ctx) args) |
+  utp_lift_aux ctx (Bound n, args) = list_appl (Const (@{const_name lit}, dummyT) $ Bound n, map (utp_lift ctx o Term_Position.strip_positions) args) |
   utp_lift_aux _ (t, args) = raise TERM ("_utp_lift_aux", t :: args)
   and
   (* FIXME: Think more about abstractions; at the moment they are essentially passed over. *)
@@ -145,6 +157,7 @@ ML \<open>
           | NONE => err ())
       | _ => err ())
     end;
+  
 \<close>
 
 text \<open> Set up Cartouche syntax using the above. \<close>
@@ -175,123 +188,17 @@ parse_translation \<open>
   [(@{syntax_const "_UTP"}, fn ctx => fn term => utp_lift ctx (Term_Position.strip_positions (hd term)))]
 \<close>
 
-subsection \<open> Pretty Printer\<close>
-
-text \<open> The pretty printer infers when a HOL expression is actually a UTP expression by determing
-  whether it contains operators like @{const bop}, @{const lit} etc. If so, it inserts the syntactic
-  UTP quote defined above and then pushes these upwards through the expression syntax as far as possible, removing
-  expression operators along the way. In this way, lifted HOL expressions are printed exactly as the
-  HOL expression with a quote around.
-
-  There are two phases to this implementation. Firstly, a collection of print translation functions
-  for each of the combinators for functions, such as @{const uop} and @{const bop} insert a UTP quote
-  for each subexpression that is not also headed by such a combinator. This is effectively trying
-  to find ``leaf nodes'' in an expression. Secondly, a set of translation rules push the UTP quotes
-  upwards, combining where necessary, to the highest possible level, removing the expression operators
-  as they go.
-
-  We manifest the pretty printer through two commands that enable and disable it. Disabling allows
-  us to inspect the syntactic structure of a term.
- \<close>
-
-
-(* FIXME: We need a general way of recognising which functions should insert term markings. For example,
-  in the case of plus, we may encounter a term like $U(x) + y$, which should be treated as a UTP
-  expression and thus turned into $U(x + y)$. We can't do this in general though, because terms 
-  with meta-implication should not be dealt with in this way. We really need a mechanism for
-  specifying when these ``hints'' should be inserted. *)
-
-ML \<open>
-let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
-  [("U(t)" , "U(U(t))"),
-  ("U(x \<or> y)", "U(x) \<or> U(y)"),
-  ("U(x \<or> y)", "U(x) \<or> y"),
-  ("U(x \<or> y)", "x \<or> U(y)"),
-  ("U(x + y)", "U(x) + U(y)"),
-  ("U(x + y)", "U(x) + y"),
-  ("U(x + y)", "x + U(y)"),
-  ("U(x - y)", "U(x) - y"),
-  ("U(x - y)", "x - U(y)"),
-  ("U(x * y)", "U(x) * y"),
-  ("U(x * y)", "x * U(y)"),
-  ("U(x / y)", "U(x) / y"),
-  ("U(x / y)", "x / U(y)"),
-  ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
-  ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
-  ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
-  ("U(f x)" , "U(f) |> U(x)"),
-(*  ("U(f x)" , "f |> U(x)"),
-  ("U(f x)" , "U(f) |> x"), *)
-  ("U(\<lambda> x. f)", "(\<lambda> x \<bullet> U(f))"),
-  ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
-  ("U(f x)" , "CONST uop f U(x)"),
-  ("U(f x y)" , "CONST bop f U(x) U(y)"),
-  ("U(f x y z)" , "CONST trop f U(x) U(y) U(z)"),
-  ("U(f x y z)" , "f U(x) U(y) U(z)"),
-
-  ("U(f x y)" , "f U(x) U(y)"),
-
-(*
-  ("U(f x y z)" , "f x y U(z)"),
-  ("U(f x y z)" , "f x U(y) z"),
-  ("U(f x y z)" , "f U(x) y z"),
-
-  ("U(f x y)" , "f x U(y)"),
-  ("U(f x y)" , "f U(x) y"),
-  ("U(f x)" , "f U(x)"),
-  ("U(f x)" , "_UTP f x") *)
-  ("U(f x)" , "_UTP f (_UTP x)")]
-
-  val utp_terminals = [@{const_syntax zero_class.zero}, @{const_syntax one_class.one}, @{const_syntax numeral}, @{const_syntax utrue}, @{const_syntax ufalse}];
-  fun utp_consts ctx = @{syntax_const "_UTP"} :: filter (not o member (op =) utp_terminals) (map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))));
-  
-  fun needs_mark ctx t = 
-    case Term.strip_comb t of
-      (Const (c, _), _) => not (member (op =) (utp_consts ctx) c) |
-      _ => false;
-
-  fun utp_mark_term ctx (f, ts) = 
-    if (needs_mark ctx f) then Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (f, ts) else Term.list_comb (f, ts);
-
-  fun insert_U ctx pre ts =
-    if (Library.foldl (fn (x, y) => needs_mark ctx y orelse x) (false, ts)) 
-    then Library.foldl1 (op $) (pre @ map (Term.strip_comb #> utp_mark_term ctx) ts)
-    else raise Match;
-
-  fun uop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "uop"}, dummyT), f] ts |
-  uop_insert_U _ _ = raise Match;
-
-  fun bop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "bop"}, dummyT), f] ts |
-  bop_insert_U _ _ = raise Match;
-
-  fun trop_insert_U ctx (f :: ts) =
-    insert_U ctx [Const (@{const_syntax "trop"}, dummyT), f] ts |
-  trop_insert_U _ _ = raise Match;
-
-  fun appl_insert_U ctx ts = insert_U ctx [] ts;
-
-  val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
-                 , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
-                 , (@{const_syntax "trop"}, trop_insert_U)
-                 , (@{const_syntax "bop"}, bop_insert_U)
-                 , (@{const_syntax "uop"}, uop_insert_U)
-                 , (@{const_syntax "uexpr_appl"}, appl_insert_U)];
-  val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
-in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
-    (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> Sign.print_translation print_tr)));
-   (* FIXME: It actually isn't currently possible to disable pretty printing without destroying the term rewriting *)
-   Outer_Syntax.command @{command_keyword no_utp_pretty} "disable pretty printing of UTP expressions"
-    (Scan.succeed (Toplevel.theory (Isar_Cmd.no_translations utp_tr_rules #> Sign.print_translation no_print_tr)))
- end
-\<close>
-
-utp_pretty
-
 subsection \<open> Examples \<close>
 
 text \<open> A couple of examples \<close>
 
 term "U(x @ y)"
+
+utp_expr_vars \<comment> \<open> Change behaviour so free variables are translated as expressions \<close>
+
+term "U(x @ y)"
+
+utp_lit_vars
 
 term "UTP\<open>f x\<close>"
 
@@ -311,6 +218,10 @@ term "UTP\<open>A \<union> B\<close>"
 
 term "UTP\<open>\<exists> x. x \<le> xs ! i\<close>"
 
+term "UTP\<open>(x \<le> 0)\<close>"
+
+term "UTP\<open>(length xs + 1 + n \<le> 0)\<close>"
+
 term "UTP\<open>(length xs + 1 + n \<le> 0) \<or> true\<close>"
 
 term "UTP\<open>\<exists> n. (length xs + 1 + n \<le> 0) \<or> true\<close>"
@@ -323,8 +234,6 @@ term "UTP\<open>$x + 1 \<le> $y\<acute>\<close>"
 
 term "UTP\<open>$x\<acute> = $x + 1 \<and> $y\<acute> = $y\<close>"
 
-term "UTP\<open>\<Sqinter> x \<in> A. x < y\<close>"
-
 locale test =
   fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's"
 begin
@@ -333,25 +242,7 @@ begin
 
   text \<open> The lens x and HOL variable y are automatically distinguished \<close>
 
-  term "if \<open>x \<le> y\<close> then P else Q fi"
-
-  term "x := \<open>x + y\<close>"
-
-  term "x := \<open>x + y + z\<close>"
-
   term "U(x + y)"
-
-  term "UTP\<open>x\<^sup>< = x\<^sup>>\<close>"
-
-  term "UTP\<open>x := to_nat (hd xs)\<close>"
-
-  term "UTP\<open>x := to_nat (xs ! 5)\<close>"
-
-  term "UTP\<open>while (x \<le> 10) do x := x + 1 od\<close>"
-
-  term "UTP\<open>if (x \<le> y) then x := x + 1 ;; x := x + y else II fi\<close>"
-
-  term "UTP\<open>($x < $x\<acute>) \<sqsubseteq> x := x + 1\<close>"
 
   term "UTP\<open>$f v\<close>"
 
@@ -371,10 +262,6 @@ term "\<^U>($y\<acute> = 1 + $y)"
 
 term "U($x + $y + $z + $u / $f\<acute>)"
 
-term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y\<acute> = 1 + $y)"
-
-term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
-
 term "\<^U>($f x)"
 
 term "U($f $\<^bold>v\<acute>)"
@@ -383,10 +270,27 @@ term "e \<oplus> f on A"
 
 term "U($x = v)"
 
-term "[$x\<acute> \<mapsto>\<^sub>s $x + 1]"
-term "U($y = [$x\<acute> \<mapsto>\<^sub>s $y])"
+term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute> \<and> $x\<acute> = $x + 1)"
 
-term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute>)"
+utp_expr_vars
+
+subsection \<open> Linking Parser to Constants \<close>
+
+ML \<open> fun utp_lift_notation thy (n, args) =
+ let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n in
+ (Lexicon.mark_const c, 
+  fn ctx => fn ts => 
+   let val ts' = map_index (fn (i, t) => if (member (op =) (map Value.parse_int args) i) then utp_lift ctx (Term_Position.strip_positions t) else t) ts 
+  in if (ts = ts') then raise Match else Term.list_comb (Const (c, dummyT), ts') end) 
+  end; 
+
+  Outer_Syntax.command @{command_keyword utp_lift_notation} "insert UTP parser quotes into existing notation"
+    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
+     >> (fn ns => 
+         Toplevel.theory 
+         (fn thy => Sign.parse_translation (map (utp_lift_notation thy) ns) thy)));
+           
+\<close>
 
 end
 

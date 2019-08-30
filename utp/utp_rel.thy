@@ -6,6 +6,7 @@ imports
   utp_healthy
   utp_lift
   utp_tactics
+  utp_lift_pretty
 begin
 
 text \<open> An alphabetised relation is simply a predicate whose state-space is a product type. In this
@@ -62,7 +63,10 @@ abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<tim
 
 abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
-    
+
+no_utp_lift usubst_rel_lift
+no_utp_lift usubst_rel_drop
+
 text \<open> The alphabet of a relation then consists wholly of the input and output portions. \<close>
 
 lemma alpha_in_out:
@@ -192,65 +196,65 @@ text \<open> Assumptions ($c^{\top}$) and assertions ($c_{\bot}$) are encoded as
   tests, as in Kleene Algebra with Tests~\cite{kozen1997kleene,Armstrong2015} 
   (KAT), which embeds a Boolean algebra into a Kleene algebra to represent conditions. \<close>
 
-definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
+definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("[_]\<^sup>\<top>") where
 [urel_defs]: "rassume c = II \<triangleleft> c \<triangleright>\<^sub>r false"
 
-definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" where
+notation rassume ("?[_]")
+
+utp_lift_notation rassume (0)
+
+definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("{_}\<^sub>\<bottom>") where
 [urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
+
+utp_lift_notation rassert (0)
 
 text \<open> We also encode ``naked'' guarded commands~\cite{Dijkstra75,Morgan90} by composing an 
   assumption with a relation. \<close>
 
-definition rgcmd :: "'a upred \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" where
+definition rgcmd :: "'a upred \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" ("_ \<longrightarrow>\<^sub>r _" [55, 56] 55) where
 [urel_defs]: "rgcmd b P = (rassume b ;; P)"
 
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
 
-definition while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+definition while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sup>\<top> _ do _ od") where
 [urel_defs]: "while_top b P = (\<nu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
-definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+notation while_top ("while _ do _ od")
+
+utp_lift_notation while_top (0)
+
+definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
 [urel_defs]: "while_bot b P = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
+
+utp_lift_notation while_bot (0)
 
 text \<open> While loops with invariant decoration (cf. \cite{Armstrong2015}) -- partial correctness. \<close>
 
-definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 [urel_defs]: "while_inv b p S = while_top b S"
+
+utp_lift_notation while_inv (0 1)
 
 text \<open> While loops with invariant decoration -- total correctness. \<close>
 
-definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  where
+definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ invr _ do _ od" 71) where
 [urel_defs]: "while_inv_bot b p S = while_bot b S"  
+
+utp_lift_notation while_inv_bot (0 1)
 
 text \<open> While loops with invariant and variant decorations -- total correctness. \<close>
 
 definition while_vrt :: 
-  "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  where
+  "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  ("while _ invr _ vrt _ do _ od") where
 [urel_defs]: "while_vrt b p v S = while_bot b S"
 
-syntax
-  "_uassume"        :: "uexp \<Rightarrow> logic" ("[_]\<^sup>\<top>")
-  "_uassume"        :: "uexp \<Rightarrow> logic" ("?[_]")
-  "_uassert"        :: "uexp \<Rightarrow> logic" ("{_}\<^sub>\<bottom>")
-  "_ugcmd"          :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("_ \<longrightarrow>\<^sub>r _" [55, 56] 55)
-  "_uwhile"         :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sup>\<top> _ do _ od")
-  "_uwhile_top"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ do _ od")
-  "_uwhile_bot"     :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ do _ od")
-  "_uwhile_inv"     :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ do _ od")
-  "_uwhile_inv_bot" :: "uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>\<bottom> _ invr _ do _ od" 71)
-  "_uwhile_vrt"     :: "uexp \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("while _ invr _ vrt _ do _ od")
+utp_lift_notation while_vrt (0 1 2)
 
 translations
-  "_uassume b" == "CONST rassume b"
-  "_uassert b" == "CONST rassert b"
-  "_ugcmd b P " == "CONST rgcmd b P"
-  "_uwhile b P" == "CONST while_top b P"
-  "_uwhile_top b P" == "CONST while_top b P"
-  "_uwhile_bot b P" == "CONST while_bot b P"
-  "_uwhile_inv b p S" == "CONST while_inv b p S"
-  "_uwhile_inv_bot b p S" == "CONST while_inv_bot b p S"
-  "_uwhile_vrt b p v S" == "CONST while_vrt b p v S"
+  "?[b]" <= "?[U(b)]"
+  "{b}\<^sub>\<bottom>" <= "{U(b)}\<^sub>\<bottom>"
+  "while b do P od" <= "while U(b) do P od"
 
 text \<open> We implement a poor man's version of alphabet restriction that hides a variable within 
   a relation. \<close>
@@ -295,7 +299,7 @@ subsection \<open> Syntax Translations \<close>
     
 syntax
   \<comment> \<open> Alternative traditional conditional syntax \<close>
-  "_utp_if" :: "uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if (_)/ then (_)/ else (_)/ fi)")
+  "_utp_if" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if (_)/ then (_)/ else (_)/ fi)")
   \<comment> \<open> Iterated sequential composition \<close>
   "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   \<comment> \<open> Single and multiple assignement \<close>
@@ -321,7 +325,7 @@ syntax
   "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
 
 translations
-  "_utp_if b P Q" => "P \<triangleleft> b \<triangleright>\<^sub>r Q"
+  "_utp_if b P Q" => "P \<triangleleft> (_UTP b) \<triangleright>\<^sub>r Q"
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"
@@ -378,6 +382,8 @@ where [upred_defs]: "Pre P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<
 
 definition Post :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred" 
 where [upred_defs]: "Post P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
+
+no_utp_lift Pre Post
 
 \<comment> \<open> Configuration for UTP tactics. \<close>
 
@@ -778,5 +784,7 @@ lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sha
 
 lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
   by (simp add: RID_disj Healthy_def unrest_relation_def)
+
+no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert rgcmd while_top while_bot while_inv while_inv_bot while_vrt
 
 end
