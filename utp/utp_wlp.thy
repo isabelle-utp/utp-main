@@ -14,6 +14,8 @@ method wp_tac = (simp add: wp usubst unrest)
 consts
   uwlp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
 
+no_utp_lift uwlp
+
 syntax
   "_uwlp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wlp" 60)
 
