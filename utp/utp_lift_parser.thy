@@ -204,6 +204,9 @@ text \<open> The pretty printer infers when a HOL expression is actually a UTP e
 ML \<open>
 let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
   [("U(t)" , "U(U(t))"),
+  ("U(x \<or> y)", "U(x) \<or> U(y)"),
+  ("U(x \<or> y)", "U(x) \<or> y"),
+  ("U(x \<or> y)", "x \<or> U(y)"),
   ("U(x + y)", "U(x) + U(y)"),
   ("U(x + y)", "U(x) + y"),
   ("U(x + y)", "x + U(y)"),
@@ -383,7 +386,7 @@ term "U($x + $y + $z + $u / $f\<acute>)"
 
 term "\<^U>(f 0 $y \<le> 1 \<Rightarrow> $y\<acute> = 1 + $y)"
 
-term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) true"
+term "\<^U>(f 0 $y \<le> 1) \<Rightarrow> bop (=) \<^U>($y) utrue"
 
 term "\<^U>($f x)"
 
