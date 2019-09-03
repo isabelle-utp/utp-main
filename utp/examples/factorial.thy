@@ -1,5 +1,5 @@
 theory factorial
-  imports "UTP.utp_easy_parser"
+  imports "UTP.utp"
 begin
 
 alphabet fact_st =
@@ -10,14 +10,14 @@ abbreviation factorial :: "nat \<Rightarrow> fact_st hrel"  where
   "factorial num \<equiv> 
     result := 1 ;;
     i := \<guillemotleft>num\<guillemotright> ;;
-    while (i > 1)
+    while (1 < i)
     invr result * fact(i) = fact(\<guillemotleft>num\<guillemotright>)
     do
       result := result * i ;;
       i := i - 1
     od"
 
-lemma "{{true}}factorial num{{result = fact(\<guillemotleft>num\<guillemotright>)}}"
+lemma "\<lbrace>true\<rbrace>factorial num\<lbrace>result = fact(\<guillemotleft>num\<guillemotright>)\<rbrace>\<^sub>u"
   apply (hoare_auto)
   apply (simp add: fact_reduce)
   apply (metis fact_0 fact_Suc_0 less_Suc0 linorder_neqE_nat mult.right_neutral)

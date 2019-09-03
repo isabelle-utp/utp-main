@@ -1,5 +1,5 @@
 theory insertion_sort
-  imports "UTP.utp_easy_parser" "HOL-Library.Permutation"
+  imports "UTP.utp" "HOL-Library.Permutation"
 begin
 
 alphabet st_insertion_sort =
@@ -12,15 +12,15 @@ abbreviation insertion_sort :: "int list \<Rightarrow> st_insertion_sort hrel" w
   "insertion_sort xs \<equiv>
   arr := \<guillemotleft>xs\<guillemotright> ;;
   i := 1 ;;
-  while (i < #arr) 
+  while (i < length arr) 
   invr 
-    0 < i \<and> i < #arr \<and> sorted(nths(arr, {0..i-1})) \<and> perm(arr, \<guillemotleft>xs\<guillemotright>)
+    0 < i \<and> i < length arr \<and> sorted(nths arr {0..i-1}) \<and> perm(arr, \<guillemotleft>xs\<guillemotright>)
   do 
     key := arr[i] ;;
     j := i ;;
     while (j > 0 \<and> arr[j-1] > key)
     invr 
-      0 < i \<and> i < #arr \<and> j \<le> i \<and> key = arr[j] \<and>
+      0 < i \<and> i < length arr \<and> j \<le> i \<and> key = arr[j] \<and>
       sorted(nths(arr, {0..<j-1})) \<and> 
       sorted(nths(arr, {j-1..i-1})) \<and> 
       perm(arr, \<guillemotleft>xs\<guillemotright>)

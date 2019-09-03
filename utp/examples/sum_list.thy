@@ -1,7 +1,7 @@
 section \<open> Summing a List \<close>
 
 theory sum_list
-  imports "UTP.utp_easy_parser"
+  imports "UTP.utp"
 begin
 
 text \<open> We first create a state space with the variables the program needs. \<close>
@@ -17,9 +17,9 @@ abbreviation Sum_List :: "st_sum_list hrel" where
   "Sum_List \<equiv>
   i := 0 ;;
   ans := 0 ;;
-  while (i < #xs) invr (ans = list_sum(take(i, xs)))
+  while (i < length xs) invr (ans = list_sum(take i xs))
   do
-    ans := ans + xs[i] ;;
+    ans := ans + xs ! i ;;
     i := i + 1
   od"
 
@@ -31,7 +31,7 @@ lemma "TRY([&xs \<mapsto>\<^sub>s \<guillemotleft>[4,3,7,1,12,8]\<guillemotright
 text \<open> Finally, we verify the program. \<close>
 
 theorem Sum_List_sums:
-  "{{xs = \<guillemotleft>XS\<guillemotright>}} Sum_List {{ans = list_sum(xs)}}"
+  "\<lbrace>xs = \<guillemotleft>XS\<guillemotright>\<rbrace> Sum_List \<lbrace>ans = list_sum(xs)\<rbrace>\<^sub>u"
   by (hoare_auto, metis add.foldr_snoc take_Suc_conv_app_nth)
 
 end

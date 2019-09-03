@@ -1,3 +1,5 @@
+section \<open> Greatest Common Divisor \<close>
+
 theory gcd
   imports "UTP.utp"
 begin
