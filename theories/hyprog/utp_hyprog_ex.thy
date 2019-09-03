@@ -4,12 +4,12 @@ begin
 
 type_synonym gravs = "(real^3, unit) hybs_scheme"
 
-abbreviation h :: "real \<Longrightarrow> gravs" where "h \<equiv> \<Pi>[0] ;\<^sub>L \<^bold>c"
-abbreviation v :: "real \<Longrightarrow> gravs" where "v \<equiv> \<Pi>[Suc 0] ;\<^sub>L \<^bold>c"
-abbreviation t :: "real \<Longrightarrow> gravs" where "t \<equiv> \<Pi>[Suc (Suc 0)] ;\<^sub>L \<^bold>c"
+abbreviation h :: "real \<Longrightarrow> real^3" where "h \<equiv> \<Pi>[0]"
+abbreviation v :: "real \<Longrightarrow> real^3" where "v \<equiv> \<Pi>[Suc 0]"
+abbreviation t :: "real \<Longrightarrow> real^3" where "t \<equiv> \<Pi>[Suc (Suc 0)]"
 
 lemma dInv_grav_ex:
-  "\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<langle>der(h) = v, der(v) = -9.81\<rangle>\<lbrace>[&v <\<^sub>P 0 \<and>\<^sub>P &h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
+  "\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>ode [h \<mapsto>\<^sub>s &v, v \<mapsto>\<^sub>s -9.81, t \<mapsto>\<^sub>s 1] true\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
   apply (rule dCut_split)
    apply (rule dInv)
     apply (simp add: closure)

@@ -11,7 +11,7 @@ theorem dWeakening: \<comment> \<open> Differential Weakening \<close>
   by (rel_simp, simp add: lit.rep_eq uexpr_appl.rep_eq)
 
 lemma hoare_ode_meaning:
-  "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s F l. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> l \<ge> 0 \<and> solves F F' B s l \<and> cvec\<^sub>v s = F 0 \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>))"
+  "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s F l. \<lbrakk>P\<rbrakk>\<^sub>e s \<and> l \<ge> 0 \<and> solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l \<and> cvec\<^sub>v s = F 0 \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F l\<rparr>))"
   by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective)
 
 theorem dCut:
@@ -20,7 +20,7 @@ theorem dCut:
   shows "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u"
 proof (simp add: hoare_ode_meaning, clarsimp)
   fix s :: "('c, 's) hybs_scheme" and F :: "real \<Rightarrow> 'c" and l :: "real"
-  assume a: "0 \<le> l" "solves F F' B s l" "cvec\<^sub>v s = F 0" "\<lbrakk>P\<rbrakk>\<^sub>e s"
+  assume a: "0 \<le> l" "solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l" "cvec\<^sub>v s = F 0" "\<lbrakk>P\<rbrakk>\<^sub>e s"
   have "\<forall> t\<in>{0..l}. \<lbrakk>C\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
   proof (clarsimp)
     fix t

@@ -11,7 +11,7 @@ lemma cvec_lemma: "\<lparr>cvec\<^sub>v = x, \<dots> = hybs.more s\<rparr> = s\<
 
 lemma derivation_lemma1:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "t \<in> {0..l}" "(F has_vector_derivative F' (F t)) (at t within {0..l})"
+  assumes "differentiable\<^sub>e e" "t \<in> {0..l}" "(F has_vector_derivative \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) (at t within {0..l})"
   shows "((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) \<circ> F has_vector_derivative \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)) (at t within {0..l})"
   using assms
   apply (rel_auto)
@@ -34,29 +34,31 @@ lemma derivation_lemma2:
   apply (simp add: cvec_lemma)
   done
 
+declare [[coercion taut]]
+
 lemma dI_eq:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e e =\<^sub>u 0`"
-  shows "\<lbrace>e =\<^sub>u 0\<rbrace>ode F' B\<lbrace>e =\<^sub>u 0\<rbrace>\<^sub>u"
+  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e e = 0))"
+  shows "\<lbrace>e = 0\<rbrace>ode F' B\<lbrace>e = 0\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
     "0 \<le> l"
-    "solves F F' B s l"
+    "solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l"
     "cvec\<^sub>v s = F 0"
-    "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (F' (cvec\<^sub>v A)) = 0"
+    "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (\<lbrakk>F'\<rbrakk>\<^sub>e (cvec\<^sub>v A)) = 0"
     "\<lbrakk>e\<rbrakk>\<^sub>e s = 0"
 
-  have d0: "\<forall> t\<in>{0..l}. \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (F' (F t)) = 0"
+  have d0: "\<forall> t\<in>{0..l}. \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (\<lbrakk>F'\<rbrakk>\<^sub>e (F t)) = 0"
   proof
     fix t
     assume "t \<in> {0..l}"
     with a(3) have "\<lbrakk>B\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
       by simp
-    with a(5) have "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (F' (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) = 0"
+    with a(5) have "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (\<lbrakk>F'\<rbrakk>\<^sub>e (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) = 0"
       by (auto)
-    thus "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (F' (F t)) = 0"
+    thus "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (\<lbrakk>F'\<rbrakk>\<^sub>e (F t)) = 0"
       by (simp)
   qed
 
@@ -84,26 +86,26 @@ qed
 
 lemma dI_ge:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e e  \<ge>\<^sub>u 0`"
-  shows "\<lbrace>e \<ge>\<^sub>u 0\<rbrace>ode F' B\<lbrace>e \<ge>\<^sub>u 0\<rbrace>\<^sub>u" and "\<lbrace>e >\<^sub>u 0\<rbrace>ode F' B\<lbrace>e >\<^sub>u 0\<rbrace>\<^sub>u"
+  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> 0 \<le> F' \<turnstile> \<partial>\<^sub>e e)"
+  shows "\<lbrace>0 \<le> e\<rbrace>ode F' B\<lbrace>0 \<le> e\<rbrace>\<^sub>u" and "\<lbrace>0 < e\<rbrace>ode F' B\<lbrace>0 < e\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "('c, 's) hybs_scheme"
   assume a:
     "\<forall>s. (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) differentiable at (cvec\<^sub>v s)"
     "0 \<le> l"
-    "solves F F' B s l"
+    "solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l"
     "cvec\<^sub>v s = F 0"
-    "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (F' (cvec\<^sub>v A)) \<ge> 0"
+    "\<forall>A. \<lbrakk>B\<rbrakk>\<^sub>e A \<longrightarrow> \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (A\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v A)) (\<lbrakk>F'\<rbrakk>\<^sub>e (cvec\<^sub>v A)) \<ge> 0"
 
-  have d0: "\<forall> t\<in>{0..l}. \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (F' (F t)) \<ge> 0"
+  have d0: "\<forall> t\<in>{0..l}. \<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (\<lbrakk>F'\<rbrakk>\<^sub>e (F t)) \<ge> 0"
   proof
     fix t
     assume "t \<in> {0..l}"
     with a(3) have "\<lbrakk>B\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>)"
       by simp
-    with a(5) have "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (F' (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) \<ge> 0"
+    with a(5) have "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F t\<rparr>\<lparr>cvec\<^sub>v := x\<rparr>)) (at (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) (\<lbrakk>F'\<rbrakk>\<^sub>e (cvec\<^sub>v (s\<lparr>cvec\<^sub>v := F t\<rparr>))) \<ge> 0"
       by (auto)
-    thus "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (F' (F t)) \<ge> 0"
+    thus "\<partial> (\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := x\<rparr>)) (at (F t)) (\<lbrakk>F'\<rbrakk>\<^sub>e (F t)) \<ge> 0"
       by (simp)
   qed
 
@@ -146,6 +148,8 @@ datatype ('c::executable_euclidean_space, 's) hyprop =
   And "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<and>\<^sub>P" 35) |
   Or "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<or>\<^sub>P" 30)
 
+no_utp_lift Eq Less LessEq And Or
+
 fun hyprop_deriv :: 
   "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("(_ \<turnstile> \<partial>\<^sub>P _)" [100, 101] 100) where
 "F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e =\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
@@ -163,6 +167,8 @@ fun hyprop_eval :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('
 
 definition hyprop_pred ("[_]\<^sub>P") where "[p]\<^sub>P = \<lbrakk>p\<rbrakk>\<^sub>P"
 
+no_utp_lift hyprop_pred
+
 fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> bool" ("differentiable\<^sub>P") where
 "differentiable\<^sub>P (e =\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
 "differentiable\<^sub>P (e <\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
@@ -176,11 +182,11 @@ lemma dInv:
   shows "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u"
 using assms proof (simp add: hyprop_pred_def, induct p)
   case (Eq x1 x2)
-  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 =\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "\<^U>(B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 = F' \<turnstile> \<partial>\<^sub>e x2)" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
   from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x1 - F' \<turnstile> \<partial>\<^sub>e x2) =\<^sub>u 0`"
     by (rel_auto)
-  hence "\<lbrace>(x1 - x2) =\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x1 - x2) =\<^sub>u 0\<rbrace>\<^sub>u"
+  hence "\<lbrace>(x1 - x2) = 0\<rbrace> ode F' B \<lbrace>(x1 - x2) = 0\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_eq uderiv closure)
   then show ?case
     by (rel_auto')
@@ -190,7 +196,7 @@ next
     by (auto)
   from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
     by (rel_auto)
-  hence "\<lbrace>(x2 - x1) >\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x2 - x1) >\<^sub>u 0\<rbrace>\<^sub>u"
+  hence "\<lbrace>0 < (x2 - x1)\<rbrace> ode F' B \<lbrace>0 < (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
   then show ?case
     by (rel_auto')
@@ -200,7 +206,7 @@ next
     by (auto)
   from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
     by (rel_auto)
-  hence "\<lbrace>(x2 - x1) \<ge>\<^sub>u 0\<rbrace> ode F' B \<lbrace>(x2 - x1) \<ge>\<^sub>u 0\<rbrace>\<^sub>u"
+  hence "\<lbrace>0 \<le> (x2 - x1)\<rbrace> ode F' B \<lbrace>0 \<le> (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
   then show ?case
     by (rel_auto')

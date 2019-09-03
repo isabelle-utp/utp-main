@@ -16,11 +16,11 @@ abbreviation solves ::
   "(real \<Rightarrow> 'a::executable_euclidean_space) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a, 's) hybs_scheme upred \<Rightarrow> ('a, 's) hybs_scheme \<Rightarrow> real \<Rightarrow> bool" where
   "solves F F' B s l \<equiv>  (\<forall>x. 0 \<le> x \<and> x \<le> l \<longrightarrow> (F has_vector_derivative F' (F x)) (at x within {0..l}) \<and> (\<lbrakk>B\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F x\<rparr>)))"
 
-abbreviation solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> ('c \<Rightarrow> 'c) \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
-"solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<F>') \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
+abbreviation solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> 'c usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
+"solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<lbrakk>\<F>'\<rbrakk>\<^sub>e) \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
                       \<guillemotright> \<and> \<lceil>B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec\<rbrakk>\<rceil>\<^sub><)"
 
-definition ode :: "('c::executable_euclidean_space \<Rightarrow> 'c) \<Rightarrow> ('c, 's) hypred \<Rightarrow> ('c, 's) hyrel" where
+definition ode :: "'c::executable_euclidean_space usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow> ('c, 's) hyrel" where
 [upred_defs]: "ode \<F>' B = cvec:[\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> \<ge>\<^sub>u 0 \<and> solves\<^sub>u \<F> \<F>' B l \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
 
 text \<open> A framed ODE allows us to explicitly specify only certain continuous variables using a
@@ -28,8 +28,8 @@ text \<open> A framed ODE allows us to explicitly specify only certain continuou
   by assigning them deriative 0. \<close>
 
 definition fode :: 
-  "('a::executable_euclidean_space \<Longrightarrow> 'b::executable_euclidean_space) \<Rightarrow> 'a usubst \<Rightarrow> 'b usubst" where
-[upred_defs]: "fode x \<sigma> = [&\<^bold>v \<mapsto>\<^sub>s 0](x \<mapsto>\<^sub>s mk\<^sub>e (\<lambda> s. \<sigma> (get\<^bsub>x\<^esub> s)))"
+  "('a::executable_euclidean_space \<Longrightarrow> 'b::executable_euclidean_space) \<Rightarrow> 'b usubst \<Rightarrow> 'b usubst" where
+[upred_defs]: "fode x F = F \<circ>\<^sub>s [&\<^bold>v \<mapsto>\<^sub>s 0]"
 
 subsection \<open> ODE Parser \<close>
 
@@ -61,8 +61,10 @@ translations
   "_sys_ode (_ode y f) B" <= "CONST ode (CONST fode x (_abs y f)) B"
   "_ode_cons (_ode x f) (_ode y g)" <= "_ode (_pattern x y) (f, g)"
 
+(*
 term "\<langle>der(h) = v, der(v) = -9.81 | (&h \<ge>\<^sub>u 0)\<rangle>"
 term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"
+*)
 
 subsection \<open> ODE laws \<close>
 

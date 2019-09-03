@@ -9,8 +9,8 @@ syntax
   "_unorm"   :: "logic \<Rightarrow> logic" ("\<parallel>_\<parallel>")
 
 translations
-  "n \<^bold>*\<^sub>R x" == "CONST bop CONST scaleR n x"
-  "\<parallel>x\<parallel>"    == "CONST uop CONST norm x"
+  "n \<^bold>*\<^sub>R x" => "CONST bop CONST scaleR n x"
+  "\<parallel>x\<parallel>"    => "CONST uop CONST norm x"
 
 text \<open> We provide functions for specifying differentiability and taking derivatives of UTP expressions.
   The expressions have a hybrid state space, and so we only require differentiability of the
@@ -57,7 +57,7 @@ lemma udifferentiable_mult [closure]:
 
 lemma udifferentiable_scaleR [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e n; differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (n \<^bold>*\<^sub>R e)"
+  shows "\<lbrakk> differentiable\<^sub>e n; differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(n *\<^sub>R e)"
   by (rel_simp)
 
 lemma udifferentiable_power [closure]:
@@ -67,7 +67,7 @@ lemma udifferentiable_power [closure]:
 
 lemma udifferentiable_norm [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; \<And> s. e\<lbrakk>\<guillemotleft>s\<guillemotright>/&\<^bold>v\<rbrakk> \<noteq> 0 \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<parallel>e\<parallel>"
+  shows "\<lbrakk> differentiable\<^sub>e e; \<And> s. e\<lbrakk>\<guillemotleft>s\<guillemotright>/&\<^bold>v\<rbrakk> \<noteq> 0 \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(norm e)"
   by (rel_simp, metis differentiable_compose differentiable_norm_at)
 
 subsection \<open> Differentiation \<close>
@@ -81,6 +81,8 @@ lift_definition uexpr_deriv ::
 is "\<lambda> \<sigma> f s. frechet_derivative (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) (at (get\<^bsub>cvec\<^esub> s)) (\<sigma> (get\<^bsub>cvec\<^esub> s))" .
 
 update_uexpr_rep_eq_thms
+
+no_utp_lift uexpr_deriv
 
 named_theorems uderiv
 
@@ -115,7 +117,7 @@ lemma uderiv_mult [uderiv]:
 
 lemma uderiv_scaleR [uderiv]:
   fixes f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e \<^bold>*\<^sub>R f) = (e \<^bold>*\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e \<^bold>*\<^sub>R f)"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e *\<^sub>R f)"
   by (rel_simp, simp add: frechet_derivative_scaleR)
 
 lemma uderiv_power [uderiv]:
@@ -127,14 +129,14 @@ text \<open> The derivative of a variable represented by a Euclidean lens into t
   uses the said lens to obtain the derivative from the context @{term F'} \<close>
 
 lemma uderiv_var:
-  fixes F' :: "'c::executable_euclidean_space \<Rightarrow> 'c"
+  fixes F' :: "'c::executable_euclidean_space usubst"
   assumes "k < DIM('c)"
   shows "F' \<turnstile> \<partial>\<^sub>e (var ((\<Pi>[k] :: real \<Longrightarrow> 'c) ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s \<Pi>[k] \<oplus>\<^sub>p cvec"
   using assms
   by (rel_simp, metis bounded_linear_imp_has_derivative bounded_linear_inner_left frechet_derivative_at)
 
 lemma uderiv_pr_var [uderiv]: 
-  fixes F' :: "'c::executable_euclidean_space \<Rightarrow> 'c"
+  fixes F' :: "'c::executable_euclidean_space usubst"
   assumes "k < DIM('c)"
   shows "F' \<turnstile> \<partial>\<^sub>e &\<^bold>c:\<Pi>[k] = \<langle>F'\<rangle>\<^sub>s \<Pi>[k] \<oplus>\<^sub>p \<^bold>c"
   using assms by (simp add: pr_var_def uderiv_var)
