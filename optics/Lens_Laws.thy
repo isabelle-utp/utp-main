@@ -364,4 +364,21 @@ next
 
 qed
 
+subsection \<open> Lens Compatibility \<close>
+
+text \<open> Lens compatibility is a weaker notion than independence. It allows that two lenses can overlap
+  so long as they manipulate the source in the same way in that region. \<close>
+
+definition lens_compat (infix "##\<^sub>L" 50) where
+[lens_defs]: "lens_compat X Y = (\<forall>s\<^sub>1 s\<^sub>2. put\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> s\<^sub>1 (get\<^bsub>X\<^esub> s\<^sub>2)) (get\<^bsub>Y\<^esub> s\<^sub>2) = put\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> s\<^sub>1 (get\<^bsub>Y\<^esub> s\<^sub>2)) (get\<^bsub>X\<^esub> s\<^sub>2))"
+
+lemma lens_compat_idem [simp]: "x ##\<^sub>L x"
+  by (simp add: lens_defs)
+
+lemma lens_compat_sym: "x ##\<^sub>L y \<Longrightarrow> y ##\<^sub>L x"
+  by (simp add: lens_defs)
+
+lemma lens_indep_compat [simp]: "x \<bowtie> y \<Longrightarrow> x ##\<^sub>L y"
+  by (simp add: lens_compat_def lens_indep_comm)
+
 end

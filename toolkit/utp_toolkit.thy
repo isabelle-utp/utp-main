@@ -23,7 +23,7 @@ theory utp_toolkit
   "HOL-Algebra.Complete_Lattice"
   "HOL-Algebra.Galois_Connection"
   "HOL-Eisbach.Eisbach"
-  "Optics.Lenses"
+  "Optics.Optics"
   Countable_Set_Extra
   FSet_Extra
   Relation_Extra
