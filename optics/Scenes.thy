@@ -340,6 +340,29 @@ lemma lens_member_get_override [simp]: "x \<in>\<^sub>S a \<Longrightarrow> get\
 lemma lens_not_member_get_override [simp]: "x \<notin>\<^sub>S a \<Longrightarrow> get\<^bsub>x\<^esub> (b \<oplus>\<^sub>S b' on a) = get\<^bsub>x\<^esub> b"
   by (simp add: lens_member_def scene_override_commute)
 
+subsection \<open> Function Domain Scene \<close>
+
+lift_definition fun_dom_scene :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) scene" ("fds") is
+"\<lambda> A f g. override_on f g A" by (unfold_locales, simp_all add: override_on_def fun_eq_iff)
+
+lemma fun_dom_scene_empty: "fds({}) = \<bottom>\<^sub>S"
+  by (transfer, simp)
+
+lemma fun_dom_scene_union: "fds(A \<union> B) = fds(A) \<squnion>\<^sub>S fds(B)"
+  by (transfer, auto simp add: fun_eq_iff override_on_def)
+
+lemma fun_dom_scene_compl: "fds(- A) = - fds(A)"
+  by (transfer, auto simp add: fun_eq_iff override_on_def)
+
+lemma fun_dom_scene_inter: "fds(A \<inter> B) = fds(A) \<sqinter>\<^sub>S fds(B)"
+  by (simp add: inf_scene_def fun_dom_scene_union[THEN sym] fun_dom_scene_compl[THEN sym])
+
+lemma fun_dom_scene_UNIV: "fds(UNIV) = \<top>\<^sub>S"
+  by (transfer, auto simp add: fun_eq_iff override_on_def)
+
+lemma fun_dom_scene_always_compat [simp]: "fds(A) ##\<^sub>S fds(B)"
+  by (transfer, simp add: override_on_def fun_eq_iff)
+
 text \<open> Hide implementation details for scenes \<close>
 
 lifting_update scene.lifting
