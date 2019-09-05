@@ -202,6 +202,9 @@ lemma scene_demorgan1: "-(X \<squnion>\<^sub>S Y) = -X \<sqinter>\<^sub>S -Y"
 lemma scene_demorgan2: "-(X \<sqinter>\<^sub>S Y) = -X \<squnion>\<^sub>S -Y"
   by (simp add: inf_scene_def, transfer, auto)
 
+lemma scene_compat_top: "idem_scene X \<Longrightarrow> X ##\<^sub>S \<top>\<^sub>S"
+  by (transfer, simp)
+
 instantiation scene :: (type) ord
 begin
   text \<open> $X$ is a subscene of $Y$ provided that overriding with first $Y$ and then $X$ can
@@ -261,6 +264,9 @@ lemma idem_scene_impl_vwb:
    apply (transfer, unfold idem_overrider_def overrider_def, auto)
   apply (simp add: idem_overrider_axioms_def override_idem_implies_vwb)
   done
+
+lemma lens_compat_scene: "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> X ##\<^sub>L Y \<longleftrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> ##\<^sub>S \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
+  by (simp add: lens_scene.rep_eq scene_compat.rep_eq lens_defs)
 
 text \<open> Next we show some important congruence properties \<close>
 

@@ -76,6 +76,9 @@ lemma sublens_pres_indep':
   "\<lbrakk> X \<subseteq>\<^sub>L Y; Z \<bowtie> Y \<rbrakk> \<Longrightarrow> Z \<bowtie> X"
   by (meson lens_indep_sym sublens_pres_indep)
 
+lemma sublens_compat: "\<lbrakk> vwb_lens X; vwb_lens Y; X \<subseteq>\<^sub>L Y \<rbrakk> \<Longrightarrow> X ##\<^sub>L Y"
+  by (metis (no_types, hide_lams) lens_compat_def sublens_obs_get sublens_put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put)
+
 text \<open>Well-behavedness of lens quotient has sublens as a proviso. This is because we can only
   remove $X$ from $Y$ if $X$ is smaller than $Y$. \<close>
   

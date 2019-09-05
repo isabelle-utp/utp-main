@@ -331,7 +331,15 @@ lemma lens_indep_prod:
   apply (rule lens_indepI)
     apply (auto simp add: lens_prod_def prod.case_eq_if lens_indep_comm map_prod_def)
    apply (simp_all add: lens_indep_sym)
-done
+  done
+
+subsection \<open> Compatibility Laws \<close>
+
+lemma zero_lens_compat [simp]: "0\<^sub>L ##\<^sub>L X"
+  by (auto simp add: zero_lens_def lens_compat_def)
+
+lemma id_lens_compat [simp]: "vwb_lens X \<Longrightarrow> 1\<^sub>L ##\<^sub>L X"
+  by (auto simp add: id_lens_def lens_compat_def)
 
 subsection \<open>Algebraic Laws\<close>
 
