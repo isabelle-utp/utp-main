@@ -755,6 +755,36 @@ lemma ex_conj_contr_left: "x \<sharp> P \<Longrightarrow> (\<exists> x \<bullet>
 lemma ex_conj_contr_right: "x \<sharp> Q \<Longrightarrow> (\<exists> x \<bullet> P \<and> Q) = ((\<exists> x \<bullet> P) \<and> Q)"
   by (pred_auto)
 
+lemma ex_override_def: "weak_lens x \<Longrightarrow> \<lbrakk>\<exists> x \<bullet> P\<rbrakk>\<^sub>e b = (\<exists> b'. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>L b' on x))"
+  by (rel_simp, metis weak_lens.put_get)
+
+lemma ex_scene_def: "mwb_lens a \<Longrightarrow> (\<exists> a \<bullet> P) = scex \<lbrakk>a\<rbrakk>\<^sub>\<sim> P"
+  by (simp add: uexpr_eq_iff ex_override_def scex.rep_eq lens_scene_override)
+
+lemma scex_combine: 
+  assumes "idem_scene x" "idem_scene y" "x ##\<^sub>S y"
+  shows "(scex x (scex y P)) = (scex (x \<squnion>\<^sub>S y) P)"
+proof -
+  have "\<And>b b' b''. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>S b' on x \<oplus>\<^sub>S b'' on y) \<Longrightarrow> \<exists>b'. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>S b' on (x \<squnion>\<^sub>S y))"
+  proof -
+    fix b b' b''
+    assume a1: "\<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>S b' on x \<oplus>\<^sub>S b'' on y)"
+    have f2: "\<forall>a. a \<oplus>\<^sub>S a on x = a"
+      by (simp add: assms(1))
+    have f3: "\<forall>a. a \<oplus>\<^sub>S a on y = a"
+      by (metis assms(2) scene_override_idem)
+    have "\<forall>a aa. aa \<oplus>\<^sub>S a on y \<oplus>\<^sub>S a on x = aa \<oplus>\<^sub>S a on (y \<squnion>\<^sub>S x)"
+      by (simp add: assms(3) scene_compat_sym scene_override_union)
+    then show "\<exists>a. \<lbrakk>P\<rbrakk>\<^sub>e (b \<oplus>\<^sub>S a on (x \<squnion>\<^sub>S y))"
+      using f3 f2 a1 by (metis (no_types) assms(3) scene_override_overshadow_left scene_override_union scene_union_commute)
+  qed
+  thus ?thesis
+   using assms(3) scene_override_union by (rel_auto, fastforce)
+qed
+
+lemma ex_commute_set: "\<lbrakk> vwb_lens a; vwb_lens b; a ##\<^sub>L b \<rbrakk> \<Longrightarrow> (\<exists> a \<bullet> \<exists> b \<bullet> P) = (\<exists> b \<bullet> \<exists> a \<bullet> P)"
+  by (simp add: lens_defs lens_scene.rep_eq scene_compat.rep_eq scene_union_commute scex_combine ex_scene_def)
+
 subsection \<open> Variable Restriction \<close>    
   
 lemma var_res_all: 

@@ -291,7 +291,13 @@ lift_definition ex :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> 
 
 lift_definition all :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> '\<alpha> upred" is
 "\<lambda> x P b. (\<forall> v. P(put\<^bsub>x\<^esub> b v))" .
-    
+
+lift_definition scex :: "'s scene \<Rightarrow> 's upred \<Rightarrow> 's upred" is 
+"\<lambda> a P b. \<exists> b'. P(b \<oplus>\<^sub>S b' on a)" .
+
+lift_definition scall :: "'s scene \<Rightarrow> 's upred \<Rightarrow> 's upred" is 
+"\<lambda> a P b. \<forall> b'. P(b \<oplus>\<^sub>S b' on a)" .
+
 text \<open> We define the following operator which is dual of existential quantification. It hides the
   valuation of variables other than $x$ through existential quantification. \<close>
     
@@ -359,6 +365,9 @@ lemma false_alt_def: "false = \<guillemotleft>False\<guillemotright>"
 
 declare true_alt_def[THEN sym,simp]
 declare false_alt_def[THEN sym,simp]
+
+lemma upred_set_eqI: "\<lbrakk>p\<rbrakk>\<^sub>p = \<lbrakk>q\<rbrakk>\<^sub>p \<Longrightarrow> p = q"
+  by (metis eq_iff mem_Collect_eq upred_ref_iff upred_set.rep_eq)
 
 subsection \<open> Unrestriction Laws \<close>
 
