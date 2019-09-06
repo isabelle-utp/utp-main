@@ -67,4 +67,7 @@ declare sym_lens.vwb_region [simp]
 declare sym_lens.vwb_coregion [simp]
 declare sym_lens.indep_region_coregion [simp]
 
+lemma sym_lens_psym [simp]: "sym_lens x \<Longrightarrow> psym_lens x"
+  by (simp add: psym_lens_def sym_lens.bij_region_coregion)
+
 end

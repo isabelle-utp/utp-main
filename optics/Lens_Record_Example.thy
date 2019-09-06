@@ -13,6 +13,7 @@ thm indeps
 thm equivs
 thm sublenses
 thm quotients
+thm compositions
 
 lemma mylens_composition: 
   "x +\<^sub>L y +\<^sub>L more\<^sub>L \<approx>\<^sub>L 1\<^sub>L" (is "?P \<approx>\<^sub>L ?Q")

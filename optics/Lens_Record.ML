@@ -22,19 +22,18 @@ val vwb_lens_suffix = "_vwb_lens"
 val indepsN = "indeps"
 val sublensN = "sublenses"
 val quotientN = "quotients"
-val Trueprop = "HOL.Trueprop"
-val HOLeq = "HOL.eq"
-val lens_laws_thy = "Lens_Laws"
-val lens_algebra_thy = "Lens_Algebra"
-val sublens_thy = "Lens_Order"
-val bij_lens = lens_laws_thy ^ ".bij_lens"
-val vwb_lens = lens_laws_thy ^ ".vwb_lens"
-val lens_indep = lens_laws_thy ^ ".lens_indep"
-val lens_plus = lens_algebra_thy ^ ".lens_plus"
-val lens_quotient = lens_algebra_thy ^ ".lens_quotient"
-val id_lens = lens_algebra_thy ^ ".id_lens"
-val sublens = sublens_thy ^ ".sublens"
-val lens_equiv = sublens_thy ^ ".lens_equiv"
+val compositionN = "compositions"
+val Trueprop = @{const_name Trueprop}
+val HOLeq = @{const_name HOL.eq}
+val bij_lens = @{const_name bij_lens}
+val vwb_lens = @{const_name vwb_lens}
+val lens_indep = @{const_name lens_indep}
+val lens_plus = @{const_name lens_plus}
+val lens_quotient = @{const_name lens_quotient}
+val lens_comp = @{const_name lens_comp}
+val id_lens = @{const_name id_lens}
+val sublens = @{const_name sublens}
+val lens_equiv = @{const_name lens_equiv}
 val lens_suffix = "\<^sub>v"
 val lens_defsN = "lens_defs"
 val lens_defs = (Binding.empty, [Token.make_src (lens_defsN, Position.none) []])
@@ -233,6 +232,23 @@ fun quotient_proof tname thy x =
       (prove_quotient tname thy)
 end
 
+fun composition_proof tname thy x =
+  let open Simplifier; open Global_Theory in
+      Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types
+              (Proof_Context.init_global thy)
+              [ Const (Trueprop, dummyT)
+              $ ( Const (HOLeq, dummyT)
+                $ (Const (lens_comp, dummyT) 
+                   $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
+                   $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
+                  )
+                $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
+                )]))
+      (prove_quotient tname thy)
+end
+
+
 fun pairWith _ [] = []
   | pairWith x (y :: ys) = [(x, y), (y, x)] @ pairWith x ys;
 
@@ -278,6 +294,8 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
          |> (fn thy => snd (add_thmss [((Binding.make (sublensN, Position.none), map (sublens_proof tname pname thy plchild) plnames @ map (sublens_proof tname (Context.theory_name thy ^ "." ^ tname) thy base_lensN) lnames), [Simplifier.simp_add])] thy))
             (* Add quotient proofs *)
          |> (fn thy => snd (add_thmss [((Binding.make (quotientN, Position.none), map (quotient_proof tname thy) lnames), [Simplifier.simp_add])] thy))
+            (* Add composition proofs *)
+         |> (fn thy => snd (add_thmss [((Binding.make (compositionN, Position.none), map (composition_proof tname thy) lnames), [Simplifier.simp_add])] thy))
             (* Add independence proofs for each pairing of lenses *)
          |> (fn thy => snd (add_thmss
               [((Binding.make (indepsN, Position.none), map (indep_proof tname thy) (pairings (lnames @ [child_lensN]) @ pairings [base_lensN, child_lensN]) (*@ map (parent_indep_proof_1 tname pname thy plchild) plnames @ map (parent_indep_proof_2 tname pname thy plchild) plnames *) @ pindeps thy), [Simplifier.simp_add])] thy))
