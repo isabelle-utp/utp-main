@@ -10,8 +10,6 @@ alphabet global =
   x :: int
   y :: int
 
-thm global.quotients
-
 text \<open> State space of local variables, extending @{typ global} with an additional variable. \<close>
 
 alphabet local = global +
@@ -39,6 +37,9 @@ lemma swap_wp: "swap wp U(&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<
 
 lemma swap_hoare: "\<lbrace>&x = \<guillemotleft>X\<guillemotright> \<and> &y = \<guillemotleft>Y\<guillemotright>\<rbrace> swap \<lbrace>&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>\<rbrace>\<^sub>u"
   unfolding block_open_def block_close_def
+  by (rel_auto)
+
+lemma swap_alt_def: "swap = (x, y) := (y, x)"
   by (rel_auto)
 
 end

@@ -88,8 +88,16 @@ lemma block_assigns_open:
   apply (rel_auto)
   done
 
+lemma block_assign_open:
+  "psym_lens a \<Longrightarrow> x := v ;; open\<^bsub>a\<^esub> = open\<^bsub>a\<^esub> ;; \<V>[a]:x := (v \<oplus>\<^sub>p \<V>\<^bsub>a\<^esub>)"
+  by (simp add: block_assigns_open, rel_auto)
+
 lemma block_assign_local_close:
   "\<V>\<^bsub>a\<^esub> \<bowtie> x \<Longrightarrow> x := v ;; close\<^bsub>a\<^esub> = close\<^bsub>a\<^esub>"
+  by (rel_auto)
+
+lemma block_assign_global_close:
+  "\<lbrakk> psym_lens a; x \<subseteq>\<^sub>L \<C>\<^bsub>a\<^esub> \<rbrakk> \<Longrightarrow> (x := v) ;; close\<^bsub>a\<^esub> = close\<^bsub>a\<^esub> ;; (x\<restriction>\<V>[a] := (v \<restriction>\<^sub>e \<C>\<^bsub>a\<^esub>))"
   by (rel_auto)
 
 end

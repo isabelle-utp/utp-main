@@ -236,6 +236,7 @@ syntax \<comment> \<open> Identifiers \<close>
   "_svid_list"    :: "svid \<Rightarrow> svids \<Rightarrow> svids" ("_,/ _")
   "_svid_alpha"   :: "svid" ("\<^bold>v")
   "_svid_dot"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 998)
+  "_svid_res"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_\<restriction>_" [999,998] 998)
   "_mk_svid_list" :: "svids \<Rightarrow> logic" \<comment> \<open> Helper function for summing a list of identifiers \<close>
 
 text \<open> A variable identifier can either be a HOL identifier, the complete set of variables in the
@@ -285,6 +286,7 @@ translations
   "_svlongid x" \<rightharpoonup> "x"
   "_svid_alpha" \<rightleftharpoons> "\<Sigma>"
   "_svid_dot x y" \<rightharpoonup> "y ;\<^sub>L x"
+  "_svid_res x y" \<rightharpoonup> "x /\<^sub>L y"
   "_mk_svid_list (_svid_unit x)" \<rightharpoonup> "x"
   "_mk_svid_list (_svid_list x xs)" \<rightharpoonup> "x +\<^sub>L _mk_svid_list xs"
 
@@ -296,6 +298,10 @@ translations
   "_sinvar (_svid_dot x y)" \<leftharpoondown> "CONST in_var (CONST lens_comp y x)"
   "_soutvar (_svid_dot x y)" \<leftharpoondown> "CONST out_var (CONST lens_comp y x)"
   "_svid_dot x (_svid_dot y z)" \<leftharpoondown> "_svid_dot x (CONST lens_comp z y)"
+
+  "_spvar (_svid_res x y)" \<leftharpoondown> "CONST pr_var (CONST lens_quotient x y)"
+  "_sinvar (_svid_res x y)" \<leftharpoondown> "CONST in_var (CONST lens_quotient x y)"
+  "_soutvar (_svid_res x y)" \<leftharpoondown> "CONST out_var (CONST lens_quotient x y)"
 
   "_spvar x" \<rightleftharpoons> "CONST pr_var x"
   "_sinvar x" \<rightleftharpoons> "CONST in_var x"
