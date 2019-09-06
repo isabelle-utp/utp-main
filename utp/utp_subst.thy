@@ -184,6 +184,9 @@ lemma subst_id [simp]: "id\<^sub>s \<circ>\<^sub>s \<sigma> = \<sigma>" "\<sigma
 lemma subst_upd_alt_def: "subst_upd \<sigma> x v = bop (put\<^bsub>x\<^esub>) \<sigma> v"
   by (transfer, simp)
 
+lemma subst_apply_one_lens [usubst]: "\<langle>\<sigma>\<rangle>\<^sub>s (&\<^bold>v)\<^sub>v = \<sigma>"
+  by (transfer, simp add: lens_defs)
+
 text \<open> A substitution update naturally yields the given expression. \<close>
     
 lemma usubst_lookup_upd [usubst]:
@@ -263,6 +266,10 @@ lemma usubst_upd_pr_var_id [usubst]:
   apply (rule ext)
   apply (auto)
   done
+
+lemma subst_sublens_var [usubst]: 
+  "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> \<langle>\<sigma>(a \<mapsto>\<^sub>s var b)\<rangle>\<^sub>s x = var ((x /\<^sub>L a) ;\<^sub>L b)"
+  by (transfer, auto simp add: fun_eq_iff lens_defs)
 
 lemma subst_nil_comp [usubst]: "nil\<^sub>s \<circ>\<^sub>s \<sigma> = nil\<^sub>s"
   by (simp add: subst_nil_def comp_def, transfer, simp add: comp_def)

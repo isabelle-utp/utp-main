@@ -28,6 +28,9 @@ lemma subst_con_alt_def: "con\<^sub>s a = \<lparr>\<^bold>v \<mapsto>\<^sub>s &\
 lemma subst_ext_con [usubst]: "psym_lens a \<Longrightarrow> con\<^sub>s a \<circ>\<^sub>s ext\<^sub>s a = id\<^sub>s"
   by (rel_simp)
 
+lemma subst_apply_con [usubst]: "\<langle>con\<^sub>s a\<rangle>\<^sub>s x = &\<V>[a]:x"
+  by (rel_simp)
+
 text \<open> Variables in the global state space will be retained after a state is contracted \<close>
 
 lemma subst_con_update_sublens [usubst]: 
@@ -77,9 +80,6 @@ text \<open> I needed this property for the assignment open law below. \<close>
 
 lemma usubst_prop: "\<sigma> \<oplus>\<^sub>s a = [a \<mapsto>\<^sub>s &a \<dagger> \<sigma>]"
   by (rel_simp)
-
-lemma [usubst]: "\<langle>\<sigma>\<rangle>\<^sub>s (&\<^bold>v)\<^sub>v = \<sigma>"
-  by (rel_auto)
 
 lemma block_assigns_open:
   "psym_lens a \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a ;; open\<^bsub>a\<^esub> = open\<^bsub>a\<^esub> ;; \<langle>\<sigma> \<oplus>\<^sub>s \<V>\<^bsub>a\<^esub>\<rangle>\<^sub>a"

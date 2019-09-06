@@ -10,6 +10,8 @@ alphabet global =
   x :: int
   y :: int
 
+thm global.quotients
+
 text \<open> State space of local variables, extending @{typ global} with an additional variable. \<close>
 
 alphabet local = global +
@@ -32,7 +34,10 @@ abbreviation swap :: "global hrel" where
          y := &temp ;; 
          close\<^bsub>lv\<^esub>" \<comment> \<open> Close the local scope\<close>
 
-lemma "\<lbrace>&x =\<^sub>u \<guillemotleft>X\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>Y\<guillemotright>\<rbrace> swap \<lbrace>&x =\<^sub>u \<guillemotleft>Y\<guillemotright> \<and> &y =\<^sub>u \<guillemotleft>X\<guillemotright>\<rbrace>\<^sub>u"
+lemma swap_wp: "swap wp U(&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>) = U(&y = \<guillemotleft>Y\<guillemotright> \<and> &x = \<guillemotleft>X\<guillemotright>)"
+  by (simp add: wp usubst unrest)
+
+lemma swap_hoare: "\<lbrace>&x = \<guillemotleft>X\<guillemotright> \<and> &y = \<guillemotleft>Y\<guillemotright>\<rbrace> swap \<lbrace>&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>\<rbrace>\<^sub>u"
   unfolding block_open_def block_close_def
   by (rel_auto)
 

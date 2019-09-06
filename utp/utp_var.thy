@@ -162,8 +162,16 @@ lemma pr_var_lens_comp_1 [simp]:
   "pr_var x ;\<^sub>L y = pr_var (x ;\<^sub>L y)"
   by (simp add: pr_var_def)
 
-lemma pr_var_len_quotient [simp]: 
+lemma pr_var_lens_comp_2 [simp]: 
+  "(x ;\<^sub>L pr_var y) = pr_var (x ;\<^sub>L y)"
+  by (simp_all add: pr_var_def)
+
+lemma pr_var_len_quotient_1 [simp]: 
   "pr_var x /\<^sub>L y = pr_var (x /\<^sub>L y)"
+  by (simp add: pr_var_def)
+
+lemma pr_var_len_quotient_2 [simp]: 
+  "x /\<^sub>L pr_var y = pr_var (x /\<^sub>L y)"
   by (simp add: pr_var_def)
 
 lemma in_var_plus [simp]: "in_var (x +\<^sub>L y) = in_var x +\<^sub>L in_var y"
