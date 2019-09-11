@@ -91,6 +91,13 @@ lemma scene_override_overshadow_right [simp]:
   "S\<^sub>1 \<oplus>\<^sub>S (S\<^sub>2 \<oplus>\<^sub>S S\<^sub>3 on X) on X = S\<^sub>1 \<oplus>\<^sub>S S\<^sub>3 on X"
   by (transfer, simp)
 
+definition scene_equiv :: "'a \<Rightarrow> 'a \<Rightarrow> ('a scene) \<Rightarrow> bool" ("_ \<approx>\<^sub>S _ on _" [65,0,66] 65) where
+[lens_defs]: "S\<^sub>1 \<approx>\<^sub>S S\<^sub>2 on X = (S\<^sub>1 \<oplus>\<^sub>S S\<^sub>2 on X = S\<^sub>1)"
+
+lemma scene_equiv_region: "idem_scene X \<Longrightarrow> region X = {(S\<^sub>1, S\<^sub>2). S\<^sub>1 \<approx>\<^sub>S S\<^sub>2 on X}"
+  by (simp add: lens_defs, transfer, auto)
+     (metis idem_overrider.ovr_idem, metis overrider.ovr_overshadow_right)
+
 lift_definition scene_indep :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" (infix "\<bowtie>\<^sub>S" 50)
 is "\<lambda> F G. (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. G (F s\<^sub>1 s\<^sub>2) s\<^sub>3 = F (G s\<^sub>1 s\<^sub>3) s\<^sub>2)" .
 
@@ -135,7 +142,7 @@ begin
     is "\<lambda> F G. if (\<forall> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2 = F (G s\<^sub>1 s\<^sub>2) s\<^sub>2) then (\<lambda> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2) else (\<lambda> s\<^sub>1 s\<^sub>2. s\<^sub>1)"
     by (unfold_locales, auto, metis overrider.ovr_overshadow_right)
   definition inf_scene :: "'s scene \<Rightarrow> 's scene \<Rightarrow> 's scene" where
-    "inf_scene X Y = - (sup (- X) (- Y))"
+    [lens_defs]: "inf_scene X Y = - (sup (- X) (- Y))"
   instance ..
 end
 
@@ -210,9 +217,9 @@ begin
   text \<open> $X$ is a subscene of $Y$ provided that overriding with first $Y$ and then $X$ can
          be rewritten using the complement of $X$. \<close>
   definition less_eq_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" where
-  "less_eq_scene X Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on Y \<oplus>\<^sub>S s\<^sub>3 on X = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>S s\<^sub>3 on X) on Y)"
+  [lens_defs]: "less_eq_scene X Y = (\<forall> s\<^sub>1 s\<^sub>2 s\<^sub>3. s\<^sub>1 \<oplus>\<^sub>S s\<^sub>2 on Y \<oplus>\<^sub>S s\<^sub>3 on X = s\<^sub>1 \<oplus>\<^sub>S (s\<^sub>2 \<oplus>\<^sub>S s\<^sub>3 on X) on Y)"
   definition less_scene :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" where
-  "less_scene x y = (x \<le> y \<and> \<not> y \<le> x)"
+  [lens_defs]: "less_scene x y = (x \<le> y \<and> \<not> y \<le> x)"
 instance ..
 end
 

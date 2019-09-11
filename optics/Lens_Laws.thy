@@ -193,6 +193,9 @@ begin
   lemma get_via_put: "get s = (THE v. put s v = s)"
     by (simp add: weak_get_via_put)
 
+  lemma get_surj: "surj get"
+    by (metis put_get surjI)
+
 end
 
 lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"

@@ -18,7 +18,8 @@ alphabet local = global +
 text \<open> Construct a symmetric lens that partitions the state space into globals and locals, using
   the lenses @{term global.base\<^sub>L} and @{term global.more\<^sub>L}. \<close>
 
-abbreviation "lv \<equiv> \<lparr> view = (global.base\<^sub>L :: (global \<Longrightarrow> local)), coview = global.more\<^sub>L \<rparr>"
+abbreviation lv :: "<global, \<lparr>temp\<^sub>v :: int\<rparr>> \<Longleftrightarrow> local" where
+"lv \<equiv> \<lparr> view = (global.base\<^sub>L :: (global \<Longrightarrow> local)), coview = global.more\<^sub>L \<rparr>"
 
 lemma sym_lens_lv [simp]: "sym_lens lv"
   by (rule sym_lens.intro, simp_all)

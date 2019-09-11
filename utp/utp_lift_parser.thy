@@ -64,9 +64,11 @@ no_utp_lift
   Groups.zero Groups.one plus uminus minus times divide
   var (0) in_var (0) out_var (0) cond numeral (0)
 
-ML \<open> Symbol.is_ascii_upper (hd (Symbol.explode "H")) \<close>
+text \<open> Add a quotation device for expressions that explicitly stops the lifting parser. \<close>
 
-ML \<open> map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get @{theory})); @{const_syntax bop} \<close>
+abbreviation (input) quote_uexpr :: "('a, 's) uexpr \<Rightarrow> ('a, 's) uexpr" ("@(_)" [999] 999) where "quote_uexpr p \<equiv> p"
+
+no_utp_lift quote_uexpr (0)
 
 text \<open> The following function takes a parser, but not-yet type-checked term, and wherever it
   encounters an application, it inserts a UTP expression operator. Any operators that have

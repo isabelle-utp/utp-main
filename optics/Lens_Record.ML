@@ -16,9 +16,12 @@ val FLDLENS = "FLDLENS"
 val BASELENS = "BASELENS"
 val base_lensN = "base\<^sub>L"
 val child_lensN = "more\<^sub>L"
+val all_lensN = "all\<^sub>L"
 val base_moreN = "base_more"
 val bij_lens_suffix = "_bij_lens"
 val vwb_lens_suffix = "_vwb_lens"
+val sym_lens_suffix = "_sym_lens"
+val slens_make = @{const_name "slens.make"}
 val indepsN = "indeps"
 val sublensN = "sublenses"
 val quotientN = "quotients"
@@ -27,6 +30,7 @@ val Trueprop = @{const_name Trueprop}
 val HOLeq = @{const_name HOL.eq}
 val bij_lens = @{const_name bij_lens}
 val vwb_lens = @{const_name vwb_lens}
+val sym_lens = @{const_name sym_lens}
 val lens_indep = @{const_name lens_indep}
 val lens_plus = @{const_name lens_plus}
 val lens_quotient = @{const_name lens_quotient}
@@ -85,6 +89,21 @@ fun lens_proof tname x thy =
                                                           (fold add_simp (get_thm thy (x ^ "_def") :: get_thms thy (tname ^ ".defs"))
                                                                          context))])
   end
+
+fun lens_sym_proof tname thy =
+  let open Simplifier; open Global_Theory in
+      Goal.prove_global thy [] []
+      (hd (Type_Infer_Context.infer_types
+              (Proof_Context.init_global thy)
+              [ Const (Trueprop, dummyT)
+              $ (Const (sym_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ all_lensN, dummyT))]))
+      (fn {context = context, prems = _}
+                           => EVERY [ Classical.rule_tac context [@{thm sym_lens.intro}] [] 1
+                                    , PARALLEL_ALLGOALS (asm_simp_tac 
+                                                          (fold add_simp (@{thms slens.defs} @ get_thms thy (tname ^ ".defs"))
+                                                                         context))])
+  end
+
 
 fun prove_lens_goal tname thy ctx =
   let open Simplifier; open Global_Theory in
@@ -273,6 +292,7 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
         NONE => ""
     val bldef = (base_lensN, base_lensN ^ " = " ^ BASELENS ^ " " ^ tname);
     val mldef = (child_lensN, child_lensN ^ " = " ^ FLDLENS ^ " more"); 
+    val sldef = (all_lensN, all_lensN ^ " \<equiv> " ^ slens_make ^ " " ^ base_lensN ^ " " ^ child_lensN);
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [child_lensN];
     fun pindeps thy = map (fn thm => @{thm sublens_pres_indep} OF [thm]) (get_thms thy sublensN)
                     @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensN)
@@ -286,6 +306,9 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
          |> Sign.qualified_path false binding
          |> Named_Target.theory_map
               (fold (fn (n, d) => snd o Specification.definition_cmd (SOME (Binding.make (n, Position.none), NONE, NoSyn)) [] [] (lens_defs, d) true) (map ldef lnames @ [bldef, mldef]))
+            (* Add definition of the underlying symmetric lens *)
+         |> Named_Target.theory_map
+              (fold (fn (n, d) => Specification.abbreviation_cmd Syntax.mode_default (SOME (Binding.make (n, Position.none), NONE, NoSyn)) [] d true) [sldef])
             (* Add a vwb lens proof for each field lens *)
          |> fold (fn x => fn thy => snd (add_thm ((Binding.make (x ^ vwb_lens_suffix, Position.none), lens_proof tname x thy), [Simplifier.simp_add]) thy)) (lnames @ [base_lensN, child_lensN])
             (* Add a bij lens proof for the base and more lenses *)
@@ -302,6 +325,8 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
             (* Add equivalence properties *)
          |> (fn thy => snd (add_thmss
               [((Binding.make (equivN, Position.none), (if (raw_parent = NONE) then [] else [equiv_more_proof tname pname thy lnames]) @ [equiv_base_proof tname parent thy lnames, equiv_partition_proof tname thy]), [Simplifier.simp_add])] thy))
+            (* Add a symmetric lens proof for the base and more lenses *)
+         |> (fn thy => snd (add_thm ((Binding.make (all_lensN ^ sym_lens_suffix, Position.none), lens_sym_proof tname thy), [Simplifier.simp_add]) thy)) 
          |> Sign.parent_path
   end;
 

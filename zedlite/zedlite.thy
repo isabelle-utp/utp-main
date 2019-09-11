@@ -108,7 +108,7 @@ subsection \<open> Calculating Preconditions \<close>
 
 named_theorems pre
 
-declare domran [pre]
+declare prepost [pre]
 
 text \<open> Calculation of preconditions for conjoined relations is in general very difficult. However,
   if we have annotations for disjoint alphabets then the following easier law applies. \<close>

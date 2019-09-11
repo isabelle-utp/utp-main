@@ -214,6 +214,8 @@ text \<open> We also encode ``naked'' guarded commands~\cite{Dijkstra75,Morgan90
 definition rgcmd :: "'a upred \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" ("_ \<longrightarrow>\<^sub>r _" [55, 56] 55) where
 [urel_defs]: "rgcmd b P = (rassume b ;; P)"
 
+utp_lift_notation rgcmd (0)
+
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
 

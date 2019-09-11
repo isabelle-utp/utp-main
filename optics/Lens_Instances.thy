@@ -1,7 +1,7 @@
 section \<open>Lens Instances\<close>
 
 theory Lens_Instances
-  imports Lens_Order "HOL-Eisbach.Eisbach"
+  imports Lens_Order Lens_Symmetric "HOL-Eisbach.Eisbach"
   keywords "alphabet" :: "thy_decl_block"
 begin
 

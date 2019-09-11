@@ -65,7 +65,6 @@ session "UTP" in "utp" = "UTP-Toolkit" +
   theories 
     utp 
     utp_full
-    utp_easy_parser
   document_files
     "root.bib"
     "root.tex"

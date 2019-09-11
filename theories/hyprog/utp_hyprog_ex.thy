@@ -9,7 +9,7 @@ abbreviation v :: "real \<Longrightarrow> real^3" where "v \<equiv> \<Pi>[Suc 0]
 abbreviation t :: "real \<Longrightarrow> real^3" where "t \<equiv> \<Pi>[Suc (Suc 0)]"
 
 lemma dInv_grav_ex:
-  "\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>ode [h \<mapsto>\<^sub>s &v, v \<mapsto>\<^sub>s -9.81, t \<mapsto>\<^sub>s 1] true\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
+  "\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>ode [h \<mapsto>\<^sub>s &v, v \<mapsto>\<^sub>s -9.81, t \<mapsto>\<^sub>s \<guillemotleft>1\<guillemotright>] true\<lbrace>[&\<^bold>c:v <\<^sub>P 0 \<and>\<^sub>P &\<^bold>c:h \<le>\<^sub>P 2]\<^sub>P\<rbrace>\<^sub>u"
   apply (rule dCut_split)
    apply (rule dInv)
     apply (simp add: closure)

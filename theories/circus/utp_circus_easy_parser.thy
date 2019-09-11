@@ -1,7 +1,7 @@
 section \<open> Easy to use Circus-M parser \<close>
 
 theory utp_circus_easy_parser
-  imports "utp_circus" "UTP.utp_easy_parser"
+  imports "utp_circus"
 begin recall_syntax
 
 text \<open> We change := so that it refers to the Circus operator \<close>
@@ -12,13 +12,14 @@ no_adhoc_overloading
 adhoc_overloading
   uassigns AssignsCSP
 
-syntax
-  "_GuardCSP" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" (infixr "&&" 60)
+notation GuardCSP (infixr "&&" 60)
 
-no_translations
-  "_uwhile_top b P" == "CONST while_top b P"
+utp_lift_notation GuardCSP (0)
 
-translations
-  "_uwhile_top b P" == "CONST WhileC b P"
+purge_notation while_top ("while _ do _ od")
+
+notation WhileC ("while _ do _ od")
+
+utp_lift_notation WhileC (0)
 
 end

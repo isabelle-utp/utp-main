@@ -1,5 +1,5 @@
 theory Lens_Record_Example
-imports Lens_Instances
+  imports Optics
 begin
 
 text \<open>The alphabet command supports syntax illustrated in the following comments.\<close>

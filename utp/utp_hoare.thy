@@ -141,6 +141,11 @@ lemma hoare_ndet [hoare_safe]:
   shows "\<lbrace>pre\<rbrace>(P \<sqinter> Q)\<lbrace>post\<rbrace>\<^sub>u"
   using assms by (rel_auto)
 
+lemma hoare_disj [hoare_safe]: 
+  assumes "\<lbrace>pr\<rbrace>P\<lbrace>post\<rbrace>\<^sub>u" "\<lbrace>pr\<rbrace>Q\<lbrace>post\<rbrace>\<^sub>u"
+  shows "\<lbrace>pr\<rbrace>(P \<or> Q)\<lbrace>post\<rbrace>\<^sub>u"
+  using assms by (rel_auto)
+
 lemma hoare_UINF [hoare_safe]: 
   assumes "\<And> i. i \<in> A \<Longrightarrow> \<lbrace>pre\<rbrace>P(i)\<lbrace>post\<rbrace>\<^sub>u"
   shows "\<lbrace>pre\<rbrace>(\<Sqinter> i \<in> A \<bullet> P(i))\<lbrace>post\<rbrace>\<^sub>u"
