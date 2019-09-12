@@ -265,7 +265,7 @@ lemma "(x := 1 ;; (y := 7 \<triangleleft> $x >\<^sub>u 0 \<triangleright> y := 8
 
 text \<open> Below is an illustration of how we can express a simple while loop in Isabelle/UTP. \<close>
 
-term "(x,y) := (3,1);; while (&x >\<^sub>u 0) do x := &x - 1;; y := &y * 2 od"
+term "(x,y) := (3,1);; while (&x > 0) do x := &x - 1;; y := &y * 2 od"
 
 subsection \<open> Non-determinism and Complete Lattices \<close>
 
