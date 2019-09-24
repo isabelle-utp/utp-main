@@ -213,10 +213,10 @@ translations
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"
   "_ulens_get x y" == "CONST uop (CONST lens_get y) x"
 
-abbreviation umem (infix "\<in>\<^sub>u" 50) where "(x \<in>\<^sub>u A) \<equiv> bop (\<in>) x A"
-abbreviation uNone ("None\<^sub>u") where "None\<^sub>u \<equiv> \<guillemotleft>None\<guillemotright>"
-abbreviation uSome ("Some\<^sub>u'(_')") where "Some\<^sub>u(e) \<equiv> uop Some e"
-abbreviation uthe ("the\<^sub>u'(_')") where "the\<^sub>u(e) \<equiv> uop the e"
+abbreviation (input) umem (infix "\<in>\<^sub>u" 50) where "(x \<in>\<^sub>u A) \<equiv> bop (\<in>) x A"
+abbreviation (input) uNone ("None\<^sub>u") where "None\<^sub>u \<equiv> \<guillemotleft>None\<guillemotright>"
+abbreviation (input) uSome ("Some\<^sub>u'(_')") where "Some\<^sub>u(e) \<equiv> uop Some e"
+abbreviation (input) uthe ("the\<^sub>u'(_')") where "the\<^sub>u(e) \<equiv> uop the e"
 
 syntax \<comment> \<open> Tuples \<close>
   "_utuple"     :: "('a, '\<alpha>) uexpr \<Rightarrow> utuple_args \<Rightarrow> ('a * 'b, '\<alpha>) uexpr" ("(1'(_,/ _')\<^sub>u)")
