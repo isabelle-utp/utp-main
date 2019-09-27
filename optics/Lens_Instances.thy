@@ -17,7 +17,7 @@ text \<open>A function lens views the valuation associated with a particular dom
 definition fun_lens :: "'a \<Rightarrow> ('b::two \<Longrightarrow> ('a \<Rightarrow> 'b))" where
 [lens_defs]: "fun_lens x = \<lparr> lens_get = (\<lambda> f. f x), lens_put = (\<lambda> f u. f(x := u)) \<rparr>"
 
-lemma fun_wb_lens: "wb_lens (fun_lens x)"
+lemma fun_vwb_lens: "vwb_lens (fun_lens x)"
   by (unfold_locales, simp_all add: fun_lens_def)
 
 text \<open>Two function lenses are independent if and only if the domain elements are different.\<close>

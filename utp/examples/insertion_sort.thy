@@ -65,7 +65,7 @@ lemma insert_elem_correct: "
   apply (meson diff_le_self le_less_trans perm.trans perm_swap)
        apply (rename_tac arr i)
   apply (smt Suc_pred diff_Suc_Suc diff_le_self diff_less diff_zero le_less_trans less_imp_le_nat nths_upt_length nths_upt_nth sorted_iff_nth_mono zero_less_Suc)
-  apply (metis One_nat_def atLeastLessThan_iff diff_le_self le_less le_less_trans less_irrefl nths_list_update_out sorted_nths_atLeastLessThan_0)
+  apply (metis atLeastLessThan_iff diff_le_self le_less le_less_trans less_irrefl nths_list_update_out sorted_nths_atLeastLessThan_0)
   apply (simp add: sorted_iff_nth_mono_less nths_upt_le_length nths_upt_le_nth)
       apply (auto)[1]
   apply (rename_tac arr i j m n)
