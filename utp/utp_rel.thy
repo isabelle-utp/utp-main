@@ -107,7 +107,7 @@ abbreviation
   rcond :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) urel"
   ("(3_ \<triangleleft> _ \<triangleright>\<^sub>r/ _)" [52,0,53] 52)
   where "(P \<triangleleft> b \<triangleright>\<^sub>r Q) \<equiv> (P \<triangleleft> \<lceil>b\<rceil>\<^sub>\<leftarrow> \<triangleright> Q)"
-    
+
 text \<open> Sequential composition is heterogeneous, and simply requires that the output alphabet
   of the first matches then input alphabet of the second. We define it by lifting HOL's 
   built-in relational composition operator (@{term "(O)"}). Since this returns a set, the
@@ -298,10 +298,19 @@ definition nameset :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> 
 [urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>})" 
 
 subsection \<open> Syntax Translations \<close>
-    
+
+\<comment> \<open> Alternative traditional conditional syntax \<close>
+
+abbreviation (input) rifthenelse ("(if (_)/ then (_)/ else (_)/ fi)") 
+  where "rifthenelse b P Q \<equiv> P \<triangleleft> b \<triangleright>\<^sub>r Q"
+
+abbreviation (input) rifthen ("(if (_)/ then (_)/ fi)")
+  where "rifthen b P \<equiv> rifthenelse b P II"
+
+utp_lift_notation rifthenelse (0)
+utp_lift_notation rifthen (0)
+
 syntax
-  \<comment> \<open> Alternative traditional conditional syntax \<close>
-  "_utp_if" :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(if (_)/ then (_)/ else (_)/ fi)")
   \<comment> \<open> Iterated sequential composition \<close>
   "_seqr_iter" :: "pttrn \<Rightarrow> 'a list \<Rightarrow> '\<sigma> hrel \<Rightarrow> '\<sigma> hrel" ("(3;; _ : _ \<bullet>/ _)" [0, 0, 10] 10)
   \<comment> \<open> Single and multiple assignement \<close>
@@ -327,7 +336,6 @@ syntax
   "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
 
 translations
-  "_utp_if b P Q" => "P \<triangleleft> (_UTP b) \<triangleright>\<^sub>r Q"
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
   "_mk_usubst \<sigma> (_svid_unit x) v" \<rightleftharpoons> "\<sigma>(&x \<mapsto>\<^sub>s v)"
   "_mk_usubst \<sigma> (_svid_list x xs) (_uexprs v vs)" \<rightleftharpoons> "(_mk_usubst (\<sigma>(&x \<mapsto>\<^sub>s v)) xs vs)"

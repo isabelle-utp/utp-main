@@ -57,8 +57,8 @@ syntax \<comment> \<open> Sets \<close>
   "_urelcomp"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr ";\<^sub>u" 75)
 
 translations
-  "{x, xs}\<^sub>u" == "insert\<^sub>u x {xs}\<^sub>u"
-  "{x}\<^sub>u"     == "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
+  "{x, xs}\<^sub>u" => "insert\<^sub>u x {xs}\<^sub>u"
+  "{x}\<^sub>u"     => "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
   "['a]\<^sub>T"     == "\<guillemotleft>CONST set_of TYPE('a)\<guillemotright>"
   "id['a]"    == "\<guillemotleft>CONST Id_on (CONST set_of TYPE('a))\<guillemotright>"
   "A \<times>\<^sub>u B"    == "CONST bop CONST Product_Type.Times A B"
@@ -92,8 +92,8 @@ abbreviation ZedImage ::
 "ZedImage PF \<equiv> ZedSetCompr \<guillemotleft>UNIV\<guillemotright> (\<lambda> x::unit. PF)"
 
 translations
-  "{x..y}\<^sub>u" == "CONST bop CONST atLeastAtMost x y"
-  "{x..<y}\<^sub>u" == "CONST bop CONST atLeastLessThan x y"
+  "{x..y}\<^sub>u" => "CONST bop CONST atLeastAtMost x y"
+  "{x..<y}\<^sub>u" => "CONST bop CONST atLeastLessThan x y"
   "{x | P \<bullet> F}" == "CONST ZedSetCompr (CONST lit CONST UNIV) (\<lambda> x. (P, F)\<^sub>u)"
   "{x : A | P \<bullet> F}" == "CONST ZedSetCompr A (\<lambda> x. (P, F)\<^sub>u)"
   "{x : A | P}" => "{x : A | P \<bullet> \<guillemotleft>x\<guillemotright>}"

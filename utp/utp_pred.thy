@@ -316,6 +316,8 @@ lift_definition closure::"'\<alpha> upred \<Rightarrow> '\<beta> upred" ("[_]\<^
 lift_definition taut :: "'\<alpha> upred \<Rightarrow> bool" ("`_`")
 is "\<lambda> P. \<forall> A. P A" .
 
+declare taut_def [uexpr_transfer_laws]
+
 text \<open> The following function extracts the characteristic set of a predicate \<close>
 
 lift_definition upred_set :: "'a upred \<Rightarrow> 'a set" ("\<lbrakk>_\<rbrakk>\<^sub>p") is
@@ -429,7 +431,7 @@ lemma unrest_ex_diff [unrest]:
   assumes "x \<bowtie> y" "y \<sharp> P"
   shows "y \<sharp> (\<exists> x \<bullet> P)"
   using assms lens_indep_comm 
-  by (rel_simp', fastforce)
+  by (rel_auto, fastforce+)
   
 lemma unrest_all_in [unrest]:
   "\<lbrakk> mwb_lens y; x \<subseteq>\<^sub>L y \<rbrakk> \<Longrightarrow> x \<sharp> (\<forall> y \<bullet> P)"

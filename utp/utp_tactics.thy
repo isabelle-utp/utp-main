@@ -264,11 +264,11 @@ text \<open> Simpler, one-shot versions of the above tactics, but without the po
   
 method rel_simp' 
   uses simp 
-  = (simp add: upred_defs urel_defs lens_defs prod.case_eq_if relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp add: uexpr_transfer_laws upred_defs urel_defs alpha_splits; simp add: upred_defs urel_defs lens_defs prod.case_eq_if relcomp_unfold  uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_auto' 
   uses simp intro elim dest
-  = (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp add: uexpr_transfer_laws upred_defs urel_defs alpha_splits; auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
 
 method rel_blast' 
   uses simp intro elim dest
