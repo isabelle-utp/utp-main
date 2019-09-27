@@ -37,34 +37,6 @@ abbreviation swap :: "global hrel" where
 term "swap wp U(&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>)"
 *)
 
-alphabet local2 = global +
-  pivot :: int
-  i :: nat
-  j :: nat
-
-abbreviation lv2 :: "<global, _> \<Longleftrightarrow> local2" where
-"lv2 \<equiv> \<lparr> view = (global.base\<^sub>L :: (global \<Longrightarrow> local2)), coview = global.more\<^sub>L \<rparr>"
-
-lemma sym_lens_lv2 [simp]: "sym_lens lv2"
-  by (rule sym_lens.intro, simp_all)
-
-abbreviation partititn :: "(int list \<Longrightarrow> local2) \<Rightarrow> nat \<Rightarrow> nat \<Rightarrow> global hrel" where
-"partititn A lo hi \<equiv>
-   open\<^bsub>lv2\<^esub> ;;
-   pivot := &A ! \<guillemotleft>hi\<guillemotright> ;;
-   i := \<guillemotleft>lo\<guillemotright> ;;
-   j := \<guillemotleft>lo\<guillemotright> ;;
-   while j \<le> \<guillemotleft>hi\<guillemotright>
-   do
-     if (&A ! j) < pivot then
-       (A[j], A[i]) := (&A ! i, &A ! j) ;;
-       i := i + 1
-     else II fi ;;
-     j := j + 1
-   od ;;
-   (A[i], A[\<guillemotleft>hi\<guillemotright>]) := (&A ! \<guillemotleft>hi\<guillemotright>, &A ! i) ;;
-   close\<^bsub>lv2\<^esub> "
-
 lemma swap_wp: "swap wp (&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>) = U(&y = \<guillemotleft>Y\<guillemotright> \<and> &x = \<guillemotleft>X\<guillemotright>)"
   by (simp add: wp usubst unrest)
 

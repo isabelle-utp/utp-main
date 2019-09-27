@@ -98,6 +98,31 @@ lemma sorted_distinct [intro]: "\<lbrakk> sorted (xs); distinct(xs) \<rbrakk> \<
   apply (metis (no_types, hide_lams) Suc_leI Suc_less_eq Suc_pred gr0_conv_Suc not_le not_less_iff_gr_or_eq nth_Cons_Suc nth_mem nth_non_equal_first_eq)
   done
 
+text \<open> The concatenation of two lists is sorted provided (1) both the lists are sorted, and (2) 
+  the final and first elements are ordered. \<close>
+
+lemma sorted_append_middle:
+  "sorted(xs@ys) = (sorted xs \<and> sorted ys \<and> (xs \<noteq> [] \<and> ys \<noteq> [] \<longrightarrow> xs!(length xs - 1) \<le> ys!0))"
+proof -
+  have "\<And>x y. \<lbrakk> sorted xs; sorted ys; xs ! (length xs - Suc 0) \<le> ys ! 0 \<rbrakk> \<Longrightarrow> x \<in> set xs \<Longrightarrow> y \<in> set ys \<Longrightarrow> x \<le> y"
+  proof -
+    fix x y
+    assume "sorted xs" "sorted ys" "xs ! (length xs - Suc 0) \<le> ys ! 0" "x \<in> set xs" "y \<in> set ys"
+    moreover then obtain i j where i: "x = xs!i" "i < length xs" and j: "y = ys!j" "j < length ys"
+      by (auto simp add: in_set_conv_nth)
+    moreover have "xs ! i \<le> xs!(length xs - 1)"
+      by (metis One_nat_def Suc_diff_Suc Suc_leI Suc_le_mono \<open>i < length xs\<close> \<open>sorted xs\<close> diff_less diff_zero gr_implies_not_zero nat.simps(3) sorted_iff_nth_mono zero_less_iff_neq_zero)
+    moreover have "ys!0 \<le> ys ! j"
+      by (simp add: calculation(2) calculation(9) sorted_nth_mono)
+    ultimately have "xs ! i \<le> ys ! j"
+      by (metis One_nat_def dual_order.trans) 
+    thus "x \<le> y"
+      by (simp add: i j)
+  qed
+  thus ?thesis
+    by (auto simp add: sorted_append)
+qed
+
 text \<open> Is the given list a permutation of the given set? \<close>
 
 definition is_sorted_list_of_set :: "('a::ord) set \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -888,6 +913,68 @@ lemma nths_list_update_out: "k \<notin> A \<Longrightarrow> nths (list_update xs
 
 lemma nths_list_augment_out: "\<lbrakk> k < length xs; k \<notin> A \<rbrakk> \<Longrightarrow> nths (list_augment xs k x) A = nths xs A"
   by (simp add: list_augment_as_update nths_list_update_out)
+
+lemma nths_single: "n < length xs \<Longrightarrow> nths xs {n} = [xs ! n]"
+proof (induct xs arbitrary: n)
+  case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  have "\<And> n. n > 0 \<Longrightarrow> {j. Suc j = n} = {n-1}" by auto
+  with Cons show ?case by (auto simp add: nths_Cons)
+qed
+
+lemma nths_uptoLessThan:
+  "\<lbrakk> m \<le> n; n < length xs \<rbrakk> \<Longrightarrow> nths xs {m..n} = xs ! m # nths xs {Suc m..n}"
+proof (induct xs arbitrary: m n)
+case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  have l1: "\<And> m n. \<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> Suc j \<and> Suc j \<le> n} = {m-1..n-1}"
+    by (auto)
+  have l2: "\<And> m n. \<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> j \<and> Suc j \<le> n} = {m..n-1}"
+    by (auto)
+  from Cons show ?case by (auto simp add: nths_Cons l1 l2)
+qed
+
+lemma nths_upt_nth: "\<lbrakk> j < i; i < length xs \<rbrakk> \<Longrightarrow> (nths xs {0..<i}) ! j = xs ! j"
+  by (metis lessThan_atLeast0 nth_take nths_upt_eq_take)
+
+
+lemma nths_upt_length: "\<lbrakk> m \<le> n; n \<le> length xs \<rbrakk> \<Longrightarrow> length (nths xs {m..<n}) = n-m"
+  by (metis atLeastLessThan_empty diff_is_0_eq length_map length_upt list.size(3) not_less nths_empty seq_extract_as_map seq_extract_def)
+
+lemma nths_upt_le_length: 
+  "\<lbrakk> m \<le> n; Suc n \<le> length xs \<rbrakk> \<Longrightarrow> length (nths xs {m..n}) = Suc n - m"
+  by (metis atLeastLessThanSuc_atLeastAtMost le_SucI nths_upt_length)
+
+lemma sl1: "n > 0 \<Longrightarrow> {j. Suc j \<le> n} = {0..n-1}"
+  by (auto)
+
+lemma sl2: "\<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> Suc j \<and> Suc j \<le> n} = {m-1..n-1}"
+  by auto
+
+lemma nths_upt_le_nth: "\<lbrakk> m \<le> n; Suc n \<le> length xs; i < Suc n - m \<rbrakk> 
+  \<Longrightarrow> (nths xs {m..n}) ! i = xs ! (i + m)"
+proof (induct xs arbitrary: m n i)
+  case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  then show ?case   
+  proof (cases "i = 0")
+    case True
+    with Cons show ?thesis by (auto simp add: nths_Cons sl2)
+  next
+    case False
+    with Cons show ?thesis by (auto simp add: nths_Cons sl1 sl2)
+  qed
+qed    
+
+lemma nths_upt_le_append_split:
+  "\<lbrakk> j \<le> i; i < length xs \<rbrakk> \<Longrightarrow> nths xs {0..<j} @ nths xs {j..i} = nths xs {0..i}"
+  by (auto simp add: list_eq_iff_nth_eq nths_upt_length nths_upt_le_length nths_upt_le_nth nths_upt_nth nth_append)
 
 subsection \<open> List power \<close>
 

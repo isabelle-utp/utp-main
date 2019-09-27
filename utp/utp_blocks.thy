@@ -100,4 +100,9 @@ lemma block_assign_global_close:
   "\<lbrakk> psym_lens a; x \<subseteq>\<^sub>L \<C>\<^bsub>a\<^esub> \<rbrakk> \<Longrightarrow> (x := v) ;; close\<^bsub>a\<^esub> = close\<^bsub>a\<^esub> ;; (x\<restriction>\<V>[a] := (v \<restriction>\<^sub>e \<C>\<^bsub>a\<^esub>))"
   by (rel_auto)
 
+lemma hoare_block [hoare_safe]: 
+  assumes "psym_lens a"
+  shows "\<lbrace>p \<oplus>\<^sub>p \<V>\<^bsub>a\<^esub>\<rbrace>P\<lbrace>q \<oplus>\<^sub>p \<V>\<^bsub>a\<^esub>\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>open\<^bsub>a\<^esub> ;; P ;; close\<^bsub>a\<^esub>\<lbrace>q\<rbrace>\<^sub>u"
+  using assms by (rel_simp)
+
 end

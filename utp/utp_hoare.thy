@@ -67,7 +67,7 @@ lemma post_weak_hoare_r:
   shows "\<lbrace>p\<rbrace>C\<lbrace>q\<^sub>1\<rbrace>\<^sub>u" 
   using assms by rel_auto
 
-lemma hoare_r_conseq: "\<lbrakk> `p\<^sub>1 \<Rightarrow> p\<^sub>2`; \<lbrace>p\<^sub>2\<rbrace>S\<lbrace>q\<^sub>2\<rbrace>\<^sub>u; `q\<^sub>2 \<Rightarrow> q\<^sub>1` \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1\<rbrace>S\<lbrace>q\<^sub>1\<rbrace>\<^sub>u"
+lemma hoare_r_conseq: "\<lbrakk> \<lbrace>p\<^sub>2\<rbrace>S\<lbrace>q\<^sub>2\<rbrace>\<^sub>u; `p\<^sub>1 \<Rightarrow> p\<^sub>2`; `q\<^sub>2 \<Rightarrow> q\<^sub>1` \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1\<rbrace>S\<lbrace>q\<^sub>1\<rbrace>\<^sub>u"
   by rel_auto
 
 subsection \<open> Sequence Laws \<close>
@@ -114,6 +114,10 @@ lemma assigns_init_hoare [hoare_safe]:
 lemma assigns_init_hoare_general:
   "\<lbrakk> vwb_lens x; \<And> x\<^sub>0. \<lbrace>&x = v\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk> \<and> p\<lbrakk>\<guillemotleft>x\<^sub>0\<guillemotright>/&x\<rbrakk>\<rbrace>S\<lbrace>q\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>x := v ;; S\<lbrace>q\<rbrace>\<^sub>u"
   by (rule seq_hoare_r, rule assign_floyd_hoare_r, simp, rel_auto)
+
+lemma assigns_final_hoare [hoare_safe]:
+  "\<lbrace>p\<rbrace>S\<lbrace>\<sigma> \<dagger> q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>S ;; \<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_auto)
 
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
   by rel_auto
@@ -185,7 +189,7 @@ lemma mu_hoare_r':
 subsection \<open> Iteration Rules \<close>
 
 lemma iter_hoare_r [hoare_safe]: "\<lbrace>P\<rbrace>S\<lbrace>P\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>P\<rbrace>S\<^sup>\<star>\<lbrace>P\<rbrace>\<^sub>u"
-  by (rel_simp', metis (mono_tags, lifting) mem_Collect_eq rtrancl_induct)
+  by (rel_simp', metis (mono_tags, hide_lams) mem_Collect_eq rtrancl_induct)
 
 lemma while_hoare_r [hoare_safe]:
   assumes "\<lbrace>p \<and> b\<rbrace>S\<lbrace>p\<rbrace>\<^sub>u"
@@ -256,12 +260,10 @@ proof -
     by (simp add: hoare_r_def while_bot_def)
 qed
 
-term while_vrt
-
 lemma while_vrt_hoare_r [hoare_safe]:
   assumes "\<And> z::nat. \<lbrace>p \<and> b \<and> v = \<guillemotleft>z\<guillemotright>\<rbrace>S\<lbrace>p \<and> v < \<guillemotleft>z\<guillemotright>\<rbrace>\<^sub>u" "`pre \<Rightarrow> p`" "`(\<not>b \<and> p) \<Rightarrow> post`"
   shows "\<lbrace>pre\<rbrace>while b invr p vrt v do S od\<lbrace>post\<rbrace>\<^sub>u"
-  apply (rule hoare_r_conseq[OF assms(2) _ assms(3)])
+  apply (rule hoare_r_conseq[OF _ assms(2) assms(3)])
   apply (simp add: while_vrt_def)
   apply (rule while_term_hoare_r[where v="v", OF assms(1)]) 
   done
