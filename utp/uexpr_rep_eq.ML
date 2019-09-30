@@ -38,7 +38,7 @@ struct
   fun read_uexpr_rep_eq_thms thy =
     let val ctx = Proof_Context.init_global thy;
       val facts = Find_Theorems.find_theorems_cmd
-        ctx NONE NONE true uexpr_rep_eq_query;
+        ctx NONE (SOME 50000) true uexpr_rep_eq_query;
     in
       (put_uexpr_rep_eq_thms (map snd (snd facts)) thy)
     end;
