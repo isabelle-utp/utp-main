@@ -37,7 +37,7 @@ imports
   utp_sp
   utp_theory
   utp_concurrency
+  utp_collection
   utp_rel_opsem
   utp_blocks
-  utp_collection
-begin end
+begin recall_syntax end
