@@ -54,16 +54,7 @@ type_synonym 's mpred = "((addr, data) ffun, 's) spred"
 type_synonym 's mprog = "((addr, data) ffun, 's) sprog"
 type_synonym ('a, 's) mexpr = "('a, ((addr, data) ffun, 's) mem_ext) pexpr"
 
-subsection \<open> Indexed Lenses and Dereferencing Lens \<close>
-
-definition ind_lens :: "('i \<Rightarrow> ('a \<Longrightarrow> 's)) \<Rightarrow> ('i, 's) uexpr \<Rightarrow> ('a \<Longrightarrow> 's)" where
-[lens_defs]: "ind_lens f x = \<lparr> lens_get = (\<lambda> s. get\<^bsub>f (\<lbrakk>x\<rbrakk>\<^sub>e s)\<^esub> s), lens_put = (\<lambda> s v. put\<^bsub>f (\<lbrakk>x\<rbrakk>\<^sub>e s)\<^esub> s v) \<rparr>"
-
-lemma ind_lens_mwb [simp]: "\<lbrakk> \<And> i. mwb_lens (F i); \<And> i. unrest (F i) x \<rbrakk> \<Longrightarrow> mwb_lens (ind_lens F x)"
-  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2 unrest_uexpr.rep_eq)
-
-lemma ind_lens_vwb [simp]: "\<lbrakk> \<And> i. vwb_lens (F i); \<And> i. unrest (F i) x \<rbrakk> \<Longrightarrow> vwb_lens (ind_lens F x)"
-  by (unfold_locales, auto simp add: lens_defs lens_indep.lens_put_irr2 unrest_uexpr.rep_eq)
+subsection \<open> Dereferencing Lens \<close>
 
 text \<open> We first create a bijective lens that extracts a countable type from a natural number. \<close>
 

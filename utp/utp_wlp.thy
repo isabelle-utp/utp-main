@@ -94,4 +94,5 @@ text {* If two programs have the same weakest precondition for any postcondition
 
 theorem wlp_eq_intro: "\<lbrakk> \<And> r. P wlp r = Q wlp r \<rbrakk> \<Longrightarrow> P = Q"
   by (rel_auto robust, fastforce+)
+
 end

@@ -268,7 +268,7 @@ method rel_simp'
 
 method rel_auto' 
   uses simp intro elim dest
-  = (simp add: uexpr_transfer_laws upred_defs urel_defs alpha_splits; auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)
+  = (simp_all add: uexpr_transfer_laws upred_defs urel_defs alpha_splits, (auto intro: intro elim: elim dest: dest simp add: upred_defs urel_defs lens_defs relcomp_unfold uexpr_transfer_laws uexpr_transfer_extra uexpr_rep_eq_thms simp)?)
 
 method rel_blast' 
   uses simp intro elim dest

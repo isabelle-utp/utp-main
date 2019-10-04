@@ -12,6 +12,8 @@ definition pexpr_undef :: "('a, '\<alpha>) pexpr" ("\<bottom>\<^sub>\<D>") where
 definition pexpr_down :: "('a, '\<alpha>) pexpr \<Rightarrow> ('a, '\<alpha>) uexpr" ("\<lfloor>_\<rfloor>\<^sub>\<D>") where
 [upred_defs]: "\<lfloor>e\<rfloor>\<^sub>\<D> = uop the e"
 
+no_utp_lift pexpr_down (0)
+
 lift_definition pexpr_defined :: "('a, '\<alpha>) pexpr \<Rightarrow> '\<alpha> upred" ("\<D>'(_')") is
 "\<lambda> e b. b \<in> dom(e)" .
 

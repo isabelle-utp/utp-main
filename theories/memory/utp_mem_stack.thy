@@ -34,7 +34,7 @@ text \<open> The following predicate wraps the relation with assumptions that th
   size before and after execution. \<close>
   
 definition local_num where
-"local_num n P = [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top> ;; P ;; [(#\<^sub>u(&store) =\<^sub>u \<guillemotleft>n\<guillemotright>)]\<^sup>\<top>"
+"local_num n P = [(length(&store) = \<guillemotleft>n\<guillemotright>)]\<^sup>\<top> ;; P ;; [(length(&store) = \<guillemotleft>n\<guillemotright>)]\<^sup>\<top>"
   
 declare inj_univ.from_univ_def [upred_defs]
 declare inj_univ.to_univ_lens_def [upred_defs]
@@ -80,7 +80,7 @@ text \<open> The following locales give the assumptions required of the above si
 locale utp_state =
   fixes S (structure)
   assumes "vwb_lens \<^bold>s"
-  and passigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ> \<sigma>\<^bold>\<rangle>"
+  and passigns_comp: "(\<^bold>\<langle>\<sigma>\<^bold>\<rangle> ;; \<^bold>\<langle>\<rho>\<^bold>\<rangle>) = \<^bold>\<langle>\<rho> \<circ>\<^sub>s \<sigma>\<^bold>\<rangle>"
       
 text \<open> The next locale combines the axioms of a state-space and an injection universe structure. It
   then uses the required constructs to create the local variable operators. \<close>
@@ -92,10 +92,10 @@ begin
    implemented by pushing an arbitrary initial value onto the stack, and popping it off, respectively. \<close>
   
   definition var_open :: "'\<alpha> hrel" ("open\<^sub>v") where
-  "var_open = (\<Sqinter> v \<bullet> \<^bold>\<langle>[store \<mapsto>\<^sub>s (&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)]\<^bold>\<rangle>)"
+  "var_open = (\<Sqinter> v \<bullet> \<^bold>\<langle>[store \<mapsto>\<^sub>s (&store @ [\<guillemotleft>v\<guillemotright>])]\<^bold>\<rangle>)"
   
   definition var_close :: "'\<alpha> hrel" ("close\<^sub>v") where
-  "var_close = \<^bold>\<langle>[store \<mapsto>\<^sub>s (front\<^sub>u(&store) \<triangleleft> #\<^sub>u(&store) >\<^sub>u 0 \<triangleright> &store)]\<^bold>\<rangle>"
+  "var_close = \<^bold>\<langle>[store \<mapsto>\<^sub>s (butlast(&store) \<triangleleft> length(&store) > 0 \<triangleright> &store)]\<^bold>\<rangle>"
   
   text \<open> The next operator is an expression that returns a lens pointing to the top of the stack.
     This is effectively a dynamic lens, since where it points to depends on the initial number

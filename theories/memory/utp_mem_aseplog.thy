@@ -7,7 +7,7 @@ begin
 subsection \<open> Operators \<close>
 
 definition empty_heap :: "('h :: pam, 's) spred" ("emp") where 
-[upred_defs]: "emp = (&hp =\<^sub>u 0)"
+[upred_defs]: "emp = U(&hp = 0)"
 
 definition sep_conj :: "('h :: sep_alg, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "\<^bold>*" 35) where
 [upred_defs]: "(P \<^bold>* Q) = (\<^bold>\<exists> (h\<^sub>0, h\<^sub>1) \<bullet> \<guillemotleft>h\<^sub>0 ## h\<^sub>1\<guillemotright> \<and> &hp =\<^sub>u \<guillemotleft>h\<^sub>0 + h\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>h\<^sub>1\<guillemotright>/&hp\<rbrakk>)"

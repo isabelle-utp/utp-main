@@ -129,6 +129,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
                      mark_uexpr_leaf @{const_syntax zero_class.zero},
                      mark_uexpr_leaf @{const_syntax one_class.one},
                      mark_uexpr_leaf @{const_syntax numeral}];
+  (* FIXME: We should also mark expressions that are free variables *)
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
 in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
     (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> 
@@ -182,5 +183,7 @@ term "true"
 term "U(P \<or> $x = 1 \<Rightarrow> false)"
 
 term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute> \<and> $x\<acute> = $x + 1)"
+
+term "U((length e)\<lbrakk>1+1/&x\<rbrakk>)"
 
 end

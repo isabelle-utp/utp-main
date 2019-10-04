@@ -38,7 +38,7 @@ text \<open> Heap deallocation removes an area of memory from the heap. \<close>
 definition
   heap_dealloc :: "(addr, 's) uexpr \<Rightarrow> 's mprog" ("dealloc'(_')")
   where [upred_defs, ndes_simp]:
-  "dealloc(l) = (((l \<oplus>\<^sub>p str) \<in>\<^sub>u dom\<^sub>u(&hp)) \<turnstile>\<^sub>n hp := (dom\<^sub>u(&hp) - {l \<oplus>\<^sub>p str}\<^sub>u) \<lhd>\<^sub>u &hp)"
+  "dealloc(l) = (U((l \<oplus>\<^sub>p str) \<in> udom(&hp)) \<turnstile>\<^sub>n hp := (udom(&hp) - {l \<oplus>\<^sub>p str}) \<lhd>\<^sub>u &hp)"
 
 subsection \<open> Weakest Precondition Semantics \<close>
 
@@ -67,7 +67,7 @@ lemma [simp]: "\<D>(\<guillemotleft>Some v\<guillemotright>) = true"
   by (rel_auto)
 
 lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>u\<guillemotright>) ;; *x :=\<^sub>\<D> \<guillemotleft>Some v\<guillemotright>) = (x := alloc(\<guillemotleft>v\<guillemotright>))"  
-  by (ndes_simp, rel_auto')
+  apply (ndes_simp, rel_auto') oops
 
 lemma "dealloc(e) ;; dealloc(e) = \<bottom>\<^sub>D"
   by (ndes_simp, rel_auto)
