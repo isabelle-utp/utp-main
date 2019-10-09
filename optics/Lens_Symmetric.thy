@@ -14,6 +14,8 @@ record ('a, 'b, 's) slens =
 type_notation
   slens ("<_, _> \<Longleftrightarrow> _" [0, 0, 0] 0)
 
+declare slens.defs [lens_defs]
+
 subsection \<open> Partial Symmetric Lenses \<close>
 
 locale psym_lens =

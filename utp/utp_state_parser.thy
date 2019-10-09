@@ -95,6 +95,17 @@ parse_translation \<open>
   end
 \<close>
 
+subsection \<open> Variable Block Syntax \<close>
+
+definition vblock :: "(<'a, 'b> \<Longleftrightarrow> 'c) \<Rightarrow> ('d \<Rightarrow> 'c hrel) \<Rightarrow> 'd \<Rightarrow> 'a hrel" where
+[upred_defs]: "vblock sl f x = open\<^bsub>sl\<^esub> ;; f x ;; close\<^bsub>sl\<^esub>"
+
+syntax
+  "_var_block_in" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("var _ in _ \<bullet> _" [0, 0, 10] 10)
+
+translations
+  "_var_block_in vs sl P" => "CONST vblock sl (_abs (_state_tuple (_state_type vs) vs) P) (_state_lenses vs \<C>\<^bsub>sl\<^esub>)"
+
 subsection \<open> Examples \<close>
 
 term "alpha (x::int, y::real, z::int) \<bullet> y := &x + &z"
