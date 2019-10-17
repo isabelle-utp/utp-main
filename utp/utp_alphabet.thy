@@ -206,6 +206,13 @@ proof -
     done
 qed
 
+lemma aext_arestr_symlens [alpha]:
+  assumes "sym_lens a" "unrest \<C>\<^bsub>a\<^esub> P"
+  shows "(P \<restriction>\<^sub>e \<V>\<^bsub>a\<^esub>) \<oplus>\<^sub>p \<V>\<^bsub>a\<^esub> = P"
+  using assms
+  by (rel_auto', metis (no_types, lifting) lens_indep_def sym_lens.indep_region_coregion sym_lens.put_region_coregion_cover)
+
+
 text \<open> Alternative formulation of the above law using used-by instead of unrestriction. \<close>
 
 lemma aext_arestr' [alpha]:
