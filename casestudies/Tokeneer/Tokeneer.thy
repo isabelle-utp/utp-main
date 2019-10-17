@@ -1305,11 +1305,8 @@ definition ReadFingerOK :: "IDStation hrel" where
    ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>gotFinger\<guillemotright> ;; currentDisplay := \<guillemotleft>wait\<guillemotright>)"
 
 lemma ReadFingerOK_correct: "\<lbrace>IDStation\<rbrace>ReadFingerOK\<lbrace>IDStation\<rbrace>\<^sub>u"
-  apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_auto)
-  apply (simp add: tis_defs, hoare_auto)
-  done
-
+  by (rule IDStation_correct_intro, (simp add: tis_defs, hoare_auto)+)
+  
 definition NoFinger :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "NoFinger =
@@ -1319,10 +1316,7 @@ definition NoFinger :: "IDStation hrel" where
    ]"
 
 lemma NoFinger_correct: "\<lbrace>IDStation\<rbrace>NoFinger\<lbrace>IDStation\<rbrace>\<^sub>u"
-  apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_auto)
-  apply (simp add: tis_defs, hoare_auto)
-  done
+  by (rule IDStation_correct_intro, (simp add: tis_defs, hoare_auto)+)
 
 definition FingerTimeout :: "IDStation hrel" where
 [upred_defs, tis_defs]:
