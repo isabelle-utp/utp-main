@@ -327,7 +327,7 @@ lemma R2a'_weakening: "R2a'(P) \<sqsubseteq> P"
   apply (rel_simp)
   apply (rename_tac ok wait tr more ok' wait' tr' more')
   apply (rule_tac x="tr" in exI)
-  by (simp add: fzero_trace_class.diff_add_cancel_left')
+  by (simp add: diff_add_cancel_left')
 
 lemma R2s_idem: "R2s(R2s(P)) = R2s(P)"
   by (rel_auto)
@@ -362,7 +362,7 @@ lemma R2c_lit: "R2c(\<guillemotleft>x\<guillemotright>) = \<guillemotleft>x\<gui
 
 lemma tr_strict_prefix_R2c_closed [closure]: "$tr <\<^sub>u $tr\<acute> is R2c"
   apply (rel_auto)
-  using fzero_trace_class.le_iff_zero_leq_minus by fastforce+
+  using le_iff_zero_leq_minus by fastforce+
     
 lemma R2s_conj: "R2s(P \<and> Q) = (R2s(P) \<and> R2s(Q))"
   by (pred_auto)
@@ -473,7 +473,7 @@ lemma R2c_wait'_false [usubst]: "(R2c P)\<lbrakk>false/$wait\<acute>\<rbrakk> = 
 
 lemma R2c_tr'_minus_tr: "R2c($tr\<acute> =\<^sub>u $tr) = ($tr\<acute> =\<^sub>u $tr)"
   apply (rel_auto)
-  by (simp add: fzero_trace_class.minus_zero_eq)
+  by (simp add: minus_zero_eq)
 
 lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^sub>u $tr)"
   by (rel_simp)
@@ -481,8 +481,8 @@ lemma R2c_tr'_ge_tr: "R2c($tr\<acute> \<ge>\<^sub>u $tr) = ($tr\<acute> \<ge>\<^
 lemma R2c_tr_less_tr': "R2c($tr <\<^sub>u $tr\<acute>) = ($tr <\<^sub>u $tr\<acute>)"
   apply (rel_auto)
   using le_imp_less_or_eq 
-  apply (simp add: fzero_trace_class.zero_le_minus_imp_le)
-  using fzero_trace_class.le_imp_zero_le_minus by blast
+  apply (simp add: zero_le_minus_imp_le)
+  using le_imp_zero_le_minus by blast
 
 lemma R2c_condr: "R2c(P \<triangleleft> b \<triangleright> Q) = (R2c(P) \<triangleleft> R2c(b) \<triangleright> R2c(Q))"
   by (rel_auto)
@@ -516,19 +516,18 @@ lemma R1_R2s_R2c: "R1(R2s(P)) = R1(R2c(P))"
 
 lemma R1_R2s_tr_wait:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
-  apply rel_auto using fzero_trace_class.minus_zero_eq by blast
+  apply rel_auto using minus_zero_eq by blast
 
 lemma R1_R2s_tr'_eq_tr:
   "R1 (R2s ($tr\<acute> =\<^sub>u $tr)) = ($tr\<acute> =\<^sub>u $tr)"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq by blast
 
 lemma R1_R2s_tr'_extend_tr: (* TODO: Shouldn't ^\<^sub>u be +? *)
-  "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr  ^\<^sub>u v)"
+  "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr + v)) = ($tr\<acute> =\<^sub>u $tr  + v)"
   apply (rel_auto)
-  apply (metis append_self_conv2 fzero_list_def less_eq_list_def prefix_concat_minus)
-  apply (metis append_minus self_append_conv2 fzero_list_def)
-  apply (simp add: Prefix_Order.prefixI)
-done
+      using semigroup_add_left_cancel_minus_ord_class.diff_add_cancel_left' apply fastforce
+       apply (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left)
+        by (metis semigroup_add_left_cancel_minus_ord_class.le_add)
 
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (pred_auto)
@@ -536,7 +535,7 @@ lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\
 lemma R2_form:
   "R2(P) = (\<^bold>\<exists> tt\<^sub>0 \<bullet> P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)"
   apply (rel_auto)
-  using fzero_trace_class.diff_add_cancel_left' by fastforce
+  using diff_add_cancel_left' by fastforce
 
 (* TODO: The following may be simplified if fzero(p + q) = q, which is probably
    the case in CTA. *)   
@@ -564,7 +563,7 @@ proof -
                         \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
      apply (simp add:usubst unrest)
      apply (rel_simp)
-     by (metis (no_types, lifting) add.semigroup_axioms add_fzero_right fzero_pre_trace_class.add_monoid_diff_cancel_left semigroup.assoc)
+     by (simp add: fzero_dist_plus)
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -599,10 +598,9 @@ proof -
     have "\<And> tt\<^sub>1 tt\<^sub>2. ((($tr\<acute> - $tr =\<^sub>u fzero($tr) + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>) \<and> $tr\<acute> \<ge>\<^sub>u $tr) :: ('t,'\<alpha>,'\<gamma>) rel_rp)
            = ($tr\<acute> =\<^sub>u fzero($tr) + $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>)"
       apply (rel_auto)
-      apply (metis add.semigroup_axioms add_fzero_right fzero_trace_class.diff_add_cancel_left' semigroup.assoc)
-      apply (simp add: add.assoc)
-      apply (metis fzero_trace_class.add_diff_cancel_left fzero_trace_class.diff_zero)
-      using add.assoc fzero_trace_class.le_iff_add by blast
+      apply (metis add.semigroup_axioms add_fzero_right diff_add_cancel_left' semigroup.assoc)
+       apply (simp add: add.assoc)
+       by (meson order_trans semigroup_add_left_cancel_minus_ord_class.le_add)
     thus ?thesis by simp
   qed
   also have "... =
@@ -736,7 +734,7 @@ lemma R1_R3_commute: "R1(R3(P)) = R3(R1(P))"
 
 lemma R2_R3_commute: "R2(R3(P)) = R3(R2(P))"
   apply (rel_auto)
-  using fzero_trace_class.minus_zero_eq apply blast+
+  using minus_zero_eq apply blast+
 done
 
 subsection {* RP laws *}
@@ -819,7 +817,7 @@ proof -
   have "\<^bold>\<top>\<^bsub>REA\<^esub> = RP(false)"
     by (simp add: rea_utp_theory_mono.healthy_top, simp add: rea_hcond_def)
   also have "... = ($wait \<and> II)"
-    by (rel_auto, metis fzero_trace_class.minus_zero_eq)
+    by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
 qed
 
@@ -843,7 +841,7 @@ proof -
   have "\<^bold>\<bottom>\<^bsub>REA\<^esub> = RP(true)"
     by (simp add: rea_utp_theory_mono.healthy_bottom, simp add: rea_hcond_def)
   also have "... = R1($wait \<Rightarrow> II)"
-    by (rel_auto, metis fzero_trace_class.minus_zero_eq)
+    by (rel_auto, metis minus_zero_eq)
   finally show ?thesis .
 qed
 
@@ -882,7 +880,7 @@ lemma R2m'_form:
                     \<and> $tr\<acute> =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>p\<guillemotright>
                     \<and> $0-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>0\<guillemotright>
                     \<and> $1-tr =\<^sub>u $tr\<^sub>< + \<guillemotleft>tt\<^sub>1\<guillemotright>)"
-  by (rel_auto, metis fzero_trace_class.diff_add_cancel_left')
+  by (rel_auto, metis diff_add_cancel_left')
 
 lemma R1m_idem: "R1m(R1m(P)) = R1m(P)"
   by (rel_auto)
@@ -912,10 +910,8 @@ declare [[show_sorts]]
     
 lemma R2m_seq_lemma: "R2m'(R2m'(M) ;; R2(P)) = R2m'(M) ;; R2(P)"
   apply (simp add:R2m'_form R2_form usubst unrest, rel_auto)
-  apply (metis (no_types, lifting) add.semigroup_axioms add_fzero_right left_cancel_semigroup_class.add_left_imp_eq semigroup.assoc)
-  by (metis (no_types, lifting) add.semigroup_axioms add_fzero_right left_cancel_semigroup_class.add_left_imp_eq semigroup.assoc)
-  (* found from SMT then massaged to get metis facts, but slower :( *)
-
+  by (metis (no_types, lifting) add.semigroup_axioms add_fzero_left fzero_dist_plus semigroup.assoc)+
+  
 lemma R2m'_seq:
   assumes "M is R2m'" "P is R2"
   shows "M ;; P is R2m'"
@@ -967,9 +963,9 @@ proof -
   also have "... = (\<^bold>\<exists> (tt\<^sub>p, tt\<^sub>0, tt\<^sub>1) \<bullet> ((   (P\<lbrakk>fzero($tr),\<guillemotleft>tt\<^sub>0\<guillemotright>/$tr,$tr\<acute>\<rbrakk>  \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>0\<guillemotright>)
                                        \<parallel>\<^sub>s (Q\<lbrakk>fzero($tr),\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)) ;;
                                       (M\<lbrakk>fzero($tr\<^sub><),\<guillemotleft>tt\<^sub>p\<guillemotright>,\<guillemotleft>tt\<^sub>0\<guillemotright>,\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)) \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>p\<guillemotright>)"
-    by (rel_auto, metis left_cancel_semigroup_class.add_left_imp_eq, blast)
+    by (rel_auto, metis add_left_imp_eq, blast)
   also have "... = R2(P \<parallel>\<^bsub>M\<^esub> Q)"
-    by (rel_auto, blast, metis fzero_trace_class.diff_add_cancel_left')
+    by (rel_auto, blast, metis diff_add_cancel_left')
   finally show ?thesis
     by (simp add: Healthy_def)
 qed
@@ -984,7 +980,7 @@ lemma R1m_conj: "R1m(P \<and> Q) = (R1m(P) \<and> R1m(Q))"
   by (rel_auto)
 
 lemma R2m_skip_merge: "R2m(skip\<^sub>m) = skip\<^sub>m"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq by blast
 
 lemma R2m_disj: "R2m(P \<or> Q) = (R2m(P) \<or> R2m(Q))"
   by (rel_auto)

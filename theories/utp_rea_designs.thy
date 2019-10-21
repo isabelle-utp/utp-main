@@ -239,13 +239,13 @@ lemma R1_R3c_commute: "R1(R3c(P)) = R3c(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3c_commute: "R2c(R3c(P)) = R3c(R2c(P))"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using minus_zero_eq by blast+
 
 lemma R1_R3h_commute: "R1(R3h(P)) = R3h(R1(P))"
   by (rel_auto)
 
 lemma R2c_R3h_commute: "R2c(R3h(P)) = R3h(R2c(P))"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using minus_zero_eq by blast+
 
 lemma RD1_R3h_commute: "RD1(R3h(P)) = R3h(RD1(P))"
   by (rel_auto)

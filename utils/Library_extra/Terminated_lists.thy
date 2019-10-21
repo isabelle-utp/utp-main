@@ -651,8 +651,119 @@ instance stlist :: (fzero_add_left_cancel) semigroup_add_left_cancel_minus_ord
   apply (simp add: less_eq_stlist_def)
   apply (simp add: less_stlist_def)
    apply (simp add: minus_stlist_def)
-   using stlist_left_cancel_monoid by auto
+  using stlist_left_cancel_monoid by auto
+    
+(* New below *)
+
+lemma stlist_eq_sum_conv_nils_pre_trace:
+  fixes a :: "'a::fzero_pre_trace"
+  assumes "[;a] + [;b] = [;c] + [;d]"
+  shows "\<exists> e . [;a] = [;c] + e \<and> e + [;b] = [;d] \<or> [;a] + e = [;c] \<and> [;b] = e + [;d]"
+proof -
+ 
+  have a: "([;a] + [;b] = [;c] + [;d]) = (a + b = c + d)"
+    by (metis stlist_plus_nils)
+      
+  have b: "(a + b = c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
+    by (simp add: sum_eq_sum_conv)
   
+  then have "(a + b = c + d) \<Longrightarrow> \<exists> e . [;a] = [;c] + e \<and> e + [;b] = [;d] \<or> [;a] + e = [;c] \<and> [;b] = e + [;d]"   
+    by (metis stlist_plus_nils)
+    
+  with a b show ?thesis using assms by simp
+qed
+  
+lemma stlist_eq_sum_conv_nils1_fzero_pre_trace:
+  fixes a :: "'a::fzero_pre_trace stlist"
+  assumes "a + [;b] = c + [;d]"
+  shows "\<exists> e . a = c + e \<and> e + [;b] = [;d] \<or> a + e = c \<and> [;b] = e + [;d]"
+  using assms
+  apply (induct a c rule:stlist_induct_cons)
+  apply (simp add: stlist_eq_sum_conv_nils_pre_trace)
+  by (simp_all add: plus_stlist_def)    
+    
+lemma stlist_eq_sum_conv_nils2_pre_trace:
+  fixes a :: "'a::fzero_pre_trace"
+  assumes "[;a] + b = [;c] + d"
+  shows "\<exists> e . [;a] = [;c] + e \<and> e + b = d \<or> [;a] + e = [;c] \<and> b = e + d"
+  using assms
+  proof (induct b d arbitrary: a c rule:stlist_induct_cons)
+    case (1 a b)
+    then show ?case by (simp add: stlist_eq_sum_conv_nils_pre_trace)
+  next
+    case (2 a x xs)
+    then show ?case by (simp add: plus_stlist_def)
+  next
+    case (3 a y ys)
+    then show ?case by (simp add: plus_stlist_def)
+  next
+    case (4 x xs y ys)
+    have a:"([;a] + (x #\<^sub>t xs) = [;c] + (y #\<^sub>t ys))
+         =
+         (((a + x) #\<^sub>t xs) = ((c + y) #\<^sub>t ys))"
+      by (simp add: stlist_nil_concat_cons)
+    
+    hence eq1:"a + x = c + y"
+      using "4.prems" by blast
+      
+    hence eq2:"xs=ys"
+      using "4.prems" a by blast
+    
+    from eq1 have "\<exists>e. a = c + e \<and> e + x = y \<or> a + e = c \<and> x = e + y"
+      by (simp add: sum_eq_sum_conv)
+        
+    then have "\<exists>e. [;a] = [;c] + e \<and> e + [;x] = [;y] \<or> [;a] + e = [;c] \<and> [;x] = e + [;y]"
+      by (metis stlist_plus_nils)
+        
+    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> e + [;x] = [;y] \<or> [;a] + e = [;c] \<and> [;x] = e + [;y])"
+      by (metis stlist_eq_nil_pluses_imp0)
+    
+    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> [;z] + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> [;x] = [;z + y])"    
+      using eq2 by (metis (no_types, lifting) "4.prems" concat_stlist.simps(1) plus_seq_assoc plus_stlist_def stlist_left_cancel_monoid0) 
+    
+    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> [;z] + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> (x#\<^sub>txs) = [;z] + (y#\<^sub>tys))"
+      using eq2 by (metis (no_types, lifting) "4.prems" concat_stlist.simps(1) plus_seq_assoc plus_stlist_def stlist_left_cancel_monoid0) 
+    
+    hence eq3:"\<exists>e. [;a] = [;c] + e \<and> e + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> (x#\<^sub>txs) = e + (y#\<^sub>tys)"
+      by auto
+        
+    then show ?case by auto   
+qed    
+    
+lemma stlist_sum_eq_sum_conv_fzero_pre_trace:
+  fixes a :: "'a::fzero_pre_trace stlist"
+  shows "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"  
+  apply (induct a c rule:stlist_induct_cons)
+  apply (simp add:stlist_eq_sum_conv_nils2_pre_trace) 
+  apply (case_tac d)
+  apply (simp add: plus_stlist_def)
+  apply (metis concat_stlist.simps(3) plus_stlist_def stlist_cons_plus_nils_eq_cons)
+  apply (case_tac b)
+  apply (simp add: plus_stlist_def)
+  apply (metis concat_stlist.simps(3) plus_stlist_def stlist_cons_plus_nils_eq_cons)
+  by (simp add: plus_stlist_def)  
+  
+  
+instance stlist :: (fzero_pre_trace) fzero_pre_trace
+  apply intro_classes
+  using stlist_sum_eq_sum_conv
+    by (simp add: stlist_sum_eq_sum_conv_fzero_pre_trace)
+
+lemma stlist_fzero_sum:
+  fixes a :: "'a::fzero_trace stlist"
+  assumes "a + b = f0(b)"
+  shows "b = f0(b)"
+  using assms
+    apply (simp add:fzero_stlist_def, auto)
+  apply (induct b rule:concat_stlist.induct, auto)
+    apply (cases a, auto simp add:plus_stlist_def)
+      apply (metis Terminated_lists.last.simps(1) concat_stlist.simps(1) fzero_stlist_def fzero_sum_right plus_stlist_def)
+  by (metis (no_types, lifting) add.assoc add_fzero_right concat_stlist.simps(3) plus_stlist_def semigroup_add_left_cancel_class.add_left_imp_eq stlist.simps(4))+
+      
+instance stlist :: (fzero_trace) fzero_trace
+  apply intro_classes
+  by (simp add: stlist_fzero_sum)    
+      
 paragraph {* Lemmas *}
   
 lemma stlist_tail_minus_eq_tail_minus_front:

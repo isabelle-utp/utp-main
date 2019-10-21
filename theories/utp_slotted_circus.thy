@@ -110,9 +110,6 @@ end
 text {* We then instantiate the type class fzero_pre_trace that requires that
         sum_eq_sum_conv holds. *}  
   
-instantiation slot :: (fzero_pre_trace,type) fzero_pre_trace
-begin
-  
 lemma slot_sum_eq_conv:
   fixes a :: "('\<alpha>::fzero_pre_trace,'\<beta>) slot"
   assumes "a + b = c + d"
@@ -133,12 +130,12 @@ proof -
   
   have a':"a + b = pair2slot (ah+bh,br)"
     using a and b
-    by (metis (no_types, lifting) mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.sel(1) prod.sel(2) slot2pair_inverse split_beta)
-  
+    by (metis mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse)
+      
   have c':"c + d = pair2slot (ch+dh,dr)"
     using c and d
-    by (metis (no_types, lifting) mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.sel(1) prod.sel(2) slot2pair_inverse split_beta)
-  
+    by (metis mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse)
+    
   from assms have "pair2slot (ah+bh,br) = pair2slot (ch+dh,dr)"
     using a' c' by simp
   then have "ah+bh = ch+dh \<and> br = dr"
@@ -158,22 +155,21 @@ proof -
     using a b c d by auto
       
   then show ?thesis by blast
-qed
-  
-instance by (intro_classes, simp add:slot_sum_eq_conv)
-end
+qed  
   
 text {* Finally we instantiate the fzero_trace class, with the only requirement being that the
         parametrised trace must be of type class fzero_pre_trace. *}
     
-instantiation slot :: (fzero_pre_trace,type) fzero_trace
+instantiation slot :: (fzero_trace,type) fzero_trace
 begin
   
   definition less_eq_slot :: "('a,'b) slot \<Rightarrow> ('a,'b) slot \<Rightarrow> bool" where "less_eq_slot == fzero_le"
   definition minus_slot :: "('a,'b) slot \<Rightarrow> ('a,'b) slot \<Rightarrow> ('a,'b) slot" where "minus_slot == fzero_subtract"
   definition less_slot :: "('a,'b) slot \<Rightarrow> ('a,'b) slot \<Rightarrow> bool" where "less_slot a b == a \<le> b \<and> \<not> (b \<le> a)"
     
-instance by (intro_classes, simp_all add: less_eq_slot_def less_slot_def minus_slot_def)
+instance 
+  apply (intro_classes, simp_all add: less_eq_slot_def less_slot_def minus_slot_def slot_sum_eq_conv)
+  using left_cancel_semigroup_class.add_left_imp_eq by blast
 end
 
 lemma slot_least_elem:
@@ -200,10 +196,16 @@ lemma slotted_stlist_least_elem:
   shows "[;pair2slot (0, SOME d. True)] \<le> d"
 proof -
   have "d = [;pair2slot (0, SOME d. True)] + d"
-    by (metis (no_types, lifting) Terminated_lists.last.simps(1) front.simps(1) fzero_slot.rep_eq mem_Collect_eq pair2slot_inverse plus_seq_assoc prod.simps(2) semigroup_add_left_cancel_class.add_monoid_diff_cancel_left slot2pair_inverse stlist_front_concat_last zero_stlist_def zero_sum)
+  proof -
+    have "head d = pair2slot (0, SOME B. True) + head d"
+      by (simp add: pair2slot_inverse plus_slot_def slot2pair_inverse)
+    then show ?thesis
+      by (metis (no_types) add.assoc concat_stlist.simps(1) plus_stlist_def stlist_head_concat_tail)
+  qed
   
   then show ?thesis
-    using less_eq_stlist_def by (metis semigroup_add_class.monoid_le_add)
+    using less_eq_stlist_def 
+    by (metis fzero_le_add)
 qed
     
 (* TODO: Probably holds, but not used.  
@@ -354,12 +356,11 @@ lemma fzero_last_add_fzero_left:
   fixes x :: "'a stlist"
   shows "fzero (Terminated_lists.last x) + y = y"
   apply (induct x)
-  apply auto
-  using add_fzero_left by (metis fzero_is_0)
+  by auto
   
 lemma slotted_add_fzero_left:
   fixes a :: "('a,'b) slotted_trace"
-  shows "fzero a + a = a"
+  shows "fzero b + a = a"
   apply (induct a)
   apply (simp add:fzero_slotted_trace_def plus_slotted_trace_def stlist2slotted_inverse)
   apply (simp add:stlist2slotted_dist_plus slotted2stlist_inverse)
@@ -369,9 +370,7 @@ lemma slotted_add_fzero_left:
    apply (simp add:stlist2slotted_inject)
    apply (simp add:plus_stlist_def)
   apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:plus_stlist_def)  
-  apply (simp add:stlist2slotted_inject)
-  by (metis (mono_tags, lifting) fzero_is_0 fzero_slot.rep_eq plus_slot.rep_eq prod.collapse prod.sel(1) slot2pair_inject split_beta utp_slotted_circus.fzero_last_add_fzero_left)
+  by (simp add:plus_stlist_def)  
   
 lemma slotted_add_fzero_right:
   fixes a :: "('a,'b) slotted_trace"
@@ -411,7 +410,8 @@ instance
   apply intro_classes
   apply (metis (mono_tags, lifting) Terminated_lists.last.simps(1) fzero_idem fzero_slotted_trace.rep_eq fzero_slotted_trace_def map_fun_apply)
   apply (metis (mono_tags, lifting) add.assoc plus_slotted_trace.rep_eq slotted2stlist_inject)
-  apply (simp add:slotted_add_fzero_left)
+  
+    apply (simp add:slotted_add_fzero_left)
   apply (simp add:slotted_add_fzero_right)
   by (simp add:slotted_fzero_sum_zero)
 end
@@ -521,6 +521,7 @@ lemma slotted_fzero_sum_eq_sum_conv:
   fixes a :: "('a,'b) slotted_trace"
   shows "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
   using stlist_fzero_sum_eq_sum_conv
+    sledgehammer
   by (smt plus_slotted_trace.rep_eq slotted2stlist_inverse stlist2slotted_dist_plus)
   
 instance
