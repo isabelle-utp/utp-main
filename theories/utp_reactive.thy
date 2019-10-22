@@ -523,12 +523,10 @@ lemma R1_R2s_tr'_eq_tr:
   apply (rel_auto) using minus_zero_eq by blast
 
 lemma R1_R2s_tr'_extend_tr: (* TODO: Shouldn't ^\<^sub>u be +? *)
-  "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr + v)) = ($tr\<acute> =\<^sub>u $tr  + v)"
+  "\<lbrakk> $tr \<sharp> v; $tr\<acute> \<sharp> v \<rbrakk> \<Longrightarrow> R1 (R2s ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u v)"
   apply (rel_auto)
-      using semigroup_add_left_cancel_minus_ord_class.diff_add_cancel_left' apply fastforce
-       apply (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left)
-        by (metis semigroup_add_left_cancel_minus_ord_class.le_add)
-
+  by (metis Prefix_Order.prefixI append_minus fzero_list_def self_append_conv2 ssub_same)+
+    
 lemma R2_tr_prefix: "R2($tr \<le>\<^sub>u $tr\<acute>) = ($tr \<le>\<^sub>u $tr\<acute>)"
   by (pred_auto)
 
@@ -563,7 +561,7 @@ proof -
                         \<and> (\<^bold>\<exists> tr\<^sub>0 \<bullet> \<guillemotleft>tr\<^sub>0\<guillemotright> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> \<and> $tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
      apply (simp add:usubst unrest)
      apply (rel_simp)
-     by (simp add: fzero_dist_plus)
+     by (metis (no_types, lifting) add.semigroup_axioms add_fzero_diff_cancel_left add_fzero_right semigroup.assoc)
   also have "... =
        (\<^bold>\<exists> tt\<^sub>1 \<bullet> \<^bold>\<exists> tt\<^sub>2 \<bullet> ((P\<lbrakk>fzero($tr)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>1\<guillemotright>/$tr\<acute>\<rbrakk>) ;; (Q\<lbrakk>fzero($tr + \<guillemotleft>tt\<^sub>1\<guillemotright>)/$tr\<rbrakk>\<lbrakk>\<guillemotleft>tt\<^sub>2\<guillemotright>/$tr\<acute>\<rbrakk>))
                         \<and> ($tr\<acute> =\<^sub>u $tr + \<guillemotleft>tt\<^sub>1\<guillemotright> + \<guillemotleft>tt\<^sub>2\<guillemotright>))"
@@ -600,6 +598,7 @@ proof -
       apply (rel_auto)
       apply (metis add.semigroup_axioms add_fzero_right diff_add_cancel_left' semigroup.assoc)
        apply (simp add: add.assoc)
+         apply (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.diff_zero)
        by (meson order_trans semigroup_add_left_cancel_minus_ord_class.le_add)
     thus ?thesis by simp
   qed
@@ -910,7 +909,8 @@ declare [[show_sorts]]
     
 lemma R2m_seq_lemma: "R2m'(R2m'(M) ;; R2(P)) = R2m'(M) ;; R2(P)"
   apply (simp add:R2m'_form R2_form usubst unrest, rel_auto)
-  by (metis (no_types, lifting) add.semigroup_axioms add_fzero_left fzero_dist_plus semigroup.assoc)+
+    apply (metis (no_types, lifting) add.semigroup_axioms add_fzero_right add_left_imp_eq semigroup.assoc)
+  by (metis (no_types, lifting) add.semigroup_axioms add_fzero_right add_left_imp_eq semigroup.assoc)
   
 lemma R2m'_seq:
   assumes "M is R2m'" "P is R2"

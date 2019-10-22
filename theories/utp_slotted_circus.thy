@@ -171,7 +171,14 @@ instance
   apply (intro_classes, simp_all add: less_eq_slot_def less_slot_def minus_slot_def slot_sum_eq_conv)
   using left_cancel_semigroup_class.add_left_imp_eq by blast
 end
-
+  
+instantiation slot :: (fzero_trace,type) fzero_add_any_trace
+begin
+instance
+  apply (intro_classes)
+    by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.diff_zero)
+end
+  
 lemma slot_least_elem:
   fixes d :: "('a::fzero_trace_0,'b) slot"
   shows "pair2slot (0, SOME d. True) \<le> d"
@@ -294,6 +301,11 @@ lemma slot_minus_2:
   using assms slot_le_iff_histories_le 
   by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
   
+subsubsection {* Slotted traces *}    
+  
+type_synonym ('\<alpha>,'\<beta>) slotted_trace = "('\<alpha>,'\<beta>) slot stlist"
+    
+(*  
 subsubsection {* Slotted traces *}
   
 text {* In this section we define the data structure for slotted-Circus, which is a terminated
@@ -356,11 +368,12 @@ lemma fzero_last_add_fzero_left:
   fixes x :: "'a stlist"
   shows "fzero (Terminated_lists.last x) + y = y"
   apply (induct x)
-  by auto
+  apply auto
+  using add_fzero_left by (metis fzero_is_0)
   
 lemma slotted_add_fzero_left:
   fixes a :: "('a,'b) slotted_trace"
-  shows "fzero b + a = a"
+  shows "fzero a + a = a"
   apply (induct a)
   apply (simp add:fzero_slotted_trace_def plus_slotted_trace_def stlist2slotted_inverse)
   apply (simp add:stlist2slotted_dist_plus slotted2stlist_inverse)
@@ -370,7 +383,9 @@ lemma slotted_add_fzero_left:
    apply (simp add:stlist2slotted_inject)
    apply (simp add:plus_stlist_def)
   apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-  by (simp add:plus_stlist_def)  
+  apply (simp add:plus_stlist_def)  
+  apply (simp add:stlist2slotted_inject)
+  by (metis (mono_tags, lifting) fzero_is_0 fzero_slot.rep_eq plus_slot.rep_eq prod.collapse prod.sel(1) slot2pair_inject split_beta utp_slotted_circus.fzero_last_add_fzero_left)
   
 lemma slotted_add_fzero_right:
   fixes a :: "('a,'b) slotted_trace"
@@ -415,6 +430,7 @@ instance
   apply (simp add:slotted_add_fzero_right)
   by (simp add:slotted_fzero_sum_zero)
 end
+  *)
   
 text {* We then show that a slotted trace satisfies sum_eq_sum_conv by breaking the proof into
         multiple lemmas, where we treat the base cases separately from the main proof.*}  
@@ -513,7 +529,11 @@ lemma stlist_fzero_sum_eq_sum_conv:
   by (simp add: plus_stlist_def) 
 
 text {* We then instantiate slotted_trace with the type class fzero_pre_trace.*}    
-    
+
+instance fzero_pre_trace_0 \<subseteq> fzero_pre_trace
+  by intro_classes  
+ 
+(*    
 instantiation slotted_trace :: (fzero_pre_trace_0,plus) fzero_pre_trace
 begin
   
@@ -586,7 +606,7 @@ lemma stlist2slotted_dist_minus:
   using assms
   by (simp add: stlist2slotted_inverse stlist2slotted_minus stlist2slotted_ope)
   
-
+*)
  (* using assms by auto*)
   (*by (metis stlist_concat_zero_left stlist_plus_follow_concat trace_class.add_diff_cancel_left')
     *)   
@@ -611,9 +631,10 @@ lemma
   shows "(x #\<^sub>t y) - [;z] = (x - z) #\<^sub>t y"
   oops
     
+(*
 lemma add_monoid_diff_cancel_left: 
   fixes a :: "'a::{left_cancel_semigroup,semigroup_add_fzero}"
-  shows "(a + b) -\<^sub>d a = b"
+  shows "(a + b) -us a = b"
   apply (simp add: fzero_subtract_def monoid_le_add)
   apply (rule the_equality)
   apply (simp)
@@ -621,13 +642,14 @@ lemma add_monoid_diff_cancel_left:
   by (metis left_cancel_semigroup_class.add_left_imp_eq)    
 
 lemma 
-  fixes a :: "'a::fzero_trace"
+  fixes a :: "'a::fzero_add_zero_any"
   shows "[a;b] - [;fzero c] = [a;b]"
-  by (metis fzero_trace_class.diff_zero semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left stlist_nil_concat_cons)
-    
+  by (metis diff_zero semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left stlist_nil_concat_cons)
+ *)   
 (* should be able to prove the following in the general case of t \<le> s *)
+(*
 lemma stlist_tail_front_last:
-  fixes t :: "'a::fzero_trace stlist"
+  fixes t :: "'a::fzero_add_zero_any stlist"
   assumes "t = s"
   shows "s - t = tail(s) - tail(t)"
   using assms
@@ -635,7 +657,7 @@ lemma stlist_tail_front_last:
   apply auto
   apply (simp add: stlist_zero_minus)
   by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left' stlist_head_concat_tail tail.simps(2)) 
-    
+    *)
 lemma stlist_strict_prefix_eq:
   fixes t :: "'a::fzero_trace"
   shows "t < s \<longrightarrow> (\<exists>z. t + z = s \<and> z \<noteq> fzero t)"
@@ -644,21 +666,24 @@ lemma stlist_strict_prefix_eq:
 (* TODO: Check, are these liftings ok?
          Need to find a way of defining front, etc, so that it can be reused with 
          different types. *)
-    
+
+(*    
 lift_definition front :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a::fzero_add_zero,'b) slotted_trace" is "Terminated_lists.front" .
 lift_definition tail :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a::fzero_add_zero,'b) slotted_trace" is "Terminated_lists.tail" .
 lift_definition head :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.head x)" .
 lift_definition last :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.last x)" .
+*)
 lift_definition fst\<^sub>s :: "('a,'b) slot \<Rightarrow> 'a" is "fst" .
 lift_definition snd\<^sub>s :: "('a,'b) slot \<Rightarrow> 'b set" is "snd" .
     
 lemma stlist_head_front_last_slotted:
-  fixes t :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
   assumes "t \<le> s"
   shows "[;head(s - (front(t) + [;last(t)]))] = [;head(s - front(t)) - last(t)]"
   using assms
-  by (smt front.rep_eq last.rep_eq left_cancel_semigroup_class.add_left_imp_eq map_fun_apply plus_slotted_trace.rep_eq semigroup_add_left_cancel_minus_ord_class.diff_add_cancel_left' semigroup_add_left_cancel_minus_ord_class.le_iff_add semigroup_add_left_cancel_minus_ord_class.sum_minus_left slot2pair_inverse slotted2stlist_inverse stlist2slotted_ope stlist_front_concat_last stlist_head_minus_last_eq_head utp_slotted_circus.head_def)
-
+  using stlist_head_front_last by blast
+ 
+(*
 lemma 
   fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
   shows "a + b = front(a) + stlist2slotted [;last(a) + head(b)] + tail(b)"
@@ -672,7 +697,8 @@ lemma
    apply auto
    apply (metis (mono_tags, lifting) add_fzero_left plus_seq_assoc stlist_head_concat_tail stlist_plus_nils)
   by (simp add: plus_stlist_def) 
-
+*)
+    
 definition subtract_x :: "'a::plus \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "-\<^sub>x" 65) where  "subtract_x t s = (THE c. t = s + c)"    
     
 lemma the_left_cancel_semigroup_eq:
@@ -681,6 +707,7 @@ lemma the_left_cancel_semigroup_eq:
   apply auto
   using left_cancel_semigroup_class.add_left_imp_eq by blast
 
+    (*
 lemma stlist2slotted_minus_simp:
   fixes t s :: "('a::fzero_trace_0, 'b::plus) slot stlist"
   assumes "stlist2slotted s \<le> stlist2slotted t"
@@ -703,129 +730,104 @@ lemma stlist2slotted_minus_simp:
     
 lemma xx: "stlist2slotted a + b - (stlist2slotted a + c) = b - c"
   by auto
-    
+    *)
 lemma slotted_minus_prefix_diff:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "t \<le> s"
-  shows "\<exists>pfx slot\<^sub>T slot\<^sub>S sfx. t = pfx + stlist2slotted [;slot\<^sub>T] \<and> s = pfx + stlist2slotted [;slot\<^sub>S] + sfx"
+  shows "\<exists>pfx slot\<^sub>T slot\<^sub>S sfx. t = pfx + [;slot\<^sub>T] \<and> s = pfx + [;slot\<^sub>S] + sfx"
   using assms
-  by (metis (no_types, lifting) fzero_slotted_trace_def le_iff_add map_fun_apply slotted_add_fzero_right)
-   
+  by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add stlist_front_concat_last)
+  
+(*
 lemma 
-  fixes z :: "'a::fzero_trace_0"
+  fixes z :: "'a::fzero_add_any_trace"
   assumes "[;z] \<le> [;x] + [0;y]"
   shows "([;x] + [0;y]) - [;z] = ([;x] - [;z]) + [0;y]"
   using assms
   by (metis add.right_neutral semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_le_elements_imp_stlist_le_nil stlist_nil_concat_cons stlist_nil_le_cons_imp_le)
-
+*)
 lemma 
-  fixes z :: "'a::fzero_trace_0"
   assumes "[;z] \<le> [;x]"
   shows "([;x] + y) - [;z] = ([;x] - [;z]) + y"
   using assms
   using trace_class.sum_minus_left
   oops (*by blast*)
 
+    (*
 lemma xyz:
-  fixes x :: "'a::fzero_trace_0"
   assumes "[;x] \<le> [y;z]"
   shows "[y;z] - [;x] = [y-x;z]"
   using assms
-  using stlist_cons_minus_nil_eq by blast
-
+  using stlist_cons_minus_nil_eq sledgehammer
+*)
 
       
     
 lemma
-  fixes t :: "'a::fzero_trace_0 stlist"
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "t \<le> s"
           "t = [;slot\<^sub>t]"
           "s = [;slot\<^sub>s] + sfx"
-          "sfx = [0;d]"
+         (* "sfx = [0;d]"*)
     shows "s - t = [;slot\<^sub>s - slot\<^sub>t] + sfx"
   using assms
   apply (induct sfx, auto)
   apply (simp add:plus_stlist_def)
-  using stlist_cons_minus_nil_eq by blast
+  using stlist_cons_minus_nil_eq oops
   
 lemma slotted_trace_le_front_le:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
   assumes "t \<le> s"
   shows "front(t) \<le> s" 
   using assms
-  apply (simp add:front_def less_eq_slotted_trace_def)
-  by (metis monoid_le_trans le_add less_eq_slotted_trace_def slotted2stlist_inverse stlist2slotted_dist_plus stlist_front_concat_last)
+  apply (simp add: less_eq_stlist_def)
+  by (metis le_add less_eq_stlist_def stlist_front_concat_last fzero_le_trans)
+    
  
-lemma 
-  fixes x y :: "('a::fzero_trace_0,'b::plus) slot stlist"
-  shows "stlist2slotted(x) - stlist2slotted(Terminated_lists.front(y)) = stlist2slotted(x-\<^sub>xTerminated_lists.front(y))"    
-  oops
-    
-lemma stlist2slotted_front_commute:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slot stlist"
-  shows "stlist2slotted (Terminated_lists.front(y)) = front(stlist2slotted(y))"
-  apply (simp add:front_def)
-  by (simp add:stlist2slotted_inverse)
-    
-lemma stlist2slotted_tail_commute:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slot stlist"
-  shows "stlist2slotted (Terminated_lists.tail(y)) = tail(stlist2slotted(y))"
-  apply (simp add:tail_def)
-  by (simp add:stlist2slotted_inverse)
-    
 lemma stlist_front_prefix_imp:
-  fixes t :: "'a stlist"
+  fixes y :: "'a::fzero_add_zero_any stlist"
   assumes "y \<le> ya"
   shows "front(y) \<le> ya"
   using assms
-  by (metis (mono_tags, lifting) monoid_le_add less_eq_slotted_trace_def map_fun_apply order_trans slotted2stlist_inverse stlist2slotted_dist_plus stlist_front_concat_last utp_slotted_circus.front_def)      
+  apply (induct y, auto)
+   apply (cases ya, auto)
+    apply (simp_all add:less_eq_stlist_def fzero_le_def)
+    apply (metis front.simps(1) plus_seq_assoc stlist_front_concat_last)
+   apply (metis add.assoc front.simps(1) stlist_front_concat_last)
+  by (metis add.assoc front.simps(2) stlist_front_concat_last)
     
-lemma stlist2slotted_front_prefix_imp:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slot stlist"
-  assumes "stlist2slotted y \<le> stlist2slotted ya"
-  shows "stlist2slotted(Terminated_lists.front(y)) \<le> stlist2slotted ya"
-  using assms
-  by (simp add: stlist2slotted_front_commute stlist_front_prefix_imp)
-
 lemma pair2slot_fst_snd_slot2pair: "pair2slot(fst (slot2pair x), snd (slot2pair x)) = x"
   by (auto simp add:slot2pair_inverse)
     
 declare [[show_sorts]]
     
 lemma 
-  fixes a :: "'a::fzero_trace_0"
-    and b :: "'b::plus set"
-  shows "stlist2slotted([;pair2slot(a,b)]) - stlist2slotted([;pair2slot(a,b)]) = stlist2slotted([;pair2slot(0,b)])"
+  fixes a :: "'a::fzero_trace"
+  shows "([;pair2slot(a,b)]) - ([;pair2slot(a,b)]) = ([;pair2slot(f0(a),b)])"
   apply (auto)
-  apply (simp add:fzero_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:fzero_slot_def pair2slot_inverse)
-  apply (simp add:stlist2slotted_inject pair2slot_inject)
-  by (simp add: fzero_is_0)
-    
+  apply (simp add:fzero_stlist_def)
+  by (simp add:fzero_slot_def pair2slot_inverse)    
 
 lemma x1:
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
-  shows "stlist2slotted([;pair2slot(a,r\<^sub>0)]) + stlist2slotted([pair2slot(0,r\<^sub>0);pair2slot(b,r\<^sub>1)])
+  shows "([;pair2slot(a,r\<^sub>0)]) + ([pair2slot(0,r\<^sub>0);pair2slot(b,r\<^sub>1)])
          =
-         stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)])"
-  by (metis (no_types, lifting) add.monoid_axioms monoid.right_neutral slot_plus_2 stlist2slotted_dist_plus stlist_nil_concat_cons)
+         ([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)])"
+  by (metis (no_types, lifting) add.monoid_axioms monoid.right_neutral slot_plus_2 stlist_nil_concat_cons)
 
 lemma x2:
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
-  shows "stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) + stlist2slotted([pair2slot(0,r\<^sub>1);pair2slot(c,r\<^sub>2)])
+  shows "([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) + ([pair2slot(0,r\<^sub>1);pair2slot(c,r\<^sub>2)])
          =
-         stlist2slotted([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
-  by (smt Quotient_rep_abs_eq Quotient_slotted_trace concat_stlist.simps(3) eq_onp_True eq_onp_le_eq plus_slotted_trace.rep_eq plus_stlist_def slotted2stlist_inject x1)
+         ([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
+  by (smt Quotient_rep_abs_eq concat_stlist.simps(3) eq_onp_True eq_onp_le_eq plus_stlist_def x1)
 
 lemma x3:
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
-  shows "stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(d,r\<^sub>1)]) + stlist2slotted([pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)])
+  shows "([pair2slot(a,r\<^sub>0);pair2slot(d,r\<^sub>1)]) + ([pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)])
          =
-         stlist2slotted([pair2slot(a,r\<^sub>0),pair2slot(d+b,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
-  by (metis (no_types, lifting) concat_stlist.simps(3) plus_stlist_def slot_plus_2 stlist2slotted_dist_plus stlist_cons_plus_nils_eq_cons)
+         ([pair2slot(a,r\<^sub>0),pair2slot(d+b,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
+  by (metis (no_types, lifting) concat_stlist.simps(3) plus_stlist_def slot_plus_2 stlist_cons_plus_nils_eq_cons)
 
 (* TODO: Move this into Monoid_extra.thy *)    
 lemma subtract_iff_plus:
@@ -842,42 +844,39 @@ lemma fzero_trace_subtract_iff_plus:
     
 lemma 
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
-  shows "stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) - stlist2slotted([;pair2slot(a,r\<^sub>0)]) 
+  shows "([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) - ([;pair2slot(a,r\<^sub>0)]) 
          = 
-         stlist2slotted([pair2slot(0,r\<^sub>0);pair2slot(b,r\<^sub>1)])"
+         ([pair2slot(0,r\<^sub>0);pair2slot(b,r\<^sub>1)])"
   using x1   
   by (metis add_diff_cancel_left)
     
 lemma 
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
-  shows "stlist2slotted([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)]) 
-         - stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) 
+  shows "([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)]) 
+         - ([pair2slot(a,r\<^sub>0);pair2slot(b,r\<^sub>1)]) 
          = 
-         stlist2slotted([pair2slot(0,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
+         ([pair2slot(0,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
   by (metis add_diff_cancel_left x2)
         
 lemma 
   fixes a b :: "'a::fzero_trace_0"
-    and r\<^sub>0 r\<^sub>1 :: "'b::plus set"
   assumes 
     "d \<le> b"
-  shows "stlist2slotted([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)]) 
-         - stlist2slotted([pair2slot(a,r\<^sub>0);pair2slot(d,r\<^sub>1)]) 
+  shows "([pair2slot(a,r\<^sub>0),pair2slot(b,r\<^sub>1);pair2slot(c,r\<^sub>2)]) 
+         - ([pair2slot(a,r\<^sub>0);pair2slot(d,r\<^sub>1)]) 
          = 
-         stlist2slotted([pair2slot(b-d,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
+         ([pair2slot(b-d,r\<^sub>1);pair2slot(c,r\<^sub>2)])"
   by (metis assms add_diff_cancel_left diff_add_cancel_left' x3)
 
 lemma
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
   assumes "s \<le> t"
   shows "head(t-s) = head(t-front(s)) - last(s)"
   using assms stlist_head_minus_last_eq_head 
   oops
     
 lemma fsts_minus_dist:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slot"
+  fixes t :: "('a::fzero_trace,'b) slot"
   assumes "s \<le> t"
   shows "fst\<^sub>s(t - s) = fst\<^sub>s(t) - fst\<^sub>s(s)"
   using assms
@@ -896,36 +895,36 @@ lemma snds_minus_dist:
   oops
     
 lemma snds_head_minus_last:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "s \<le> t"
   shows "snd\<^sub>s(head(t-front(s)) - last(s)) = snd\<^sub>s(head(t-front(s)))"
-  using assms slot_minus_2 
-  by (smt eq_onp_True front.rep_eq head.abs_eq map_fun_apply pair2slot_fst_snd_slot2pair pair2slot_le_imp_leq_histories prod.sel(2) slot2pair_inverse snd\<^sub>s.abs_eq stlist2slotted_minus stlist2slotted_ope stlist_front_prefix_imp stlist_last_le_head_minus_front utp_slotted_circus.last_def)
+  using assms slot_minus_2
+  by (smt eq_onp_True map_fun_apply pair2slot_fst_snd_slot2pair pair2slot_le_imp_leq_histories prod.sel(2) slot2pair_inverse snd\<^sub>s.abs_eq  stlist_front_prefix_imp stlist_last_le_head_minus_front last_def)
   (* there is a nicer proof for this *)
     
 (* Key theorem in original definition of R2A for Circus Time *)
 lemma
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
   assumes "s \<le> t"
-  shows "t - s = stlist2slotted [;pair2slot (fst\<^sub>s(head(t - front(s)))-fst\<^sub>s(last(s)),snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
+  shows "t - s = [;pair2slot (fst\<^sub>s(head(t - front(s)))-fst\<^sub>s(last(s)),snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
 proof -
-  have "t - s = stlist2slotted [;head(t-s)] + tail(t-s)"
+  have "t - s = [;head(t-s)] + tail(t-s)"
     using stlist_head_concat_tail
-    by (metis (no_types, lifting) head.rep_eq map_fun_apply slot2pair_inject slotted2stlist_inverse stlist2slotted_dist_plus utp_slotted_circus.tail_def)
-  also have "... = stlist2slotted [;head(t-front(s)) - last(s)] + tail(t-s)"
-    using assms stlist_head_minus_last_eq_head stlist2slotted_minus
-    by (smt eq_onp_True front.rep_eq head.abs_eq map_fun_apply slot2pair_inverse stlist2slotted_minus stlist2slotted_ope stlist_front_prefix_imp utp_slotted_circus.last_def)
-  also have "... = stlist2slotted [;head(t-front(s)) - last(s)] + tail(t - front(s))"   
+    by (metis (no_types, lifting) map_fun_apply slot2pair_inject tail_def)
+  also have "... = [;head(t-front(s)) - last(s)] + tail(t-s)"
+    using assms stlist_head_minus_last_eq_head 
+    by (smt eq_onp_True map_fun_apply slot2pair_inverse stlist_front_prefix_imp last_def)
+  also have "... = [;head(t-front(s)) - last(s)] + tail(t - front(s))"   
     using assms
-    by (metis (no_types, lifting) front.rep_eq stlist2slotted_minus stlist2slotted_ope stlist2slotted_tail_commute stlist_front_prefix_imp stlist_tail_minus_eq_tail_minus_front)
-  also have "... = stlist2slotted [;pair2slot(fst\<^sub>s(head(t-front(s)) - last(s)),
+    by (metis (no_types, lifting) stlist_front_prefix_imp stlist_tail_minus_eq_tail_minus_front)
+  also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s)) - last(s)),
                                               snd\<^sub>s(head(t-front(s)) - last(s)))] + tail(t - front(s))"
     by (simp add: fst\<^sub>s.rep_eq slot2pair_inverse snd\<^sub>s.rep_eq)
-  also have "... = stlist2slotted [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
+  also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
                                               snd\<^sub>s(head(t-front(s)) - last(s)))] + tail(t - front(s))"
     using assms stlist_last_le_head_minus_front fsts_minus_dist
-    by (smt eq_onp_True front.rep_eq head.abs_eq map_fun_apply slot2pair_inverse stlist2slotted_minus stlist2slotted_ope stlist_front_prefix_imp utp_slotted_circus.last_def)
-  also have "... = stlist2slotted [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
+    by (smt eq_onp_True map_fun_apply slot2pair_inverse stlist_front_prefix_imp last_def)
+  also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
                                               snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
     using assms  
     by (simp add: snds_head_minus_last)
@@ -936,17 +935,14 @@ qed
 
     
 lemma
-  fixes t :: "('a::fzero_trace_0,'b::plus) slotted_trace"
-     and slot\<^sub>t :: "('a::fzero_trace_0,'b::plus) slot"
+  fixes slot\<^sub>t :: "('a::fzero_trace_0,'b) slot"
   assumes "t \<le> s"
-          "t = stlist2slotted [;slot\<^sub>t]"
-          "s = stlist2slotted [;slot\<^sub>s] + sfx"
-          "sfx = stlist2slotted [pair2slot(0,x);d]"
-    shows "s - t = stlist2slotted [;slot\<^sub>s - slot\<^sub>t] + sfx"
+          "t = [;slot\<^sub>t]"
+          "s = [;slot\<^sub>s] + sfx"
+          "sfx = [pair2slot(0,x);d]"
+    shows "s - t = [;slot\<^sub>s - slot\<^sub>t] + sfx"
   using assms
   apply auto
-  apply (simp add:plus_slotted_trace_def stlist2slotted_inverse stlist2slotted_inject)
-  apply (simp add:plus_slotted_trace_def stlist2slotted_inverse stlist2slotted_inject)
   apply (simp add:plus_stlist_def)
   apply (cases slot\<^sub>S)
   using stlist_cons_minus_nil_eq 

@@ -741,5 +741,73 @@ instance fzero_add_any_trace \<subseteq> fzero_add_any_pre_trace
 instance trace_fzero_0 \<subseteq> fzero_add_zero_any
   apply intro_classes
   by (simp add: fzero_is_0)
+    
+section \<open> Models \<close>
+
+subsection \<open> Lists \<close>
+
+instantiation list :: (type) fzero_is_0
+begin
+  definition fzero_list :: "'a list \<Rightarrow> 'a list" where "fzero_list a = []"
+
+  instance by (intro_classes, simp add:fzero_list_def zero_list_def)
+end
+    
+instantiation list :: (type) fzero_add_zero
+begin
+ 
+  instance by (intro_classes, simp_all add:fzero_list_def plus_list_def)
+end
+    
+lemma fzero_le_list:
+  "(xs :: 'a list) \<le>us ys \<longleftrightarrow> xs \<le> ys"
+  apply (simp add: fzero_le_def plus_list_def)
+  using Prefix_Order.prefixE Prefix_Order.prefixI by blast
+    
+lemma fzero_subtract_list:
+  "(xs :: 'a list) -us ys = xs - ys"
+  proof (cases "ys \<le> xs")
+    case True
+    then show ?thesis 
+      apply (auto simp add: fzero_subtract_def fzero_le_list minus_list_def less_eq_list_def)
+      apply (rule the_equality)
+      by (simp_all add: fzero_list_def plus_list_def prefix_drop)
+  next
+    case False then show ?thesis
+      by (simp add: fzero_is_0 fzero_le_list fzero_subtract_def)
+  qed
+
+instance list :: (type) trace_fzero_0
+  by intro_classes
+
+subsection \<open> Naturals \<close>
+
+instantiation nat :: fzero_is_0
+begin
+  
+  definition fzero_nat :: "nat \<Rightarrow> nat" where "fzero_nat a = 0"
+ 
+  instance
+    by (intro_classes, auto simp add:fzero_nat_def)
+end
+  
+instantiation nat :: fzero_add_zero
+begin
+  instance by (intro_classes, simp_all add:fzero_nat_def)
+end
+  
+lemma fzero_le_nat:
+  "(x :: nat) \<le>us y \<longleftrightarrow> x \<le> y"
+  by (simp add: fzero_le_def trace_class.le_iff_add)
+  
+lemma fzero_subtract_nat:
+  "(x :: nat) -us y = x - y"
+  by (auto simp add:fzero_subtract_def fzero_le_nat fzero_nat_def) 
+
+instance nat :: trace_fzero_0
+  by intro_classes
+
+instance nat :: fzero_trace
+  by intro_classes
   
 end

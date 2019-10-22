@@ -549,13 +549,13 @@ lemma preR_Stop [rdes]: "pre\<^sub>R(Stop) = true"
   by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_false R1_false)
 
 lemma periR_Stop [rdes]: "peri\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr)"
-  apply (rel_auto) using fzero_list_def zero_list_def fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_list_def zero_list_def minus_zero_eq by blast
 
 lemma postR_Stop [rdes]: "post\<^sub>R(Stop) = false"
   by (rel_auto)
 
 lemma cmtR_Stop [rdes]: "cmt\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>)"
-  apply (rel_auto) using fzero_list_def zero_list_def fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_list_def zero_list_def minus_zero_eq by blast
 
 lemma preR_Skip [rdes]: "pre\<^sub>R(Skip) = true"
   by (rel_auto)
@@ -564,7 +564,7 @@ lemma periR_Skip [rdes]: "peri\<^sub>R(Skip) = false"
   by (rel_auto)
 
 lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-  apply (rel_auto) using fzero_list_def zero_list_def fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_list_def zero_list_def minus_zero_eq by blast
 
 lemma NCSP_Idempotent [closure]: "Idempotent NCSP"
   by (clarsimp simp add: NCSP_def Idempotent_def)
@@ -896,7 +896,7 @@ lemma periR_AssignsCSP [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C)
   by (rel_auto)
 
 lemma postR_AssignsCSP [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>C) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)"
-  apply (rel_auto) using fzero_list_def zero_list_def fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using fzero_list_def zero_list_def minus_zero_eq by blast
 
 lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   apply (rel_auto)
@@ -918,7 +918,7 @@ lemma periR_AssignCSP_list_update [rdes]:
 
 lemma post_AssignCSP_list_update [rdes]:
   "post\<^sub>R(AssignCSP_list_update x k v) = (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>x[k] := v\<rceil>\<^sub>S) \<triangleleft> \<lceil>k \<in>\<^sub>u dom\<^sub>u(&x)\<rceil>\<^sub>S\<^sub>< \<triangleright> R1(true))"
-  by (rel_auto, simp_all add: fzero_trace_class.minus_zero_eq fzero_list_def zero_list_def) 
+  by (rel_auto, simp_all add: minus_zero_eq fzero_list_def zero_list_def) 
 
 lemma AssignCSP_list_update_NCSP [closure]:
   "(AssignCSP_list_update x k v) is NCSP"
@@ -935,7 +935,7 @@ lemma R1_DoAct: "R1(do\<^sub>u(a)) = do\<^sub>u(a)"
   by (rel_auto)
 
 lemma R2c_DoAct: "R2c(do\<^sub>u(a)) = do\<^sub>u(a)"
-  by (rel_auto, simp_all add: fzero_list_def zero_list_def fzero_trace_class.minus_zero_eq, (metis less_eq_list_def prefix_concat_minus)+)
+  by (rel_auto, simp_all add: fzero_list_def zero_list_def minus_zero_eq, (metis less_eq_list_def prefix_concat_minus)+)
 
 lemma DoCSP_alt_def: "do\<^sub>C(a) = R3h(CSP1($ok\<acute> \<and> do\<^sub>u(a)))"
   apply (simp add: DoCSP_def RHS_def design_def impl_alt_def  R1_R3h_commute R2c_R3h_commute R2c_disj
@@ -959,7 +959,7 @@ lemma preR_DoCSP [rdes]: "pre\<^sub>R(do\<^sub>C(a)) = true"
 
 lemma periR_DoCSP [rdes]: "peri\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u $ref\<acute>)"
   apply (rel_auto) 
-  using fzero_list_def minus_zero_eq fzero_trace_class.minus_zero_eq by fastforce
+  using fzero_list_def minus_zero_eq minus_zero_eq by fastforce
 
 lemma postR_DoCSP [rdes]: "post\<^sub>R(do\<^sub>C(a)) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle> \<and> $st\<acute> =\<^sub>u $st)"
   apply (rel_auto)
@@ -2018,7 +2018,7 @@ proof (rule Productive_intro)
   from assms(1) show "($tr\<acute> >\<^sub>u $tr) \<sqsubseteq> (pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)) \<and> post\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R)))"
     apply (simp add: rea_pre_RHS_design rea_post_RHS_design usubst assms)
     using assms(1) apply (rel_auto)
-    using fzero_trace_class.zero_le_minus_imp_le by fastforce
+    using zero_le_minus_imp_le by fastforce
 
   show "$wait\<acute> \<sharp> pre\<^sub>R (\<^bold>R\<^sub>s (P \<turnstile> Q \<diamondop> R))"
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)

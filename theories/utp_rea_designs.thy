@@ -396,7 +396,7 @@ lemma skip_srea_form: "II\<^sub>R = ((\<exists> $st \<bullet> II) \<triangleleft
   by (rel_auto)
 
 lemma R2c_skip_srea: "R2c(II\<^sub>R) = II\<^sub>R"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using minus_zero_eq by blast+
 
 lemma skip_srea_R1 [closure]: "II\<^sub>R is R1"
   by (metis Healthy_def R1_R3h_commute R1_skip_rea R3h_def skip_srea_def)
@@ -992,7 +992,7 @@ lemma R2_subst_wait'_false [usubst]:
 
 lemma R2_des_lift_skip:
   "R2(\<lceil>II\<rceil>\<^sub>D) = \<lceil>II\<rceil>\<^sub>D"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq by blast
 
 lemma R2c_R2s_absorb: "R2c(R2s(P)) = R2s(P)"
   by (rel_auto)
@@ -1919,7 +1919,7 @@ lemma SRD_eq_intro:
   by (metis SRD_reactive_tri_design assms)
 
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using minus_zero_eq by blast+
 
 subsection {* Reactive design signature *}
 
@@ -2058,7 +2058,7 @@ lemma periR_assigns_rea [rdes]: "peri\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R
   by (simp add: assigns_rea_RHS_tri_des rea_peri_RHS_design usubst R2c_false R1_false)
 
 lemma postR_assigns_rea [rdes]: "post\<^sub>R(\<langle>\<sigma>\<rangle>\<^sub>R) = ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S \<and> $\<Sigma>\<^sub>S\<acute> =\<^sub>u $\<Sigma>\<^sub>S)"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq by blast
 
 lemma RHS_design_choice: "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqinter> \<^bold>R\<^sub>s(P\<^sub>2 \<turnstile> Q\<^sub>2) = \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (Q\<^sub>1 \<or> Q\<^sub>2))"
   by (metis RHS_inf design_choice)
@@ -2352,7 +2352,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> R1 (R2s R))"
   proof -
     from assms(3,4) have "(R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))) = R1 (R2s R)"
-      by (rel_auto, metis (no_types, lifting) fzero_trace_class.minus_zero_eq, meson order_trans, meson order_refl fzero_trace_class.diff_cancel)
+      by (rel_auto, metis (no_types, lifting) minus_zero_eq, meson order_trans, meson order_refl diff_cancel)
     thus ?thesis
       by simp
   qed
@@ -2833,7 +2833,7 @@ lemma periR_des_rea_lift [rdes]:
 
 lemma postR_des_rea_lift [rdes]:
   "post\<^sub>R(\<^bold>R\<^sub>D(P)) = ((true \<triangleleft> \<lceil>pre\<^sub>D(P)\<rceil>\<^sub>S \<triangleright> (\<not> $tr \<le>\<^sub>u $tr\<acute>)) \<Rightarrow> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>S))"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast
+  apply (rel_auto) using minus_zero_eq by blast
 
 lemma ndes_rea_lift_closure [closure]:
   assumes "P is \<^bold>N"
@@ -3331,7 +3331,7 @@ lemma nmerge_rd_is_R1m [closure]:
   by (rel_blast)
 
 lemma R2m_nmerge_rd: "R2m(N\<^sub>R(R2m(M))) = N\<^sub>R(R2m(M))"
-  apply (rel_auto) using fzero_trace_class.minus_zero_eq by blast+
+  apply (rel_auto) using minus_zero_eq by blast+
 
 lemma nmerge_rd_is_R2m [closure]:
   "M is R2m \<Longrightarrow> N\<^sub>R(M) is R2m"
