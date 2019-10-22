@@ -293,9 +293,15 @@ text \<open> We then define mirror properties of a monoid, but instead we
        require the zero property on fzero, rather than 0. \<close>
     
 class fzero_add_zero = fzero_idem + semigroup_add_fzero +
-  assumes add_fzero_left[simp]: "f0(b) + a = a"
+  assumes add_fzero_left[simp]: "f0(a) + a = a"
   assumes add_fzero_right[simp]: "a + f0(a) = a"
-    
+
+class fzero_add_zero_any = fzero_add_zero +
+    assumes add_fzero_any_left[simp]: "f0(b) + a = a"
+
+instance fzero_add_zero_any \<subseteq> fzero_add_zero
+  by (intro_classes)
+      
 text \<open> In this algebra we only require zero_sum_right, but not
         zero_sum_left. The immediate consequence is that we do
         not obtain an order as there is no anti-symmetry. \<close>
@@ -412,6 +418,8 @@ lemma "b \<le>us a \<Longrightarrow> x = a -us b \<longleftrightarrow> b + x = a
   by (metis diff_add_cancel_left' local.add_left_imp_eq)
 
 end 
+  
+class fzero_add_zero_any_left_cancel = fzero_add_left_cancel + fzero_add_zero_any
   
 class semigroup_add_left_cancel_minus_ord = fzero_add_fzero_ord_minus + fzero_add_left_cancel
 begin
@@ -721,5 +729,17 @@ text \<open> Therefore, a semigroup trace with a fixed @{term f\<^sub>0} is exac
        monoid trace. This is convenient as any type instantiated with the class @{class trace}
        can also be instantiated with the class @{class fzero_trace} by defining an appropriate
        @{term f\<^sub>0}. \<close>
+  
+  
+class fzero_add_any_pre_trace = fzero_add_zero_any_left_cancel + fzero_pre_trace  
+  
+class fzero_add_any_trace = fzero_add_zero_any + fzero_trace   
+  
+instance fzero_add_any_trace \<subseteq> fzero_add_any_pre_trace
+  by intro_classes  
+    
+instance trace_fzero_0 \<subseteq> fzero_add_zero_any
+  apply intro_classes
+  by (simp add: fzero_is_0)
   
 end
