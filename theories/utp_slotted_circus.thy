@@ -9,46 +9,24 @@ begin
   
 subsection {* Type definitions *}
   
-(*subsubsection {* Refusals *}
-  
-typedef '\<alpha> refusal = "{x::'\<alpha> set. True}"
-  morphisms refusal2set set2refusal
-  by auto
-    
-setup_lifting type_definition_refusal
-  
-instantiation refusal :: (type) plus
-begin
-  definition plus_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal" where "plus_refusal a b = b"
-  
-  instance by (intro_classes)
-end
-  
-(* I'm not sure whether we need to instantiate fzero for refusal type,
-   but for the sake of generality of the slotted_trace fzero, we do it. *)  
-  
-instantiation refusal :: (type) fzero
-begin
-  definition fzero_refusal :: "'a refusal \<Rightarrow> 'a refusal" where "fzero_refusal a = a"
-  
-  instance by (intro_classes)
-end*)  
-  
 subsubsection {* Slots *}
   
-text {* We begin by defining a slot as a pair, whose second element
-        is a set. *}
+text {* We begin by defining a slot as a pair. We use a type definition so that
+        we can instantiate particular type classes. *}
   
-typedef ('\<alpha>,'\<beta>) slot = "{x::('\<alpha> \<times> '\<beta> set). True}" 
+typedef ('\<alpha>,'\<beta>) slot = "{x::('\<alpha> \<times> '\<beta>). True}" 
   morphisms slot2pair pair2slot
   by auto
     
 declare [[coercion_enabled]]
         [[coercion pair2slot]]
-    
+  
 setup_lifting type_definition_slot
   
-text {* Plus is defined following the definition in page 80 of @{cite "Butterfield20007"}. *}
+lift_definition fst\<^sub>s :: "('a,'b) slot \<Rightarrow> 'a" is "fst" .
+lift_definition snd\<^sub>s :: "('a,'b) slot \<Rightarrow> 'b" is "snd" .
+  
+text {* Plus is defined following the definition in page 80 of @{cite "Butterfield2007"}. *}
 
 instantiation slot :: (plus,type) plus
 begin
@@ -60,7 +38,7 @@ end
 
 text {* Here we define an fzero for slots that is coherent with the definition of plus,
         and where we apply fzero to the trace of the parametrised type. So compared with
-        @{cite "Butterfield20007"} we have a fixed definition of 'HNull', but which is
+        @{cite "Butterfield2007"} we have a fixed definition of 'HNull', but which is
         parametrised by the type. We later show that it satisfies the required laws. *}  
   
 instantiation slot :: (fzero,type) fzero
@@ -73,7 +51,7 @@ end
   
 text {* By instantiating the type class fzero_add_zero, we also instantiate fzero_idem
         and semigroup_add_fzero. The former requires fzero to be idempotent, while the
-        latter requires that plus forms an additive semigroup (semigroup_add).
+        latter requires that plus forms a semigroup (semigroup_add).
         
         In addition, as part of the type class fzero_add_zero, we also need to show
         that fzero a is both a left-zero as well as a right-zero, for any value of a.*}  
@@ -130,11 +108,13 @@ proof -
   
   have a':"a + b = pair2slot (ah+bh,br)"
     using a and b
-    by (metis mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse)
+    using mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse
+    by smt
       
   have c':"c + d = pair2slot (ch+dh,dr)"
     using c and d
-    by (metis mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse)
+    using mem_Collect_eq pair2slot_inject plus_slot.rep_eq prod.simps(2) slot2pair_inverse
+    by smt
     
   from assms have "pair2slot (ah+bh,br) = pair2slot (ch+dh,dr)"
     using a' c' by simp
@@ -171,6 +151,9 @@ instance
   apply (intro_classes, simp_all add: less_eq_slot_def less_slot_def minus_slot_def slot_sum_eq_conv)
   using left_cancel_semigroup_class.add_left_imp_eq by blast
 end
+  
+text {* As it turns out, this structure satisfies an axiom stronger than left-identity
+        with respect to the USTA axioms. *}  
   
 instantiation slot :: (fzero_trace,type) fzero_add_any_trace
 begin
@@ -214,17 +197,6 @@ proof -
     using less_eq_stlist_def 
     by (metis fzero_le_add)
 qed
-    
-(* TODO: Probably holds, but not used.  
-lemma slot_minus:
-  fixes s1 s2 :: "('a::fzero_trace,'b) slot"
-  assumes "s2 \<le> s1"
-  shows "s1 - s2 = (fst (slot2pair s1) - fst (slot2pair s2), snd (slot2pair s1))"
-  using assms
-  apply (cases s1)
-  apply (cases s2)
-  apply (simp add:minus_slot_def pair2slot_inverse)
-  oops*)
     
 lemma pair2slot_le_imp_leq_histories:
   fixes h1 :: "'a::fzero_trace"
@@ -278,14 +250,9 @@ lemma slot_plus_2:
 text {* The following lemma corresponds to the definition of Ssub in page 80 of 
         @cite{"Butterfield2007"}. Rather than a definition we have it as a lemma.
 
-        Just like in the discussion in @cite{"Butterfield2007"} we observe that
-        minus is only defined if h2 \<le> h1, and so we need this assumption. *}      
- 
-(* NOTE: In the case of b -\<^sub>d a, and where \<not> a \<le> b, if that were defined to be
-         equal to fzero(b), rather than (SOME x. \<forall>d. c \<le> d), then the following
-         lemma would hold irrespective of the assumption. However this seems like
-         an artifact of the definition of -\<^sub>d, rather than a property that we want.*)
-  
+        Just like in the discussion in @cite{"Butterfield2007"} that requires
+        h2 \<le> h1 for minus to be well defined, we also require this assumption. *}      
+
 lemma slot_minus_2:
   fixes h1 :: "'a::fzero_trace"
   assumes "h2 \<le> h1"
@@ -298,383 +265,31 @@ lemma slot_minus_2:
   apply (rule the_equality)
   apply (metis (no_types, lifting) add_diff_cancel_left mem_Collect_eq pair2slot_inverse prod.sel(1) prod.sel(2) split_beta)
   apply (metis (no_types, lifting) Pair_inject add_diff_cancel_left mem_Collect_eq pair2slot_inject prod.collapse slot2pair_inverse split_beta)
+  apply (simp add:fzero_slot_def pair2slot_inverse pair2slot_inject)
   using assms slot_le_iff_histories_le 
   by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add)
   
-subsubsection {* Slotted traces *}    
+subsubsection {* Synchronous traces *}    
+  
+text {* The traces are defined using the type for non-empty lists 'stlist'. *}
   
 type_synonym ('\<alpha>,'\<beta>) slotted_trace = "('\<alpha>,'\<beta>) slot stlist"
     
-(*  
-subsubsection {* Slotted traces *}
-  
-text {* In this section we define the data structure for slotted-Circus, which is a terminated
-        list (stlist) parametrised by slots, which we defined above. *}
-  
-typedef ('\<alpha>,'\<beta>) slotted_trace = "{x::('\<alpha>,'\<beta>) slot stlist. True}"
-  morphisms slotted2stlist stlist2slotted
-  by auto
-    
-declare [[coercion stlist2slotted]]
-
-setup_lifting type_definition_slotted_trace
-
-text {* We define the fzero of a slotted trace by lifting the definition to stlist, taking the 
-        last element of the given trace s and applying fzero on it. Given that here last(s)
-        returns a slot, this corresponds to the application of fzero to a slot, which we have
-        defined above to be the application of fzero to the history component, while leaving
-        the refusals unchanged. *}  
-  
-instantiation slotted_trace :: (fzero,type) fzero
-begin
-  lift_definition fzero_slotted_trace :: "('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace" 
-    is "\<lambda> s. [;fzero (last s)]" .    
-      
-  instance by (intro_classes)
-end  
-  
-text {* The definition of plus is lifted into the base type stlist. *}  
-  
-instantiation slotted_trace :: (plus,plus) plus
-begin
-  lift_definition plus_slotted_trace :: "('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace" 
-    is "op +" . 
-  
-  instance by (intro_classes)
-end
-  
-text {* Provided the history is a left-cancellative semigroup, we also have a left-cancellative
-        semigroup. *}  
-  
-instantiation slotted_trace :: (left_cancel_semigroup,plus) left_cancel_semigroup
-begin
-  instance
-   apply intro_classes
-   by (metis left_cancel_semigroup_class.add_left_imp_eq plus_slotted_trace.rep_eq slotted2stlist_inject)
-end
-  
-text {* To instantiate the following type classes we need a fixed zero as part of the history. 
-        This indicates that it is likely not possible to build a slotted-Circus theory whose
-        histories have an fzero, rather than a unique 0. *}  
-  
-instantiation slotted_trace :: (fzero_sum_zero_0,plus) fzero_sum_zero
-begin
-  
-lemma stlist2slotted_dist_plus:
-  "stlist2slotted (a + b) = stlist2slotted(a) + stlist2slotted(b)"
-  by (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-  
-lemma fzero_last_add_fzero_left:
-  fixes x :: "'a stlist"
-  shows "fzero (Terminated_lists.last x) + y = y"
-  apply (induct x)
-  apply auto
-  using add_fzero_left by (metis fzero_is_0)
-  
-lemma slotted_add_fzero_left:
-  fixes a :: "('a,'b) slotted_trace"
-  shows "fzero a + a = a"
-  apply (induct a)
-  apply (simp add:fzero_slotted_trace_def plus_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:stlist2slotted_dist_plus slotted2stlist_inverse)
-  apply (induct_tac y)
-  apply auto
-   apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-   apply (simp add:stlist2slotted_inject)
-   apply (simp add:plus_stlist_def)
-  apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:plus_stlist_def)  
-  apply (simp add:stlist2slotted_inject)
-  by (metis (mono_tags, lifting) fzero_is_0 fzero_slot.rep_eq plus_slot.rep_eq prod.collapse prod.sel(1) slot2pair_inject split_beta utp_slotted_circus.fzero_last_add_fzero_left)
-  
-lemma slotted_add_fzero_right:
-  fixes a :: "('a,'b) slotted_trace"
-  shows "a + fzero a = a"
-  apply (induct a)
-  apply (simp add:fzero_slotted_trace_def plus_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:stlist2slotted_dist_plus slotted2stlist_inverse)
-  apply (induct_tac y)
-  apply auto
-   apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-   apply (simp add:stlist2slotted_inject)
-   apply (simp add:plus_stlist_def)
-  apply (simp add:plus_slotted_trace_def stlist2slotted_inverse)
-  apply (simp add:plus_stlist_def)  
-  by (simp add:stlist2slotted_inject)
-    
-lemma slotted_fzero_sum_zero:
-  fixes a :: "('a,'b) slotted_trace"
-  shows "a + b = fzero b \<Longrightarrow> b = fzero b"
-  apply (induct b)
-  apply auto
-  apply (induct a)
-  apply auto
-  apply (simp add:plus_slotted_trace_def)
-  apply (case_tac ya)
-   apply auto
-   apply (simp add:stlist2slotted_inverse fzero_slotted_trace_def stlist2slotted_inject)
-   apply (case_tac y)
-    using fzero_sum_right stlist_plus_nils apply blast
-    apply (simp add: plus_stlist_def)
-   apply (simp add:stlist2slotted_inverse fzero_slotted_trace_def stlist2slotted_inject)
-   apply (case_tac y)
-    apply (simp add: stlist_nil_concat_cons) 
-    by (simp add: plus_stlist_def)
-    
-instance
-  apply intro_classes
-  apply (metis (mono_tags, lifting) Terminated_lists.last.simps(1) fzero_idem fzero_slotted_trace.rep_eq fzero_slotted_trace_def map_fun_apply)
-  apply (metis (mono_tags, lifting) add.assoc plus_slotted_trace.rep_eq slotted2stlist_inject)
-  
-    apply (simp add:slotted_add_fzero_left)
-  apply (simp add:slotted_add_fzero_right)
-  by (simp add:slotted_fzero_sum_zero)
-end
-  *)
-  
 text {* We then show that a slotted trace satisfies sum_eq_sum_conv by breaking the proof into
         multiple lemmas, where we treat the base cases separately from the main proof.*}  
 
 (* TODO: Move these into stlist theory file? *)  
   
-lemma stlist_fzero_eq_sum_conv_nils:
-  fixes a :: "'a::fzero_pre_trace"
-  assumes "[;a] + [;b] = [;c] + [;d]"
-  shows "\<exists> e . [;a] = [;c] + e \<and> e + [;b] = [;d] \<or> [;a] + e = [;c] \<and> [;b] = e + [;d]"
-proof -  
- 
-  have a: "([;a] + [;b] = [;c] + [;d]) = (a + b = c + d)"
-    by (metis stlist_plus_nils)
-      
-  have b: "(a + b = c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-    by (simp add: fzero_pre_trace_class.sum_eq_sum_conv)
-  
-  then have "(a + b = c + d) \<Longrightarrow> \<exists> e . [;a] = [;c] + e \<and> e + [;b] = [;d] \<or> [;a] + e = [;c] \<and> [;b] = e + [;d]"   
-    by (metis stlist_plus_nils)
-    
-  with a b show ?thesis using assms by simp
-qed
-  
-lemma stlist_fzero_eq_sum_conv_nils1:
-  fixes a :: "'a::fzero_pre_trace stlist"
-  assumes "a + [;b] = c + [;d]"
-  shows "\<exists> e . a = c + e \<and> e + [;b] = [;d] \<or> a + e = c \<and> [;b] = e + [;d]"
-  using assms
-  apply (induct a c rule:stlist_induct_cons)
-  apply (simp add: stlist_fzero_eq_sum_conv_nils)
-  by (simp_all add: plus_stlist_def)
-    
-lemma stlist_fzero_eq_sum_conv_nils2:
-  fixes a :: "'a::fzero_pre_trace"
-  assumes "[;a] + b = [;c] + d"
-  shows "\<exists> e . [;a] = [;c] + e \<and> e + b = d \<or> [;a] + e = [;c] \<and> b = e + d"
-  using assms
-  proof (induct b d arbitrary: a c rule:stlist_induct_cons)
-    case (1 a b)
-    then show ?case by (simp add: stlist_fzero_eq_sum_conv_nils)
-  next
-    case (2 a x xs)
-    then show ?case by (simp add: plus_stlist_def)
-  next
-    case (3 a y ys)
-    then show ?case by (simp add: plus_stlist_def)
-  next
-    case (4 x xs y ys)
-    have a:"([;a] + (x #\<^sub>t xs) = [;c] + (y #\<^sub>t ys))
-         =
-         (((a + x) #\<^sub>t xs) = ((c + y) #\<^sub>t ys))"
-      by (simp add: stlist_nil_concat_cons)
-    
-    hence eq1:"a + x = c + y"
-      using "4.prems" by blast
-      
-    hence eq2:"xs=ys"
-      using "4.prems" a by blast
-    
-    from eq1 have "\<exists>e. a = c + e \<and> e + x = y \<or> a + e = c \<and> x = e + y"
-      by (simp add: fzero_pre_trace_class.sum_eq_sum_conv)
-        
-    then have "\<exists>e. [;a] = [;c] + e \<and> e + [;x] = [;y] \<or> [;a] + e = [;c] \<and> [;x] = e + [;y]"
-      by (metis stlist_plus_nils)
-        
-    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> e + [;x] = [;y] \<or> [;a] + e = [;c] \<and> [;x] = e + [;y])"
-      by (metis stlist_eq_nil_pluses_imp0)
-    
-    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> [;z] + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> [;x] = [;z + y])"    
-      using eq2 by (metis (no_types, lifting) "4.prems" concat_stlist.simps(1) plus_seq_assoc plus_stlist_def stlist_left_cancel_monoid0) 
-    
-    hence "\<exists>e z. [;z] = e \<and> ([;a] = [;c] + e \<and> [;z] + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> (x#\<^sub>txs) = [;z] + (y#\<^sub>tys))"
-      using eq2 by (metis (no_types, lifting) "4.prems" concat_stlist.simps(1) plus_seq_assoc plus_stlist_def stlist_left_cancel_monoid0) 
-    
-    hence eq3:"\<exists>e. [;a] = [;c] + e \<and> e + (x#\<^sub>txs) = (y#\<^sub>tys) \<or> [;a] + e = [;c] \<and> (x#\<^sub>txs) = e + (y#\<^sub>tys)"
-      by auto
-        
-    then show ?case by auto   
-qed
-    
-text {* Finally we show that given a parametric type instantiating fzero_pre_trace for
-        stlist we have that sum_eq_sum_conv holds. *}  
-  
-lemma stlist_fzero_sum_eq_sum_conv:
-  fixes a :: "'a::fzero_pre_trace stlist"
-  shows "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"  
-  apply (induct a c rule:stlist_induct_cons)
-  apply (simp add:stlist_fzero_eq_sum_conv_nils2)+ 
-  apply (case_tac d)
-  apply (simp add: plus_stlist_def)
-  apply (metis concat_stlist.simps(3) plus_stlist_def stlist_cons_plus_nils_eq_cons)
-  apply (case_tac b)
-  apply (simp add: plus_stlist_def)
-  apply (metis concat_stlist.simps(3) plus_stlist_def stlist_cons_plus_nils_eq_cons)
-  by (simp add: plus_stlist_def) 
 
 text {* We then instantiate slotted_trace with the type class fzero_pre_trace.*}    
 
 instance fzero_pre_trace_0 \<subseteq> fzero_pre_trace
-  by intro_classes  
- 
-(*    
-instantiation slotted_trace :: (fzero_pre_trace_0,plus) fzero_pre_trace
-begin
-  
-lemma slotted_fzero_sum_eq_sum_conv:
-  fixes a :: "('a,'b) slotted_trace"
-  shows "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
-  using stlist_fzero_sum_eq_sum_conv
-    sledgehammer
-  by (smt plus_slotted_trace.rep_eq slotted2stlist_inverse stlist2slotted_dist_plus)
-  
-instance
-  apply (intro_classes)
-  by (simp add:slotted_fzero_sum_eq_sum_conv)
-end
-  
-(* Q: Not sure whether we need to instantiate this here already. *)
-instance slotted_trace :: (fzero_pre_trace_0,plus) semigroup_add
   by intro_classes
-    
-text {* Finally we instantiate the fzero_trace class, with the only requirement being that the
-        parametrised trace must be of type class fzero_pre_trace_0, that is, a trace that has
-        a fixed zero, just like in the original trace algebra. *}
-  
-instantiation slotted_trace :: (fzero_pre_trace_0,plus) fzero_trace
-begin
-  
-  text {* We could lift at least part of these definitions instead. However the lifting for minus
-          is not a good idea, as it is not possible to show that the lifting works for the case of
-          b - a, where \<not> a \<le> b. Instead we define minus via -d and then prove that minus can be
-          calculated via mapping provided that a \<le> b. *}
-  
-  definition minus_slotted_trace :: "('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace" where "minus_slotted_trace == fzero_subtract"
-  definition less_eq_slotted_trace :: "('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace \<Rightarrow> bool" where "less_eq_slotted_trace == fzero_le"
-  definition less_slotted_trace :: "('a,'b) slotted_trace \<Rightarrow> ('a,'b) slotted_trace \<Rightarrow> bool" where "less_slotted_trace a b == a \<le> b \<and> \<not> (b \<le> a)"
-  
-instance by (intro_classes, simp_all add: less_eq_slotted_trace_def minus_slotted_trace_def less_slotted_trace_def)
-end
 
-(* TODO: Revised up to here, need to move some of the following lemmas into another .thy file *)  
-  
-(* To reuse results on the base type we prove the following lemmas *)
-  
-lemma stlist2slotted_ope:
-  fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
-  shows "a \<le> b \<longleftrightarrow> slotted2stlist(a) \<le> slotted2stlist(b)"  
-  apply (simp add:less_eq_slotted_trace_def less_eq_stlist_def)
-  by (metis fzero_le_def plus_slotted_trace.rep_eq slotted2stlist_inverse stlist2slotted_dist_plus)
-   
-lemma stlist2slotted_minus:
-  fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
-  assumes "b \<le> a"
-  shows "a - b = slotted2stlist(a) - slotted2stlist(b)"   
-  apply (simp add:minus_slotted_trace_def minus_stlist_def)
-  using assms
-proof -
-  have "b + stlist2slotted (slotted2stlist a -\<^sub>d slotted2stlist b) = a"
-    by (metis (no_types) assms minus_stlist_def semigroup_add_left_cancel_minus_ord_class.diff_add_cancel_left' slotted2stlist_inverse stlist2slotted_dist_plus stlist2slotted_ope)
-  then show "a -\<^sub>d b = stlist2slotted (slotted2stlist a -\<^sub>d slotted2stlist b)"
-    by (metis minus_slotted_trace_def semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left)
-qed
-  
-lemma slotted2stlist_dist_plus:
-  fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
-  shows "a + b = slotted2stlist(a) + slotted2stlist(b)"
-  by (simp add: slotted2stlist_inverse stlist2slotted_dist_plus)
-    
-lemma stlist2slotted_dist_minus:
-  assumes "b \<le> a"
-  shows "stlist2slotted (a - b) = stlist2slotted(a) - stlist2slotted(b)"
-  using assms
-  by (simp add: stlist2slotted_inverse stlist2slotted_minus stlist2slotted_ope)
-  
-*)
- (* using assms by auto*)
-  (*by (metis stlist_concat_zero_left stlist_plus_follow_concat trace_class.add_diff_cancel_left')
-    *)   
-    
-(* TODO: Should this be proved elsewhere? 
-         I though this was not true before the changes..*)    
-(* in turn these theorems should be reproved without using
-     the fzero_trace class *)
-       
-
-  
-(*
-In general we don't instantiate it because fzero is
-can't be defined in a generic way in terms of the 
-parameterised type.
-
-instantiation stlist :: (fzero_trace) fzero_trace
-*)
-    
-lemma
-  assumes "z \<le> x"
-  shows "(x #\<^sub>t y) - [;z] = (x - z) #\<^sub>t y"
-  oops
-    
-(*
-lemma add_monoid_diff_cancel_left: 
-  fixes a :: "'a::{left_cancel_semigroup,semigroup_add_fzero}"
-  shows "(a + b) -us a = b"
-  apply (simp add: fzero_subtract_def monoid_le_add)
-  apply (rule the_equality)
-  apply (simp)
-  using left_cancel_semigroup_class.add_left_imp_eq 
-  by (metis left_cancel_semigroup_class.add_left_imp_eq)    
-
-lemma 
-  fixes a :: "'a::fzero_add_zero_any"
-  shows "[a;b] - [;fzero c] = [a;b]"
-  by (metis diff_zero semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left stlist_nil_concat_cons)
- *)   
-(* should be able to prove the following in the general case of t \<le> s *)
-(*
-lemma stlist_tail_front_last:
-  fixes t :: "'a::fzero_add_zero_any stlist"
-  assumes "t = s"
-  shows "s - t = tail(s) - tail(t)"
-  using assms
-  apply (induct t s rule:stlist_induct_cons)
-  apply auto
-  apply (simp add: stlist_zero_minus)
-  by (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left' stlist_head_concat_tail tail.simps(2)) 
-    *)
 lemma stlist_strict_prefix_eq:
   fixes t :: "'a::fzero_trace"
   shows "t < s \<longrightarrow> (\<exists>z. t + z = s \<and> z \<noteq> fzero t)"
   by (metis add_fzero_right less_le_not_le semigroup_add_left_cancel_minus_ord_class.le_iff_add)
-   
-(* TODO: Check, are these liftings ok?
-         Need to find a way of defining front, etc, so that it can be reused with 
-         different types. *)
-
-(*    
-lift_definition front :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a::fzero_add_zero,'b) slotted_trace" is "Terminated_lists.front" .
-lift_definition tail :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a::fzero_add_zero,'b) slotted_trace" is "Terminated_lists.tail" .
-lift_definition head :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.head x)" .
-lift_definition last :: "('a::fzero_add_zero,'b) slotted_trace \<Rightarrow> ('a,'b) slot" is "\<lambda>x. slot2pair (Terminated_lists.last x)" .
-*)
-lift_definition fst\<^sub>s :: "('a,'b) slot \<Rightarrow> 'a" is "fst" .
-lift_definition snd\<^sub>s :: "('a,'b) slot \<Rightarrow> 'b set" is "snd" .
     
 lemma stlist_head_front_last_slotted:
   fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
@@ -683,107 +298,57 @@ lemma stlist_head_front_last_slotted:
   using assms
   using stlist_head_front_last by blast
  
-(*
-lemma 
-  fixes a :: "('a::fzero_pre_trace_0,'b::plus) slotted_trace"
-  shows "a + b = front(a) + stlist2slotted [;last(a) + head(b)] + tail(b)"
-  apply (induct a)
-  apply (induct b)
-  apply auto
-  apply (simp_all add:last_def head_def tail_def front_def)
-  apply (simp add:plus_slotted_trace_def)
-  apply (simp add:stlist2slotted_inject stlist2slotted_inverse front_def slot2pair_inverse)
-  apply (induct_tac ya)
-   apply auto
-   apply (metis (mono_tags, lifting) add_fzero_left plus_seq_assoc stlist_head_concat_tail stlist_plus_nils)
-  by (simp add: plus_stlist_def) 
-*)
-    
-definition subtract_x :: "'a::plus \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "-\<^sub>x" 65) where  "subtract_x t s = (THE c. t = s + c)"    
-    
 lemma the_left_cancel_semigroup_eq:
   "(THE c::('a::fzero_trace_0, 'b::plus) slot stlist. s + y = s + c) = (THE c. y = c)"  
   apply (rule the_equality)
   apply auto
   using left_cancel_semigroup_class.add_left_imp_eq by blast
 
-    (*
-lemma stlist2slotted_minus_simp:
-  fixes t s :: "('a::fzero_trace_0, 'b::plus) slot stlist"
-  assumes "stlist2slotted s \<le> stlist2slotted t"
-  shows "stlist2slotted(t) - stlist2slotted(s) = stlist2slotted(t -\<^sub>x s)"
-  using assms
-  apply (simp add:subtract_x_def minus_slotted_trace_def fzero_subtract_def less_eq_slotted_trace_def)
-  apply (rule the_equality)
-   apply (simp add:stlist2slotted_dist_plus[symmetric] stlist2slotted_inject)
-   apply (simp add:fzero_le_def, auto)
-   apply (case_tac c, auto)
-   apply (simp add:stlist2slotted_dist_plus[symmetric] stlist2slotted_inject)
-   apply (simp add:the_left_cancel_semigroup_eq)
-  apply (simp add:fzero_le_def, auto)
-  apply (case_tac ca, auto)
-  apply (simp add:stlist2slotted_dist_plus[symmetric] stlist2slotted_inject)
-  apply (case_tac c, auto)
-  apply (simp add:stlist2slotted_dist_plus[symmetric] stlist2slotted_inject)
-  apply (simp add:the_left_cancel_semigroup_eq)
-  using left_cancel_semigroup_class.add_left_imp_eq by blast
-    
-lemma xx: "stlist2slotted a + b - (stlist2slotted a + c) = b - c"
-  by auto
-    *)
 lemma slotted_minus_prefix_diff:
   fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "t \<le> s"
   shows "\<exists>pfx slot\<^sub>T slot\<^sub>S sfx. t = pfx + [;slot\<^sub>T] \<and> s = pfx + [;slot\<^sub>S] + sfx"
   using assms
   by (metis semigroup_add_left_cancel_minus_ord_class.le_iff_add stlist_front_concat_last)
-  
-(*
-lemma 
-  fixes z :: "'a::fzero_add_any_trace"
-  assumes "[;z] \<le> [;x] + [0;y]"
-  shows "([;x] + [0;y]) - [;z] = ([;x] - [;z]) + [0;y]"
-  using assms
-  by (metis add.right_neutral semigroup_add_left_cancel_minus_ord_class.sum_minus_left stlist_le_elements_imp_stlist_le_nil stlist_nil_concat_cons stlist_nil_le_cons_imp_le)
-*)
-lemma 
-  assumes "[;z] \<le> [;x]"
-  shows "([;x] + y) - [;z] = ([;x] - [;z]) + y"
-  using assms
-  using trace_class.sum_minus_left
-  oops (*by blast*)
-
-    (*
-lemma xyz:
-  assumes "[;x] \<le> [y;z]"
-  shows "[y;z] - [;x] = [y-x;z]"
-  using assms
-  using stlist_cons_minus_nil_eq sledgehammer
-*)
-
-      
     
-lemma
-  fixes t :: "('a::fzero_trace,'b) slotted_trace"
+lemma prefix_minus_plus_eq:
+  fixes x :: "'a::fzero_trace"
   assumes "t \<le> s"
-          "t = [;slot\<^sub>t]"
-          "s = [;slot\<^sub>s] + sfx"
-         (* "sfx = [0;d]"*)
-    shows "s - t = [;slot\<^sub>s - slot\<^sub>t] + sfx"
+  shows "(s - t) + x = (s + x) - t"
   using assms
-  apply (induct sfx, auto)
-  apply (simp add:plus_stlist_def)
-  using stlist_cons_minus_nil_eq oops
+  by (simp add: semigroup_add_left_cancel_minus_ord_class.sum_minus_left)
+    
+lemma fzero_add_any_trace_stlist_plus_nils:
+  fixes s :: "'a::fzero_add_any_trace"
+  assumes "t \<le> s"
+  shows "[;s + x] - [;t] = [;s - t + x]"
+proof -
+  have "t \<le> s + x"
+    using assms order_trans semigroup_add_left_cancel_minus_ord_class.le_add by blast
+  then have "[;s + x] - [;t] = [;(s + x) - t]"
+    using stlist_minus_imp_minus_nils by blast
+  also have "... = [;s - t + x]"
+    using assms semigroup_add_left_cancel_minus_ord_class.sum_minus_left by blast
+  finally show ?thesis .
+qed
+  
+lemma stlist_nil_plus:
+  "[;s - t + x] = [;s - t] + [;x]"
+  by (metis stlist_plus_nils)
+              
+lemma
+  fixes sfx :: "('a::fzero_trace_0,'b) slotted_trace"
+  shows "[;f0(b)] + sfx = sfx"
+  by (metis Terminated_lists.last.simps(1) add_fzero_any_left fzero_stlist_def)
   
 lemma slotted_trace_le_front_le:
-  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "t \<le> s"
   shows "front(t) \<le> s" 
   using assms
   apply (simp add: less_eq_stlist_def)
   by (metis le_add less_eq_stlist_def stlist_front_concat_last fzero_le_trans)
-    
- 
+      
 lemma stlist_front_prefix_imp:
   fixes y :: "'a::fzero_add_zero_any stlist"
   assumes "y \<le> ya"
@@ -798,8 +363,6 @@ lemma stlist_front_prefix_imp:
     
 lemma pair2slot_fst_snd_slot2pair: "pair2slot(fst (slot2pair x), snd (slot2pair x)) = x"
   by (auto simp add:slot2pair_inverse)
-    
-declare [[show_sorts]]
     
 lemma 
   fixes a :: "'a::fzero_trace"
@@ -886,13 +449,6 @@ proof -
   then show ?thesis
     by (metis (no_types) assms fst\<^sub>s.abs_eq fst\<^sub>s.rep_eq pair2slot_fst_snd_slot2pair pair2slot_le_imp_leq_histories prod.sel(1) slot_minus_2)
 qed
-
-lemma snds_minus_dist:
-  fixes t :: "('a::fzero_trace_0,'b::plus) slot"
-  assumes "s \<le> t"
-  shows "snd\<^sub>s(t - s) = snd\<^sub>s(t) - snd\<^sub>s(s)"
-  using assms
-  oops
     
 lemma snds_head_minus_last:
   fixes t :: "('a::fzero_trace,'b) slotted_trace"
@@ -902,9 +458,9 @@ lemma snds_head_minus_last:
   by (smt eq_onp_True map_fun_apply pair2slot_fst_snd_slot2pair pair2slot_le_imp_leq_histories prod.sel(2) slot2pair_inverse snd\<^sub>s.abs_eq  stlist_front_prefix_imp stlist_last_le_head_minus_front last_def)
   (* there is a nicer proof for this *)
     
-(* Key theorem in original definition of R2A for Circus Time *)
-lemma
-  fixes t :: "('a::fzero_trace,'b::plus) slotted_trace"
+(* Key theorem in original definition of R2 for Circus Time *)
+lemma slotted_trace_diff:
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
   assumes "s \<le> t"
   shows "t - s = [;pair2slot (fst\<^sub>s(head(t - front(s)))-fst\<^sub>s(last(s)),snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
 proof -
@@ -931,30 +487,17 @@ proof -
       
   finally show ?thesis .
 qed
-    
-
+  
+lemma less_eq_slotted_trace_imp:
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
+  assumes "s \<le> t"
+  shows "fst\<^sub>s(last(s)) \<le> fst\<^sub>s(head(t - front(s)))"
+  by (metis assms fst\<^sub>s.rep_eq pair2slot_fst_snd_slot2pair pair2slot_le_imp_leq_histories stlist_last_le_head_minus_front)
     
 lemma
-  fixes slot\<^sub>t :: "('a::fzero_trace_0,'b) slot"
-  assumes "t \<le> s"
-          "t = [;slot\<^sub>t]"
-          "s = [;slot\<^sub>s] + sfx"
-          "sfx = [pair2slot(0,x);d]"
-    shows "s - t = [;slot\<^sub>s - slot\<^sub>t] + sfx"
-  using assms
-  apply auto
-  apply (simp add:plus_stlist_def)
-  apply (cases slot\<^sub>S)
-  using stlist_cons_minus_nil_eq 
-proof -
-  from assms
-  have "s - t = (pfx + (stlist2slotted [;slot\<^sub>s]) + sfx) - (pfx + (stlist2slotted [;slot\<^sub>T]))"
-    by simp
-  also have "... = stlist2slotted [;slot\<^sub>s] + sfx - stlist2slotted [;slot\<^sub>T]"
-    by (simp add: add.assoc)
-  also have "... = (stlist2slotted [;slot\<^sub>s] - stlist2slotted [;slot\<^sub>T]) + sfx"
-    
-    apply (induct sfx, auto)
-    apply (case_tac y, auto)
-    
+  fixes t :: "('a::fzero_trace,'b) slotted_trace"
+  assumes "s \<le> t"
+  shows "front(s) \<le> t \<and> fst\<^sub>s(last(s)) \<le> fst\<^sub>s(head(t - front(s)))"
+  by (simp add: assms less_eq_slotted_trace_imp stlist_front_prefix_imp)
+   
 end

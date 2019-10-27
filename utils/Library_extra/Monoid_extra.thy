@@ -508,7 +508,7 @@ begin
   (* SSub:subsub *)    
   lemma ssub_subsub: "c \<le> a \<and> c \<le> b \<and> b \<le> a \<longrightarrow>(a - c) - (b - c) = a - b"
     by (metis local.diff_add_cancel_left' local.sum_minus_right)
-
+      
 end
 
 text \<open> Following the approach in Trace_Algebra we define a @{term pre_trace} class,
@@ -741,6 +741,48 @@ instance fzero_add_any_trace \<subseteq> fzero_add_any_pre_trace
 instance trace_fzero_0 \<subseteq> fzero_add_zero_any
   apply intro_classes
   by (simp add: fzero_is_0)
+    
+class fzero_add_zero_0 = fzero_add_zero + fzero_is_0
+               
+class fzero_sum_zero_0 = fzero_sum_zero + fzero_is_0
+  
+class fzero_almost_pre_trace_0 = left_cancel_semigroup + fzero_sum_zero + fzero_is_0  
+  
+class fzero_pre_trace_0 = fzero_pre_trace + fzero_is_0 + fzero_sum_zero(*left_cancel_semigroup + fzero_sum_zero_0*) 
+ 
+instance fzero_add_zero_0 \<subseteq> monoid_add
+  apply intro_classes
+  using fzero_is_0 apply (metis add_fzero_left)
+  using fzero_is_0 by (metis add_fzero_right)
+    
+instance fzero_almost_pre_trace_0 \<subseteq> left_cancel_semigroup
+  by intro_classes
+    
+instance fzero_almost_pre_trace_0 \<subseteq> fzero_sum_zero_0
+  by intro_classes
+  
+instance fzero_sum_zero_0 \<subseteq> monoid_sum_0
+  apply intro_classes
+  using fzero_is_0 apply (metis add_fzero_left)
+  using fzero_is_0 apply (metis add_fzero_right)
+  using fzero_is_0 by (metis fzero_sum)
+
+instance semigroup_add_left_cancel \<subseteq> left_cancel_semigroup
+  apply intro_classes
+  by (simp add:add_left_imp_eq)    
+    
+instance fzero_pre_trace_0 \<subseteq> fzero_sum_zero_0
+  by intro_classes
+
+instance fzero_pre_trace_0 \<subseteq> pre_trace
+  apply intro_classes
+  using fzero_is_0 by (simp add: fzero_pre_trace_class.sum_eq_sum_conv)
+      
+instance fzero_trace_0 \<subseteq> fzero_trace
+  by intro_classes
+    
+instance fzero_pre_trace_0 \<subseteq> fzero_pre_trace
+  by intro_classes
     
 section \<open> Models \<close>
 
