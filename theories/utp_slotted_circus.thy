@@ -499,5 +499,11 @@ lemma
   assumes "s \<le> t"
   shows "front(s) \<le> t \<and> fst\<^sub>s(last(s)) \<le> fst\<^sub>s(head(t - front(s)))"
   by (simp add: assms less_eq_slotted_trace_imp stlist_front_prefix_imp)
-   
+    
+lemma 
+  fixes a :: "('a::fzero_trace,'b) slotted_trace"
+  shows "a + b = front(a) + [;last(a) + head(b)] + tail(b)"
+  apply (induct a)
+  apply (induct b)
+  by (simp_all add: add.assoc plus_stlist_def)
 end
