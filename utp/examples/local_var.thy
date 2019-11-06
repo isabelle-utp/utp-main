@@ -4,47 +4,21 @@ theory local_var
   imports "UTP.utp"
 begin
 
+utp_lit_vars
+
 text \<open> State space of global variables. \<close>
 
-alphabet global =
-  x :: int
-  y :: int
-
-text \<open> State space of local variables, extending @{typ global} with an additional variable. \<close>
-
-alphabet local = global +
-  temp :: int
-
-text \<open> Construct a symmetric lens that partitions the state space into globals and locals, using
-  the lenses @{term global.base\<^sub>L} and @{term global.more\<^sub>L}. \<close>
-
-abbreviation lv :: "<global, \<lparr>temp\<^sub>v :: int\<rparr>> \<Longleftrightarrow> local" where
-"lv \<equiv> \<lparr> view = (global.base\<^sub>L :: (global \<Longrightarrow> local)), coview = global.more\<^sub>L \<rparr>"
-
-lemma sym_lens_lv [simp]: "sym_lens lv"
-  by (rule sym_lens.intro, simp_all)
-
-text \<open> Define a program that uses the symmetric lens for modelling the variable scope \<close>
+alphabet global = x :: int  y :: int
 
 abbreviation swap :: "global hrel" where
-"swap \<equiv> open\<^bsub>lv\<^esub> ;; \<comment> \<open> Open the local scope \<close>
-         temp := &x ;; \<comment> \<open> @{term x} is a global variable; @{term temp} is a local variable\<close> 
-         x := &y ;; 
-         y := &temp ;; 
-         close\<^bsub>lv\<^esub>" \<comment> \<open> Close the local scope\<close>
+"swap \<equiv> var z :: int in all\<^sub>L \<bullet> z := x ;; x := y ;; y := &z"
 
-(* FIXME: Why does this fail?
-term "swap wp U(&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>)"
-*)
+lemma swap_wp: "swap wp (x = Y \<and> y = X) = \<^U>(y = Y \<and> x = X)"
+  by (simp add: vblock_def wp usubst unrest)
 
-lemma swap_wp: "swap wp (&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>) = U(&y = \<guillemotleft>Y\<guillemotright> \<and> &x = \<guillemotleft>X\<guillemotright>)"
-  by (simp add: wp usubst unrest)
-
-lemma swap_hoare: "\<lbrace>&x = \<guillemotleft>X\<guillemotright> \<and> &y = \<guillemotleft>Y\<guillemotright>\<rbrace> swap \<lbrace>&x = \<guillemotleft>Y\<guillemotright> \<and> &y = \<guillemotleft>X\<guillemotright>\<rbrace>\<^sub>u"
-  unfolding block_open_def block_close_def
+lemma swap_hoare: "\<lbrace>x = X \<and> y = Y\<rbrace> swap \<lbrace>x = Y \<and> y = X\<rbrace>\<^sub>u" 
   by (rel_auto)
 
-lemma swap_alt_def: "swap = (x, y) := (y, x)"
-  by (rel_auto)
+lemma swap_alt_def: "swap = (x, y) := (y, x)" by (rel_auto)
 
 end

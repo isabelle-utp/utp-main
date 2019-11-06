@@ -52,6 +52,17 @@ lemma usedBy_indep_uses:
   shows "y \<sharp> P"
   using assms by (transfer, auto, metis lens_indep_get lens_override_def)
 
+text \<open> Linking used-by and unrestriction via symmetric lenses. \<close>
+
+lemma psym_lens_unrest: "\<lbrakk> psym_lens a; \<C>[a] \<natural> e \<rbrakk> \<Longrightarrow> \<V>[a] \<sharp> e"
+  by (transfer, simp add: lens_defs, metis lens_indep_def psym_lens_def)
+
+lemma sym_lens_unrest: "\<lbrakk> sym_lens a \<rbrakk> \<Longrightarrow> (\<V>[a] \<sharp> e) \<longleftrightarrow> (\<C>[a] \<natural> e)"
+  by (auto simp add: psym_lens_unrest) (transfer, simp add: lens_defs, metis sym_lens.put_region_coregion_cover)
+
+lemma sym_lens_unrest': "\<lbrakk> sym_lens a \<rbrakk> \<Longrightarrow> (\<V>[a] \<natural> e) \<longleftrightarrow> (\<C>[a] \<sharp> e)"
+  using sym_lens_compl sym_lens_unrest by fastforce
+
 lemma usedBy_var [unrest]:
   assumes "vwb_lens x" "y \<subseteq>\<^sub>L x"
   shows "x \<natural> var y"

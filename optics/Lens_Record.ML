@@ -292,7 +292,8 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
         NONE => ""
     val bldef = (base_lensN, base_lensN ^ " = " ^ BASELENS ^ " " ^ tname);
     val mldef = (child_lensN, child_lensN ^ " = " ^ FLDLENS ^ " more"); 
-    val sldef = (all_lensN, all_lensN ^ " \<equiv> " ^ slens_make ^ " " ^ base_lensN ^ " " ^ child_lensN);
+(*    val sldef = (all_lensN, all_lensN ^ " \<equiv> " ^ slens_make ^ " " ^ base_lensN ^ " " ^ child_lensN); *)
+    val sldef = (all_lensN, all_lensN ^ " \<equiv> \<lparr> view = " ^ base_lensN ^ ", coview = " ^ child_lensN ^ " \<rparr>");
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [child_lensN];
     fun pindeps thy = map (fn thm => @{thm sublens_pres_indep} OF [thm]) (get_thms thy sublensN)
                     @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensN)

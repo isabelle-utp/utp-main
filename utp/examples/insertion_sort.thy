@@ -30,32 +30,29 @@ abbreviation "I xs \<equiv> U(0 < i \<and> i < length arr \<and> j \<le> i \<and
 
 definition insert_elem :: "int list \<Rightarrow> local hrel" where
 "insert_elem xs =
-    while (0 < j \<and> arr!j < arr!(j-1))
-    invr @(I xs)
-    do
-      (arr[j-1], arr[j]) := (arr!j, arr!(j-1)) ;;
-      j := j - 1
-    od"
+  while (0 < j \<and> arr!j < arr!(j-1)) invr @(I xs)
+  do
+    (arr[j-1], arr[j]) := (arr!j, arr!(j-1)) ;; j := j - 1
+  od"
 
 abbreviation insertion_sort :: "int list \<Rightarrow> global hrel" where
-  "insertion_sort xs \<equiv>
-  arr := \<guillemotleft>xs\<guillemotright> ;;
+"insertion_sort xs \<equiv>
+  arr := xs ;;
   open\<^bsub>lv\<^esub> ;;
-   (i := 1 ;;
-    while (i < length arr)
-    invr 
-      0 < i \<and> i \<le> length arr \<and> sorted(nths arr {0..i-1}) \<and> perm arr \<guillemotleft>xs\<guillemotright>
-    do 
-      j := i ;;
-      insert_elem xs ;;
-      i := i + 1
-    od) ;;
+  (i := 1 ;;
+  while (i < length arr)
+  invr 0 < i \<and> i \<le> length arr \<and> sorted(nths arr {0..i-1}) \<and> perm arr xs
+  do 
+    j := i ;; insert_elem xs ;; i := i + 1
+  od) ;;
   close\<^bsub>lv\<^esub>"
 
 lemma insert_elem_correct: "
-    \<lbrace>0 < i \<and> i < length arr \<and> j = i \<and> sorted(nths arr {0..i-1}) \<and> perm arr \<guillemotleft>xs\<guillemotright>\<rbrace>
+    \<lbrace>0 < i \<and> i < length arr \<and> j = i \<and> sorted(nths arr {0..i-1}) \<and> perm arr xs\<rbrace>
     insert_elem xs
-    \<lbrace>0 < i \<and> i < length arr \<and> sorted(nths arr {0..i}) \<and> perm arr \<guillemotleft>xs\<guillemotright>\<rbrace>\<^sub>u"
+    \<lbrace>0 < i \<and> i < length arr \<and> sorted(nths arr {0..i}) \<and> perm arr xs\<rbrace>\<^sub>u"
+proof - 
+  show ?thesis 
   apply (simp add: insert_elem_def)
   apply (rule while_invr_hoare_r)
     apply (hoare_split)
@@ -94,12 +91,10 @@ lemma insert_elem_correct: "
     apply (rel_auto')
   apply (simp add: nths_atLeastAtMost_0_take nths_atLeastLessThan_0_take)
   apply (simp add: nths_single)
-   apply (rel_auto')
   using neq0_conv apply blast
   apply (smt Suc_diff_le Suc_leI add.commute add.left_neutral atLeastLessThanSuc_atLeastAtMost diff_Suc_1 diff_Suc_less diff_is_0_eq' diff_zero le_add1 le_neq_implies_less less_imp_Suc_add less_imp_le_nat nths_upt_le_append_split nths_upt_le_nth nths_upt_length sorted_append_middle zero_less_one)
     apply (rename_tac arr i j)
   apply (subgoal_tac "sorted (nths arr {0..<j} @ nths arr {j..i})")
-  apply (auto)
       apply (simp add: nths_upt_le_append_split)
      apply (simp add: sorted_append_middle)
   apply (auto)
@@ -114,11 +109,12 @@ lemma insert_elem_correct: "
   apply (drule_tac x="n-1" in spec) back
   apply (simp)
   by (metis (no_types, lifting) Nat.add_diff_assoc Nat.add_diff_assoc2 One_nat_def Suc_lessD Suc_lessI Suc_less_eq Suc_pred le_SucI less_imp_le_nat plus_1_eq_Suc)
+qed
 
-lemma insertion_sort_correct:
-  "\<lbrace>length(xs) > 0\<rbrace>
-    insertion_sort xs
-   \<lbrace>sorted(arr) \<and> perm arr xs\<rbrace>\<^sub>u"
+lemma insertion_sort_correct: 
+  "\<lbrace>length(xs) > 0\<rbrace> insertion_sort xs \<lbrace>sorted(arr) \<and> perm arr xs\<rbrace>\<^sub>u"
+proof -
+  show ?thesis
   apply (rule hoare_safe) back
      apply (simp_all add: unrest)
   apply (rule hoare_block)
@@ -133,13 +129,11 @@ lemma insertion_sort_correct:
     apply (rule hoare_r_conseq)
        apply (rule insert_elem_correct)
       apply (rel_auto')
-    apply (rel_auto')
-      apply (rel_auto')
   apply (simp add: Suc_leI)
     apply (simp add: nths_single)
-      apply (rel_auto')
    apply (simp add: nths_atLeastAtMost_0_take)
-  done
+    done
+qed
 
 lemma "TRY(id\<^sub>s \<Turnstile> insertion_sort [4,3,7,1,12,8])"
   apply (unfold insert_elem_def)

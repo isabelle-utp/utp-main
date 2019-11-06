@@ -461,6 +461,12 @@ lemma lens_equiv_iff_bij:
   using lens_equiv_via_bij apply blast
 done
 
+lemma pbij_plus_commute:
+  "\<lbrakk> a \<bowtie> b; mwb_lens a; mwb_lens b; pbij_lens (b +\<^sub>L a) \<rbrakk> \<Longrightarrow> pbij_lens (a +\<^sub>L b)"
+  apply (unfold_locales, simp_all add:lens_defs lens_indep_sym prod.case_eq_if)
+  using lens_indep.lens_put_comm pbij_lens.put_det apply fastforce
+  done
+
 subsection \<open>Lens Override Laws\<close>
   
 text \<open>The following laws are analogus to the equivalent laws for functions.\<close>

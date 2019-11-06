@@ -238,6 +238,8 @@ syntax \<comment> \<open> Identifiers \<close>
   "_svid_dot"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_:_" [999,998] 998)
   "_svid_res"     :: "svid \<Rightarrow> svid \<Rightarrow> svid" ("_\<restriction>_" [999,998] 998)
   "_mk_svid_list" :: "svids \<Rightarrow> logic" \<comment> \<open> Helper function for summing a list of identifiers \<close>
+  "_svid_view"    :: "logic \<Rightarrow> svid" ("\<V>[_]") \<comment> \<open> View of a symmetric lens \<close>
+  "_svid_coview"  :: "logic \<Rightarrow> svid" ("\<C>[_]") \<comment> \<open> Coview of a symmetric lens \<close>
 
 text \<open> A variable identifier can either be a HOL identifier, the complete set of variables in the
   alphabet $\textbf{v}$, or a composite identifier separated by colons, which
@@ -289,6 +291,8 @@ translations
   "_svid_res x y" \<rightharpoonup> "x /\<^sub>L y"
   "_mk_svid_list (_svid_unit x)" \<rightharpoonup> "x"
   "_mk_svid_list (_svid_list x xs)" \<rightharpoonup> "x +\<^sub>L _mk_svid_list xs"
+  "_svid_view a" => "\<V>\<^bsub>a\<^esub>"
+  "_svid_coview a" => "\<C>\<^bsub>a\<^esub>"
 
   \<comment> \<open> Decorations \<close>
   "_spvar \<Sigma>"  \<leftharpoondown>  "CONST pr_var CONST id_lens"

@@ -16,6 +16,15 @@ type_notation
 
 declare slens.defs [lens_defs]
 
+definition slens_compl :: "(<'a, 'c> \<Longleftrightarrow> 'b) \<Rightarrow> <'c, 'a> \<Longleftrightarrow> 'b" ("-\<^sub>L _" [81] 80) where
+[lens_defs]: "slens_compl a = \<lparr> view = coview a, coview = view a \<rparr>"
+
+lemma view_slens_compl [simp]: "\<V>\<^bsub>-\<^sub>L a\<^esub> =  \<C>\<^bsub>a\<^esub>"
+  by (simp add: slens_compl_def)
+
+lemma coview_slens_compl [simp]: "\<C>\<^bsub>-\<^sub>L a\<^esub> =  \<V>\<^bsub>a\<^esub>"
+  by (simp add: slens_compl_def)
+
 subsection \<open> Partial Symmetric Lenses \<close>
 
 locale psym_lens =
@@ -29,6 +38,14 @@ locale psym_lens =
 declare psym_lens.mwb_region [simp]
 declare psym_lens.mwb_coregion [simp]
 declare psym_lens.indep_region_coregion [simp]
+
+lemma psym_lens_compl [simp]: "psym_lens a \<Longrightarrow> psym_lens (-\<^sub>L a)"
+  apply (simp add: slens_compl_def)
+  apply (rule psym_lens.intro)
+  apply (simp_all)
+  using lens_indep_sym psym_lens.indep_region_coregion apply blast
+  using lens_indep_sym pbij_plus_commute psym_lens_def apply blast
+  done
 
 subsection \<open> Symmetric Lenses \<close>
 
@@ -71,5 +88,12 @@ declare sym_lens.indep_region_coregion [simp]
 
 lemma sym_lens_psym [simp]: "sym_lens x \<Longrightarrow> psym_lens x"
   by (simp add: psym_lens_def sym_lens.bij_region_coregion)
+
+lemma sym_lens_compl [simp]: "sym_lens a \<Longrightarrow> sym_lens (-\<^sub>L a)"
+  apply (simp add: slens_compl_def)
+  apply (rule sym_lens.intro, simp_all)
+  using lens_indep_sym sym_lens.indep_region_coregion apply blast
+  using bij_lens_equiv lens_plus_comm sym_lens_def apply blast
+  done
 
 end
