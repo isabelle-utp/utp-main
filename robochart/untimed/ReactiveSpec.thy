@@ -129,7 +129,7 @@ lift_definition rcsp_do :: "'s upred \<Rightarrow> 's usubst \<Rightarrow> ('e l
 lift_definition rcsp_enable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('e set, 's) uexpr \<Rightarrow> ('s, 'e) rrel" ("\<^bold>\<E>'(_,_,_')") is csp_enable
   by (simp add: closure)
 
-lift_definition runrest :: "('a \<Longrightarrow> ('s,'e) st_csp \<times> ('s,'e) st_csp) \<Rightarrow> ('s, 'e) rrel \<Rightarrow> bool" is "unrest_uexpr" .
+lift_definition runrest :: "('a \<Longrightarrow> ('s,'e) sfrd \<times> ('s,'e) sfrd) \<Rightarrow> ('s, 'e) rrel \<Rightarrow> bool" is "unrest_uexpr" .
 
 adhoc_overloading unrest runrest
 

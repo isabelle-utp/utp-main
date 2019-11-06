@@ -20,7 +20,7 @@ translations
   (type) "('s, 'e) RoboAction" <= (type) "('s rcst, 'e) Action"
   (type) "'s RoboPred" <= (type) "'s rcst upred"
 
-abbreviation "rc_state \<equiv> robochart_ctrl_child_lens"
+abbreviation "rc_state \<equiv> robochart_ctrl.more\<^sub>L"
 
 notation rc_state ("\<^bold>r")
 

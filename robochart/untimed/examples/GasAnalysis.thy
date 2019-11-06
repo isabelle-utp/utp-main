@@ -20,10 +20,10 @@ statemachine GasAnalysis [
   transitions
     t1: "from InitState to NoGas action gs := \<langle>\<rangle>; anl := 0"
     t2: "from NoGas to Analysis trigger gas?(gs)"
-    t3: "from Analysis to NoGas condition sts = \<guillemotleft>noGas\<guillemotright> action resume"
-    t4: "from Analysis to GasDetected condition (sts = \<guillemotleft>gasD\<guillemotright>)"
-    t5: "from GasDetected to FinalState condition goreq((ins,\<guillemotleft>thr\<guillemotright>)) action stop"
-    t6: "from GasDetected to Reading condition \<not> goreq((ins,\<guillemotleft>thr\<guillemotright>)) 
+    t3: "from Analysis to NoGas condition U(sts = \<guillemotleft>noGas\<guillemotright>) action resume"
+    t4: "from Analysis to GasDetected condition U(sts = \<guillemotleft>gasD\<guillemotright>)"
+    t5: "from GasDetected to FinalState condition U(goreq (ins, \<guillemotleft>thr\<guillemotright>)) action stop"
+    t6: "from GasDetected to Reading condition U(\<not> goreq(ins,\<guillemotleft>thr\<guillemotright>)) 
          action anl := \<guillemotleft>location\<guillemotright>(&gs)\<^sub>a ; turn!(&anl)"
     t7: "from Reading to Analysis trigger gas?(gs)" ]
 
