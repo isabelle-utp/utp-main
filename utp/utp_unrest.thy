@@ -74,6 +74,9 @@ lemma unrest_var_comp [unrest]:
 lemma unrest_svar [unrest]: "(&x \<sharp> P) \<longleftrightarrow> (x \<sharp> P)"
   by (transfer, simp add: lens_defs)
 
+lemma unrest_lens_comp [unrest]: "x \<sharp> e \<Longrightarrow> x:y \<sharp> e"
+  by (simp add: lens_comp_def unrest_uexpr.rep_eq)
+
 text \<open> No lens is restricted by a literal, since it returns the same value for any state binding. \<close>
     
 lemma unrest_lit [unrest]: "x \<sharp> \<guillemotleft>v\<guillemotright>"

@@ -22,11 +22,6 @@ update_uexpr_rep_eq_thms
 lemma undef_defined: "\<D>(\<bottom>\<^sub>\<D>) = false"
   by (rel_simp)
 
-definition src_pred :: "('a \<Longrightarrow> 's) \<Rightarrow> 's upred" ("\<^bold>S'(_')") where
-[upred_defs]: "src_pred x = (&\<^bold>v \<in>\<^sub>u \<guillemotleft>\<S>\<^bsub>x\<^esub>\<guillemotright>)"
-
-lemma wb_lens_src_true [simp]: "wb_lens x \<Longrightarrow> \<^bold>S(x) = true"
-  by (rel_simp, simp add: wb_lens.source_UNIV) 
 
 definition partial_assign :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a, '\<alpha>) pexpr \<Rightarrow> '\<alpha> hrel_des" where
 [upred_defs, ndes_simp]: "partial_assign x e = (\<^bold>S(x) \<and> \<D>(e)) \<turnstile>\<^sub>n x := \<lfloor>e\<rfloor>\<^sub>\<D>"
