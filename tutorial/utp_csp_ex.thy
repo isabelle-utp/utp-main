@@ -81,6 +81,11 @@ lemma csp_parallel_ex5:
   "(a \<^bold>\<rightarrow> Chaos \<box> b \<^bold>\<rightarrow> Skip) \<lbrakk>{a, b}\<rbrakk>\<^sub>C (b \<^bold>\<rightarrow> Skip) = b \<^bold>\<rightarrow> Skip" (is "?lhs = ?rhs") 
   by (rdes_eq) 
 
+lemma csp_parallel_ex6:
+  assumes "vwb_lens ns\<^sub>1" "vwb_lens ns\<^sub>2" "x \<subseteq>\<^sub>L ns\<^sub>1" "y \<subseteq>\<^sub>L ns\<^sub>2" "ns\<^sub>1 \<bowtie> ns\<^sub>2"
+  shows "(x :=\<^sub>C u) \<lbrakk>ns\<^sub>1\<parallel>{b}\<parallel>ns\<^sub>2\<rbrakk> (y :=\<^sub>C v) = \<langle>[x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v]\<rangle>\<^sub>C"
+  using assms by (rdes_eq)
+
 lemma csp_interleave_ex1: "(a \<^bold>\<rightarrow> Skip) ||| (b \<^bold>\<rightarrow> Skip) = (a \<^bold>\<rightarrow> b \<^bold>\<rightarrow> Skip \<box> b \<^bold>\<rightarrow> a \<^bold>\<rightarrow> Skip)"
   by (rdes_eq)
 

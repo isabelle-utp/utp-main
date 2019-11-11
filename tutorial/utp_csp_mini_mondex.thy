@@ -27,7 +27,13 @@ datatype ch_mdx =
 type_synonym action_mdx = "(st_mdx, ch_mdx) action"
   
 subsection \<open> Actions \<close>
-  
+
+(* FIXME: We need to unify the handling of collection variables, so there isn't two clashing
+  ways of achieving this. For now, we just turn one of them off. *)
+
+no_syntax
+  "_svid_collection" :: "svid \<Rightarrow> logic \<Rightarrow> svid" ("_[_]" [999, 0] 999)
+
 text \<open> The Pay action describes the protocol when a payment of $n$ is requested between two cards,
   $i$ and $j$. It is slightly modified from the paper, as we firstly do not use operations but effect
   the transfer using indexed assignments directly, and secondly because before the transfer can proceed
