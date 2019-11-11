@@ -9,10 +9,6 @@ UTP in Isabelle by Foster, Zeyda, and Woodcock (2015).  In particular we recast 
 (unrestriction) and substitution, and also add a form of "deep variables" that provides a more flexible form of alphabet
 extension (whilst being subject to certain cardinality constraints).
 
-Our aim is to use this version of Isabelle/UTP to support the mechanised semantics work we
-are doing on EU H2020 project "INTO-CPS" (Grant agreement 644047) -- see <http://into-cps.au.dk/>
-for more information.
-
 Isabelle/UTP is very much still a work in progress, and currently requires some Isabelle expertise to use
 effectively. For viewing the git repository I highly recommend the _Matisa_ plugin by York colleague [Pedro Ribeiro](https://www-users.cs.york.ac.uk/~pfr/) which
 allows Isabelle symbols to be pretty-printed in the browser and can be obtained from the [Google Chrome
@@ -23,7 +19,7 @@ Installation
 ------------
 
 Installation requires that you have already installed the latest version of Isabelle on your system from
-<http://isabelle.in.tum.de/> (at time of writing this is Isabelle2017). We provide a ROOT file in this repository with a
+<http://isabelle.in.tum.de/> (at time of writing this is Isabelle2019). We provide a ROOT file in this repository with a
 number of heap images. Our Isabelle theories depend on a number of entries from the [Archive of Formal
 Proofs](https://www.isa-afp.org) (AFP), and without installing these dependencies you will not be able to start
 Isabelle/UTP. Our repository notably depends on the [Optics](https://www.isa-afp.org/entries/Optics.html) session which
