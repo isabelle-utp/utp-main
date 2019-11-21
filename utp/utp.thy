@@ -40,4 +40,5 @@ imports
   utp_collection
   utp_rel_opsem
   utp_blocks
+  utp_definition
 begin recall_syntax end
