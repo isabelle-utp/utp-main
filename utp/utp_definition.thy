@@ -6,7 +6,7 @@ theory utp_definition
 begin 
 
 text \<open> A first attempt at a definition command for UTP that (1) uses the lifting parser for the
-  expression and (2) adds the definitional equation to upred_defs. \<close>
+  expression on the RHS and (2) adds the definitional equation to @{thm upred_defs}. \<close>
 
 ML \<open>
 val _ =
