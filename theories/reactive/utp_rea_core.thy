@@ -183,6 +183,11 @@ lemma tt_indeps [simp]:
   using assms
   by (unfold lens_indep_def, safe, simp_all add: tcontr_def, (metis lens_indep_get var_update_out)+)
 
+lemma itrace_indeps [simp]:
+  assumes "x \<bowtie> ($tr)\<^sub>v" "x \<bowtie> ($tr\<acute>)\<^sub>v"
+  shows "x \<bowtie> \<^bold>i\<^bold>t" "\<^bold>i\<^bold>t \<bowtie> x"
+  using assms by (unfold lens_indep_def, safe, simp_all add: lens_defs)
+
 text \<open> We lift a few trace properties from the trace class using \emph{transfer}. \<close>
 
 lemma uexpr_diff_zero [simp]:
