@@ -112,6 +112,18 @@ lemma lens_equiv_trans [trans]:
   "\<lbrakk> X \<approx>\<^sub>L Y; Y \<approx>\<^sub>L Z \<rbrakk> \<Longrightarrow> X \<approx>\<^sub>L Z"
   by (auto intro: sublens_trans simp add: lens_equiv_def)
 
+lemma lens_equiv_pres_indep:
+  "\<lbrakk> X \<approx>\<^sub>L Y; Y \<bowtie> Z \<rbrakk> \<Longrightarrow> X \<bowtie> Z"
+  using lens_equiv_def sublens_pres_indep by blast
+
+lemma lens_equiv_pres_indep':
+  "\<lbrakk> X \<approx>\<^sub>L Y; Z \<bowtie> Y \<rbrakk> \<Longrightarrow> Z \<bowtie> X"
+  using lens_equiv_def sublens_pres_indep' by blast
+
+lemma lens_comp_cong_1: "X \<approx>\<^sub>L Y \<Longrightarrow> X ;\<^sub>L Z \<approx>\<^sub>L Y ;\<^sub>L Z"
+  unfolding lens_equiv_def
+  by (metis (no_types, lifting) lens_comp_assoc sublens_def)
+
 subsection \<open>Further Algebraic Laws\<close>
 
 text \<open>This law explains the behaviour of lens quotient.\<close>
@@ -199,6 +211,8 @@ done
 
 lemma lens_plus_comm: "X \<bowtie> Y \<Longrightarrow> X +\<^sub>L Y \<approx>\<^sub>L Y +\<^sub>L X"
   by (simp add: lens_equivI lens_indep_sym lens_plus_sub_comm)
+
+
 
 text \<open>Any composite lens is larger than an element of the lens, as demonstrated by the following
   four laws.\<close>
@@ -390,6 +404,10 @@ text \<open>For this reason, by transitivity, any two bijective lenses with the 
 lemma bij_lens_equiv:
   "\<lbrakk> bij_lens X; X \<approx>\<^sub>L Y \<rbrakk> \<Longrightarrow> bij_lens Y"
   by (meson bij_lens_equiv_id lens_equiv_def sublens_trans)
+
+lemma bij_lens_cong:
+  "X \<approx>\<^sub>L Y \<Longrightarrow> bij_lens X = bij_lens Y"
+  by (meson bij_lens_equiv lens_equiv_sym)
 
 text \<open>We can also show that the identity lens @{term "1\<^sub>L"} is unique. That is to say it is the only
   lens which when compose with $Y$ will yield $Y$.\<close>
