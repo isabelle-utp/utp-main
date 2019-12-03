@@ -508,7 +508,15 @@ lemma unrest_usubst_upd [unrest]:
 lemma unrest_subst [unrest]:
   "\<lbrakk> x \<sharp> P; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp> (\<sigma> \<dagger> P)"
   by (transfer, simp add: unrest_usubst_def)
-    
+
+text \<open> Unrestriction can be demonstrated by showing substitution for its variables is ineffectual. \<close>
+
+lemma unrest_as_subst: "(x \<sharp> P) \<longleftrightarrow> (\<forall> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = P)"
+  by (transfer, auto simp add: fun_eq_iff)
+
+lemma unrest_by_subst: "\<lbrakk> \<And> v. P\<lbrakk>\<guillemotleft>v\<guillemotright>/x\<rbrakk> = P \<rbrakk> \<Longrightarrow> x \<sharp> P"
+  by (simp add: unrest_as_subst)
+
 subsection \<open> Conditional Substitution Laws \<close>
 
 lemma usubst_cond_upd_1 [usubst]:
