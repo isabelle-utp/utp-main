@@ -181,6 +181,30 @@ proof
     by (transfer, rule ext, simp add: eq_iff)
 qed
 
+instantiation "uexpr" :: (equal, enum) equal
+begin
+
+definition equal_uexpr :: "('a, 'b) uexpr \<Rightarrow> ('a, 'b) uexpr \<Rightarrow> bool" where
+  "equal_uexpr f g \<longleftrightarrow> (\<forall>x \<in> set enum_class.enum. \<lbrakk>f\<rbrakk>\<^sub>e x = \<lbrakk>g\<rbrakk>\<^sub>e x)"
+
+instance proof qed (simp_all add: equal_uexpr_def uexpr_eq_iff enum_UNIV)
+
+end
+
+instantiation "uexpr" :: (enum, enum) enum
+begin
+definition enum_uexpr :: "('a, 'b) uexpr list" where
+"enum_uexpr = map mk\<^sub>e enum_class.enum"
+definition enum_all_uexpr :: "(('a, 'b) uexpr \<Rightarrow> bool) \<Rightarrow> bool" where
+"enum_all_uexpr P = enum_class.enum_all (P \<circ> mk\<^sub>e)"
+definition enum_ex_uexpr :: "(('a, 'b) uexpr \<Rightarrow> bool) \<Rightarrow> bool" where
+"enum_ex_uexpr P = enum_class.enum_ex (P \<circ> mk\<^sub>e)"
+
+instance
+  by (intro_classes, simp_all add: equal_uexpr_def enum_uexpr_def enum_all_uexpr_def enum_ex_uexpr_def)
+     (transfer, simp add: UNIV_enum enum_distinct enum_all_UNIV comp_def)+
+
+end
       
 subsection \<open> Syntax translations \<close>
 
