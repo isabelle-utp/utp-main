@@ -11,6 +11,8 @@ subsection \<open> Hoare Triple Definitions and Tactics \<close>
 definition hoare_r :: "'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> bool" ("\<lbrace>_\<rbrace>/ _/ \<lbrace>_\<rbrace>\<^sub>u") where
 "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u = ((\<lceil>p\<rceil>\<^sub>< \<Rightarrow> \<lceil>r\<rceil>\<^sub>>) \<sqsubseteq> Q)"
 
+notation hoare_r ("\<^bold>{_\<^bold>}/ _/ \<^bold>{_\<^bold>}")
+
 utp_lift_notation hoare_r (0 2)
 
 declare hoare_r_def [upred_defs]

@@ -47,10 +47,17 @@ abbreviation insertion_sort :: "int list \<Rightarrow> global hrel" where
   od) ;;
   close\<^bsub>lv\<^esub>"
 
+lemma insertion_sort_Nil: "insertion_sort [] = arr := []"
+  apply (simp add: seqr_assoc[THEN sym] block_assign_open)
+  apply (simp add: while_inv_def seqr_assoc)
+  apply (subst while_unfold)
+  apply (rel_auto)
+  done
+
 lemma insert_elem_correct: "
-    \<lbrace>0 < i \<and> i < length arr \<and> j = i \<and> sorted(nths arr {0..i-1}) \<and> perm arr xs\<rbrace>
+    \<^bold>{0 < i \<and> i < length arr \<and> j = i \<and> sorted(nths arr {0..i-1}) \<and> perm arr xs\<^bold>}
     insert_elem xs
-    \<lbrace>0 < i \<and> i < length arr \<and> sorted(nths arr {0..i}) \<and> perm arr xs\<rbrace>\<^sub>u"
+    \<^bold>{0 < i \<and> i < length arr \<and> sorted(nths arr {0..i}) \<and> perm arr xs\<^bold>}"
 proof - 
   show ?thesis 
   apply (simp add: insert_elem_def)
@@ -108,14 +115,19 @@ proof -
   apply (drule_tac x="1" in spec) back
   apply (drule_tac x="n-1" in spec) back
   apply (simp)
-  by (metis (no_types, lifting) Nat.add_diff_assoc Nat.add_diff_assoc2 One_nat_def Suc_lessD Suc_lessI Suc_less_eq Suc_pred le_SucI less_imp_le_nat plus_1_eq_Suc)
-qed
+  by (metis (no_types, lifting) Nat.add_diff_assoc Nat.add_diff_assoc2 One_nat_def Suc_lessD Suc_lessI Suc_less_eq Suc_pred le_SucI less_imp_le_nat plus_1_eq_Suc) qed
 
 lemma insertion_sort_correct: 
-  "\<lbrace>length(xs) > 0\<rbrace> insertion_sort xs \<lbrace>sorted(arr) \<and> perm arr xs\<rbrace>\<^sub>u"
+  "\<^bold>{true\<^bold>} insertion_sort xs \<^bold>{sorted(arr) \<and> perm arr xs\<^bold>}"
 proof -
   show ?thesis
-  apply (rule hoare_safe) back
+proof (cases "xs = []")
+  case True
+  thus ?thesis 
+    by (simp add: insertion_sort_Nil, rel_auto)
+next
+  case False thus ?thesis
+  apply (rule_tac hoare_safe) back
      apply (simp_all add: unrest)
   apply (rule hoare_block)
    apply (simp)
@@ -132,8 +144,8 @@ proof -
   apply (simp add: Suc_leI)
     apply (simp add: nths_single)
    apply (simp add: nths_atLeastAtMost_0_take)
-    done
-qed
+    done 
+qed qed
 
 lemma "TRY(id\<^sub>s \<Turnstile> insertion_sort [4,3,7,1,12,8])"
   apply (unfold insert_elem_def)
