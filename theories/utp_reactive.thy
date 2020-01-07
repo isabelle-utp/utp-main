@@ -6,7 +6,7 @@ imports
   utp_designs
 begin
   
-alphabet 't::fzero_trace rp_vars = des_vars +
+alphabet 't::usta_trace rp_vars = des_vars +
   wait :: bool
   tr   :: "'t"
 
@@ -56,10 +56,10 @@ lemma rea_var_ords [usubst]:
   "$tr \<prec>\<^sub>v $wait" "$tr\<acute> \<prec>\<^sub>v $wait\<acute>" "$tr \<prec>\<^sub>v $wait\<acute>" "$tr\<acute> \<prec>\<^sub>v $wait"
   by (simp_all add: var_name_ord_def)
 
-abbreviation wait_f::"('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
+abbreviation wait_f::"('t::usta_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_f R \<equiv> R\<lbrakk>false/$wait\<rbrakk>"
 
-abbreviation wait_t::"('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
+abbreviation wait_t::"('t::usta_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp"
 where "wait_t R \<equiv> R\<lbrakk>true/$wait\<rbrakk>"
 
 syntax
@@ -73,13 +73,13 @@ translations
 abbreviation lift_rea :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R") where
 "\<lceil>P\<rceil>\<^sub>R \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
-abbreviation drop_rea :: "('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("\<lfloor>_\<rfloor>\<^sub>R") where
+abbreviation drop_rea :: "('t::usta_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('\<alpha>, '\<beta>) rel" ("\<lfloor>_\<rfloor>\<^sub>R") where
 "\<lfloor>P\<rfloor>\<^sub>R \<equiv> P \<restriction>\<^sub>p (\<Sigma>\<^sub>R \<times>\<^sub>L \<Sigma>\<^sub>R)"
 
 abbreviation rea_pre_lift :: "_ \<Rightarrow> _" ("\<lceil>_\<rceil>\<^sub>R\<^sub><") where "\<lceil>n\<rceil>\<^sub>R\<^sub>< \<equiv> \<lceil>\<lceil>n\<rceil>\<^sub><\<rceil>\<^sub>R"
 
 abbreviation trace ::
-  "('t::fzero_trace, ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp) uexpr" ("tt") where
+  "('t::usta_trace, ('t, '\<alpha>) rp \<times> ('t, '\<alpha>) rp) uexpr" ("tt") where
 "tt \<equiv> $tr\<acute> - $tr"
 
 translations
@@ -287,7 +287,7 @@ lemma R1_H2_commute: "R1(H2(P)) = H2(R1(P))"
 subsection {* R2 *}
 
 definition R2a_def [upred_defs]: "R2a (P) = (\<Sqinter> s \<bullet> P\<lbrakk>\<guillemotleft>s\<guillemotright>,\<guillemotleft>s\<guillemotright>+($tr\<acute>-$tr)/$tr,$tr\<acute>\<rbrakk> \<and> (fzero $tr) =\<^sub>u (fzero \<guillemotleft>s\<guillemotright>))"
-definition R2a' :: "('t::fzero_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
+definition R2a' :: "('t::usta_trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t,'\<alpha>,'\<beta>) rel_rp" where
 R2a'_def [upred_defs]: "R2a' (P :: _ upred) = (R2a(P) \<triangleleft> R1(true) \<triangleright> P)"
 definition R2s_def [upred_defs]: "R2s (P) = (P\<lbrakk>(fzero $tr)/$tr\<rbrakk>\<lbrakk>($tr\<acute>-$tr)/$tr\<acute>\<rbrakk>)"
 definition R2_def  [upred_defs]: "R2(P) = R1(R2s(P))"
@@ -570,7 +570,7 @@ proof -
 qed
 
 lemma R2_seqr_distribute:
-  fixes P :: "('t::fzero_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  fixes P :: "('t::usta_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
   shows "R2(R2(P) ;; R2(Q)) = (R2(P) ;; R2(Q))"
 proof -
   have "R2(R2(P) ;; R2(Q)) =
@@ -598,8 +598,7 @@ proof -
       apply (rel_auto)
       apply (metis add.semigroup_axioms add_fzero_right diff_add_cancel_left' semigroup.assoc)
        apply (simp add: add.assoc)
-         apply (metis semigroup_add_left_cancel_minus_ord_class.add_diff_cancel_left semigroup_add_left_cancel_minus_ord_class.diff_zero)
-       by (meson order_trans semigroup_add_left_cancel_minus_ord_class.le_add)
+       by (meson order_trans le_add)
     thus ?thesis by simp
   qed
   also have "... =
@@ -657,7 +656,7 @@ lemma R2c_R1_seq: "R2c(R1(R2c(P)) ;; R1(R2c(Q))) = (R1(R2c(P)) ;; R1(R2c(Q)))"
   using R2c_seq[of P Q] by (simp add: R2_R2c_def)
 
 lemma R1_R2c_seqr_distribute:
-  fixes P :: "('t::fzero_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
+  fixes P :: "('t::usta_trace,'\<alpha>,'\<beta>) rel_rp" and Q :: "('t,'\<beta>,'\<gamma>) rel_rp"
   assumes "P is R1" "P is R2c" "Q is R1" "Q is R2c"
   shows "R1(R2c(P ;; Q)) = P ;; Q"
   by (metis Healthy_if R1_seqr R2c_R1_seq assms)
@@ -787,27 +786,27 @@ qed
 subsection {* UTP theories *}
 
 typedecl REA
-abbreviation "REA \<equiv> UTHY(REA, ('t::fzero_trace,'\<alpha>) rp)"
+abbreviation "REA \<equiv> UTHY(REA, ('t::usta_trace,'\<alpha>) rp)"
 
 overloading
-  rea_hcond == "utp_hcond :: (REA, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
-  rea_unit == "utp_unit :: (REA, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+  rea_hcond == "utp_hcond :: (REA, ('t::usta_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  rea_unit == "utp_unit :: (REA, ('t::usta_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
 begin
-  definition rea_hcond :: "(REA, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
+  definition rea_hcond :: "(REA, ('t::usta_trace,'\<alpha>) rp) uthy \<Rightarrow> (('t,'\<alpha>) rp \<times> ('t,'\<alpha>) rp) health"
   where [upred_defs]: "rea_hcond T = RP"
-  definition rea_unit :: "(REA, ('t::fzero_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+  definition rea_unit :: "(REA, ('t::usta_trace,'\<alpha>) rp) uthy \<Rightarrow> ('t,'\<alpha>) hrel_rp"
   where [upred_defs]: "rea_unit T = II"
 end
 
-interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::fzero_trace,'\<alpha>) rp)"
+interpretation rea_utp_theory: utp_theory "UTHY(REA, ('t::usta_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (simp_all add: rea_hcond_def utp_theory_def RP_idem)
 
-interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::fzero_trace,'\<alpha>) rp)"
+interpretation rea_utp_theory_mono: utp_theory_continuous "UTHY(REA, ('t::usta_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: RP_Continuous rea_hcond_def)
 
-interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::fzero_trace,'\<alpha>) rp)"
+interpretation rea_utp_theory_rel: utp_theory_unital "UTHY(REA, ('t::usta_trace,'\<alpha>) rp)"
   rewrites "carrier (uthy_order REA) = \<lbrakk>RP\<rbrakk>\<^sub>H"
   by (unfold_locales, simp_all add: rea_hcond_def rea_unit_def RP_seq_closure RP_skip_closure)
 
@@ -850,10 +849,10 @@ text {* We show closure of parallel by merge under the reactive healthiness cond
   of suitable restrictions on the merge predicate. We first define healthiness conditions
   for R1 and R2 merge predicates. *}
 
-definition R1m :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R1m :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R1m(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute>)"
 
-definition R1m' :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R1m' :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R1m'(M) = (M \<and> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<and> $tr\<^sub>< \<le>\<^sub>u $0-tr \<and> $tr\<^sub>< \<le>\<^sub>u $1-tr)"
 
 text {* A merge predicate can access the history through $tr$, as usual, but also through $0.tr$ and
@@ -864,13 +863,13 @@ term "M\<lbrakk>0,x,k/y,z,a\<rbrakk>"
   
 term "M\<lbrakk>0,$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>"
   
-definition R2m :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R2m :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R2m(M) = R1m(M\<lbrakk>fzero($tr\<^sub><),$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
-definition R2m' :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R2m' :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R2m'(M) = R1m'(M\<lbrakk>fzero($tr\<^sub><),$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk>)"
 
-definition R2cm :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
+definition R2cm :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge"
   where [upred_defs]: "R2cm(M) = M\<lbrakk>fzero($tr\<^sub><),$tr\<acute> - $tr\<^sub><,$0-tr - $tr\<^sub><,$1-tr - $tr\<^sub></$tr\<^sub><,$tr\<acute>,$0-tr,$1-tr\<rbrakk> \<triangleleft> $tr\<^sub>< \<le>\<^sub>u $tr\<acute> \<triangleright> M"
 
 lemma R2m'_form:
@@ -988,7 +987,7 @@ lemma R2m_disj: "R2m(P \<or> Q) = (R2m(P) \<or> R2m(Q))"
 lemma R2m_conj: "R2m(P \<and> Q) = (R2m(P) \<and> R2m(Q))"
   by (rel_auto)
 
-definition R3m :: "('t :: fzero_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" where
+definition R3m :: "('t :: usta_trace, '\<alpha>) rp merge \<Rightarrow> ('t, '\<alpha>) rp merge" where
   [upred_defs]: "R3m(M) = skip\<^sub>m \<triangleleft> $wait\<^sub>< \<triangleright> M"
 
 lemma R3_par_by_merge:
