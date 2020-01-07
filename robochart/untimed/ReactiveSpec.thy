@@ -4,8 +4,6 @@ theory ReactiveSpec
   imports "UTP-Circus.utp_circus"
 begin
 
-term "(;;)"
-
 consts
   seq_comp :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr ";" 61)
 

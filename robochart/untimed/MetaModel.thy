@@ -146,6 +146,8 @@ subsection \<open> State Machine Semantics \<close>
 abbreviation "trigger_semantics t null_event \<equiv> 
   (case tn_trigger t of Some e \<Rightarrow> if productive e then e else sync null_event | None \<Rightarrow> sync null_event)"
 
+no_utp_lift tn_condition
+
 definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
 "tr_semantics t null_event \<equiv> 
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
@@ -412,20 +414,23 @@ qed
 subsection \<open> Transition and State Parsers \<close>
 
 syntax
-  "_transition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> uexp \<Rightarrow> raction \<Rightarrow> logic"
+  "_transition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ trigger _ condition _ action _" [0,0,0,0,10] 10)
 
-  "_transition_action" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
+  "_transition_action" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic"
   ("from _ to _ action _" [0,0,10] 10)
 
-  "_transition_condition" :: "id \<Rightarrow> id \<Rightarrow> uexp \<Rightarrow> logic"
+  "_transition_condition" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic"
   ("from _ to _ condition _" [0,0,10] 10)
 
-  "_transition_condition_action" :: "id \<Rightarrow> id \<Rightarrow> uexp \<Rightarrow> raction \<Rightarrow> logic"
+  "_transition_condition_action" :: "id \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ condition _ action _" [0,0,0,10] 10)
 
   "_transition_trigger" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ trigger _" [0,0,10] 10)
+
+  "_transition_trigger_condition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic \<Rightarrow> logic"
+  ("from _ to _ trigger _ condition _" [0,0,0,10] 10)
 
   "_state" :: "raction \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> logic"
   ("entry _ during _ exit _" [0,0,10] 10)
@@ -445,12 +450,17 @@ translations
 
   "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
 
+  "_transition_trigger_condition s1 s2 t b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) b (CONST Actions.skips)"
+
+
   "_state e d x" => "CONST Node.make (CONST undefined) e d x"
 
   "_state_entry e" => "CONST Node.make (CONST undefined) e skip skip"
 
+utp_lift_notation Transition.make (3)
+
 term "from s1 to s2 trigger y := 1 ; x?(y) ; z!(1) condition b action a"
-term "from s1 to s2 action a"
+term "from s1 to s2 action x := []"
 term "from s1 to s2 trigger e"
 term "entry e during d exit x"
 term "entry e"

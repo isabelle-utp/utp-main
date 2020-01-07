@@ -41,13 +41,7 @@ lift_definition chaos :: "('s, 'e) Action" is Chaos by (simp add: closure)
 
 lift_definition miracle :: "('s, 'e) Action" is Miracle by (simp add: closure)
 
-lift_definition skips :: "('s, 'e) Action" is Skip by (simp add: closure)
-
-syntax
-  "_skips" :: "logic" ("skip")
-
-translations
-  "_skips" == "CONST skips"
+lift_definition skips :: "('s, 'e) Action" ("skip") is Skip by (simp add: closure)
 
 lift_definition stop :: "('s, 'e) Action" is Stop by (simp add: closure)
 
@@ -60,8 +54,11 @@ lift_definition seq ::
 
 adhoc_overloading seq_comp seq
 
-lift_definition cond :: "('s, 'e) Action \<Rightarrow> 's upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action"
-  is "cond_srea" by (simp add: closure)
+lift_definition cond :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action"
+  ("if _ then _ else _ end")
+  is "\<lambda> b P Q. cond_srea P b Q" by (simp add: closure)
+
+utp_lift_notation cond (0)
 
 lift_definition assigns :: "'s usubst \<Rightarrow> ('s, 'e) Action" is "AssignsCSP"
   by (simp_all add: closure)
@@ -91,10 +88,14 @@ adhoc_overloading usubst asubst
 lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" (infixr "\<^bold>&" 60) is "GuardCSP"
   by (simp add: closure)
 
+utp_lift_notation guard (0)
+
 lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" ("\<^bold>s'(_')") is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
 lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')" [999,0] 999)
   is "\<lambda> c v. c!(v) \<^bold>\<rightarrow> Skip" by (simp add: closure)
+
+utp_lift_notation send (1)
 
 lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')" [999,0] 999)
   is "\<lambda> c x. c?(v) \<^bold>\<rightarrow> x :=\<^sub>C \<guillemotleft>v\<guillemotright>" by (simp add: InputCSP_def closure)

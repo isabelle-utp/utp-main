@@ -12,17 +12,17 @@ statemachine GasAnalysis [
   vars sts::Status  gs::"GasSensor list"  ins::Intensity  anl::real
   events resume  stop  turn::real  gas::"GasSensor list"
   states InitState NoGas Reading FinalState
-         Analysis: "entry sts := \<guillemotleft>analysis\<guillemotright>(&gs)\<^sub>a" 
-         GasDetected: "entry ins := \<guillemotleft>intensity\<guillemotright>(&gs)\<^sub>a" 
+         Analysis: "entry sts := analysis(gs)" 
+         GasDetected: "entry ins := intensity(gs)" 
   initial InitState finals FinalState
   transitions
-    t1: "from InitState to NoGas action gs := \<langle>\<rangle>; anl := 0"
+    t1: "from InitState to NoGas action gs := []; anl := 0"
     t2: "from NoGas to Analysis trigger gas?(gs)"
-    t3: "from Analysis to NoGas condition U(sts = \<guillemotleft>noGas\<guillemotright>) action resume"
-    t4: "from Analysis to GasDetected condition U(sts = \<guillemotleft>gasD\<guillemotright>)"
-    t5: "from GasDetected to FinalState condition U(goreq (ins, \<guillemotleft>thr\<guillemotright>)) action stop"
-    t6: "from GasDetected to Reading condition U(\<not> goreq(ins,\<guillemotleft>thr\<guillemotright>)) 
-         action anl := \<guillemotleft>location\<guillemotright>(&gs)\<^sub>a ; turn!(&anl)"
+    t3: "from Analysis to NoGas condition (sts = noGas) action resume"
+    t4: "from Analysis to GasDetected condition (sts = gasD)"
+    t5: "from GasDetected to FinalState condition goreq(ins, thr) action stop"
+    t6: "from GasDetected to Reading condition (\<not> goreq(ins, thr)) 
+         action anl := location(gs) ; turn!(anl)"
     t7: "from Reading to Analysis trigger gas?(gs)" ]
 
 text \<open> Boilerplate code -- will eventually be automatically generated \<close>
