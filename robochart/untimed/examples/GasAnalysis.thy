@@ -8,8 +8,6 @@ consts thr :: Intensity
 
 text \<open> Gas Analysis State Machine Definition \<close>
 
-term goreq
-
 statemachine GasAnalysis [
   vars sts::Status  gs::"GasSensor list"  ins::Intensity  anl::real
   events resume  stop  turn::real  gas::"GasSensor list"

@@ -563,6 +563,15 @@ lemma frame_seq [frame]:
   apply (metis mwb_lens.put_put vwb_lens_mwb)
   done
 
+lemma frame_assign_commute_unrest:
+  assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "$x \<sharp> P" "$x\<acute> \<sharp> P"
+  shows "x := v ;; a:[P] = a:[P] ;; x := v"
+  using assms
+  apply (rel_auto)
+  apply (metis (no_types, lifting) lens_indep.lens_put_irr2 lens_indep_comm)
+  apply (metis (no_types, hide_lams) lens_indep_def)
+  done
+
 lemma frame_to_antiframe [frame]:
   "\<lbrakk> x \<bowtie> y; x +\<^sub>L y = 1\<^sub>L \<rbrakk> \<Longrightarrow> x:[P] = y:\<lbrakk>P\<rbrakk>"
   by (rel_auto, metis lens_indep_def, metis lens_indep_def surj_pair)

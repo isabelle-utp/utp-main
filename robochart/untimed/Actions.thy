@@ -65,7 +65,7 @@ lift_definition cond :: "('s, 'e) Action \<Rightarrow> 's upred \<Rightarrow> ('
 
 lift_definition assigns :: "'s usubst \<Rightarrow> ('s, 'e) Action" is "AssignsCSP"
   by (simp_all add: closure)
-  
+
 adhoc_overloading uassigns assigns
 
 lemma st_subst_NCSP_closed [closure]:
@@ -387,24 +387,28 @@ lemma frame_send [simp]: "vwb_lens a \<Longrightarrow> a:[send c v]\<^sub>A\<^su
 
 lemma frame_assigns [simp]: "vwb_lens a \<Longrightarrow> a:[\<langle>\<sigma>\<rangle>\<^sub>a]\<^sub>A\<^sup>+ = \<langle>\<sigma> \<oplus>\<^sub>s a\<rangle>\<^sub>a"
   by (simp add: action_rep_eq, rdes_eq)
+         
+lemma frame_assign_commute_unrest_aux:
+  assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "$x \<sharp> P" "$x\<acute> \<sharp> P"
+  shows "\<lceil>[x \<mapsto>\<^sub>s v]\<rceil>\<^sub>s \<dagger> a:[P] = a:[P] ;; x := v"
+  by (metis assigns_r_comp assms frame_assign_commute_unrest subst_upd_pr_var)
 
 
 lemma rea_frame_ext_subst_CRR:
   assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "P is CRR" "$ref\<acute> \<sharp> P"
   shows "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = a:[P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
-proof-
-  have "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[(CRR P)]\<^sub>r\<^sup>+ = a:[(CRR P)]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
-  using assms(1-3,5)
-    apply (rel_auto)
-    apply (simp_all add: lens_indep.lens_put_irr2)
-  sorry
-    (*
-    apply (smt lens_indep_def)
-    apply blast+
-  apply (metis lens_indep_comm)
-  done *)
-  thus ?thesis
-    by (simp add: Healthy_if assms)
+proof -
+  have "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = \<lceil>[st:x \<mapsto>\<^sub>s v \<oplus>\<^sub>p st]\<rceil>\<^sub>s \<dagger> a:[P]\<^sub>r\<^sup>+"
+    by (rel_auto)
+  also have "... = a:[P]\<^sub>r\<^sup>+ ;; st:x := v \<oplus>\<^sub>p st"
+    using assms(1-3,5)
+    by (simp add: rea_frame_ext_def rea_frame_def frame_assign_commute_unrest_aux unrest)
+  also have "... = a:[CRR P]\<^sub>r\<^sup>+ ;; st:x := v \<oplus>\<^sub>p st"
+    by (metis Healthy_def assms(4))
+  also have "... = a:[CRR P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
+    using assms(5) by (rel_blast)
+  finally show ?thesis
+    by (simp add: Healthy_if assms(4))
 qed
 
 lemma rdes_frame_ext_asubst:
@@ -421,9 +425,16 @@ lemma rdes_frame_ext_asubst:
   done
 
 
-lemma frame_asubst: "\<lbrakk> vwb_lens x; vwb_lens a; x \<bowtie> a; a \<sharp> v\<rbrakk> \<Longrightarrow> [x \<mapsto>\<^sub>s v] \<dagger> a:[P]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; x := v"
-  apply (transfer)
-  sorry
+lemma frame_asubst: 
+  assumes "vwb_lens x" "vwb_lens a" "x \<bowtie> a" "a \<sharp> v" 
+  shows "[x \<mapsto>\<^sub>s v] \<dagger> a:[P]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; x := v"
+proof -
+  obtain \<sigma> where s: "\<sigma> = [x \<mapsto>\<^sub>s v]"
+    by simp
+  have "\<sigma> \<dagger> a:[P]\<^sub>A\<^sup>+ = a:[P]\<^sub>A\<^sup>+ ; \<langle>\<sigma>\<rangle>\<^sub>a"
+    by (transfer fixing: \<sigma> a, simp add: s assms CACT_implies_NCSP rdes_frame_ext_asubst subst_upd_pr_var)
+  thus ?thesis by (simp add: pr_var_def s)
+qed
 
 (*
 lemma decl_Skip [simp]: "(decl x \<bullet> skips) = skips"

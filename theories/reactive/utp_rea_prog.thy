@@ -388,7 +388,7 @@ definition map_st_lens ::
 "map_st_lens l = inv\<^sub>L (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L st +\<^sub>L rsp_vars.more\<^sub>L) ;\<^sub>L 
                  (ok +\<^sub>L wait +\<^sub>L tr +\<^sub>L (l ;\<^sub>L st) +\<^sub>L rsp_vars.more\<^sub>L)"
 
-text \<open> The above definition is intuitive, but helpful in proof automaton. Consequently,
+text \<open> The above definition is intuitive, but unhelpful in proof automaton. Consequently,
   we the following optimised definition below. \<close>
 
 lemma map_st_lens_alt_def [lens_defs]:
@@ -396,8 +396,16 @@ lemma map_st_lens_alt_def [lens_defs]:
                   , lens_put = \<lambda> s v. \<lparr> ok\<^sub>v = ok\<^sub>v v, wait\<^sub>v = wait\<^sub>v v, tr\<^sub>v = tr\<^sub>v v, st\<^sub>v = put\<^bsub>l\<^esub> (st\<^sub>v s) (st\<^sub>v v), \<dots> = more v \<rparr> \<rparr>"
   by (auto simp add: map_st_lens_def lens_defs fun_eq_iff)
 
-lemma map_set_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
+lemma map_st_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_st\<^sub>L X)"
   by (simp add: map_st_lens_def rsp_make_lens_alt[THEN sym])
+
+lemma map_st_lens_indep_st [simp]: 
+  "a \<bowtie> x \<Longrightarrow> map_st\<^sub>L a \<bowtie> x ;\<^sub>L st"
+  by (rule lens_indep.intro, simp_all add: lens_defs lens_indep_comm lens_indep.lens_put_irr2)
+
+lemma map_st_lens_indep_st' [simp]: 
+  "x \<bowtie> a \<Longrightarrow> map_st\<^sub>L a \<bowtie> x ;\<^sub>L st"
+  by (rule lens_indep.intro, simp_all add: lens_defs lens_indep_comm lens_indep.lens_put_irr2)
 
 syntax
   "_map_st_lens" :: "logic \<Rightarrow> salpha" ("map'_st\<^sub>L[_]")
