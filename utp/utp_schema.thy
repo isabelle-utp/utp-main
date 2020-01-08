@@ -16,14 +16,26 @@ val _ =
       (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
         Scan.repeat1 Parse.const_binding) -- Scan.optional (@{keyword "where"} |-- Scan.repeat1 Parse.term) ["true"]
     >> (fn (((overloaded, x), (y, z)), ts) =>
-        let val n = Binding.name_of (snd x); open HOLogic in
-        Toplevel.theory (Lens_Utils.add_alphabet_cmd {overloaded = overloaded} x y z
-                         #> Named_Target.theory_map
-                            (fn ctx =>
-                             let val invs = Library.foldr1 HOLogic.mk_conj (map (Syntax.parse_term ctx) ts) 
-                             in 
-                               snd (UTP_Def.utp_def (Binding.make (n ^ "_inv_def", Position.none), []) (SOME (Binding.make (n ^ "_inv", Position.none), SOME ("('a " ^ n ^ "_ext) upred"), NoSyn)) (mk_eq (Free (n ^ "_inv", dummyT), invs)) ctx)
-                             end))
+        let val n = Binding.name_of (snd x)
+                   val invn = n ^ "_inv"
+                   val itb = Binding.make (invn ^ "_def", Position.none)               
+                   val ib = (SOME (Binding.make (invn, Position.none), SOME ("('a " ^ n ^ "_ext) upred"), NoSyn))
+                 open HOLogic in
+        Toplevel.theory
+          (Lens_Utils.add_alphabet_cmd {overloaded = overloaded} x y z
+           #> Named_Target.theory_map
+              (fn ctx =>
+               let val invs = Library.foldr1 HOLogic.mk_conj (map (Syntax.parse_term ctx) ts) 
+               in 
+                 snd (UTP_Def.utp_def (itb, []) ib (mk_eq (Free (invn, dummyT), invs)) ctx)
+               end)
+           #> Named_Target.theory_map 
+              (fn ctx => 
+               let val Const (cn, _) = Syntax.read_term ctx invn 
+                       val ty = Syntax.read_typ ctx (n ^ " upred") in
+               Specification.abbreviation Syntax.mode_default (SOME (Binding.make (n, Position.none), SOME ty, NoSyn)) [] (Logic.mk_equals (Free (n, dummyT), Const (cn, dummyT))) false ctx
+               end)
+)
         end));
 \<close>
 
