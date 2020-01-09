@@ -2,7 +2,7 @@ subsection \<open> RoboChart State Machine Compiler \<close>
 
 theory StateMachine
   imports MetaModel
-  keywords "statemachine" :: "thy_decl_block" and "states" "initial" "finals" "transitions" "vars" "events"
+  keywords "statemachine" :: "thy_decl_block" and "states" "initial" "finals" "transitions" "vars" "uses" "events"
 begin
 
 subsection \<open> Interface to Algebraic Datatypes \<close>
@@ -28,13 +28,13 @@ signature STATEMACHINE_COMPILER =
 sig
   val statemachineParser:
      (binding *
-       ((((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
+       ((((((string option * (binding * string * mixfix) list option) * (binding * string option) list option) * (binding * string) list) * binding) *
          binding list option)
         *
         (binding * string) list option)) parser
   val compileStatemachine:
        binding *
-       ((((((binding * string * mixfix) list option * (binding * string option) list option) * (binding * string) list) * binding) *
+       ((((((string option * (binding * string * mixfix) list option) * (binding * string option) list option) * (binding * string) list) * binding) *
          binding list option)
         *
         (binding * string) list option)
@@ -57,6 +57,8 @@ open Scan;
 
 val event_binding = binding -- option ($$$ "::" |-- !!! typ);
 
+val usesDeclParser = @{keyword "uses"} |-- short_ident;
+
 val varDeclParser = @{keyword "vars"} |-- repeat1 const_binding;
 
 val eventsParser = @{keyword "events"} |-- repeat1 event_binding;
@@ -73,24 +75,25 @@ val transDeclParser = @{keyword "transitions"} |-- repeat1 ((binding --| $$$ ":"
 
 val statemachineParser = 
   Parse.binding -- 
-    (Parse.$$$ "[" |-- 
-      Scan.option varDeclParser -- 
+    (@{keyword "="} |-- 
+      Scan.option usesDeclParser --
+      Scan.option varDeclParser --
       Scan.option eventsParser -- 
       stateDeclParser --
       initStateParser --
       Scan.option finalsStateParser --
       Scan.option transDeclParser
-    --| Parse.$$$ "]");
+    );
 
-fun compileVarDecls (sm_binding : binding, SOME defs) = 
+fun compileVarDecls (uses: string option, sm_binding : binding, SOME defs) = 
   Lens_Utils.add_alphabet_cmd 
     {overloaded = false} 
     ([], Binding.suffix_name "_alphabet" sm_binding) 
-    NONE 
+    uses 
     defs |
-compileVarDecls (sm_binding : binding, NONE) = 
+compileVarDecls (uses: string option, sm_binding : binding, NONE) = 
   Named_Target.theory_map (
-  snd o Typedecl.abbrev_cmd (Binding.suffix_name "_alphabet" sm_binding, [], Mixfix.NoSyn) "robochart_ctrl");;
+  snd o Typedecl.abbrev_cmd (Binding.suffix_name "_alphabet" sm_binding, [], Mixfix.NoSyn) (the_default "unit" uses));;
 
 fun compileEventDecls (SOME defs) =
   basic_datatype (Binding.name "events", 
@@ -142,7 +145,7 @@ fun compileTransDecls (SOME defs) typ ctx =
            let 
              val tm = Syntax.parse_term ctx t;
              val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
-             (* Calculate the source node name for each transitions. Quite slow; optimise. *)
+             (* Calculate the source node name for each transition. Quite slow; optimise. *)
              val src = Raw_Simplifier.rewrite_term (Proof_Context.theory_of ctx) (@{thms Transition.simps[THEN eq_reflection]} @ @{thms Transition.defs} @ [thm]) [] (Syntax.check_term ctx (tn_source $ trm));
              val sthm = prove_eq_simplify ctx' (tn_source $ trm) src [thm];
            in
@@ -165,16 +168,21 @@ fun compileTransSem null_event def_thms tds ctx =
   in Local_Theory.note ((Binding.name "semantics", []), sem_thms) ctx end;
 
 
-fun compileStatemachine (n, (((((vs, es), ss), ins), fins), ts)) thy0 =
-  let val thy1 = compileVarDecls (n, vs) thy0;
+fun compileStatemachine (n, ((((((us, vs), es), ss), ins), fins), ts)) thy0 =
+  let val thy1 = compileVarDecls (us, n, vs) thy0;
+      (* Create a new locale for the state machines *)
       val (loc, ctx0) = Expression.add_locale_cmd n Binding.empty ([],[]) [] thy1;
+      (* Construct an algebraic datatype for the event alphabet *)
       val ctx1 = compileEventDecls es ctx0;
+      (* Create an alphabet type for the variables *)
       val alphaT = Syntax.read_typ ctx1 (Binding.name_of n ^ "_alphabet");
+      (* Generate the event, state, transition, machine, and action types *)
       val evT = Syntax.read_typ ctx1 ("events");
       val stateT = nodeT alphaT evT;
       val tranT = transitionT alphaT evT;
       val machineT = statemachineT alphaT evT;
       val actT = actionT alphaT evT;
+      (* Compile the transition declarations *)
       val (tds, tsimps, ctx2) = compileTransDecls ts tranT ctx1;
       val transDef = mk_def (listT tranT) $ Free ("transitions", (listT tranT)) $ mk_list tranT (map fst tds);
       val ((tr_term, (_, tr_thm)), ctx3) = Specification.definition NONE [] [] ((Binding.empty, []), transDef) ctx2;
@@ -199,6 +207,11 @@ val _ =
   (statemachineParser >> (Toplevel.theory o compileStatemachine));
 
 end;
+
+Goal.prove;
+Local_Theory.note;
 \<close>
+
+
 
 end

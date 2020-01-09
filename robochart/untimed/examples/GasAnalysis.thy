@@ -8,7 +8,7 @@ consts thr :: Intensity
 
 text \<open> Gas Analysis State Machine Definition \<close>
 
-statemachine GasAnalysis [
+statemachine GasAnalysis =
   vars sts::Status  gs::"GasSensor list"  ins::Intensity  anl::real
   events resume  stop  turn::real  gas::"GasSensor list"
   states InitState NoGas Reading FinalState
@@ -23,9 +23,12 @@ statemachine GasAnalysis [
     t5: "from GasDetected to FinalState condition goreq(ins, thr) action stop"
     t6: "from GasDetected to Reading condition (\<not> goreq(ins, thr)) 
          action anl := location(gs) ; turn!(anl)"
-    t7: "from Reading to Analysis trigger gas?(gs)" ]
+    t7: "from Reading to Analysis trigger gas?(gs)"
 
 text \<open> Boilerplate code -- will eventually be automatically generated \<close>
+
+lemma Wf: "WfStateMachine GasAnalysis.machine"
+  by (check_machine defs: GasAnalysis.defs)
 
 lemma GasAnalysis_nmap:"nmap\<^bsub>GasAnalysis.machine\<^esub> = 
     [''InitState'' \<mapsto> GasAnalysis.InitState, ''NoGas'' \<mapsto> GasAnalysis.NoGas, ''Reading'' \<mapsto> GasAnalysis.Reading, ''FinalState'' \<mapsto>
@@ -36,8 +39,6 @@ lemma GasAnalysis_tmap:"tmap\<^bsub>GasAnalysis.machine\<^esub> = [''InitState''
      \<mapsto> [GasAnalysis.t4, GasAnalysis.t3], ''GasDetected'' \<mapsto> [GasAnalysis.t6, GasAnalysis.t5]]"
   by (simp add: sm_trans_map_def GasAnalysis.machine_def GasAnalysis.states_def GasAnalysis.transitions_def GasAnalysis.simps)
 
-lemma Wf: "WfStateMachine GasAnalysis.machine"
-  by (check_machine defs: GasAnalysis.defs)
 
 lemma [simp]: "ninit\<^bsub>GasAnalysis.machine\<^esub> = GasAnalysis.InitState"
   by (simp add: GasAnalysis.defs sm_node_map_def)
