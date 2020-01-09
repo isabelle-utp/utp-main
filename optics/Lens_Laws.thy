@@ -51,6 +51,12 @@ definition lens_create :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarr
 
 text \<open> Function $\lcreate_X~v$ creates an instance of the source type of $X$ by injecting $v$
   as the view, and leaving the remaining context arbitrary. \<close>
+    
+definition lens_update :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b)" ("update\<index>") where
+[lens_defs]: "lens_update X f \<sigma> = put\<^bsub>X\<^esub> \<sigma> (f (get\<^bsub>X\<^esub> \<sigma>))"
+
+text \<open> The update function is analogous to the record update function which lifts a function
+  on a view type to one on the source type. \<close>
 
 subsection \<open>Weak Lenses\<close>
 
@@ -80,14 +86,8 @@ begin
   lemma create_inj: "inj create"
     by (metis create_get injI)
 
-  text \<open> The update function is analogous to the record update function which lifts a function
-    on a view type to one on the source type. \<close>
-    
-  definition update :: "('a \<Rightarrow> 'a) \<Rightarrow> ('b \<Rightarrow> 'b)" where
-  [lens_defs]: "update f \<sigma> = put \<sigma> (f (get \<sigma>))"
-
   lemma get_update: "get (update f \<sigma>) = f (get \<sigma>)"
-    by (simp add: put_get update_def)
+    by (simp add: put_get lens_update_def)
 
   lemma view_determination: 
     assumes "put \<sigma> u = put \<rho> v"
@@ -139,7 +139,7 @@ locale mwb_lens = weak_lens +
 begin
 
   lemma update_comp: "update f (update g \<sigma>) = update (f \<circ> g) \<sigma>"
-    by (simp add: put_get put_put update_def)
+    by (simp add: put_get put_put lens_update_def)
 
   text \<open> Mainly well-behaved lenses give rise to a weakened version of the $get-put$ law, 
     where the source must be within the set of constructible sources. \<close>
