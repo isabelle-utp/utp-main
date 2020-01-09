@@ -44,6 +44,31 @@ lemma AlternateR_list_NCSP_closed [closure]:
   apply (metis assms(1) eq_snd_iff nth_mem)
   done
 
+subsection \<open> Specification Statement \<close>
+
+definition SpecC :: "('a \<Longrightarrow> 's) \<Rightarrow> 's upred \<Rightarrow> 's upred \<Rightarrow> ('s, 'e) action" ("_:[_,_]\<^sub>C" [999,0,0] 999) where
+[rdes_def]: "SpecC frm pre post = \<^bold>R\<^sub>s([pre]\<^sub>S\<^sub>< \<turnstile> false \<diamondop> [frm:[post\<^sup>>]]\<^sub>S)"
+
+lemma SpecC_is_NCSP [closure]: "frm:[pre,post]\<^sub>C is NCSP"
+  apply (simp add: SpecC_def)
+  apply (rule NCSP_rdes_intro)
+      apply (simp_all add: closure unrest)
+   apply (rel_auto)+
+  done
+
+lemma SpecC_skip: "{}\<^sub>v:[true,true]\<^sub>C = Skip"
+  by (rdes_eq)
+
+lemma SpecC_false_pre: "a:[false,q]\<^sub>C = Chaos"
+  by (rdes_eq)
+
+lemma SpecC_false_post: "a:[true,false]\<^sub>C = Miracle"
+  by (rdes_eq)
+
+lemma SpecC_refine_seq:
+  "vwb_lens a \<Longrightarrow> a:[p,q]\<^sub>C \<sqsubseteq> a:[p,r]\<^sub>C ;; a:[r,q]\<^sub>C"
+  by ((rdes_refine_split; rel_simp), metis vwb_lens.put_eq)
+
 subsection \<open> Assumptions \<close>
 
 definition AssumeCircus ("[_]\<^sub>C") where

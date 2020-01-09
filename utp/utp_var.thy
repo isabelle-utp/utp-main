@@ -274,6 +274,8 @@ text \<open> The terminals of an alphabet are either HOL identifiers or UTP vari
 
 syntax \<comment> \<open> Quotations \<close>
   "_ualpha_set"  :: "svars \<Rightarrow> logic" ("{_}\<^sub>\<alpha>")  
+  "_svid_set"    :: "svids \<Rightarrow> logic" ("{_}\<^sub>v")
+  "_svid_empty"  :: "logic" ("{}\<^sub>v")
   "_svar"        :: "svar \<Rightarrow> logic" ("'(_')\<^sub>v")
   
 text \<open> For various reasons, the syntax constructors above all yield specific grammar categories and
@@ -327,6 +329,8 @@ translations
 
   \<comment> \<open> Quotations \<close>
   "_ualpha_set A" \<rightharpoonup> "A"
+  "_svid_set A" \<rightharpoonup> "A"
+  "_svid_empty" \<rightharpoonup> "0\<^sub>L"
   "_svar x" \<rightharpoonup> "x"
 
 text \<open> The translation rules mainly convert syntax into lens constructions, using a mixture
