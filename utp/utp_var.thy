@@ -329,7 +329,7 @@ translations
 
   \<comment> \<open> Quotations \<close>
   "_ualpha_set A" \<rightharpoonup> "A"
-  "_svid_set A" \<rightharpoonup> "A"
+  "_svid_set A" \<rightharpoonup> "_mk_svid_list A"
   "_svid_empty" \<rightharpoonup> "0\<^sub>L"
   "_svar x" \<rightharpoonup> "x"
 

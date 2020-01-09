@@ -45,6 +45,13 @@ lift_definition skips :: "('s, 'e) Action" ("skip") is Skip by (simp add: closur
 
 lift_definition stop :: "('s, 'e) Action" is Stop by (simp add: closure)
 
+lift_definition 
+  spec :: "('a \<Longrightarrow> 's) \<Rightarrow> 's upred \<Rightarrow> 's upred \<Rightarrow> ('s, 'e) Action" ("_:[_, _]" [999, 0, 0] 999) 
+  is "SpecC"
+  by (simp add: closure)
+
+utp_lift_notation spec (1 2)
+
 lift_definition assumption :: "'s upred \<Rightarrow> ('s, 'e) Action" ("[_]\<^sub>A") is "AssumeCircus"
   by (simp add: closure)
 
