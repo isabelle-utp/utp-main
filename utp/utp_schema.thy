@@ -19,7 +19,7 @@ val _ =
         let val n = Binding.name_of (snd x)
                    val invn = n ^ "_inv"
                    val itb = Binding.make (invn ^ "_def", Position.none)               
-                   val ib = (SOME (Binding.make (invn, Position.none), SOME ("('a " ^ n ^ "_ext) upred"), NoSyn))
+                   val ib = (SOME (Binding.make (invn, Position.none), SOME ("('a " ^ n ^ "_scheme) upred"), NoSyn))
                  open HOLogic in
         Toplevel.theory
           (Lens_Utils.add_alphabet_cmd {overloaded = overloaded} x y z
