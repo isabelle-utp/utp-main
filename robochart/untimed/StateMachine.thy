@@ -196,10 +196,16 @@ fun compileStatemachine (n, ((((((us, vs), es), ss), ins), fins), ts)) thy0 =
       val semDef = mk_def actT $ Free ("action", actT) $ (sm_semantics $ mch_term $ null_event);
       val ((act_term, (_, act_thm)), ctx7) = Specification.definition NONE [] [] ((Binding.empty, []), semDef) ctx6;
       val def_thms = map (snd o snd) tds @ map (snd o snd) sds @ [st_thm, tr_thm, mch_thm, act_thm];
-      val (_, ctx8) = Local_Theory.note ((Binding.name "defs", []), def_thms) ctx7;
+      val ((_, defs), ctx8) = Local_Theory.note ((Binding.name "defs", []), def_thms) ctx7;
       val (_, ctx9) = compileTransSem null_event def_thms tds ctx8;
       val (_, ctx10) = Local_Theory.note ((Binding.name "simps", []), simps @ tsimps) ctx9;
-  in Local_Theory.exit_global ctx10
+      val (_, ctx11) = 
+        Local_Theory.note ((Binding.name "Wf", []), 
+                           [Goal.prove ctx10 [] [] 
+                            (Const (@{const_name Trueprop}, dummyT) $ (Const (@{const_name WfStateMachine}, dummyT --> dummyT) $ mch_term))
+                            (fn {context = ctx, prems = _} => Method.NO_CONTEXT_TACTIC ctx10 (Method_Closure.apply_method ctx \<^method>\<open>check_machine\<close> [] [defs] [] ctx10 []))
+                           ]) ctx10;
+  in Local_Theory.exit_global ctx11
   end;
 
 val _ =

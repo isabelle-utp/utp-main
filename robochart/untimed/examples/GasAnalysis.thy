@@ -25,10 +25,8 @@ statemachine GasAnalysis =
          action anl := location(gs) ; turn!(anl)"
     t7: "from Reading to Analysis trigger gas?(gs)"
 
-text \<open> Boilerplate code -- will eventually be automatically generated \<close>
 
-lemma Wf: "WfStateMachine GasAnalysis.machine"
-  by (check_machine defs: GasAnalysis.defs)
+text \<open> Boilerplate code -- will eventually be automatically generated \<close>
 
 lemma GasAnalysis_nmap:"nmap\<^bsub>GasAnalysis.machine\<^esub> = 
     [''InitState'' \<mapsto> GasAnalysis.InitState, ''NoGas'' \<mapsto> GasAnalysis.NoGas, ''Reading'' \<mapsto> GasAnalysis.Reading, ''FinalState'' \<mapsto>
@@ -61,7 +59,7 @@ text \<open> Deadlock Freedom Check \<close>
 
 lemma GasAnalysis_deadlock_free: "dlockf \<sqsubseteq> GasAnalysis.action"
   \<comment> \<open> The following line produces three proof obligations that can be discharged by sledgehammer \<close>
-  apply ((sm_induct wf:Wf simps: GasAnalysis.action_def GasAnalysis_inters, sm_calc simps: GasAnalysis_nmap GasAnalysis_tmap GasAnalysis.semantics GasAnalysis.simps); (simp add: action_rep_eq, rdes_refine))
+  apply ((sm_induct wf:GasAnalysis.Wf simps: GasAnalysis.action_def GasAnalysis_inters, sm_calc simps: GasAnalysis_nmap GasAnalysis_tmap GasAnalysis.semantics GasAnalysis.simps); (simp add: action_rep_eq, rdes_refine))
   oops
 
 

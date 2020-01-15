@@ -429,6 +429,9 @@ syntax
   "_transition_trigger" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic"
   ("from _ to _ trigger _" [0,0,10] 10)
 
+  "_transition_trigger_action" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> raction \<Rightarrow> logic"
+  ("from _ to _ trigger _ action _" [0,0,0,10] 10)
+
   "_transition_trigger_condition" :: "id \<Rightarrow> id \<Rightarrow> raction \<Rightarrow> logic \<Rightarrow> logic"
   ("from _ to _ trigger _ condition _" [0,0,0,10] 10)
 
@@ -449,6 +452,8 @@ translations
   "_transition_condition_action s1 s2 b a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b a"
 
   "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
+
+  "_transition_trigger_action s1 s2 t a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true a"
 
   "_transition_trigger_condition s1 s2 t b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) b (CONST Actions.skips)"
 
