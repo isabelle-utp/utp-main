@@ -49,7 +49,7 @@ text {* If we wanted to show that given a plus operator between
 
 section {* Standard terminated lists *}
   
-datatype '\<alpha> stlist = Nil "'\<alpha>" ("[;(_)]") | Cons "'\<alpha>" "'\<alpha> stlist" (infixr "#\<^sub>t" 65)  
+datatype '\<alpha> stlist = One "'\<alpha>" ("[;(_)]") | Cons "'\<alpha>" "'\<alpha> stlist" (infixr "#\<^sub>t" 65)  
   
 syntax
   "_stlist"     :: "args \<Rightarrow> 'a \<Rightarrow> '\<alpha> stlist"    ("[(_); (_)]")
@@ -763,7 +763,7 @@ proof -
       
   then have "tail([;y] + x) = tail(x)"
    proof (cases x)
-      case (Nil x1)
+      case (One x1)
       then show ?thesis 
         by (metis concat_stlist.simps(1) head.simps(1) plus_stlist_def add_diff_cancel_left add_diff_cancel_left' stlist_head_concat_tail)
     next
@@ -796,7 +796,7 @@ proof -
   
   then have "head([;y]+x) - y = head(x)"
     proof (cases x)
-      case (Nil x1)
+      case (One x1)
       then show ?thesis 
         by (simp add: plus_stlist_def)
     next
@@ -907,7 +907,7 @@ lemma stlist_le_elements_imp_stlist_le_nil:
   fixes a b :: "'a::usta_trace"
   shows "a \<le> b \<Longrightarrow> [;a] \<le> [;b]"
   apply (simp add: less_eq_stlist_def fzero_le_def le_is_fzero_le)
-   by (metis concat_stlist.simps(1) plus_stlist_def usta_trace_class.le_iff_add)
+   by (metis concat_stlist.simps(1) plus_stlist_def)
     
 lemma stlist_le_nil_iff_le_elements:
   fixes a b :: "'a::usta_trace"
@@ -923,7 +923,7 @@ lemma stlist_nil_le_cons_imp_le:
   apply auto
   apply (case_tac c)
    apply (simp add: plus_stlist_def)
-    by (metis stlist_cons_plus_nils_eq_cons usta_trace_class.le_add)
+    by (metis stlist_cons_plus_nils_eq_cons)
     
 lemma monoid_le_stlist:
   fixes a :: "'a::usta_trace stlist"

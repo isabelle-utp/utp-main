@@ -3,6 +3,8 @@ section {* Monoid variants and extra properties *}
 theory Monoid_extra
   imports List_extra "~~/src/HOL/Library/Prefix_Order"
 begin
+  
+subsection \<open> Monoid trace algebra \<close>
 
 class ordered_semigroup = semigroup_add + order +
   assumes add_left_mono: "a \<le> b \<Longrightarrow> c + a \<le> c + b"
@@ -253,13 +255,13 @@ instance nat :: trace
   apply linarith+
   done
     
+subsection \<open> Unary Semigroup Trace Algebra \<close>    
+    
 text \<open> In this theory we present a variant of the trace algebra where instead of
        a partial order we have a preorder. This is possible by generalising the
        zero of the monoid-based trace algebra and dropping anti-symmetry.
-       Effectively we have a left-cancellative unary semigroup whose unary
-       function @{term f\<^sub>0} is idempotent.  \<close>
-
-subsection \<open> Unary fzero \<close>
+       Effectively we have a left-cancellative unary semigroup trace algebra (USTA)
+       whose unary function @{term f\<^sub>0} is idempotent.  \<close>
 
 text \<open> We call the unary function fzero @{term f\<^sub>0}, that is, a "functional zero"
        when compared to the monoid-based trace algebra. \<close>
@@ -267,49 +269,35 @@ text \<open> We call the unary function fzero @{term f\<^sub>0}, that is, a "fun
 class fzero = 
   fixes fzero :: "'a \<Rightarrow> 'a" ("f0'(_')")
 
-text \<open> The monoid-based trace algebra can be obtained by fixing @{term f\<^sub>0} as 0.
-       We explore this in the trace algebra hierarchy theory file \<close>
+text \<open> The monoid-based trace algebra can be obtained by fixing @{term f\<^sub>0} as 0. \<close>
     
 class fzero_is_0 = fzero + zero +
   assumes fzero_is_0: "f0(a) = 0"
 
 text \<open> If we admit @{term f\<^sub>0} to be the identity, then we obtain a semigroup that
-       belongs to the class of U-semigroups. In particular, when combined with the
-       trace algebra presented in this theory, we obtain a *-semigroup. \<close>
+       belongs to the class of U-semigroups. \<close>
 
 class fzero_ident = fzero +
   assumes fzero_ident: "f0(a) = a"
 
-subsection \<open> Unary fzero semigroup \<close>
+subsubsection \<open> Unary semigroup axioms \<close>
 
+paragraph \<open> USTA1 \<close>  
+  
 text \<open> The class of semigroups with a unary function is then defined. \<close>
 
-(* USTA1 *)
 class semigroup_add_fzero = semigroup_add + fzero
+
+paragraph \<open> USTA2 \<close>  
+  
+text \<open> We then define "mirror" properties of a monoid, but instead we
+       require the zero property (on the right) on fzero, rather than 0. \<close>
     
-text \<open> We then define mirror properties of a monoid, but instead we
-       require the zero property on fzero, rather than 0. \<close>
-    
-(* USTA2 *)
 class fzero_right_ident = fzero + plus +
   assumes add_fzero_right[simp]: "a + f0(a) = a"
     
-(* USTA3 *)
-class add_left_cancel = plus +
-  assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"    
+text \<open> The following is a class combining USTA1 and USTA2. \<close>    
     
-(* Left-cancellative semigroup *)
-class semigroup_add_left_cancel = semigroup_add + add_left_cancel
-  
-text \<open> In this algebra we only require zero_sum_right, but not
-        zero_sum_left. The immediate consequence is that we do
-        not obtain an order as there is no anti-symmetry. \<close>  
-
-(* USTA4 *)
-class fzero_sum_right = fzero + plus +
-  assumes fzero_sum_right: "a + b = f0(b) \<Longrightarrow> b = f0(b)"
-      
-(* USTA1+2 *)
 class fzero_add_zero = fzero_right_ident + semigroup_add_fzero
 begin
   
@@ -340,25 +328,39 @@ lemma fzero_le_add_left_mono:
   using fzero_le_def
   using add_assoc by auto  
   
-end
+end    
+
+paragraph \<open> USTA3 \<close>    
+
+class add_left_cancel = plus +
+  assumes add_left_imp_eq: "a + b = a + c \<Longrightarrow> b = c"    
     
-(* USTA1+2+3 *)
+(* Left-cancellative semigroup *)
+class semigroup_add_left_cancel = semigroup_add + add_left_cancel
+  
+text \<open> In this algebra we only require zero_sum_right, but not
+        zero_sum_left. The immediate consequence is that we do
+        not obtain an order as there is no anti-symmetry. \<close>  
+
+text \<open> The following class combines USTA1, USTA2 and USTA3. \<close>
+
 class fzero_semigroup_left_cancel = add_left_cancel + fzero_add_zero 
 begin
   
 lemma add_fzero_left[simp]: "f0(a) + a = a"
   by (metis add_assoc local.add_fzero_right local.add_left_imp_eq)
-  
+      
+text \<open> The following lemma is key for lifting results on finite sequences (stlist type)
+       later on. \<close>    
+    
+lemma add_fzero_any_left[simp]: "f0(b) + a = a"
+  by (metis add_assoc local.add_fzero_right local.add_left_imp_eq)
+
+text \<open> As it turns out, following USTA2, f0 must be idempotent. \<close>    
+    
 lemma fzero_idem[simp]: "f0(f0(a)) = f0(a)"
   by (metis add_assoc local.add_fzero_right local.add_left_imp_eq)
-    
-(* This property is key for lifting the results on stlists. *)
-lemma add_fzero_any_left[simp]: "f0(b) + a = a"
-  
-  by (metis add_assoc local.add_fzero_right local.add_left_imp_eq)
-    
-(* TODO: Add lemma1/2 here to aid readability of proofs. *)
-    
+            
 lemma fzero_plus_left: "f0(y) = f0(x) + f0(y)"
 proof -
   have "(x + y) + f0(x + y) = x + y"
@@ -380,6 +382,9 @@ proof -
     using local.add_left_imp_eq by blast
   then show ?thesis by simp
 qed  
+  
+lemma fzero_dist_plus: "f0(x + y) = f0(x) + f0(y)"
+  by (simp add: fzero_plus_anihilate)
   
 text \<open> A number of properties about concatenation and subtraction can be proved using
        USTA1-3. \<close>
@@ -405,13 +410,20 @@ lemma "b \<le>us a \<Longrightarrow> x = a -us b \<longleftrightarrow> b + x = a
   
 end
   
+paragraph \<open> USTA4 \<close>
+  
+class fzero_sum_right = fzero + plus +
+  assumes fzero_sum_right: "a + b = f0(b) \<Longrightarrow> b = f0(b)"
+  
 instance fzero_semigroup_left_cancel \<subseteq> semigroup_add_left_cancel
   by intro_classes
   
-(* USTA1+2+4 *)
-class fzero_sum_zero = fzero_add_zero + fzero_sum_right
+text \<open> The following class combines USTA1, USTA2 and USTA4. \<close>    
     
-(* USTA1+2+3+4 *)
+class fzero_sum_zero = fzero_add_zero + fzero_sum_right
+  
+text \<open> Finally, a usta_semigroup combines all axioms USTA1, USTA2, USTA3 and USTA4. \<close>
+
 class usta_semigroup = fzero_sum_zero + fzero_semigroup_left_cancel
 begin
   
@@ -422,34 +434,28 @@ lemma fzero_le_least_fzero: "fzero a \<le>us b"
 
 end
   
-(* Axiom independence *)
+paragraph \<open> Axiom independence \<close>
 
-lemma 
+lemma USTA123_not_imp_USTA4:
   fixes a :: "'a::fzero_semigroup_left_cancel" (* USTA1+2+3 *)
   shows "a + b = f0(b) \<Longrightarrow> b = f0(b)" (* USTA4 *)
   nitpick[expect=genuine] oops
     
-lemma 
+lemma USTA124_not_imp_USTA3:
   fixes a :: "'a::{fzero_add_zero,fzero_sum_right}" (* USTA1+2+4 *)
   shows "a + b = a + c \<Longrightarrow> b = c" (* USTA3 *)
   nitpick[expect=genuine] oops
     
-lemma 
+lemma USTA134_not_imp_USTA2:
   fixes a :: "'a::{semigroup_add_fzero,add_left_cancel,fzero_sum_right}" (* USTA1+3+4 *)
   shows "a + f0(a) = a" (* USTA2 *)
   nitpick[expect=genuine] oops
     
-lemma 
+lemma USTA234_not_imp_USTA1:
   fixes a :: "'a::{fzero_right_ident,add_left_cancel,fzero_sum_right}" (* USTA2+3+4 *)
   shows "(a + b) + c = a + (b + c)" (* USTA1 *)
   nitpick[expect=genuine] oops
-  
-(* defines operators in the context of usta_semigroup *)    
-    
-(* define usta_trace as usta_semigroup + ops + eqs mapping \<le> and \<le>\<^sub>u\<^sub>s *)    
-    
-(********* OLD BELOW *********)    
-    
+      
 instance fzero_sum_zero \<subseteq> fzero_add_zero
   by intro_classes  
   
@@ -459,7 +465,9 @@ instance fzero_add_zero \<subseteq> semigroup_add_fzero
 instance fzero_sum_zero \<subseteq> semigroup_add_fzero
   by intro_classes    
     
-text \<open> However, when in addition we consider the class fzero_is_0, then trivially we have that 
+paragraph \<open> Obtaining the monoid trace algebra \<close>    
+    
+text \<open> When in addition we consider the class fzero_is_0, then trivially we have that 
        sum_left and sum properties are satisfied as expected. \<close>
     
 lemma fzero_sum_left:
@@ -472,10 +480,11 @@ lemma fzero_sum:
   shows "a + b = f0(a) \<longleftrightarrow> a = f0(a) \<and> b = f0(b)"
   by (metis add_fzero_right fzero_is_0 fzero_sum_right)
 
-
-  
+subsubsection \<open> USTA trace \<close>    
+    
 text \<open> A USTA semigroup whose @term{\<le>}, @term{<} and @term{-} are related with
-       the operators defined for a USTA.  \<close>  
+       the operators defined for a USTA. Note that this a technicality to enable
+       relating existing types endowed with ord and minus. \<close> 
   
 class usta_trace = usta_semigroup + ord + minus +
   assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>us b)"
@@ -529,7 +538,6 @@ lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
   lemma least_zero [simp]: "f0(a) \<le> b"
     by (metis local.add.semigroup_axioms local.add_fzero_right local.add_left_imp_eq local.le_iff_add semigroup.assoc)
 
-  (* TODO: Check this still works in CTA theory *)
   lemma not_le_minus [simp]:  "\<not> (a \<le> b) \<Longrightarrow> b - a = f0(b)"
     by (simp add: local.fzero_subtract_def local.le_is_fzero_le local.minus_def)
       
@@ -569,6 +577,10 @@ lemma le_iff_add: "a \<le> b \<longleftrightarrow> (\<exists> c. b = a + c)"
     by (metis local.diff_add_cancel_left' local.sum_minus_right)  
   
 end
+
+paragraph \<open> Preorder \<close>
+
+text \<open> A USTA trace is a preorder. \<close>  
   
 instance usta_trace \<subseteq> preorder
 proof
@@ -581,7 +593,12 @@ proof
     using le_is_fzero_le 
     by (metis fzero_add_zero_class.fzero_le_trans)
 qed
- 
+
+paragraph \<open> Additional axiom \<close>
+
+text \<open> The following is an additional axiom that is explored in the monoid trace algebra.
+       So we define a corresponding extended class as usta_trace_split. \<close>  
+  
 class sum_eq_sum_conv = plus +
   assumes sum_eq_sum_conv: "(a + b) = (c + d) \<Longrightarrow> \<exists> e . a = c + e \<and> e + b = d \<or> a + e = c \<and> b = e + d"
   
@@ -611,24 +628,6 @@ begin
     by (metis least_zero local.add_fzero_left local.diff_cancel local.fzero_sum_right local.less_iff sum_minus_left)    
 end
   
-(** OLD BELOW **)
-  
-text \<open> The following class allows @term{\<le>}, @term{<} and @term{-} to be related with
-       that of fzero_add_zero. \<close>
-
-class fzero_add_fzero_ord = fzero_add_zero + ord + 
-  assumes le_is_fzero_le: "a \<le> b \<longleftrightarrow> (a \<le>us b)"
-  and less_iff: "a < b \<longleftrightarrow> a \<le> b \<and> \<not> (b \<le> a)"
-  
-class fzero_add_fzero_ord_minus = fzero_add_fzero_ord + ord + minus +
-  assumes minus_def: "a - b = a -us b"
-
-subsection \<open> Unary left-cancellative fzero semigroup class \<close>
-  
-text \<open> Following the approach in Trace_Algebra we define a @{term pre_trace} class,
-       where in addition to satisfying @{term fzero_sum_zero}, and being a left cancellative
-       semigroup, also requires @{term sum_eq_sum_conv}. \<close>
-
 instance usta_trace_split \<subseteq> semigroup_add_fzero
   by intro_classes 
  
@@ -636,7 +635,7 @@ text {* As stated earlier, there is no antisymmetry unless fzero
         is a constant. *}  
   
 lemma fzero_monoid_le_antisym :
-  fixes a :: "'a::{fzero_is_0,usta_trace_split}"
+  fixes a :: "'a::{fzero_is_0,usta_trace}"
   assumes "a \<le>us b" "b \<le>us a"
   shows "a = b"
 proof -
@@ -667,58 +666,54 @@ proof -
 
 qed
 
-text \<open> We finally define the extended trace algebra that uses @{term f\<^sub>0}. \<close>
-  
-text {* This algebra forms a preorder. It turns out this is
-        sufficient for the theories on reactive processes. *}  
+subsubsection \<open> Semigroup properties \<close>
  
 (* the following are properties satisfied by left/right restriction semigroups,
    but the usta_trace class does not satisfy all of them. I do not think that
    properties related to commutativity are ever satisfied in the general case. *)
     
-lemma fzero_restrict0:
+lemma usta_LR1:  
+  fixes a :: "'a::usta_trace"
+  shows "f0(a) + a = a"
+  by simp
+    
+lemma usta_LR2:
   fixes a :: "'a::usta_trace"
   shows "f0(f0(a) + b) = f0(a) + f0(b)"
   by (metis add.assoc add_fzero_diff_cancel_left add_fzero_right)
   
-lemma fzero_restrict1:
+lemma usta_RR1:
+  fixes a :: "'a::usta_trace"
+  shows "a + f0(a) = a"
+  by simp
+
+lemma usta_RR2:
+  fixes a :: "'a::usta_trace"
+  shows "f0(a + f0(b)) = f0(a) + f0(b)"
+  by (simp add: fzero_plus_anihilate)
+    
+lemma usta_RR3:
   fixes a :: "'a::usta_trace"
   shows "f0(a) + b = b + f0(a + b)"
   by (metis add.assoc add_fzero_right add_left_imp_eq)
   
-lemma fzero_dist_plus:
+text \<open> We have a right P-Ehresmann semigroup. \<close>    
+
+lemma usta_PE1:
   fixes a :: "'a::usta_trace"
-  shows "f0(a + b) = f0(a) + f0(b)"
-  by (metis (no_types, lifting) fzero_idem fzero_restrict0 fzero_restrict1 add_left_imp_eq)
- 
-lemma 
-  fixes a :: "'a::usta_trace"
-  shows "f0(a + b) = f0(b)"
-  by (metis add.assoc add_fzero_right add_left_imp_eq)
-    
-lemma 
-  fixes x :: "'a::usta_trace"
-  shows "(x + f0(x)) = x"
+  shows "a + f0(a) = a"
   by simp
-    
-lemma    
-  fixes x :: "'a::usta_trace"
-    and y :: "'a::usta_trace"
-  shows "f0(x + y) = f0(f0(x)+y)"
-  by (simp add: fzero_dist_plus)
-    
-lemma    
-  fixes x :: "'a::usta_trace"
-    and y :: "'a::usta_trace"
-  shows "f0(f0(x) + f0(y)) = f0(y)+f0(x)+f0(y)"  
-    by (metis (mono_tags, lifting) add.assoc fzero_dist_plus fzero_idem fzero_restrict1)
   
-lemma    
-  fixes x :: "'a::usta_trace"
-    and y :: "'a::usta_trace"
-  shows "f0(x) + f0(x) = f0(x)"
-  by (metis add_fzero_right fzero_idem)
+lemma usta_PE2:
+  fixes a :: "'a::usta_trace"
+  shows "f0(a + b) = f0(f0(a) + b)"
+  by (simp add: fzero_plus_anihilate)
     
+lemma usta_PE3:
+  fixes a :: "'a::usta_trace"
+  shows "f0(f0(a) + f0(b)) = f0(b) + f0(a) + f0(b)"
+  by simp
+              
 class usta_semigroup_0 = fzero_is_0 + usta_semigroup
 
 instance usta_semigroup_0 \<subseteq> monoid_sum_0
@@ -727,7 +722,7 @@ instance usta_semigroup_0 \<subseteq> monoid_sum_0
    apply (metis add_fzero_right fzero_is_0)
   by (metis fzero_is_0 fzero_sum)
 
-text \<open> A semigroup trace with a fixed zero (@{term fzero_is_0}) 
+text \<open> A USTA trace with a fixed zero (@{term fzero_is_0}) 
        is a monoid. \<close>
 
 class usta_trace_0 = usta_trace + fzero_is_0
@@ -737,13 +732,13 @@ proof
   fix a :: "'a::usta_trace_0"
   show add_fzero_left: 
     "0 + a = a"
-    by (metis add_fzero_right fzero_is_0 fzero_restrict1)
+    by (metis add_fzero_right fzero_is_0 usta_RR3)
   show add_zero_right: 
     "a + 0 = a"
     by (metis add_fzero_right fzero_is_0)
 qed
-
-text \<open> A semigroup trace with a fixed zero (@{term fzero_is_0}) 
+  
+text \<open> A USTA trace with a fixed zero (@{term fzero_is_0}) 
        is a monoid trace. \<close>
   
 class usta_trace_split_0 = usta_trace_split + fzero_is_0
@@ -847,9 +842,9 @@ instance usta_trace_0 \<subseteq> usta_trace
 instance usta_trace_split_0 \<subseteq> usta_trace_split
   by intro_classes
     
-section \<open> Models \<close>
+subsection \<open> Models \<close>
 
-subsection \<open> Lists \<close>
+subsubsection \<open> Lists \<close>
 
 instantiation list :: (type) fzero_is_0
 begin
@@ -885,7 +880,7 @@ lemma fzero_subtract_list:
 instance list :: (type) trace_fzero_0
   by intro_classes
 
-subsection \<open> Naturals \<close>
+subsubsection \<open> Naturals \<close>
 
 instantiation nat :: fzero_is_0
 begin

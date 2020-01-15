@@ -81,7 +81,8 @@ text {* Provided the parametrised trace forms a left cancellative semigroup, and
 instantiation slot :: (left_cancel_semigroup,type) left_cancel_semigroup
 begin
 instance apply intro_classes
-    apply (simp add:plus_slot_def)
+  apply (simp add:plus_slot_def)
+    sledgehammer
     by (smt Pair_inject left_cancel_semigroup_class.add_left_imp_eq plus_slot.rep_eq prod.collapse slot2pair_inverse split_beta)
 end
   
@@ -269,11 +270,6 @@ text {* We then show that a slotted trace satisfies sum_eq_sum_conv by breaking 
         multiple lemmas, where we treat the base cases separately from the main proof.*}  
 
 (* TODO: Move these into stlist theory file? *)  
-  
-
-text {* We then instantiate slotted_trace with the type class fzero_pre_trace.*}    (*
-instance fzero_pre_trace_0 \<subseteq> fzero_pre_trace
-  by intro_classes *)
 
 lemma stlist_strict_prefix_eq:
   fixes t :: "'a::usta_trace"
@@ -454,21 +450,18 @@ lemma slotted_trace_diff:
   shows "t - s = [;pair2slot (fst\<^sub>s(head(t - front(s)))-fst\<^sub>s(last(s)),snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
 proof -
   have "t - s = [;head(t-s)] + tail(t-s)"
-    using stlist_head_concat_tail
-    by (metis (no_types, lifting) map_fun_apply slot2pair_inject tail_def)
+    using stlist_head_concat_tail by auto
   also have "... = [;head(t-front(s)) - last(s)] + tail(t-s)"
-    using assms stlist_head_minus_last_eq_head 
-    by (smt eq_onp_True map_fun_apply slot2pair_inverse stlist_front_prefix_imp last_def)
+    using assms by (metis stlist_head_minus_last_eq_head)
   also have "... = [;head(t-front(s)) - last(s)] + tail(t - front(s))"   
-    using assms
-    by (metis (no_types, lifting) stlist_front_prefix_imp stlist_tail_minus_eq_tail_minus_front)
+    using assms by (metis (no_types, lifting) stlist_tail_minus_eq_tail_minus_front)
   also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s)) - last(s)),
                                               snd\<^sub>s(head(t-front(s)) - last(s)))] + tail(t - front(s))"
     by (simp add: fst\<^sub>s.rep_eq slot2pair_inverse snd\<^sub>s.rep_eq)
   also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
                                               snd\<^sub>s(head(t-front(s)) - last(s)))] + tail(t - front(s))"
-    using assms stlist_last_le_head_minus_front fsts_minus_dist
-    by (smt eq_onp_True map_fun_apply slot2pair_inverse stlist_front_prefix_imp last_def)
+    using assms 
+    by (metis stlist_last_le_head_minus_front fsts_minus_dist)
   also have "... = [;pair2slot(fst\<^sub>s(head(t-front(s))) - fst\<^sub>s(last(s)),
                                               snd\<^sub>s(head(t-front(s))))] + tail(t - front(s))"
     using assms  
