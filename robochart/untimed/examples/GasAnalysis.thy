@@ -28,39 +28,48 @@ statemachine GasAnalysis =
 
 text \<open> Boilerplate code -- will eventually be automatically generated \<close>
 
-lemma GasAnalysis_nmap:"nmap\<^bsub>GasAnalysis.machine\<^esub> = 
-    [''InitState'' \<mapsto> GasAnalysis.InitState, ''NoGas'' \<mapsto> GasAnalysis.NoGas, ''Reading'' \<mapsto> GasAnalysis.Reading, ''FinalState'' \<mapsto>
-     GasAnalysis.FinalState, ''Analysis'' \<mapsto> GasAnalysis.Analysis, ''GasDetected'' \<mapsto> GasAnalysis.GasDetected]"
-  by (simp add: sm_node_map_def GasAnalysis.machine_def GasAnalysis.states_def GasAnalysis.simps)
+context GasAnalysis
+begin
 
-lemma GasAnalysis_tmap:"tmap\<^bsub>GasAnalysis.machine\<^esub> = [''InitState'' \<mapsto> [GasAnalysis.t1], ''NoGas'' \<mapsto> [GasAnalysis.t2], ''Reading'' \<mapsto> [GasAnalysis.t7], ''FinalState'' \<mapsto> [], ''Analysis'' 
-     \<mapsto> [GasAnalysis.t4, GasAnalysis.t3], ''GasDetected'' \<mapsto> [GasAnalysis.t6, GasAnalysis.t5]]"
-  by (simp add: sm_trans_map_def GasAnalysis.machine_def GasAnalysis.states_def GasAnalysis.transitions_def GasAnalysis.simps)
+lemma nmap:"nmap\<^bsub>machine\<^esub> = 
+    [''InitState'' \<mapsto> InitState, ''NoGas'' \<mapsto> NoGas, ''Reading'' \<mapsto> Reading, ''FinalState'' \<mapsto>
+     FinalState, ''Analysis'' \<mapsto> Analysis, ''GasDetected'' \<mapsto> GasDetected]"
+  by (simp add: sm_node_map_def machine_def states_def simps)
 
+lemma tmap:"tmap\<^bsub>machine\<^esub> = [''InitState'' \<mapsto> [t1], ''NoGas'' \<mapsto> [t2], ''Reading'' \<mapsto> [t7], ''FinalState'' \<mapsto> [], ''Analysis'' 
+     \<mapsto> [t4, t3], ''GasDetected'' \<mapsto> [t6, t5]]"
+  by (simp add: sm_trans_map_def machine_def states_def transitions_def simps)
 
-lemma [simp]: "ninit\<^bsub>GasAnalysis.machine\<^esub> = GasAnalysis.InitState"
-  by (simp add: GasAnalysis.defs sm_node_map_def)
+lemma [simp]: "ninit\<^bsub>machine\<^esub> = InitState"
+  by (simp add: defs sm_node_map_def)
 
-lemma GasAnalysis_nodes:
-  "nnames\<^bsub>GasAnalysis.machine\<^esub> = {''GasDetected'', ''Analysis'', ''FinalState'', ''Reading'', ''NoGas'', ''InitState''}"
-  by (simp add: sm_node_names_def GasAnalysis.defs)
+lemma nds:
+  "nodes\<^bsub>machine\<^esub> = [GasDetected, Analysis, FinalState, Reading, NoGas, InitState]"
+  by (simp add: machine_def states_def)
 
-lemma GasAnalysis_inters:
-  "inames\<^bsub>GasAnalysis.machine\<^esub> = {''Analysis'', ''GasDetected'', ''Reading'', ''NoGas'', ''InitState''}"
-  by (auto simp add: sm_inter_names_def sm_inters_def GasAnalysis.defs)
+lemma fnds:
+  "finals\<^bsub>machine\<^esub> = [''FinalState'']"
+  by (simp add: machine_def states_def)
+lemma nodes:
+  "nnames\<^bsub>machine\<^esub> = {''GasDetected'', ''Analysis'', ''FinalState'', ''Reading'', ''NoGas'', ''InitState''}"
+  by (simp add: sm_node_names_def defs)
 
-notation GasAnalysis.null_event ("\<^bold>\<epsilon>")
-notation GasAnalysis.gas ("gas")
-notation GasAnalysis.stop ("stop")
-notation GasAnalysis.turn ("turn")
-notation GasAnalysis.resume ("resume")
+lemma inters:
+  "inames\<^bsub>machine\<^esub> = {''Analysis'', ''GasDetected'', ''Reading'', ''NoGas'', ''InitState''}"
+  by (auto simp add: sm_inter_names_def sm_inters_def defs)
+
+notation null_event ("\<^bold>\<epsilon>")
+notation gas ("gas")
+notation stop ("stop")
+notation turn ("turn")
+notation resume ("resume")
 
 text \<open> Deadlock Freedom Check \<close>
 
-lemma GasAnalysis_deadlock_free: "dlockf \<sqsubseteq> GasAnalysis.action"
+lemma deadlock_free: "dlockf \<sqsubseteq> local.action"
   \<comment> \<open> The following line produces three proof obligations that can be discharged by sledgehammer \<close>
-  apply ((sm_induct wf:GasAnalysis.Wf simps: GasAnalysis.action_def GasAnalysis_inters, sm_calc simps: GasAnalysis_nmap GasAnalysis_tmap GasAnalysis.semantics GasAnalysis.simps); (simp add: action_rep_eq, rdes_refine))
+  apply ((sm_induct wf:Wf simps: action_def inters, sm_calc simps: nmap tmap semantics simps); (simp add: action_rep_eq, rdes_refine))
   oops
-
+end
 
 end
