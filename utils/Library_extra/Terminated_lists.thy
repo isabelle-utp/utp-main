@@ -151,7 +151,7 @@ text {* Given a list with a single element, tail returns an fzero inside.
 
 primrec tail :: "'a::fzero_semigroup_left_cancel stlist \<Rightarrow> 'a stlist" where
 "tail [;x] = [;fzero x]" |
-"tail (x#\<^sub>txs) = (fzero x#\<^sub>txs)"
+"tail (x#\<^sub>txs) = (fzero x#\<^sub>t xs)"
 
 value "front [a;b]"
 
@@ -309,7 +309,7 @@ lemma stlist_head_concat_tail:
   "s = [;head(s)] + tail(s)"
   apply (induct s)
    apply auto
-   apply (simp add: plus_stlist_def)
+    apply (simp add: plus_stlist_def)
   by (simp add: stlist_nil_concat_cons)
     
 lemma stlist_cons_plus_nil_front_last:
@@ -738,7 +738,7 @@ instance stlist :: (usta_trace) fzero_trace
   by (simp add: stlist_fzero_sum)   *)
       
 paragraph {* Lemmas *}
-  
+    
 lemma stlist_tail_minus_eq_tail_minus_front:
   fixes t :: "'a::usta_trace stlist"
   assumes "s \<le> t"
@@ -762,7 +762,7 @@ proof -
     using x by auto
       
   then have "tail([;y] + x) = tail(x)"
-    proof (cases x)
+   proof (cases x)
       case (Nil x1)
       then show ?thesis 
         by (metis concat_stlist.simps(1) head.simps(1) plus_stlist_def add_diff_cancel_left add_diff_cancel_left' stlist_head_concat_tail)

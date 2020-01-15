@@ -354,6 +354,7 @@ lemma fzero_idem[simp]: "f0(f0(a)) = f0(a)"
     
 (* This property is key for lifting the results on stlists. *)
 lemma add_fzero_any_left[simp]: "f0(b) + a = a"
+  
   by (metis add_assoc local.add_fzero_right local.add_left_imp_eq)
     
 (* TODO: Add lemma1/2 here to aid readability of proofs. *)

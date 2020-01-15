@@ -495,4 +495,20 @@ lemma
   apply (induct a)
   apply (induct b)
   by (simp_all add: add.assoc plus_stlist_def)
+    
+lemma
+  fixes a :: "('a::usta_trace,'b) slotted_trace"
+  shows "[a;b] - [;a] = [fzero a;b]"
+  by (metis head.simps(2) stlist_head_concat_tail tail.simps(2) usta_trace_class.add_diff_cancel_left)
+    
+lemma
+  fixes a :: "('a::usta_trace,'b) slotted_trace"
+  shows "[a;b] - [a;b] = [;fzero b]"
+  by (simp add: fzero_stlist_def)    
+
+lemma
+  fixes a :: "'a::usta_trace"
+  shows "[a,b;c] - [a;b] = [fzero b;c]"
+  by (metis head.simps(2) stlist_head_concat_tail stlist_trace_subtract_common tail.simps(2) usta_trace_class.add_diff_cancel_left)
+   
 end
