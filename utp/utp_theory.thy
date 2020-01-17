@@ -57,7 +57,7 @@ lemma upred_lattice_Monotonic [simp]: "Mono\<^bsub>\<P>\<^esub> H = Monotonic H"
     
 subsection \<open> UTP theories hierarchy \<close>
 
-definition utp_order :: "('\<alpha> \<times> '\<alpha>) health \<Rightarrow> '\<alpha> hrel gorder" where
+definition utp_order :: "'\<alpha> health \<Rightarrow> '\<alpha> upred gorder" where
 "utp_order H = \<lparr> carrier = {P. P is H}, eq = (=), le = (\<sqsubseteq>) \<rparr>"
 
 text \<open> Constant @{term utp_order} obtains the order structure associated with a UTP theory.
@@ -107,11 +107,11 @@ text \<open> We next define a hierarchy of locales that characterise different c
   Minimally we require that a UTP theory's healthiness condition is idempotent. \<close>
 
 locale utp_theory =
-  fixes hcond :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("\<H>")
+  fixes hcond :: "'\<alpha> upred \<Rightarrow> '\<alpha> upred" ("\<H>")
   assumes HCond_Idem: "\<H>(\<H>(P)) = \<H>(P)"
 begin
 
-  abbreviation thy_order :: "'\<alpha> hrel gorder" where
+  abbreviation thy_order :: "'\<alpha> upred gorder" where
   "thy_order \<equiv> utp_order \<H>"
 
   lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
@@ -396,7 +396,7 @@ text \<open> In another direction, we can also characterise UTP theories that ar
   this requires that the healthiness condition is closed under sequential composition. \<close>
 
 locale utp_theory_rel =
-  utp_theory +
+  utp_theory hcond for hcond :: "'\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("\<H>") +
   assumes Healthy_Sequence [closure]: "\<lbrakk> P is \<H>; Q is \<H> \<rbrakk> \<Longrightarrow> (P ;; Q) is \<H>"
 begin
 
@@ -407,7 +407,8 @@ lemma upower_Suc_Healthy [closure]:
 
 end
 
-locale utp_theory_cont_rel = utp_theory_rel + utp_theory_continuous
+locale utp_theory_cont_rel = 
+  utp_theory_rel hcond + utp_theory_continuous
 begin
 
   lemma seq_cont_Sup_distl:
@@ -449,7 +450,7 @@ begin
 text \<open> We can characterise the theory Kleene star by lifting the relational one. \<close>
 
 definition utp_star ("_\<^bold>\<star>" [999] 999) where
-[upred_defs]: "utp_star P = (P\<^sup>\<star> ;; \<I>\<I>)"
+[upred_defs]: "utp_star P = (P\<^sup>\<star> ;; utp_unit)"
 
 text \<open> We can then characterise tests as refinements of units. \<close>
 
@@ -484,7 +485,8 @@ lemma utest_Unit [closure]:
 
 end
 
-locale utp_theory_mono_unital = utp_theory_unital + utp_theory_mono
+locale utp_theory_mono_unital = 
+  utp_theory_unital \<H> \<I>\<I> + utp_theory_mono for \<I>\<I>
 begin
 
 lemma utest_Top [closure]: "utp_test \<^bold>\<top>"
@@ -492,10 +494,13 @@ lemma utest_Top [closure]: "utp_test \<^bold>\<top>"
 
 end
 
-locale utp_theory_cont_unital = utp_theory_cont_rel + utp_theory_unital
+locale utp_theory_cont_unital = utp_theory_cont_rel + utp_theory_unital hcond
+begin
 
-sublocale utp_theory_cont_unital \<subseteq> utp_theory_mono_unital
+sublocale utp_theory_mono_unital \<H> \<I>\<I>
   by (simp add: utp_theory_mono_axioms utp_theory_mono_unital_def utp_theory_unital_axioms)
+
+end
 
 locale utp_theory_unital_zerol =
   utp_theory_unital +
@@ -503,9 +508,9 @@ locale utp_theory_unital_zerol =
   assumes Top_Left_Zero: "P is \<H> \<Longrightarrow> \<^bold>\<top> ;; P = \<^bold>\<top>"
 
 locale utp_theory_cont_unital_zerol =
-  utp_theory_cont_unital + utp_theory_unital_zerol
+  utp_theory_unital_zerol + utp_theory_cont_unital hcond utp_unit
 begin
-  
+
 lemma Top_test_Right_Zero:
   assumes "b is \<H>" "utp_test b"
   shows "b ;; \<^bold>\<top> = \<^bold>\<top>"

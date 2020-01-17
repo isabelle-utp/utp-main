@@ -51,7 +51,11 @@ lemma refine_assign_follow:
 lemma refine_frame:
   "\<lbrakk> vwb_lens x; x \<bowtie> w \<rbrakk> \<Longrightarrow> {x,w}\<^sub>v:[pre, post] \<sqsubseteq> w:[pre, post]"
   by (rel_simp)
-  
+
+lemma refine_cond:
+  "x:[pre, post] \<sqsubseteq> x:[b \<and> pre, post] \<triangleleft> b \<triangleright>\<^sub>r x:[\<not>b \<and> pre, post]"
+  by (rel_auto)
+
 subsection \<open> Examples \<close>
 
 alphabet ss = x :: real y :: real

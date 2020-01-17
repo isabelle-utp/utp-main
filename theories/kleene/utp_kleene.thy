@@ -124,7 +124,7 @@ text \<open> A Kleene UTP theory is continuous UTP theory with left and right un
   we use the KA theorems obtained above to provide corresponding theorems for a Kleene UTP theory. \<close>
 
 locale utp_theory_kleene = utp_theory_cont_unital_zerol
-begin
+begin                                             
 
 lemma Star_def: "P\<^bold>\<star> = P\<^sup>\<star> ;; \<I>\<I>"
   by (simp add: utp_star_def)

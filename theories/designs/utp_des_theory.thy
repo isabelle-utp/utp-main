@@ -44,7 +44,7 @@ interpretation des_left_unital: utp_theory_left_unital "\<^bold>H" "II\<^sub>D"
 interpretation ndes_unital: utp_theory_unital "\<^bold>N" "II\<^sub>D"
   by (unfold_locales, simp_all add: H1_H3_left_unit H1_H3_right_unit closure)
 
-interpretation ndes_kleene: utp_theory_kleene "\<^bold>N" II\<^sub>D
+interpretation ndes_kleene: utp_theory_kleene "\<^bold>N" "II\<^sub>D"
   by (unfold_locales, simp add: ndes_top H1_H3_top_left)
 
 abbreviation ndes_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>D" [999] 999) where
