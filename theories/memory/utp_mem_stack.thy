@@ -147,13 +147,13 @@ begin
     by (simp add: var_close_def passigns_comp seq_UINF_distl' seq_UINF_distr' usubst unrest lens_indep_sym)
 
   lemma var_open_close_lemma: 
-    "[store \<mapsto>\<^sub>s (front\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>) \<triangleright> &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>)] = id"
+    "[store \<mapsto>\<^sub>s (butlast(&store @ [\<guillemotleft>v\<guillemotright>]) \<triangleleft> length(&store @ [\<guillemotleft>v\<guillemotright>]) > 0 \<triangleright> &store @ [\<guillemotleft>v\<guillemotright>])] = id\<^sub>s"
     by (rel_auto)
   
-  lemma var_open_close: "open\<^sub>v ;; close\<^sub>v = \<^bold>\<langle>id\<^bold>\<rangle>"
+  lemma var_open_close: "open\<^sub>v ;; close\<^sub>v = \<^bold>\<langle>id\<^sub>s\<^bold>\<rangle>"
     by (simp add: var_open_def var_close_def seq_UINF_distr' passigns_comp usubst var_open_close_lemma)
-      
-  lemma var_scope_skip: "(var[S] x \<bullet> \<^bold>\<langle>id\<^bold>\<rangle>) = \<^bold>\<langle>id\<^bold>\<rangle>"
+
+  lemma var_scope_skip: "(var[S] x \<bullet> \<^bold>\<langle>id\<^sub>s\<^bold>\<rangle>) = \<^bold>\<langle>id\<^sub>s\<^bold>\<rangle>"
     by (simp add: var_scope_def var_open_def var_close_def seq_UINF_distr' passigns_comp var_open_close_lemma usubst)  
 
   (* A property we'd like to prove globally, but requires additional laws for assignment that may
@@ -297,14 +297,16 @@ lemma ndesign_msubst_top [usubst]:
           
 text {* First attempt at a law for expanding design variable blocks. Far from adequate at the
   moment though. *}
-    
+
+(*
 lemma ndesign_local_expand_1 [ndes_simp]:
   "(var\<^sub>D x :: 'a :: countable \<bullet> p(x) \<turnstile>\<^sub>n Q(x)) =
-       (\<Squnion> v \<bullet> (p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l]\<rbrakk>\<lbrakk>&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>/store\<rbrakk>) \<turnstile>\<^sub>n
-       (\<Sqinter> v \<bullet> store := &store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle> ;; (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l]\<rceil>\<^sub><\<rbrakk> ;; store := (front\<^sub>u(&store) \<triangleleft> 0 <\<^sub>u #\<^sub>u(&store) \<triangleright> &store))"
+       (\<Squnion> v \<bullet> (p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l]\<rbrakk>\<lbrakk>&store ^\<^sub>u \<langle>\<guillemotleft>v\<guillemotright>\<rangle>]/store\<rbrakk>) \<turnstile>\<^sub>n
+       (\<Sqinter> v \<bullet> store := &store @ [\<guillemotleft>v\<guillemotright>] ;; (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l]\<rceil>\<^sub><\<rbrakk> ;; store := (butlast(&store) \<triangleleft> length(&store) > 0 \<triangleright> &store))"
   apply (simp add: utp_local_state.var_scope_def utp_local_state.var_open_def utp_local_state.var_close_def seq_UINF_distr' usubst)
   apply (simp add: ndes_simp wp unrest)
   apply (rel_auto')
   oops
+*)
 
 end

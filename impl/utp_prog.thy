@@ -2,25 +2,25 @@ section {* Imperative Programs *}
   
 theory utp_prog
   imports "UTP-Designs.utp_designs" "UTP-Memory.utp_memory"
-begin
+begin recall_syntax
   
 subsection {* Program Type *}
   
 typedef '\<alpha> prog = "{P :: '\<alpha> hrel_des. P is \<^bold>N}"
   by (rule_tac x="\<bottom>\<^sub>D" in exI, simp add: closure)
-    
+
 named_theorems prog_rep_eq and prog_defs
     
-notation Rep_prog ("\<lbrakk>_\<rbrakk>\<^sub>p")
+notation Rep_prog ("\<lbrakk>_\<rbrakk>\<^sub>P")
 
-lemma Rep_prog_H1_H3_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>p is \<^bold>N"
+lemma Rep_prog_H1_H3_closed [closure]: "\<lbrakk>P\<rbrakk>\<^sub>P is \<^bold>N"
   using Rep_prog by auto
     
-lemma Rep_prog_split: "\<lbrakk> \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(\<lbrakk>P\<rbrakk>\<^sub>p)"
+lemma Rep_prog_split: "\<lbrakk> \<And> pre post. Q(pre \<turnstile>\<^sub>n post) \<rbrakk> \<Longrightarrow> Q(\<lbrakk>P\<rbrakk>\<^sub>P)"
   by (simp add: Rep_prog_H1_H3_closed ndes_split)
     
 lemma Rep_prog_comp [prog_rep_eq]: 
-  "(Rep_prog \<circ> (\<lambda> i. P(i))) = (\<lambda> i. \<lbrakk>P(i)\<rbrakk>\<^sub>p)"
+  "(Rep_prog \<circ> (\<lambda> i. P(i))) = (\<lambda> i. \<lbrakk>P(i)\<rbrakk>\<^sub>P)"
   by (auto)
     
 setup_lifting type_definition_prog
@@ -35,11 +35,11 @@ begin
 end
 
 lemma Rep_prog_refine [prog_rep_eq]:
-  "P \<sqsubseteq> Q \<longleftrightarrow> \<lbrakk>P\<rbrakk>\<^sub>p \<sqsubseteq> \<lbrakk>Q\<rbrakk>\<^sub>p"
+  "P \<sqsubseteq> Q \<longleftrightarrow> \<lbrakk>P\<rbrakk>\<^sub>P \<sqsubseteq> \<lbrakk>Q\<rbrakk>\<^sub>P"
   by (simp add: less_eq_prog.rep_eq)
 
 lemma Rep_prog_eq [prog_rep_eq]:
-  "P = Q \<longleftrightarrow> \<lbrakk>P\<rbrakk>\<^sub>p = \<lbrakk>Q\<rbrakk>\<^sub>p"
+  "P = Q \<longleftrightarrow> \<lbrakk>P\<rbrakk>\<^sub>P = \<lbrakk>Q\<rbrakk>\<^sub>P"
   by (metis Rep_prog_inverse)
 
 method ptransfer = (simp add: prog_rep_eq)
@@ -114,7 +114,7 @@ no_adhoc_overloading
 
 translations
   "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST svar x) v)"
+  "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST pr_var x) v)"
   "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST abort)"
   
 no_translations
@@ -140,7 +140,7 @@ lemma psubst_seq [usubst]:
   by pauto
     
 lemma psubst_assigns [usubst]:
-  "\<sigma> \<dagger> \<langle>\<rho>\<rangle>\<^sub>p = \<langle>\<rho> \<circ> \<sigma>\<rangle>\<^sub>p"
+  "\<sigma> \<dagger> \<langle>\<rho>\<rangle>\<^sub>p = \<langle>\<rho> \<circ>\<^sub>s \<sigma>\<rangle>\<^sub>p"
   by pauto
     
 lemma psubst_binary_altern [usubst]:
