@@ -361,10 +361,17 @@ proof
   thus "\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
     by (simp add: lens_indep_comm)
 next
-  assume "\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
-  thus "x \<bowtie> y"
-    by (unfold_locales, auto, (metis assms mwb_lens_weak vwb_lens_mwb vwb_lens_wb wb_lens.get_put weak_lens.put_get)+)
-
+  assume a: "\<forall> u v \<sigma>. put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v"
+  show "x \<bowtie> y"
+  proof (unfold_locales)
+    fix \<sigma> v u
+    from a show "put\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) u = put\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) v" 
+      by auto
+    show "get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> \<sigma> v) = get\<^bsub>x\<^esub> \<sigma>"
+      by (metis a assms(1) vwb_lens.put_eq vwb_lens_wb wb_lens_def weak_lens.put_get)
+    show "get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> \<sigma> u) = get\<^bsub>y\<^esub> \<sigma>"
+      by (metis a assms(2) vwb_lens.put_eq vwb_lens_wb wb_lens_def weak_lens.put_get)
+  qed
 qed
 
 subsection \<open> Lens Compatibility \<close>
