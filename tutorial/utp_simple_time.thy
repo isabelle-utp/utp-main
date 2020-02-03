@@ -119,4 +119,12 @@ theorem Wait_Wait: "Wait(m) ;; Wait(n) = Wait (m + n)" by (rel_auto)
 theorem Wait_cond: "Wait(m) ;; (P \<triangleleft> b \<triangleright>\<^sub>r Q) = (Wait m ;; P) \<triangleleft> b\<lbrakk>&clock+\<guillemotleft>m\<guillemotright>/&clock\<rbrakk> \<triangleright>\<^sub>r (Wait m ;; Q)"
   by (rel_auto)
 
+lemma Wait_eq_assign: "Wait(m) = clock := clock + \<guillemotleft>m\<guillemotright>"
+  by (rel_auto)
+
+theorem Wait_assign: 
+  assumes "clock \<sharp> v" "x \<bowtie> clock"
+  shows "Wait(m) ;; x := v = x := v ;; Wait(m)"
+  by (simp add: Wait_eq_assign assigns_comp usubst unrest assms lens_indep_sym)
+
 end
