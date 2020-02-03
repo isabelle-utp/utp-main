@@ -25,7 +25,7 @@ method hoare_split uses hr =
     intro: hoare intro!: hoare_safe hr
     simp add: conj_comm conj_assoc usubst unrest))[1] \<comment> \<open> Apply Hoare logic laws \<close>
 
-method hoare_auto uses hr = (hoare_split hr: hr; (rel_simp)?, auto?)
+method hoare_auto uses hr = (hoare_split hr: hr; (rel_simp')?, auto?)
 
 subsection \<open> Basic Laws \<close>
 

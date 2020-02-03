@@ -2,25 +2,26 @@ theory factorial
   imports "UTP.utp"
 begin
 
-alphabet fact_st =
-  i :: nat
-  result :: nat
+utp_lit_vars
 
-abbreviation factorial :: "nat \<Rightarrow> fact_st hrel"  where
-  "factorial num \<equiv> 
-    result := 1 ;;
-    i := \<guillemotleft>num\<guillemotright> ;;
-    while (1 < i)
-    invr result * fact(i) = fact(\<guillemotleft>num\<guillemotright>)
-    do
-      result := result * i ;;
-      i := i - 1
-    od"
+alphabet sfact = x::nat y::nat
 
-lemma "\<lbrace>true\<rbrace>factorial num\<lbrace>result = fact(\<guillemotleft>num\<guillemotright>)\<rbrace>\<^sub>u"
+definition pfact :: "nat \<Rightarrow> sfact hrel" where
+  "pfact X =
+    x := X ;; y := 1 ;;
+    while x > 1 invr y * fact(x) = fact(X)
+    do y := y * x ;; x := x - 1 od"
+
+lemma "TRY(id\<^sub>s \<Turnstile> pfact 4)"
+  unfolding pfact_def
+  apply (sym_eval) oops
+
+lemma pfact_correct: "\<lbrace>true\<rbrace>pfact num\<lbrace>y = fact(\<guillemotleft>num\<guillemotright>)\<rbrace>\<^sub>u"
+  unfolding pfact_def
   apply (hoare_auto)
-  apply (simp add: fact_reduce)
+  apply (metis diff_Suc_Suc diff_zero fact_diff_Suc less_SucI mult.assoc)
   apply (metis fact_0 fact_Suc_0 less_Suc0 linorder_neqE_nat mult.right_neutral)
   done
+
 
 end
