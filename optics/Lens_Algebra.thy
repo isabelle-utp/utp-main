@@ -412,5 +412,13 @@ lemma lens_quotient_id_denom: "X /\<^sub>L 1\<^sub>L = X"
 lemma lens_quotient_unit: "weak_lens X \<Longrightarrow> (0\<^sub>L /\<^sub>L X) = 0\<^sub>L"
   by (simp add: lens_quotient_def zero_lens_def)
 
-    
+lemma lens_obs_eq_zero: "s\<^sub>1 \<simeq>\<^bsub>0\<^sub>L\<^esub> s\<^sub>2 = (s\<^sub>1 = s\<^sub>2)"
+  by (simp add: lens_defs)
+
+lemma lens_obs_eq_one: "s\<^sub>1 \<simeq>\<^bsub>1\<^sub>L\<^esub> s\<^sub>2"
+  by (simp add: lens_defs)
+
+lemma lens_obs_eq_as_override: "vwb_lens X \<Longrightarrow> s\<^sub>1 \<simeq>\<^bsub>X\<^esub> s\<^sub>2 \<longleftrightarrow> (s\<^sub>2 = s\<^sub>1 \<oplus>\<^sub>L s\<^sub>2 on X)"
+  by (auto simp add: lens_defs; metis vwb_lens.put_eq)
+
 end

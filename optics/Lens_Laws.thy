@@ -58,6 +58,12 @@ definition lens_update :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('a \<Rightar
 text \<open> The update function is analogous to the record update function which lifts a function
   on a view type to one on the source type. \<close>
 
+definition lens_obs_eq :: "('b \<Longrightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> bool" (infix "\<simeq>\<index>" 50) where
+[lens_defs]: "s\<^sub>1 \<simeq>\<^bsub>X\<^esub> s\<^sub>2 = (s\<^sub>1 = put\<^bsub>X\<^esub> s\<^sub>2 (get\<^bsub>X\<^esub> s\<^sub>1))"
+
+text \<open> This relation states that two sources are equivalent outside of the region characterised
+  by lens $X$. \<close>
+
 subsection \<open>Weak Lenses\<close>
 
 text \<open> Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
@@ -195,6 +201,18 @@ begin
 
   lemma get_surj: "surj get"
     by (metis put_get surjI)
+
+  text \<open> Observation equivalence is an equivalence relation. \<close>
+
+  lemma lens_obs_equiv: "equivp (\<simeq>)"
+  proof (rule equivpI)
+    show "reflp (\<simeq>)"
+      by (rule reflpI, simp add: lens_obs_eq_def get_put)
+    show "symp (\<simeq>)"
+      by (rule sympI, simp add: lens_obs_eq_def, metis get_put put_put)
+    show "transp (\<simeq>)"
+      by (rule transpI, simp add: lens_obs_eq_def, metis put_put)
+  qed
 
 end
 
