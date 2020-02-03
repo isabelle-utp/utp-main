@@ -10,25 +10,25 @@ subsection \<open> Observation Space and Signature \<close>
 text \<open> We first declare the observation space for our theory of timed relations. It consists
   of two variables, to denote time and the program state, respectively. \<close>
 
-alphabet 's st_time = 
+alphabet 's rt = 
   clock :: nat  st :: 's
 
 text \<open> A timed relation is a homogeneous relation over the declared observation space. \<close>
 
-type_synonym 's time_rel = "'s st_time hrel"
+type_synonym 's time_rel = "'s rt hrel"
 
 text \<open> We introduce the following operator for adding an $n$-unit delay to a timed relation. \<close>
 
-definition Wait :: "nat \<Rightarrow> 's time_rel" where
-[upred_defs]: "Wait(n) = ($clock\<acute> =\<^sub>u $clock + \<guillemotleft>n\<guillemotright> \<and> $st\<acute> =\<^sub>u $st)"
+utp_def Wait :: "nat \<Rightarrow> 's time_rel" where
+"Wait(n) = ($clock\<acute> = $clock + \<guillemotleft>n\<guillemotright> \<and> $st\<acute> = $st)"
 
 subsection \<open> UTP Theory \<close>
 
 text \<open> We define a single healthiness condition which ensures that the clock monotonically
   advances, and so forbids reverse time travel. \<close>
 
-definition HT :: "'s time_rel \<Rightarrow> 's time_rel" where
-[upred_defs]: "HT(P) = (P \<and> $clock \<le>\<^sub>u $clock\<acute>)"
+utp_def HT :: "'s time_rel \<Rightarrow> 's time_rel" where
+"HT(P) = (P \<and> $clock \<le> $clock\<acute>)"
 
 text \<open> This healthiness condition is idempotent, monotonic, and also continuous, meaning it
   distributes through arbitary non-empty infima. \<close>
@@ -101,7 +101,7 @@ lemma HT_seqr_closed [closure]:
 text \<open> Assignment is also healthy, provided that the clock variable is not assigned. \<close>
 
 lemma HT_assign_closed [closure]: "\<lbrakk> vwb_lens x; clock \<bowtie> x \<rbrakk> \<Longrightarrow> x := v is HT"
-  by (rel_auto, metis (mono_tags, lifting) eq_iff lens.select_convs(1) lens_indep_get st_time.select_convs(1))
+  by (rel_auto, metis (mono_tags, lifting) eq_iff lens.select_convs(1) lens_indep_get rt.select_convs(1))
 
 text \<open> An alternative characterisation of the above is that @{term x} is within the state space lens. \<close>
 
