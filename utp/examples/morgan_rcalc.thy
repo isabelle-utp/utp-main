@@ -56,6 +56,9 @@ lemma refine_cond:
   "x:[pre, post] \<sqsubseteq> x:[b \<and> pre, post] \<triangleleft> b \<triangleright>\<^sub>r x:[\<not>b \<and> pre, post]"
   by (rel_auto)
 
+theorem refine_hoare_link: "\<^bold>{pre\<^bold>}P\<^bold>{post\<^bold>} \<longleftrightarrow> 1\<^sub>L:[pre, post] \<sqsubseteq> P"
+  by rel_auto
+
 subsection \<open> Examples \<close>
 
 alphabet ss = x :: real y :: real
