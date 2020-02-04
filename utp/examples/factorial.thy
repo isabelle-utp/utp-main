@@ -16,7 +16,7 @@ lemma "TRY(id\<^sub>s \<Turnstile> pfact 4)"
   unfolding pfact_def
   apply (sym_eval) oops
 
-lemma pfact_correct: "\<lbrace>true\<rbrace>pfact num\<lbrace>y = fact(\<guillemotleft>num\<guillemotright>)\<rbrace>\<^sub>u"
+lemma pfact_correct: "\<^bold>{true\<^bold>} pfact X \<^bold>{y = fact(X)\<^bold>}"
   unfolding pfact_def
   apply (hoare_auto)
   apply (metis diff_Suc_Suc diff_zero fact_diff_Suc less_SucI mult.assoc)
