@@ -297,6 +297,16 @@ text \<open> The nameset operator can be used to hide a portion of the after-sta
 definition nameset :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
 [urel_defs]: "nameset a P = (P \<restriction>\<^sub>v {$\<^bold>v,$a\<acute>})" 
 
+text \<open> The modify and freeze operators below are analogous to the frame and antiframe, but they
+  discard updates to variables outside (inside) the frame, rather than requiring that they do
+  not change. \<close>
+
+definition modify :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "modify a P = (\<^bold>\<exists> st' \<bullet> P\<lbrakk>\<guillemotleft>st'\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u $\<^bold>v \<oplus> \<guillemotleft>st'\<guillemotright> on &a)"
+
+definition freeze :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" where
+[urel_defs]: "freeze a P = (\<^bold>\<exists> st' \<bullet> P\<lbrakk>\<guillemotleft>st'\<guillemotright>/$\<^bold>v\<acute>\<rbrakk> \<and> $\<^bold>v\<acute> =\<^sub>u \<guillemotleft>st'\<guillemotright> \<oplus> $\<^bold>v on &a)"
+
 subsection \<open> Syntax Translations \<close>
 
 \<comment> \<open> Alternative traditional conditional syntax \<close>
@@ -333,7 +343,11 @@ syntax
   \<comment> \<open> Frame Extension \<close>
   "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
   \<comment> \<open> Nameset \<close>
-  "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,999] 999)
+  "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,10] 10)
+  \<comment> \<open> Modify \<close>
+  "_modify"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("mdf _ \<bullet> _" [0,10] 10)
+  \<comment> \<open> Freeze \<close>
+  "_freeze"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("frz _ \<bullet> _" [0,10] 10)
 
 translations
   ";; x : l \<bullet> P" \<rightleftharpoons> "(CONST seqr_iter) l (\<lambda>x. P)"
@@ -351,6 +365,8 @@ translations
   "_antiframe x P" => "CONST antiframe x P"
   "_antiframe (_salphaset (_salphamk x)) P" <= "CONST antiframe x P"
   "_nameset x P" == "CONST nameset x P"
+  "_modify x P" == "CONST modify x P"
+  "_freeze x P" == "CONST freeze x P"
   "_rel_aext P a" == "CONST rel_aext P a"
   "_rel_ares P a" == "CONST rel_ares P a"
   "_rel_frext a P" == "CONST rel_frext a P"

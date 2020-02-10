@@ -631,7 +631,19 @@ lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x
   by (rel_auto)
     
 declare sublens_def [lens_defs]
-    
+
+subsection \<open> Modify and Freeze Laws \<close>
+
+text \<open> Assignments made to modify variables are retained, but lost for frozen ones. \<close>
+
+lemma modify_assign:
+  "vwb_lens x \<Longrightarrow> (mdf x \<bullet> x := v) = x := v"
+  by (rel_auto)
+
+lemma freeze_assign:
+  "vwb_lens x \<Longrightarrow> (frz x \<bullet> x := v) = II"
+  by (rel_auto)
+
 subsection \<open> While Loop Laws \<close>
 
 theorem while_unfold:
