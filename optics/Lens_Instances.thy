@@ -253,6 +253,28 @@ text \<open>The following theorem attribute stores splitting theorems for alphab
 
 named_theorems alpha_splits
 
+subsection \<open>Type Definition Lens\<close>
+
+text \<open> Every type defined by a \<^bold>\<open>typedef\<close> command induces a partial bijective lens constructed
+  using the abstraction and representation functions. \<close>
+
+context type_definition
+begin
+
+definition typedef_lens :: "'b \<Longrightarrow> 'a" ("typedef\<^sub>L") where
+[lens_defs]: "typedef\<^sub>L = \<lparr> lens_get = Abs, lens_put = (\<lambda> s. Rep) \<rparr>"
+
+lemma pbij_typedef_lens [simp]: "pbij_lens typedef\<^sub>L"
+  by (unfold_locales, simp_all add: lens_defs Rep_inverse)
+
+lemma source_typedef_lens: "\<S>\<^bsub>typedef\<^sub>L\<^esub> = A"
+  using Rep_cases by (auto simp add: lens_source_def lens_defs Rep)
+
+lemma bij_typedef_lens_UNIV: "A = UNIV \<Longrightarrow> bij_lens typedef\<^sub>L"
+  by (auto intro: pbij_vwb_is_bij_lens simp add: mwb_UNIV_src_is_vwb_lens source_typedef_lens)
+
+end
+
 subsection \<open>Mapper Lenses\<close>
 
 definition lmap_lens :: 

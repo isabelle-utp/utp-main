@@ -170,6 +170,8 @@ begin
 
 end
 
+abbreviation (input) "partial_lens \<equiv> mwb_lens"
+
 declare mwb_lens.put_put [simp]
 declare mwb_lens.weak_get_put [simp]
 
@@ -216,11 +218,24 @@ begin
 
 end
 
+abbreviation (input) "total_lens \<equiv> vwb_lens"
+
 lemma vwb_lens_wb [simp]: "vwb_lens x \<Longrightarrow> wb_lens x"
   by (simp add: vwb_lens_def)
 
 lemma vwb_lens_mwb [simp]: "vwb_lens x \<Longrightarrow> mwb_lens x"
   using vwb_lens_def by auto
+
+lemma mwb_UNIV_src_is_vwb_lens: 
+  "\<lbrakk> mwb_lens X; \<S>\<^bsub>X\<^esub> = UNIV \<rbrakk> \<Longrightarrow> vwb_lens X"
+  using vwb_lens_def wb_lens_axioms_def wb_lens_def by fastforce
+
+text \<open> Alternative characterisation: a very well-behaved (i.e. total) lens is a mainly well-behaved
+  (i.e. partial) lens whose source is the universe set. \<close>
+
+lemma vwb_lens_iff_mwb_UNIV_src: 
+  "vwb_lens X \<longleftrightarrow> (mwb_lens X \<and> \<S>\<^bsub>X\<^esub> = UNIV)"
+  by (meson mwb_UNIV_src_is_vwb_lens vwb_lens_def wb_lens.source_UNIV)
 
 subsection \<open> Ineffectual Lenses \<close>
 
@@ -276,6 +291,10 @@ lemma pbij_lens_weak [simp]:
 lemma pbij_lens_mwb [simp]: "pbij_lens x \<Longrightarrow> mwb_lens x"
   by (simp add: mwb_lens_axioms.intro mwb_lens_def pbij_lens.put_is_create)
 
+lemma pbij_alt_intro:
+  "\<lbrakk> weak_lens X; \<And> s. s \<in> \<S>\<^bsub>X\<^esub> \<Longrightarrow> create\<^bsub>X\<^esub> (get\<^bsub>X\<^esub> s) = s \<rbrakk> \<Longrightarrow> pbij_lens X"
+  by (metis pbij_lens_axioms_def pbij_lens_def weak_lens.put_closure weak_lens.put_get)
+
 subsection \<open> Bijective Lenses \<close>
 
 text \<open>Bijective lenses characterise the situation where the source and view type are equivalent:
@@ -323,6 +342,17 @@ lemma bij_lens_pbij [simp]:
 
 lemma bij_lens_vwb [simp]: "bij_lens x \<Longrightarrow> vwb_lens x"
   by (metis bij_lens.strong_get_put bij_lens_weak mwb_lens.intro mwb_lens_axioms.intro vwb_lens_def wb_lens.intro wb_lens_axioms.intro weak_lens.put_get)
+
+text \<open> Alternative characterisation: a bijective lens is a partial bijective lens that is also
+  very well-behaved (i.e. total). \<close>
+
+lemma pbij_vwb_is_bij_lens:
+  "\<lbrakk> pbij_lens X; vwb_lens X \<rbrakk> \<Longrightarrow> bij_lens X"
+  by (unfold_locales, simp_all, meson pbij_lens.put_det vwb_lens.put_eq)
+
+lemma bij_lens_iff_pbij_vwb:
+  "bij_lens X \<longleftrightarrow> (pbij_lens X \<and> vwb_lens X)"
+  using pbij_vwb_is_bij_lens by auto
 
 subsection \<open>Lens Independence\<close>
 
