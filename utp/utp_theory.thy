@@ -114,6 +114,8 @@ begin
   abbreviation thy_order :: "'\<alpha> upred gorder" where
   "thy_order \<equiv> utp_order \<H>"
 
+  abbreviation "umono \<equiv> Mono\<^bsub>thy_order\<^esub>"
+
   lemma HCond_Idempotent [closure,intro]: "Idempotent \<H>"
     by (simp add: Idempotent_def HCond_Idem)
 
@@ -124,6 +126,11 @@ begin
 
   declare utp_po.trans [trans del]
 
+  lemma refine_monoE:
+    assumes "umono F" "x is \<H>" "y is \<H>" "x \<sqsubseteq> y"
+    shows "(x is \<H> \<Longrightarrow> y is \<H> \<Longrightarrow> F x \<sqsubseteq> F y \<Longrightarrow> thesis) \<Longrightarrow> thesis"
+    using assms by (simp add: isotone_def)
+
 end
 
 locale utp_theory_lattice = utp_theory + 
@@ -131,7 +138,14 @@ locale utp_theory_lattice = utp_theory +
 begin
 
 sublocale complete_lattice "utp_order \<H>"
-  by (simp add: uthy_lattice)
+  rewrites "le thy_order = (\<sqsubseteq>)" 
+  and "eq thy_order = (=)"
+  and "\<And> A. A \<subseteq> carrier thy_order \<longleftrightarrow> A \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  and "\<And> P. P \<in> carrier thy_order \<longleftrightarrow> P is \<H>"
+  and "carrier thy_order \<rightarrow> carrier thy_order = \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  and "Lattice.sup thy_order (carrier thy_order) = Lattice.sup thy_order \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  and "Lattice.inf thy_order (carrier thy_order) = Lattice.inf thy_order \<lbrakk>\<H>\<rbrakk>\<^sub>H"
+  by (simp_all add: uthy_lattice)
 
 declare top_closed [simp del]
 declare bottom_closed [simp del]
@@ -163,6 +177,49 @@ abbreviation utp_gfp ("\<^bold>\<nu>") where
 
 abbreviation utp_lfp ("\<^bold>\<mu>") where
 "utp_lfp \<equiv> LEAST_FP (utp_order \<H>)"
+
+
+text \<open> The following theorem and proof was contributed by Yakoub Nemouchi. \<close>
+
+(* This proof should perhaps be in HOL-Algebra. *)
+lemma lfp_ordinal_induct [case_names M H step union]:
+  assumes M:\<open>Mono\<^bsub>thy_order\<^esub> F\<close>
+  assumes H:\<open>F \<in> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<rightarrow> \<lbrakk>\<H>\<rbrakk>\<^sub>H\<close>
+  assumes P_f:\<open>\<And>S. P S \<Longrightarrow> S \<sqsubseteq> \<^bold>\<mu> F \<Longrightarrow> S is \<H> \<Longrightarrow> P (F S)\<close>
+  assumes P_Union:\<open>\<And>M. M \<subseteq> \<lbrakk>\<H>\<rbrakk>\<^sub>H \<Longrightarrow> (\<And>S. S \<in> M \<Longrightarrow> P S) \<Longrightarrow> P (\<^bold>\<Squnion> M)\<close>
+  shows \<open>P (\<^bold>\<mu> F)\<close>
+proof -
+  let ?M = \<open>{S. S \<sqsubseteq> \<^bold>\<mu> F \<and> P S \<and> (S is \<H>)}\<close>
+  from P_Union have \<open>P (\<^bold>\<Squnion> ?M)\<close>
+    by (metis (no_types, lifting) Collect_mono mem_Collect_eq) 
+  also have \<open>\<^bold>\<Squnion> ?M = \<^bold>\<mu> F\<close>
+  proof (rule antisym)
+    show \<open>\<^bold>\<Squnion> ?M \<sqsubseteq> \<^bold>\<mu> F\<close>
+      by (subst sup_least, auto simp add: Collect_mono)
+    then have \<open>F (\<^bold>\<Squnion> ?M) \<sqsubseteq> F (\<^bold>\<mu> F)\<close>
+      by (metis (mono_tags, lifting) Collect_mono LFP_closed M sup_closed refine_monoE)
+    then have \<open>F (\<^bold>\<Squnion> ?M) \<sqsubseteq> \<^bold>\<mu> F\<close>
+      by (metis (no_types, lifting) H LFP_weak_unfold M)
+    then have \<open>F (\<^bold>\<Squnion> ?M) \<in> ?M\<close>
+      using P_Union
+      apply simp
+      apply (subst P_f)
+         apply simp_all
+         apply (simp add: calculation)
+        apply (simp add: \<open>\<^bold>\<Squnion>?M \<sqsubseteq> \<^bold>\<mu> F\<close>)
+       apply (simp add: Collect_mono_iff)
+      using H
+      apply (elim PiE)
+       apply simp_all
+      apply (simp add: Collect_mono)
+      done
+    then have "F (\<^bold>\<Squnion> ?M)  \<sqsubseteq> \<^bold>\<Squnion> ?M"
+      by (simp add: Collect_mono sup_upper)
+    then show "\<^bold>\<mu> F  \<sqsubseteq> \<^bold>\<Squnion> ?M"
+      by (simp add: Collect_mono LFP_lowerbound)
+  qed
+  finally show ?thesis .
+qed
 
 end
 
@@ -279,6 +336,8 @@ lemma healthy_inf:
   using Knaster_Tarski_idem_inf_eq[OF upred_weak_complete_lattice, of "\<H>"]
   by (simp, metis HCond_Idempotent HCond_Mono assms partial_object.simps(3) upred_lattice_def upred_lattice_inf utp_order_def)
 
+
+
 end
 
 locale utp_theory_continuous = utp_theory +
@@ -334,6 +393,12 @@ begin
     shows "P \<sqinter> \<^bold>\<top> = P"
       by (simp add: assms semilattice_sup_class.sup_absorb1 utp_top)
 
+  lemma inf_empty: "\<^bold>\<Sqinter> {} = \<^bold>\<top>"
+    by (simp add: healthy_inf_def)
+
+  lemma inf_all: "\<^bold>\<Sqinter> \<lbrakk>\<H>\<rbrakk>\<^sub>H = \<^bold>\<bottom>"
+    using weak_inf_carrier by auto
+
   text \<open> The UTP theory lfp operator can be rewritten to the alphabetised predicate lfp when
     in a continuous context. \<close>
 
@@ -346,7 +411,7 @@ begin
       have "F \<^bold>\<top> \<sqsubseteq> \<^bold>\<top>"
         using assms(2) utp_top weak.top_closed by force
       thus ?thesis
-        by (auto, rule_tac x="\<^bold>\<top>" in exI, auto simp add: top_healthy)
+        by (auto)
     qed
     show "\<^bold>\<mu> F \<sqsubseteq> (\<mu> X \<bullet> F (\<H> X))"
     proof -
