@@ -522,19 +522,6 @@ lemma frame_commute:
    apply (metis lens_indep_get lens_indep_sym)
   apply (metis lens_indep.lens_put_comm)
   done
-
-lemma frame_contract_RID:
-  assumes "vwb_lens x" "P is RID(x)" "x \<bowtie> y"
-  shows "(x;y):[P] = y:[P]"
-proof -
-  from assms(1,3) have "(x;y):[RID(x)(P)] = y:[RID(x)(P)]"
-    apply (rel_auto)
-     apply (simp add: lens_indep.lens_put_comm)
-    apply (metis (no_types) vwb_lens_wb wb_lens.get_put)
-    done
-  thus ?thesis
-    by (simp add: Healthy_if assms)
-qed
  
 lemma frame_miracle [simp]:
   "x:[false] = false"
@@ -636,13 +623,27 @@ subsection \<open> Modify and Freeze Laws \<close>
 
 text \<open> Assignments made to modify variables are retained, but lost for frozen ones. \<close>
 
+lemma modify_assigns: "(mdf a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> \<rhd>\<^sub>s a\<rangle>\<^sub>a"
+  by (rel_auto)
+
 lemma modify_assign:
   "vwb_lens x \<Longrightarrow> (mdf x \<bullet> x := v) = x := v"
+  by (simp add: modify_assigns usubst)
+
+lemma freeze_assigns: "(frz a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> -\<^sub>s a\<rangle>\<^sub>a"
   by (rel_auto)
 
 lemma freeze_assign:
   "vwb_lens x \<Longrightarrow> (frz x \<bullet> x := v) = II"
-  by (rel_auto)
+  by (simp add: freeze_assigns usubst skip_r_def)
+
+lemma frame_modify_same_fixpoints:
+  "mwb_lens a \<Longrightarrow> P mods a \<longleftrightarrow> P is modify a"
+  by (rel_simp, metis mwb_lens_weak weak_lens_def)
+
+lemma antiframe_freeze_same_fixpoints:
+  "mwb_lens a \<Longrightarrow> P is antiframe a \<longleftrightarrow> P is freeze a"
+  by (rel_simp, metis mwb_lens.put_put)
 
 subsection \<open> While Loop Laws \<close>
 

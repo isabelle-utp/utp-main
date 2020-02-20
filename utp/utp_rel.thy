@@ -641,176 +641,52 @@ lemma rel_aext_ares [alpha]:
 lemma rel_aext_uses [unrest]:
   "vwb_lens a \<Longrightarrow> {$a, $a\<acute>} \<natural> (P \<oplus>\<^sub>r a)"
   by (rel_auto)    
-    
-subsection \<open> Relational unrestriction \<close>
 
-text \<open> Relational unrestriction states that a variable is both unchanged by a relation, and is
-  not "read" by the relation. \<close>
+subsection \<open> Framing \<close>
 
-definition RID :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"
-where "RID x P = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x)"
-  
-declare RID_def [urel_defs]
+text \<open> The following operator states that a relation only modifies variables within @{term a}. \<close>
 
-lemma RID1: "vwb_lens x \<Longrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>) \<Longrightarrow> RID(x)(P) = P"
-  apply (rel_auto)
-   apply (metis vwb_lens.put_eq)
-  apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-  done
-    
-lemma RID2: "vwb_lens x \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; RID(x)(P) = RID(x)(P) ;; x := \<guillemotleft>v\<guillemotright>"
-  apply (rel_auto)
-   apply (metis mwb_lens.put_put vwb_lens_mwb vwb_lens_wb wb_lens.get_put wb_lens_def weak_lens.put_get)
-  apply blast
-  done
-    
-lemma RID_assign_commute:
-  "vwb_lens x \<Longrightarrow> P = RID(x)(P) \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
-  by (metis RID1 RID2)
-  
-lemma RID_idem:
-  "mwb_lens x \<Longrightarrow> RID(x)(RID(x)(P)) = RID(x)(P)"
+abbreviation modifies :: "'s hrel \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> bool" (infix "mods" 30) where
+"modifies P a \<equiv> P is frame a"
+
+lemma mods_skip [closure]:
+  "vwb_lens a \<Longrightarrow> II mods a"
   by (rel_auto)
 
-lemma RID_mono:
-  "P \<sqsubseteq> Q \<Longrightarrow> RID(x)(P) \<sqsubseteq> RID(x)(Q)"
+lemma mods_assigns [closure]:
+  "\<lbrakk> mwb_lens a; \<sigma> \<rhd>\<^sub>s a = \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a mods a"
   by (rel_auto)
 
-lemma RID_pr_var [simp]: 
-  "RID (pr_var x) = RID x"
-  by (simp add: pr_var_def)
-    
-lemma RID_skip_r:
-  "vwb_lens x \<Longrightarrow> RID(x)(II) = II"
-  apply (rel_auto) using vwb_lens.put_eq by fastforce
-
-lemma skip_r_RID [closure]: "vwb_lens x \<Longrightarrow> II is RID(x)"
-  by (simp add: Healthy_def RID_skip_r)
-    
-lemma RID_disj:
-  "RID(x)(P \<or> Q) = (RID(x)(P) \<or> RID(x)(Q))"
-  by (rel_auto)
-    
-lemma disj_RID [closure]: "\<lbrakk> P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> (P \<or> Q) is RID(x)"
-  by (simp add: Healthy_def RID_disj)
-
-lemma RID_conj:
-  "vwb_lens x \<Longrightarrow> RID(x)(RID(x)(P) \<and> RID(x)(Q)) = (RID(x)(P) \<and> RID(x)(Q))"
-  by (rel_auto)
-
-lemma conj_RID [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> (P \<and> Q) is RID(x)"
-  by (metis Healthy_if Healthy_intro RID_conj)
-    
-lemma RID_assigns_r_diff:
-  "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> RID(x)(\<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma>\<rangle>\<^sub>a"
-  apply (rel_auto)
-   apply (metis vwb_lens.put_eq)
-  apply (metis vwb_lens_wb wb_lens.get_put wb_lens_weak weak_lens.put_get)
-  done
-
-lemma assigns_r_RID [closure]: "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a is RID(x)"
-  by (simp add: Healthy_def RID_assigns_r_diff)
-  
-lemma RID_assign_r_same:
-  "vwb_lens x \<Longrightarrow> RID(x)(x := v) = II"
-  apply (rel_auto)
-  using vwb_lens.put_eq apply fastforce
-  done
-
-lemma RID_seq_left:
-  assumes "vwb_lens x"
-  shows "RID(x)(RID(x)(P) ;; Q) = (RID(x)(P) ;; RID(x)(Q))"
+lemma mods_disj [closure]:
+  assumes "P mods a" "Q mods a"
+  shows "(P \<or> Q) mods a"
 proof -
-  have "RID(x)(RID(x)(P) ;; Q) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; Q) \<and> $x\<acute> =\<^sub>u $x)"
-    by (simp add: RID_def usubst)
-  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> (\<exists> $x \<bullet> $x\<acute> =\<^sub>u $x)) ;; (\<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
+  have "(a:[P] \<or> a:[Q]) mods a"
     by (rel_auto)
-  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
-    apply (rel_auto)
-     apply (metis vwb_lens.put_eq)
-    apply (metis mwb_lens.put_put vwb_lens_mwb)
-    done
-  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
-    by (rel_simp, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
-  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
-    by (rel_simp, fastforce)
-  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)))"
-    by (rel_auto)
-  also have "... = (RID(x)(P) ;; RID(x)(Q))"
-    by (rel_auto)
-  finally show ?thesis .
+  thus ?thesis by (simp add: Healthy_if assms)
 qed
 
-lemma RID_seq_right:
-  assumes "vwb_lens x"
-  shows "RID(x)(P ;; RID(x)(Q)) = (RID(x)(P) ;; RID(x)(Q))"
+lemma mods_cond [closure]:
+  assumes "P mods a" "Q mods a"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>r Q mods a"
 proof -
-  have "RID(x)(P ;; RID(x)(Q)) = ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
-    by (simp add: RID_def usubst)
-  also from assms have "... = (((\<exists> $x \<bullet>  P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> (\<exists> $x\<acute> \<bullet> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
+  have "a:[P] \<triangleleft> b \<triangleright>\<^sub>r a:[Q] mods a"
     by (rel_auto)
-  also from assms have "... = (((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
-    apply (rel_auto)
-     apply (metis vwb_lens.put_eq)
-    apply (metis mwb_lens.put_put vwb_lens_mwb)
-    done
-  also from assms have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; (\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q)) \<and> $x\<acute> =\<^sub>u $x)"
-    by (rel_simp robust, metis (full_types) mwb_lens.put_put vwb_lens_def wb_lens_weak weak_lens.put_get)
-  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)) \<and> $x\<acute> =\<^sub>u $x)"
-    by (rel_simp, fastforce)
-  also have "... = ((((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> P) \<and> $x\<acute> =\<^sub>u $x) ;; ((\<exists> $x \<bullet> \<exists> $x\<acute> \<bullet> Q) \<and> $x\<acute> =\<^sub>u $x)))"
-    by (rel_auto)
-  also have "... = (RID(x)(P) ;; RID(x)(Q))"
-    by (rel_auto)
-  finally show ?thesis .
+  thus ?thesis by (simp add: Healthy_if assms)
 qed
 
-lemma seqr_RID_closed [closure]: "\<lbrakk> vwb_lens x; P is RID(x); Q is RID(x) \<rbrakk> \<Longrightarrow> P ;; Q is RID(x)"
-  by (metis Healthy_def RID_seq_right)
-  
-definition unrest_relation :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> hrel \<Rightarrow> bool" (infix "\<sharp>\<sharp>" 20)
-where "(x \<sharp>\<sharp> P) \<longleftrightarrow> (P is RID(x))"
-
-declare unrest_relation_def [urel_defs]
-
-lemma runrest_assign_commute:
-  "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P \<rbrakk> \<Longrightarrow> x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
-  by (metis RID2 Healthy_def unrest_relation_def)
-
-lemma runrest_ident_var:
-  assumes "x \<sharp>\<sharp> P"
-  shows "($x \<and> P) = (P \<and> $x\<acute>)"
+lemma mods_seq [closure]:
+  assumes "mwb_lens a" "P mods a" "Q mods a"
+  shows "P ;; Q mods a"
 proof -
-  have "P = ($x\<acute> =\<^sub>u $x \<and> P)"
-    by (metis RID_def assms Healthy_def unrest_relation_def utp_pred_laws.inf.cobounded2 utp_pred_laws.inf_absorb2)
-  moreover have "($x\<acute> =\<^sub>u $x \<and> ($x \<and> P)) = ($x\<acute> =\<^sub>u $x \<and> (P \<and> $x\<acute>))"
-    by (rel_auto)
-  ultimately show ?thesis
-    by (metis utp_pred_laws.inf.assoc utp_pred_laws.inf_left_commute)
+  from assms(1) have "a:[P] ;; a:[Q] mods a"
+    by (rel_auto, metis mwb_lens.put_put)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
 qed
 
-lemma skip_r_runrest [unrest]:
-  "vwb_lens x \<Longrightarrow> x \<sharp>\<sharp> II"
-  by (simp add: unrest_relation_def closure)
-
-lemma assigns_r_runrest:
-  "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> \<langle>\<sigma>\<rangle>\<^sub>a"
-  by (simp add: unrest_relation_def closure)
-
-lemma seq_r_runrest [unrest]:
-  assumes "vwb_lens x" "x \<sharp>\<sharp> P" "x \<sharp>\<sharp> Q"
-  shows "x \<sharp>\<sharp> (P ;; Q)"
-  using assms by (simp add: unrest_relation_def closure )
-
-lemma false_runrest [unrest]: "x \<sharp>\<sharp> false"
-  by (rel_auto)
-
-lemma and_runrest [unrest]: "\<lbrakk> vwb_lens x; x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<and> Q)"
-  by (metis RID_conj Healthy_def unrest_relation_def)
-
-lemma or_runrest [unrest]: "\<lbrakk> x \<sharp>\<sharp> P; x \<sharp>\<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp>\<sharp> (P \<or> Q)"
-  by (simp add: RID_disj Healthy_def unrest_relation_def)
-
-no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert rgcmd while_top while_bot while_inv while_inv_bot while_vrt
+no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert 
+  frame antiframe modify freeze
+  rgcmd while_top while_bot while_inv while_inv_bot while_vrt
 
 end

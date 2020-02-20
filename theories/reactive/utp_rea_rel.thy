@@ -767,7 +767,7 @@ subsection \<open> Instantaneous Reactive Relations \<close>
 text \<open> Instantaneous Reactive Relations, where the trace stays the same. \<close>
   
 abbreviation Instant :: "('t::trace, '\<alpha>) hrel_rp \<Rightarrow> ('t, '\<alpha>) hrel_rp" where
-"Instant(P) \<equiv> RID(tr)(P)"
+"Instant(P) \<equiv> tr:\<lbrakk>P\<rbrakk>"
 
 lemma skip_rea_Instant [closure]: "II\<^sub>r is Instant"
   by (rel_auto)

@@ -606,7 +606,23 @@ proof -
     by (auto simp add: utp_order_def Healthy_def)
 qed
 
-thm rel_theory.GFP_unfold
+text \<open> A more sophisticated UTP theory that characterises relations that only modify a region
+  of the state space characterised by a lens @{term a}. \<close>
+
+theorem frame_theory: 
+  assumes vwb_frame: "vwb_lens a"
+  shows "utp_theory_cont_unital (frame a) II"
+proof
+  fix P Q
+  show "a:[a:[P]] = a:[P]" 
+    by rel_auto
+  show "P mods a \<Longrightarrow> Q mods a \<Longrightarrow> P ;; Q mods a"
+    using vwb_frame mods_seq vwb_lens_mwb by blast 
+  show "Continuous (frame a)"
+    by (rel_auto)
+  show "II mods a"
+    by (simp add: vwb_frame mods_skip)
+qed (simp_all)
 
 subsection \<open> Theory links \<close>
 

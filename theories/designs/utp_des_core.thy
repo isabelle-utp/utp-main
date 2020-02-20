@@ -335,29 +335,6 @@ theorem design_composition:
   shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
   using assms by (simp add: design_composition_subst usubst)
 
-theorem design_composition_runrest:
-  assumes
-    "$ok\<acute> \<sharp> P1" "$ok \<sharp> P2" "ok \<sharp>\<sharp> Q1" "ok \<sharp>\<sharp> Q2"
-  shows "((P1 \<turnstile> Q1) ;; (P2 \<turnstile> Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> (Q1 ;; Q2))"
-proof -
-  have "($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)) = ($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2))"
-  proof -
-    have "($ok \<and> $ok\<acute> \<and> (Q1 ;; Q2)) = (($ok \<and> Q1) ;; (Q2 \<and> $ok\<acute>))"
-      by (metis (no_types, lifting) conj_comm seqr_post_var_out seqr_pre_var_out)
-    also have "... = ((Q1 \<and> $ok\<acute>) ;; ($ok \<and> Q2))"
-      by (simp add: assms(3) assms(4) runrest_ident_var)
-    also have "... = (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>)"
-      by (metis ok_vwb_lens seqr_pre_transfer seqr_right_one_point true_alt_def uovar_convr upred_eq_true utp_pred_laws.inf.left_idem utp_rel.unrest_ouvar vwb_lens_mwb)
-    finally show ?thesis
-      by (metis utp_pred_laws.inf.left_commute utp_pred_laws.inf_left_idem)
-  qed
-  moreover have "(\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>) =
-                 (\<not> (\<not> P1 ;; true) \<and> \<not> (Q1\<^sup>t ;; (\<not> P2))) \<turnstile> ($ok \<and> $ok\<acute> \<and> (Q1\<^sup>t ;; Q2\<lbrakk>true/$ok\<rbrakk>))"
-    by (metis design_export_ok design_export_ok')
-  ultimately show ?thesis using assms
-    by (simp add: design_composition_subst usubst, metis design_export_ok design_export_ok')
-qed
-
 theorem rdesign_composition:
   "((P1 \<turnstile>\<^sub>r Q1) ;; (P2 \<turnstile>\<^sub>r Q2)) = (((\<not> ((\<not> P1) ;; true)) \<and> \<not> (Q1 ;; (\<not> P2))) \<turnstile>\<^sub>r (Q1 ;; Q2))"
   by (simp add: rdesign_def design_composition unrest alpha)

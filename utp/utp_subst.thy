@@ -100,7 +100,7 @@ text \<open> Parallel substitutions allow us to divide the state space into thre
 lift_definition par_subst :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('b \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst \<Rightarrow> '\<alpha> usubst" is
 "\<lambda> \<sigma>\<^sub>1 A B \<sigma>\<^sub>2. (\<lambda> s. (s \<oplus>\<^sub>L (\<sigma>\<^sub>1 s) on A) \<oplus>\<^sub>L (\<sigma>\<^sub>2 s) on B)" .
 
-no_utp_lift subst_upd (1) subst usubst
+no_utp_lift subst_upd (1) subst usubst usubst_lookup
 
 subsection \<open> Syntax translations \<close>
 
@@ -154,10 +154,13 @@ text \<open> Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s 
   expression $v$, @{term "[x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f]"} to construct a substitution with two variables,
   and finally @{term "P\<lbrakk>v/x\<rbrakk>"}, the traditional syntax.
 
-  We can now express deletion of a substitution maplet. \<close>
+  We can now express deletion of and restriction to a substitution maplet. \<close>
 
 definition subst_del :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst" (infix "-\<^sub>s" 85) where
-"subst_del \<sigma> x = \<sigma>(x \<mapsto>\<^sub>s &x)"
+[uexpr_defs]: "subst_del \<sigma> x = \<sigma>(x \<mapsto>\<^sub>s &x)"
+
+definition subst_restr :: "'\<alpha> usubst \<Rightarrow> ('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> usubst" (infix "\<rhd>\<^sub>s" 85) where
+[uexpr_defs]: "subst_restr \<sigma> x = [x \<mapsto>\<^sub>s \<langle>\<sigma>\<rangle>\<^sub>s x]"
 
 subsection \<open> Substitution Application Laws \<close>
 
@@ -321,9 +324,26 @@ lemma subst_del_upd_same [usubst]:
   "mwb_lens x \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s x = \<sigma> -\<^sub>s x"
   by (simp add: subst_del_def subst_upd_def, transfer, simp)
 
+lemma subst_del_upd_in [usubst]:
+  "\<lbrakk> mwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) -\<^sub>s a = \<sigma> -\<^sub>s a"
+  by (simp add: subst_del_def subst_upd_def, transfer, simp add: sublens_put_put)
+
 lemma subst_del_upd_diff [usubst]:
   "x \<bowtie> y \<Longrightarrow> \<sigma>(y \<mapsto>\<^sub>s v) -\<^sub>s x = (\<sigma> -\<^sub>s x)(y \<mapsto>\<^sub>s v)"
   by (simp add: subst_del_def subst_upd_def, transfer, simp add: lens_indep_comm)
+
+lemma subst_restr_id [usubst]: "vwb_lens x \<Longrightarrow> id\<^sub>s \<rhd>\<^sub>s x = id\<^sub>s"
+  by (simp add: subst_restr_def usubst)
+
+lemma subst_restr_upd_in [usubst]:
+  "\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<rhd>\<^sub>s a = (\<sigma> \<rhd>\<^sub>s a)(x \<mapsto>\<^sub>s v)"
+  by (simp add: subst_restr_def usubst subst_upd_def, transfer, 
+      simp add: fun_eq_iff sublens'_prop1 sublens_implies_sublens' sublens_pres_vwb)
+
+lemma subst_restr_upd_out [usubst]:
+  "\<lbrakk> vwb_lens a; x \<bowtie> a \<rbrakk> \<Longrightarrow> \<sigma>(x \<mapsto>\<^sub>s v) \<rhd>\<^sub>s a = (\<sigma> \<rhd>\<^sub>s a)"
+  by (simp add: subst_restr_def usubst subst_upd_def, transfer
+     , simp add: lens_indep.lens_put_irr2)
 
 text \<open> If a variable is unrestricted in an expression, then any substitution of that variable
   has no effect on the expression .\<close>
