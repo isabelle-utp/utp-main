@@ -17,6 +17,11 @@ record ('a, 'b) lens =
 type_notation
   lens (infixr "\<Longrightarrow>" 0)
 
+text \<open> Alternative parameters ordering, inspired by Back and von Wright~\cite{Back1998}. \<close>
+
+abbreviation (input) lens_set :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("lset\<index>") where
+"lens_set \<equiv> (\<lambda> X v s. put\<^bsub>X\<^esub> s v)"
+
 text \<open>
   \begin{figure}
   \begin{center}
@@ -64,6 +69,15 @@ definition lens_obs_eq :: "('b \<Longrightarrow> 'a) \<Rightarrow> 'a \<Rightarr
 text \<open> This relation states that two sources are equivalent outside of the region characterised
   by lens $X$. \<close>
 
+definition lens_override :: "('b \<Longrightarrow> 'a) \<Rightarrow> 'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixl "\<triangleleft>\<index>" 95) where
+[lens_defs]: "S\<^sub>1 \<triangleleft>\<^bsub>X\<^esub> S\<^sub>2 = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
+
+abbreviation (input) lens_override' :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
+"S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X \<equiv> S\<^sub>1 \<triangleleft>\<^bsub>X\<^esub> S\<^sub>2"
+
+text \<open>Lens override uses a lens to replace part of a source type with a given value for the
+  corresponding view.\<close>
+
 subsection \<open>Weak Lenses\<close>
 
 text \<open> Weak lenses are the least constrained class of lenses in our algebraic hierarchy. They
@@ -102,6 +116,7 @@ begin
     
   lemma put_inj: "inj (put \<sigma>)"
     by (simp add: injI view_determination)
+
 end
 
 declare weak_lens.put_get [simp]
@@ -425,10 +440,11 @@ qed
 subsection \<open> Lens Compatibility \<close>
 
 text \<open> Lens compatibility is a weaker notion than independence. It allows that two lenses can overlap
-  so long as they manipulate the source in the same way in that region. \<close>
+  so long as they manipulate the source in the same way in that region. It is most easily defined
+  in terms of a function for copying a region from one source to another using a lens. \<close>
 
 definition lens_compat (infix "##\<^sub>L" 50) where
-[lens_defs]: "lens_compat X Y = (\<forall>s\<^sub>1 s\<^sub>2. put\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> s\<^sub>1 (get\<^bsub>X\<^esub> s\<^sub>2)) (get\<^bsub>Y\<^esub> s\<^sub>2) = put\<^bsub>X\<^esub> (put\<^bsub>Y\<^esub> s\<^sub>1 (get\<^bsub>Y\<^esub> s\<^sub>2)) (get\<^bsub>X\<^esub> s\<^sub>2))"
+[lens_defs]: "lens_compat X Y = (\<forall>s\<^sub>1 s\<^sub>2. s\<^sub>1 \<triangleleft>\<^bsub>X\<^esub> s\<^sub>2 \<triangleleft>\<^bsub>Y\<^esub> s\<^sub>2 = s\<^sub>1 \<triangleleft>\<^bsub>Y\<^esub> s\<^sub>2 \<triangleleft>\<^bsub>X\<^esub> s\<^sub>2)"
 
 lemma lens_compat_idem [simp]: "x ##\<^sub>L x"
   by (simp add: lens_defs)
@@ -437,6 +453,6 @@ lemma lens_compat_sym: "x ##\<^sub>L y \<Longrightarrow> y ##\<^sub>L x"
   by (simp add: lens_defs)
 
 lemma lens_indep_compat [simp]: "x \<bowtie> y \<Longrightarrow> x ##\<^sub>L y"
-  by (simp add: lens_compat_def lens_indep_comm)
+  by (simp add: lens_override_def lens_compat_def lens_indep_comm)
 
 end

@@ -273,7 +273,7 @@ lemma idem_scene_impl_vwb:
   done
 
 lemma lens_compat_scene: "\<lbrakk> mwb_lens X; mwb_lens Y \<rbrakk> \<Longrightarrow> X ##\<^sub>L Y \<longleftrightarrow> \<lbrakk>X\<rbrakk>\<^sub>\<sim> ##\<^sub>S \<lbrakk>Y\<rbrakk>\<^sub>\<sim>"
-  by (simp add: lens_scene.rep_eq scene_compat.rep_eq lens_defs)
+  by (auto simp add: lens_scene.rep_eq scene_compat.rep_eq lens_defs)
 
 text \<open> Next we show some important congruence properties \<close>
 

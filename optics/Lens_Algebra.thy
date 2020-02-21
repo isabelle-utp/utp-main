@@ -84,12 +84,6 @@ definition lens_quotient :: "('a \<Longrightarrow> 'c) \<Rightarrow> ('b \<Longr
 [lens_defs]: "X /\<^sub>L Y = \<lparr> lens_get = \<lambda> \<sigma>. get\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>)
                        , lens_put = \<lambda> \<sigma> v. get\<^bsub>Y\<^esub> (put\<^bsub>X\<^esub> (create\<^bsub>Y\<^esub> \<sigma>) v) \<rparr>"
 
-text \<open>Lens override uses a lens to replace part of a source type with a given value for the
-  corresponding view.\<close>
-
-definition lens_override :: "'a \<Rightarrow> 'a \<Rightarrow> ('b \<Longrightarrow> 'a) \<Rightarrow> 'a" ("_ \<oplus>\<^sub>L _ on _" [95,0,96] 95) where
-[lens_defs]: "S\<^sub>1 \<oplus>\<^sub>L S\<^sub>2 on X = put\<^bsub>X\<^esub> S\<^sub>1 (get\<^bsub>X\<^esub> S\<^sub>2)"
-
 text \<open>Lens inverse take a bijective lens and swaps the source and view types.\<close>
 
 definition lens_inv :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('b \<Longrightarrow> 'a)" ("inv\<^sub>L") where
@@ -336,10 +330,10 @@ lemma lens_indep_prod:
 subsection \<open> Compatibility Laws \<close>
 
 lemma zero_lens_compat [simp]: "0\<^sub>L ##\<^sub>L X"
-  by (auto simp add: zero_lens_def lens_compat_def)
+  by (auto simp add: zero_lens_def lens_override_def lens_compat_def)
 
 lemma id_lens_compat [simp]: "vwb_lens X \<Longrightarrow> 1\<^sub>L ##\<^sub>L X"
-  by (auto simp add: id_lens_def lens_compat_def)
+  by (auto simp add: id_lens_def lens_override_def lens_compat_def)
 
 subsection \<open>Algebraic Laws\<close>
 
