@@ -27,6 +27,7 @@ echo -e "\
 \e[1mOPTIONS\e[0m
     -h          display usage information
     -d          delete the AFP entry
+    -u          use the development AFP
     -v AFP_VERSION  install a specific version (the default is current)"
 }
 
@@ -34,6 +35,7 @@ echo -e "\
 
 AFP_VERSION="current"
 AFP_URL="https://www.isa-afp.org/release/"
+AFP_DEV="https://devel.isa-afp.org/release/"
 AFP_FILE="afp-"
 AFP_EXTENSION=".tar.gz"
 AFP_DELETE=false
@@ -53,13 +55,15 @@ fi
 
 # Otherwise parse options.
 
-while getopts hdv: opt; do
+while getopts hduv: opt; do
     case $opt in
         h)
             show_help
             exit 0
             ;;
         d)  AFP_DELETE=true
+            ;;
+        u)  AFP_URL=$AFP_DEV
             ;;
         v)  AFP_VERSION=$OPTARG
             ;;
