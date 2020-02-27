@@ -1,12 +1,13 @@
-section {* Derivatives: extra laws and tactics *}
+section \<open> Derivatives: extra laws and tactics \<close>
 
 theory Derivative_extra
   imports
   "HOL-Analysis.Analysis"
   "HOL-Eisbach.Eisbach"
+  "HOL-Decision_Procs.Approximation"
 begin
 
-subsection {* Properties of filters *}
+subsection \<open> Properties of filters \<close>
 
 lemma filtermap_within_range_minus: "filtermap (\<lambda> x. x - n::real) (at y within {x..<y}) = (at (y - n) within ({x-n..<y-n}))"
   by (simp add: filter_eq_iff eventually_filtermap eventually_at_filter filtermap_nhds_shift[symmetric])
@@ -18,7 +19,7 @@ lemma filter_upto_contract:
   "\<lbrakk> (x::real) \<le> y; y < z \<rbrakk> \<Longrightarrow> (at z within {x..<z}) = (at z within {y..<z})"
   by (rule at_within_nhd[of _ "{y<..<z+1}"], auto)
 
-subsection {* Topological Spaces *}
+subsection \<open> Topological Spaces \<close>
   
 instantiation unit :: t2_space
 begin
@@ -26,7 +27,7 @@ begin
   instance by (intro_classes, simp_all add: open_unit_def)
 end
  
-subsection {* Extra derivative rules *}
+subsection \<open> Extra derivative rules \<close>
 
 lemma has_vector_derivative_Pair [derivative_intros]:
   "\<lbrakk> (f has_vector_derivative f') (at x within s); (g has_vector_derivative g') (at x within s) \<rbrakk> \<Longrightarrow>
@@ -106,8 +107,8 @@ lemma Pair_has_vector_derivative_iff:
    (f has_vector_derivative f') (at x within s) \<and> (g has_vector_derivative g') (at x within s)"
   using Pair_has_vector_derivative has_vector_derivative_fst has_vector_derivative_snd by blast
   
-text {* The next four rules allow us to prove derivatives when the function is equivalent to
-  another a function when approach from the left or right. *}
+text \<open> The next four rules allow us to prove derivatives when the function is equivalent to
+  another a function when approach from the left or right. \<close>
  
 lemma has_derivative_left_point:
   fixes f g :: "real \<Rightarrow> real"
@@ -144,7 +145,49 @@ lemma has_vector_derivative_right_point:
   apply (rule_tac y="y" and f="f" in has_derivative_right_point)
   apply (auto simp add: assms)
 done
+
+method prove_vec_deriv = (simp add: has_vector_derivative_def, subst has_derivative_eq_rhs, force intro: derivative_intros; auto simp add: field_simps)
+
+lemma has_vector_derivative_sqrt[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real"    
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+  assumes "f x > 0"
+  shows "((\<lambda>x. sqrt(f x)) has_vector_derivative (f' * 1/(2 * sqrt(f x)))) (at x within s)"
+  using assms unfolding divide_inverse by prove_vec_deriv
+
+lemma has_vector_derivative_sin[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real"    
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+  shows "((\<lambda>x. sin(f x)) has_vector_derivative (f' * cos(f x))) (at x within s)"
+  using assms by prove_vec_deriv
   
+lemma has_vector_derivative_cos[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real"    
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+  shows "((\<lambda>x. cos(f x)) has_vector_derivative (f' * - sin(f x))) (at x within s)"
+  using assms by prove_vec_deriv
+
+lemma has_vector_derivative_exp[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real"    
+  assumes f: "(f has_vector_derivative f') (at x within s)"
+  shows "((\<lambda>x. exp(f x)) has_vector_derivative (f' * exp(f x))) (at x within s)"
+  using assms by prove_vec_deriv
+
+lemma has_vector_derivative_ln[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real"    
+  assumes f: "(f has_vector_derivative f') (at x within s)" "0 < f x"
+  shows "((\<lambda>x. ln(f x)) has_vector_derivative (f' * inverse(f x))) (at x within s)"
+  using assms by prove_vec_deriv
+
+lemma has_vector_derivative_powr[derivative_intros]:
+  fixes f :: "real \<Rightarrow> real" and g :: "real \<Rightarrow> real"
+  assumes
+    "(g has_vector_derivative g') (at x within X)"
+    "(f has_vector_derivative f') (at x within X)"
+    "0 < g x" "x \<in> X"
+  shows "((\<lambda>x. g x powr f x) has_vector_derivative (g x powr f x * (f' * ln (g x) + g' * f x / g x))) (at x within X)"
+  using assms by prove_vec_deriv
+
 lemma max_simps [simp]: 
   "(y::real) < max x y \<longleftrightarrow> y < x" 
   "x < max x y \<longleftrightarrow> x < y"
@@ -155,6 +198,13 @@ lemma min_simps [simp]:
   "min (x::real) y < x \<longleftrightarrow> y < x"
   "min x y < y \<longleftrightarrow> x < y"
   by auto
+
+text \<open> These laws seem helpful for discharging real conjectures. \<close>
+
+lemma real_sqrt_pow2_combine [simp]: "x > 0 \<Longrightarrow> sqrt x * (sqrt x * n) = x * n"
+  by simp                                                                          
+
+declare power2_eq_square [field_simps]
 
 subsection \<open> Calculating derivatives \<close>
 

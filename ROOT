@@ -35,6 +35,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
     "UTP-Reactive"
   theories
     Derivative_extra
+    ODE_Cert
     Contiguous_Functions
     Timed_Traces
   document_files
