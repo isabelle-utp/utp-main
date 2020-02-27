@@ -111,7 +111,7 @@ lemma scene_indep_sym:
 
 text \<open> Compatibility is a weaker notion than independence; the scenes can overlap but they must
   agree when they do. \<close>
-                                                  
+
 lift_definition scene_compat :: "'a scene \<Rightarrow> 'a scene \<Rightarrow> bool" (infix "##\<^sub>S" 50)
 is "\<lambda> F G. (\<forall> s\<^sub>1 s\<^sub>2. G (F s\<^sub>1 s\<^sub>2) s\<^sub>2 = F (G s\<^sub>1 s\<^sub>2) s\<^sub>2)" .
 
@@ -182,11 +182,26 @@ lemma scene_union_unit: "X \<squnion>\<^sub>S \<bottom>\<^sub>S = X"
 lemma scene_union_annhil: "idem_scene X \<Longrightarrow> X \<squnion>\<^sub>S \<top>\<^sub>S = \<top>\<^sub>S"
   by (transfer, simp)
 
+lemma scene_union_pres_compat: "\<lbrakk> A ##\<^sub>S B; A ##\<^sub>S C \<rbrakk> \<Longrightarrow> A ##\<^sub>S (B \<squnion>\<^sub>S C)"
+  by (transfer, auto)
+
+lemma scene_indep_self_compl: "A \<bowtie>\<^sub>S -A"
+  by (transfer, simp)
+
 lemma scene_union_assoc: 
   assumes "X ##\<^sub>S Y" "X ##\<^sub>S Z" "Y ##\<^sub>S Z"
   shows "X \<squnion>\<^sub>S (Y \<squnion>\<^sub>S Z) = (X \<squnion>\<^sub>S Y) \<squnion>\<^sub>S Z"
+  using assms by (transfer, auto)
+
+lemma scene_inter_indep:
+  assumes "idem_scene X" "idem_scene Y" "X \<bowtie>\<^sub>S Y"
+  shows "X \<sqinter>\<^sub>S Y = \<bottom>\<^sub>S"
   using assms
-  by (transfer, auto)
+  unfolding lens_defs
+  apply (transfer, auto)
+  apply (metis (no_types, hide_lams) idem_overrider.ovr_idem overrider.ovr_assoc overrider.ovr_overshadow_right)
+  apply (metis (no_types, hide_lams) idem_overrider.ovr_idem overrider.ovr_overshadow_right)
+  done
 
 lemma scene_union_idem: "X \<squnion>\<^sub>S X = X"
   by (transfer, simp)
@@ -252,6 +267,13 @@ lemma scene_top_greatest: "X \<le> \<top>\<^sub>S"
 lemma scene_union_ub: "\<lbrakk> idem_scene Y; X \<bowtie>\<^sub>S Y \<rbrakk> \<Longrightarrow> X \<le> (X \<squnion>\<^sub>S Y)"
   by (simp add: less_eq_scene_def, transfer, auto)
      (metis (no_types, hide_lams) idem_overrider.ovr_idem overrider.ovr_overshadow_right)
+
+lemma scene_le_then_compat: "\<lbrakk> idem_scene X; idem_scene Y; X \<le> Y \<rbrakk> \<Longrightarrow> X ##\<^sub>S Y"
+  unfolding less_eq_scene_def
+  by (transfer, auto, metis (no_types, lifting) idem_overrider.ovr_idem overrider_def)
+
+lemma indep_then_compl_in: "A \<bowtie>\<^sub>S B \<Longrightarrow> A \<le> -B"
+  unfolding less_eq_scene_def by (transfer, simp)
 
 subsection \<open> Linking Scenes and Lenses \<close>
 
@@ -370,7 +392,7 @@ lemma fun_dom_scene_UNIV: "fds(UNIV) = \<top>\<^sub>S"
 lemma fun_dom_scene_always_compat [simp]: "fds(A) ##\<^sub>S fds(B)"
   by (transfer, simp add: override_on_def fun_eq_iff)
 
-text \<open> Hide implementation details for scenes \<close>
+text \<open> Hide implementation details for scenes \<close>  
 
 lifting_update scene.lifting
 lifting_forget scene.lifting
