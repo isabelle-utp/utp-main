@@ -5,6 +5,7 @@ imports
   "HOL-Library.State_Monad"
   Lens_Algebra
 begin
+
 text \<open>Inspired by Haskell's lens package\<close>
 
 definition zoom :: "('a \<Longrightarrow> 'b) \<Rightarrow> ('a, 'c) state \<Rightarrow> ('b, 'c) state" where
@@ -65,11 +66,11 @@ unfolding State_Monad.get_def use_def zoom_def
 by (simp add: comp_def get_put)
 
 lemma (in wb_lens) modify_alt_def: "modify x f = State_Monad.update (update f)"
-unfolding modify_def zoom_def update_def State_Monad.update_def State_Monad.get_def State_Monad.set_def State_Monad.bind_def
-by auto
-
+  unfolding modify_def zoom_def lens_update_def State_Monad.update_def State_Monad.get_def State_Monad.set_def State_Monad.bind_def
+  by (auto)
+ 
 lemma (in wb_lens) modify_id[simp]: "modify x (\<lambda>x. x) = State_Monad.return ()"
-unfolding update_def modify_alt_def
+unfolding lens_update_def modify_alt_def
 by (simp add: get_put)
 
 lemma (in mwb_lens) modify_comp[simp]: "bind (modify x f) (\<lambda>_. modify x g) = modify x (g \<circ> f)"

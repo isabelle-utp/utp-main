@@ -17,7 +17,8 @@ record ('a, 'b) lens =
 type_notation
   lens (infixr "\<Longrightarrow>" 0)
 
-text \<open> Alternative parameters ordering, inspired by Back and von Wright~\cite{Back1998}. \<close>
+text \<open> Alternative parameters ordering, inspired by Back and von Wright's refinement 
+  calculus~\cite{Back1998}, which similarly uses two functions to characterise updates to variables. \<close>
 
 abbreviation (input) lens_set :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'a \<Rightarrow> 'b \<Rightarrow> 'b" ("lset\<index>") where
 "lens_set \<equiv> (\<lambda> X v s. put\<^bsub>X\<^esub> s v)"
@@ -196,7 +197,9 @@ lemma mwb_lens_weak [simp]:
 
 subsection \<open>Very Well-behaved Lenses\<close>
 
-text \<open>Very well-behaved lenses combine all three laws, as in the literature~\cite{Foster09,Fischer2015}.\<close>
+text \<open>Very well-behaved lenses combine all three laws, as in the literature~\cite{Foster09,Fischer2015}.
+  The same set of axioms can be found in Back and von Wright's refinement calculus~\cite{Back1998}, 
+  though with different names for the functions. \<close>
 
 locale vwb_lens = wb_lens + mwb_lens
 begin
