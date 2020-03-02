@@ -686,7 +686,7 @@ proof -
 qed
 
 no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert 
-  frame antiframe modify freeze
+  frame antiframe modify freeze conv_r
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
 
 end
