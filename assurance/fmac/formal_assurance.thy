@@ -71,6 +71,9 @@ record ('c, 'm, 's) reqbody =
   pre   :: "('c, 'm, 's) cpst upred"
   post  :: "('c, 'm, 's) cpst upred"
 
+no_utp_lift pre (0)
+no_utp_lift post (0)
+
 type_synonym ('c, 'm, 's) req = "reqtype \<times> ('c, 'm, 's) reqbody"
 
 text \<open> The body of the CPS satisfies the safety or liveness requirement \<close>
@@ -105,6 +108,9 @@ record ('c, 'm, 's) fac =
   assm  :: "('c, 'm, 's) cpst upred"
   guar  :: "('c, 'm, 's) req set"
 
+no_utp_lift assm (0)
+no_utp_lift guar (0)
+
 record ('c, 'm, 's) fmac = "('c, 'm, 's) fac" +
   model :: "('c, 'm, 's) cps"
 
@@ -128,7 +134,7 @@ text \<open> Lift safety requirements using a functional retrieve relation\<clos
 
 definition lift_sreqs :: 
   "('c\<^sub>1, 'm\<^sub>1, 's\<^sub>1) fmac \<Rightarrow> 
-   (('c\<^sub>2, 'm\<^sub>2, 's\<^sub>2) cpst \<Rightarrow> ('c\<^sub>1, 'm\<^sub>1, 's\<^sub>1) cpst) \<Rightarrow> 
+   (('c\<^sub>2, 'm\<^sub>2, 's\<^sub>2) cpst, ('c\<^sub>1, 'm\<^sub>1, 's\<^sub>1) cpst) psubst \<Rightarrow> 
    reqtype \<leftrightarrow> ('c\<^sub>2, 'm\<^sub>2, 's\<^sub>2) reqbody" where
 "lift_sreqs AC \<sigma> \<equiv> {(t, \<lparr> pre = \<sigma> \<dagger> (assm AC \<and> pre b), post = \<sigma> \<dagger> post b \<rparr>) | t b. t \<in> {nxt, glob} \<and> (t, b) \<in> guar AC}"
 

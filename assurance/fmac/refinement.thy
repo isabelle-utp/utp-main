@@ -11,6 +11,10 @@ record 's machine =
   invs    :: "'s upred"     ("Invs\<index>")
   body    :: "'s hrel"      ("Body\<index>")
 
+no_utp_lift init (0)
+no_utp_lift invs (0)
+no_utp_lift body (0)
+
 definition semantics :: "'s machine \<Rightarrow> 's hrel" ("Sem\<index>") where
 [upred_defs]: "semantics M = (\<langle>init M\<rangle>\<^sub>a ;; ?[invs M]) ;; (body M)\<^sup>\<star>"
 
@@ -34,7 +38,7 @@ begin
     apply (hoare_auto)
     done
 
-  lemma body_reachable_invs: "`Invs \<Rightarrow> Body wp Invs`"
+  lemma body_reachable_invs: "`Invs \<Rightarrow> Body wp invs M`"
     using body_invs body_progress by (rel_blast)
 
 end
@@ -46,11 +50,19 @@ record ('s\<^sub>1, 's\<^sub>2) refinement =
   con_m     :: "'s\<^sub>2 machine" ("\<M>\<^sub>C\<index>")    \<comment> \<open> Concrete Machine \<close>
   retrieve  :: "('s\<^sub>1 , 's\<^sub>2) urel" ("\<R>\<index>") \<comment> \<open> Retrieve Relation \<close>
 
+no_utp_lift retrieve (0)
+
 abbreviation abs_invs ("Inv\<^sub>A\<index>") where "abs_invs R \<equiv> invs (abs_m R)"
 abbreviation con_invs ("Inv\<^sub>C\<index>") where "con_invs R \<equiv> invs (con_m R)"
 
+no_utp_lift abs_invs (0)
+no_utp_lift con_invs (0)
+
 abbreviation abs_body ("Body\<^sub>A\<index>") where "abs_body R \<equiv> body (abs_m R)"
 abbreviation con_body ("Body\<^sub>C\<index>") where "con_body R \<equiv> body (con_m R)"
+
+no_utp_lift abs_body (0)
+no_utp_lift con_body (0)
 
 locale refinement =
   fixes R :: "('s\<^sub>1, 's\<^sub>2) refinement" (structure)
@@ -83,14 +95,14 @@ begin
 
   lemma retrieve_assm_prop: "?[Inv\<^sub>A] ;; \<R> ;; ?[Inv\<^sub>C] = \<R> ;; ?[Inv\<^sub>C]"
   proof -
-    have f1: "`Dom (\<R> ;; ?[Inv\<^sub>C]::('a, 'b) urel) \<Rightarrow> Inv\<^sub>A`"
+    have f1: "`Pre (\<R> ;; ?[Inv\<^sub>C]::('a, 'b) urel) \<Rightarrow> Inv\<^sub>A`"
       by (metis (full_types) bwd_invs wp_upred_def)
-    have f2: "\<forall>u. u = Dom (II::'a hrel) \<or> \<not> `u`"
-      by (metis (no_types) Dom_assume RA1 assume_Dom assume_seq eq_split impl_mp2 taut_conj upred_semiring.mult.left_neutral)
+    have f2: "\<forall>u. u = Pre (II::'a hrel) \<or> \<not> `u`"
+      by (metis (no_types) Pre_assume RA1 assume_Pre assume_seq eq_split impl_mp2 taut_conj upred_semiring.mult.left_neutral)
     have "\<forall>u. (II::'a hrel) ;; (u::('a, 'b) urel) = u"
       by simp
     then show ?thesis
-      using f2 f1 by (metis (no_types) RA1 assume_Dom assume_seq impl_mp2)
+      using f2 f1 by (metis (no_types) RA1 assume_Pre assume_seq impl_mp2)
   qed
 
   lemma refine_lemma: "?[Inv\<^sub>A] ;; Body\<^sub>A \<sqsubseteq> \<R> ;; ?[Inv\<^sub>C] ;; Body\<^sub>C ;; \<R>\<^sup>-"
@@ -144,7 +156,7 @@ lemma bwd_refineI:
 subsection \<open> Functional refinement \<close>
 
 locale func_refinement = refinement +
-  fixes \<sigma> :: "'s\<^sub>2 \<Rightarrow> 's\<^sub>1"
+  fixes \<sigma> :: "('s\<^sub>2, 's\<^sub>1) psubst"
   assumes retrieve_func: "\<R> = \<langle>\<sigma>\<rangle>\<^sub>a\<^sup>-"
   and func_invs: "`Inv\<^sub>C \<Rightarrow> (\<sigma> \<dagger> Inv\<^sub>A)`"
   and func_sim: "?[Inv\<^sub>C] ;; \<langle>\<sigma>\<rangle>\<^sub>a ;; Body\<^sub>A \<sqsubseteq> ?[Inv\<^sub>C] ;; Body\<^sub>C ;; \<langle>\<sigma>\<rangle>\<^sub>a"
@@ -184,7 +196,7 @@ lemma func_refinementI:
   shows "func_refinement R \<sigma>"
   by (simp add: assms func_refinement.intro func_refinement_axioms.intro refinement.intro) 
 
-definition func_refine :: "'s\<^sub>1 machine \<Rightarrow> 's\<^sub>2 machine \<Rightarrow> ('s\<^sub>2 \<Rightarrow> 's\<^sub>1) \<Rightarrow> ('s\<^sub>1, 's\<^sub>2) refinement" where
+definition func_refine :: "'s\<^sub>1 machine \<Rightarrow> 's\<^sub>2 machine \<Rightarrow> ('s\<^sub>2, 's\<^sub>1) psubst \<Rightarrow> ('s\<^sub>1, 's\<^sub>2) refinement" where
 "func_refine M\<^sub>1 M\<^sub>2 \<sigma> = \<lparr> abs_m = M\<^sub>1, con_m = M\<^sub>2, retrieve = \<langle>\<sigma>\<rangle>\<^sub>a\<^sup>- \<rparr>"
 
 lemma func_refineI: 
