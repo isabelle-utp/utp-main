@@ -2,7 +2,7 @@ section \<open>Lens Instances\<close>
 
 theory Lens_Instances
   imports Lens_Order Lens_Symmetric "HOL-Eisbach.Eisbach"
-  keywords "alphabet" :: "thy_decl_block"
+  keywords "alphabet" :: "thy_defn"
 begin
 
 text \<open>In this section we define a number of concrete instantiations of the lens locales, including
@@ -246,7 +246,7 @@ text \<open>We also introduce the \textbf{alphabet} command that creates a recor
   pair of lenses an independence theorem is generated. Alphabets can also be extended which yields 
   sublens proofs between the extension field lens and record extension lenses. \<close>
 
-ML_file "Lens_Record.ML"
+ML_file \<open>Lens_Record.ML\<close>
 
 text \<open>The following theorem attribute stores splitting theorems for alphabet types which which is useful
   for proof automation.\<close>

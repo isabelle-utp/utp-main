@@ -21,7 +21,6 @@ val base_moreN = "base_more"
 val bij_lens_suffix = "_bij_lens"
 val vwb_lens_suffix = "_vwb_lens"
 val sym_lens_suffix = "_sym_lens"
-val slens_make = @{const_name "slens.make"}
 val indepsN = "indeps"
 val sublensN = "sublenses"
 val quotientN = "quotients"
@@ -47,6 +46,8 @@ val equivN = "equivs"
 val splits_suffix = ".splits"
 val defs_suffix = ".defs"
 val prod_case_eq_ifN = "prod.case_eq_if"
+val slens_view = "view"
+val slens_coview = "coview"
 
 (* The following code is adapted from the record package. We generate a record, but also create
    lenses for each field and prove properties about them. *)
@@ -292,8 +293,7 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
         NONE => ""
     val bldef = (base_lensN, base_lensN ^ " = " ^ BASELENS ^ " " ^ tname);
     val mldef = (child_lensN, child_lensN ^ " = " ^ FLDLENS ^ " more"); 
-(*    val sldef = (all_lensN, all_lensN ^ " \<equiv> " ^ slens_make ^ " " ^ base_lensN ^ " " ^ child_lensN); *)
-    val sldef = (all_lensN, all_lensN ^ " \<equiv> \<lparr> view = " ^ base_lensN ^ ", coview = " ^ child_lensN ^ " \<rparr>");
+    val sldef = (all_lensN, all_lensN ^ " \<equiv> \<lparr> " ^ slens_view ^ " = " ^ base_lensN ^ ", " ^ slens_coview ^ " = " ^ child_lensN ^ " \<rparr>");
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [child_lensN];
     fun pindeps thy = map (fn thm => @{thm sublens_pres_indep} OF [thm]) (get_thms thy sublensN)
                     @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensN)

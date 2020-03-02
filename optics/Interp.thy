@@ -6,13 +6,13 @@
 (******************************************************************************)
 (* LAST REVIEWED: 7/12/2016 *)
 
-section {* Interpretation Tools *}
+section \<open>Interpretation Tools\<close>
 
 theory Interp
 imports Main
 begin
 
-subsection {* Interpretation Locale *}
+subsection \<open>Interpretation Locale\<close>
 
 locale interp =
 fixes f :: "'a \<Rightarrow> 'b"
