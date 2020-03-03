@@ -43,6 +43,8 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
   ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
   ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
   ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
+  ("_UTP (_subst e v x)", "_subst (_UTP e) (_UTP v) x"),
+  ("U(\<sigma> \<dagger> e)", "U(\<sigma>) \<dagger> U(e)"),
   ("U(f x)" , "U(f) |> U(x)"),
 (*  ("U(f x)" , "f |> U(x)"),
   ("U(f x)" , "U(f) |> x"), *)
@@ -185,5 +187,7 @@ term "U(P \<or> $x = 1 \<Rightarrow> false)"
 term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute> \<and> $x\<acute> = $x + 1)"
 
 term "U((length e)\<lbrakk>1+1/&x\<rbrakk>)"
+
+term "U([x \<mapsto>\<^sub>s 1 + 2])"
 
 end

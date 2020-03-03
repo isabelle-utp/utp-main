@@ -86,8 +86,16 @@ ML \<open>
 
   val list_appl = Library.foldl (fn (f, x) => Const (@{const_name "uexpr_appl"}, dummyT) $ f $ x);
 
-  fun utp_lift_aux ctx (Const (n', t), args) =
-    let val n = (if (Lexicon.is_marked n') then Lexicon.unmark_const n' else n') in
+  fun utp_lift_aux ctx (Const (n', t), args') =
+    \<comment> \<open> Pre-processing: If we have a > or >= operator then we turn these into < and <= \<close>
+    let val pn = (if (Lexicon.is_marked n') then Lexicon.unmark_const n' else n')
+        val (args, n) = 
+          if (pn = @{const_abbrev greater} andalso (length args' = 2)) 
+          then (rev args', @{const_name less}) 
+          else if (pn = @{const_abbrev greater_eq} andalso (length args' = 2)) 
+          then (rev args', @{const_name less_eq}) 
+          else (args', pn) 
+    in
     \<comment> \<open> If the leading constructor is an already lifted UTP variable...\<close>
     if ((n = @{const_name "var"}) andalso (length args > 0))
     \<comment> \<open> ... then we take the first argument as the variable contents, and apply the remaining arguments \<close>
@@ -207,6 +215,8 @@ term "UTP\<open>f x\<close>"
 term "\<^U>\<open>f x\<close>"
 
 term "UTP\<open>(xs @ ys) ! i\<close>"
+
+term "UTP\<open>x > y\<close>"
 
 term "UTP\<open>mm i\<close>"
 

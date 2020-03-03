@@ -257,6 +257,7 @@ translations
   "?[b]" <= "?[U(b)]"
   "{b}\<^sub>\<bottom>" <= "{U(b)}\<^sub>\<bottom>"
   "while b do P od" <= "while U(b) do P od"
+  "while b invr c do P od" <= "while U(b) invr U(c) do P od"
 
 text \<open> We implement a poor man's version of alphabet restriction that hides a variable within 
   a relation. \<close>
@@ -356,6 +357,7 @@ translations
   "_assignment xs vs" => "CONST uassigns (_mk_usubst id\<^sub>s xs vs)"
   "_assignment x v" <= "CONST uassigns (CONST subst_upd id\<^sub>s x v)"
   "_assignment x v" <= "_assignment (_spvar x) v"
+  "_assignment x v" <= "_assignment x (_UTP v)"
   "_nd_assign x" => "CONST nd_assign (_mk_svid_list x)"
   "_nd_assign x" <= "CONST nd_assign x"
   "x,y := u,v" <= "CONST uassigns (CONST subst_upd (CONST subst_upd id\<^sub>s (CONST pr_var x) u) (CONST pr_var y) v)"
@@ -388,7 +390,7 @@ fun tr' ctx [ a
 in [(@{type_syntax "uexpr"},tr')]
 end
 \<close>
-  
+
 translations
   (type) "'\<alpha> hrel" <= (type) "(bool, '\<alpha>) hexpr"
   

@@ -15,6 +15,8 @@ notation hoare_r ("\<^bold>{_\<^bold>}/ _/ \<^bold>{_\<^bold>}")
 
 utp_lift_notation hoare_r (0 2)
 
+translations "\<^bold>{b\<^bold>}P\<^bold>{c\<^bold>}" <= "\<^bold>{U(b)\<^bold>}P\<^bold>{U(c)\<^bold>}"
+
 declare hoare_r_def [upred_defs]
 
 named_theorems hoare and hoare_safe
