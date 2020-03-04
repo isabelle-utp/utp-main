@@ -1,5 +1,5 @@
 theory utp_lift_pretty
-  imports "utp_pred" "utp_lift_parser"
+  imports "utp_pred" "utp_lift" "utp_lift_parser"
   keywords "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block"
 begin
 
@@ -29,10 +29,52 @@ text \<open> The pretty printer infers when a HOL expression is actually a UTP e
   specifying when these ``hints'' should be inserted. *)
 
 ML \<open>
+  fun needs_mark ctx t = 
+    case t of
+      (Const (@{syntax_const "_free"}, _) $ Free (_, Type (\<^type_name>\<open>uexpr\<close>, _))) => true |
+(*      (Const (c , _), _) => (not (member (op =) (utp_consts ctx) c)) | *)
+      _ => false;
+
+  fun utp_mark_term ctx t = 
+    if (needs_mark ctx t) then Const (@{syntax_const "_UTP"}, dummyT) $ t else t;
+
+  fun mark_uexpr_leaf n = (n, fn _ => fn typ => fn ts => 
+    case typ of 
+    (Type (\<^type_name>\<open>uexpr\<close>, _)) => Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (n, dummyT), ts) |
+    (Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>uexpr\<close>, _)])) => Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (n, dummyT), ts) |
+    _ => raise Match);
+
+  fun insert_U pre ctx ts =
+    if (Library.foldl (fn (x, y) => needs_mark ctx y orelse x) (false, ts)) 
+    then Library.foldl1 (op $) (pre @ map (utp_mark_term ctx) ts)
+    else raise Match;
+
+  fun insert_const_U c = insert_U [Const (c, dummyT)];
+
+  
+  (* Function to register a constant c with n arguments as a lifted constant that should be
+     aware of U notation *)
+  fun mk_lift_U_prtr c n =
+    let open Ast
+        val vars = map (fn i => Variable ("x" ^ string_of_int i)) (1 upto n) 
+    in
+    Syntax.Print_Rule (
+    Appl [Constant @{syntax_const "_UTP"}
+         , Appl (Constant c :: vars)],
+    Appl (Constant c :: (map (fn v => Appl (Constant @{syntax_const "_UTP"} :: [v])) vars)))
+    end;
+
+  fun add_utp_print_const c n = 
+    (Sign.add_trrules [mk_lift_U_prtr c n] #> 
+     Sign.print_translation [(c, insert_const_U c)]
+    );
+
+\<close>
+
+ML \<open>
 let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
   [("U(t)" , "U(U(t))"),
   ("U(x \<or> y)", "U(x) \<or> U(y)"),
-  ("U(x \<and> y)", "U(x) \<and> U(y)"),
   ("U(x \<Rightarrow> y)", "U(x) \<Rightarrow> U(y)"),
   ("U(\<not> e)", "\<not> U(e)"),
   ("U(x + y)", "U(x) + U(y)"),
@@ -85,52 +127,27 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
      @{const_syntax divide}];
 *)
   
-  fun needs_mark ctx t = 
-    case t of
-      (Const (@{syntax_const "_free"}, _) $ Free (_, Type (\<^type_name>\<open>uexpr\<close>, _))) => true |
-(*      (Const (c , _), _) => (not (member (op =) (utp_consts ctx) c)) | *)
-      _ => false;
 
-  fun utp_mark_term ctx t = 
-    if (needs_mark ctx t) then Const (@{syntax_const "_UTP"}, dummyT) $ t else t;
-
-  fun mark_uexpr_leaf n = (n, fn _ => fn typ => fn ts => 
-    case typ of 
-    (Type (\<^type_name>\<open>uexpr\<close>, _)) => Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (n, dummyT), ts) |
-    (Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>uexpr\<close>, _)])) => Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (n, dummyT), ts) |
-    _ => raise Match);
-
-  fun insert_U ctx pre ts =
-    if (Library.foldl (fn (x, y) => needs_mark ctx y orelse x) (false, ts)) 
-    then Library.foldl1 (op $) (pre @ map (utp_mark_term ctx) ts)
-    else raise Match;
-
-  fun uop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "uop"}, dummyT), f] ts |
+  fun uop_insert_U ctx (f :: ts) = insert_U [Const (@{const_syntax "uop"}, dummyT), f] ctx ts |
   uop_insert_U _ _ = raise Match;
 
-  fun bop_insert_U ctx (f :: ts) = insert_U ctx [Const (@{const_syntax "bop"}, dummyT), f] ts |
+  fun bop_insert_U ctx (f :: ts) = insert_U [Const (@{const_syntax "bop"}, dummyT), f] ctx ts |
   bop_insert_U _ _ = raise Match;
 
   fun trop_insert_U ctx (f :: ts) =
-    insert_U ctx [Const (@{const_syntax "trop"}, dummyT), f] ts |
+    insert_U [Const (@{const_syntax "trop"}, dummyT), f] ctx ts |
   trop_insert_U _ _ = raise Match;
 
-  fun appl_insert_U ctx ts = insert_U ctx [] ts;
-
-  fun disj_insert_U ctx ts = insert_U ctx [Const (@{const_syntax udisj}, dummyT)] ts;
+  fun appl_insert_U ctx ts = insert_U [] ctx ts;
 
   val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
                  , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
                  , (@{const_syntax "trop"}, trop_insert_U)
                  , (@{const_syntax "bop"}, bop_insert_U)
                  , (@{const_syntax "uop"}, uop_insert_U)
-                 , (@{const_syntax "udisj"}, disj_insert_U)
+                 , (@{const_syntax "udisj"}, insert_const_U @{const_syntax udisj})
                  , (@{const_syntax "uexpr_appl"}, appl_insert_U)];
-  val ty_print_tr = [mark_uexpr_leaf @{const_syntax utrue},
-                     mark_uexpr_leaf @{const_syntax ufalse},
-                     mark_uexpr_leaf @{const_syntax zero_class.zero},
-                     mark_uexpr_leaf @{const_syntax one_class.one},
-                     mark_uexpr_leaf @{const_syntax numeral}];
+  val ty_print_tr = map mark_uexpr_leaf utp_terminals;
   (* FIXME: We should also mark expressions that are free variables *)
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
 in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
@@ -145,14 +162,15 @@ in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of
 
 \<close>
 
-ML \<open>@{syntax_const "_UTP"}\<close>
+(* We should be able to now lift every kind of constant in this way *)
 
+setup \<open> add_utp_print_const @{const_syntax "lift_pre"} 1 \<close>
+setup \<open> add_utp_print_const @{const_syntax "lift_post"} 1 \<close>
+setup \<open> add_utp_print_const @{const_syntax "uconj"} 2 \<close>
 
 term "\<^U>(3 + &x)"
 
-
 utp_pretty
-
 
 term "\<^U>(3 + &x)"
 
@@ -189,5 +207,16 @@ term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> 
 term "U((length e)\<lbrakk>1+1/&x\<rbrakk>)"
 
 term "U([x \<mapsto>\<^sub>s 1 + 2])"
+
+term "U((p::'a upred)\<^sup>< \<le> p\<^sup><)"
+
+term "U(true \<and> q)"
+
+term "U((1)\<^sup>< \<le> p\<^sup>< \<and> true)"
+
+term "U((1)\<^sup>< \<le> p\<^sup>< \<and> true)"
+
+term "U(p\<^sup>< \<le> p\<^sup>>)"
+
 
 end
