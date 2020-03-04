@@ -76,9 +76,9 @@ translations
 term "x!(1)!(y) \<^bold>\<rightarrow> P"  
 term "x?(v) \<^bold>\<rightarrow> P"
 term "x?(v:false) \<^bold>\<rightarrow> P"
-term "x!(\<langle>1\<rangle>) \<^bold>\<rightarrow> P"
+term "x!(U([1])) \<^bold>\<rightarrow> P"
 term "x?(v)!(1) \<^bold>\<rightarrow> P"
-term "x!(\<langle>1\<rangle>)!(2)?(v:true) \<^bold>\<rightarrow> P"
+term "x!(U([1]))!(2)?(v:true) \<^bold>\<rightarrow> P"
 
 text {* Basic translations for state variable communications *}
 

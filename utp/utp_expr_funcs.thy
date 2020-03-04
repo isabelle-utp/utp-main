@@ -1,5 +1,5 @@
 theory utp_expr_funcs
-  imports utp_expr_insts
+  imports utp_expr_insts utp_lift_parser
 begin
 
 \<comment> \<open> Polymorphic constructs \<close>
@@ -13,7 +13,6 @@ abbreviation (input) ugcd   ("gcd\<^sub>u'(_, _')") where "gcd\<^sub>u(x, y) \<e
 \<comment> \<open> Lists / Sequences \<close>
 
 abbreviation (input) ucons    (infixr "#\<^sub>u" 65) where "x #\<^sub>u xs \<equiv> bop (#) x xs"
-abbreviation (input) unil     ("\<langle>\<rangle>") where "\<langle>\<rangle> \<equiv> \<guillemotleft>[]\<guillemotright>"
 abbreviation (input) uappend  (infixr "^\<^sub>u" 80) where "x ^\<^sub>u y \<equiv> bop (@) x y"
 abbreviation (input) udconcat (infixr "\<^sup>\<frown>\<^sub>u" 90) where "x \<^sup>\<frown>\<^sub>u y \<equiv> bop (\<^sup>\<frown>) x y"
 abbreviation (input) ulast    ("last\<^sub>u'(_')") where "last\<^sub>u(x) \<equiv> uop last x"
@@ -31,13 +30,6 @@ abbreviation (input) uupto     ("\<langle>_.._\<rangle>") where "\<langle>n..k\<
 abbreviation (input) uupt      ("\<langle>_..<_\<rangle>") where "\<langle>n..<k\<rangle> \<equiv> bop upt n k"
 abbreviation (input) umap      ("map\<^sub>u") where "map\<^sub>u \<equiv> bop map"
 abbreviation (input) uzip      ("zip\<^sub>u") where "zip\<^sub>u \<equiv> bop zip"
-
-syntax
-  "_ulist"      :: "args => ('a list, '\<alpha>) uexpr"    ("\<langle>(_)\<rangle>")
-
-translations
-  "\<langle>x, xs\<rangle>"  == "x #\<^sub>u \<langle>xs\<rangle>"
-  "\<langle>x\<rangle>"      == "x #\<^sub>u \<guillemotleft>[]\<guillemotright>"
 
 abbreviation (input) ufinite ("finite\<^sub>u'(_')") where "finite\<^sub>u(x) \<equiv> uop finite x"
 abbreviation (input) uempset ("{}\<^sub>u") where "{}\<^sub>u \<equiv> \<guillemotleft>{}\<guillemotright>"
@@ -66,8 +58,8 @@ translations
 
 \<comment> \<open> Sum types \<close>
 
-abbreviation uinl ("inl\<^sub>u'(_')") where "inl\<^sub>u(x) \<equiv> uop Inl x"
-abbreviation uinr ("inr\<^sub>u'(_')") where "inr\<^sub>u(x) \<equiv> uop Inr x"
+abbreviation (input) uinl ("inl\<^sub>u'(_')") where "inl\<^sub>u(x) \<equiv> uop Inl x"
+abbreviation (input) uinr ("inr\<^sub>u'(_')") where "inr\<^sub>u(x) \<equiv> uop Inr x"
 
 subsection \<open> Lifting set collectors \<close>
 
@@ -139,13 +131,13 @@ lemma uunion_empty_1 [simp]: "{}\<^sub>u \<union>\<^sub>u x = x"
 lemma uunion_insert [simp]: "(bop insert x A) \<union>\<^sub>u B = bop insert x (A \<union>\<^sub>u B)"
   by (transfer, simp)
 
-lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<langle>\<rangle>"
+lemma ulist_filter_empty [simp]: "x \<restriction>\<^sub>u {}\<^sub>u = \<guillemotleft>[]\<guillemotright>"
   by (transfer, simp)
 
-lemma tail_cons [simp]: "tail\<^sub>u(\<langle>x\<rangle> ^\<^sub>u xs) = xs"
+lemma tail_cons [simp]: "tail\<^sub>u(x #\<^sub>u \<guillemotleft>[]\<guillemotright> ^\<^sub>u xs) = xs"
   by (transfer, simp)
 
-lemma uconcat_units [simp]: "\<langle>\<rangle> ^\<^sub>u xs = xs" "xs ^\<^sub>u \<langle>\<rangle> = xs"
+lemma uconcat_units [simp]: "\<guillemotleft>[]\<guillemotright> ^\<^sub>u xs = xs" "xs ^\<^sub>u \<guillemotleft>[]\<guillemotright> = xs"
   by (transfer, simp)+
 
 end

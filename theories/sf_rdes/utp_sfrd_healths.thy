@@ -71,7 +71,7 @@ lemma Skip_RHS_tri_design:
   by (rel_auto)
 
 lemma Skip_RHS_tri_design' [rdes_def]: 
-  "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (false \<diamondop> \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)))"
+  "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (false \<diamondop> \<Phi>(true,id\<^sub>s,\<guillemotleft>[]\<guillemotright>)))"
   by (rel_auto)
 
 lemma Skip_frame [frame]: "vwb_lens a \<Longrightarrow> a:[Skip]\<^sub>R\<^sup>+ = Skip"
@@ -84,7 +84,7 @@ lemma Stop_is_CSP [closure]:
 lemma Stop_RHS_tri_design: "Stop = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
   by (rel_auto)
 
-lemma Stop_RHS_rdes_def [rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<langle>\<rangle>,{}\<^sub>u) \<diamondop> false)"
+lemma Stop_RHS_rdes_def [rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<E>(true,\<guillemotleft>[]\<guillemotright>,{}\<^sub>u) \<diamondop> false)"
   by (rel_auto)
 
 lemma preR_Skip [rdes]: "pre\<^sub>R(Skip) = true\<^sub>r"
@@ -93,7 +93,7 @@ lemma preR_Skip [rdes]: "pre\<^sub>R(Skip) = true\<^sub>r"
 lemma periR_Skip [rdes]: "peri\<^sub>R(Skip) = false"
   by (rel_auto)
 
-lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = \<Phi>(true,id\<^sub>s,\<langle>\<rangle>)"
+lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = \<Phi>(true,id\<^sub>s,\<guillemotleft>[]\<guillemotright>)"
   by (rel_auto)
 
 lemma Productive_Stop [closure]:
@@ -505,7 +505,7 @@ lemma rdes_frame_ext_NCSP_closed [closure]:
 lemma preR_Stop [rdes]: "pre\<^sub>R(Stop) = true\<^sub>r"
   by (simp add: Stop_def Stop_is_CSP rea_pre_RHS_design unrest usubst R2c_true)
 
-lemma periR_Stop [rdes]: "peri\<^sub>R(Stop) = \<E>(true,\<langle>\<rangle>,{}\<^sub>u)"
+lemma periR_Stop [rdes]: "peri\<^sub>R(Stop) = \<E>(true,\<guillemotleft>[]\<guillemotright>,{}\<^sub>u)"
   by (rel_auto)
 
 lemma postR_Stop [rdes]: "post\<^sub>R(Stop) = false"

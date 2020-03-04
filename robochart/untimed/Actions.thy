@@ -404,7 +404,7 @@ lemma frame_assign_commute_unrest_aux:
 
 lemma rea_frame_ext_subst_CRR:
   assumes "vwb_lens x" "x \<bowtie> a" "a \<sharp> v" "P is CRR" "$ref\<acute> \<sharp> P"
-  shows "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = a:[P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
+  shows "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = a:[P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<guillemotleft>[]\<guillemotright>)"
 proof -
   have "[x \<mapsto>\<^sub>s v] \<dagger>\<^sub>S a:[P]\<^sub>r\<^sup>+ = \<lceil>[st:x \<mapsto>\<^sub>s v \<oplus>\<^sub>p st]\<rceil>\<^sub>s \<dagger> a:[P]\<^sub>r\<^sup>+"
     by (rel_auto)
@@ -413,7 +413,7 @@ proof -
     by (simp add: rea_frame_ext_def rea_frame_def frame_assign_commute_unrest_aux unrest)
   also have "... = a:[CRR P]\<^sub>r\<^sup>+ ;; st:x := v \<oplus>\<^sub>p st"
     by (metis Healthy_def assms(4))
-  also have "... = a:[CRR P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<langle>\<rangle>)"
+  also have "... = a:[CRR P]\<^sub>r\<^sup>+ ;; \<Phi>(true,[&x \<mapsto>\<^sub>s v],\<guillemotleft>[]\<guillemotright>)"
     using assms(5) by (rel_blast)
   finally show ?thesis
     by (simp add: Healthy_if assms(4))
@@ -564,10 +564,10 @@ named_theorems contract
 lemma chaos_contract [contract]: "chaos = [false \<turnstile> false | false]"
   by (transfer, rdes_eq)
 
-lemma stop_contract [contract]: "stop = [true \<turnstile> \<^bold>\<E>(true,\<langle>\<rangle>,{}\<^sub>u) | false]"
+lemma stop_contract [contract]: "stop = [true \<turnstile> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{}\<^sub>u) | false]"
   by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
 
-lemma sync_contract [contract]: "sync e = [true \<turnstile> \<^bold>\<E>(true,\<langle>\<rangle>,{\<guillemotleft>e\<guillemotright>}\<^sub>u) | \<^bold>\<Phi>(true,id\<^sub>s,\<langle>\<guillemotleft>e\<guillemotright>\<rangle>)]"
+lemma sync_contract [contract]: "sync e = [true \<turnstile> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{\<guillemotleft>e\<guillemotright>}\<^sub>u) | \<^bold>\<Phi>(true,id\<^sub>s,\<guillemotleft>[e]\<guillemotright>)]"
   by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
 
 lemma seq_lemma_1: 
@@ -643,7 +643,7 @@ lemma contract_seqr [contract]:
   apply (simp_all add: seq_lemma_2 seq_lemma_3)
   oops
 
-lemma [unrest]: "$st\<acute> \<sharp> \<^bold>\<E>(true,\<langle>\<rangle>,{\<guillemotleft>a\<guillemotright>}\<^sub>u)"
+lemma [unrest]: "$st\<acute> \<sharp> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{\<guillemotleft>a\<guillemotright>}\<^sub>u)"
   by (simp add: runrest.rep_eq rrel_rep_eq unrest)
 
 lemma [simp]: "[P \<and> Q]\<^sub>\<box> = ([P]\<^sub>\<box> \<and> [Q]\<^sub>\<box>)"
@@ -652,13 +652,13 @@ lemma [simp]: "[P \<and> Q]\<^sub>\<box> = ([P]\<^sub>\<box> \<and> [Q]\<^sub>\<
 lemma [simp]: "[P \<or> Q]\<^sub>\<rhd> = ([P]\<^sub>\<rhd> \<or> [Q]\<^sub>\<rhd>)"
   by (transfer; simp add: rpred)
 
-lemma [simp]: "[\<^bold>\<E>(s,\<langle>\<rangle>,E)]\<^sub>\<box> = \<^bold>\<E>(s,\<langle>\<rangle>,E)"
+lemma [simp]: "[\<^bold>\<E>(s,\<guillemotleft>[]\<guillemotright>,E)]\<^sub>\<box> = \<^bold>\<E>(s,\<guillemotleft>[]\<guillemotright>,E)"
   by (transfer; simp add: rpred)
 
-lemma [simp]: "[\<^bold>\<E>(s,\<langle>\<rangle>,E)]\<^sub>\<rhd> = false"
+lemma [simp]: "[\<^bold>\<E>(s,\<guillemotleft>[]\<guillemotright>,E)]\<^sub>\<rhd> = false"
   by (transfer; simp add: rpred)
 
-lemma [simp]: "(\<^bold>\<E>(s\<^sub>1,\<langle>\<rangle>,E\<^sub>1) \<and> \<^bold>\<E>(s\<^sub>2,\<langle>\<rangle>,E\<^sub>2)) = \<^bold>\<E>(s\<^sub>1 \<and> s\<^sub>2,\<langle>\<rangle>,(E\<^sub>1 \<union>\<^sub>u E\<^sub>2))"
+lemma [simp]: "(\<^bold>\<E>(s\<^sub>1,\<guillemotleft>[]\<guillemotright>,E\<^sub>1) \<and> \<^bold>\<E>(s\<^sub>2,\<guillemotleft>[]\<guillemotright>,E\<^sub>2)) = \<^bold>\<E>(s\<^sub>1 \<and> s\<^sub>2,\<guillemotleft>[]\<guillemotright>,(E\<^sub>1 \<union>\<^sub>u E\<^sub>2))"
   by (simp add: rrel_rep_eq rpred)
 
 lemma "sync a \<box> sync b ; sync c = undefined"

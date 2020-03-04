@@ -88,8 +88,8 @@ translations
   "_shAll x P"                == "CONST shAll (\<lambda> x. P)"
   "\<^bold>\<forall> x \<in> A \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> \<in>\<^sub>u A \<Rightarrow> P"
   "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
-  "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> >\<^sub>u y \<Rightarrow> P"
-  "\<^bold>\<forall> x < y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> \<guillemotleft>x\<guillemotright> <\<^sub>u y \<Rightarrow> P"
+  "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> CONST bop CONST less y \<guillemotleft>x\<guillemotright> \<Rightarrow> P"
+  "\<^bold>\<forall> x < y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> CONST bop CONST less \<guillemotleft>x\<guillemotright> y \<Rightarrow> P"
 
 subsection \<open> Predicate operators \<close>
 

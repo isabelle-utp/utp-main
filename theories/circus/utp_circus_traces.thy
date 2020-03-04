@@ -72,26 +72,26 @@ done
 lemma tr_inter_sym: "x |||\<^sub>t y = y |||\<^sub>t x"
   by (simp add: tr_par_sym)
     
-lemma trace_merge_nil [simp]: "x \<star>\<^bsub>{}\<^esub> \<langle>\<rangle> = {x}\<^sub>u"
+lemma trace_merge_nil [simp]: "x \<star>\<^bsub>{}\<^esub> U([]) = {x}\<^sub>u"
   by (pred_auto, simp_all add: tr_par_empty, metis takeWhile_eq_all_conv)
 
 lemma trace_merge_empty [simp]:
-  "(\<langle>\<rangle> \<star>\<^bsub>cs\<^esub> \<langle>\<rangle>) = {\<langle>\<rangle>}\<^sub>u"
+  "(U([]) \<star>\<^bsub>cs\<^esub> U([])) = U({[]})"
   by (rel_auto)
 
 lemma trace_merge_single_empty [simp]:
-  "a \<in> cs \<Longrightarrow> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> \<star>\<^bsub>cs\<^esub> \<langle>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
+  "a \<in> cs \<Longrightarrow> U([\<guillemotleft>a\<guillemotright>]) \<star>\<^bsub>cs\<^esub> U([]) = U({[]})"
   by (rel_auto)
 
 lemma trace_merge_empty_single [simp]:
-  "a \<in> cs \<Longrightarrow> \<langle>\<rangle> \<star>\<^bsub>cs\<^esub> \<langle>\<guillemotleft>a\<guillemotright>\<rangle> = {\<langle>\<rangle>}\<^sub>u"
+  "a \<in> cs \<Longrightarrow> U([]) \<star>\<^bsub>cs\<^esub> U([\<guillemotleft>a\<guillemotright>]) = U({[]})"
   by (rel_auto)
     
 lemma trace_merge_commute: "t\<^sub>1 \<star>\<^bsub>cs\<^esub> t\<^sub>2 = t\<^sub>2 \<star>\<^bsub>cs\<^esub> t\<^sub>1"
   by (rel_simp, simp add: tr_par_sym)
    
 lemma csp_trace_simps [simp]: 
-  "v + \<langle>\<rangle> = v" "\<langle>\<rangle> + v = v"
+  "U(v + []) = v" "U([] + v) = v"
   "bop (#) x xs ^\<^sub>u ys = bop (#) x (xs ^\<^sub>u ys)"
   by (rel_auto)+
 

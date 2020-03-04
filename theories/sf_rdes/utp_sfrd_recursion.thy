@@ -77,7 +77,7 @@ lemma preR_mu_example1 [rdes]: "pre\<^sub>R(\<mu> X \<bullet> \<guillemotleft>a\
   by (simp add: mu_example1 rdes closure unrest wp)
 
 lemma periR_mu_example1 [rdes]:
-  "peri\<^sub>R(\<mu> X \<bullet> \<guillemotleft>a\<guillemotright> \<rightarrow>\<^sub>C X) = (\<Sqinter> i \<bullet> \<E>(true,iter[i](\<langle>\<guillemotleft>a\<guillemotright>\<rangle>), {\<guillemotleft>a\<guillemotright>}\<^sub>u))"
+  "peri\<^sub>R(\<mu> X \<bullet> \<guillemotleft>a\<guillemotright> \<rightarrow>\<^sub>C X) = (\<Sqinter> i \<bullet> \<E>(true,iter[i](U([\<guillemotleft>a\<guillemotright>])), {\<guillemotleft>a\<guillemotright>}\<^sub>u))"
   by (simp add: mu_example1 rdes rpred closure unrest wp seq_UINF_distr alpha usubst)
 
 lemma postR_mu_example1 [rdes]:

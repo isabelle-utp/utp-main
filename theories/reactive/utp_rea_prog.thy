@@ -120,14 +120,22 @@ where "\<lfloor>P\<rfloor>\<^sub>S \<equiv> P \<restriction>\<^sub>e (st \<times
 abbreviation lift_state_pre ("\<lceil>_\<rceil>\<^sub>S\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>S"
 
+no_utp_lift lift_state_pre
+
 abbreviation drop_state_pre ("\<lfloor>_\<rfloor>\<^sub>S\<^sub><")
 where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>< \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub><"
+
+no_utp_lift drop_state_pre
 
 abbreviation lift_state_post ("\<lceil>_\<rceil>\<^sub>S\<^sub>>")
 where "\<lceil>p\<rceil>\<^sub>S\<^sub>> \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub>>\<rceil>\<^sub>S"
 
+no_utp_lift lift_state_post
+
 abbreviation drop_state_post ("\<lfloor>_\<rfloor>\<^sub>S\<^sub>>")
 where "\<lfloor>p\<rfloor>\<^sub>S\<^sub>> \<equiv> \<lfloor>\<lfloor>p\<rfloor>\<^sub>S\<rfloor>\<^sub>>"
+
+no_utp_lift lift_state_post
 
 lemma st_unrest_state_pre [unrest]: "&\<^bold>v \<sharp> s \<Longrightarrow> $st \<sharp> \<lceil>s\<rceil>\<^sub>S\<^sub><"
   by (rel_auto)

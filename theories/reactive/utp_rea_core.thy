@@ -200,7 +200,7 @@ lemma uexpr_add_diff_cancel_left [simp]:
   shows "(a + b) - a = b"
   by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
 
-lemma iter_0 [simp]: "iter[0](t) = \<langle>\<rangle>"
+lemma iter_0 [simp]: "iter[0](t) = U([])"
   by (transfer, simp add: zero_list_def)
 
 end

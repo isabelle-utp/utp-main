@@ -64,7 +64,9 @@ declare des_vars.splits [alpha_splits]
 
 subsection \<open> Basic laws \<close>
 
-lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
+term "U($tr\<acute> = $tr @ [\<lceil>a\<rceil>\<^sub>S\<^sub><])"
+
+lemma R2c_tr_ext: "R2c (U($tr\<acute> = $tr @ [\<lceil>a\<rceil>\<^sub>S\<^sub><])) = U($tr\<acute> = $tr @ [\<lceil>a\<rceil>\<^sub>S\<^sub><])"
   by (rel_auto)
 
 lemma circus_alpha_bij_lens:

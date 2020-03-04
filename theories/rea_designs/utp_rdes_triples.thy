@@ -133,6 +133,8 @@ definition [upred_defs]: "cmt\<^sub>R(P)  = R1(cmt\<^sub>s \<dagger> P)"
 definition [upred_defs]: "peri\<^sub>R(P) = R1(peri\<^sub>s \<dagger> P)"
 definition [upred_defs]: "post\<^sub>R(P) = R1(post\<^sub>s \<dagger> P)"
 
+no_utp_lift pre\<^sub>R cmt\<^sub>R peri\<^sub>R post\<^sub>R npre\<^sub>R
+
 subsubsection \<open> Unrestriction laws \<close>
 
 lemma ok_pre_unrest [unrest]: "$ok \<sharp> pre\<^sub>R P"
