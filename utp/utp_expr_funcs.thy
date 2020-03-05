@@ -1,5 +1,5 @@
 theory utp_expr_funcs
-  imports utp_expr_insts utp_lift_parser
+  imports utp_expr_insts
 begin
 
 \<comment> \<open> Polymorphic constructs \<close>

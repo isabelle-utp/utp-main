@@ -1,7 +1,7 @@
 section \<open> Collections \<close>
 
 theory utp_collection
-  imports utp_lift_parser utp_pred
+  imports utp_lift_pretty utp_pred
 begin
 
 subsection \<open> Partial Lens Definedness \<close>
@@ -67,7 +67,7 @@ subsection \<open> Syntax for Collection Lens \<close>
 
 abbreviation "ind_lens_poly f x i \<equiv> ind_lens (\<lambda> k. f k ;\<^sub>L x) i"
 
-utp_lift_notation ind_lens_poly (2)
+utp_lift_notation ind_lens_poly (0 1)
 
 syntax
   "_svid_collection" :: "svid \<Rightarrow> logic \<Rightarrow> svid" ("_[_]" [999, 0] 999)

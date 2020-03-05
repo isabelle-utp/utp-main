@@ -373,7 +373,7 @@ lemma assign_pred_transfer:
   shows "(b \<and> x := v) = (x := v \<and> b\<^sup>-)"
   using assms by (rel_blast)
     
-lemma assign_r_comp: "x := u ;; P = P\<lbrakk>\<lceil>u\<rceil>\<^sub></$x\<rbrakk>"
+lemma assign_r_comp: "x := u ;; P = P\<lbrakk>u\<^sup></$x\<rbrakk>"
   by (simp add: assigns_r_comp usubst alpha)
     
 lemma assign_test: "mwb_lens x \<Longrightarrow> (x := \<guillemotleft>u\<guillemotright> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright>)"

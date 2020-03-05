@@ -35,9 +35,7 @@ text \<open> We define the main body of behaviour for the buffer as an abbreviat
   input a value and then place it into the buffer, or else, provided that the buffer is non-empty,
   we can output a value presently in the buffer. \<close>
 
-term OutputCSP
-
-utp_lift_notation chan_apply (1)
+utp_lift_notation chan_apply (0)
 
 abbreviation DoBuff :: act_buffer where
 "DoBuff \<equiv> (inp?(val) ;; buff := buff @ [val]

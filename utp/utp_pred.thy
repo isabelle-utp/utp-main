@@ -621,6 +621,4 @@ definition utp_sandbox :: "'\<alpha> upred \<Rightarrow> bool" ("TRY'(_')") wher
 translations
   "P" <= "CONST utp_sandbox P"
 
-no_utp_lift shEx shAll unot uconj udisj uimpl uiff utrue ufalse UINF USUP refineBy
-
 end

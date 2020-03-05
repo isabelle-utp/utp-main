@@ -64,8 +64,7 @@ abbreviation usubst_rel_lift :: "'\<alpha> usubst \<Rightarrow> ('\<alpha> \<tim
 abbreviation usubst_rel_drop :: "('\<alpha> \<times> '\<alpha>) usubst \<Rightarrow> '\<alpha> usubst" ("\<lfloor>_\<rfloor>\<^sub>s") where
 "\<lfloor>\<sigma>\<rfloor>\<^sub>s \<equiv> \<sigma> \<restriction>\<^sub>s in\<alpha>"
 
-no_utp_lift usubst_rel_lift
-no_utp_lift usubst_rel_drop
+utp_const usubst_rel_lift usubst_rel_drop
 
 text \<open> The alphabet of a relation then consists wholly of the input and output portions. \<close>
 
@@ -201,12 +200,12 @@ definition rassume :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("[_]\<^sup
 
 notation rassume ("?[_]")
 
-utp_lift_notation rassume (0)
+utp_lift_notation rassume
 
 definition rassert :: "'\<alpha> upred \<Rightarrow> '\<alpha> hrel" ("{_}\<^sub>\<bottom>") where
 [urel_defs]: "rassert c = II \<triangleleft> c \<triangleright>\<^sub>r true"
 
-utp_lift_notation rassert (0)
+utp_lift_notation rassert
 
 text \<open> We also encode ``naked'' guarded commands~\cite{Dijkstra75,Morgan90} by composing an 
   assumption with a relation. \<close>
@@ -214,7 +213,7 @@ text \<open> We also encode ``naked'' guarded commands~\cite{Dijkstra75,Morgan90
 definition rgcmd :: "'a upred \<Rightarrow> 'a hrel \<Rightarrow> 'a hrel" ("_ \<longrightarrow>\<^sub>r _" [55, 56] 55) where
 [urel_defs]: "rgcmd b P = (rassume b ;; P)"
 
-utp_lift_notation rgcmd (0)
+utp_lift_notation rgcmd (1)
 
 text \<open> We define two variants of while loops based on strongest and weakest fixed points. The former
   is @{term false} for an infinite loop, and the latter is @{term true}. \<close>
@@ -224,26 +223,26 @@ definition while_top :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarro
 
 notation while_top ("while _ do _ od")
 
-utp_lift_notation while_top (0)
+utp_lift_notation while_top (1)
 
 definition while_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ do _ od") where
 [urel_defs]: "while_bot b P = (\<mu> X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>r II)"
 
-utp_lift_notation while_bot (0)
+utp_lift_notation while_bot (1)
 
 text \<open> While loops with invariant decoration (cf. \cite{Armstrong2015}) -- partial correctness. \<close>
 
 definition while_inv :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while _ invr _ do _ od") where
 [urel_defs]: "while_inv b p S = while_top b S"
 
-utp_lift_notation while_inv (0 1)
+utp_lift_notation while_inv (2)
 
 text \<open> While loops with invariant decoration -- total correctness. \<close>
 
 definition while_inv_bot :: "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel" ("while\<^sub>\<bottom> _ invr _ do _ od" 71) where
 [urel_defs]: "while_inv_bot b p S = while_bot b S"  
 
-utp_lift_notation while_inv_bot (0 1)
+utp_lift_notation while_inv_bot (2)
 
 text \<open> While loops with invariant and variant decorations -- total correctness. \<close>
 
@@ -251,7 +250,7 @@ definition while_vrt ::
   "'\<alpha> cond \<Rightarrow> '\<alpha> cond \<Rightarrow> (nat, '\<alpha>) uexpr \<Rightarrow> '\<alpha> hrel \<Rightarrow> '\<alpha> hrel"  ("while _ invr _ vrt _ do _ od") where
 [urel_defs]: "while_vrt b p v S = while_bot b S"
 
-utp_lift_notation while_vrt (0 1 2)
+utp_lift_notation while_vrt (3)
 
 translations
   "?[b]" <= "?[U(b)]"
@@ -318,8 +317,8 @@ abbreviation (input) rifthenelse ("(if (_)/ then (_)/ else (_)/ fi)")
 abbreviation (input) rifthen ("(if (_)/ then (_)/ fi)")
   where "rifthen b P \<equiv> rifthenelse b P II"
 
-utp_lift_notation rifthenelse (0)
-utp_lift_notation rifthen (0)
+utp_lift_notation rifthenelse (1 2)
+utp_lift_notation rifthen (1)
 
 syntax
   \<comment> \<open> Iterated sequential composition \<close>
@@ -411,7 +410,7 @@ where [upred_defs]: "Pre P = \<lfloor>\<exists> $\<^bold>v\<acute> \<bullet> P\<
 definition Post :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred" 
 where [upred_defs]: "Post P = \<lfloor>\<exists> $\<^bold>v \<bullet> P\<rfloor>\<^sub>>"
 
-no_utp_lift Pre Post
+utp_const Pre Post
 
 \<comment> \<open> Configuration for UTP tactics. \<close>
 

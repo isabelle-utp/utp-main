@@ -14,12 +14,12 @@ adhoc_overloading
 
 notation GuardCSP (infixr "&&" 60)
 
-utp_lift_notation GuardCSP (0)
+utp_lift_notation GuardCSP (1)
 
 purge_notation while_top ("while _ do _ od")
 
 notation WhileC ("while _ do _ od")
 
-utp_lift_notation WhileC (0)
+utp_lift_notation WhileC (1)
 
 end

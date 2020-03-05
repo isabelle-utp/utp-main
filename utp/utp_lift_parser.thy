@@ -2,7 +2,7 @@ section \<open> Lifting Parser and Pretty Printer \<close>
 
 theory utp_lift_parser
   imports utp_expr_insts
-  keywords "no_utp_lift" :: "thy_decl_block" and "utp_lit_vars" :: "thy_decl_block" and "utp_expr_vars" :: "thy_decl_block" and "utp_lift_notation" :: "thy_decl_block"
+  keywords "no_utp_lift" :: "thy_decl_block" and "utp_lit_vars" :: "thy_decl_block" and "utp_expr_vars" :: "thy_decl_block" (* and "utp_lift_notation" :: "thy_decl_block" *)
 begin
 
 subsection \<open> Parser \<close>
@@ -287,22 +287,6 @@ term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> 
 utp_expr_vars
 
 subsection \<open> Linking Parser to Constants \<close>
-
-ML \<open> fun utp_lift_notation thy (n, args) =
- let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n in
- (Lexicon.mark_const c, 
-  fn ctx => fn ts => 
-   let val ts' = map_index (fn (i, t) => if (member (op =) (map Value.parse_int args) i) then utp_lift ctx (Term_Position.strip_positions t) else t) ts 
-  in if (ts = ts') then raise Match else Term.list_comb (Const (c, dummyT), ts') end) 
-  end; 
-
-  Outer_Syntax.command @{command_keyword utp_lift_notation} "insert UTP parser quotes into existing notation"
-    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
-     >> (fn ns => 
-         Toplevel.theory 
-         (fn thy => Sign.parse_translation (map (utp_lift_notation thy) ns) thy)));
-           
-\<close>
 
 end
 

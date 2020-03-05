@@ -2,7 +2,7 @@ section \<open> Lifting Expressions \<close>
 
 theory utp_lift
   imports
-    utp_alphabet
+    utp_alphabet utp_lift_pretty
 begin
 
 subsection \<open> Lifting definitions \<close>
@@ -67,6 +67,14 @@ lemma unrest_dash_var_pre [unrest]:
   shows "$x\<acute> \<sharp> \<lceil>p\<rceil>\<^sub><"
   by (pred_auto)
 
-no_utp_lift lift_pre drop_pre lift_post drop_post
+subsection \<open> Parser and Pretty Printer \<close>
+
+utp_const lift_pre drop_pre lift_post drop_post
+
+term "U((p::'a upred)\<^sup>< \<le> p\<^sup><)"
+
+term "U(1\<^sup>< \<le> p\<^sup>< \<and> true)"
+
+term "U(p\<^sup>< \<le> p\<^sup>>)"
 
 end

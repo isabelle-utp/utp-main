@@ -12,7 +12,7 @@ consts
 
 no_utp_lift uwp
 
-utp_lift_notation uwp (1)
+utp_lift_notation uwp (0)
 
 syntax
   "_uwp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wp" 60)

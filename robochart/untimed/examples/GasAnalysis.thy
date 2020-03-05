@@ -25,7 +25,6 @@ statemachine GasAnalysis =
          action anl := location(gs) ; turn!(anl)"
     t7: "from Reading to Analysis trigger gas?(gs)"
 
-
 text \<open> Boilerplate code -- will eventually be automatically generated \<close>
 
 context GasAnalysis

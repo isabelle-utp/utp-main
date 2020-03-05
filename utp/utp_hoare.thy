@@ -13,7 +13,7 @@ definition hoare_r :: "'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \
 
 notation hoare_r ("\<^bold>{_\<^bold>}/ _/ \<^bold>{_\<^bold>}")
 
-utp_lift_notation hoare_r (0 2)
+utp_lift_notation hoare_r (1)
 
 translations "\<^bold>{b\<^bold>}P\<^bold>{c\<^bold>}" <= "\<^bold>{U(b)\<^bold>}P\<^bold>{U(c)\<^bold>}"
 

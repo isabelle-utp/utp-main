@@ -1,6 +1,6 @@
 theory utp_lift_pretty
-  imports "utp_pred" "utp_lift" "utp_lift_parser"
-  keywords "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block"
+  imports "utp_pred" "utp_lift_parser"
+  keywords "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block" and "utp_const" :: "thy_decl_block" and "utp_lift_notation" :: "thy_decl_block"
 begin
 
 subsection \<open> Pretty Printer\<close>
@@ -29,10 +29,41 @@ text \<open> The pretty printer infers when a HOL expression is actually a UTP e
   specifying when these ``hints'' should be inserted. *)
 
 ML \<open>
+
+\<close>
+
+ML \<open>
+let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
+  [("U(t)" , "U(U(t))"),
+  ("U(x + y)", "U(x) + U(y)"),
+  ("U(x - y)", "U(x) - U(y)"),
+  ("U(- e)", "- U(e)"),
+  ("U(x * y)", "U(x) * U(y)"),
+  ("U(x / y)", "U(x) / U(y)"),
+  ("_UTP (_uex x P)", "_uex x (_UTP P)"),
+  ("_UTP (_uall x P)", "_uall x (_UTP P)"),
+  ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
+  ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
+  ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
+  ("_UTP (_subst e v x)", "_subst (_UTP e) (_UTP v) x"),
+  ("U(\<sigma> \<dagger> e)", "U(\<sigma>) \<dagger> U(e)"),
+  ("U(f x)" , "U(f) |> U(x)"),
+  ("U(\<lambda> x. f)", "(\<lambda> x \<bullet> U(f))"),
+  ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
+  ("U(f x)" , "CONST uop f U(x)"),
+  ("U(f x y)" , "CONST bop f U(x) U(y)"),
+  ("U(f x y z)" , "CONST trop f U(x) U(y) U(z)"),
+  ("U(f x)" , "_UTP f (_UTP x)")]
+
+  val utp_terminals = [@{const_syntax zero_class.zero}, @{const_syntax one_class.one}, @{const_syntax numeral}, @{const_syntax utrue}, @{const_syntax ufalse}];
+  fun utp_consts ctx = @{syntax_const "_UTP"} :: filter (not o member (op =) utp_terminals) (map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))));
+
   fun needs_mark ctx t = 
     case t of
-      (Const (@{syntax_const "_free"}, _) $ Free (_, Type (\<^type_name>\<open>uexpr\<close>, _))) => true |
-(*      (Const (c , _), _) => (not (member (op =) (utp_consts ctx) c)) | *)
+      (Const (@{syntax_const "_free"}, _) $ Free (_, Type (\<^type_name>\<open>uexpr\<close>, ts))) => true |
+      (Const (@{syntax_const "_free"}, _) 
+       $ Free (_, Type (\<^syntax_const>\<open>_ignore_type\<close>, [Type (\<^type_name>\<open>uexpr\<close>, ts)]))) => true |
+      Free (_, _) => true |
       _ => false;
 
   fun utp_mark_term ctx t = 
@@ -53,63 +84,55 @@ ML \<open>
 
   
   (* Function to register a constant c with n arguments as a lifted constant that should be
-     aware of U notation *)
-  fun mk_lift_U_prtr c n =
+     aware of U notation. The values in opt are any arguments that should be ignored when
+     checking for lifting. *)
+
+  fun mk_remove_U_prtr c n opt =
     let open Ast
-        val vars = map (fn i => Variable ("x" ^ string_of_int i)) (1 upto n) 
+        val vars = map (fn i => Variable ("x" ^ string_of_int i)) (0 upto (n-1))
+        val mvars = 
+          map (fn i => 
+                let val v = Variable ("x" ^ string_of_int i) in
+                if (member (op =) opt i) then v else Appl (Constant @{syntax_const "_UTP"} :: [v])
+                end
+              ) (0 upto (n-1))
     in
+    (Appl (Constant c :: vars), Appl (Constant c :: mvars))
+    end;
+    
+  fun mk_lift_U_prtr c n opt =
+    let 
+      open Ast
+      val (l, r) = mk_remove_U_prtr c n opt
+    in
+    if n = 0 then []
+    else
+    [      
     Syntax.Print_Rule (
     Appl [Constant @{syntax_const "_UTP"}
-         , Appl (Constant c :: vars)],
-    Appl (Constant c :: (map (fn v => Appl (Constant @{syntax_const "_UTP"} :: [v])) vars)))
+         , l],
+    r)
+    ]
     end;
 
-  fun add_utp_print_const c n = 
-    (Sign.add_trrules [mk_lift_U_prtr c n] #> 
-     Sign.print_translation [(c, insert_const_U c)]
-    );
+  fun utp_remove_const_U thy (s, opt)  =
+    let val Const (ct, ty) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) s 
+        val cs = Lexicon.mark_const ct
+        val n = length (fst (Term.strip_type ty)) 
+        val args = map Value.parse_int opt in
+    (Syntax.Print_Rule (mk_remove_U_prtr cs n args))
+    end;
 
-\<close>
+  fun add_utp_print_const (s, opt) thy =
+    let val Const (ct, ty) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) s 
+        val cs = Lexicon.mark_const ct
+        val n = length (fst (Term.strip_type ty)) 
+        val args = map Value.parse_int opt in
+    (Sign.add_trrules (mk_lift_U_prtr cs n args) #> 
+     Sign.print_translation [(cs, insert_const_U cs)]
+    ) thy
+    end;
 
-ML \<open>
-let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
-  [("U(t)" , "U(U(t))"),
-  ("U(x \<or> y)", "U(x) \<or> U(y)"),
-  ("U(x \<Rightarrow> y)", "U(x) \<Rightarrow> U(y)"),
-  ("U(\<not> e)", "\<not> U(e)"),
-  ("U(x + y)", "U(x) + U(y)"),
-  ("U(x - y)", "U(x) - U(y)"),
-  ("U(- e)", "- U(e)"),
-  ("U(x * y)", "U(x) * U(y)"),
-  ("U(x / y)", "U(x) / U(y)"),
-  ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
-  ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
-  ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
-  ("_UTP (_subst e v x)", "_subst (_UTP e) (_UTP v) x"),
-  ("U(\<sigma> \<dagger> e)", "U(\<sigma>) \<dagger> U(e)"),
-  ("U(f x)" , "U(f) |> U(x)"),
-(*  ("U(f x)" , "f |> U(x)"),
-  ("U(f x)" , "U(f) |> x"), *)
-  ("U(\<lambda> x. f)", "(\<lambda> x \<bullet> U(f))"),
-  ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
-  ("U(f x)" , "CONST uop f U(x)"),
-  ("U(f x y)" , "CONST bop f U(x) U(y)"),
-  ("U(f x y z)" , "CONST trop f U(x) U(y) U(z)"),
-(*
-  ("U(f x y z)" , "f U(x) U(y) U(z)"),
-  ("U(f x y)" , "f U(x) U(y)"),
-  ("U(f x y z)" , "f x y U(z)"),
-  ("U(f x y z)" , "f x U(y) z"),
-  ("U(f x y z)" , "f U(x) y z"),
-
-  ("U(f x y)" , "f x U(y)"),
-  ("U(f x y)" , "f U(x) y"),
-  ("U(f x)" , "f U(x)"),
-  ("U(f x)" , "_UTP f x") *)
-  ("U(f x)" , "_UTP f (_UTP x)")]
-
-  val utp_terminals = [@{const_syntax zero_class.zero}, @{const_syntax one_class.one}, @{const_syntax numeral}, @{const_syntax utrue}, @{const_syntax ufalse}];
-  fun utp_consts ctx = @{syntax_const "_UTP"} :: filter (not o member (op =) utp_terminals) (map Lexicon.mark_const (Symtab.keys (NoLiftUTP.get (Proof_Context.theory_of ctx))));
 
 (*
   fun utp_consts ctx =
@@ -145,34 +168,63 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
                  , (@{const_syntax "trop"}, trop_insert_U)
                  , (@{const_syntax "bop"}, bop_insert_U)
                  , (@{const_syntax "uop"}, uop_insert_U)
-                 , (@{const_syntax "udisj"}, insert_const_U @{const_syntax udisj})
+(*                 , (@{const_syntax "udisj"}, insert_const_U @{const_syntax udisj}) *)
                  , (@{const_syntax "uexpr_appl"}, appl_insert_U)];
   val ty_print_tr = map mark_uexpr_leaf utp_terminals;
   (* FIXME: We should also mark expressions that are free variables *)
   val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
-in Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions" 
+  fun nolift_const thy (n, opt) =  
+        let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
+        in NoLiftUTP.map (Symtab.update (c, (map Value.parse_int opt))) thy end;
+  fun utp_lift_notation thy (n, args) =
+    let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n in
+    (Lexicon.mark_const c, 
+     fn ctx => fn ts => 
+      let val ts' = map_index (fn (i, t) => if (not (member (op =) (map Value.parse_int args) i)) then utp_lift ctx (Term_Position.strip_positions t) else t) ts 
+       in if (ts = ts') then raise Match else Term.list_comb (Const (c, dummyT), ts') end) 
+      end; 
+  in 
+  Outer_Syntax.command @{command_keyword utp_lift_notation} "insert UTP parser quotes into existing notation"
+    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
+     >> (fn ns => 
+         Toplevel.theory 
+         (fn thy => (Sign.parse_translation (map (utp_lift_notation thy) ns)
+                    #> Sign.add_trrules ((map (utp_remove_const_U thy) ns))) thy)));
+
+  Outer_Syntax.command @{command_keyword utp_pretty} "enable pretty printing of UTP expressions"
     (Scan.succeed (Toplevel.theory (Isar_Cmd.translations utp_tr_rules #> 
                                     Sign.typed_print_translation ty_print_tr #>
                                     Sign.print_translation print_tr
                                      )));
    (* FIXME: It actually isn't currently possible to disable pretty printing without destroying the term rewriting *)
-   Outer_Syntax.command @{command_keyword no_utp_pretty} "disable pretty printing of UTP expressions"
-    (Scan.succeed (Toplevel.theory (Isar_Cmd.no_translations utp_tr_rules #> Sign.print_translation no_print_tr)))
- end
 
+   Outer_Syntax.command @{command_keyword no_utp_pretty} "disable pretty printing of UTP expressions"
+    (Scan.succeed (Toplevel.theory (Isar_Cmd.no_translations utp_tr_rules #> Sign.print_translation no_print_tr)));
+
+  Outer_Syntax.command @{command_keyword utp_const} "declare that certain constants should not be lifted"
+    (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
+     >> (fn ns => 
+         Toplevel.theory                                                           
+         (fn thy => Library.foldl (fn (thy, n) => nolift_const thy n |> add_utp_print_const n) (thy, ns))))  
+ end;
 \<close>
 
-(* We should be able to now lift every kind of constant in this way *)
-
-setup \<open> add_utp_print_const @{const_syntax "lift_pre"} 1 \<close>
-setup \<open> add_utp_print_const @{const_syntax "lift_post"} 1 \<close>
-setup \<open> add_utp_print_const @{const_syntax "uconj"} 2 \<close>
+utp_const 
+  shEx shAll uex(0) uall(0) unot uconj udisj uimpl 
+  uiff utrue ufalse UINF USUP refineBy
+  subst_upd(1) usubst usubst_lookup
 
 term "\<^U>(3 + &x)"
 
 utp_pretty
 
 term "\<^U>(3 + &x)"
+
+term "true"
+
+term "U(P \<or> $x = 1 \<Rightarrow> false)"
+
+term "U(true \<and> q)"
 
 term "\<^U>(1 + &x)"
 
@@ -198,25 +250,12 @@ term "e \<oplus> f on A"
 
 term "U($x = v)"
 
-term "true"
-
-term "U(P \<or> $x = 1 \<Rightarrow> false)"
-
 term "U($tr\<acute> = $tr @ [a] \<and> $ref \<subseteq> $i:ref\<acute> \<union> $j:ref\<acute> \<and> $x\<acute> = $x + 1)"
+
+term "U(e\<lbrakk>v/x\<rbrakk>)"
 
 term "U((length e)\<lbrakk>1+1/&x\<rbrakk>)"
 
 term "U([x \<mapsto>\<^sub>s 1 + 2])"
-
-term "U((p::'a upred)\<^sup>< \<le> p\<^sup><)"
-
-term "U(true \<and> q)"
-
-term "U((1)\<^sup>< \<le> p\<^sup>< \<and> true)"
-
-term "U((1)\<^sup>< \<le> p\<^sup>< \<and> true)"
-
-term "U(p\<^sup>< \<le> p\<^sup>>)"
-
 
 end

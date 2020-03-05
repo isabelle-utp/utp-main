@@ -1,7 +1,7 @@
 section \<open> Predicate Calculus Laws \<close>
 
 theory utp_pred_laws
-  imports utp_pred
+  imports utp_pred utp_lift_pretty
 begin
   
 subsection \<open> Propositional Logic \<close>
@@ -986,7 +986,7 @@ lemma C6:
 
 lemma C7:
   assumes "weak_lens x" "x \<bowtie> y"
-  shows "((\<exists> x \<bullet> &x =\<^sub>u &y \<and> P) \<and> (\<exists> x \<bullet> &x =\<^sub>u &y \<and> \<not> P)) = false"
+  shows "U((\<exists> x \<bullet> &x = &y \<and> P) \<and> (\<exists> x \<bullet> &x = &y \<and> \<not> P)) = false"
   using assms
   by (pred_simp, simp add: lens_indep_sym)
 
