@@ -1,12 +1,12 @@
-section {* Types of Cardinality 2 or Greater *}
+section \<open> Types of Cardinality 2 or Greater \<close>
 
 theory Two
 imports HOL.Real
 begin
 
-text {* The two class states that a type's carrier is either infinite, or else it has a finite 
+text \<open> The two class states that a type's carrier is either infinite, or else it has a finite 
   cardinality of at least 2. It is needed when we depend on having at least two distinguishable
-  elements. *}
+  elements. \<close>
   
 class two =
   assumes card_two: "infinite (UNIV :: 'a set) \<or> card (UNIV :: 'a set) \<ge> 2"

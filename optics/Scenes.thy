@@ -188,6 +188,9 @@ lemma scene_union_pres_compat: "\<lbrakk> A ##\<^sub>S B; A ##\<^sub>S C \<rbrak
 lemma scene_indep_self_compl: "A \<bowtie>\<^sub>S -A"
   by (transfer, simp)
 
+lemma scene_compat_self_compl: "A ##\<^sub>S -A"
+  by (transfer, simp)
+
 lemma scene_union_assoc: 
   assumes "X ##\<^sub>S Y" "X ##\<^sub>S Z" "Y ##\<^sub>S Z"
   shows "X \<squnion>\<^sub>S (Y \<squnion>\<^sub>S Z) = (X \<squnion>\<^sub>S Y) \<squnion>\<^sub>S Z"
@@ -371,7 +374,7 @@ lemma lens_not_member_get_override [simp]: "x \<notin>\<^sub>S a \<Longrightarro
 
 subsection \<open> Function Domain Scene \<close>
 
-lift_definition fun_dom_scene :: "'a set \<Rightarrow> ('a \<Rightarrow> 'b) scene" ("fds") is
+lift_definition fun_dom_scene :: "'a set \<Rightarrow> ('a::two \<Rightarrow> 'b::two) scene" ("fds") is
 "\<lambda> A f g. override_on f g A" by (unfold_locales, simp_all add: override_on_def fun_eq_iff)
 
 lemma fun_dom_scene_empty: "fds({}) = \<bottom>\<^sub>S"
@@ -389,8 +392,15 @@ lemma fun_dom_scene_inter: "fds(A \<inter> B) = fds(A) \<sqinter>\<^sub>S fds(B)
 lemma fun_dom_scene_UNIV: "fds(UNIV) = \<top>\<^sub>S"
   by (transfer, auto simp add: fun_eq_iff override_on_def)
 
+lemma fun_dom_scene_indep [simp]: "fds(A) \<bowtie>\<^sub>S fds(B) \<longleftrightarrow> A \<inter> B = {}"
+  by (transfer, auto simp add: override_on_def fun_eq_iff, meson two_diff)
+
 lemma fun_dom_scene_always_compat [simp]: "fds(A) ##\<^sub>S fds(B)"
   by (transfer, simp add: override_on_def fun_eq_iff)
+
+lemma fun_dom_scene_le [simp]: "fds(A) \<subseteq>\<^sub>S fds(B) \<longleftrightarrow> A \<subseteq> B"
+  unfolding less_eq_scene_def
+  by (transfer, auto simp add: override_on_def fun_eq_iff, meson two_diff)
 
 text \<open> Hide implementation details for scenes \<close>  
 
