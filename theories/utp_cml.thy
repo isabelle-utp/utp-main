@@ -1,10 +1,10 @@
-section {* COMPASS Modelling Language *}
+section \<open> COMPASS Modelling Language \<close>
 
 theory utp_cml
 imports "UTP-Reactive-Designs.utp_rea_designs" "UTP.utp_full"
 begin
 
-subsection {* Preliminaries *}
+subsection \<open> Preliminaries \<close>
 
 datatype '\<theta> tevent = Tock "'\<theta> set" | Event '\<theta>
 
@@ -59,13 +59,13 @@ translations
   "ev\<^sub>u(e)" == "CONST uop CONST Event e"
   "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A"
 
-subsection {* Signature *}
+subsection \<open> Signature \<close>
 
 abbreviation time_length :: "(nat,'\<sigma>,'\<theta>) expr_cml" ("\<^bold>l")
-where "\<^bold>l \<equiv> #\<^sub>u(tocks\<^sub>u(&tt))"
+  where "\<^bold>l \<equiv> U(length(tocks(&tt)))"
 
 abbreviation CML :: "(('\<sigma>, '\<phi>) st_cml \<times> ('\<sigma>, '\<phi>) st_cml) health"
-where "CML \<equiv> SRD"
+  where "CML \<equiv> SRD"
 
 abbreviation Skip :: "('\<sigma>,'\<theta>) cmlact" where
 "Skip \<equiv> II\<^sub>R"
@@ -74,24 +74,24 @@ abbreviation Assigns :: "'\<sigma> usubst \<Rightarrow> ('\<sigma>,'\<theta>) cm
 "Assigns \<sigma> \<equiv> \<langle>\<sigma>\<rangle>\<^sub>R"
 
 definition Stop :: "('\<sigma>,'\<theta>) cmlact" where
-[upred_defs]: "Stop = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+[upred_defs]: "Stop = \<^bold>R\<^sub>s(true \<turnstile> U(events(&tt) = []) \<diamondop> false)"
 
 definition DoCML :: "('\<theta>, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
   [upred_defs]:
-  "DoCML a = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(&tt))
-                      \<diamondop> (&tt =\<^sub>u idleprefix\<^sub>u(&tt) ^\<^sub>u \<langle>ev\<^sub>u(\<lceil>a\<rceil>\<^sub>S\<^sub><)\<rangle>
-                         \<and> $st\<acute> =\<^sub>u $st \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sub>u refusals\<^sub>u(&tt)))"
+  "DoCML a = \<^bold>R\<^sub>s(true \<turnstile> U(events(&tt) = [] \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin> refusals(&tt))
+                      \<diamondop> U(&tt = idleprefix(&tt) @ [Event(\<lceil>a\<rceil>\<^sub>S\<^sub><)]
+                         \<and> $st\<acute> = $st \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin> refusals(&tt)))"
 
 definition Wait :: "(nat, '\<sigma>) uexpr \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where
-  [upred_defs]:
-  "Wait n = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) <\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><)
-                    \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>n\<rceil>\<^sub>S\<^sub><
-                       \<and> $st\<acute> =\<^sub>u $st))"
+  [upred_defs, rdes_def]:
+  "Wait n = \<^bold>R\<^sub>s(true \<turnstile> U(events(&tt) = [] \<and> length(&tt) < \<lceil>n\<rceil>\<^sub>S\<^sub><)
+                    \<diamondop> U(events(&tt) = [] \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub><
+                       \<and> $st\<acute> = $st))"
 
 lemma Skip_def: "Skip = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
   by (simp add: srdes_skip_def, rel_auto)
 
-subsection {* Healthiness conditions *}
+subsection \<open> Healthiness conditions \<close>
 
 abbreviation RT1 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT1 \<equiv> R1"
 abbreviation RT2 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact" where "RT2 \<equiv> R2c"
@@ -104,19 +104,19 @@ abbreviation RT7 :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<th
 abbreviation RT :: "('\<sigma>,'\<theta>) cmlact \<Rightarrow> ('\<sigma>,'\<theta>) cmlact"
 where "RT \<equiv> RT1 \<circ> RT2 \<circ> RT3 \<circ> RT4 \<circ> RT7"
 
-text {* For the time being we omit RT8. We also omit RT5 and RT6 as, as they are both tautologies of
-  the reduced theory, as we shall show. *}
+text \<open> For the time being we omit RT8. We also omit RT5 and RT6 as, as they are both tautologies 
+  of the reduced theory, as we shall show. \<close>
 
-text {* The following definition is taken from (Canham and Woodcock, 2014) *}
+text \<open> The following definition is taken from (Canham and Woodcock, 2014) \<close>
 
 lemma Skip_CML_def: "Skip = (RT3 \<circ> RT4) (\<not> $wait\<acute> \<and> $tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st \<and> $ok\<acute>)"
   by (rel_auto)
 
-subsection {* Laws *}
+subsection \<open> Laws \<close>
 
 lemma Wait_0: "Wait 0 = Skip"
 proof -
-  have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> 0 >\<^sub>u #\<^sub>u(&tt)) \<diamondop> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u 0 \<and> $st\<acute> =\<^sub>u $st))"
+  have "Wait 0 = \<^bold>R\<^sub>s(true \<turnstile> U(events(&tt) = [] \<and> 0 > length(&tt)) \<diamondop> U(events(&tt) = [] \<and> length(&tt) = 0 \<and> $st\<acute> = $st))"
     (is "?lhs = \<^bold>R\<^sub>s(?P \<turnstile> ?Q \<diamondop> ?R)")
     by (simp add: Wait_def alpha)
   also have "... = \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
@@ -140,16 +140,17 @@ lemma Stop_left_zero:
   assumes "P is CML"
   shows "Stop ;; P = Stop"
 proof -
-  have "Stop ;; P = \<^bold>R\<^sub>s(true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
+  have "Stop ;; P = \<^bold>R\<^sub>s(true \<turnstile> U(events(&tt) = []) \<diamondop> false) ;; \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
     by (simp add: SRD_reactive_tri_design Stop_def assms)
-  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (\<exists> $st\<acute> \<bullet> events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> U(\<exists> $st\<acute> \<bullet> events(&tt) = []) \<diamondop> false)"
     by (subst RHS_tri_design_composition, simp_all add: unrest R2s_true R1_false R2s_false)
-  also have "... = \<^bold>R\<^sub>s (true \<turnstile> (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle>) \<diamondop> false)"
+  also have "... = \<^bold>R\<^sub>s (true \<turnstile> U(events(&tt) = []) \<diamondop> false)"
     by (simp add: ex_unrest unrest)
   finally show ?thesis
     by (simp add: Stop_def)
 qed
 
+(*
 lemma Wait_m_plus_n: "(Wait m ;; Wait n) = (Wait (m + n))"
 proof -
   have 1: "(R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> #\<^sub>u(&tt) =\<^sub>u \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) ;; R2 (events\<^sub>u(&tt) =\<^sub>u \<langle>\<rangle> \<and> \<lceil>n\<rceil>\<^sub>S\<^sub>< >\<^sub>u #\<^sub>u(&tt))) =
@@ -266,4 +267,6 @@ proof -
     finally show ?thesis .
   qed
 qed
+*)
+
 end

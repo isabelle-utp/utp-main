@@ -5,7 +5,7 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-section {* Meta-theory for UTP Theories *}
+section \<open> Meta-theory for UTP Theories \<close>
 
 theory utp_theories
 imports
