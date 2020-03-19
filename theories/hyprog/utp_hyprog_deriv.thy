@@ -31,11 +31,11 @@ lemma udifferentiable_consts [closure]:
   by (rel_simp)+
 
 lemma udifferentiable_var [closure]: 
-  "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e(var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec))"
+  "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e(utp_expr.var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec))"
   by (rel_simp)
 
 lemma udifferentiable_pr_var [closure]: 
-  "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e (var (pr_var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec)))"
+  "k < DIM('c::executable_euclidean_space) \<Longrightarrow> differentiable\<^sub>e (utp_expr.var (pr_var ((eucl_lens k :: real \<Longrightarrow> 'c) ;\<^sub>L cvec)))"
   by (rel_simp)
 
 lemma udifferentiable_plus [closure]:
@@ -131,7 +131,7 @@ text \<open> The derivative of a variable represented by a Euclidean lens into t
 lemma uderiv_var:
   fixes F' :: "'c::executable_euclidean_space usubst"
   assumes "k < DIM('c)"
-  shows "F' \<turnstile> \<partial>\<^sub>e (var ((\<Pi>[k] :: real \<Longrightarrow> 'c) ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s \<Pi>[k] \<oplus>\<^sub>p cvec"
+  shows "F' \<turnstile> \<partial>\<^sub>e (utp_expr.var ((\<Pi>[k] :: real \<Longrightarrow> 'c) ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s \<Pi>[k] \<oplus>\<^sub>p cvec"
   using assms
   by (rel_simp, metis bounded_linear_imp_has_derivative bounded_linear_inner_left frechet_derivative_at)
 

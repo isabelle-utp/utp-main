@@ -13,8 +13,8 @@ text \<open> An ODE consists of equations @{term \<F>'} and a boundary condition
   @{term "\<F>(0)"} and @{term "\<F>(l)"}, respectively. \<close>
 
 abbreviation solves :: 
-  "(real \<Rightarrow> 'a::executable_euclidean_space) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a, 's) hybs_scheme upred \<Rightarrow> ('a, 's) hybs_scheme \<Rightarrow> real \<Rightarrow> bool" where
-  "solves F F' B s l \<equiv>  (\<forall>x. 0 \<le> x \<and> x \<le> l \<longrightarrow> (F has_vector_derivative F' (F x)) (at x within {0..l}) \<and> (\<lbrakk>B\<rbrakk>\<^sub>e (s\<lparr>cvec\<^sub>v := F x\<rparr>)))"
+  "(real \<Rightarrow> 'a::executable_euclidean_space) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a, 's) hybs_scheme upred \<Rightarrow> 's \<Rightarrow> real \<Rightarrow> bool" where
+  "solves F F' B s l \<equiv>  (\<forall>x. 0 \<le> x \<and> x \<le> l \<longrightarrow> (F has_vector_derivative F' (F x)) (at x within {0..l}) \<and> (\<lbrakk>B\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F x, \<dots> = s\<rparr>)))"
 
 abbreviation solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> 'c usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
 "solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<lbrakk>\<F>'\<rbrakk>\<^sub>e) \<tau> (\<F> \<tau>)) (at \<tau> within {0..l}) 
@@ -72,7 +72,7 @@ lemma solves_le: "\<lbrakk> solves F F' B s l; l' \<le> l \<rbrakk> \<Longrighta
   by (meson atLeastatMost_subset_iff has_vector_derivative_within_subset order_refl order_trans)
 
 lemma ode_post: "ode F' B ;; ?[B] = ode F' B"
-  by (rel_auto', metis (no_types) hybs.simps(1) hybs.simps(3) hybs.surjective order_refl)
+  by (rel_auto', metis (no_types), metis hybs.select_convs(1) order_refl)
 
 lemma ode_mono:
   "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
