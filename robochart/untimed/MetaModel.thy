@@ -462,7 +462,7 @@ translations
 
   "_state_entry e" => "CONST Node.make (CONST undefined) e skip skip"
 
-utp_lift_notation Transition.make (3)
+utp_lift_notation Transition.make (0 1 2 4)
 
 term "from s1 to s2 trigger y := 1 ; x?(y) ; z!(1) condition b action a"
 term "from s1 to s2 action x := []"
