@@ -10,7 +10,10 @@ imports
   "Dynamics.Timed_Traces"
   "HOL-Analysis.Topology_Euclidean_Space"
 begin recall_syntax
-  
+
+purge_notation id_blinfun ("1\<^sub>L") 
+  and inner (infix "\<bullet>" 70)
+
 subsection \<open> Continuous Lenses and Preliminaries \<close>
 
 lemma continuous_on_Pair_first:
@@ -26,7 +29,7 @@ lemma continuous_on_Pair_second:
   "\<lbrakk> continuous_on (A \<times> B) f; x \<in> A \<rbrakk> \<Longrightarrow> continuous_on B (\<lambda> y. f (x, y))"
   apply (rule continuous_on_compose[of _ "\<lambda> y. (x, y)" f, simplified])
    apply (rule continuous_on_Pair)
-   apply (simp_all add: continuous_on_const continuous_on_id)
+   apply (simp_all)
   apply (subgoal_tac "(\<lambda>y. (x, y)) ` B = {x} \<times> B")
    apply (auto intro: continuous_on_subset)
   done
@@ -99,8 +102,8 @@ lemma fst_continuous_lens [closure]:
   apply (unfold_locales, simp_all, simp_all add: lens_defs prod.case_eq_if continuous_on_fst)
   apply (rule continuous_on_Pair)
   apply (simp_all add: continuous_on_fst continuous_on_snd)
-done
-  
+  done
+
 text \<open> The one lens is continuous \<close>
   
 lemma one_lens_continuous [simp]:
@@ -151,8 +154,6 @@ proof (rule continuous_lens_intro)
       by (simp add: lens_defs continuous_on_Pair assms prod.case_eq_if)
   qed
 qed
-
-no_notation inner (infix "\<bullet>" 70)
 
 text \<open> We set up adhoc overloading to apply timed traces and contiguous functions \<close>
 
@@ -205,7 +206,7 @@ text \<open> The syntax annotation @{term "e:(x)"} allows us to apply a variable
   variable of a given state space. \<close>
 
 abbreviation time_length :: "(real, 'd, 'c::topological_space) hyexpr" ("\<^bold>l")
-  where "\<^bold>l \<equiv> uop end\<^sub>t (&tt)"
+  where "\<^bold>l \<equiv> U(end\<^sub>t(&tt))"
     
 text \<open> @{term "\<^bold>l"} refers to the length of the time length of the current computation, and is
   obtained by taking length of the trace contribution. \<close>
@@ -214,7 +215,9 @@ abbreviation cvar ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> 'a, 'd, 'c) hyexpr"
   ("_~" [999] 999)
 where "x~ \<equiv> (\<lambda> t \<bullet> (&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)))"
-  
+
+declare [[coercion tt_apply]]
+
 abbreviation cvar_app ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real, 'd, 'c) hyexpr \<Rightarrow> ('a, 'd, 'c) hyexpr"
   ("_~'(_')" [999,0] 999)
@@ -229,9 +232,9 @@ syntax
   "_uend" :: "logic \<Rightarrow> logic" ("end\<^sub>u'(_')")
   
 translations
-  "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) t)"
-  "x~" <= "CONST ulambda (\<lambda> t. CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr))) (CONST lit t2)))"
-  "\<^bold>l" <= "CONST uop (CONST tt_end) (CONST minus (CONST utp_expr.var (CONST ovar CONST tr)) (CONST utp_expr.var (CONST ivar CONST tr)))"
+  "x~(t)" <= "CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST out_var CONST tr)) (CONST utp_expr.var (CONST in_var CONST tr))) t)"
+(*  "x~" <= "CONST ulambda (\<lambda> t. CONST uop (CONST lens_get x) (CONST bop (CONST uapply) (CONST minus (CONST utp_expr.var (CONST out_var CONST tr)) (CONST utp_expr.var (CONST in_var CONST tr))) (CONST lit t2)))" *)
+  "\<^bold>l" <= "CONST uop (CONST tt_end) (CONST minus (CONST utp_expr.var (CONST out_var CONST tr)) (CONST utp_expr.var (CONST in_var CONST tr)))"
   "\<^bold>l" <= "CONST uop CONST tt_end (&tt)"
   "end\<^sub>u(t)" == "CONST uop end\<^sub>t t"
   
@@ -292,16 +295,16 @@ abbreviation cont_post_lift :: "('a, 'c) uexpr \<Rightarrow> ('a,'d,'c::topologi
 "\<lceil>P\<rceil>\<^sub>C\<^sub>> \<equiv> \<lceil>P \<oplus>\<^sub>p \<^bold>c\<rceil>\<^sub>S\<^sub>>"
 
 abbreviation cont_pre_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub><") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (ivar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>< \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (in_var \<^bold>c)"
 
 abbreviation cont_post_drop :: "('a,'d,'c::topological_space) hyexpr \<Rightarrow> ('a, 'c) uexpr" ("\<lfloor>_\<rfloor>\<^sub>C\<^sub>>") where
-"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (ovar \<^bold>c)"
+"\<lfloor>P\<rfloor>\<^sub>C\<^sub>> \<equiv> \<lfloor>P\<rfloor>\<^sub>S \<restriction>\<^sub>e (out_var \<^bold>c)"
 
 translations
-  "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST ivar CONST cont_alpha)"
-  "\<lceil>P\<rceil>\<^sub>C\<^sub>>" <= "CONST aext P (CONST ovar CONST cont_alpha)"
-  "\<lfloor>P\<rfloor>\<^sub>C\<^sub><" <= "CONST arestr P (CONST ivar CONST cont_alpha)"
-  "\<lfloor>P\<rfloor>\<^sub>C\<^sub>>" <= "CONST arestr P (CONST ovar CONST cont_alpha)"
+  "\<lceil>P\<rceil>\<^sub>C\<^sub><" <= "CONST aext P (CONST in_var CONST cont_alpha)"
+  "\<lceil>P\<rceil>\<^sub>C\<^sub>>" <= "CONST aext P (CONST out_var CONST cont_alpha)"
+  "\<lfloor>P\<rfloor>\<^sub>C\<^sub><" <= "CONST arestr P (CONST in_var CONST cont_alpha)"
+  "\<lfloor>P\<rfloor>\<^sub>C\<^sub>>" <= "CONST arestr P (CONST out_var CONST cont_alpha)"
 
 lemma unrest_lift_cont_subst [unrest]:
   "\<lbrakk> vwb_lens x; x \<sharp> v \<rbrakk> \<Longrightarrow> x \<sharp> (\<lceil>P\<rceil>\<^sub>C\<^sub><)\<lbrakk>v/$st:\<^bold>c\<rbrakk>"
@@ -351,7 +354,7 @@ lemma zero_least_uexpr [simp]:
 text \<open> The next properties states that the end point of an empty timed trace is 0. \<close>
 
 lemma uend_0 [simp]: "end\<^sub>u(0) = 0"
-  by (simp add: upred_defs lit_def uop_def Abs_uexpr_inverse)
+  by (simp add: upred_defs lit_def uexpr_appl_def Abs_uexpr_inverse)
 
 subsection \<open> Instant Predicates \<close>
 
@@ -502,11 +505,17 @@ lemma final_cont_unrests [unrest]:
 
 lemma trace_expr: "&tt = $tr\<acute> - $tr"
   by (rel_auto)
-    
+
+translations
+  "U(\<langle>\<sigma>\<rangle>\<^sub>s)" <= "\<langle>U(\<sigma>)\<rangle>\<^sub>s"
+
+translations
+  "_UTP (CONST usubst_lookup \<sigma> x)" <= "CONST usubst_lookup (_UTP \<sigma>) x"
+
 lemma usubst_final_cont [usubst]:
-  "\<lbrakk> $tr \<sharp> \<sigma>; out\<alpha> \<sharp> \<sigma>; $st:\<^bold>c \<sharp> \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
+  "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; out\<alpha> \<sharp>\<^sub>s \<sigma>; $st:\<^bold>c \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
   by (simp add: final_cont_def tt_final_def trace_expr usubst unrest)
-    
+  
 lemma R1_init_cont: "R1(ll(x)) = ll(x)"
   by (rel_auto)
 
@@ -851,7 +860,7 @@ translations
   "_hEvolves s" <= "CONST hEvolves (\<lambda> t. s)"
   
 lemma hEvolves_id: 
-  "{id}\<^sub>h = \<^bold>v \<leftarrow>\<^sub>h $\<^bold>v"
+  "{id\<^sub>s}\<^sub>h = \<^bold>v \<leftarrow>\<^sub>h $\<^bold>v"
   by (rel_auto)
   
 subsection \<open> Pre-emption \<close>
@@ -1307,7 +1316,7 @@ lemma HyStep_hEvolves':
   assumes "continuous_lens x" "vwb_lens y" "\<And> v\<^sub>0. continuous_on {0..} (f v\<^sub>0)"
   shows "HyStep[n]({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = false \<triangleleft> \<guillemotleft>n \<le> 0\<guillemotright> \<triangleright>\<^sub>r (x := \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>n\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
   apply (cases "n \<le> 0")
-  apply (uexpr_simp, simp add: HyStep_hEvolves_0)
+  apply (uexpr_simp, simp add: HyStep_hEvolves_0)[1]
   apply (simp add: HyStep_hEvolves assms(1) assms(2) assms(3))
 done
   
