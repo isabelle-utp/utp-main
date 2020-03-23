@@ -10,7 +10,7 @@ text \<open> This calculus is like the liberal version, but also accounts for te
 consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
 
-no_utp_lift uwp
+no_utp_lift uwp(0)
 
 utp_lift_notation uwp (0)
 

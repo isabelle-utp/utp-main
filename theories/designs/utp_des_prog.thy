@@ -85,7 +85,7 @@ subsection \<open> Guarded Commands \<close>
 definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]: "GrdCommD b P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
 
-syntax "_GrdCommD" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>D _" [60, 61] 61)
+syntax "_GrdCommD" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_ \<rightarrow>\<^sub>D _" [60, 61] 61)
 translations "_GrdCommD b P" == "CONST GrdCommD b P"
 
 lemma GrdCommD_ndes_simp [ndes_simp]:
@@ -170,9 +170,9 @@ adhoc_overloading
 nonterminal gcomm and gcomms
   
 syntax
-  "_altind_els"   :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
-  "_altind"       :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
-  "_gcomm"        :: "uexp \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [60, 60] 61)
+  "_altind_els"   :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ else _ fi")
+  "_altind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("if _\<in>_ \<bullet> _ \<rightarrow> _ fi")
+  "_gcomm"        :: "logic \<Rightarrow> logic \<Rightarrow> gcomm" ("_ \<rightarrow> _" [60, 60] 61)
   "_gcomm_nil"    :: "gcomm \<Rightarrow> gcomms" ("_")
   "_gcomm_cons"   :: "gcomm \<Rightarrow> gcomms \<Rightarrow> gcomms" ("_ |/ _" [60, 61] 61)
   "_gcomm_show"   :: "logic \<Rightarrow> logic"
@@ -355,10 +355,10 @@ next
     by (simp add: hyp)
   also have "... = (p \<and> Q wlp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc ndesign_composition_wp seqr_assoc)
-  also have "... = (p \<and> (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
+  also have "... = (p \<and> U(\<forall> i \<in> {0..\<guillemotleft>n\<guillemotright>}. Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc wp)
   also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
-    by (simp add: USUP_as_Inf_image)
+    by (rel_auto)
   also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (metis (no_types, lifting) One_nat_def image_Suc_atLeastAtMost image_cong image_image)  
   also have "... = (Q \<^bold>^ 0 wlp p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
@@ -377,7 +377,7 @@ consts
   uiterate_list  :: "('a \<times> 'r) list \<Rightarrow> 'r"
 
 syntax
-  "_iterind"       :: "pttrn \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic \<Rightarrow> logic" ("do _\<in>_ \<bullet> _ \<rightarrow> _ od")
+  "_iterind"       :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("do _\<in>_ \<bullet> _ \<rightarrow> _ od")
   "_itergcomm"     :: "gcomms \<Rightarrow> logic" ("do _ od")
   
 translations

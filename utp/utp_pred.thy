@@ -7,8 +7,9 @@ imports
   utp_meta_subst
   utp_tactics
   utp_lift_parser
+  utp_lift_pretty
 begin
-  
+
 text \<open> In this theory we begin to create an Isabelle version of the alphabetised predicate calculus
   that is described in Chapter 1 of the UTP book~\cite{Hoare&98}. \<close>
   
@@ -34,8 +35,6 @@ purge_notation
   Not ("\<not> _" [40] 40)
 
 consts
-  utrue  :: "'a" ("true")
-  ufalse :: "'a" ("false")
   uconj  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<and>" 35)
   udisj  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<or>" 30)
   uimpl  :: "'a \<Rightarrow> 'a \<Rightarrow> 'a" (infixr "\<Rightarrow>" 25)
@@ -49,11 +48,16 @@ adhoc_overloading
   udisj disj and
   unot Not
 
+utp_const
+  uex(0) uall(0) unot uconj udisj uimpl uiff
+
 abbreviation shEx :: "['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" where
 "shEx P \<equiv> \<guillemotleft>Ex\<guillemotright> |> uabs P"
 
 abbreviation shAll :: "['\<beta> \<Rightarrow>'\<alpha> upred] \<Rightarrow> '\<alpha> upred" where
 "shAll P \<equiv> \<guillemotleft>All\<guillemotright> |> uabs P"
+
+utp_const shEx shAll 
 
 text \<open> We set up two versions of each of the quantifiers: @{const uex} / @{const uall} and
         @{const shEx} / @{const shAll}. The former pair allows quantification of UTP variables,
@@ -90,6 +94,11 @@ translations
   "\<^bold>\<forall> x | P \<bullet> Q"                => "\<^bold>\<forall> x \<bullet> P \<Rightarrow> Q"
   "\<^bold>\<forall> x > y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> CONST bop CONST less y \<guillemotleft>x\<guillemotright> \<Rightarrow> P"
   "\<^bold>\<forall> x < y \<bullet> P"                => "\<^bold>\<forall> x \<bullet> CONST bop CONST less \<guillemotleft>x\<guillemotright> y \<Rightarrow> P"
+
+  "_UTP (_uex x P)"            <= "_uex x (_UTP P)"
+  "_UTP (_uall x P)"           <= "_uall x (_UTP P)"
+  "_UTP (_shEx x P)"            <= "_shEx x (_UTP P)"
+  "_UTP (_shAll x P)"           <= "_shAll x (_UTP P)"
 
 subsection \<open> Predicate operators \<close>
 
@@ -242,13 +251,13 @@ notation
 text \<open> Perhaps slightly confusingly, the UTP infimum is the HOL supremum and vice-versa. This is
   because, again, in UTP the lattice is inverted due to the definition of refinement and a desire
   to have miracle at the top, and abort at the bottom. \<close>
-  
+
 lift_definition UINF :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
 
 lift_definition USUP :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, '\<alpha>) uexpr) \<Rightarrow> ('b, '\<alpha>) uexpr"
 is "\<lambda> P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>eb | x. \<lbrakk>P x\<rbrakk>\<^sub>eb}" .
-  
+
 syntax
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<And> _ \<bullet> _" [0, 10] 10)
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"            ("\<Squnion> _ \<bullet> _" [0, 10] 10)

@@ -118,7 +118,7 @@ text \<open> We support two kinds of syntax for substitutions, one where we cons
 nonterminal smaplet and smaplets and salphas
 
 syntax
-  "_smaplet"  :: "[salpha, uexp] => smaplet"             ("_ /\<mapsto>\<^sub>s/ _")
+  "_smaplet"  :: "[salpha, logic] => smaplet"             ("_ /\<mapsto>\<^sub>s/ _")
   ""          :: "smaplet => smaplets"            ("_")
   "_SMaplets" :: "[smaplet, smaplets] => smaplets" ("_,/ _")
   "_SubstUpd" :: "['m usubst, smaplets] => 'm usubst" ("_/'(_')" [900,0] 900)
@@ -126,9 +126,8 @@ syntax
   "_PSubst"   :: "smaplets => logic"            ("(1\<lparr>_\<rparr>)")
   "_psubst"   :: "[logic, svars, uexprs] \<Rightarrow> logic"
   "_subst"    :: "logic \<Rightarrow> uexprs \<Rightarrow> salphas \<Rightarrow> logic" ("(_\<lbrakk>_'/_\<rbrakk>)" [990,0,0] 991)
-  "_uexp_l"   :: "logic \<Rightarrow> uexp" ("_" [64] 64)
-  "_uexprs"   :: "[uexp, uexprs] => uexprs" ("_,/ _")
-  ""          :: "uexp => uexprs" ("_")
+  "_uexprs"   :: "[logic, uexprs] => uexprs" ("_,/ _")
+  ""          :: "logic => uexprs" ("_")
   "_salphas"  :: "[salpha, salphas] => salphas" ("_,/ _")
   ""          :: "salpha => salphas" ("_")
   "_par_subst" :: "logic \<Rightarrow> salpha \<Rightarrow> salpha \<Rightarrow> logic \<Rightarrow> logic" ("_ [_|_]\<^sub>s _" [100,0,0,101] 101)
@@ -148,7 +147,6 @@ translations
   "_subst P v x" <= "CONST usubst (CONST subst_upd id\<^sub>s x v) P"
   "_subst P v x" <= "_subst P (_spvar x) v"
   "_par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2" == "CONST par_subst \<sigma>\<^sub>1 A B \<sigma>\<^sub>2"
-  "_uexp_l e" => "e"
 
 text \<open> Thus we can write things like @{term "\<sigma>(x \<mapsto>\<^sub>s v)"} to update a variable $x$ in $\sigma$ with
   expression $v$, @{term "[x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f]"} to construct a substitution with two variables,

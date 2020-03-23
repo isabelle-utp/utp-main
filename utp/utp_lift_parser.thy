@@ -182,8 +182,8 @@ parse_translation \<open>
 
 text \<open> Cartouche parser for UTP expressions. We can either surround the whole of a UTP relation
   with a the cartouche, or alternatively just the program text. \<close>
-                     
-syntax "_uexpr_cartouche" :: \<open>cartouche_position \<Rightarrow> uexp\<close>  ("_")
+
+syntax "_uexpr_cartouche" :: \<open>cartouche_position \<Rightarrow> logic\<close>  ("_")
 
 translations
   "_uexpr_cartouche e" => "_utp e"

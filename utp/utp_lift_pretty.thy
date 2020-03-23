@@ -1,5 +1,5 @@
 theory utp_lift_pretty
-  imports "utp_pred" "utp_lift_parser"
+  imports "utp_subst" "utp_lift_parser"
   keywords "utp_pretty" :: "thy_decl_block" and "no_utp_pretty" :: "thy_decl_block" and "utp_const" :: "thy_decl_block" and "utp_lift_notation" :: "thy_decl_block"
 begin
 
@@ -35,21 +35,23 @@ ML \<open>
 ML \<open>
 let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logic", r)))
   [("U(t)" , "U(U(t))"),
-  ("U(x + y)", "U(x) + U(y)"),
-  ("U(x - y)", "U(x) - U(y)"),
-  ("U(- e)", "- U(e)"),
-  ("U(x * y)", "U(x) * U(y)"),
-  ("U(x / y)", "U(x) / U(y)"),
+
+(*
   ("_UTP (_uex x P)", "_uex x (_UTP P)"),
   ("_UTP (_uall x P)", "_uall x (_UTP P)"),
+*)
   ("U(_ulens_ovrd e f A)", "_ulens_ovrd (U(e)) (U(f)) A"),
+
   ("_UTP (_SubstUpd m (_smaplet x v))", "_SubstUpd (_UTP m) (_smaplet x (_UTP v))"),
   ("_UTP (_Subst (_smaplet x v))", "_Subst (_smaplet x (_UTP v))"),
   ("_UTP (_subst e v x)", "_subst (_UTP e) (_UTP v) x"),
+
   ("U(\<sigma> \<dagger> e)", "U(\<sigma>) \<dagger> U(e)"),
   ("U(f x)" , "U(f) |> U(x)"),
+
   ("U(\<lambda> x. f)", "(\<lambda> x \<bullet> U(f))"),
   ("U(\<lambda> x. f)", "(\<lambda> x . U(f))"),
+
   ("U(f x)" , "CONST uop f U(x)"),
   ("U(f x y)" , "CONST bop f U(x) U(y)"),
   ("U(f x y z)" , "CONST trop f U(x) U(y) U(z)"),
@@ -75,12 +77,12 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
     (Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>uexpr\<close>, _)])) => Const (@{syntax_const "_UTP"}, dummyT) $ Term.list_comb (Const (n, dummyT), ts) |
     _ => raise Match);
 
-  fun insert_U pre ctx ts =
-    if (Library.foldl (fn (x, y) => needs_mark ctx y orelse x) (false, ts)) 
-    then Library.foldl1 (op $) (pre @ map (utp_mark_term ctx) ts)
+  fun insert_U args pre ctx ts =
+    if (Library.foldl (fn (x, (i, y)) => (not (member (op =) args i) andalso needs_mark ctx y) orelse x) (false, (Library.map_index (fn x => x) ts))) 
+    then Library.foldl1 (op $) (pre @ map_index (fn (i, t) => if (member (op =) args i) then t else utp_mark_term ctx t) ts)
     else raise Match;
 
-  fun insert_const_U c = insert_U [Const (c, dummyT)];
+  fun insert_const_U args c = insert_U args [Const (c, dummyT)];
 
   
   (* Function to register a constant c with n arguments as a lifted constant that should be
@@ -129,7 +131,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
         val n = length (fst (Term.strip_type ty)) 
         val args = map Value.parse_int opt in
     (Sign.add_trrules (mk_lift_U_prtr cs n args) #> 
-     Sign.print_translation [(cs, insert_const_U cs)]
+     Sign.print_translation [(cs, insert_const_U args cs)]
     ) thy
     end;
 
@@ -151,17 +153,17 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
 *)
   
 
-  fun uop_insert_U ctx (f :: ts) = insert_U [Const (@{const_syntax "uop"}, dummyT), f] ctx ts |
+  fun uop_insert_U ctx (f :: ts) = insert_U [] [Const (@{const_syntax "uop"}, dummyT), f] ctx ts |
   uop_insert_U _ _ = raise Match;
 
-  fun bop_insert_U ctx (f :: ts) = insert_U [Const (@{const_syntax "bop"}, dummyT), f] ctx ts |
+  fun bop_insert_U ctx (f :: ts) = insert_U [] [Const (@{const_syntax "bop"}, dummyT), f] ctx ts |
   bop_insert_U _ _ = raise Match;
 
   fun trop_insert_U ctx (f :: ts) =
-    insert_U [Const (@{const_syntax "trop"}, dummyT), f] ctx ts |
+    insert_U [] [Const (@{const_syntax "trop"}, dummyT), f] ctx ts |
   trop_insert_U _ _ = raise Match;
 
-  fun appl_insert_U ctx ts = insert_U [] ctx ts;
+  fun appl_insert_U ctx ts = insert_U [] [] ctx ts;
 
   val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
                  , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
@@ -201,7 +203,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
    Outer_Syntax.command @{command_keyword no_utp_pretty} "disable pretty printing of UTP expressions"
     (Scan.succeed (Toplevel.theory (Isar_Cmd.no_translations utp_tr_rules #> Sign.print_translation no_print_tr)));
 
-  Outer_Syntax.command @{command_keyword utp_const} "declare that certain constants should not be lifted"
+  Outer_Syntax.command @{command_keyword utp_const} "declare that certain UTP constants should not be lifted"
     (Scan.repeat1 (Parse.term -- Scan.optional (Parse.$$$ "(" |-- Parse.!!! (Scan.repeat1 Parse.number --| Parse.$$$ ")")) [])
      >> (fn ns => 
          Toplevel.theory                                                           
@@ -209,10 +211,10 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
  end;
 \<close>
 
-utp_const 
-  shEx shAll uex(0) uall(0) unot uconj udisj uimpl 
-  uiff utrue ufalse UINF USUP refineBy
+utp_const
+  plus minus uminus times divide
   subst_upd(1) usubst usubst_lookup
+  utrue ufalse
 
 term "\<^U>(3 + &x)"
 
@@ -222,7 +224,7 @@ term "\<^U>(3 + &x)"
 
 term "true"
 
-term "U(P \<or> $x = 1 \<Rightarrow> false)"
+term "U(P \<or> $x = 1 \<longrightarrow> false)"
 
 term "U(true \<and> q)"
 

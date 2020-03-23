@@ -579,7 +579,7 @@ subsection \<open> While Loop \<close>
 definition WhileR :: "'s upred \<Rightarrow> ('s, 't::size_trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
 "WhileR b P = (\<mu>\<^sub>R X \<bullet> (P ;; X) \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
 
-syntax "_whileR" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>R _ do _ od")
+syntax "_whileR" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("while\<^sub>R _ do _ od")
 translations "_whileR b P" == "CONST WhileR b P"
 
 lemma Sup_power_false:

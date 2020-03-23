@@ -12,18 +12,12 @@ named_theorems wp
 method wp_tac = (simp add: wp usubst unrest)
 
 consts
-  uwlp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
-
-no_utp_lift uwlp
-
-syntax
-  "_uwlp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wlp" 60)
-
-translations
-  "_uwlp P b" == "CONST uwlp P b"
+  uwlp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" (infix "wlp" 60)
 
 definition wlp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" where
 "wlp_upred Q r = \<lfloor>\<not> (Q ;; (\<not> \<lceil>r\<rceil>\<^sub><)) :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub><"
+
+utp_const uwlp (0)
 
 adhoc_overloading
   uwlp wlp_upred
@@ -78,8 +72,16 @@ lemma wlp_test [wp]: "?[b] wlp c = (b \<Rightarrow> c)"
 lemma wlp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wlp c = (b \<Rightarrow> P wlp c)"
   by (simp add: rgcmd_def wp)
 
-lemma wlp_USUP_pre [wp]: "P wlp (\<Squnion>i\<in>{0..n} \<bullet> Q(i)) = (\<Squnion>i\<in>{0..n} \<bullet> P wlp Q(i))"
-  by (rel_auto)
+term "U(\<forall> i\<in>{0..n}. i < n)"
+
+declare [[show_types]]
+
+term "U(\<forall> i\<in>{0..n}. P wlp @(Q i))"
+
+term "\<guillemotleft>All\<guillemotright> |> (\<lambda> i \<bullet> @(P wlp Q i))"
+
+lemma wlp_USUP_pre [wp]: "P wlp (\<And> i\<in>{0..n} \<bullet> Q(i)) = U(\<forall> i\<in>\<guillemotleft>{0..n}\<guillemotright>. @(P wlp Q i))"
+  by (rel_auto; blast)
 
 theorem wlp_hoare_link:
   "\<lbrace>p\<rbrace>Q\<lbrace>r\<rbrace>\<^sub>u \<longleftrightarrow> `p \<Rightarrow> Q wlp r`"
@@ -89,8 +91,8 @@ text \<open> We can use the above theorem as a means to discharge Hoare triples 
 
 method hoare_wlp_auto uses defs = (simp add: wlp_hoare_link wp unrest usubst defs; rel_auto)
 
-text {* If two programs have the same weakest precondition for any postcondition then the programs
-  are the same. *}
+text \<open> If two programs have the same weakest precondition for any postcondition then the programs
+  are the same. \<close>
 
 theorem wlp_eq_intro: "\<lbrakk> \<And> r. P wlp r = Q wlp r \<rbrakk> \<Longrightarrow> P = Q"
   by (rel_auto robust, fastforce+)

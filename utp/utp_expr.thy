@@ -23,7 +23,7 @@ setup_lifting type_definition_uexpr
 notation Rep_uexpr ("\<lbrakk>_\<rbrakk>\<^sub>e")
 notation Abs_uexpr ("mk\<^sub>e")
 
-nonterminal uexp and uexprs
+nonterminal uexprs
 
 lemma uexpr_eq_iff:
   "e = f \<longleftrightarrow> (\<forall> b. \<lbrakk>e\<rbrakk>\<^sub>e b = \<lbrakk>f\<rbrakk>\<^sub>e b)"
@@ -115,6 +115,10 @@ translations
 
 text \<open> Since we already have a parser for variables, we can directly reuse it and simply apply
   the @{term var} expression construct to lift the resulting variable to an expression. \<close>
+
+consts
+  utrue  :: "'a" ("true")
+  ufalse :: "'a" ("false")
   
 subsection \<open> Type class instantiations \<close>
 
