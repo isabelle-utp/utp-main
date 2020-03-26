@@ -43,7 +43,7 @@ syntax
   "_ode"        :: "id \<Rightarrow> logic \<Rightarrow> sode" ("_\<^sup>\<bullet> = _")
   "_ode_last"   :: "sode \<Rightarrow> sodes" ("_")
   "_ode_cons"   :: "sode \<Rightarrow> sodes \<Rightarrow> sodes" ("_,/ _")
-  "_sys_ode"    :: "sodes \<Rightarrow> uexp \<Rightarrow> logic" ("\<langle>_ | _\<rangle>")
+  "_sys_ode"    :: "sodes \<Rightarrow> logic \<Rightarrow> logic" ("\<langle>_ | _\<rangle>")
   "_sys_ode_s"  :: "sodes \<Rightarrow> logic" ("\<langle>_\<rangle>")
   "_ode_lens"   :: "sodes \<Rightarrow> logic"
   "_ode_tuple"  :: "sodes \<Rightarrow> logic"

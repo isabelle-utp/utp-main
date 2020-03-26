@@ -15,7 +15,7 @@ no_utp_lift uwp(0)
 utp_lift_notation uwp (0)
 
 syntax
-  "_uwp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wp" 60)
+  "_uwp" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "wp" 60)
 
 translations
   "_uwp P b" == "CONST uwp P b"

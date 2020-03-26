@@ -356,7 +356,7 @@ next
   also have "... = (p \<and> Q wlp (\<Squnion> i \<in> {0..n} \<bullet> Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (simp add: upred_semiring.power_Suc ndesign_composition_wp seqr_assoc)
   also have "... = (p \<and> U(\<forall> i \<in> {0..\<guillemotleft>n\<guillemotright>}. Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
-    by (simp add: upred_semiring.power_Suc wp)
+    by (simp add: upred_semiring.power_Suc wp, rel_auto)
   also have "... = (p \<and> (\<Squnion> i \<in> {0..n}. Q \<^bold>^ Suc i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
     by (rel_auto)
   also have "... = (p \<and> (\<Squnion> i \<in> {1..Suc n}. Q \<^bold>^ i wlp p)) \<turnstile>\<^sub>n (Q ;; Q) ;; Q \<^bold>^ n"
