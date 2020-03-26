@@ -11,7 +11,10 @@ theorem dWeakening: \<comment> \<open> Differential Weakening \<close>
   by (rel_simp, simp add: lit.rep_eq uexpr_appl.rep_eq)
 
 lemma hoare_ode_meaning:
-  "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u = (\<forall> s F l. \<lbrakk>P\<rbrakk>\<^sub>e \<lparr> cvec\<^sub>v = F 0, \<dots> = s \<rparr> \<and> l \<ge> 0 \<and> solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>))"
+  "\<lbrace>P\<rbrace>ode F' B\<lbrace>Q\<rbrace>\<^sub>u = 
+    (\<forall> s F l. \<lbrakk>P\<rbrakk>\<^sub>e \<lparr> cvec\<^sub>v = F 0, \<dots> = s \<rparr> 
+            \<and> l \<ge> 0 \<and> solves F \<lbrakk>F'\<rbrakk>\<^sub>e B s l 
+            \<longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>)"
   by (rel_auto', blast)
 
 theorem dCut:
@@ -43,5 +46,23 @@ proof (simp add: hoare_ode_meaning, clarsimp)
     using a(2) apply auto
     done
 qed
+
+lemma solves_ode_solves:
+  "(F solves_ode (\<lambda> t. F')) {0..l} UNIV \<Longrightarrow> solves F F' true s l"
+  by (auto simp add: solves_ode_def has_vderiv_on_def, rel_simp)
+
+(*
+lemma 
+  assumes 
+    "\<forall> l. (F solves_ode (\<lambda> t. \<lbrakk>F'\<rbrakk>\<^sub>e)) {0..l} UNIV"
+    "\<forall> t s. \<lbrakk>P\<rbrakk>\<^sub>e \<lparr> cvec\<^sub>v = F 0, \<dots> = s \<rparr> \<longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e \<lparr> cvec\<^sub>v = F t, \<dots> = s \<rparr>"
+  shows "\<lbrace>P\<rbrace>ode F' B\<lbrace>P\<rbrace>\<^sub>u"
+proof -
+  have "\<forall> s l. solves F \<lbrakk>F'\<rbrakk>\<^sub>e true s l"
+    by (meson assms(1) solves_ode_solves)
+  with assms(2) show ?thesis
+    apply (simp add: hoare_ode_meaning)
+    apply (auto)
+*)
 
 end

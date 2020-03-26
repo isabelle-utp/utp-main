@@ -7,6 +7,7 @@ theory utp_hyprog_prelim
     "HOL-Analysis.Analysis"
     "HOL-Library.Function_Algebras"
     "Dynamics.Derivative_extra"
+    "Dynamics.ODE_Cert"
 begin recall_syntax
 
 subsection \<open> Continuous Variable Lenses \<close>
