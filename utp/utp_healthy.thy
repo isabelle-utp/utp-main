@@ -240,7 +240,7 @@ text \<open> Closure laws derived from continuity \<close>
 
 lemma Sup_Continuous_closed [closure]:
   "\<lbrakk> Continuous H; \<And> i. i \<in> A \<Longrightarrow> P(i) is H; A \<noteq> {} \<rbrakk> \<Longrightarrow> (\<Sqinter> i\<in>A. P(i)) is H"
-  by (drule ContinuousD[of H "P ` A"], simp add: UINF_mem_UNIV[THEN sym] UINF_as_Sup[THEN sym])
+  by (drule ContinuousD[of H "P ` A"], simp add: UINF_as_Sup[THEN sym])
      (metis (no_types, lifting) Healthy_def' SUP_cong image_image)
 
 lemma UINF_mem_Continuous_closed [closure]:

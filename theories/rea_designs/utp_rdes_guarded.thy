@@ -311,7 +311,7 @@ proof -
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
     by (simp add: seq_Sup_distr)
   finally show ?thesis
-    by (simp add: UINF_as_Sup[THEN sym])
+    by (simp add: UINF_as_Sup_collect)
 qed
 
 lemma mu_csp_form_NSRD [closure]:

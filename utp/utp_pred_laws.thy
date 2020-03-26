@@ -217,18 +217,8 @@ lemma usup_and:
   fixes P Q :: "'\<alpha> upred"
   shows "(P \<squnion> Q) = (P \<and> Q)"
   by (pred_auto)
-
-lemma UINF_alt_def:
-  "(\<Sqinter> i | A(i) \<bullet> P(i)) = (\<Sqinter> i \<bullet> A(i) \<and> P(i))"
-  by (rel_auto)
     
 lemma USUP_true [simp]: "(\<Squnion> P | F(P) \<bullet> true) = true"
-  by (pred_auto)
-
-lemma UINF_mem_UNIV [simp]: "(\<Sqinter> x\<in>UNIV \<bullet> P(x)) = (\<Sqinter> x \<bullet> P(x))"
-  by (pred_auto)
-
-lemma USUP_mem_UNIV [simp]: "(\<Squnion> x\<in>UNIV \<bullet> P(x)) = (\<Squnion> x \<bullet> P(x))"
   by (pred_auto)
 
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
@@ -245,7 +235,7 @@ lemma UINF_true [simp]: "(\<Sqinter> i \<bullet> true) = true"
 
 lemma UINF_ind_const [simp]: 
   "(\<Sqinter> i \<bullet> P) = P"
-  by (rel_auto)
+  by (pred_simp)
     
 lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> true) = true"
   by (pred_auto)
@@ -257,9 +247,9 @@ lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
   by (rel_auto)
 
 lemma UINF_cong_eq:
-  "\<lbrakk> \<And> x. P\<^sub>1(x) = P\<^sub>2(x); \<And> x. `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
-        (\<Sqinter> x | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
- by (unfold UINF_def, pred_simp, metis)
+  "\<lbrakk> A = B; \<And> x. x \<in> A \<Longrightarrow> P\<^sub>1(x) = P\<^sub>2(x); \<And> x. x \<in> A \<Longrightarrow> `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
+        (\<Sqinter> x\<in>A | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x\<in>B | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
+  by (pred_simp, metis (mono_tags, hide_lams))
 
 lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
@@ -280,14 +270,14 @@ lemma UINF_as_Sup_collect': "(\<Sqinter>P \<bullet> f(P)) = (\<Sqinter>P. f(P))"
   apply (simp add: full_SetCompr_eq)
   done
 
-lemma UINF_as_Sup_image: "(\<Sqinter> P | \<guillemotleft>P\<guillemotright> \<in>\<^sub>u \<guillemotleft>A\<guillemotright> \<bullet> f(P)) = \<Sqinter> (f ` A)"
+lemma UINF_as_Sup_image: "(\<Sqinter> P\<in>A \<bullet> f(P)) = \<Sqinter> (f ` A)"
   apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Sup"])
    apply (auto)
   done
 
-lemma USUP_as_Inf: "(\<Squnion> P \<in> \<P> \<bullet> P) = \<Squnion> \<P>"
+lemma USUP_as_Inf: "(\<Squnion> P\<in>\<P> \<bullet> P) = \<Squnion> \<P>"
   apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Inf_uexpr_def)
   apply (pred_simp)
   apply (rule cong[of "Inf"])
@@ -300,7 +290,6 @@ lemma USUP_as_Inf_collect: "(\<Squnion>P\<in>A \<bullet> f(P)) = (\<Squnion>P\<i
   done
 
 lemma USUP_as_Inf_collect': "(\<Squnion>P \<bullet> f(P)) = (\<Squnion>P. f(P))"
-  apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)
   apply (pred_simp)
   apply (simp add: full_SetCompr_eq)
   done
@@ -312,14 +301,14 @@ lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> 
    apply (auto)
   done
 
-lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
+lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i \<in> f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
   by (pred_simp, rule_tac cong[of Inf Inf], auto)
 
-lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i\<guillemotright> \<in>\<^sub>u \<guillemotleft>f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
+lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i \<in> f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
   by (pred_simp, rule_tac cong[of Sup Sup], auto)
 
 lemma subst_continuous [usubst]: "\<sigma> \<dagger> (\<Sqinter> A) = (\<Sqinter> {\<sigma> \<dagger> P | P. P \<in> A})"
-  by (simp add: UINF_as_Sup[THEN sym] usubst setcompr_eq_image)
+  by (simp add: UINF_as_Sup[THEN sym] usubst, auto intro: cong[of Sup Sup] simp add: UINF_as_Sup_image)
 
 lemma not_UINF: "(\<not> (\<Sqinter> i\<in>A\<bullet> P(i))) = (\<Squnion> i\<in>A\<bullet> \<not> P(i))"
   by (pred_auto)
@@ -397,7 +386,7 @@ lemma UINF_conj_UINF [simp]:
 
 lemma conj_USUP_dist:
   "S \<noteq> {} \<Longrightarrow> (P \<and> (\<Squnion> Q\<in>S \<bullet> F(Q))) = (\<Squnion> Q\<in>S \<bullet> P \<and> F(Q))"
-  by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUP.rep_eq inf_uexpr.rep_eq uexpr_appl.rep_eq lit.rep_eq)
+  by (subst uexpr_eq_iff, auto simp add: conj_upred_def USUPREMUM.rep_eq inf_uexpr.rep_eq uexpr_appl.rep_eq lit.rep_eq true_upred_def)
 
 lemma USUP_conj_USUP [simp]: "((\<Squnion> P \<in> A \<bullet> F(P)) \<and> (\<Squnion> P \<in> A \<bullet> G(P))) = (\<Squnion> P \<in> A \<bullet> F(P) \<and> G(P))"
   by (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq, pred_auto)
@@ -478,6 +467,8 @@ lemma UINF_list_conv:
   "(\<Sqinter> i \<in> {0..<length(xs)} \<bullet> f (xs ! i)) = foldr (\<or>) (map f xs) false"    
   apply (induct xs)
    apply (rel_auto)
+  apply (simp)
+  thm UINF_upto_expand_first UINF_Suc_shift
   apply (simp add: UINF_upto_expand_first UINF_Suc_shift)
   done
 
@@ -498,7 +489,7 @@ lemma UINF_refines':
   using assms
   apply (rel_auto) using Sup_le_iff by fastforce
 
-lemma UINF_pred_ueq [simp]: 
+lemma UINF_pred_ueq [simp]:
   "(\<Sqinter> x | \<guillemotleft>x\<guillemotright> =\<^sub>u v \<bullet> P(x)) = (P x)\<lbrakk>x\<rightarrow>v\<rbrakk>"
   by (pred_auto)
 

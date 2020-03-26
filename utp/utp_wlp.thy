@@ -72,15 +72,9 @@ lemma wlp_test [wp]: "?[b] wlp c = (b \<Rightarrow> c)"
 lemma wlp_gcmd [wp]: "(b \<longrightarrow>\<^sub>r P) wlp c = (b \<Rightarrow> P wlp c)"
   by (simp add: rgcmd_def wp)
 
-term "U(\<forall> i\<in>{0..n}. i < n)"
-
-declare [[show_types]]
-
-term "U(\<forall> i\<in>{0..n}. P wlp @(Q i))"
-
-term "\<guillemotleft>All\<guillemotright> |> (\<lambda> i \<bullet> @(P wlp Q i))"
-
-lemma wlp_USUP_pre [wp]: "P wlp (\<And> i\<in>{0..n} \<bullet> Q(i)) = U(\<forall> i\<in>\<guillemotleft>{0..n}\<guillemotright>. @(P wlp Q i))"
+lemma wlp_USUP_pre [wp]: 
+  fixes Q :: "_ \<Rightarrow> 's upred"
+  shows "P wlp (\<And> i\<in>A \<bullet> Q(i)) = U(\<forall> i\<in>\<guillemotleft>A\<guillemotright>. P wlp Q i)"
   by (rel_auto; blast)
 
 theorem wlp_hoare_link:

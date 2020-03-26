@@ -134,13 +134,17 @@ ML \<open>
           utp_lift_aux ctx (Const (c, t), args)
         \<comment> \<open> Otherwise, we simply apply normal lifting.\<close>
         else
-          list_appl
-          (case (Syntax.check_term ctx (Free (n, t))) of
-            Free (_, Type (\<^type_name>\<open>lens_ext\<close>, _)) => Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)) |
-            Free (_, Type (\<^type_name>\<open>uexpr\<close>, _)) => Free (n, t) |
-            _ => if (VarOption.get (Proof_Context.theory_of ctx)) then Free (n, t) else Const (@{const_name lit}, dummyT) $ Free (n, t)
+          case (Syntax.check_term ctx (Free (n, t))) of
+            Free (_, Type (\<^type_name>\<open>lens_ext\<close>, _)) 
+              => list_appl (Const (@{const_name var}, dummyT) $ (Const (@{const_name pr_var}, dummyT) $ Free (n, t)), map (utp_lift ctx) args) |
+            Free (_, Type (\<^type_name>\<open>uexpr\<close>, _)) => list_appl (Free (n, t), map (utp_lift ctx) args) |
+            \<comment> \<open> This case tries to catch indexed predicates of the form P(i) \<close>
+            Free (_, Type (\<^type_name>\<open>fun\<close>, [_, Type (\<^type_name>\<open>uexpr\<close>, _)])) => Term.list_comb (Free (n, t), args) |
+            _ => list_appl (if (VarOption.get (Proof_Context.theory_of ctx))
+                            then Free (n, t) 
+                            else Const (@{const_name lit}, dummyT) $ Free (n, t), map (utp_lift ctx) args)
             (* if (Symbol.is_ascii_upper (hd (Symbol.explode n))) then Free (n, t) else Const (@{const_name lit}, dummyT) $ Free (n, t) *)
-          , map (utp_lift ctx) args)
+          
     end
     |
 
@@ -247,7 +251,7 @@ term "UTP\<open>$x + 1 \<le> $y\<acute>\<close>"
 term "UTP\<open>$x\<acute> = $x + 1 \<and> $y\<acute> = $y\<close>"
 
 locale test =
-  fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's"
+  fixes x :: "nat \<Longrightarrow> 's" and xs :: "int list \<Longrightarrow> 's" and P :: "'s \<Rightarrow> ('a, 's) uexpr"
 begin
 
   abbreviation (input) "z \<equiv> x"
@@ -259,6 +263,8 @@ begin
   term "UTP\<open>$f v\<close>"
 
   term "UTP\<open>{2<..}\<close>"
+
+  term "U(P i)"
 
 end
 

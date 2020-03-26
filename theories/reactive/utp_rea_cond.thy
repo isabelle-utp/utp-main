@@ -185,7 +185,7 @@ proof -
   have 1:"RC1(\<Sqinter> i\<in>A \<bullet> RC1(P i)) = (\<Sqinter> i\<in>A \<bullet> RC1(P i))"
     by (rel_auto, meson order.trans)
   show ?thesis
-    by (metis (mono_tags, lifting) "1" Healthy_def' UINF_all_cong UINF_alt_def assms)
+    by (metis (mono_tags, lifting) "1" Healthy_def UINF_cong assms)
 qed
   
 lemma UINF_mem_RC_closed [closure]:
@@ -232,7 +232,7 @@ lemma USUP_mem_RC_closed [closure]:
 
 lemma USUP_ind_RC_closed [closure]:
   "\<lbrakk> \<And> i. P i is RC \<rbrakk> \<Longrightarrow> (\<Squnion> i \<bullet> P i) is RC"
-  by (metis UNIV_not_empty USUP_mem_RC_closed USUP_mem_UNIV)
+  by (metis UNIV_not_empty USUP_mem_RC_closed)
 
 lemma neg_trace_ext_prefix_RC [closure]: 
   "\<lbrakk> $tr \<sharp> e; $ok \<sharp> e; $wait \<sharp> e; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> \<not>\<^sub>r $tr ^\<^sub>u e \<le>\<^sub>u $tr\<acute> is RC"

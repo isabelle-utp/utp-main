@@ -273,13 +273,13 @@ lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\
   by (simp add: UINF_as_Sup_collect seq_Sup_distl)
 
 lemma seq_UINF_distl': "P ;; (\<Sqinter> Q \<bullet> F(Q)) = (\<Sqinter> Q \<bullet> P ;; F(Q))"
-  by (metis UINF_mem_UNIV seq_UINF_distl)
+  by (metis seq_UINF_distl)
 
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
   by (simp add: UINF_as_Sup_collect seq_Sup_distr)
 
 lemma seq_UINF_distr': "(\<Sqinter> P \<bullet> F(P)) ;; Q = (\<Sqinter> P \<bullet> F(P) ;; Q)"
-  by (metis UINF_mem_UNIV seq_UINF_distr)
+  by (metis seq_UINF_distr)
 
 lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; Q(i))"
   by (metis image_image seq_Sup_distl)

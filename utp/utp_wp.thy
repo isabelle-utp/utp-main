@@ -10,12 +10,12 @@ text \<open> This calculus is like the liberal version, but also accounts for te
 consts
   uwp :: "'a \<Rightarrow> 'b \<Rightarrow> 'c" 
 
-no_utp_lift uwp(0)
+utp_const uwp(0)
 
 utp_lift_notation uwp (0)
 
 syntax
-  "_uwp" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" (infix "wp" 60)
+  "_uwp" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "wp" 60)
 
 translations
   "_uwp P b" == "CONST uwp P b"
@@ -25,6 +25,8 @@ definition wp_upred :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> cond \
 
 adhoc_overloading
   uwp wp_upred
+
+term "P wp true"
 
 theorem refine_iff_wp: 
   fixes P Q :: "('\<alpha>, '\<beta>) urel"

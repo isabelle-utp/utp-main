@@ -143,7 +143,7 @@ subsection \<open> Indexed Assignment \<close>
 
 syntax
   \<comment> \<open> Indexed assignment \<close>
-  "_assignment_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("(_[_] :=/ _)" [63, 0, 0] 62)
+  "_assignment_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_[_] :=/ _)" [63, 0, 0] 62)
 
 translations
   \<comment> \<open> Indexed assignment uses the overloaded collection update function \emph{uupd}. \<close>

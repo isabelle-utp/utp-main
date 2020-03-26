@@ -540,7 +540,7 @@ qed
 lemma preR_power' [rdes]:
   assumes "P is NSRD"
   shows "pre\<^sub>R(P ;; P\<^bold>^n) = (\<Squnion> i\<in>{0..n} \<bullet> (post\<^sub>R(P) \<^bold>^ i) wp\<^sub>r (pre\<^sub>R(P)))"
-  by (simp add: preR_power assms USUP_as_Inf[THEN sym])
+  by (simp add: preR_power assms USUP_as_Inf[THEN sym], simp add: USUP_as_Inf_image)
 
 lemma preR_power_Suc [rdes]:
   assumes "P is NSRD"
@@ -610,7 +610,7 @@ qed
 lemma periR_power' [rdes]:
   assumes "P is NSRD"
   shows "peri\<^sub>R(P ;; P\<^bold>^n) = (pre\<^sub>R(P\<^bold>^(Suc n)) \<Rightarrow>\<^sub>r (\<Sqinter> i\<in>{0..n} \<bullet> post\<^sub>R(P) \<^bold>^ i) ;; peri\<^sub>R(P))"
-  by (simp add: periR_power assms UINF_as_Sup[THEN sym])
+  by (simp add: periR_power assms UINF_as_Sup[THEN sym], simp add: UINF_as_Sup_image)
 
 lemma periR_power_Suc [rdes]:
   assumes "P is NSRD"

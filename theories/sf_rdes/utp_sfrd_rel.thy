@@ -1077,7 +1077,7 @@ proof -
   also have "... = II\<^sub>c \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> \<Phi>(\<Squnion> i \<in> {0..<n} \<bullet> (\<sigma> ^\<^sub>s i) \<dagger> s,\<sigma> ^\<^sub>s n,titr n \<sigma> t))"
   proof -
     have "(\<Sqinter> n\<in>{1..} \<bullet> ?F(n - 1)) = (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
-      by (rule UINF_cong, simp, metis Suc_pred atLeastLessThanSuc_atLeastAtMost diff_is_0_eq not0_implies_Suc not_less_eq_eq zero_less_Suc)
+      by (rule UINF_cong, simp, metis (no_types, lifting) Suc_diff_le atLeastLessThanSuc_atLeastAtMost cancel_comm_monoid_add_class.diff_zero diff_Suc_Suc)
     thus ?thesis by simp
   qed
   also have "... = ?G(0) \<sqinter> (\<Sqinter> n \<in> {1..} \<bullet> ?G(n))"
