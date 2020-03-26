@@ -10,33 +10,33 @@ syntax
 translations
   "a \<^bold>\<rightarrow> P" == "CONST PrefixCSP \<guillemotleft>a\<guillemotright> P"
 
-text {* We next configure a syntax for mixed prefixes. *}
+text \<open> We next configure a syntax for mixed prefixes. \<close>
 
 nonterminal prefix_elem' and mixed_prefix'
 
 syntax "_end_prefix" :: "prefix_elem' \<Rightarrow> mixed_prefix'" ("_")
 
-text {* Input Prefix: @{text "\<dots>?(x)"} *}
+text \<open> Input Prefix: @{text "\<dots>?(x)"} \<close>
 
 syntax "_simple_input_prefix" :: "id \<Rightarrow> prefix_elem'"  ("?'(_')")
 
-text {* Input Prefix with Constraint: @{text "\<dots>?(x : P)"} *}
+text \<open> Input Prefix with Constraint: @{text "\<dots>?(x : P)"} \<close>
 
 syntax "_input_prefix" :: "id \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> prefix_elem'" ("?'(_ :/ _')")
 
-text {* Output Prefix: @{text "\<dots>![v]e"} *}
+text \<open> Output Prefix: @{text "\<dots>![v]e"} \<close>
 
-text {* A variable name must currently be provided for outputs, too. Fix?! *}
+text \<open> A variable name must currently be provided for outputs, too. Fix?! \<close>
 
-syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
-syntax "_output_prefix" :: "uexp \<Rightarrow> prefix_elem'" (".'(_')")
+syntax "_output_prefix" :: "logic \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax "_output_prefix" :: "logic \<Rightarrow> prefix_elem'" (".'(_')")
 
-syntax (output) "_output_prefix_pp" :: "uexp \<Rightarrow> prefix_elem'" ("!'(_')")
+syntax (output) "_output_prefix_pp" :: "logic \<Rightarrow> prefix_elem'" ("!'(_')")
 
 syntax
   "_prefix_aux" :: "pttrn \<Rightarrow> logic \<Rightarrow> prefix_elem'"
 
-text {* Mixed-Prefix Action: @{text "c\<dots>(prefix) \<^bold>\<rightarrow> A"} *}
+text \<open> Mixed-Prefix Action: @{text "c\<dots>(prefix) \<^bold>\<rightarrow> A"} \<close>
 
 syntax "_mixed_prefix" :: "prefix_elem' \<Rightarrow> mixed_prefix' \<Rightarrow> mixed_prefix'" ("__")
 
@@ -45,7 +45,7 @@ syntax
   "('a, '\<epsilon>) chan \<Rightarrow> mixed_prefix' \<Rightarrow> ('\<sigma>, '\<epsilon>) action \<Rightarrow> ('\<sigma>, '\<epsilon>) action"
   ("(__ \<^bold>\<rightarrow>/ _)" [63, 63, 62] 62)
 
-text {* Syntax translations *}
+text \<open> Syntax translations \<close>
 
 definition lconj :: "('a \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('b \<Rightarrow> '\<alpha> upred) \<Rightarrow> ('a \<times> 'b \<Rightarrow> '\<alpha> upred)" (infixr "\<and>\<^sub>l" 35)
 where [upred_defs]: "(P \<and>\<^sub>l Q) \<equiv> (\<lambda> (x,y). P x \<and> Q y)"
@@ -63,7 +63,7 @@ translations
   "_end_prefix (_output_prefix P)" \<rightharpoonup> "_prefix_aux _idtdummy (CONST outp_constraint P)"
   "_prefix_action c (_prefix_aux x P) A" == "(CONST InputCSP) c P (\<lambda>x. A)"
 
-text {* Basic print translations; more work needed *}
+text \<open> Basic print translations; more work needed \<close>
 
 translations
   "_simple_input_prefix x" <= "_input_prefix x true"
@@ -80,12 +80,12 @@ term "x!(U([1])) \<^bold>\<rightarrow> P"
 term "x?(v)!(1) \<^bold>\<rightarrow> P"
 term "x!(U([1]))!(2)?(v:true) \<^bold>\<rightarrow> P"
 
-text {* Basic translations for state variable communications *}
+text \<open> Basic translations for state variable communications \<close>
 
 syntax
   "_csp_input_var"  :: "logic \<Rightarrow> id \<Rightarrow> logic \<Rightarrow> logic" ("_?'(_:_')" [63, 0, 0] 62)
   "_csp_inputu_var" :: "logic \<Rightarrow> id \<Rightarrow> logic" ("_?'(_')" [63, 0] 62)
-  "_csp_output_var" :: "logic \<Rightarrow> uexp \<Rightarrow> logic" ("_!'(_')" [63, 0] 62)
+  "_csp_output_var" :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("_!'(_')" [63, 0] 62)
 
 translations
   "c?(x:A)" \<rightharpoonup> "CONST InputVarCSP c x A"
@@ -135,7 +135,7 @@ proof -
     by (simp add: Healthy_if assms)
 qed
 
-text {* Proofs that the input constrained parser versions of output is the same as the regular definition. *}
+text \<open> Proofs that the input constrained parser versions of output is the same as the regular definition. \<close>
 
 lemma output_prefix_is_OutputCSP [simp]:
   assumes "A is NCSP"

@@ -364,7 +364,7 @@ text \<open> All different assignment updates have the same syntax; the type res
   to use. \<close>
   
 syntax
-  "_csp_assign_upd" :: "svid \<Rightarrow> uexp \<Rightarrow> uexp \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
+  "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
 
 translations
   "_csp_assign_upd x k v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
@@ -419,7 +419,7 @@ definition GuardCSP ::
 [upred_defs]: "GuardCSP g A = \<^bold>R\<^sub>s((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<Rightarrow>\<^sub>r pre\<^sub>R(A)) \<turnstile> ((\<lceil>g\<rceil>\<^sub>S\<^sub>< \<and> cmt\<^sub>R(A)) \<or> (\<lceil>\<not> g\<rceil>\<^sub>S\<^sub><) \<and> $tr\<acute> =\<^sub>u $tr \<and> $wait\<acute>))"
 
 syntax
-  "_GuardCSP" :: "uexp \<Rightarrow> logic \<Rightarrow> logic" (infixr "&\<^sub>C" 60)
+  "_GuardCSP" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "&\<^sub>C" 60)
 
 translations
   "_GuardCSP b P" == "CONST GuardCSP b P"

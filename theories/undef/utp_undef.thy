@@ -27,7 +27,7 @@ definition partial_assign :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> ('a
 [upred_defs, ndes_simp]: "partial_assign x e = (\<^bold>S(x) \<and> \<D>(e)) \<turnstile>\<^sub>n x := \<lfloor>e\<rfloor>\<^sub>\<D>"
 
 syntax
-  "_passignd" :: "svid \<Rightarrow> uexp \<Rightarrow> logic"  (infixr ":=\<^sub>\<D>" 62)
+  "_passignd" :: "svid \<Rightarrow> logic \<Rightarrow> logic"  (infixr ":=\<^sub>\<D>" 62)
 
 translations
   "_passignd x e" == "CONST partial_assign x e"
