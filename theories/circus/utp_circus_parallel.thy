@@ -1390,7 +1390,7 @@ proof (cases "I = {}")
 next
   case False
   show ?thesis
-    by (rule C2_NCSP_intro, simp_all add: assms closure unrest periR_ExtChoice_ind' False)
+    by (rule C2_NCSP_intro, simp_all add: assms closure unrest periR_ExtChoice' False)
 qed
 
 lemma ExtChoice_CACT_closed [closure]:
@@ -1403,7 +1403,7 @@ lemma extChoice_C2_closed [closure]:
   shows "P \<box> Q is C2"
 proof -
   have "P \<box> Q = (\<box> I\<in>{P,Q} \<bullet> I)"
-    by (simp add: extChoice_def)
+    by (metis eq_id_iff extChoice_def)
   also have "... is C2"
     by (rule ExtChoice_C2_closed, auto simp add: assms)
   finally show ?thesis .
