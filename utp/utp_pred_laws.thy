@@ -218,7 +218,7 @@ lemma usup_and:
   shows "(P \<squnion> Q) = (P \<and> Q)"
   by (pred_auto)
     
-lemma USUP_true [simp]: "(\<Squnion> P | F(P) \<bullet> true) = true"
+lemma USUP_true [simp]: "(\<Squnion> P \<bullet> true) = true"
   by (pred_auto)
 
 lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
@@ -226,9 +226,6 @@ lemma USUP_false [simp]: "(\<Squnion> i \<bullet> false) = false"
 
 lemma USUP_mem_false [simp]: "I \<noteq> {} \<Longrightarrow> (\<Squnion> i\<in>I \<bullet> false) = false"
   by (rel_simp)
-
-lemma USUP_where_false [simp]: "(\<Squnion> i | false \<bullet> P(i)) = true"
-  by (rel_auto)
 
 lemma UINF_true [simp]: "(\<Sqinter> i \<bullet> true) = true"
   by (pred_simp)
@@ -240,15 +237,12 @@ lemma UINF_ind_const [simp]:
 lemma UINF_mem_true [simp]: "A \<noteq> {} \<Longrightarrow> (\<Sqinter> i\<in>A \<bullet> true) = true"
   by (pred_auto)
 
-lemma UINF_false [simp]: "(\<Sqinter> i | P(i) \<bullet> false) = false"
+lemma UINF_false [simp]: "(\<Sqinter> i \<bullet> false) = false"
   by (pred_auto)
 
-lemma UINF_where_false [simp]: "(\<Sqinter> i | false \<bullet> P(i)) = false"
-  by (rel_auto)
-
 lemma UINF_cong_eq:
-  "\<lbrakk> A = B; \<And> x. x \<in> A \<Longrightarrow> P\<^sub>1(x) = P\<^sub>2(x); \<And> x. x \<in> A \<Longrightarrow> `P\<^sub>1(x) \<Rightarrow> Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
-        (\<Sqinter> x\<in>A | P\<^sub>1(x) \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x\<in>B | P\<^sub>2(x) \<bullet> Q\<^sub>2(x))"
+  "\<lbrakk> A = B; \<And> x. x \<in> A \<Longrightarrow> `Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
+        (\<Sqinter> x\<in>A \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x\<in>B \<bullet> Q\<^sub>2(x))"
   by (pred_simp, metis (mono_tags, hide_lams))
 
 lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
@@ -300,12 +294,6 @@ lemma USUP_as_Inf_image: "(\<Squnion> P \<in> \<P> \<bullet> f(P)) = \<Squnion> 
   apply (rule cong[of "Inf"])
    apply (auto)
   done
-
-lemma USUP_image_eq [simp]: "USUP (\<lambda>i. \<guillemotleft>i \<in> f ` A\<guillemotright>) g = (\<Squnion> i\<in>A \<bullet> g(f(i)))"
-  by (pred_simp, rule_tac cong[of Inf Inf], auto)
-
-lemma UINF_image_eq [simp]: "UINF (\<lambda>i. \<guillemotleft>i \<in> f ` A\<guillemotright>) g = (\<Sqinter> i\<in>A \<bullet> g(f(i)))"
-  by (pred_simp, rule_tac cong[of Sup Sup], auto)
 
 lemma subst_continuous [usubst]: "\<sigma> \<dagger> (\<Sqinter> A) = (\<Sqinter> {\<sigma> \<dagger> P | P. P \<in> A})"
   by (simp add: UINF_as_Sup[THEN sym] usubst, auto intro: cong[of Sup Sup] simp add: UINF_as_Sup_image)
@@ -488,14 +476,6 @@ lemma UINF_refines':
   shows "P \<sqsubseteq> (\<Sqinter> i \<bullet> Q(i))"
   using assms
   apply (rel_auto) using Sup_le_iff by fastforce
-
-lemma UINF_pred_ueq [simp]:
-  "(\<Sqinter> x | \<guillemotleft>x\<guillemotright> =\<^sub>u v \<bullet> P(x)) = (P x)\<lbrakk>x\<rightarrow>v\<rbrakk>"
-  by (pred_auto)
-
-lemma UINF_pred_lit_eq [simp]: 
-  "(\<Sqinter> x | \<guillemotleft>x = v\<guillemotright> \<bullet> P(x)) = (P v)"
-  by (pred_auto)
 
 subsection \<open> Equality laws \<close>
 

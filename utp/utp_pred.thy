@@ -252,15 +252,11 @@ text \<open> Perhaps slightly confusingly, the UTP infimum is the HOL supremum a
   because, again, in UTP the lattice is inverted due to the definition of refinement and a desire
   to have miracle at the top, and abort at the bottom. \<close>
 
-lift_definition UINFIMUM :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, 's) uexpr) \<Rightarrow> ('b, 's) uexpr" 
-is "\<lambda> A P F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>e b | x. x \<in> A \<and> \<lbrakk>P x\<rbrakk>\<^sub>e b}" .
+lift_definition UINFIMUM :: "'a set \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, 's) uexpr) \<Rightarrow> ('b, 's) uexpr" 
+is "\<lambda> A F b. Sup {\<lbrakk>F x\<rbrakk>\<^sub>e b | x. x \<in> A}" .
 
-lift_definition USUPREMUM :: "'a set \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, 's) uexpr) \<Rightarrow> ('b, 's) uexpr" 
-is "\<lambda> A P F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>e b | x. x \<in> A \<and> \<lbrakk>P x\<rbrakk>\<^sub>e b}" .
-
-abbreviation (input) "UINF P F \<equiv> UINFIMUM UNIV P F"
-
-abbreviation (input) "USUP P F \<equiv> USUPREMUM UNIV P F"
+lift_definition USUPREMUM :: "'a set \<Rightarrow> ('a \<Rightarrow> ('b::complete_lattice, 's) uexpr) \<Rightarrow> ('b, 's) uexpr" 
+is "\<lambda> A F b. Inf {\<lbrakk>F x\<rbrakk>\<^sub>e b | x. x \<in> A}" .
 
 update_uexpr_rep_eq_thms
 
@@ -269,31 +265,16 @@ syntax
   "_USup"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"                   ("\<Squnion> _ \<bullet> _" [0, 10] 10)
   "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<And> _\<in>_ \<bullet> _" [0, 0, 10] 10)
   "_USup_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Squnion> _\<in>_ \<bullet> _" [0, 0, 10] 10)
-  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<And> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_USUP"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Squnion> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_USUPI"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<Squnion> _\<in>_ | _ \<bullet> _" [0, 0, 0, 10] 10)
   "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"                   ("\<Or> _ \<bullet> _" [0, 10] 10)
   "_UInf"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic"                   ("\<Sqinter> _ \<bullet> _" [0, 10] 10)
   "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Or> _\<in>_ \<bullet> _" [0, 10] 10)
   "_UInf_mem" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Sqinter> _\<in>_ \<bullet> _" [0, 10] 10)
-  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Or> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_UINF"     :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic"          ("\<Sqinter> _ | _ \<bullet> _" [0, 0, 10] 10)
-  "_UINFI"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<Sqinter> _\<in>_ | _ \<bullet> _" [0, 0, 0, 10] 10)
 
 translations
-  "\<Sqinter> x \<in> A | P \<bullet> F" => "CONST UINFIMUM A (\<lambda> x. P) (\<lambda> x. F)"
-  "\<Sqinter> x \<in> A | P \<bullet> F" <= "CONST UINFIMUM A (\<lambda> y. P) (\<lambda> x. F)"
-  "\<Sqinter> x \<in> A \<bullet> F" == "\<Sqinter> x \<in> A | U(true) \<bullet> F"
-  "\<Sqinter> x | P \<bullet> F" == "\<Sqinter> x \<in> CONST UNIV | P \<bullet> F"
-  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x | U(true) \<bullet> F"
-  "\<Sqinter> x \<bullet> F"     <= "\<Sqinter> x \<in> CONST UNIV \<bullet> F"
-
-  "\<Squnion> x \<in> A | P \<bullet> F" => "CONST USUPREMUM A (\<lambda> x. P) (\<lambda> x. F)"
-  "\<Squnion> x \<in> A | P \<bullet> F" <= "CONST USUPREMUM A (\<lambda> y. P) (\<lambda> x. F)"
-  "\<Squnion> x \<in> A \<bullet> F" == "\<Squnion> x \<in> A | U(true) \<bullet> F"
-  "\<Squnion> x | P \<bullet> F" == "\<Squnion> x \<in> CONST UNIV | P \<bullet> F"
-  "\<Squnion> x \<bullet> F"     == "\<Squnion> x | U(true) \<bullet> F"
-  "\<Squnion> x \<bullet> F"     <= "\<Squnion> x \<in> CONST UNIV \<bullet> F"
+  "\<Sqinter> x \<in> A \<bullet> F" == "CONST UINFIMUM A (\<lambda> x. F)"
+  "\<Sqinter> x \<bullet> F"     == "\<Sqinter> x \<in> CONST UNIV \<bullet> F"
+  "\<Squnion> x \<in> A \<bullet> F" == "CONST USUPREMUM A (\<lambda> x. F)"
+  "\<Squnion> x \<bullet> F"     == "\<Squnion> x \<in> CONST UNIV \<bullet> F"
 
 text \<open> We also define the other predicate operators \<close>
 
@@ -405,14 +386,6 @@ lemma unrest_conj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sh
 
 lemma unrest_disj [unrest]: "\<lbrakk> x \<sharp> (P :: '\<alpha> upred); x \<sharp> Q \<rbrakk> \<Longrightarrow> x \<sharp> P \<or> Q"
   by (pred_auto)
-
-lemma unrest_UINFIMUM [unrest]:
-  "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i\<in>A | P(i) \<bullet> Q(i))"
-  by pred_simp
-
-lemma unrest_USUPREMUM [unrest]:
-  "\<lbrakk> (\<And> i. x \<sharp> P(i)); (\<And> i. x \<sharp> Q(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Squnion> i\<in>A | P(i) \<bullet> Q(i))"
-  by pred_simp
 
 lemma unrest_UINF_mem [unrest]:
   "\<lbrakk>(\<And> i. i \<in> A \<Longrightarrow> x \<sharp> P(i)) \<rbrakk> \<Longrightarrow> x \<sharp> (\<Sqinter> i\<in>A \<bullet> P(i))"
@@ -544,10 +517,10 @@ lemma subst_sup [usubst]: "\<sigma> \<dagger> (P \<sqinter> Q) = (\<sigma> \<dag
 lemma subst_inf [usubst]: "\<sigma> \<dagger> (P \<squnion> Q) = (\<sigma> \<dagger> P \<squnion> \<sigma> \<dagger> Q)"
   by (pred_auto)
 
-lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Sqinter> i\<in>A | P(i) \<bullet> Q(i)) = (\<Sqinter> i\<in>A | \<sigma> \<dagger> P(i) \<bullet> \<sigma> \<dagger> Q(i))"
+lemma subst_UINF [usubst]: "\<sigma> \<dagger> (\<Sqinter> i\<in>A \<bullet> P(i)) = (\<Sqinter> i\<in>A \<bullet> \<sigma> \<dagger> P(i))"
   by (pred_auto)
 
-lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Squnion> i\<in>A | P(i) \<bullet> Q(i)) = (\<Squnion> i\<in>A | \<sigma> \<dagger> P(i) \<bullet> \<sigma> \<dagger> Q(i))"
+lemma subst_USUP [usubst]: "\<sigma> \<dagger> (\<Squnion> i\<in>A \<bullet> P(i)) = (\<Squnion> i\<in>A \<bullet> \<sigma> \<dagger> P(i))"
   by (pred_auto)
 
 lemma subst_closure [usubst]: "\<sigma> \<dagger> [P]\<^sub>u = [P]\<^sub>u"

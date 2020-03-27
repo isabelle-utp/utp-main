@@ -292,18 +292,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma UINF_ind_closed [closure]:
-  assumes "Continuous H" "\<And> i. P i = true" "\<And> i. Q i is H"
-  shows "UINF P Q is H"
-proof -
-  from assms(2) have "UINF P Q = (\<Sqinter> i \<bullet> Q i)"
-    by (rel_auto)
-  also have "... is H"
-    using UINF_mem_Continuous_closed[of H UNIV P]
-    by (simp add: Sup_Continuous_closed UINF_as_Sup_collect' assms)
-  finally show ?thesis .
-qed
-
 text \<open> All continuous functions are also Scott-continuous \<close>
 
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
