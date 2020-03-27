@@ -188,7 +188,7 @@ lemma IterateC_list_alt_def:
   "IterateC_list xs = while\<^sub>C (\<Or> b \<in> set(map fst xs) \<bullet> b) do AlternateR_list xs Chaos od"
 proof -
   have "(\<Or> i \<in> {0..<length(xs)} \<bullet> (map fst xs) ! i) = (\<Or> b \<in> set(map fst xs) \<bullet> b)"
-    by (rel_auto, metis nth_mem prod.collapse, metis fst_conv in_set_conv_nth nth_map)
+    by (rel_auto, metis fst_conv in_set_conv_nth nth_map)
   thus ?thesis
     by (simp add: IterateC_list_def IterateC_def AlternateR_list_def)
 qed
@@ -1044,8 +1044,13 @@ lemma Guard_conditional:
   by (rdes_eq cls: assms)
 
 lemma Guard_expansion:
-  "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>C P = (g\<^sub>1 &\<^sub>C P) \<box> (g\<^sub>2 &\<^sub>C P)"
-  by (rel_auto)
+  assumes "P is NCSP"
+  shows "(g\<^sub>1 \<or> g\<^sub>2) &\<^sub>C P = (g\<^sub>1 &\<^sub>C P) \<box> (g\<^sub>2 &\<^sub>C P)"
+  apply (rdes_eq_split cls: assms) 
+    apply (rel_simp', fastforce simp add: dual_order.order_iff_strict)
+   apply (rel_simp', simp add: dual_order.order_iff_strict, fastforce)
+  apply (rel_simp', simp add: dual_order.order_iff_strict, fastforce)
+  done
 
 lemma Conditional_as_Guard:
   assumes "P is NCSP" "Q is NCSP"
@@ -1103,7 +1108,7 @@ next
       by (rule ExtChoice_cong, simp add: NCSP_implies_NSRD NSRD_is_SRD SRD_reactive_tri_design assms(1))
     from assms(3) show ?thesis
       by (simp add: AlternateR_def 1 2)
-         (rdes_eq' cls: assms(1-2) simps: False cong: UINF_cong ExtChoice_cong)
+         (rdes_eq' cls: assms(1-2) simps: False cong: UINF_cong USUP_cong ExtChoice_cong)
   qed
 qed
 

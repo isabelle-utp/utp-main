@@ -151,7 +151,7 @@ lemma ExtChoice_tri_rdes' [rdes_def]:
          \<^bold>R\<^sub>s ((\<Squnion> i\<in>A \<bullet> P\<^sub>1(i)) \<turnstile> (((\<Squnion> i\<in>A \<bullet> R5(P\<^sub>2(i))) \<or> (\<Sqinter> i\<in>A \<bullet> R4(P\<^sub>2(i)))) \<diamondop> (\<Sqinter> i\<in>A \<bullet> P\<^sub>3(i))))"
   by (simp add: ExtChoice_tri_rdes assms, rel_auto, simp_all add: less_le assms)
 
-lemma ExtChoice_tri_rdes_def [rdes_def]:
+lemma ExtChoice_tri_rdes_def:
   assumes "\<And> i. i\<in>A \<Longrightarrow> F i is CSP"
   shows "(\<box> i\<in>A \<bullet> F i) = \<^bold>R\<^sub>s ((\<Squnion> P\<in>A \<bullet> pre\<^sub>R (F P)) \<turnstile> (((\<Squnion> P\<in>A \<bullet> peri\<^sub>R (F P)) \<triangleleft> $tr\<acute> =\<^sub>u $tr \<triangleright> (\<Sqinter> P\<in>A \<bullet> peri\<^sub>R (F P))) \<diamondop> (\<Sqinter> P\<in>A \<bullet> post\<^sub>R (F P))))"
 proof -
