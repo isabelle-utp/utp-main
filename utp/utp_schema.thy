@@ -7,20 +7,25 @@ begin
 
 text \<open> Create a type with invariants attached; similar to a Z schema. \<close>
 
+(* TODO: Allow names for each invariant *)
+
 ML \<open>
 val _ =
   Outer_Syntax.command @{command_keyword schema} "define a new schema type"
     (Parse_Spec.overloaded -- (Parse.type_args_constrained -- Parse.binding) --
       (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
-        Scan.repeat1 Parse.const_binding) -- Scan.optional (@{keyword "where"} |-- Scan.repeat1 Parse.term) ["true"]
+        Scan.repeat1 Parse.const_binding) -- Scan.optional (@{keyword "where"} |-- (Scan.repeat1 (Scan.option (Parse.binding --| Parse.$$$ ":") |-- Parse.term))) ["true"]
     >> (fn (((overloaded, x), (y, z)), ts) =>
-        let val n = Binding.name_of (snd x)
-            val varl = fold (fn _ => fn y => "_, " ^ y) (1 upto length (fst x)) "'a" 
+        let (* Get the new type name *)
+            val n = Binding.name_of (snd x)
+            (* Produce a list of type variables *)
+            val varl = fold (fn _ => fn y => "_, " ^ y) (1 upto length (fst x)) "'a"
+            (* Name for the new invariant *)
             val invn = n ^ "_inv"
             val itb = Binding.make (invn ^ "_def", Position.none)               
             val upred = Lexicon.unmark_type @{type_syntax upred}
             val ib = (SOME (Binding.make (invn, Position.none), SOME ("((" ^ varl ^ ")" ^ n ^ "_scheme) " ^ upred), NoSyn))
-                 open HOLogic in
+            open HOLogic in
         Toplevel.theory
           (Lens_Utils.add_alphabet_cmd {overloaded = overloaded} x y z
            #> Named_Target.theory_map
@@ -30,7 +35,7 @@ val _ =
                       NONE => invs |
                       SOME t => case (Syntax.parse_typ ctx t) of
                         Type (n, _) => (case (Syntax.parse_term ctx (n ^ "_inv")) of
-                          Const ("_type_constraint_", _) $ Const (n', _) => HOLogic.mk_conj (Const (n', dummyT), invs) | _ => invs) |
+                          Const (\<^syntax_const>\<open>_type_constraint_\<close>, _) $ Const (n', _) => HOLogic.mk_conj (Const (n', dummyT), invs) | _ => invs) |
                         _ => invs
                in 
                  snd (UTP_Def.utp_def (itb, []) ib (mk_eq (Free (invn, dummyT), sinv)) ctx)
