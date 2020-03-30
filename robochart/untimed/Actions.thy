@@ -475,9 +475,6 @@ lemma iterate_refine_lemma:
   apply (smt Collect_cong fst_conv imageE pair_imageI prod.case_eq_if prod.collapse snd_conv)
   done
 
-lemma UINF_false: "\<lbrakk> \<And> i. P i = false \<rbrakk> \<Longrightarrow> UINF P Q = false"
-  by (rel_simp)
-
 lemma assumption_true [simp]: "[true]\<^sub>A = skip"
   by (transfer, simp add: AssumeCircus_def)
 
