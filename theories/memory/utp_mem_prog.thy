@@ -14,7 +14,7 @@ definition
   ("_ := alloc'(_')" [74,0] 75) 
   where [upred_defs, ndes_simp]: 
     "x := alloc(e) = 
-     (true \<turnstile>\<^sub>n (\<Sqinter> l | \<guillemotleft>l\<guillemotright> \<notin>\<^sub>u dom\<^sub>u($hp) \<bullet> str:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&str:x \<mapsto> uop to_nat_bij (e \<oplus>\<^sub>p str))\<^sub>u))"
+     (true \<turnstile>\<^sub>n (\<Sqinter> l \<bullet> ?[\<guillemotleft>l\<guillemotright> \<notin> udom(hp)] ;; str:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&str:x \<mapsto> uop to_nat_bij (e \<oplus>\<^sub>p str))\<^sub>u))"
 
 text \<open> Heap lookup retrieves data from the heap and places it into a store variable. If the memory
   location $l$ is unallocated then an abort is the result. \<close>
@@ -42,9 +42,6 @@ definition
 
 subsection \<open> Weakest Precondition Semantics \<close>
 
-lemma wp_UINF_pred [wp]:
-  "\<lbrakk> \<And> l. out\<alpha> \<sharp> P(l) \<rbrakk> \<Longrightarrow> (\<Sqinter> l | P(l) \<bullet> Q(l)) wlp q = (\<^bold>\<forall> l \<bullet> \<lfloor>P(l)\<rfloor>\<^sub>< \<Rightarrow> (Q(l) wlp q))"
-  by (rel_blast)
 
 lemma wp_heap_alloc [wp]:
   "\<lbrakk> vwb_lens x; x \<sharp> e \<rbrakk> \<Longrightarrow> 
@@ -78,10 +75,15 @@ lemma "vwb_lens x \<Longrightarrow> dealloc(&x) ;; *x :=\<^sub>\<D> \<guillemotl
 lemma "vwb_lens x \<Longrightarrow> (x := alloc(\<guillemotleft>5 :: int\<guillemotright>) ;; dealloc(&x) ;; str:x :=\<^sub>D 0) = str:x :=\<^sub>D 0"
   apply (ndes_simp, rel_auto)
   apply (rename_tac ok hp st ok')
+  oops
+
+  (*
   apply (rule_tac x="hp(Inf(- fdom(hp)) \<mapsto> to_nat_bij 5)\<^sub>f" in exI)
   apply (rule_tac x="put\<^bsub>x\<^esub> st (\<Squnion>(- fdom(hp)))" in exI, simp)
   apply (auto)
   done
+*)
 
 end
+
   
