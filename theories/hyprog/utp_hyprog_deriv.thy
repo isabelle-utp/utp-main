@@ -4,14 +4,6 @@ theory utp_hyprog_deriv
   imports utp_hyprog_prelim
 begin
 
-syntax
-  "_uscaleR" :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<^bold>*\<^sub>R" 75)
-  "_unorm"   :: "logic \<Rightarrow> logic" ("\<parallel>_\<parallel>")
-
-translations
-  "n \<^bold>*\<^sub>R x" => "CONST bop CONST scaleR n x"
-  "\<parallel>x\<parallel>"    => "CONST uop CONST norm x"
-
 text \<open> We provide functions for specifying differentiability and taking derivatives of UTP expressions.
   The expressions have a hybrid state space, and so we only require differentiability of the
   continuous variable vector. The remainder of the state space is left unchanged by differentiation. \<close>
@@ -55,6 +47,11 @@ lemma udifferentiable_mult [closure]:
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e * f)"
   by (rel_simp)
 
+lemma udifferentiable_divide [closure]:
+  fixes e f :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f; `\<not> (f = 0)` \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e / f)"
+  by (rel_simp)
+
 lemma udifferentiable_scaleR [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e n; differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(n *\<^sub>R e)"
@@ -67,7 +64,7 @@ lemma udifferentiable_power [closure]:
 
 lemma udifferentiable_norm [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; \<And> s. e\<lbrakk>\<guillemotleft>s\<guillemotright>/&\<^bold>v\<rbrakk> \<noteq> 0 \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(norm e)"
+  shows "\<lbrakk> differentiable\<^sub>e e; `\<not> (e = 0)` \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(norm e)"
   by (rel_simp, metis differentiable_compose differentiable_norm_at)
 
 subsection \<open> Differentiation \<close>
@@ -82,7 +79,7 @@ is "\<lambda> \<sigma> f s. frechet_derivative (\<lambda> x. f (put\<^bsub>cvec\
 
 update_uexpr_rep_eq_thms
 
-no_utp_lift uexpr_deriv
+utp_const uexpr_deriv
 
 named_theorems uderiv
 

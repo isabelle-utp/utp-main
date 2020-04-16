@@ -61,6 +61,7 @@ translations
   "_sys_ode (_ode y f) B" <= "CONST ode (CONST fode x (_abs y f)) B"
   "_ode_cons (_ode x f) (_ode y g)" <= "_ode (_pattern x y) (f, g)"
 
+
 (*
 term "\<langle>der(h) = v, der(v) = -9.81 | (&h \<ge>\<^sub>u 0)\<rangle>"
 term "\<langle>x\<^sup>\<bullet> = f(x)\<rangle>"

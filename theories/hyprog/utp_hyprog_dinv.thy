@@ -143,7 +143,13 @@ datatype ('c::executable_euclidean_space, 's) hyprop =
   And "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<and>\<^sub>P" 35) |
   Or "('c, 's) hyprop" "('c, 's) hyprop" (infixr "\<or>\<^sub>P" 30)
 
-no_utp_lift Eq Less LessEq And Or
+abbreviation (input) Greater (infix ">\<^sub>P" 50) where
+"Greater x y \<equiv> y <\<^sub>P x"
+
+abbreviation (input) GreaterEq (infix "\<ge>\<^sub>P" 50) where
+"GreaterEq x y \<equiv> y \<le>\<^sub>P x"
+
+utp_const Eq Less LessEq And Or Greater GreaterEq
 
 fun hyprop_deriv :: 
   "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("(_ \<turnstile> \<partial>\<^sub>P _)" [100, 101] 100) where
@@ -153,6 +159,8 @@ fun hyprop_deriv ::
 "F' \<turnstile> \<partial>\<^sub>P (p \<and>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)" |
 "F' \<turnstile> \<partial>\<^sub>P (p \<or>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)"
 
+utp_const hyprop_deriv
+
 fun hyprop_eval :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hypred" ("\<lbrakk>_\<rbrakk>\<^sub>P") where
 "\<lbrakk>e =\<^sub>P f\<rbrakk>\<^sub>P = (e =\<^sub>u f)" |
 "\<lbrakk>e <\<^sub>P f\<rbrakk>\<^sub>P = (e <\<^sub>u f)" |
@@ -160,9 +168,11 @@ fun hyprop_eval :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('
 "\<lbrakk>p \<and>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<and> \<lbrakk>q\<rbrakk>\<^sub>P)" |
 "\<lbrakk>p \<or>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<or> \<lbrakk>q\<rbrakk>\<^sub>P)"
 
-definition hyprop_pred ("[_]\<^sub>P") where "[p]\<^sub>P = \<lbrakk>p\<rbrakk>\<^sub>P"
+utp_const hyprop_eval
 
-no_utp_lift hyprop_pred
+definition hyprop_pred ("[_]\<^sub>P") where "[p]\<^sub>P = \<lbrakk>p\<rbrakk>\<^sub>P"
+              
+utp_const hyprop_pred
 
 fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> bool" ("differentiable\<^sub>P") where
 "differentiable\<^sub>P (e =\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
@@ -179,7 +189,7 @@ using assms proof (simp add: hyprop_pred_def, induct p)
   case (Eq x1 x2)
   hence a: "\<^U>(B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 = F' \<turnstile> \<partial>\<^sub>e x2)" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x1 - F' \<turnstile> \<partial>\<^sub>e x2) =\<^sub>u 0`"
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x1 - F' \<turnstile> \<partial>\<^sub>e x2) = 0`"
     by (rel_auto)
   hence "\<lbrace>(x1 - x2) = 0\<rbrace> ode F' B \<lbrace>(x1 - x2) = 0\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_eq uderiv closure)
@@ -187,9 +197,9 @@ using assms proof (simp add: hyprop_pred_def, induct p)
     by (rel_auto')
 next
   case (Less x1 x2)
-  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le>\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le> F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge> 0`"
     by (rel_auto)
   hence "\<lbrace>0 < (x2 - x1)\<rbrace> ode F' B \<lbrace>0 < (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
@@ -197,9 +207,9 @@ next
     by (rel_auto')
 next
   case (LessEq x1 x2)
-  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le>\<^sub>u F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le> F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge>\<^sub>u 0`"
+  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge> 0`"
     by (rel_auto)
   hence "\<lbrace>0 \<le> (x2 - x1)\<rbrace> ode F' B \<lbrace>0 \<le> (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
@@ -214,6 +224,12 @@ next
   then show ?case
     by (rel_auto')
 qed
+
+lemma dInv':
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "differentiable\<^sub>P I" "`B \<Rightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P I\<rbrakk>\<^sub>P`" "`P \<Rightarrow> [I]\<^sub>P`"
+  shows "\<lbrace>P\<rbrace>ode F' B\<lbrace>[I]\<^sub>P\<rbrace>\<^sub>u"
+  using assms(1) assms(2) assms(3) dInv pre_str_hoare_r by blast
 
 lemma dCut_split:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"

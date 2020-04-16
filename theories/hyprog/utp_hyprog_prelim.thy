@@ -10,6 +10,8 @@ theory utp_hyprog_prelim
     "Dynamics.ODE_Cert"
 begin recall_syntax
 
+utp_lift_notation utp_pred.taut utp_pred.closure
+
 subsection \<open> Continuous Variable Lenses \<close>
 
 text \<open> We begin by defining some lenses that will be useful in characterising continuous variables \<close>

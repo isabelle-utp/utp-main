@@ -247,6 +247,11 @@ session "UTP-Hybrid" in "hybrid" = "UTP-Hybrid-Imports" +
     "zed.sty"
     "csp.sty"
 
+session "UTP-dL" in "theories/hyprog" = "UTP-Hybrid-Imports" +
+  options [document = false]
+  theories
+    utp_hyprog
+
 (* Hybrid UTP with deep model *)
 
 (*
