@@ -250,8 +250,8 @@ syntax \<comment> \<open> Tuples \<close>
   "_utuple_args" :: "('a, '\<alpha>) uexpr => utuple_args \<Rightarrow> utuple_args"     ("_,/ _")
 
 translations
-  "(x, y)\<^sub>u"  == "CONST bop (CONST Pair) x y"
-  "_utuple x (_utuple_args y z)" == "_utuple x (_utuple_arg (_utuple y z))"
+  "(x, y)\<^sub>u"  => "CONST bop (CONST Pair) x y"
+  "_utuple x (_utuple_args y z)" => "_utuple x (_utuple_arg (_utuple y z))"
 
 abbreviation (input) uunit ("'(')\<^sub>u") where "()\<^sub>u \<equiv> \<guillemotleft>()\<guillemotright>"
 abbreviation (input) ufst ("\<pi>\<^sub>1'(_')") where "\<pi>\<^sub>1(x) \<equiv> uop fst x"

@@ -9,6 +9,8 @@ subsection \<open> R1: Events cannot be undone \<close>
 definition R1 :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 R1_def [upred_defs]: "R1 (P) = (P \<and> ($tr \<le>\<^sub>u $tr\<acute>))"
 
+utp_const R1
+
 lemma R1_idem: "R1(R1(P)) = R1(P)"
   by pred_auto
 

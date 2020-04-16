@@ -122,6 +122,9 @@ notation des_theory.utp_gfp ("\<nu>\<^sub>D")
 notation ndes_theory.utp_lfp ("\<mu>\<^sub>N")
 notation ndes_theory.utp_gfp ("\<nu>\<^sub>N")
 
+utp_const des_theory.utp_lfp des_theory.utp_gfp
+  ndes_theory.utp_lfp ndes_theory.utp_gfp
+
 syntax
   "_dmu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<mu>\<^sub>D _ \<bullet> _" [0, 10] 10)
   "_dnu" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<nu>\<^sub>D _ \<bullet> _" [0, 10] 10)

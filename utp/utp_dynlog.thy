@@ -14,6 +14,8 @@ where [upred_defs]: "dBox A \<Phi> = A wlp \<Phi>"
 definition dDia :: "('\<alpha>, '\<beta>) urel \<Rightarrow> '\<beta> upred \<Rightarrow> '\<alpha> upred" ("\<^bold><_\<^bold>>_" [0,999] 999)
 where [upred_defs]: "dDia A \<Phi> = A wp \<Phi>"
 
+utp_const dBox(0) dDia(0)
+
 lemma dDia_dBox_def: "\<^bold><A\<^bold>>\<Phi> = (\<not> \<^bold>[A\<^bold>](\<not> \<Phi>))"
   by (simp add: dBox_def dDia_def wp_wlp_conjugate)
 

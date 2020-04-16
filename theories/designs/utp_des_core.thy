@@ -93,6 +93,8 @@ text \<open> The following notations define liftings from non-design predicates 
 abbreviation lift_desr ("\<lceil>_\<rceil>\<^sub>D")
 where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
 
+utp_const lift_desr
+
 abbreviation lift_pre_desr ("\<lceil>_\<rceil>\<^sub>D\<^sub><")
 where "\<lceil>p\<rceil>\<^sub>D\<^sub>< \<equiv> \<lceil>\<lceil>p\<rceil>\<^sub><\<rceil>\<^sub>D"
 
@@ -133,6 +135,8 @@ definition pre_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>
 
 definition post_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) urel" ("post\<^sub>D") where
 [upred_defs]: "post\<^sub>D(P) = \<lfloor>P\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
+
+utp_const pre_design post_design
 
 syntax
   "_ok_f"  :: "logic \<Rightarrow> logic" ("_\<^sup>f" [1000] 1000)

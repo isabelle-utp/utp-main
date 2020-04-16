@@ -63,6 +63,7 @@ no_utp_lift
   uexpr_appl uop (0) bop (0) trop (0) qtop (0) lit (0)
   Groups.zero Groups.one plus uminus minus times divide
   var (0) in_var (0) out_var (0) cond numeral (0)
+  inverse inverse_divide power power2
 
 text \<open> Add a quotation device for expressions that explicitly stops the lifting parser. \<close>
 
