@@ -38,6 +38,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
     ODE_Cert
     Contiguous_Functions
     Timed_Traces
+    Matrix_Syntax
   document_files
     "root.bib"
     "root.tex"
