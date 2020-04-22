@@ -100,22 +100,27 @@ end
 definition Mat :: "'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
 "Mat M = (\<chi> i j. M!nat_of i!nat_of j)"
 
+abbreviation MatT :: "'m::nat itself \<Rightarrow> 'n::nat itself \<Rightarrow> 'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
+"MatT m n \<equiv> Mat"
+
 ML \<open>
+
 structure Matrix_Utils =
 struct
 
     fun mk_bintype n =
       let
-        fun mk_bit 0 = Syntax.const \<^type_syntax>\<open>bit0\<close>
-          | mk_bit 1 = Syntax.const \<^type_syntax>\<open>bit1\<close>;
+        fun mk_bit 0 = \<^type_name>\<open>bit0\<close>
+          | mk_bit 1 = \<^type_name>\<open>bit1\<close>;
         fun bin_of n =
-          if n = 1 then Syntax.const \<^type_syntax>\<open>num1\<close>
-          else if n = 0 then Syntax.const \<^type_syntax>\<open>num0\<close>
+          if n = 1 then Type (\<^type_name>\<open>num1\<close>, [])
+          else if n = 0 then Type (\<^type_name>\<open>num0\<close>, [])
           else if n = ~1 then raise TERM ("negative type numeral", [])
           else
             let val (q, r) = Integer.div_mod n 2;
-            in mk_bit r $ bin_of q end;
+            in Type (mk_bit r, [bin_of q]) end;
       in bin_of n end;
+
 
 fun dest_list_syn (Const (\<^const_syntax>\<open>List.list.Nil\<close>, _)) = []
   | dest_list_syn (Const (\<^const_syntax>\<open>List.list.Cons\<close>, _) $ t $ u) = t :: dest_list_syn u
@@ -131,14 +136,10 @@ fun dest_list_syn (Const (\<^const_syntax>\<open>List.list.Nil\<close>, _)) = []
   fun proc_matrix (x as Const (\<^const_syntax>\<open>List.list.Cons\<close>, _) $ t $ u) =
     let val rows = (1 + length (dest_list_syn u))
         val cols = (length (dest_list_syn t))
-        val matT = Const(\<^type_syntax>\<open>vec\<close>, dummyT) 
-                   $ (Const(\<^type_syntax>\<open>vec\<close>, dummyT) 
-                      $ Const (\<^type_syntax>\<open>real\<close>, dummyT) 
-                      $ mk_bintype cols) 
-                   $ mk_bintype rows
+        val matT = Type (\<^type_name>\<open>vec\<close>, [Type (\<^type_name>\<open>vec\<close>, [Type (\<^type_name>\<open>real\<close>, []), mk_bintype cols]), mk_bintype rows])
         
     in check_dim cols u; if (cols = 0) then raise TERM ("Empty matrix rows are invalid", [])
-       else Const ("_constrain", dummyT) $ (Const(\<^const_syntax>\<open>Mat\<close>, dummyT) $ x) $ matT
+       else (Const(\<^const_syntax>\<open>Mat\<close>, dummyT --> matT) $ x)
     end |
   proc_matrix (Const (\<^const_syntax>\<open>List.list.Nil\<close>, _)) = raise (TERM ("Empty matrices are invalid", [])) |
   proc_matrix _ = raise Match;
