@@ -4,25 +4,31 @@ theory Matrix_Syntax
   imports "HOL-Analysis.Analysis"
 begin
 
-text \<open> This theory introduces nice syntax for concrete matrices, in the style of MATLAB or SAGE. \<close>
+text \<open> This theory introduces nice syntax for concrete matrices, in the style of MATLAB or SAGE. 
+  We first introduce syntax for matrix and vector types. Vectors are column matrices. \<close>
+
+syntax
+  "_MatType" :: "type \<Rightarrow> type \<Rightarrow> type \<Rightarrow> type" ("_ mat[_, _]" [999, 0, 0] 999)
+  "_VecType" :: "type \<Rightarrow> type \<Rightarrow> type" ("_ vec[_]" [999, 0] 999)
 
 translations
   (type) "'a^'n" <= (type) "('a, 'n) vec"
+  (type) "'a mat['m, 'n]" == (type) "'a^'m^'n"
+  (type) "'a vec['n]" == (type) "'a mat[1, 'n]"
 
-notation transpose ("_\<^sup>T" [999] 999)
+text \<open> We add standard syntax for some matrix / vector operators. \<close>
 
-definition scalar :: "real \<Rightarrow> real^1" where "scalar x = (\<chi> i. x)" 
+notation norm ("\<parallel>_\<parallel>") and infnorm ("\<parallel>_\<parallel>\<^sub>\<infinity>") and transpose ("_\<^sup>T" [999] 999)
 
-declare [[coercion scalar]]
+text \<open> The following class allows us to link natural numbers and numeral indices. Essentially
+  this shows an isomorphism between a numeral type and a finite range of naturals. \<close>
 
-definition of_scalar :: "real^1 \<Rightarrow> real" where "of_scalar M = M$1"
-
-lemma [simp]: "of_scalar (scalar x) = x"
-  by (simp add: scalar_def of_scalar_def)
-
-class nat = finite +
+class nat = finite + numeral + zero +
   fixes nat_of :: "'a \<Rightarrow> nat"
   assumes nat_of: "nat_of ` UNIV = {0..<CARD('a)}"
+  and nat_of_0 [simp]: "nat_of 0 = 0"
+  and nat_of_1 [simp]: "CARD('a) > 1 \<Longrightarrow> nat_of 1 = 1"
+  and nat_of_numeral: "nat_of (numeral n) = numeral n mod CARD('a)"
 begin
 
 abbreviation "of_nat' \<equiv> inv nat_of"
@@ -39,7 +45,12 @@ lemma "of_nat' (nat_of x) = x"
 lemma bij_nat_of: "bij_betw nat_of UNIV {0..<CARD('a)} "
   using bij_betw_def inj_nat_of local.nat_of by blast
 
+lemma nat_of_numeral' [simp]: "numeral n < CARD('a) \<Longrightarrow> nat_of (numeral n) = numeral n"
+  by (simp add: local.nat_of_numeral)
+
 end
+
+text \<open> Instances of the @{class nat} class for concrete numerals. \<close>
 
 abbreviation "Abs_bit0n \<equiv> (\<lambda> x. Abs_bit0 (int x))"
 abbreviation "Rep_bit0n \<equiv> (\<lambda> x. nat (Rep_bit0 x))"
@@ -80,28 +91,36 @@ instantiation num1 :: nat
 begin
 definition "nat_of_num1 (x::num1) = (0::nat)"
 instance
-  by (intro_classes, simp add: nat_of_num1_def)
+  by (intro_classes, simp_all add: nat_of_num1_def)
 end
 
 instantiation bit0 :: (finite) nat
 begin
 definition "nat_of_bit0 = Rep_bit0n"
 instance
-  by (intro_classes, simp add: nat_of_bit0_def bit0n_type.Rep_range)
+  by (intro_classes, simp_all add: nat_of_bit0_def bit0n_type.Rep_range bit0.Rep_0 bit0.Rep_1
+     ,simp add: bit0.Rep_numeral nat_int_comparison(1) of_nat_mod)
 end
 
 instantiation bit1 :: (finite) nat
 begin
 definition "nat_of_bit1 = Rep_bit1n"
 instance
-  by (intro_classes, simp add: nat_of_bit1_def bit1n_type.Rep_range)
+  by (intro_classes, simp_all add: nat_of_bit1_def bit1n_type.Rep_range bit1.Rep_0 bit1.Rep_1
+     ,metis bit1.Rep_numeral card_bit1 int_ops(3) nat_int of_nat_mod)
 end
+
+text \<open> Construct a matrix from a list of lists. \<close>
 
 definition Mat :: "'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
 "Mat M = (\<chi> i j. M!nat_of i!nat_of j)"
 
-abbreviation MatT :: "'m::nat itself \<Rightarrow> 'n::nat itself \<Rightarrow> 'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
-"MatT m n \<equiv> Mat"
+lemma Mat_lookup [simp]: "(Mat M)$i$j = M!nat_of i!nat_of j"
+  by (simp add: Mat_def)
+
+text \<open> The following code infers the dimension of the list of lists, checking it corresponds to
+  a matrix, and then uses these to construct the type of the matrix -- providing concrete numeral
+  dimensions. \<close>
 
 ML \<open>
 
@@ -136,7 +155,7 @@ fun dest_list_syn (Const (\<^const_syntax>\<open>List.list.Nil\<close>, _)) = []
   fun proc_matrix (x as Const (\<^const_syntax>\<open>List.list.Cons\<close>, _) $ t $ u) =
     let val rows = (1 + length (dest_list_syn u))
         val cols = (length (dest_list_syn t))
-        val matT = Type (\<^type_name>\<open>vec\<close>, [Type (\<^type_name>\<open>vec\<close>, [Type (\<^type_name>\<open>real\<close>, []), mk_bintype cols]), mk_bintype rows])
+        val matT = Type (\<^type_name>\<open>vec\<close>, [Type (\<^type_name>\<open>vec\<close>, [dummyT, mk_bintype cols]), mk_bintype rows])
         
     in check_dim cols u; if (cols = 0) then raise TERM ("Empty matrix rows are invalid", [])
        else (Const(\<^const_syntax>\<open>Mat\<close>, dummyT --> matT) $ x)
@@ -161,12 +180,18 @@ translations
   "\<^bold>[x\<^bold>]" => "Matrix[x]"
   "\<^bold>[x\<^bold>]" <= "CONST Mat [x]"
 
-term "\<^bold>[[1,2]\<^bold>]"
+text \<open> We can construct matrices either using the form @{term "Matrix[[1,2],[3,4]]"} or alternatively
+  using emboldened bracket @{term "\<^bold>[[1,2],[3,4]\<^bold>]"}. Further examples are given below. \<close>
 
-term "Matrix[[1,2]] ** Matrix[[1],[1]]"
+term "\<^bold>[[1::real,2]\<^bold>]"
+
+term "Matrix[[1::real,2]] ** Matrix[[1],[1]]"
 
 term "\<^bold>[[1,2], [1,2]\<^bold>]"
 
 term "\<^bold>[[1, 2]\<^bold>]\<^sup>T = \<^bold>[[1], [2]\<^bold>]"
+
+lemma "\<^bold>[[1,2]\<^bold>]$0$0 = 1" "\<^bold>[[1,2]\<^bold>]$0$1 = 2"
+  by (simp_all)
 
 end
