@@ -33,14 +33,20 @@ begin
 
 abbreviation "of_nat' \<equiv> inv nat_of"
 
+lemma nat_of_less_CARD [simp]: "nat_of x < CARD('a)"
+  using nat_of by auto
+
 lemma inj_nat_of: "inj nat_of"
   using nat_of
   apply (rule_tac inj_onI)
   apply (auto)
   by (simp add: eq_card_imp_inj_on inj_eq)
 
-lemma "of_nat' (nat_of x) = x"
+lemma nat_of_inv [simp]: "of_nat' (nat_of x) = x"
   by (simp add: inj_nat_of)
+
+lemma of_nat'_inv [simp]: "x < CARD('a) \<Longrightarrow> nat_of (of_nat' x) = x"
+  by (simp add: f_inv_into_f local.nat_of)
 
 lemma bij_nat_of: "bij_betw nat_of UNIV {0..<CARD('a)} "
   using bij_betw_def inj_nat_of local.nat_of by blast
@@ -117,6 +123,39 @@ definition Mat :: "'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
 
 lemma Mat_lookup [simp]: "(Mat M)$i$j = M!nat_of i!nat_of j"
   by (simp add: Mat_def)
+
+definition vec_list :: "'a^'n::nat \<Rightarrow> 'a list" where
+"vec_list V = map (vec_nth V \<circ> of_nat') [0..<CARD('n)]"
+
+lemma length_vec_list [simp]: "length (vec_list (V::'a^'n::nat)) = CARD('n)"
+  by (simp add: vec_list_def)
+
+definition of_Mat :: "'a^'m::nat^'n::nat \<Rightarrow> 'a list list" where
+"of_Mat M = map (vec_list \<circ> vec_nth M \<circ> of_nat') [0..<CARD('n)]"
+
+lemma Mat_inverse [simp]:
+  assumes "length M = CARD('n)" "\<forall> x \<in> set M. length x = CARD('m)"
+  shows "of_Mat (Mat M :: 'a^'m::nat^'n::nat) = M"
+  by (auto simp add: Mat_def of_Mat_def comp_def vec_list_def list_eq_iff_nth_eq assms)
+
+lemma matrix_eq_iff: "M = N \<longleftrightarrow> (\<forall> i j. M$i$j = N$i$j)"
+  by (auto simp add: vec_eq_iff)
+
+lemma of_Mat_inverse [simp]: "Mat (of_Mat M) = M"
+  by (simp add: matrix_eq_iff Mat_def of_Mat_def vec_list_def comp_def)
+
+lemma Mat_eq_iff: "M = N \<longleftrightarrow> of_Mat M = of_Mat N"
+  by (metis of_Mat_inverse) 
+
+lemma Mat_eq_iff': 
+  "((Mat M)::'a mat['m::nat,'n::nat]) = Mat N \<longleftrightarrow> (\<forall> i < CARD('n). \<forall> j < CARD('m). M!i!j = N!i!j)"
+  apply (simp add: matrix_eq_iff)
+  apply (auto)
+   apply (rename_tac i j)
+  apply (drule_tac x="of_nat' i :: 'n" in spec)
+   apply (drule_tac x="of_nat' j :: 'm" in spec)
+  apply (simp)
+  done
 
 text \<open> The following code infers the dimension of the list of lists, checking it corresponds to
   a matrix, and then uses these to construct the type of the matrix -- providing concrete numeral
