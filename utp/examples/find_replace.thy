@@ -29,7 +29,7 @@ lemma find_replace_inv:
   by (hoare_split, rel_auto', metis less_Suc_eq)
 
 lemma find_replace_prop1:
-  "\<^bold>{true\<^bold>} find_replace A len mtc rpl \<^bold>{\<forall> i < len. A(i) = mtc \<Rightarrow> arr(i) = rpl\<^bold>}"
+  "\<^bold>{true\<^bold>} find_replace A len mtc rpl \<^bold>{\<forall> i < len. arr(i) = (rpl \<triangleleft> A(i) = mtc \<triangleright> A(i)) \<^bold>}"
   unfolding find_replace_def by (hoare_auto, metis less_Suc_eq)
   
 lemma find_replace_prop2:
