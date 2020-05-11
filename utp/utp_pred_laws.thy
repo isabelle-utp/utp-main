@@ -30,7 +30,7 @@ lemma taut_refine_impl: "\<lbrakk> Q \<sqsubseteq> P; `P` \<rbrakk> \<Longrighta
   by (rel_auto)
 
 lemma taut_shEx_elim: 
-  "\<lbrakk> `(\<exists> x \<bullet> P x)`; \<And> x. \<Sigma> \<sharp> P x; \<And> x. `P x` \<Longrightarrow> Q  \<rbrakk> \<Longrightarrow> Q"
+  "\<lbrakk> `(\<^bold>\<exists> x \<bullet> P x)`; \<And> x. \<Sigma> \<sharp> P x; \<And> x. `P x` \<Longrightarrow> Q  \<rbrakk> \<Longrightarrow> Q"
   by (rel_blast)
 
 text \<open> Linking refinement and HOL implication \<close>
