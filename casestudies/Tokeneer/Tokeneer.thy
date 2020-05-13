@@ -159,7 +159,7 @@ record Enrol =
   idStationCert :: IDCert
   issuerCerts :: "IDCert set"
 
-text \<open> We had to add two extra clauses to Enrol here that we're specified in the Tokeneer Z-schema,
+text \<open> We had to add two extra clauses to Enrol here that were specified in the Tokeneer Z-schema,
   namely that (1) all issuer certificates correspond to elements of @{term ISSUER} and (2)
   the subjects uniquely identify one issue certificate. Without these, it is not possible to
   update the key store and maintain the partial function there. \<close>
@@ -589,20 +589,20 @@ definition IDStation :: "IDStation upred" where
   )"
 
 lemma IDStation_correct_intro:
-  assumes "\<lbrace>DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> 
-            Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<rbrace>
+  assumes "\<^bold>{DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> 
+            Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<^bold>}
              P
-           \<lbrace>DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> 
-            Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<rbrace>\<^sub>u"
-          "\<lbrace>IDStation_inv\<rbrace>P\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
-        shows "\<lbrace>IDStation\<rbrace>P\<lbrace>IDStation\<rbrace>\<^sub>u"
+           \<^bold>{DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> 
+            Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<^bold>}"
+          "\<^bold>{IDStation_inv\<^bold>}P\<^bold>{IDStation_inv\<^bold>}"
+        shows "\<^bold>{IDStation\<^bold>}P\<^bold>{IDStation\<^bold>}"
   using assms
 proof -
 have f1: "(IDStation_inv \<and> DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken) = IDStation"
 by (simp add: IDStation_def IDStation_wf_def utp_pred_laws.inf_commute utp_pred_laws.inf_left_commute)
-  then have f2: "\<lbrace>IDStation\<rbrace> P \<lbrace>DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<rbrace>\<^sub>u"
+  then have f2: "\<^bold>{IDStation\<^bold>} P \<^bold>{DoorLatchAlarm \<oplus>\<^sub>p doorLatchAlarm \<and> Floppy \<oplus>\<^sub>p ifloppy \<and> KeyStore \<oplus>\<^sub>p keyStore \<and> Admin \<oplus>\<^sub>p admin \<and> Config \<oplus>\<^sub>p config \<and> AdminToken \<oplus>\<^sub>p iadminToken \<and> UserToken \<oplus>\<^sub>p iuserToken\<^bold>}"
     by (metis (no_types) assms(1) hoare_r_weaken_pre(2))
-  have "\<lbrace>IDStation\<rbrace> P \<lbrace>IDStation_inv\<rbrace>\<^sub>u"
+  have "\<^bold>{IDStation\<^bold>} P \<^bold>{IDStation_inv\<^bold>}"
     using f1 by (metis (no_types) assms(2) hoare_r_weaken_pre(2) utp_pred_laws.inf_commute)
   then show ?thesis
 using f2 f1
@@ -611,17 +611,17 @@ qed
 
 lemma IDStation_inv_intro:
   assumes 
-    "\<lbrace>IDStation_inv1\<rbrace>P\<lbrace>IDStation_inv1\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv2\<rbrace>P\<lbrace>IDStation_inv2\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv3\<rbrace>P\<lbrace>IDStation_inv3\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv4\<rbrace>P\<lbrace>IDStation_inv4\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv5\<rbrace>P\<lbrace>IDStation_inv5\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv6\<rbrace>P\<lbrace>IDStation_inv6\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv7\<rbrace>P\<lbrace>IDStation_inv7\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv8\<rbrace>P\<lbrace>IDStation_inv8\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv9\<rbrace>P\<lbrace>IDStation_inv9\<rbrace>\<^sub>u"
-    "\<lbrace>IDStation_inv10\<rbrace>P\<lbrace>IDStation_inv10\<rbrace>\<^sub>u"
-  shows "\<lbrace>IDStation_inv\<rbrace>P\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
+    "\<^bold>{IDStation_inv1\<^bold>}P\<^bold>{IDStation_inv1\<^bold>}"
+    "\<^bold>{IDStation_inv2\<^bold>}P\<^bold>{IDStation_inv2\<^bold>}"
+    "\<^bold>{IDStation_inv3\<^bold>}P\<^bold>{IDStation_inv3\<^bold>}"
+    "\<^bold>{IDStation_inv4\<^bold>}P\<^bold>{IDStation_inv4\<^bold>}"
+    "\<^bold>{IDStation_inv5\<^bold>}P\<^bold>{IDStation_inv5\<^bold>}"
+    "\<^bold>{IDStation_inv6\<^bold>}P\<^bold>{IDStation_inv6\<^bold>}"
+    "\<^bold>{IDStation_inv7\<^bold>}P\<^bold>{IDStation_inv7\<^bold>}"
+    "\<^bold>{IDStation_inv8\<^bold>}P\<^bold>{IDStation_inv8\<^bold>}"
+    "\<^bold>{IDStation_inv9\<^bold>}P\<^bold>{IDStation_inv9\<^bold>}"
+    "\<^bold>{IDStation_inv10\<^bold>}P\<^bold>{IDStation_inv10\<^bold>}"
+  shows "\<^bold>{IDStation_inv\<^bold>}P\<^bold>{IDStation_inv\<^bold>}"
   by (simp add: IDStation_inv_def assms hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2))
 
 section \<open>Operations Interfacing to the ID Station (1)\<close>
@@ -699,7 +699,7 @@ definition AddElementsToLog :: "IDStation hrel" where
 section \<open>Internal Operations\<close>
 
 definition AddElementsToLog :: "IDStation hrel" where
-[upred_defs, tis_defs]: "AddElementsToLog = true"
+[upred_defs, tis_defs]: "AddElementsToLog = II"
 
 definition AuditAlarm :: "IDStation hrel" where [upred_defs, tis_defs]: "AuditAlarm = true"
 definition AuditLatch :: "IDStation hrel" where [upred_defs, tis_defs]: "AuditLatch = true"
@@ -779,7 +779,7 @@ definition UnlockDoor :: "IDStation hrel" where
    doorLatchAlarm:doorAlarm := \<guillemotleft>silent\<guillemotright>"
 
 lemma UnlockDoor_correct: 
-  "\<lbrace>IDStation\<rbrace>UnlockDoor\<lbrace>IDStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation\<^bold>}UnlockDoor\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp_all add: tis_defs)
   apply (hoare_auto)
@@ -895,6 +895,13 @@ definition TISPoll :: "SystemState hrel" where
 "TISPoll =
   (\<comment> \<open> PollTime \<close>
    idStation:doorLatchAlarm:currentTime := &realWorld:monitored:now ;;
+  \<comment> \<open> The following behaviour locks the door after a timeout and activates the alarm when necessary.
+       This behaviour is implicit in the Z specification through the DoorLatchAlarm schema invariants. \<close>
+   idStation:doorLatchAlarm:[
+     if (currentTime \<ge> latchTimeout) then currentLatch := locked else currentLatch := unlocked fi ;;
+     if (currentDoor = \<guillemotleft>dopen\<guillemotright> 
+      \<and> currentLatch = \<guillemotleft>locked\<guillemotright> \<and> currentTime \<ge> alarmTimeout) then doorAlarm := alarming else doorAlarm := silent fi
+   ]\<^sup>+ ;;
    \<comment> \<open> PollDoor \<close>
    idStation:doorLatchAlarm:currentDoor := &realWorld:monitored:door ;;
    \<comment> \<open> PollUserToken \<close>
@@ -939,13 +946,19 @@ subsection \<open>The ID Station Changes the World\<close>
 
 subsubsection \<open>Periodic Updates\<close>
 
+(*
 definition UpdateLatch :: "SystemState hrel" where
 [upred_defs]:
 "UpdateLatch =
   (\<Xi>[idStation:doorLatchAlarm,DoorLatchAlarm] \<and>
    RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
    $realWorld:controlled:latch\<acute> =\<^sub>u $idStation:doorLatchAlarm:currentLatch)"
+*)
 
+abbreviation UpdateLatch :: "SystemState hrel" where
+"UpdateLatch \<equiv> realWorld:controlled:latch := &idStation:doorLatchAlarm:currentLatch"
+
+(*
 definition UpdateAlarm :: "SystemState hrel" where
 [upred_defs]:
 "UpdateAlarm =
@@ -954,6 +967,14 @@ definition UpdateAlarm :: "SystemState hrel" where
    \<lceil>AuditLog\<rceil>\<^sub>< \<oplus>\<^sub>r idStation:audit \<and>
    $realWorld:controlled:alarm\<acute> =\<^sub>u \<guillemotleft>alarming\<guillemotright> \<Leftrightarrow> ($idStation:doorLatchAlarm:doorAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>
                                                   \<or> $idStation:audit:auditAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>))"
+*)
+
+abbreviation UpdateAlarm :: "SystemState hrel" where
+"UpdateAlarm \<equiv>
+   realWorld:controlled:alarm := (\<guillemotleft>alarming\<guillemotright>
+                                   \<triangleleft> (&idStation:doorLatchAlarm:doorAlarm = \<guillemotleft>alarming\<guillemotright>
+                                     \<or> &idStation:audit:auditAlarm = \<guillemotleft>alarming\<guillemotright>)
+                                   \<triangleright> \<guillemotleft>silent\<guillemotright>)"
 
 definition UpdateDisplay :: "SystemState hrel" where
 [upred_defs]:
@@ -983,14 +1004,14 @@ definition TISUpdate :: "SystemState hrel" where
 [upred_defs, tis_defs]:
 "TISUpdate =
   (realWorld:[RealWorldChanges]\<^sup>+ ;;
-   realWorld:controlled:latch := &idStation:doorLatchAlarm:currentLatch ;;
-   realWorld:controlled:alarm := (\<guillemotleft>alarming\<guillemotright> 
-                                   \<triangleleft> (&idStation:doorLatchAlarm:doorAlarm = \<guillemotleft>alarming\<guillemotright>
-                                     \<or> &idStation:audit:auditAlarm = \<guillemotleft>alarming\<guillemotright>)
-                                   \<triangleright> \<guillemotleft>silent\<guillemotright>) ;;
+   UpdateLatch ;;
+   UpdateAlarm ;;
    realWorld:controlled:display := &idStation:currentDisplay)"
 
-
+definition TISEarlyUpdate :: "SystemState hrel" where
+[upred_defs, tis_defs]:
+"TISEarlyUpdate = UpdateLatch ;; UpdateAlarm"
+    
 subsubsection \<open>Updating the User Token\<close>
 
 definition UpdateUserToken :: "SystemState hrel" where
@@ -998,7 +1019,7 @@ definition UpdateUserToken :: "SystemState hrel" where
 "UpdateUserToken = realWorld:monitored:userToken := &idStation:iuserToken:currentUserToken"
 
 lemma UpdateUserToken_correct:
-  "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>UpdateUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
    by (simp add: tis_defs, hoare_auto)
 
 section \<open>The User Entry Operation (1)\<close>
@@ -1103,7 +1124,7 @@ definition UserTokenTorn :: "IDStation hrel" where
     \<and> &iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>
   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>welcom\<guillemotright> ;; internal:status := \<guillemotleft>quiescent\<guillemotright>)"
 
-lemma UserTokenTorn_correct [hoare_safe]: "\<lbrace>IDStation\<rbrace>UserTokenTorn\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma UserTokenTorn_correct [hoare_safe]: "\<^bold>{IDStation\<^bold>}UserTokenTorn\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1143,6 +1164,7 @@ text \<open> We depart from the Z specification for this operation, as to precis
 
 subsection \<open>Updating the Key Store\<close>
 
+(*
 definition UpdateKeyStore :: "Enrol \<Rightarrow> KeyStore hrel" where
 [upred_defs]:
 "UpdateKeyStore e =
@@ -1176,7 +1198,18 @@ lemma pre_KeyStore:
   apply (rel_auto)
    apply (auto intro: rclos intro!: rel_pfun_override)
   done
+*)
 
+definition UpdateKeyStore :: "Enrol \<Rightarrow> IDStation hrel" where
+[upred_defs, tis_defs]:
+"UpdateKeyStore e = 
+  (\<guillemotleft>e \<in> ValidEnrol\<guillemotright>)
+  \<longrightarrow>\<^sub>r keyStore:ownName := \<guillemotleft>Some (subject (idStationCert e))\<guillemotright>
+    ;; keyStore:issuerKey := &keyStore:issuerKey 
+                           \<union> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
+                           \<union> {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (idStationCert e)\<guillemotright>)}"
+
+(*
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "UpdateKeyStoreFromFloppy =
@@ -1185,6 +1218,18 @@ definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
      $ifloppy:currentFloppy \<in>\<^sub>u \<guillemotleft>range(enrolmentFile)\<guillemotright> \<and>
      (\<^bold>\<exists> e \<bullet> \<guillemotleft>e\<guillemotright> =\<^sub>u \<guillemotleft>enrolmentFile_of\<guillemotright>($ifloppy:currentFloppy)\<^sub>a 
           \<and> UpdateKeyStore e \<oplus>\<^sub>r keyStore))"
+*)
+
+definition call :: "('a \<Rightarrow> 's hrel) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> 's hrel" ("call") where
+[upred_defs]: "call F e = (\<Sqinter> x \<bullet> ?[\<guillemotleft>x\<guillemotright> = e] ;; F x)"
+
+utp_lift_notation call (0)
+
+definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"UpdateKeyStoreFromFloppy = 
+  (&ifloppy:currentFloppy \<in> range(enrolmentFile))
+  \<longrightarrow>\<^sub>r call UpdateKeyStore (enrolmentFile_of &ifloppy:currentFloppy)"
 
 section \<open>The User Entry Operation (2)\<close>
 
@@ -1193,10 +1238,10 @@ subsection \<open>Reading the User Token\<close>
 definition ReadUserToken :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "ReadUserToken =
-  ((&internal:enclaveStatus \<in> {\<guillemotleft>enclaveQuiescent\<guillemotright>, \<guillemotleft>waitingRemoveAdminTokenFail\<guillemotright>}
-    \<and> &internal:status = \<guillemotleft>quiescent\<guillemotright>
-    \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
-   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>wait\<guillemotright> ;; internal:status := \<guillemotleft>gotUserToken\<guillemotright>)"
+  ((&internal:enclaveStatus \<in> {enclaveQuiescent, waitingRemoveAdminTokenFail}
+    \<and> &internal:status = quiescent
+    \<and> &iuserToken:userTokenPresence = present
+   ) \<longrightarrow>\<^sub>r currentDisplay := wait ;; internal:status := gotUserToken)"
 
 subsection \<open>Validating the User Token\<close>
 
@@ -1205,7 +1250,7 @@ definition UEC :: "IDStation hrel \<Rightarrow> SystemState hrel" where
 "UEC(Op) = 
   (\<Sqinter> t \<bullet> idStation:[Op]\<^sup>+ ;;
           realWorld:[
-            monitored:now := &monitored:now + \<guillemotleft>t\<guillemotright> ;;
+            monitored:now := &monitored:now + t ;;
             monitored:door := * ;; monitored:finger := * ;; 
             monitored:userToken := * ;; monitored:adminToken := * ;; 
             monitored:floppy := * ;; monitored:keyboard := * ]\<^sup>+)"
@@ -1214,12 +1259,12 @@ lemma UEC_refines_RealWorldChanges:
   "(RealWorldChanges \<oplus>\<^sub>r realWorld) \<sqsubseteq> UEC(Op)"
   by (rel_auto)
 
-lemma UEC_correct: "\<lbrace>I\<rbrace>P\<lbrace>I\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>I \<oplus>\<^sub>p idStation\<rbrace>UEC(P)\<lbrace>I \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma UEC_correct: "\<^bold>{I\<^bold>}P\<^bold>{I\<^bold>} \<Longrightarrow> \<^bold>{I \<oplus>\<^sub>p idStation\<^bold>}UEC(P)\<^bold>{I \<oplus>\<^sub>p idStation\<^bold>}"
   apply (simp add: wlp_hoare_link wp UEC_def alpha unrest usubst)
   apply (rel_simp)
   done
 
-lemma ReadUserToken_correct: "\<lbrace>IDStation\<rbrace>ReadUserToken\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ReadUserToken_correct: "\<^bold>{IDStation\<^bold>}ReadUserToken\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_wlp_auto)
   apply (simp add: tis_defs, hoare_wlp_auto)
@@ -1227,7 +1272,7 @@ lemma ReadUserToken_correct: "\<lbrace>IDStation\<rbrace>ReadUserToken\<lbrace>I
 
 definition [upred_defs, tis_defs]: "TISReadUserToken = UEC(ReadUserToken)"
 
-lemma TISReadUserToken_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISReadUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISReadUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISReadUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: ReadUserToken_correct TISReadUserToken_def UEC_correct)
 
 lemma "`UserTokenOK \<Rightarrow> (\<^bold>\<exists> e\<in>\<guillemotleft>ValidToken\<guillemotright> \<bullet> \<guillemotleft>goodT(e)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken)`"
@@ -1239,12 +1284,12 @@ lemma "`UserTokenWithOKAuthCert \<Rightarrow> (\<^bold>\<exists> e\<in>\<guillem
 definition BioCheckNotRequired :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "BioCheckNotRequired =
-  ((&internal:status = \<guillemotleft>gotUserToken\<guillemotright>
-    \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
+  ((&internal:status = gotUserToken
+    \<and> &iuserToken:userTokenPresence = present
     \<and> @UserTokenWithOKAuthCert
-    ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingEntry\<guillemotright> ;; currentDisplay := \<guillemotleft>wait\<guillemotright>)"
+    ) \<longrightarrow>\<^sub>r internal:status := waitingEntry ;; currentDisplay := wait)"
 
-lemma BioCheckNotRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckNotRequired\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma BioCheckNotRequired_correct: "\<^bold>{IDStation\<^bold>}BioCheckNotRequired\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1253,12 +1298,12 @@ lemma BioCheckNotRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckNotRequir
 definition BioCheckRequired :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "BioCheckRequired =
-  ((&internal:status = \<guillemotleft>gotUserToken\<guillemotright>
-  \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
+  ((&internal:status = gotUserToken
+  \<and> &iuserToken:userTokenPresence = present
   \<and> (\<not> @UserTokenWithOKAuthCert) \<and> @UserTokenOK
   ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingFinger\<guillemotright> ;; currentDisplay := \<guillemotleft>insertFinger\<guillemotright>)"
 
-lemma BioCheckRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckRequired\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma BioCheckRequired_correct: "\<^bold>{IDStation\<^bold>}BioCheckRequired\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1266,7 +1311,7 @@ lemma BioCheckRequired_correct: "\<lbrace>IDStation\<rbrace>BioCheckRequired\<lb
 
 definition [upred_defs, tis_defs]: "ValidateUserTokenOK = (BioCheckRequired \<or> BioCheckNotRequired)"
 
-lemma ValidateUserTokenOK_correct: "\<lbrace>IDStation\<rbrace>ValidateUserTokenOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ValidateUserTokenOK_correct: "\<^bold>{IDStation\<^bold>}ValidateUserTokenOK\<^bold>{IDStation\<^bold>}"
   by (simp add: BioCheckNotRequired_correct BioCheckRequired_correct ValidateUserTokenOK_def disj_upred_def hoare_ndet)
 
 definition ValidateUserTokenFail :: "IDStation hrel" where
@@ -1277,7 +1322,7 @@ definition ValidateUserTokenFail :: "IDStation hrel" where
     \<and> (\<not> @UserTokenWithOKAuthCert) \<and> (\<not> @UserTokenOK)
     ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright> ;; currentDisplay := \<guillemotleft>removeToken\<guillemotright>)"
 
-lemma ValidateUserTokenFail_correct: "\<lbrace>IDStation\<rbrace>ValidateUserTokenFail\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ValidateUserTokenFail_correct: "\<^bold>{IDStation\<^bold>}ValidateUserTokenFail\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1288,10 +1333,10 @@ definition [upred_defs, tis_defs]:
                            \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>gotUserToken\<guillemotright>]))"
 
 lemma UserTokenTorn_test_correct:
-  "\<lbrace>IDStation\<rbrace>(UserTokenTorn ;; ?[@b])\<lbrace>IDStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation\<^bold>}(UserTokenTorn ;; ?[@b])\<^bold>{IDStation\<^bold>}"
   by (rule seq_hoare_inv_r_2, simp add: hoare_safe, rule hoare_test, simp add: impl_alt_def utp_pred_laws.sup_commute)
 
-lemma TISValidateUserToken_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISValidateUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISValidateUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: TISValidateUserToken_def UEC_correct UserTokenTorn_test_correct ValidateUserTokenFail_correct ValidateUserTokenOK_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Reading a Fingerprint\<close>
@@ -1299,12 +1344,12 @@ subsection \<open>Reading a Fingerprint\<close>
 definition ReadFingerOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "ReadFingerOK =
-  ((&internal:status = \<guillemotleft>waitingFinger\<guillemotright>
-   \<and> &ifinger:fingerPresence = \<guillemotleft>present\<guillemotright>
-   \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
-   ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>gotFinger\<guillemotright> ;; currentDisplay := \<guillemotleft>wait\<guillemotright>)"
+  ((&internal:status = waitingFinger
+   \<and> &ifinger:fingerPresence = present
+   \<and> &iuserToken:userTokenPresence = present
+   ) \<longrightarrow>\<^sub>r internal:status := gotFinger ;; currentDisplay := \<guillemotleft>wait\<guillemotright>)"
 
-lemma ReadFingerOK_correct: "\<lbrace>IDStation\<rbrace>ReadFingerOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ReadFingerOK_correct: "\<^bold>{IDStation\<^bold>}ReadFingerOK\<^bold>{IDStation\<^bold>}"
   by (rule IDStation_correct_intro, (simp add: tis_defs, hoare_auto)+)
   
 definition NoFinger :: "IDStation hrel" where
@@ -1315,7 +1360,7 @@ definition NoFinger :: "IDStation hrel" where
      \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
    ]"
 
-lemma NoFinger_correct: "\<lbrace>IDStation\<rbrace>NoFinger\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma NoFinger_correct: "\<^bold>{IDStation\<^bold>}NoFinger\<^bold>{IDStation\<^bold>}"
   by (rule IDStation_correct_intro, (simp add: tis_defs, hoare_auto)+)
 
 definition FingerTimeout :: "IDStation hrel" where
@@ -1326,7 +1371,7 @@ definition FingerTimeout :: "IDStation hrel" where
      \<and> &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>
   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>removeToken\<guillemotright> ;; internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright>)"
 
-lemma FingerTimeout_correct: "\<lbrace>IDStation\<rbrace>FingerTimeout\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma FingerTimeout_correct: "\<^bold>{IDStation\<^bold>}FingerTimeout\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1336,7 +1381,7 @@ definition [upred_defs, tis_defs]:
 "TISReadFinger = (UEC(ReadFingerOK) \<or> UEC(FingerTimeout) \<or> UEC(NoFinger)
                     \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingFinger\<guillemotright>]))"
 
-lemma TISReadFinger_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISReadFinger\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISReadFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISReadFinger\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: FingerTimeout_correct NoFinger_correct ReadFingerOK_correct TISReadFinger_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Validating a Fingerprint\<close>
@@ -1349,7 +1394,7 @@ definition ValidateFingerOK :: "IDStation hrel" where
      \<and> @FingerOK
   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>wait\<guillemotright> ;; internal:status := \<guillemotleft>waitingUpdateToken\<guillemotright>)"
 
-lemma ValidateFingerOK_correct: "\<lbrace>IDStation\<rbrace>ValidateFingerOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ValidateFingerOK_correct: "\<^bold>{IDStation\<^bold>}ValidateFingerOK\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1363,7 +1408,7 @@ definition ValidateFingerFail :: "IDStation hrel" where
      \<and> @FingerOK
   ) \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>removeToken\<guillemotright> ;; internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright>)"
 
-lemma ValidateFingerFail_correct: "\<lbrace>IDStation\<rbrace>ValidateFingerFail\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma ValidateFingerFail_correct: "\<^bold>{IDStation\<^bold>}ValidateFingerFail\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1373,7 +1418,7 @@ definition [upred_defs, tis_defs]:
   "TISValidateFinger = (UEC(ValidateFingerOK) \<or> UEC(ValidateFingerFail)
                            \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>gotFinger\<guillemotright>]))"
 
-lemma TISValidateFinger_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISValidateFinger\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISValidateFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateFinger\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: TISValidateFinger_def UEC_correct UserTokenTorn_test_correct ValidateFingerFail_correct ValidateFingerOK_correct disj_upred_def hoare_ndet)
   
 subsection \<open>Writing the User Token\<close>
@@ -1387,38 +1432,38 @@ definition WriteUserTokenOK :: "IDStation hrel" where
          currentDisplay := \<guillemotleft>wait\<guillemotright> ;; 
          internal:status := \<guillemotleft>waitingEntry\<guillemotright>)"
 
-lemma hoare_post_conj_split: "\<lbrace>b\<rbrace>P\<lbrace>c \<and> d\<rbrace>\<^sub>u \<longleftrightarrow> (\<lbrace>b\<rbrace>P\<lbrace>c\<rbrace>\<^sub>u \<and> \<lbrace>b\<rbrace>P\<lbrace>d\<rbrace>\<^sub>u)"
+lemma hoare_post_conj_split: "\<^bold>{b\<^bold>}P\<^bold>{c \<and> d\<^bold>} \<longleftrightarrow> (\<^bold>{b\<^bold>}P\<^bold>{c\<^bold>} \<and> \<^bold>{b\<^bold>}P\<^bold>{d\<^bold>})"
   by (rel_auto)
 
 (* This is one of the hardest invariant proofs. It should be more automatable. *)
 
-lemma WriteUserTokenOK_correct: "\<lbrace>IDStation\<rbrace>WriteUserTokenOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma WriteUserTokenOK_correct: "\<^bold>{IDStation\<^bold>}WriteUserTokenOK\<^bold>{IDStation\<^bold>}"
 proof -
-  have inv: "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv\<rbrace>\<^sub>u"
+  have inv: "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv\<^bold>}"
   proof -
-    have a:"\<lbrace>IDStation_inv1 \<and> IDStation_inv9\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv9\<rbrace>\<^sub>u"
+    have a:"\<^bold>{IDStation_inv1 \<and> IDStation_inv9\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv9\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)
-    have 1:"\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv9\<rbrace>\<^sub>u"
+    have 1:"\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv9\<^bold>}"
       by (rule_tac pre_str_hoare_r[OF _ a], rel_auto)
-    have b: "\<lbrace>IDStation_inv1\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv1\<rbrace>\<^sub>u"
+    have b: "\<^bold>{IDStation_inv1\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv1\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)
-    have 2:"\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv1\<rbrace>\<^sub>u"
+    have 2:"\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv1\<^bold>}"
       by (rule_tac pre_str_hoare_r[OF _ b], rel_auto)
     have 3:
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv2\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv3\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv4\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv5\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv6\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv7\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv8\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenOK \<lbrace>IDStation_inv10\<rbrace>\<^sub>u"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv2\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv3\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv4\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv5\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv6\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv7\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv8\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenOK \<^bold>{IDStation_inv10\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)+
     from 1 2 3 show ?thesis
       by (auto simp add: IDStation_inv_def hoare_post_conj_split)
   qed
 
-  have ut: "\<lbrace>UserToken \<oplus>\<^sub>p iuserToken\<rbrace> WriteUserTokenOK \<lbrace>UserToken \<oplus>\<^sub>p iuserToken\<rbrace>\<^sub>u"
+  have ut: "\<^bold>{UserToken \<oplus>\<^sub>p iuserToken\<^bold>} WriteUserTokenOK \<^bold>{UserToken \<oplus>\<^sub>p iuserToken\<^bold>}"
     by (hoare_wlp_auto defs: tis_defs)
 
   show ?thesis
@@ -1444,33 +1489,33 @@ definition WriteUserTokenFail :: "IDStation hrel" where
          currentDisplay := \<guillemotleft>tokenUpdateFailed\<guillemotright> ;; 
          internal:status := \<guillemotleft>waitingEntry\<guillemotright>)"
 
-lemma WriteUserTokenFail_correct: "\<lbrace>IDStation\<rbrace>WriteUserTokenFail\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma WriteUserTokenFail_correct: "\<^bold>{IDStation\<^bold>}WriteUserTokenFail\<^bold>{IDStation\<^bold>}"
 proof -
-  have inv: "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv\<rbrace>\<^sub>u"
+  have inv: "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv\<^bold>}"
   proof -
-    have a:"\<lbrace>IDStation_inv1 \<and> IDStation_inv9\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv9\<rbrace>\<^sub>u"
+    have a:"\<^bold>{IDStation_inv1 \<and> IDStation_inv9\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv9\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)
-    have 1:"\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv9\<rbrace>\<^sub>u"
+    have 1:"\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv9\<^bold>}"
       by (rule_tac pre_str_hoare_r[OF _ a], rel_auto)
-    have b: "\<lbrace>IDStation_inv1\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv1\<rbrace>\<^sub>u"
+    have b: "\<^bold>{IDStation_inv1\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv1\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)
-    have 2:"\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv1\<rbrace>\<^sub>u"
+    have 2:"\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv1\<^bold>}"
       by (rule_tac pre_str_hoare_r[OF _ b], rel_auto)
     have 3:
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv2\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv3\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv4\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv5\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv6\<rbrace>\<^sub>u" 
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv7\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv8\<rbrace>\<^sub>u"
-      "\<lbrace>IDStation_inv\<rbrace> WriteUserTokenFail \<lbrace>IDStation_inv10\<rbrace>\<^sub>u"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv2\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv3\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv4\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv5\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv6\<^bold>}" 
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv7\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv8\<^bold>}"
+      "\<^bold>{IDStation_inv\<^bold>} WriteUserTokenFail \<^bold>{IDStation_inv10\<^bold>}"
       by (hoare_wlp_auto defs: tis_defs)+
     from 1 2 3 show ?thesis
       by (auto simp add: IDStation_inv_def hoare_post_conj_split)
   qed
 
-  have ut: "\<lbrace>UserToken \<oplus>\<^sub>p iuserToken\<rbrace> WriteUserTokenFail \<lbrace>UserToken \<oplus>\<^sub>p iuserToken\<rbrace>\<^sub>u"
+  have ut: "\<^bold>{UserToken \<oplus>\<^sub>p iuserToken\<^bold>} WriteUserTokenFail \<^bold>{UserToken \<oplus>\<^sub>p iuserToken\<^bold>}"
     by (hoare_wlp_auto defs: tis_defs)
 
   show ?thesis
@@ -1496,9 +1541,9 @@ definition [upred_defs, tis_defs]:
    \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingUpdateToken\<guillemotright>]))"
 
 lemma TISWriteUserToken_correct: 
-  "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISWriteUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISWriteUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
 proof -
-  have 1: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>UEC(WriteUserToken) ;; UpdateUserToken\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  have 1: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}UEC(WriteUserToken) ;; UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
     by (simp add: UEC_correct UpdateUserToken_correct WriteUserTokenFail_correct WriteUserTokenOK_correct WriteUserToken_def disj_upred_def hoare_ndet seq_hoare_inv_r_2)
   thus ?thesis
     by (simp add: TISWriteUserToken_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
@@ -1526,7 +1571,7 @@ definition EntryOK :: "IDStation hrel" where
        internal:status := \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> ;;
        internal:tokenRemovalTimeout := &doorLatchAlarm:currentTime + &config:tokenRemovalDuration)"
 
-lemma EntryOK_correct: "\<lbrace>IDStation\<rbrace>EntryOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma EntryOK_correct: "\<^bold>{IDStation\<^bold>}EntryOK\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1541,7 +1586,7 @@ definition EntryNotAllowed :: "IDStation hrel" where
   \<longrightarrow>\<^sub>r currentDisplay := \<guillemotleft>removeToken\<guillemotright> ;;
        internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright>)"
 
-lemma EntryNotAllowed_correct: "\<lbrace>IDStation\<rbrace>EntryNotAllowed\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma EntryNotAllowed_correct: "\<^bold>{IDStation\<^bold>}EntryNotAllowed\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1551,7 +1596,7 @@ definition [upred_defs, tis_defs]:
   "TISValidateEntry = 
   (UEC(EntryOK) \<or> UEC(EntryNotAllowed) \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingEntry\<guillemotright>]))"
 
-lemma TISValidateEntry_correct: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISValidateEntry\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISValidateEntry_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateEntry\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: EntryNotAllowed_correct EntryOK_correct TISValidateEntry_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Unlocking the Door\<close>
@@ -1563,7 +1608,7 @@ definition UnlockDoorOK :: "IDStation hrel" where
    &iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>)
   \<longrightarrow>\<^sub>r UnlockDoor ;; currentDisplay := \<guillemotleft>doorUnlocked\<guillemotright> ;; internal:status := \<guillemotleft>quiescent\<guillemotright>"
 
-lemma UnlockDoorOK_correct: "\<lbrace>IDStation\<rbrace>UnlockDoorOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma UnlockDoorOK_correct: "\<^bold>{IDStation\<^bold>}UnlockDoorOK\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1582,7 +1627,7 @@ definition WaitingTokenRemoval :: "IDStation hrel" where
     &iuserToken:userTokenPresence = \<guillemotleft>present\<guillemotright>]"
 
 lemma WaitingTokenRemoval_correct: 
-  "\<lbrace>IDStation\<rbrace>WaitingTokenRemoval ;; ?[@b]\<lbrace>IDStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation\<^bold>}WaitingTokenRemoval ;; ?[@b]\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1597,7 +1642,7 @@ definition TokenRemovalTimeout :: "IDStation hrel" where
    internal:status := \<guillemotleft>waitingRemoveTokenFail\<guillemotright> ;;
    currentDisplay := \<guillemotleft>removeToken\<guillemotright>)"
 
-lemma TokenRemovalTimeout_correct: "\<lbrace>IDStation\<rbrace>TokenRemovalTimeout\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma TokenRemovalTimeout_correct: "\<^bold>{IDStation\<^bold>}TokenRemovalTimeout\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1609,7 +1654,7 @@ definition [upred_defs, tis_defs]:
                \<or> UEC(TokenRemovalTimeout))"
 
 lemma TISUnlockDoor_correct:
-  "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISUnlockDoor\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISUnlockDoor\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: TISUnlockDoor_def TokenRemovalTimeout_correct UEC_correct UnlockDoorOK_correct WaitingTokenRemoval_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Terminating a Failed Access\<close>
@@ -1622,7 +1667,7 @@ definition FailedAccessTokenRemoved :: "IDStation hrel" where
    internal:status := \<guillemotleft>quiescent\<guillemotright> ;;
    currentDisplay := \<guillemotleft>welcom\<guillemotright>)"
 
-lemma FailedAccessTokenRemoved_correct: "\<lbrace>IDStation\<rbrace>FailedAccessTokenRemoved\<lbrace>IDStation\<rbrace>\<^sub>u"
+lemma FailedAccessTokenRemoved_correct: "\<^bold>{IDStation\<^bold>}FailedAccessTokenRemoved\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (simp add: tis_defs, hoare_auto)
   apply (simp add: tis_defs, hoare_auto)
@@ -1633,7 +1678,7 @@ definition [upred_defs, tis_defs]:
         \<or> UEC(WaitingTokenRemoval ;; ?[&internal:status = \<guillemotleft>waitingRemoveTokenFail\<guillemotright>]))"
 
 lemma TISCompleteFailedAccess_correct:
-  "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISCompleteFailedAccess\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISCompleteFailedAccess\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   by (simp add: FailedAccessTokenRemoved_correct TISCompleteFailedAccess_def UEC_correct WaitingTokenRemoval_correct disj_upred_def hoare_ndet)
 
 subsection \<open>The Complete User Entry\<close>
@@ -1642,7 +1687,7 @@ definition [upred_defs, tis_defs]:
 "TISUserEntryOp = (TISReadUserToken \<or> TISValidateUserToken \<or> TISReadFinger \<or> TISValidateFinger
                     \<or> TISWriteUserToken \<or> TISValidateEntry \<or> TISUnlockDoor \<or> TISCompleteFailedAccess)"
 
-lemma TISUserEntryOp_inv: "\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>TISUserEntryOp\<lbrace>IDStation \<oplus>\<^sub>p idStation\<rbrace>\<^sub>u"
+lemma TISUserEntryOp_inv: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISUserEntryOp\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
   apply (auto simp add: TISUserEntryOp_def intro!:hoare_disj)
          apply (simp_all add: TISReadUserToken_correct TISValidateUserToken_correct 
       TISReadFinger_correct TISValidateFinger_correct TISWriteUserToken_correct
@@ -1655,6 +1700,7 @@ subsection \<open>Enrolment of an ID Station\<close>
 
 subsubsection \<open>Requesting Enrolment\<close>
 
+(*
 definition RequestEnrolment :: "SystemState hrel" where
 [upred_defs, tis_defs]:
 "RequestEnrolment = (EnrolContext \<and>
@@ -1666,7 +1712,22 @@ definition RequestEnrolment :: "SystemState hrel" where
   ($currentScreen:screenMsg\<acute> =\<^sub>u \<guillemotleft>insertEnrolmentData\<guillemotright> \<and> 
    $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r idStation
   )"
+*)
 
+definition RequestEnrolment :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"RequestEnrolment = 
+  (&internal:enclaveStatus = notEnrolled \<and>
+   &ifloppy:floppyPresence = absent)
+  \<longrightarrow>\<^sub>r currentScreen:screenMsg := insertEnrolmentData ;; currentDisplay := blank"
+
+lemma RequestEnrolment_correct: "\<^bold>{IDStation\<^bold>}RequestEnrolment\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
+
+(*
 definition ReadEnrolmentFloppy :: "SystemState hrel" where
 "ReadEnrolmentFloppy = (EnrolContext \<and>
   \<Xi>[idStation:keyStore, KeyStore] \<and>
@@ -1676,18 +1737,24 @@ definition ReadEnrolmentFloppy :: "SystemState hrel" where
    $internal:status\<acute> =\<^sub>u $internal:status \<and>
    $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r idStation
   )"
-  
-definition "ReadEnrolmentData = (ReadEnrolmentFloppy \<or> RequestEnrolment)"
+*)  
 
+definition ReadEnrolmentFloppy :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"ReadEnrolmentFloppy = 
+  (&internal:enclaveStatus = notEnrolled \<and>
+   &ifloppy:floppyPresence = present)
+  \<longrightarrow>\<^sub>r currentScreen:screenMsg := validatingEnrolmentData ;; currentDisplay := blank"
+
+definition "ReadEnrolmentData = (ReadEnrolmentFloppy \<or> RequestEnrolment)"
 
 subsubsection \<open>Validating Enrolment data from Floppy\<close>
 
 definition EnrolmentDataOK :: "IDStation upred" where
-"EnrolmentDataOK = (Floppy \<oplus>\<^sub>p ifloppy \<and> 
-  KeyStore \<oplus>\<^sub>p keyStore \<and>
-  U(&ifloppy:currentFloppy \<in> \<guillemotleft>range enrolmentFile\<guillemotright> \<and>
+"EnrolmentDataOK = (U(&ifloppy:currentFloppy \<in> \<guillemotleft>range enrolmentFile\<guillemotright> \<and>
    enrolmentFile_of &ifloppy:currentFloppy \<in> \<guillemotleft>ValidEnrol\<guillemotright>))"
 
+(*
 definition ValidateEnrolmentDataOK :: "SystemState hrel" where
 "ValidateEnrolmentDataOK =
   (EnrolContext \<and> 
@@ -1700,7 +1767,20 @@ definition ValidateEnrolmentDataOK :: "SystemState hrel" where
     $internal:status\<acute> =\<^sub>u \<guillemotleft>quiescent\<guillemotright> \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>welcom\<guillemotright>
    ) \<oplus>\<^sub>r idStation)"
+*)
 
+definition ValidateEnrolmentDataOK :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"ValidateEnrolmentDataOK = 
+  (&internal:enclaveStatus = waitingEnrol \<and>
+   EnrolmentDataOK)
+  \<longrightarrow>\<^sub>r UpdateKeyStoreFromFloppy ;; AddElementsToLog ;;
+       currentScreen:screenMsg := welcomeAdmin ;;
+       internal:enclaveStatus := enclaveQuiescent ;;
+       internal:status := quiescent ;;
+       currentDisplay := welcom"
+
+(*
 definition ValidateEnrolmentDataFail :: "SystemState hrel" where
 "ValidateEnrolmentDataFail =
   (EnrolContext \<and> 
@@ -1713,12 +1793,23 @@ definition ValidateEnrolmentDataFail :: "SystemState hrel" where
     $internal:status\<acute> =\<^sub>u $internal:status \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>
    ) \<oplus>\<^sub>r idStation)"
+*)
+
+definition ValidateEnrolmentDataFail :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"ValidateEnrolmentDataFail = 
+  (&internal:enclaveStatus = waitingEnrol \<and>
+   \<not> EnrolmentDataOK)
+  \<longrightarrow>\<^sub>r AddElementsToLog ;;
+       currentScreen:screenMsg := enrolmentFailed ;;
+       internal:enclaveStatus := waitingEndEnrol ;;
+       currentDisplay := blank"
 
 definition "ValidateEnrolmentData = (ValidateEnrolmentDataOK \<or> ValidateEnrolmentDataFail)"
 
-
 subsubsection \<open>Completing a Failed Enrolment\<close>
 
+(*
 definition FailedEnrolFloppyRemoved :: "SystemState hrel" where
 "FailedEnrolFloppyRemoved =
   (EnrolContext \<and> 
@@ -1730,7 +1821,18 @@ definition FailedEnrolFloppyRemoved :: "SystemState hrel" where
     $internal:status\<acute> =\<^sub>u $internal:status \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>
    ) \<oplus>\<^sub>r idStation)"
+*)
 
+definition FailedEnrolFloppyRemoved :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FailedEnrolFloppyRemoved = 
+  (&internal:enclaveStatus = waitingEndEnrol \<and>
+   &ifloppy:floppyPresence = absent)
+  \<longrightarrow>\<^sub>r currentScreen:screenMsg := insertEnrolmentData ;;
+       internal:enclaveStatus := notEnrolled ;;
+       currentDisplay := blank"
+
+(*
 definition WaitingFloppyRemoval :: "SystemState hrel" where
 "WaitingFloppyRemoval =
   (EnrolContext \<and> 
@@ -1738,21 +1840,22 @@ definition WaitingFloppyRemoval :: "SystemState hrel" where
    ($internal:enclaveStatus =\<^sub>u \<guillemotleft>waitingEndEnrol\<guillemotright> \<and>
     $ifloppy:floppyPresence =\<^sub>u \<guillemotleft>present\<guillemotright>
    ) \<oplus>\<^sub>r idStation)"
+*)
+
+definition WaitingFloppyRemoval :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"WaitingFloppyRemoval = 
+  (&internal:enclaveStatus = waitingEndEnrol \<and>
+   &ifloppy:floppyPresence = present)
+  \<longrightarrow>\<^sub>r II"
 
 definition "CompleteFailedEnrolment = (FailedEnrolFloppyRemoved \<or> WaitingFloppyRemoval)"
 
-
 subsubsection \<open>The Complete Enrolment\<close>
 
-(*
 definition TISEnrolOp :: "SystemState hrel" where 
 [upred_defs, tis_defs]:
-"TISEnrolOp = (ReadEnrolmentData \<or> ValidateEnrolmentData \<or> CompleteFailedEnrolment)"
-*)
-
-definition TISEnrolOp :: "SystemState hrel" where 
-[upred_defs, tis_defs]:
-"TISEnrolOp = false"
+"TISEnrolOp = UEC(ReadEnrolmentData \<or> ValidateEnrolmentData \<or> CompleteFailedEnrolment)"
 
 subsection \<open>Further Administrator Operations\<close>
 
@@ -1838,7 +1941,7 @@ definition ValidateAdminTokenOK :: "IDStation hrel" where
           internal:enclaveStatus := \<guillemotleft>enclaveQuiescent\<guillemotright>)"
 
 lemma ValidateAdminTokenOK_correct: 
-  "\<lbrace>IDStation\<rbrace>ValidateAdminTokenOK\<lbrace>IDStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation\<^bold>}ValidateAdminTokenOK\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (hoare_wlp_auto defs: tis_defs)
   apply (hoare_wlp_auto defs: tis_defs)
@@ -1854,7 +1957,7 @@ definition ValidateAdminTokenFail :: "IDStation hrel" where
           internal:enclaveStatus := \<guillemotleft>waitingRemoveAdminTokenFail\<guillemotright>)"
 
 lemma ValidateAdminTokenFail_correct:
-  "\<lbrace>IDStation\<rbrace>ValidateAdminTokenFail\<lbrace>IDStation\<rbrace>\<^sub>u"
+  "\<^bold>{IDStation\<^bold>}ValidateAdminTokenFail\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (hoare_wlp_auto defs: tis_defs)
   apply (simp add: IDStation_inv_def)
@@ -1977,7 +2080,7 @@ definition OverrideDoorLockOK :: "IDStation hrel" where
           UnlockDoor ;;
           AdminFinishOp)"  
 
-lemma  "\<lbrace>IDStation_inv\<rbrace>OverrideDoorLockOK\<lbrace>IDStation_inv\<rbrace>\<^sub>u"
+lemma  "\<^bold>{IDStation_inv\<^bold>}OverrideDoorLockOK\<^bold>{IDStation_inv\<^bold>}"
   apply (rule IDStation_inv_intro)
   oops
 
@@ -2006,6 +2109,101 @@ definition TISIdle :: "SystemState hrel" where
                \<and> &iadminToken:adminTokenPresence = \<guillemotleft>absent\<guillemotright>
                \<and> &admin:rolePresent = \<guillemotleft>None\<guillemotright>) \<longrightarrow>\<^sub>r II)"
 
+section \<open>The Initial System and Startup\<close>
+
+definition InitDoorLatchAlarm :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitDoorLatchAlarm =
+  doorLatchAlarm:[
+    currentTime := zeroTime ;;
+    currentDoor := closed ;;
+    currentLatch := locked ;;
+    doorAlarm := silent ;;
+    latchTimeout := zeroTime ;;
+    alarmTimeout := zeroTime]\<^sup>+"
+
+definition InitKeyStore :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitKeyStore =
+  keyStore:[
+    issuerKey := {} ;;
+    ownName := None
+  ]\<^sup>+"
+
+definition InitConfig :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitConfig =
+  config:[
+    alarmSilentDuration := 10 ;;
+    latchUnlockDuration := 150 ;;
+    tokenRemovalDuration := 100 ;;
+    enclaveClearance := \<lparr> class = unmarked \<rparr> ;;
+    authPeriod := \<guillemotleft>\<lambda> p t. {t..t + 72000}\<guillemotright> ;;
+    entryPeriod := \<guillemotleft>\<lambda> p c. UNIV\<guillemotright> ;;
+    minPreservedLogSize := * ;;
+    alarmThresholdSize := * ;;
+    ?[Config] 
+  ]\<^sup>+"
+
+definition InitAdmin :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitAdmin =
+  admin:[
+    rolePresent := None ;;
+    currentAdminOp := None ;;
+    availableOps := {}
+  ]\<^sup>+"
+
+definition InitStats :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitStats =
+  stats:[
+    successEntry := 0 ;;
+    failEntry := 0 ;;
+    successBio := 0 ;;
+    failBio := 0
+  ]\<^sup>+"
+
+definition InitAuditLog :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitAuditLog =
+  audit:[
+    auditLog := {} ;;
+    auditAlarm := silent
+  ]\<^sup>+"
+
+definition InitIDStation :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"InitIDStation =
+  InitDoorLatchAlarm ;;
+  InitConfig ;;
+  InitKeyStore ;;
+  InitStats ;;
+  InitAuditLog ;;
+  InitAdmin ;;
+  currentScreen := * ;;
+  currentScreen:screenMsg := clear ;;
+  currentDisplay := blank ;;
+  internal:enclaveStatus := notEnrolled ;;
+  internal:status := quiescent ;;
+  \<comment> \<open> We select arbitrary values for the monitored variables \<close>
+  iuserToken := * ;;
+  ?[UserToken \<oplus>\<^sub>p iuserToken] ;;
+  iadminToken := * ;;
+  ?[AdminToken \<oplus>\<^sub>p iadminToken] ;;
+  ifinger := * ;;
+  ?[Finger \<oplus>\<^sub>p ifinger] ;;
+  ifloppy := * ;;
+  ?[Floppy \<oplus>\<^sub>p ifloppy] ;;
+  ikeyboard := * ;;
+  ?[Keyboard \<oplus>\<^sub>p ikeyboard]"
+
+lemma "\<^bold>{true\<^bold>}InitIDStation\<^bold>{IDStation\<^bold>}"
+  apply (simp add: tis_defs frame assigns_comp usubst alpha)
+  oops
+
+abbreviation "TISInit \<equiv> idStation:[InitIDStation]\<^sup>+"
+
 section \<open>The Whole ID Station\<close>
 
 definition TISOp :: "SystemState hrel" where
@@ -2017,23 +2215,11 @@ definition TISOp :: "SystemState hrel" where
   \<or> TISAdminLogout
   \<or> TISIdle) )" (* \<and> (LogChange \<oplus>\<^sub>r idStation) *)
 
-definition InitDoorLatchAlarm where
-[upred_defs]:
-"InitDoorLatchAlarm =
-  (DoorLatchAlarm \<and>
-   &currentTime =\<^sub>u \<guillemotleft>zeroTime\<guillemotright> \<and>
-   &currentDoor =\<^sub>u \<guillemotleft>closed\<guillemotright> \<and>
-   &latchTimeout =\<^sub>u \<guillemotleft>zeroTime\<guillemotright> \<and>
-   &alarmTimeout =\<^sub>u \<guillemotleft>zeroTime\<guillemotright>)"
+abbreviation "TISOpThenUpdate \<equiv> TISOp ;; TISUpdate"
 
-lemma "InitDoorLatchAlarm \<noteq> false"
-  by (rel_auto)
+abbreviation "TISBody \<equiv> TISPoll ;; TISEarlyUpdate ;; TISOp ;; TISUpdate"
 
-
-(* abbreviation "TISOpThenUpdate \<equiv> TISOp ;; TISUpdate" *)
-
-abbreviation "TISOpThenUpdate \<equiv> (TISOp ;; TISUpdate)"
-
+abbreviation "TIS \<equiv> TISInit ;; TISBody\<^sup>\<star>"
 
 section \<open>Proving Security Properties\<close>
 
@@ -2114,10 +2300,10 @@ definition AlarmInv :: "SystemState upred" where
               &idStation:doorLatchAlarm:currentTime \<ge> &idStation:doorLatchAlarm:alarmTimeout
              \<Rightarrow> &realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>)"
 
-lemma "\<lbrace>&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
+lemma "\<^bold>{&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
         &idStation:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
         &idStation:doorLatchAlarm:currentTime \<ge> &idStation:doorLatchAlarm:alarmTimeout \<and>
-         @(DoorLatchAlarm \<oplus>\<^sub>p (&idStation:doorLatchAlarm)\<^sub>v)\<rbrace> TISUpdate \<lbrace>&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<rbrace>\<^sub>u"
+         @(DoorLatchAlarm \<oplus>\<^sub>p (&idStation:doorLatchAlarm)\<^sub>v)\<^bold>} TISUpdate \<^bold>{&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<^bold>}"
   oops
 
 end
