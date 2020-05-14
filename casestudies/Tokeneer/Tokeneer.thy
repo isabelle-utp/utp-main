@@ -156,7 +156,7 @@ definition ValidToken :: "Token upred" where
 subsubsection \<open>Enrolment Data\<close>
 
 record Enrol =
-  idStationCert :: IDCert
+  tisCert :: IDCert
   issuerCerts :: "IDCert set"
 
 text \<open> We had to add two extra clauses to Enrol here that were specified in the Tokeneer Z-schema,
@@ -166,7 +166,7 @@ text \<open> We had to add two extra clauses to Enrol here that were specified i
 
 definition Enrol :: "Enrol set" where
 [upred_defs, tis_defs]: 
-  "Enrol = {e. idStationCert e \<in> issuerCerts e \<and> 
+  "Enrol = {e. tisCert e \<in> issuerCerts e \<and> 
                subject ` issuerCerts e \<subseteq> ISSUER \<and> 
                (\<forall> c \<in> issuerCerts e. \<forall> d \<in> issuerCerts e. subject c = subject d \<longrightarrow> c = d)}"
 
@@ -247,12 +247,25 @@ subsection \<open>AuditLog\<close>
 typedecl AuditEvent
 typedecl AuditUser
 
-alphabet Audit =
+record Audit =
   auditTime   :: TIME
   auditEvent  :: AuditEvent
   auditUser   :: AuditUser
   sizeElement :: nat
 
+text \<open> Rather than axiomatising this, we explicitly define it and prove the two axioms as theorems. \<close>
+
+definition sizeLog :: "Audit set \<Rightarrow> nat" where
+"sizeLog A = (\<Sum> a \<in> A. sizeElement a)"
+
+lemma sizeLog_empty [simp]: "sizeLog {} = 0"
+  by (simp add: sizeLog_def)
+
+lemma sizeLog_calc:
+  assumes "finite L"
+  shows "entry \<in> L \<Longrightarrow> sizeLog L = sizeLog (L - {entry}) + sizeElement entry"
+  using assms
+  by (simp add: sizeLog_def sum.remove)
 
 subsubsection \<open>Real World Types and Entities (2)\<close>
 
@@ -339,11 +352,11 @@ definition AuthCertOK :: "'a Certificate_scheme \<Rightarrow> KeyStore upred" wh
 
 definition oldestLogTime :: "Audit set \<Rightarrow> TIME" where
 [upred_defs, tis_defs]:
-"oldestLogTime lg = (Min (get\<^bsub>auditTime\<^esub> ` lg))"
+"oldestLogTime lg = (Min (auditTime ` lg))"
 
 definition newestLogTime :: "Audit set \<Rightarrow> TIME" where
 [upred_defs, tis_defs]:
-"newestLogTime lg = (Max (get\<^bsub>auditTime\<^esub> ` lg))"
+"newestLogTime lg = (Max (auditTime ` lg))"
 
 lemma newestLogTime_union: "\<lbrakk> finite A; A \<noteq> {}; finite B; B \<noteq> {} \<rbrakk> \<Longrightarrow> newestLogTime (A \<union> B) \<ge> newestLogTime A"
   by (simp add: newestLogTime_def)
@@ -681,25 +694,66 @@ lemma pre_RealWorldChanges: "Pre(RealWorldChanges) = true"
   by (rel_auto) 
 
 alphabet SystemState = 
-  idStation :: IDStation
+  tis :: IDStation
   realWorld :: RealWorld
-
-
-(* FIXME: The following audit schemas need finishing *)
-
-(*
-definition AddElementsToLog :: "IDStation hrel" where
-[upred_defs, tis_defs]:
-"AddElementsToLog =
-  (\<lceil>Config\<rceil>\<^sub>< \<oplus>\<^sub>r config \<and>
-   (\<^bold>\<exists> newElements :: Audit set \<bullet> \<guillemotleft>oldestLogTime(newElements)\<guillemotright> \<ge>\<^sub>u \<guillemotleft>newestLogTime\<guillemotright>($audit:auditLog)\<^sub>a))"
-*)
-
 
 section \<open>Internal Operations\<close>
 
+text \<open> The Z-Schema for AddElementsToLog seems to allow, in some cases, the audit log to grow
+  beyond its maximum size. As a I understand, it can nondeterminstically chose to extend the log
+  anyway, or else remove old log entries. \<close>
+
 definition AddElementsToLog :: "IDStation hrel" where
-[upred_defs, tis_defs]: "AddElementsToLog = II"
+[upred_defs, tis_defs]: 
+  "AddElementsToLog = 
+    (\<Sqinter> newElements :: Audit set \<bullet> 
+      ?[\<guillemotleft>finite(newElements)\<guillemotright> 
+       \<and> \<guillemotleft>newElements \<noteq> {}\<guillemotright>
+       \<and> \<guillemotleft>oldestLogTime newElements\<guillemotright> \<ge> newestLogTime &audit:auditLog] ;;
+     ((audit:auditLog := &audit:auditLog \<union> \<guillemotleft>newElements\<guillemotright> ;;
+        if (sizeLog &audit:auditLog < &config:alarmThresholdSize) 
+          then II
+          else audit:auditAlarm := alarming
+        fi)
+      \<sqinter>
+      (?[sizeLog &audit:auditLog + \<guillemotleft>sizeLog newElements\<guillemotright> > &config:minPreservedLogSize] ;;
+       (\<Sqinter> oldElements :: Audit set \<bullet>
+        ?[\<guillemotleft>oldElements\<guillemotright> \<subseteq> &audit:auditLog 
+         \<and> oldestLogTime &audit:auditLog \<ge> \<guillemotleft>oldestLogTime oldElements\<guillemotright>] ;;
+         audit:auditLog := (&audit:auditLog - \<guillemotleft>oldElements\<guillemotright>) \<union> \<guillemotleft>newElements\<guillemotright> ;;
+         ?[sizeLog &audit:auditLog \<ge> &config:minPreservedLogSize] ;;
+         audit:auditAlarm := alarming
+       )
+      )
+     )
+    )"
+
+text \<open> I believe this achieves the same effect as the Z-Schema -- add some elements to the log
+  (audit elements presumably) and choose some continuous subset of the result log for archiving. \<close>
+
+definition ArchiveLog :: "Audit set \<Rightarrow> IDStation hrel" where
+[upred_defs, tis_defs]:
+"ArchiveLog archive = 
+    AddElementsToLog ;;
+    (\<Sqinter> (notArchived :: Audit set) \<bullet> 
+     ?[\<guillemotleft>archive\<guillemotright> \<subseteq> &audit:auditLog 
+       \<and> \<guillemotleft>newestLogTime archive\<guillemotright> \<le> newestLogTime (&audit:auditLog - \<guillemotleft>archive\<guillemotright>)]
+    )"
+
+definition ClearLog :: "Audit set \<Rightarrow> IDStation hrel" where
+[upred_defs, tis_defs]:
+"ClearLog archive = 
+  (\<Sqinter> (sinceArchive :: Audit set, lostSinceArchive :: Audit set) \<bullet>
+      ?[\<guillemotleft>archive \<union> sinceArchive\<guillemotright> = \<guillemotleft>lostSinceArchive\<guillemotright> \<union> &audit:auditLog
+       \<and> \<guillemotleft>oldestLogTime sinceArchive\<guillemotright> \<ge> \<guillemotleft>newestLogTime archive\<guillemotright>
+       \<and> \<guillemotleft>newestLogTime sinceArchive\<guillemotright> \<le> oldestLogTime &audit:auditLog] ;;
+       audit:auditLog := \<guillemotleft>sinceArchive\<guillemotright>) ;;
+  if (sizeLog &audit:auditLog < &config:alarmThresholdSize)
+    then audit:auditAlarm := silent
+    else audit:auditAlarm := alarming
+  fi"
+
+abbreviation "ClearLogThenAddElements archive \<equiv> ClearLog archive ;; AddElementsToLog"
 
 definition AuditAlarm :: "IDStation hrel" where [upred_defs, tis_defs]: "AuditAlarm = true"
 definition AuditLatch :: "IDStation hrel" where [upred_defs, tis_defs]: "AuditLatch = true"
@@ -837,106 +891,106 @@ subsubsection \<open>Polling the Real World\<close>
 definition PollTime :: "SystemState hrel" where
 [upred_defs]:
 "PollTime = 
-  (\<Delta>[idStation:doorLatchAlarm,DoorLatchAlarm] \<and>
-   $idStation:doorLatchAlarm:currentTime\<acute> =\<^sub>u $realWorld:monitored:now)"
+  (\<Delta>[tis:doorLatchAlarm,DoorLatchAlarm] \<and>
+   $tis:doorLatchAlarm:currentTime\<acute> =\<^sub>u $realWorld:monitored:now)"
 
 definition PollDoor :: "SystemState hrel" where
 [upred_defs]:
 "PollDoor = 
-  (\<Delta>[idStation:doorLatchAlarm,DoorLatchAlarm] \<and>
-   $idStation:doorLatchAlarm:currentDoor\<acute> =\<^sub>u $realWorld:monitored:door \<and>
-   $idStation:doorLatchAlarm:latchTimeout\<acute> =\<^sub>u $idStation:doorLatchAlarm:latchTimeout \<and>
-   $idStation:doorLatchAlarm:alarmTimeout\<acute> =\<^sub>u $idStation:doorLatchAlarm:alarmTimeout)"
+  (\<Delta>[tis:doorLatchAlarm,DoorLatchAlarm] \<and>
+   $tis:doorLatchAlarm:currentDoor\<acute> =\<^sub>u $realWorld:monitored:door \<and>
+   $tis:doorLatchAlarm:latchTimeout\<acute> =\<^sub>u $tis:doorLatchAlarm:latchTimeout \<and>
+   $tis:doorLatchAlarm:alarmTimeout\<acute> =\<^sub>u $tis:doorLatchAlarm:alarmTimeout)"
 
 definition PollUserToken :: "SystemState hrel" where
 [upred_defs]:
 "PollUserToken = 
-  (\<Delta>[idStation:iuserToken,UserToken] \<and>
-   $idStation:iuserToken:userTokenPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:userToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<and>
-   $idStation:iuserToken:currentUserToken\<acute> =\<^sub>u 
-      ($realWorld:monitored:userToken \<triangleleft> $realWorld:monitored:userToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<triangleright> $idStation:iuserToken:currentUserToken))"
+  (\<Delta>[tis:iuserToken,UserToken] \<and>
+   $tis:iuserToken:userTokenPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:userToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<and>
+   $tis:iuserToken:currentUserToken\<acute> =\<^sub>u 
+      ($realWorld:monitored:userToken \<triangleleft> $realWorld:monitored:userToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<triangleright> $tis:iuserToken:currentUserToken))"
 
 definition PollAdminToken :: "SystemState hrel" where
 [upred_defs]:
 "PollAdminToken = 
-  (\<Delta>[idStation:iadminToken,AdminToken] \<and>
-   $idStation:iadminToken:adminTokenPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:adminToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<and>
-   $idStation:iadminToken:currentAdminToken\<acute> =\<^sub>u 
-      ($realWorld:monitored:adminToken \<triangleleft> $realWorld:monitored:adminToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<triangleright> $idStation:iadminToken:currentAdminToken))"
+  (\<Delta>[tis:iadminToken,AdminToken] \<and>
+   $tis:iadminToken:adminTokenPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:adminToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<and>
+   $tis:iadminToken:currentAdminToken\<acute> =\<^sub>u 
+      ($realWorld:monitored:adminToken \<triangleleft> $realWorld:monitored:adminToken \<noteq>\<^sub>u \<guillemotleft>noT\<guillemotright> \<triangleright> $tis:iadminToken:currentAdminToken))"
 
 definition PollFinger :: "SystemState hrel" where
 [upred_defs]:
 "PollFinger = 
-  (\<Delta>[idStation:ifinger,Finger] \<and>
-   $idStation:ifinger:fingerPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:finger \<noteq>\<^sub>u \<guillemotleft>noFP\<guillemotright> \<and>
-   $idStation:ifinger:currentFinger\<acute> =\<^sub>u 
-      ($realWorld:monitored:finger \<triangleleft> $realWorld:monitored:finger \<noteq>\<^sub>u \<guillemotleft>noFP\<guillemotright> \<triangleright> $idStation:ifinger:currentFinger))"
+  (\<Delta>[tis:ifinger,Finger] \<and>
+   $tis:ifinger:fingerPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:finger \<noteq>\<^sub>u \<guillemotleft>noFP\<guillemotright> \<and>
+   $tis:ifinger:currentFinger\<acute> =\<^sub>u 
+      ($realWorld:monitored:finger \<triangleleft> $realWorld:monitored:finger \<noteq>\<^sub>u \<guillemotleft>noFP\<guillemotright> \<triangleright> $tis:ifinger:currentFinger))"
 
 definition PollFloppy :: "SystemState hrel" where
 [upred_defs]:
 "PollFloppy = 
-  (\<Delta>[idStation:ifloppy,Floppy] \<and>
-   $idStation:ifloppy:floppyPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:floppy \<noteq>\<^sub>u \<guillemotleft>noFloppy\<guillemotright> \<and>
-   $idStation:ifloppy:currentFloppy\<acute> =\<^sub>u 
-      ($realWorld:monitored:floppy \<triangleleft> $realWorld:monitored:floppy \<noteq>\<^sub>u \<guillemotleft>noFloppy\<guillemotright> \<triangleright> $idStation:ifloppy:currentFloppy) \<and>
-    $idStation:ifloppy:writtenFloppy\<acute> =\<^sub>u $idStation:ifloppy:writtenFloppy
+  (\<Delta>[tis:ifloppy,Floppy] \<and>
+   $tis:ifloppy:floppyPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:floppy \<noteq>\<^sub>u \<guillemotleft>noFloppy\<guillemotright> \<and>
+   $tis:ifloppy:currentFloppy\<acute> =\<^sub>u 
+      ($realWorld:monitored:floppy \<triangleleft> $realWorld:monitored:floppy \<noteq>\<^sub>u \<guillemotleft>noFloppy\<guillemotright> \<triangleright> $tis:ifloppy:currentFloppy) \<and>
+    $tis:ifloppy:writtenFloppy\<acute> =\<^sub>u $tis:ifloppy:writtenFloppy
   )"
 
 definition PollKeyboard :: "SystemState hrel" where
 [upred_defs]:
 "PollKeyboard = 
-  (\<Delta>[idStation:ikeyboard,Keyboard] \<and>
-   $idStation:ikeyboard:keyedDataPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:keyboard \<noteq>\<^sub>u \<guillemotleft>noKB\<guillemotright> \<and>
-   $idStation:ikeyboard:currentKeyedData\<acute> =\<^sub>u 
-      ($realWorld:monitored:keyboard \<triangleleft> $realWorld:monitored:keyboard \<noteq>\<^sub>u \<guillemotleft>noKB\<guillemotright> \<triangleright> $idStation:ikeyboard:currentKeyedData))"
+  (\<Delta>[tis:ikeyboard,Keyboard] \<and>
+   $tis:ikeyboard:keyedDataPresence\<acute> =\<^sub>u \<guillemotleft>present\<guillemotright> \<Leftrightarrow> $realWorld:monitored:keyboard \<noteq>\<^sub>u \<guillemotleft>noKB\<guillemotright> \<and>
+   $tis:ikeyboard:currentKeyedData\<acute> =\<^sub>u 
+      ($realWorld:monitored:keyboard \<triangleleft> $realWorld:monitored:keyboard \<noteq>\<^sub>u \<guillemotleft>noKB\<guillemotright> \<triangleright> $tis:ikeyboard:currentKeyedData))"
 
 definition TISPoll :: "SystemState hrel" where
 [upred_defs]:
 "TISPoll =
   (\<comment> \<open> PollTime \<close>
-   idStation:doorLatchAlarm:currentTime := &realWorld:monitored:now ;;
+   tis:doorLatchAlarm:currentTime := &realWorld:monitored:now ;;
   \<comment> \<open> The following behaviour locks the door after a timeout and activates the alarm when necessary.
        This behaviour is implicit in the Z specification through the DoorLatchAlarm schema invariants. \<close>
-   idStation:doorLatchAlarm:[
+   tis:doorLatchAlarm:[
      if (currentTime \<ge> latchTimeout) then currentLatch := locked else currentLatch := unlocked fi ;;
      if (currentDoor = \<guillemotleft>dopen\<guillemotright> 
       \<and> currentLatch = \<guillemotleft>locked\<guillemotright> \<and> currentTime \<ge> alarmTimeout) then doorAlarm := alarming else doorAlarm := silent fi
    ]\<^sup>+ ;;
    \<comment> \<open> PollDoor \<close>
-   idStation:doorLatchAlarm:currentDoor := &realWorld:monitored:door ;;
+   tis:doorLatchAlarm:currentDoor := &realWorld:monitored:door ;;
    \<comment> \<open> PollUserToken \<close>
-   idStation:iuserToken:userTokenPresence :=
+   tis:iuserToken:userTokenPresence :=
       (\<guillemotleft>absent\<guillemotright> \<triangleleft> (&realWorld:monitored:userToken = \<guillemotleft>noT\<guillemotright>) \<triangleright> \<guillemotleft>absent\<guillemotright>) ;;
-   idStation:iuserToken:currentUserToken := 
-      (&idStation:iuserToken:currentUserToken 
+   tis:iuserToken:currentUserToken := 
+      (&tis:iuserToken:currentUserToken 
          \<triangleleft> (&realWorld:monitored:userToken = \<guillemotleft>noT\<guillemotright>) \<triangleright> 
        &realWorld:monitored:userToken) ;;
    \<comment> \<open> PollAdminToken \<close>
-   idStation:iadminToken:adminTokenPresence :=
+   tis:iadminToken:adminTokenPresence :=
       (\<guillemotleft>absent\<guillemotright> \<triangleleft> (&realWorld:monitored:adminToken = \<guillemotleft>noT\<guillemotright>) \<triangleright> \<guillemotleft>absent\<guillemotright>) ;;
-   idStation:iadminToken:currentAdminToken :=
-      (&idStation:iadminToken:currentAdminToken 
+   tis:iadminToken:currentAdminToken :=
+      (&tis:iadminToken:currentAdminToken 
          \<triangleleft> (&realWorld:monitored:adminToken = \<guillemotleft>noT\<guillemotright>) \<triangleright> 
        &realWorld:monitored:adminToken) ;;
    \<comment> \<open> PollFinger \<close>
-   idStation:ifinger:fingerPresence :=
+   tis:ifinger:fingerPresence :=
       (\<guillemotleft>absent\<guillemotright> \<triangleleft> (&realWorld:monitored:finger = \<guillemotleft>noFP\<guillemotright>) \<triangleright> \<guillemotleft>absent\<guillemotright>) ;;
-   idStation:ifinger:currentFinger :=
-      (&idStation:ifinger:currentFinger
+   tis:ifinger:currentFinger :=
+      (&tis:ifinger:currentFinger
          \<triangleleft> (&realWorld:monitored:finger = \<guillemotleft>noFP\<guillemotright>) \<triangleright> 
        &realWorld:monitored:finger) ;;
    \<comment> \<open> PollFloppy \<close>
-   idStation:ifloppy:floppyPresence :=
+   tis:ifloppy:floppyPresence :=
       (\<guillemotleft>absent\<guillemotright> \<triangleleft> (&realWorld:monitored:floppy = \<guillemotleft>noFloppy\<guillemotright>) \<triangleright> \<guillemotleft>absent\<guillemotright>) ;;
-   idStation:ifloppy:currentFloppy :=
-      (&idStation:ifloppy:currentFloppy
+   tis:ifloppy:currentFloppy :=
+      (&tis:ifloppy:currentFloppy
          \<triangleleft> (&realWorld:monitored:floppy = \<guillemotleft>noFloppy\<guillemotright>) \<triangleright> 
        &realWorld:monitored:floppy)  ;;
    \<comment> \<open> PollKeyboard \<close>
-   idStation:ikeyboard:keyedDataPresence :=
+   tis:ikeyboard:keyedDataPresence :=
       (\<guillemotleft>absent\<guillemotright> \<triangleleft> (&realWorld:monitored:keyboard = \<guillemotleft>noKB\<guillemotright>) \<triangleright> \<guillemotleft>absent\<guillemotright>) ;;
-   idStation:ikeyboard:currentKeyedData :=
-      (&idStation:ikeyboard:currentKeyedData
+   tis:ikeyboard:currentKeyedData :=
+      (&tis:ikeyboard:currentKeyedData
          \<triangleleft> (&realWorld:monitored:keyboard = \<guillemotleft>noKB\<guillemotright>) \<triangleright> 
        &realWorld:monitored:keyboard) 
   )"
@@ -950,54 +1004,54 @@ subsubsection \<open>Periodic Updates\<close>
 definition UpdateLatch :: "SystemState hrel" where
 [upred_defs]:
 "UpdateLatch =
-  (\<Xi>[idStation:doorLatchAlarm,DoorLatchAlarm] \<and>
+  (\<Xi>[tis:doorLatchAlarm,DoorLatchAlarm] \<and>
    RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
-   $realWorld:controlled:latch\<acute> =\<^sub>u $idStation:doorLatchAlarm:currentLatch)"
+   $realWorld:controlled:latch\<acute> =\<^sub>u $tis:doorLatchAlarm:currentLatch)"
 *)
 
 abbreviation UpdateLatch :: "SystemState hrel" where
-"UpdateLatch \<equiv> realWorld:controlled:latch := &idStation:doorLatchAlarm:currentLatch"
+"UpdateLatch \<equiv> realWorld:controlled:latch := &tis:doorLatchAlarm:currentLatch"
 
 (*
 definition UpdateAlarm :: "SystemState hrel" where
 [upred_defs]:
 "UpdateAlarm =
-  (\<Xi>[idStation:doorLatchAlarm,DoorLatchAlarm] \<and>
+  (\<Xi>[tis:doorLatchAlarm,DoorLatchAlarm] \<and>
    RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
-   \<lceil>AuditLog\<rceil>\<^sub>< \<oplus>\<^sub>r idStation:audit \<and>
-   $realWorld:controlled:alarm\<acute> =\<^sub>u \<guillemotleft>alarming\<guillemotright> \<Leftrightarrow> ($idStation:doorLatchAlarm:doorAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>
-                                                  \<or> $idStation:audit:auditAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>))"
+   \<lceil>AuditLog\<rceil>\<^sub>< \<oplus>\<^sub>r tis:audit \<and>
+   $realWorld:controlled:alarm\<acute> =\<^sub>u \<guillemotleft>alarming\<guillemotright> \<Leftrightarrow> ($tis:doorLatchAlarm:doorAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>
+                                                  \<or> $tis:audit:auditAlarm =\<^sub>u \<guillemotleft>alarming\<guillemotright>))"
 *)
 
 abbreviation UpdateAlarm :: "SystemState hrel" where
 "UpdateAlarm \<equiv>
    realWorld:controlled:alarm := (\<guillemotleft>alarming\<guillemotright>
-                                   \<triangleleft> (&idStation:doorLatchAlarm:doorAlarm = \<guillemotleft>alarming\<guillemotright>
-                                     \<or> &idStation:audit:auditAlarm = \<guillemotleft>alarming\<guillemotright>)
+                                   \<triangleleft> (&tis:doorLatchAlarm:doorAlarm = \<guillemotleft>alarming\<guillemotright>
+                                     \<or> &tis:audit:auditAlarm = \<guillemotleft>alarming\<guillemotright>)
                                    \<triangleright> \<guillemotleft>silent\<guillemotright>)"
 
 definition UpdateDisplay :: "SystemState hrel" where
 [upred_defs]:
 "UpdateDisplay =
-  (\<Delta>[idStation,IDStation] \<and>
+  (\<Delta>[tis,IDStation] \<and>
    RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
-   $realWorld:controlled:display\<acute> =\<^sub>u $idStation:currentDisplay \<and>
-   $idStation:currentDisplay\<acute> =\<^sub>u $idStation:currentDisplay)"
+   $realWorld:controlled:display\<acute> =\<^sub>u $tis:currentDisplay \<and>
+   $tis:currentDisplay\<acute> =\<^sub>u $tis:currentDisplay)"
 
 definition UpdateScreen :: "SystemState hrel" where
 [upred_defs]:
 "UpdateScreen =
-  (\<Delta>[idStation,IDStation] \<and>
-   \<Xi>[idStation:admin,Admin] \<and>
+  (\<Delta>[tis,IDStation] \<and>
+   \<Xi>[tis:admin,Admin] \<and>
    RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
-   $realWorld:controlled:screen:screenMsg\<acute> =\<^sub>u $idStation:currentScreen:screenMsg \<and>
+   $realWorld:controlled:screen:screenMsg\<acute> =\<^sub>u $tis:currentScreen:screenMsg \<and>
    $realWorld:controlled:screen:screenConfig\<acute> =\<^sub>u 
-      ($idStation:currentScreen:screenConfig 
-         \<triangleleft> $idStation:admin:rolePresent =\<^sub>u \<guillemotleft>Some(securityOfficer)\<guillemotright> \<triangleright>
+      ($tis:currentScreen:screenConfig 
+         \<triangleleft> $tis:admin:rolePresent =\<^sub>u \<guillemotleft>Some(securityOfficer)\<guillemotright> \<triangleright>
        \<guillemotleft>clear\<guillemotright>) \<and>
    $realWorld:controlled:screen:screenStats\<acute> =\<^sub>u
-      ($idStation:currentScreen:screenStats 
-         \<triangleleft> $idStation:admin:rolePresent \<noteq>\<^sub>u \<guillemotleft>None\<guillemotright> \<triangleright>
+      ($tis:currentScreen:screenStats 
+         \<triangleleft> $tis:admin:rolePresent \<noteq>\<^sub>u \<guillemotleft>None\<guillemotright> \<triangleright>
        \<guillemotleft>clear\<guillemotright>))"
 
 definition TISUpdate :: "SystemState hrel" where
@@ -1006,7 +1060,14 @@ definition TISUpdate :: "SystemState hrel" where
   (realWorld:[RealWorldChanges]\<^sup>+ ;;
    UpdateLatch ;;
    UpdateAlarm ;;
-   realWorld:controlled:display := &idStation:currentDisplay)"
+   realWorld:controlled:display := &tis:currentDisplay)"
+
+definition UpdateFloppy :: "SystemState hrel" where
+[upred_defs, tis_defs]:
+"UpdateFloppy =
+  (realWorld:[RealWorldChanges]\<^sup>+ ;;
+   realWorld:monitored:floppy := &tis:ifloppy:writtenFloppy ;;
+   tis:ifloppy:currentFloppy := badFloppy)"
 
 definition TISEarlyUpdate :: "SystemState hrel" where
 [upred_defs, tis_defs]:
@@ -1016,10 +1077,10 @@ subsubsection \<open>Updating the User Token\<close>
 
 definition UpdateUserToken :: "SystemState hrel" where
 [upred_defs, tis_defs]:
-"UpdateUserToken = realWorld:monitored:userToken := &idStation:iuserToken:currentUserToken"
+"UpdateUserToken = realWorld:monitored:userToken := &tis:iuserToken:currentUserToken"
 
 lemma UpdateUserToken_correct:
-  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
    by (simp add: tis_defs, hoare_auto)
 
 section \<open>The User Entry Operation (1)\<close>
@@ -1056,7 +1117,7 @@ definition UserEntryContext :: "SystemState hrel" where
    ResetScreenMessage \<and>
    ($enclaveStatus\<acute> =\<^sub>u $enclaveStatus \<and>
     ($status \<noteq>\<^sub>u \<guillemotleft>waitingEntry\<guillemotright> \<Rightarrow> $tokenRemovalTimeout\<acute> =\<^sub>u $tokenRemovalTimeout)
-   ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r idStation
+   ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r tis
    )"
 *)
 
@@ -1084,10 +1145,10 @@ definition UserEntryContext :: "SystemState hrel" where
     ResetScreenMessage \<and>
     ($enclaveStatus\<acute> =\<^sub>u $enclaveStatus \<and>
      ($status \<noteq>\<^sub>u \<guillemotleft>waitingEntry\<guillemotright> \<Rightarrow> $tokenRemovalTimeout\<acute> =\<^sub>u $tokenRemovalTimeout)
-    ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r idStation
+    ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r tis
     )"
 
-lemma "Pre UserEntryContext = IDStation \<oplus>\<^sub>p idStation"
+lemma "Pre UserEntryContext = IDStation \<oplus>\<^sub>p tis"
   apply (unfold UserEntryContext_def)
   apply (simp)
   apply (zcalcpre)
@@ -1107,7 +1168,7 @@ lemma UserEntryContext_alt_def [upred_defs]:
     ResetScreenMessage \<and>
    ($enclaveStatus\<acute> =\<^sub>u $enclaveStatus \<and>
     $status \<noteq>\<^sub>u \<guillemotleft>waitingEntry\<guillemotright> \<Rightarrow> $tokenRemovalTimeout\<acute> =\<^sub>u $tokenRemovalTimeout
-   ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r idStation
+   ) \<oplus>\<^sub>r internal) \<oplus>\<^sub>r tis
    )"
   oops
 
@@ -1135,23 +1196,23 @@ section \<open>Operations within the Enclave (1)\<close>
 definition EnclaveContext :: "SystemState hrel" where
 [upred_defs]:
 "EnclaveContext = 
-  (\<Delta>[idStation, IDStation] \<and> 
+  (\<Delta>[tis, IDStation] \<and> 
   RealWorldChanges \<oplus>\<^sub>r realWorld \<and>
   \<Xi>[realWorld:controlled, TISControlledRealWorld] \<and>
-  \<Xi>[idStation:iuserToken, UserToken] \<and>
-  \<Xi>[idStation:iadminToken, AdminToken] \<and>
-  \<Xi>[idStation:ifinger, Finger] \<and>
-  \<Xi>[idStation:stats, Stats] \<and>
-  ($tokenRemovalTimeout\<acute> =\<^sub>u $tokenRemovalTimeout) \<oplus>\<^sub>r idStation:internal
+  \<Xi>[tis:iuserToken, UserToken] \<and>
+  \<Xi>[tis:iadminToken, AdminToken] \<and>
+  \<Xi>[tis:ifinger, Finger] \<and>
+  \<Xi>[tis:stats, Stats] \<and>
+  ($tokenRemovalTimeout\<acute> =\<^sub>u $tokenRemovalTimeout) \<oplus>\<^sub>r tis:internal
   )"
 
 definition EnrolContext :: "SystemState hrel" where
 "EnrolContext = (EnclaveContext \<and>
-  \<Xi>[idStation:ikeyboard, Keyboard] \<and> 
-  \<Xi>[idStation:admin, Admin] \<and> 
-  \<Xi>[idStation:doorLatchAlarm, DoorLatchAlarm] \<and>
-  \<Xi>[idStation:config, Config] \<and>
-  \<Xi>[idStation:ifloppy, Floppy])"
+  \<Xi>[tis:ikeyboard, Keyboard] \<and> 
+  \<Xi>[tis:admin, Admin] \<and> 
+  \<Xi>[tis:doorLatchAlarm, DoorLatchAlarm] \<and>
+  \<Xi>[tis:config, Config] \<and>
+  \<Xi>[tis:ifloppy, Floppy])"
 
 text \<open> We depart from the Z specification for this operation, as to precisely implement the Z
   behaviour we need a state space containing both a @{term ValidEnrol} and a @{term KeyStore}.
@@ -1170,8 +1231,8 @@ definition UpdateKeyStore :: "Enrol \<Rightarrow> KeyStore hrel" where
 "UpdateKeyStore e =
   (\<Delta>[KeyStore] \<and>
    \<guillemotleft>e \<in> ValidEnrol\<guillemotright> \<and>
-   $ownName\<acute> =\<^sub>u \<guillemotleft>Some (subject (idStationCert e))\<guillemotright> \<and>
-   $issuerKey\<acute> =\<^sub>u $issuerKey \<oplus> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright> \<oplus> {(the\<^sub>u($ownName\<acute>), \<guillemotleft>subjectPubK (idStationCert e)\<guillemotright>)\<^sub>u}\<^sub>u
+   $ownName\<acute> =\<^sub>u \<guillemotleft>Some (subject (tisCert e))\<guillemotright> \<and>
+   $issuerKey\<acute> =\<^sub>u $issuerKey \<oplus> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright> \<oplus> {(the\<^sub>u($ownName\<acute>), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)\<^sub>u}\<^sub>u
    )"
   
 lemma rel_typed_Collect [rclos]: "\<lbrakk> \<And> x y. P (x, y) \<Longrightarrow> x \<in> A \<and> y \<in> B \<rbrakk> \<Longrightarrow> Collect P \<in> A \<leftrightarrow>\<^sub>r B"
@@ -1183,8 +1244,8 @@ lemma rel_pfun_Collect [rclos]: "\<lbrakk> \<And> x y. P (x, y) \<Longrightarrow
 lemma UpdateKeyStore_prog_def:
   "UpdateKeyStore e =
        ?[@KeyStore \<and> \<guillemotleft>e \<in> ValidEnrol\<guillemotright>] ;; 
-       ownName :=  \<guillemotleft>Some (subject (idStationCert e))\<guillemotright> ;;
-       issuerKey := issuerKey \<oplus> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright> \<oplus> {(the(ownName), \<guillemotleft>subjectPubK (idStationCert e)\<guillemotright>)}"
+       ownName :=  \<guillemotleft>Some (subject (tisCert e))\<guillemotright> ;;
+       issuerKey := issuerKey \<oplus> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright> \<oplus> {(the(ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
   (is "?P = ?Q")
 proof (rule antisym)
   show "?P \<sqsubseteq> ?Q"
@@ -1204,10 +1265,10 @@ definition UpdateKeyStore :: "Enrol \<Rightarrow> IDStation hrel" where
 [upred_defs, tis_defs]:
 "UpdateKeyStore e = 
   (\<guillemotleft>e \<in> ValidEnrol\<guillemotright>)
-  \<longrightarrow>\<^sub>r keyStore:ownName := \<guillemotleft>Some (subject (idStationCert e))\<guillemotright>
+  \<longrightarrow>\<^sub>r keyStore:ownName := \<guillemotleft>Some (subject (tisCert e))\<guillemotright>
     ;; keyStore:issuerKey := &keyStore:issuerKey 
                            \<union> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
-                           \<union> {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (idStationCert e)\<guillemotright>)}"
+                           \<union> {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
 
 (*
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
@@ -1248,7 +1309,7 @@ subsection \<open>Validating the User Token\<close>
 definition UEC :: "IDStation hrel \<Rightarrow> SystemState hrel" where
 [upred_defs, tis_defs]:
 "UEC(Op) = 
-  (\<Sqinter> t \<bullet> idStation:[Op]\<^sup>+ ;;
+  (\<Sqinter> t \<bullet> tis:[Op]\<^sup>+ ;;
           realWorld:[
             monitored:now := &monitored:now + t ;;
             monitored:door := * ;; monitored:finger := * ;; 
@@ -1259,7 +1320,7 @@ lemma UEC_refines_RealWorldChanges:
   "(RealWorldChanges \<oplus>\<^sub>r realWorld) \<sqsubseteq> UEC(Op)"
   by (rel_auto)
 
-lemma UEC_correct: "\<^bold>{I\<^bold>}P\<^bold>{I\<^bold>} \<Longrightarrow> \<^bold>{I \<oplus>\<^sub>p idStation\<^bold>}UEC(P)\<^bold>{I \<oplus>\<^sub>p idStation\<^bold>}"
+lemma UEC_correct: "\<^bold>{I\<^bold>}P\<^bold>{I\<^bold>} \<Longrightarrow> \<^bold>{I \<oplus>\<^sub>p tis\<^bold>}UEC(P)\<^bold>{I \<oplus>\<^sub>p tis\<^bold>}"
   apply (simp add: wlp_hoare_link wp UEC_def alpha unrest usubst)
   apply (rel_simp)
   done
@@ -1272,7 +1333,7 @@ lemma ReadUserToken_correct: "\<^bold>{IDStation\<^bold>}ReadUserToken\<^bold>{I
 
 definition [upred_defs, tis_defs]: "TISReadUserToken = UEC(ReadUserToken)"
 
-lemma TISReadUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISReadUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISReadUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISReadUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: ReadUserToken_correct TISReadUserToken_def UEC_correct)
 
 lemma "`UserTokenOK \<Rightarrow> (\<^bold>\<exists> e\<in>\<guillemotleft>ValidToken\<guillemotright> \<bullet> \<guillemotleft>goodT(e)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken)`"
@@ -1336,7 +1397,7 @@ lemma UserTokenTorn_test_correct:
   "\<^bold>{IDStation\<^bold>}(UserTokenTorn ;; ?[@b])\<^bold>{IDStation\<^bold>}"
   by (rule seq_hoare_inv_r_2, simp add: hoare_safe, rule hoare_test, simp add: impl_alt_def utp_pred_laws.sup_commute)
 
-lemma TISValidateUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISValidateUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISValidateUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: TISValidateUserToken_def UEC_correct UserTokenTorn_test_correct ValidateUserTokenFail_correct ValidateUserTokenOK_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Reading a Fingerprint\<close>
@@ -1381,7 +1442,7 @@ definition [upred_defs, tis_defs]:
 "TISReadFinger = (UEC(ReadFingerOK) \<or> UEC(FingerTimeout) \<or> UEC(NoFinger)
                     \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingFinger\<guillemotright>]))"
 
-lemma TISReadFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISReadFinger\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISReadFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISReadFinger\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: FingerTimeout_correct NoFinger_correct ReadFingerOK_correct TISReadFinger_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Validating a Fingerprint\<close>
@@ -1418,7 +1479,7 @@ definition [upred_defs, tis_defs]:
   "TISValidateFinger = (UEC(ValidateFingerOK) \<or> UEC(ValidateFingerFail)
                            \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>gotFinger\<guillemotright>]))"
 
-lemma TISValidateFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateFinger\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISValidateFinger_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISValidateFinger\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: TISValidateFinger_def UEC_correct UserTokenTorn_test_correct ValidateFingerFail_correct ValidateFingerOK_correct disj_upred_def hoare_ndet)
   
 subsection \<open>Writing the User Token\<close>
@@ -1541,9 +1602,9 @@ definition [upred_defs, tis_defs]:
    \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingUpdateToken\<guillemotright>]))"
 
 lemma TISWriteUserToken_correct: 
-  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISWriteUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISWriteUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
 proof -
-  have 1: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}UEC(WriteUserToken) ;; UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+  have 1: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}UEC(WriteUserToken) ;; UpdateUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
     by (simp add: UEC_correct UpdateUserToken_correct WriteUserTokenFail_correct WriteUserTokenOK_correct WriteUserToken_def disj_upred_def hoare_ndet seq_hoare_inv_r_2)
   thus ?thesis
     by (simp add: TISWriteUserToken_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
@@ -1596,7 +1657,7 @@ definition [upred_defs, tis_defs]:
   "TISValidateEntry = 
   (UEC(EntryOK) \<or> UEC(EntryNotAllowed) \<or> UEC(UserTokenTorn ;; ?[&internal:status = \<guillemotleft>waitingEntry\<guillemotright>]))"
 
-lemma TISValidateEntry_correct: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISValidateEntry\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISValidateEntry_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISValidateEntry\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: EntryNotAllowed_correct EntryOK_correct TISValidateEntry_def UEC_correct UserTokenTorn_test_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Unlocking the Door\<close>
@@ -1654,7 +1715,7 @@ definition [upred_defs, tis_defs]:
                \<or> UEC(TokenRemovalTimeout))"
 
 lemma TISUnlockDoor_correct:
-  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISUnlockDoor\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISUnlockDoor\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: TISUnlockDoor_def TokenRemovalTimeout_correct UEC_correct UnlockDoorOK_correct WaitingTokenRemoval_correct disj_upred_def hoare_ndet)
 
 subsection \<open>Terminating a Failed Access\<close>
@@ -1678,7 +1739,7 @@ definition [upred_defs, tis_defs]:
         \<or> UEC(WaitingTokenRemoval ;; ?[&internal:status = \<guillemotleft>waitingRemoveTokenFail\<guillemotright>]))"
 
 lemma TISCompleteFailedAccess_correct:
-  "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISCompleteFailedAccess\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISCompleteFailedAccess\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: FailedAccessTokenRemoved_correct TISCompleteFailedAccess_def UEC_correct WaitingTokenRemoval_correct disj_upred_def hoare_ndet)
 
 subsection \<open>The Complete User Entry\<close>
@@ -1687,7 +1748,7 @@ definition [upred_defs, tis_defs]:
 "TISUserEntryOp = (TISReadUserToken \<or> TISValidateUserToken \<or> TISReadFinger \<or> TISValidateFinger
                     \<or> TISWriteUserToken \<or> TISValidateEntry \<or> TISUnlockDoor \<or> TISCompleteFailedAccess)"
 
-lemma TISUserEntryOp_inv: "\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}TISUserEntryOp\<^bold>{IDStation \<oplus>\<^sub>p idStation\<^bold>}"
+lemma TISUserEntryOp_inv: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISUserEntryOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   apply (auto simp add: TISUserEntryOp_def intro!:hoare_disj)
          apply (simp_all add: TISReadUserToken_correct TISValidateUserToken_correct 
       TISReadFinger_correct TISValidateFinger_correct TISWriteUserToken_correct
@@ -1704,13 +1765,13 @@ subsubsection \<open>Requesting Enrolment\<close>
 definition RequestEnrolment :: "SystemState hrel" where
 [upred_defs, tis_defs]:
 "RequestEnrolment = (EnrolContext \<and>
-  \<Xi>[idStation:keyStore, KeyStore] \<and>
-  \<Xi>[idStation:audit, AuditLog] \<and>
-  \<Xi>[idStation:internal, Internal] \<and>
-  ($enclaveStatus =\<^sub>u \<guillemotleft>notEnrolled\<guillemotright>) \<oplus>\<^sub>r idStation:internal \<and>
-  ($floppyPresence =\<^sub>u \<guillemotleft>absent\<guillemotright>) \<oplus>\<^sub>r idStation:ifloppy \<and>
+  \<Xi>[tis:keyStore, KeyStore] \<and>
+  \<Xi>[tis:audit, AuditLog] \<and>
+  \<Xi>[tis:internal, Internal] \<and>
+  ($enclaveStatus =\<^sub>u \<guillemotleft>notEnrolled\<guillemotright>) \<oplus>\<^sub>r tis:internal \<and>
+  ($floppyPresence =\<^sub>u \<guillemotleft>absent\<guillemotright>) \<oplus>\<^sub>r tis:ifloppy \<and>
   ($currentScreen:screenMsg\<acute> =\<^sub>u \<guillemotleft>insertEnrolmentData\<guillemotright> \<and> 
-   $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r idStation
+   $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r tis
   )"
 *)
 
@@ -1730,12 +1791,12 @@ lemma RequestEnrolment_correct: "\<^bold>{IDStation\<^bold>}RequestEnrolment\<^b
 (*
 definition ReadEnrolmentFloppy :: "SystemState hrel" where
 "ReadEnrolmentFloppy = (EnrolContext \<and>
-  \<Xi>[idStation:keyStore, KeyStore] \<and>
-  ($enclaveStatus =\<^sub>u \<guillemotleft>notEnrolled\<guillemotright>) \<oplus>\<^sub>r idStation:internal \<and>
-  ($floppyPresence =\<^sub>u \<guillemotleft>present\<guillemotright>) \<oplus>\<^sub>r idStation:ifloppy \<and>
+  \<Xi>[tis:keyStore, KeyStore] \<and>
+  ($enclaveStatus =\<^sub>u \<guillemotleft>notEnrolled\<guillemotright>) \<oplus>\<^sub>r tis:internal \<and>
+  ($floppyPresence =\<^sub>u \<guillemotleft>present\<guillemotright>) \<oplus>\<^sub>r tis:ifloppy \<and>
   ($currentScreen:screenMsg\<acute> =\<^sub>u \<guillemotleft>validatingEnrolmentData\<guillemotright> \<and> 
    $internal:status\<acute> =\<^sub>u $internal:status \<and>
-   $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r idStation
+   $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>) \<oplus>\<^sub>r tis
   )"
 *)  
 
@@ -1766,7 +1827,7 @@ definition ValidateEnrolmentDataOK :: "SystemState hrel" where
     $internal:enclaveStatus\<acute> =\<^sub>u \<guillemotleft>enclaveQuiescent\<guillemotright> \<and>
     $internal:status\<acute> =\<^sub>u \<guillemotleft>quiescent\<guillemotright> \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>welcom\<guillemotright>
-   ) \<oplus>\<^sub>r idStation)"
+   ) \<oplus>\<^sub>r tis)"
 *)
 
 definition ValidateEnrolmentDataOK :: "IDStation hrel" where
@@ -1792,7 +1853,7 @@ definition ValidateEnrolmentDataFail :: "SystemState hrel" where
     $internal:enclaveStatus\<acute> =\<^sub>u \<guillemotleft>waitingEndEnrol\<guillemotright> \<and>
     $internal:status\<acute> =\<^sub>u $internal:status \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>
-   ) \<oplus>\<^sub>r idStation)"
+   ) \<oplus>\<^sub>r tis)"
 *)
 
 definition ValidateEnrolmentDataFail :: "IDStation hrel" where
@@ -1820,7 +1881,7 @@ definition FailedEnrolFloppyRemoved :: "SystemState hrel" where
     $internal:enclaveStatus\<acute> =\<^sub>u \<guillemotleft>notEnrolled\<guillemotright> \<and>
     $internal:status\<acute> =\<^sub>u $internal:status \<and>
     $currentDisplay\<acute> =\<^sub>u \<guillemotleft>blank\<guillemotright>
-   ) \<oplus>\<^sub>r idStation)"
+   ) \<oplus>\<^sub>r tis)"
 *)
 
 definition FailedEnrolFloppyRemoved :: "IDStation hrel" where
@@ -1836,10 +1897,10 @@ definition FailedEnrolFloppyRemoved :: "IDStation hrel" where
 definition WaitingFloppyRemoval :: "SystemState hrel" where
 "WaitingFloppyRemoval =
   (EnrolContext \<and> 
-   \<Xi>[idStation,IDStation] \<and>
+   \<Xi>[tis,IDStation] \<and>
    ($internal:enclaveStatus =\<^sub>u \<guillemotleft>waitingEndEnrol\<guillemotright> \<and>
     $ifloppy:floppyPresence =\<^sub>u \<guillemotleft>present\<guillemotright>
-   ) \<oplus>\<^sub>r idStation)"
+   ) \<oplus>\<^sub>r tis)"
 *)
 
 definition WaitingFloppyRemoval :: "IDStation hrel" where
@@ -2036,12 +2097,15 @@ definition [upred_defs, tis_defs]:
 
 definition [upred_defs, tis_defs]: "TISStartAdminOp = UEC(ValidateOpRequest)"
 
-definition AdminOpStartedContext :: "IDStation hrel" where
+definition AdminOpStartedContext :: "IDStation upred" where
 [upred_defs, tis_defs]:
 "AdminOpStartedContext =
-  ((&internal:enclaveStatus = \<guillemotleft>waitingStartAdminOp\<guillemotright>
-   \<and> &iadminToken:adminTokenPresence = \<guillemotleft>present\<guillemotright>
-   ) \<longrightarrow>\<^sub>r II)"
+  U(&internal:enclaveStatus = waitingStartAdminOp \<and> &iadminToken:adminTokenPresence = present)"
+
+definition AdminOpFinishContext :: "IDStation upred" where
+[upred_defs, tis_defs]:
+"AdminOpFinishContext =
+  U(&internal:enclaveStatus = waitingFinishAdminOp \<and> &iadminToken:adminTokenPresence = present)"
 
 definition ShutdownOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2072,11 +2136,10 @@ definition TISShutdownOp :: "SystemState hrel" where
 definition OverrideDoorLockOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "OverrideDoorLockOK =
-  AdminOpStartedContext ;;
-  ((&admin:currentAdminOp = \<guillemotleft>Some(overrideLock)\<guillemotright> 
-   ) \<longrightarrow>\<^sub>r currentScreen:screenMsg := \<guillemotleft>requestAdminOp\<guillemotright> ;; 
-          currentDisplay := \<guillemotleft>doorUnlocked\<guillemotright> ;;
-          internal:enclaveStatus := \<guillemotleft>enclaveQuiescent\<guillemotright> ;;
+  ((AdminOpStartedContext \<and> &admin:currentAdminOp = \<guillemotleft>Some(overrideLock)\<guillemotright> 
+   ) \<longrightarrow>\<^sub>r currentScreen:screenMsg := requestAdminOp ;; 
+          currentDisplay := doorUnlocked ;;
+          internal:enclaveStatus := enclaveQuiescent ;;
           UnlockDoor ;;
           AdminFinishOp)"  
 
@@ -2090,6 +2153,72 @@ definition TISOverrideDoorLockOp :: "SystemState hrel" where
   (UEC(OverrideDoorLockOK)
     \<or> UEC((&internal:enclaveStatus = \<guillemotleft>waitingStartAdminOp\<guillemotright> 
         \<and> &admin:currentAdminOp = \<guillemotleft>Some(overrideLock)\<guillemotright>) \<longrightarrow>\<^sub>r BadAdminLogout))"
+
+definition StartArchiveLogOK :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"StartArchiveLogOK =
+  (AdminOpStartedContext \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = present) \<longrightarrow>\<^sub>r
+  currentScreen:screenMsg := doingOp ;;
+  internal:enclaveStatus := waitingFinishAdminOp ;;
+  (\<Sqinter> archive :: Audit set \<bullet> 
+    ArchiveLog archive ;;
+    ifloppy:writtenFloppy := \<guillemotleft>auditFile archive\<guillemotright>)"
+
+definition StartArchiveLogWaitingFloppy :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"StartArchiveLogWaitingFloppy =
+  (AdminOpStartedContext \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = absent) \<longrightarrow>\<^sub>r
+    currentScreen:screenMsg := insertBlankFloppy"
+
+definition StartArchiveLog :: "SystemState hrel" where
+[upred_defs, tis_defs]:
+  "StartArchiveLog = ((tis:[StartArchiveLogOK]\<^sup>+ ;; UpdateFloppy) 
+                      \<or> tis:[StartArchiveLogWaitingFloppy]\<^sup>+
+                      \<or> tis:[BadAdminLogout ;; 
+                             ?[&internal:enclaveStatus = waitingStartAdminOp
+                              \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright>]]\<^sup>+)"
+
+definition FinishArchiveLogOK :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishArchiveLogOK = 
+  (AdminOpFinishContext 
+  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = present
+  \<and> &ifloppy:writtenFloppy = &ifloppy:currentFloppy) 
+    \<longrightarrow>\<^sub>r (\<Sqinter> archive :: Audit set \<bullet> 
+            ClearLogThenAddElements archive ;; 
+            ifloppy:writtenFloppy := \<guillemotleft>auditFile archive\<guillemotright>
+         ) ;;
+         currentScreen:screenMsg := requestAdminOp"
+
+definition FinishArchiveLogNoFloppy :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishArchiveLogNoFloppy = 
+  (AdminOpFinishContext 
+  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = absent)
+    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed"
+
+definition FinishArchiveLogBadMatch :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishArchiveLogBadMatch = 
+  (AdminOpFinishContext 
+  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = present
+  \<and> &ifloppy:writtenFloppy \<noteq> &ifloppy:currentFloppy)
+    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed"
+
+abbreviation "FinishArchiveLogFail \<equiv> FinishArchiveLogBadMatch \<or> FinishArchiveLogNoFloppy"
+
+definition FinishArchiveLog :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishArchiveLog = (FinishArchiveLogOK \<or> FinishArchiveLogFail
+                    \<or> BadAdminLogout ;; ?[&internal:enclaveStatus = waitingFinishAdminOp
+                                         \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright>])"
+
+abbreviation "TISArchiveLogOp \<equiv> StartArchiveLog \<or> UEC(FinishArchiveLog)"
 
 definition TISUpdateConfigDataOp :: "SystemState hrel" where
 [upred_defs, tis_defs]: "TISUpdateConfigDataOp = false"
@@ -2202,7 +2331,7 @@ lemma "\<^bold>{true\<^bold>}InitIDStation\<^bold>{IDStation\<^bold>}"
   apply (simp add: tis_defs frame assigns_comp usubst alpha)
   oops
 
-abbreviation "TISInit \<equiv> idStation:[InitIDStation]\<^sup>+"
+abbreviation "TISInit \<equiv> tis:[InitIDStation]\<^sup>+"
 
 section \<open>The Whole ID Station\<close>
 
@@ -2213,7 +2342,7 @@ definition TISOp :: "SystemState hrel" where
   \<or> TISStartAdminOp
   \<or> TISAdminOp
   \<or> TISAdminLogout
-  \<or> TISIdle) )" (* \<and> (LogChange \<oplus>\<^sub>r idStation) *)
+  \<or> TISIdle) )" (* \<and> (LogChange \<oplus>\<^sub>r tis) *)
 
 abbreviation "TISOpThenUpdate \<equiv> TISOp ;; TISUpdate"
 
@@ -2227,8 +2356,8 @@ lemma RealWorld_wp [wp]: "\<lbrakk>controlled \<sharp> b; monitored \<sharp> b\<
   by (simp add: tis_defs wp usubst unrest)
 
 lemma 
-  "([&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] \<dagger>
-    (TISReadUserToken wp (&idStation:doorLatchAlarm:currentLatch = \<guillemotleft>unlocked\<guillemotright>))) = false"
+  "([&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] \<dagger>
+    (TISReadUserToken wp (&tis:doorLatchAlarm:currentLatch = \<guillemotleft>unlocked\<guillemotright>))) = false"
   by (simp add: tis_defs wp usubst unrest alpha)
 
 subsection \<open>Proving Security Functional Requirement 1\<close>
@@ -2248,32 +2377,32 @@ definition AdminTokenGuardOK :: "IDStation upred" where
   )"
 
 lemma admin_unlock:
-  "[&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+  "[&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISAdminOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)) =
-       U((&idStation:internal:enclaveStatus = \<guillemotleft>waitingStartAdminOp\<guillemotright> \<and> &idStation:iadminToken:adminTokenPresence = \<guillemotleft>present\<guillemotright>) \<and>
-        &idStation:admin:currentAdminOp = \<guillemotleft>Some overrideLock\<guillemotright> \<and> &idStation:admin:rolePresent \<noteq> None \<and> &idStation:admin:currentAdminOp \<noteq> None)"
-  by (simp add: tis_defs wp usubst unrest alpha)
+       U((&tis:internal:enclaveStatus = \<guillemotleft>waitingStartAdminOp\<guillemotright> \<and> &tis:iadminToken:adminTokenPresence = \<guillemotleft>present\<guillemotright>) \<and>
+        &tis:admin:currentAdminOp = \<guillemotleft>Some overrideLock\<guillemotright> \<and> &tis:admin:rolePresent \<noteq> None \<and> &tis:admin:currentAdminOp \<noteq> None)"
+  by (simp add: tis_defs wp usubst unrest alpha, rel_auto)
 
 lemma user_unlock:
-  "[&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>]
+  "[&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>]
         \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)) = 
-   U(&idStation:internal:status = \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> \<and> &idStation:iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>)"
+   U(&tis:internal:status = \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> \<and> &tis:iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>)"
   by (simp add: tis_defs alpha unrest usubst wp)
 
 text \<open> SFR1(a): If the system invariants hold, the door is initially locked, and a @{term TISUserEntryOp} 
   transition is enabled that unlocks the door, then (1) a valid user token is present and (2)
   either a valid finger print or a valid authorisation certificate is also present. \<close>
 
-abbreviation "FSFR1 \<equiv> `(IDStation_inv) \<oplus>\<^sub>p idStation \<and> 
-     [&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+abbreviation "FSFR1 \<equiv> `(IDStation_inv) \<oplus>\<^sub>p tis \<and> 
+     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
-   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p idStation`"
+   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p tis`"
 
 lemma FSFR1_proof:
-  "`(IDStation_inv) \<oplus>\<^sub>p idStation \<and> 
-     [&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+  "`(IDStation_inv) \<oplus>\<^sub>p tis \<and> 
+     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
-   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p idStation`" 
+   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p tis`" 
   apply (simp add: user_unlock)
   apply (rel_auto)
   done
@@ -2283,11 +2412,11 @@ text \<open> SFR1(b): If the system invariants hold, the door is initially locke
   ``guard'' attached. \<close>
 
 lemma FSFR1b:
-  "`((IDStation_inv2 \<and> (Admin \<oplus>\<^sub>p admin) \<and> IDStation_inv10) \<oplus>\<^sub>p idStation \<and> 
-     [&idStation:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+  "`((IDStation_inv2 \<and> (Admin \<oplus>\<^sub>p admin) \<and> IDStation_inv10) \<oplus>\<^sub>p tis \<and> 
+     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISAdminOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)))
    \<Rightarrow> AdminTokenGuardOK
- \<oplus>\<^sub>p idStation`" 
+ \<oplus>\<^sub>p tis`" 
   apply (simp add: admin_unlock)
   apply (simp add: Admin_def alpha)
   apply (rel_auto)
@@ -2296,14 +2425,28 @@ lemma FSFR1b:
 definition AlarmInv :: "SystemState upred" where
 [upred_defs, tis_defs]:
 "AlarmInv = U(&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
-              &idStation:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
-              &idStation:doorLatchAlarm:currentTime \<ge> &idStation:doorLatchAlarm:alarmTimeout
+              &tis:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
+              &tis:doorLatchAlarm:currentTime \<ge> &tis:doorLatchAlarm:alarmTimeout
              \<Rightarrow> &realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>)"
 
+lemma FSFR3_proof:
+  "`IDStation \<Rightarrow>
+         U(&doorLatchAlarm:currentLatch = locked
+          \<and> &doorLatchAlarm:currentDoor = dopen
+          \<and> &doorLatchAlarm:currentTime \<ge> &doorLatchAlarm:alarmTimeout
+          \<Rightarrow> &doorLatchAlarm:doorAlarm = alarming)`"
+  by rel_auto
+
 lemma "\<^bold>{&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
-        &idStation:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
-        &idStation:doorLatchAlarm:currentTime \<ge> &idStation:doorLatchAlarm:alarmTimeout \<and>
-         @(DoorLatchAlarm \<oplus>\<^sub>p (&idStation:doorLatchAlarm)\<^sub>v)\<^bold>} TISUpdate \<^bold>{&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<^bold>}"
+        &tis:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
+        &tis:doorLatchAlarm:currentTime \<ge> &tis:doorLatchAlarm:alarmTimeout \<and>
+         @(DoorLatchAlarm \<oplus>\<^sub>p (&tis:doorLatchAlarm)\<^sub>v)\<^bold>} TISUpdate \<^bold>{&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<^bold>}"
+  oops
+
+lemma FSFR6_proof:
+  "\<^bold>{&tis:iadminToken:adminTokenPresence = absent \<and> &tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}
+    TISOp
+   \<^bold>{&tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}"
   oops
 
 end
