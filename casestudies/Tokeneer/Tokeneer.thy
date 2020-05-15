@@ -270,7 +270,7 @@ lemma sizeLog_calc:
 subsubsection \<open>Real World Types and Entities (2)\<close>
 
 datatype FLOPPY = noFloppy | emptyFloppy | badFloppy | enrolmentFile (enrolmentFile_of: Enrol) | 
-  auditFile "Audit set" | configFile Config 
+  auditFile "Audit set" | configFile (configFile_of: Config)
 
 definition FLOPPY :: "FLOPPY upred" where 
 [upred_defs, tis_defs]:
@@ -2102,10 +2102,11 @@ definition AdminOpStartedContext :: "IDStation upred" where
 "AdminOpStartedContext =
   U(&internal:enclaveStatus = waitingStartAdminOp \<and> &iadminToken:adminTokenPresence = present)"
 
-definition AdminOpFinishContext :: "IDStation upred" where
+definition AdminOpFinishContext :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "AdminOpFinishContext =
-  U(&internal:enclaveStatus = waitingFinishAdminOp \<and> &iadminToken:adminTokenPresence = present)"
+  (&internal:enclaveStatus = waitingFinishAdminOp \<and> &iadminToken:adminTokenPresence = present)
+  \<longrightarrow>\<^sub>r internal:enclaveStatus := enclaveQuiescent"
 
 definition ShutdownOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2183,32 +2184,32 @@ definition StartArchiveLog :: "SystemState hrel" where
 definition FinishArchiveLogOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "FinishArchiveLogOK = 
-  (AdminOpFinishContext 
-  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  AdminOpFinishContext ;;
+  ((&admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
   \<and> &ifloppy:floppyPresence = present
   \<and> &ifloppy:writtenFloppy = &ifloppy:currentFloppy) 
     \<longrightarrow>\<^sub>r (\<Sqinter> archive :: Audit set \<bullet> 
             ClearLogThenAddElements archive ;; 
             ifloppy:writtenFloppy := \<guillemotleft>auditFile archive\<guillemotright>
          ) ;;
-         currentScreen:screenMsg := requestAdminOp"
+         currentScreen:screenMsg := requestAdminOp)"
 
 definition FinishArchiveLogNoFloppy :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "FinishArchiveLogNoFloppy = 
-  (AdminOpFinishContext 
-  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  AdminOpFinishContext ;;
+  ((&admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
   \<and> &ifloppy:floppyPresence = absent)
-    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed"
+    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed)"
 
 definition FinishArchiveLogBadMatch :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "FinishArchiveLogBadMatch = 
-  (AdminOpFinishContext 
-  \<and> &admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
+  AdminOpFinishContext ;; 
+  ((&admin:currentAdminOp = \<guillemotleft>Some(archiveLog)\<guillemotright> 
   \<and> &ifloppy:floppyPresence = present
   \<and> &ifloppy:writtenFloppy \<noteq> &ifloppy:currentFloppy)
-    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed"
+    \<longrightarrow>\<^sub>r AddElementsToLog ;; currentScreen:screenMsg := archiveFailed)"
 
 abbreviation "FinishArchiveLogFail \<equiv> FinishArchiveLogBadMatch \<or> FinishArchiveLogNoFloppy"
 
@@ -2220,8 +2221,57 @@ definition FinishArchiveLog :: "IDStation hrel" where
 
 abbreviation "TISArchiveLogOp \<equiv> StartArchiveLog \<or> UEC(FinishArchiveLog)"
 
+definition StartUpdateConfigOK :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"StartUpdateConfigOK =
+  (AdminOpStartedContext \<and> &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = present) \<longrightarrow>\<^sub>r
+    currentScreen:screenMsg := doingOp ;;
+    internal:enclaveStatus := waitingFinishAdminOp"
+
+definition StartUpdateConfigWaitingFloppy :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"StartUpdateConfigWaitingFloppy =
+  (AdminOpStartedContext \<and> &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = absent) \<longrightarrow>\<^sub>r
+    currentScreen:screenMsg := insertConfigData"
+
+definition StartUpdateConfigData :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"StartUpdateConfigData \<equiv> StartUpdateConfigOK \<or> StartUpdateConfigWaitingFloppy
+                       \<or> ?[&internal:enclaveStatus = waitingStartAdminOp \<and>
+                           &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright>] ;; BadAdminLogout"
+
+definition FinishUpdateConfigDataOK :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishUpdateConfigDataOK =
+  AdminOpFinishContext ;;
+  ((&admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright> 
+  \<and> &ifloppy:floppyPresence = present \<comment> \<open> Can this we secured via an invariant? \<close>
+  \<and> &ifloppy:currentFloppy \<in> \<guillemotleft>range(configFile)\<guillemotright>
+  ) \<longrightarrow>\<^sub>r
+    config := configFile_of &ifloppy:currentFloppy ;;
+    currentScreen:screenMsg := requestAdminOp ;; 
+    AddElementsToLog)"
+
+definition FinishUpdateConfigDataFail :: "IDStation hrel" where
+[upred_defs, tis_defs]:
+"FinishUpdateConfigDataFail =
+  AdminOpFinishContext ;;
+  ((&admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright> 
+  \<and> &ifloppy:currentFloppy \<notin> \<guillemotleft>range(configFile)\<guillemotright>
+  ) \<longrightarrow>\<^sub>r
+    currentScreen:screenMsg := invalidData ;; 
+    AddElementsToLog)"
+
+definition 
+[upred_defs, tis_defs]:
+"FinishUpdateConfigData \<equiv> FinishUpdateConfigDataOK \<or> FinishUpdateConfigDataFail
+                        \<or> ?[&internal:enclaveStatus = waitingFinishAdminOp 
+                           \<and> &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright>] ;; BadAdminLogout"
+
 definition TISUpdateConfigDataOp :: "SystemState hrel" where
-[upred_defs, tis_defs]: "TISUpdateConfigDataOp = false"
+[upred_defs, tis_defs]: "TISUpdateConfigDataOp \<equiv> UEC(StartUpdateConfigData \<or> FinishUpdateConfigData)"
 
 definition TISArchiveLog :: "SystemState hrel" where
 [upred_defs, tis_defs]: "TISArchiveLog = false"
