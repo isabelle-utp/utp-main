@@ -8,6 +8,7 @@ theory utp_hyprog_prelim
     "HOL-Library.Function_Algebras"
     "Dynamics.Derivative_extra"
     "Dynamics.ODE_Cert"
+    "Dynamics.Matrix_Syntax"
 begin recall_syntax
 
 utp_lift_notation utp_pred.taut utp_pred.closure
