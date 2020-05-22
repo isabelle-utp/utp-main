@@ -28,11 +28,31 @@ lemma vec_vwb_lens [simp]: "vwb_lens (vec_lens k)"
   using vec_lambda_unique apply force
   done
 
+lemma vec_lens_indep [simp]: "i \<noteq> j \<Longrightarrow> vec_lens i \<bowtie> vec_lens j"
+  by (unfold_locales, simp_all add: vec_lens_def fun_eq_iff)
+
+lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i :: _ \<Longrightarrow> real^'i\<^esub>)"
+  by (simp add: vec_lens_def bounded_linear_vec_nth)
+
+subsubsection \<open> Matrix Lens \<close>
+
+definition mat_lens :: "'i \<Rightarrow> 'j \<Rightarrow> ('a \<Longrightarrow> 'a mat['i, 'j])" where
+[lens_defs]: "mat_lens i j = vec_lens i ;\<^sub>L vec_lens j"
+
+lemma mat_vwb_lens [simp]: "vwb_lens (mat_lens i j)"
+  by (simp add: mat_lens_def)
+
+lemma mat_lens_indep [simp]: "\<lbrakk> i\<^sub>1 \<noteq> i\<^sub>2; j\<^sub>1 \<noteq> j\<^sub>2 \<rbrakk> \<Longrightarrow> mat_lens i\<^sub>1 j\<^sub>1 \<bowtie> mat_lens i\<^sub>2 j\<^sub>2"
+  by (simp add: mat_lens_def)
+
+lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i j :: _ \<Longrightarrow> real^'i^'j\<^esub>)"
+  by (simp add: lens_defs, metis bounded_linear_vec_nth linear_compose linear_conv_bounded_linear)
+
 subsubsection \<open> Executable Euclidean Space Lens \<close>
 
 abbreviation "eucl_nth k \<equiv> (\<lambda> x. list_of_eucl x ! k)"
 
-lemma bounded_linear_eucl_nth: 
+lemma bounded_linear_eucl_nth [simp]: 
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> bounded_linear (eucl_nth k :: 'a \<Rightarrow> real)"
   by (simp add: bounded_linear_inner_left)
 

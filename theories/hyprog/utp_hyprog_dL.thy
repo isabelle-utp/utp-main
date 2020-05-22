@@ -48,7 +48,7 @@ proof (simp add: hoare_ode_meaning, clarsimp)
 qed
 
 lemma solves_ode_solves:
-  "(F solves_ode (\<lambda> t. F')) {0..l} UNIV \<Longrightarrow> solves F F' true s l"
+  "(F solves_ode (\<lambda> t. F')) UNIV UNIV \<Longrightarrow> solves F F' true s l"
   by (auto simp add: solves_ode_def has_vderiv_on_def, rel_simp)
 
 (*
