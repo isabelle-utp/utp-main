@@ -10,11 +10,17 @@ text \<open> We provide functions for specifying differentiability and taking de
 
 subsection \<open> Differentiability \<close>
 
-lift_definition uexpr_differentiable :: 
-  "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> bool" ("differentiable\<^sub>e")
-is "\<lambda> f. \<forall> s. (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) differentiable (at (get\<^bsub>cvec\<^esub> s))" .
+lift_definition uexpr_differentiable_when :: 
+  "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> (bool, 'c, 's) hyexpr \<Rightarrow> bool" ("differentiable\<^sub>e _ when _" [0, 100] 100)
+is "\<lambda> f d. \<forall> s. d s \<longrightarrow> (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) differentiable (at (get\<^bsub>cvec\<^esub> s))" .
 
-declare uexpr_differentiable_def [upred_defs]
+utp_lift_notation uexpr_differentiable_when (0)
+
+abbreviation uexpr_differentiable :: 
+  "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> bool" ("differentiable\<^sub>e")
+  where "differentiable\<^sub>e f \<equiv> differentiable\<^sub>e f when true"
+
+declare uexpr_differentiable_when_def [upred_defs]
 
 update_uexpr_rep_eq_thms
 
@@ -51,12 +57,17 @@ lemma udifferentiable_mult [closure]:
 
 lemma udifferentiable_divide [closure]:
   fixes e f :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f; `\<not> (f = 0)` \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e / f)"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e (e / f) when (\<not> f = 0)"
   by (rel_simp)
 
 lemma udifferentiable_scaleR [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e n; differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(n *\<^sub>R e)"
+  by (rel_simp)
+
+lemma udifferentiable_inner [closure]:
+  fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "\<lbrakk> differentiable\<^sub>e n; differentiable\<^sub>e e \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(n \<bullet> e)"
   by (rel_simp)
 
 lemma udifferentiable_power [closure]:
@@ -66,7 +77,7 @@ lemma udifferentiable_power [closure]:
 
 lemma udifferentiable_norm [closure]:
   fixes e :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; `\<not> (e = 0)` \<rbrakk> \<Longrightarrow> differentiable\<^sub>e \<^U>(norm e)"
+  shows "differentiable\<^sub>e e \<Longrightarrow> differentiable\<^sub>e \<^U>(norm e) when (\<not> e = 0)"
   by (rel_simp, metis differentiable_compose differentiable_norm_at)
 
 lemma udifferentiable_sin [closure]:
@@ -130,6 +141,29 @@ lemma uderiv_scaleR [uderiv]:
   fixes f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e *\<^sub>R f)"
   by (rel_simp, simp add: frechet_derivative_scaleR)
+
+lemma frechet_derivative_inner:
+  fixes g :: "'a::{real_inner,real_normed_vector} \<Rightarrow> 'b::{real_inner,real_normed_vector}"
+  assumes "f differentiable (at t)" "g differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x \<bullet> g x) (at t) = 
+         (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)"
+proof -
+  have "((\<lambda>x. f x \<bullet> g x) has_derivative (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)) (at t)"
+  proof -
+    have "(f has_derivative \<partial> f (at t)) (at t)"
+      by (meson assms(1) frechet_derivative_works)
+    then show ?thesis
+      using assms(2) frechet_derivative_works has_derivative_inner by blast
+  qed
+
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
+lemma uderiv_inner [uderiv]:
+  fixes f :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e \<bullet> f) = \<^U>(e \<bullet> F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e \<bullet> f)"
+  by (rel_simp, simp add: frechet_derivative_inner)
 
 lemma uderiv_power [uderiv]:
   fixes e :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
