@@ -142,24 +142,6 @@ lemma uderiv_scaleR [uderiv]:
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e *\<^sub>R f)"
   by (rel_simp, simp add: frechet_derivative_scaleR)
 
-lemma frechet_derivative_inner:
-  fixes g :: "'a::{real_inner,real_normed_vector} \<Rightarrow> 'b::{real_inner,real_normed_vector}"
-  assumes "f differentiable (at t)" "g differentiable (at t)"
-  shows "\<partial> (\<lambda> x. f x \<bullet> g x) (at t) = 
-         (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)"
-proof -
-  have "((\<lambda>x. f x \<bullet> g x) has_derivative (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)) (at t)"
-  proof -
-    have "(f has_derivative \<partial> f (at t)) (at t)"
-      by (meson assms(1) frechet_derivative_works)
-    then show ?thesis
-      using assms(2) frechet_derivative_works has_derivative_inner by blast
-  qed
-
-  thus ?thesis
-    using frechet_derivative_at by force
-qed
-
 lemma uderiv_inner [uderiv]:
   fixes f :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e \<bullet> f) = \<^U>(e \<bullet> F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e \<bullet> f)"
@@ -169,12 +151,6 @@ lemma uderiv_power [uderiv]:
   fixes e :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e ^ n) = of_nat n * F' \<turnstile> \<partial>\<^sub>e e * e ^ (n - 1)"
   by (rel_simp, simp add: frechet_derivative_power ueval)
-
-lemma frechet_derivative_cos:
-  fixes f :: "'a::{real_normed_vector} \<Rightarrow> real"
-  assumes "f differentiable (at t)"
-  shows "\<partial> (\<lambda> x. cos (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * - sin (f t))"
-  by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_cos)
 
 lemma uderiv_cos [uderiv]:
   fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"

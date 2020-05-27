@@ -292,6 +292,24 @@ proof -
     using frechet_derivative_at by force
 qed
 
+lemma frechet_derivative_inner:
+  fixes g :: "'a::{real_inner,real_normed_vector} \<Rightarrow> 'b::{real_inner,real_normed_vector}"
+  assumes "f differentiable (at t)" "g differentiable (at t)"
+  shows "\<partial> (\<lambda> x. f x \<bullet> g x) (at t) = 
+         (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)"
+proof -
+  have "((\<lambda>x. f x \<bullet> g x) has_derivative (\<lambda> x. f t \<bullet> \<partial> g (at t) x + \<partial> f (at t) x \<bullet> g t)) (at t)"
+  proof -
+    have "(f has_derivative \<partial> f (at t)) (at t)"
+      by (meson assms(1) frechet_derivative_works)
+    then show ?thesis
+      using assms(2) frechet_derivative_works has_derivative_inner by blast
+  qed
+
+  thus ?thesis
+    using frechet_derivative_at by force
+qed
+
 lemma frechet_derivative_norm:
   fixes f :: "'a::{real_inner} \<Rightarrow> 'b::{real_inner}"
   assumes "f differentiable (at t)" "f t \<noteq> 0"
@@ -328,5 +346,11 @@ lemma frechet_derivative_sin:
   assumes "f differentiable (at t)"
   shows "\<partial> (\<lambda> x. sin (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * cos (f t))"
   by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_sin)
+
+lemma frechet_derivative_cos:
+  fixes f :: "'a::{real_normed_vector} \<Rightarrow> real"
+  assumes "f differentiable (at t)"
+  shows "\<partial> (\<lambda> x. cos (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * - sin (f t))"
+  by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_cos)
 
 end

@@ -68,8 +68,6 @@ lemma frechet_derivative_eucl_nth:
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> \<partial>(eucl_nth k :: 'a \<Rightarrow> real) (at t) = eucl_nth k"
   by (metis (full_types) frechet_derivative_at has_derivative_eucl_nth_triv)
 
-thm has_derivative_compose
-
 lemma frechet_derivative_eucl_nth':
   fixes f :: "_ \<Rightarrow> 'a::executable_euclidean_space"
   assumes "f differentiable (at t)" "k < DIM('a)"
