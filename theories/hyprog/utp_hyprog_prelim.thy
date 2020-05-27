@@ -19,6 +19,8 @@ text \<open> We begin by defining some lenses that will be useful in characteris
 
 subsubsection \<open> Finite Cartesian Product Lens \<close>
 
+declare [[coercion vec_nth]]
+
 definition vec_lens :: "'i \<Rightarrow> ('a \<Longrightarrow> 'a^'i)" where
 [lens_defs]: "vec_lens k = \<lparr> lens_get = (\<lambda> s. vec_nth s k), lens_put = (\<lambda> s v. (\<chi> x. fun_upd (vec_nth s) k v x)) \<rparr>"
 
@@ -50,11 +52,11 @@ lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i j :
 
 subsubsection \<open> Executable Euclidean Space Lens \<close>
 
-abbreviation "eucl_nth k \<equiv> (\<lambda> x. list_of_eucl x ! k)"
+definition "eucl_nth k \<equiv> (\<lambda> x. list_of_eucl x ! k)"
 
 lemma bounded_linear_eucl_nth [simp]: 
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> bounded_linear (eucl_nth k :: 'a \<Rightarrow> real)"
-  by (simp add: bounded_linear_inner_left)
+  by (simp add: eucl_nth_def bounded_linear_inner_left)
 
 lemmas has_derivative_eucl_nth = bounded_linear.has_derivative[OF bounded_linear_eucl_nth]
 
@@ -66,6 +68,14 @@ lemma frechet_derivative_eucl_nth:
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> \<partial>(eucl_nth k :: 'a \<Rightarrow> real) (at t) = eucl_nth k"
   by (metis (full_types) frechet_derivative_at has_derivative_eucl_nth_triv)
 
+thm has_derivative_compose
+
+lemma frechet_derivative_eucl_nth':
+  fixes f :: "_ \<Rightarrow> 'a::executable_euclidean_space"
+  assumes "f differentiable (at t)" "k < DIM('a)"
+  shows "\<partial> (\<lambda> x. eucl_nth k (f x)) (at t) = (\<lambda> x. eucl_nth k (\<partial> f (at t) x))"
+  by (metis (full_types) assms(1) assms(2) frechet_derivative_at frechet_derivative_works has_derivative_eucl_nth)
+
 text \<open> The Euclidean lens extracts the nth component of a Euclidean space \<close>
 
 definition eucl_lens :: "nat \<Rightarrow> (real \<Longrightarrow> 'a::executable_euclidean_space)" ("\<Pi>[_]") where
@@ -75,13 +85,13 @@ definition eucl_lens :: "nat \<Rightarrow> (real \<Longrightarrow> 'a::executabl
 lemma eucl_vwb_lens [simp]: 
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> vwb_lens (\<Pi>[k] :: real \<Longrightarrow> 'a)"
   apply (unfold_locales)
-  apply (simp_all add: lens_defs eucl_of_list_inner)
+  apply (simp_all add: lens_defs eucl_of_list_inner eucl_nth_def)
   apply (metis eucl_of_list_list_of_eucl list_of_eucl_nth list_update_id)
   done
 
 lemma eucl_lens_indep [simp]:
   "\<lbrakk> i < DIM('a); j < DIM('a); i \<noteq> j \<rbrakk> \<Longrightarrow> (eucl_lens i :: real \<Longrightarrow> 'a::executable_euclidean_space) \<bowtie> eucl_lens j"
-  by (unfold_locales, simp_all add: lens_defs list_update_swap eucl_of_list_inner)
+  by (unfold_locales, simp_all add: lens_defs list_update_swap eucl_of_list_inner eucl_nth_def)
 
 lemma bounded_linear_eucl_get [simp]:
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> bounded_linear (get\<^bsub>\<Pi>[k] :: real \<Longrightarrow> 'a\<^esub>)"

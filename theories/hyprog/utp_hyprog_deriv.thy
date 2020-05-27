@@ -170,6 +170,17 @@ lemma uderiv_power [uderiv]:
   shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e ^ n) = of_nat n * F' \<turnstile> \<partial>\<^sub>e e * e ^ (n - 1)"
   by (rel_simp, simp add: frechet_derivative_power ueval)
 
+lemma frechet_derivative_cos:
+  fixes f :: "'a::{real_normed_vector} \<Rightarrow> real"
+  assumes "f differentiable (at t)"
+  shows "\<partial> (\<lambda> x. cos (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * - sin (f t))"
+  by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_cos)
+
+lemma uderiv_cos [uderiv]:
+  fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(cos e) = U(F' \<turnstile> \<partial>\<^sub>e e * - sin e)"
+  by (rel_simp, simp add: frechet_derivative_cos)
+
 text \<open> The derivative of a variable represented by a bounded linear lens into the continuous state 
   space uses the said lens to obtain the derivative from the context @{term F'}. \<close>
 

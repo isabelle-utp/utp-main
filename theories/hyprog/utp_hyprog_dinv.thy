@@ -163,7 +163,28 @@ abbreviation (input) Greater (infix ">\<^sub>P" 50) where
 abbreviation (input) GreaterEq (infix "\<ge>\<^sub>P" 50) where
 "GreaterEq x y \<equiv> y \<le>\<^sub>P x"
 
-utp_const Eq Less LessEq And Or Greater GreaterEq
+definition TrueP ("true\<^sub>P") where
+"TrueP = Eq \<guillemotleft>0\<guillemotright> \<guillemotleft>0\<guillemotright>"
+
+definition NotEq :: 
+  "(real, 'c::executable_euclidean_space, 's) hyexpr \<Rightarrow> (real, 'c, 's) hyexpr \<Rightarrow> ('c, 's) hyprop" (infix "\<noteq>\<^sub>P" 50) where
+"NotEq x y = (x <\<^sub>P y \<or>\<^sub>P x >\<^sub>P y)"
+
+fun NotP :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("\<not>\<^sub>P _" [40] 40) where
+"NotP (Eq x y) = NotEq x y" |
+"NotP (Less x y) = GreaterEq x y" |
+"NotP (LessEq x y) = Greater x y" |
+"NotP (And x y) = Or (NotP x) (NotP y)" |
+"NotP (Or x y) = And (NotP x) (NotP y)"
+
+definition Implies :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop \<Rightarrow> ('c, 's) hyprop" (infixr "\<Rightarrow>\<^sub>P" 25) where
+"Implies x y = (\<not>\<^sub>P x \<or>\<^sub>P y)"
+
+definition EqEucl :: "('a::executable_euclidean_space, 'c::executable_euclidean_space, 's) hyexpr \<Rightarrow> ('a, 'c, 's) hyexpr \<Rightarrow> ('c, 's) hyprop"
+  (infix "=\<^sub>E" 50)
+  where "EqEucl e f = foldr (\<and>\<^sub>P) (map (\<lambda> i. bop eucl_nth \<guillemotleft>i\<guillemotright> e =\<^sub>P bop eucl_nth \<guillemotleft>i\<guillemotright> f) [0..<DIM('a::executable_euclidean_space)]) true\<^sub>P"
+
+utp_const Eq Less LessEq And Or Greater GreaterEq NotEq NotP Implies EqEucl
 
 fun hyprop_deriv :: 
   "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("(_ \<turnstile> \<partial>\<^sub>P _)" [100, 101] 100) where
@@ -182,6 +203,56 @@ fun hyprop_eval :: "('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('
 "\<lbrakk>p \<and>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<and> \<lbrakk>q\<rbrakk>\<^sub>P)" |
 "\<lbrakk>p \<or>\<^sub>P q\<rbrakk>\<^sub>P = (\<lbrakk>p\<rbrakk>\<^sub>P \<or> \<lbrakk>q\<rbrakk>\<^sub>P)"
 
+lemma hyprop_eval_TrueP [simp]: "\<lbrakk>true\<^sub>P\<rbrakk>\<^sub>P = true"
+  by (simp add: TrueP_def)
+
+lemma hyprop_eval_NotEq [simp]: "\<lbrakk>e \<noteq>\<^sub>P f\<rbrakk>\<^sub>P = (e \<noteq>\<^sub>u f)"
+  by (simp add: NotEq_def, rel_auto)
+
+lemma hyprop_eval_NotP [simp]: "\<lbrakk>\<not>\<^sub>P e\<rbrakk>\<^sub>P = (\<not> \<lbrakk>e\<rbrakk>\<^sub>P)"
+  by (induct e, simp_all, rel_auto+)
+
+lemma hyprop_eval_Implies [simp]: "\<lbrakk>e \<Rightarrow>\<^sub>P f\<rbrakk>\<^sub>P = (\<lbrakk>e\<rbrakk>\<^sub>P \<Rightarrow> \<lbrakk>f\<rbrakk>\<^sub>P)"
+  by (simp add: Implies_def, rel_simp)
+
+lemma uderiv_NotEq [uderiv]:
+  "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (e \<noteq>\<^sub>P f)\<rbrakk>\<^sub>P = ((F' \<turnstile> \<partial>\<^sub>e e) =\<^sub>u (F' \<turnstile> \<partial>\<^sub>e f))"
+  by (simp add: NotEq_def, rel_auto)
+
+lemma hyprop_eval_foldr: "\<lbrakk>foldr (\<and>\<^sub>P) xs true\<^sub>P\<rbrakk>\<^sub>P = foldr (\<and>) (map hyprop_eval xs) true"
+  by (induct xs, simp_all)
+
+lemma hyprop_eval_deriv_foldr: "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (foldr (\<and>\<^sub>P) xs true\<^sub>P)\<rbrakk>\<^sub>P = foldr (\<and>) (map (\<lambda> x. \<lbrakk>F' \<turnstile> \<partial>\<^sub>P x\<rbrakk>\<^sub>P) xs) true"
+  by (induct xs, simp_all add: TrueP_def)
+
+lemma foldr_uinf:
+  "\<lbrakk>foldr (\<squnion>) xs \<bottom>\<rbrakk>\<^sub>e s = foldr (\<and>) (map (\<lambda> x. \<lbrakk>x\<rbrakk>\<^sub>e s) xs) True"
+  by (induct xs, rel_auto, simp add: inf_uexpr.rep_eq)
+
+lemma foldr_conj_iff_forall: "foldr (\<and>) xs True = (\<forall> i \<in> set(xs). i)"
+  by (induct xs, auto)
+
+lemma exec_eucl_space_eqI:
+  fixes x y :: "'a::executable_euclidean_space"
+  shows "(\<forall> i\<in>{0..<DIM('a)}. eucl_nth i x = eucl_nth i y) \<Longrightarrow> x = y"
+  by (metis Basis_list atLeastLessThan_iff eucl_nth_def eucl_of_list_list_of_eucl euclidean_eqI index_less inner_commute inner_eucl_of_list length_Basis_list length_map list_of_eucl_def order_refl zero_order(1))
+  
+lemma uderiv_EqEucl [uderiv]:
+  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>E f)\<rbrakk>\<^sub>P = ((F' \<turnstile> \<partial>\<^sub>e e) =\<^sub>u (F' \<turnstile> \<partial>\<^sub>e f))"
+  apply (simp add: EqEucl_def hyprop_eval_deriv_foldr)
+  apply (rel_simp, simp add: foldr_uinf)
+  apply (simp add: comp_def)
+  apply (rel_simp)
+  apply (simp add: foldr_conj_iff_forall)
+  apply (auto simp add: frechet_derivative_eucl_nth')
+  apply (rule exec_eucl_space_eqI)
+  apply (simp)
+  done
+
+lemma uderiv_NotP [uderiv]:
+  "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (\<not>\<^sub>P e)\<rbrakk>\<^sub>P = undefined"
+  apply (induct e) oops \<comment> \<open> Any ideas? \<close>
+
 utp_const hyprop_eval
 
 definition hyprop_pred ("[_]\<^sub>P") where "[p]\<^sub>P = \<lbrakk>p\<rbrakk>\<^sub>P"
@@ -194,6 +265,9 @@ fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Righ
 "differentiable\<^sub>P (e \<le>\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)" |
 "differentiable\<^sub>P (p \<and>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)" |
 "differentiable\<^sub>P (p \<or>\<^sub>P q) = (differentiable\<^sub>P p \<and> differentiable\<^sub>P q)"
+
+lemma differentiable_NotEq [simp]: "differentiable\<^sub>P (e \<noteq>\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)"
+  by (auto simp add: NotEq_def)
 
 lemma dInv:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
@@ -247,8 +321,8 @@ lemma dInv':
 
 lemma dCut_split:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u" "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' (B \<and> [p]\<^sub>P)\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
+  assumes "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u" "\<lbrace>[q]\<^sub>P\<rbrace>ode F' (B \<and> [p]\<^sub>P)\<lbrace>[q]\<^sub>P\<rbrace>\<^sub>u"
   shows "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' B\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
-  by (metis assms dCut hoare_r_weaken_pre(1) hyprop_eval.simps(4) hyprop_pred_def)
-
+  by (metis assms(1) assms(2) dCut hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2) hyprop_eval.simps(4) hyprop_pred_def)
+  
 end
