@@ -163,6 +163,8 @@ lemma Mat_eq_iff':
   apply (simp)
   done
 
+text \<open> Can we find a clever way to formulate these? \<close>
+
 lemma scaleR_Mat:
   assumes "length M \<ge> CARD('j)" "\<And> x. x \<in> set(M) \<Longrightarrow> length(x) \<ge> CARD('i)"
   shows "x *\<^sub>R (Mat M :: 'a::real_vector^'i::nat^'j::nat) = Mat (map_mat (scaleR x) M)"
@@ -173,6 +175,27 @@ lemma scaleR_Mat:
   apply (subst nth_map)
   apply (meson assms(1) assms(2) less_le_trans nat_of_less_CARD nth_mem)
   apply (simp)
+  done
+
+lemma plus_Mat:
+  assumes "length M \<ge> CARD('j)" "\<And> x. x \<in> set(M) \<Longrightarrow> length(x) \<ge> CARD('i)"
+    "length N \<ge> CARD('j)" "\<And> x. x \<in> set(N) \<Longrightarrow> length(x) \<ge> CARD('i)"
+  shows "(Mat M :: 'a::real_vector^'i::nat^'j::nat) + Mat N = Mat (map2 (map2 (+)) M N)"
+  apply (simp add: Mat_def plus_vec_def fun_eq_iff)
+  apply (subst nth_map)
+  apply (simp)
+  using assms less_le_trans nat_of_less_CARD apply blast
+  apply (subst nth_zip)
+  using assms less_le_trans nat_of_less_CARD apply blast
+  using assms less_le_trans nat_of_less_CARD apply blast
+  apply (simp)
+  apply (subst nth_map)
+  apply (simp)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
+  apply (subst nth_zip)
+    apply (auto)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
   done
 
 text \<open> Matrix derivatives \<close>
@@ -199,8 +222,6 @@ qed
 
 definition abs_mat ::  "nat \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> 'b list list) \<Rightarrow> ('a \<Rightarrow> 'b) list list" where
 "abs_mat m n M = map (\<lambda> j. map (\<lambda> i x. (M :: 'a \<Rightarrow> 'b list list) x ! j ! i) [0..<n]) [0..<m]"
-
-term "(\<lambda> M. map_mat f (abs_mat m n M))"
 
 definition deriv_mat :: 
   "nat \<Rightarrow> nat \<Rightarrow> ('b::real_normed_vector \<Rightarrow> 'a::real_normed_vector list list) \<Rightarrow> 'b filter \<Rightarrow> 'b \<Rightarrow> 'a list list" 
