@@ -1,7 +1,7 @@
 section \<open> Matrix Syntax \<close>
 
 theory Matrix_Syntax
-  imports "HOL-Analysis.Analysis"
+  imports Derivative_extra "Differential_Dynamic_Logic.Lib"
 begin
 
 text \<open> This theory introduces nice syntax for concrete matrices, in the style of MATLAB or SAGE. 
@@ -34,6 +34,9 @@ begin
 abbreviation "of_nat' \<equiv> inv nat_of"
 
 lemma nat_of_less_CARD [simp]: "nat_of x < CARD('a)"
+  using nat_of by auto
+
+lemma nat_of_range: "nat_of i \<in> {0..<CARD('a)}"
   using nat_of by auto
 
 lemma inj_nat_of: "inj nat_of"
@@ -121,6 +124,9 @@ text \<open> Construct a matrix from a list of lists. \<close>
 definition Mat :: "'a list list \<Rightarrow> 'a^'m::nat^'n::nat" where
 "Mat M = (\<chi> i j. M!nat_of i!nat_of j)"
 
+abbreviation map_mat :: "('a \<Rightarrow> 'b) \<Rightarrow> 'a list list \<Rightarrow> 'b list list" where
+"map_mat f \<equiv> map (map f)"
+
 lemma Mat_lookup [simp]: "(Mat M)$i$j = M!nat_of i!nat_of j"
   by (simp add: Mat_def)
 
@@ -156,6 +162,83 @@ lemma Mat_eq_iff':
    apply (drule_tac x="of_nat' j :: 'm" in spec)
   apply (simp)
   done
+
+lemma scaleR_Mat:
+  assumes "length M \<ge> CARD('j)" "\<And> x. x \<in> set(M) \<Longrightarrow> length(x) \<ge> CARD('i)"
+  shows "x *\<^sub>R (Mat M :: 'a::real_vector^'i::nat^'j::nat) = Mat (map_mat (scaleR x) M)"
+  apply (auto simp add: Mat_def scaleR_vec_def fun_eq_iff)
+  apply (subst nth_map)
+  apply (simp_all add: assms)
+  using assms less_le_trans nat_of_less_CARD apply blast
+  apply (subst nth_map)
+  apply (meson assms(1) assms(2) less_le_trans nat_of_less_CARD nth_mem)
+  apply (simp)
+  done
+
+text \<open> Matrix derivatives \<close>
+
+lemma frechet_derivative_list_vec:
+  assumes "\<And>i. i \<in> {0..<CARD('a::nat)} \<Longrightarrow> (\<lambda>x. M x ! i) differentiable at t"
+  shows "\<partial> (\<lambda> x. (\<chi> i::'a. M x!nat_of i)) (at t) = (\<lambda>x. \<chi> i. \<partial> (\<lambda>x. M x ! nat_of i) (at t) x)"
+proof -
+  have "\<And>i::'a. (\<lambda>x. M x ! nat_of i) differentiable at t"
+    using assms nat_of_range by blast
+  thus ?thesis
+    by (simp add: frechet_derivative_vec)
+qed
+
+lemma frechet_derivative_list_mat:
+  assumes "\<And>i j. \<lbrakk> i \<in> {0..<CARD('i::nat)}; j \<in> {0..<CARD('j::nat)} \<rbrakk> \<Longrightarrow> (\<lambda>x. M x ! i ! j) differentiable at t"
+  shows "\<partial> (\<lambda> x. (\<chi> (i::'i) (j::'j). M x!nat_of i!nat_of j)) (at t) = (\<lambda>x. \<chi> i j. \<partial> (\<lambda>x. M x ! nat_of i ! nat_of j) (at t) x)"
+proof -
+  have "\<And>(i::'i) (j::'j). (\<lambda>x. M x ! nat_of i ! nat_of j) differentiable at t"
+    by (simp add: assms)
+  thus ?thesis
+    by (simp add: differentiable_vec frechet_derivative_vec)
+qed
+
+definition abs_mat ::  "nat \<Rightarrow> nat \<Rightarrow> ('a \<Rightarrow> 'b list list) \<Rightarrow> ('a \<Rightarrow> 'b) list list" where
+"abs_mat m n M = map (\<lambda> j. map (\<lambda> i x. (M :: 'a \<Rightarrow> 'b list list) x ! j ! i) [0..<n]) [0..<m]"
+
+term "(\<lambda> M. map_mat f (abs_mat m n M))"
+
+definition deriv_mat :: 
+  "nat \<Rightarrow> nat \<Rightarrow> ('b::real_normed_vector \<Rightarrow> 'a::real_normed_vector list list) \<Rightarrow> 'b filter \<Rightarrow> 'b \<Rightarrow> 'a list list" 
+  ("\<partial>\<^sub>M")
+  where
+    "deriv_mat m n M F x = map_mat (\<lambda> f. \<partial> f F x) (abs_mat m n M)"
+
+syntax
+  "_deriv_mat" :: "type \<Rightarrow> type \<Rightarrow> logic" ("\<partial>\<^sub>M'(_, _')")
+
+translations
+  "\<partial>\<^sub>M('i, 'j)" == "CONST deriv_mat CARD('i) CARD('j)"
+
+lemma frechet_derivative_mat:
+  fixes i :: "'i::nat" and j :: "'j::nat"
+  shows "\<partial> (\<lambda>x. M x ! nat_of i ! nat_of j) (at t) = 
+         (\<lambda> x. \<partial>\<^sub>M('i,'j) M (at t) x ! nat_of i ! nat_of j)"
+  by (simp add: deriv_mat_def abs_mat_def)
+
+lemma frechet_derivative_Mat:
+  assumes "\<And>i j. \<lbrakk> i \<in> {0..<CARD('i::nat)}; j \<in> {0..<CARD('j::nat)} \<rbrakk> \<Longrightarrow> (\<lambda>x. M x ! i ! j) differentiable at t"
+  shows "\<partial> (\<lambda> x. (Mat (M x) :: _^'j::nat^'i::nat)) (at t) = (\<lambda>x. Mat (\<partial>\<^sub>M('i,'j) M (at t) x))"
+  apply (simp add: Mat_def)
+  apply (subst frechet_derivative_list_mat)
+   apply (simp add: assms)
+  apply (subst frechet_derivative_mat)
+  apply (simp)
+  done
+
+lemma differentiable_Mat:
+  assumes "\<And>i j. \<lbrakk> i \<in> {0..<CARD('i::nat)}; j \<in> {0..<CARD('j::nat)} \<rbrakk> \<Longrightarrow> (\<lambda>x. M x ! i ! j) differentiable at t"
+  shows "(\<lambda> x. (Mat (M x) :: _^'j::nat^'i::nat)) differentiable (at t)"
+proof -
+  have "\<And>(i::'i) (j::'j). (\<lambda>x. M x ! nat_of i ! nat_of j) differentiable at t"
+    by (simp add: assms)
+  thus ?thesis
+    by (simp add: Mat_def differentiable_vec frechet_derivative_vec)
+qed
 
 text \<open> The following code infers the dimension of the list of lists, checking it corresponds to
   a matrix, and then uses these to construct the type of the matrix -- providing concrete numeral

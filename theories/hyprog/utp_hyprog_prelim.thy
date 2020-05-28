@@ -11,7 +11,19 @@ theory utp_hyprog_prelim
     "Dynamics.Matrix_Syntax"
 begin recall_syntax
 
+subsection \<open> Basic Lens Results \<close>
+
 utp_lift_notation utp_pred.taut utp_pred.closure
+
+lemma bounded_linear_fst_lens [simp]: "bounded_linear (get\<^bsub>fst\<^sub>L\<^esub>)"
+  by (simp add: lens_defs bounded_linear_fst)
+
+lemma bounded_linear_snd_lens [simp]: "bounded_linear (get\<^bsub>snd\<^sub>L\<^esub>)"
+  by (simp add: lens_defs bounded_linear_snd)
+
+lemma bounded_linear_lens_comp [simp]: 
+  "\<lbrakk> bounded_linear (get\<^bsub>x\<^esub>); bounded_linear (get\<^bsub>y\<^esub>) \<rbrakk> \<Longrightarrow> bounded_linear (get\<^bsub>x;\<^sub>Ly\<^esub>)"
+  by (simp add: lens_defs comp_def bounded_linear_compose)
 
 subsection \<open> Continuous Variable Lenses \<close>
 
@@ -33,7 +45,7 @@ lemma vec_vwb_lens [simp]: "vwb_lens (vec_lens k)"
 lemma vec_lens_indep [simp]: "i \<noteq> j \<Longrightarrow> vec_lens i \<bowtie> vec_lens j"
   by (unfold_locales, simp_all add: vec_lens_def fun_eq_iff)
 
-lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i :: _ \<Longrightarrow> real^'i\<^esub>)"
+lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i\<^esub>)"
   by (simp add: vec_lens_def bounded_linear_vec_nth)
 
 subsubsection \<open> Matrix Lens \<close>
@@ -47,8 +59,8 @@ lemma mat_vwb_lens [simp]: "vwb_lens (mat_lens i j)"
 lemma mat_lens_indep [simp]: "\<lbrakk> i\<^sub>1 \<noteq> i\<^sub>2; j\<^sub>1 \<noteq> j\<^sub>2 \<rbrakk> \<Longrightarrow> mat_lens i\<^sub>1 j\<^sub>1 \<bowtie> mat_lens i\<^sub>2 j\<^sub>2"
   by (simp add: mat_lens_def)
 
-lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i j :: _ \<Longrightarrow> real^'i^'j\<^esub>)"
-  by (simp add: lens_defs, metis bounded_linear_vec_nth linear_compose linear_conv_bounded_linear)
+lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i k\<^esub>)"
+  by (simp add: mat_lens_def) 
 
 subsubsection \<open> Executable Euclidean Space Lens \<close>
 
@@ -67,6 +79,16 @@ lemma has_derivative_eucl_nth_triv:
 lemma frechet_derivative_eucl_nth:
   "k < DIM('a::executable_euclidean_space) \<Longrightarrow> \<partial>(eucl_nth k :: 'a \<Rightarrow> real) (at t) = eucl_nth k"
   by (metis (full_types) frechet_derivative_at has_derivative_eucl_nth_triv)
+
+lemma differentiable_eucl_nth:
+  "k < DIM('a::executable_euclidean_space) \<Longrightarrow> (eucl_nth k :: 'a \<Rightarrow> real) differentiable (at t)"
+  using differentiableI has_derivative_eucl_nth_triv by blast
+
+lemma differentiable_eucl_nth':
+  fixes f :: "_ \<Rightarrow> 'a::executable_euclidean_space"
+  assumes "f differentiable (at t)" "k < DIM('a)"
+  shows "(\<lambda> x. eucl_nth k (f x)) differentiable (at t)"
+  by (simp add: assms(1) assms(2) differentiable_compose differentiable_eucl_nth)
 
 lemma frechet_derivative_eucl_nth':
   fixes f :: "_ \<Rightarrow> 'a::executable_euclidean_space"

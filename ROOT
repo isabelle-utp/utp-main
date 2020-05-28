@@ -33,6 +33,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
   options [document = pdf, document_output = "output", timeout = 1000]
   sessions
     "UTP-Reactive"
+    "Differential_Dynamic_Logic"
   theories
     Derivative_extra
     ODE_Cert

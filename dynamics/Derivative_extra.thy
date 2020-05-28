@@ -2,7 +2,7 @@ section \<open> Derivatives: extra laws and tactics \<close>
 
 theory Derivative_extra
   imports
-  "HOL-Analysis.Analysis"
+  "Differential_Dynamic_Logic.Lib"
   "HOL-Eisbach.Eisbach"
   "HOL-Decision_Procs.Approximation"
 begin
@@ -230,6 +230,30 @@ qed
 lemma frechet_derivative_const: "\<partial> (\<lambda> x. k) (at t) = (\<lambda> x. 0)"
   by (metis frechet_derivative_at has_derivative_const)
 
+lemma frechet_derivative_vec:
+  fixes f :: "'i::finite \<Rightarrow> 'a::{real_normed_vector} \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<And> i. (f i) differentiable (at t)"
+  shows "frechet_derivative (\<lambda> x. (\<chi> i. f i x)) (at t) = (\<lambda> x. (\<chi> i. frechet_derivative (f i) (at t) x))"
+proof -
+  have "((\<lambda>a. \<chi> i. f i a) has_derivative (\<lambda>a. \<chi> i. \<partial> (f i) (at t) a)) (at t)"
+    by (metis (no_types) assms frechet_derivative_works has_derivative_vec)
+  then show ?thesis
+    by (metis (no_types) frechet_derivative_at)
+qed
+
+lemma differentiable_vec:
+  fixes f :: "'i::finite \<Rightarrow> 'a::{real_normed_vector} \<Rightarrow> 'b::real_normed_vector"
+  assumes "\<And> i. (f i) differentiable (at t)"
+  shows "(\<lambda> x. \<chi> i. f i x) differentiable (at t)"
+proof -
+  have "\<forall>A i. (f i has_derivative \<partial> (f i) (at t)) (at t within A)"
+    by (metis (no_types) assms differentiable_def frechet_derivative_at has_derivative_at_withinI)
+  then have "\<forall>A. ((\<lambda>a. \<chi> i. f i a) has_derivative (\<lambda>a. \<chi> i. \<partial> (f i) (at t) a)) (at t within A)"
+    by (simp add: has_derivative_vec)
+  then show ?thesis
+    using differentiable_def by blast
+qed
+
 lemma frechet_derivative_plus:
   fixes f g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "f differentiable (at t)" "g differentiable (at t)"
@@ -275,7 +299,7 @@ proof -
 qed
 
 lemma frechet_derivative_scaleR:
-  fixes g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_algebra"
+  fixes g :: "'a::real_normed_vector \<Rightarrow> 'b::real_normed_vector"
   assumes "f differentiable (at t)" "g differentiable (at t)"
   shows "\<partial> (\<lambda> x. f x *\<^sub>R g x) (at t) = 
          (\<lambda> x. f t *\<^sub>R \<partial> g (at t) x + \<partial> f (at t) x *\<^sub>R g t)"
@@ -342,7 +366,7 @@ lemma frechet_derivative_ln:
   by (metis assms(1) assms(2) frechet_derivative_at frechet_derivative_works has_derivative_ln)
 
 lemma frechet_derivative_sin:
-  fixes f :: "'a::{banach, real_normed_algebra_1} \<Rightarrow> real"
+  fixes f :: "'a::{real_normed_vector} \<Rightarrow> real"
   assumes "f differentiable (at t)"
   shows "\<partial> (\<lambda> x. sin (f x)) (at t) = (\<lambda> x. \<partial> f (at t) x * cos (f t))"
   by (metis assms frechet_derivative_at frechet_derivative_works has_derivative_sin)

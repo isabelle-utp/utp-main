@@ -236,7 +236,7 @@ lemma exec_eucl_space_eqI:
   fixes x y :: "'a::executable_euclidean_space"
   shows "(\<forall> i\<in>{0..<DIM('a)}. eucl_nth i x = eucl_nth i y) \<Longrightarrow> x = y"
   by (metis Basis_list atLeastLessThan_iff eucl_nth_def eucl_of_list_list_of_eucl euclidean_eqI index_less inner_commute inner_eucl_of_list length_Basis_list length_map list_of_eucl_def order_refl zero_order(1))
-  
+
 lemma uderiv_EqEucl [uderiv]:
   "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>E f)\<rbrakk>\<^sub>P = ((F' \<turnstile> \<partial>\<^sub>e e) =\<^sub>u (F' \<turnstile> \<partial>\<^sub>e f))"
   apply (simp add: EqEucl_def hyprop_eval_deriv_foldr)
@@ -268,6 +268,30 @@ fun hyprop_differentiable :: "('c::executable_euclidean_space, 's) hyprop \<Righ
 
 lemma differentiable_NotEq [simp]: "differentiable\<^sub>P (e \<noteq>\<^sub>P f) = (differentiable\<^sub>e e \<and> differentiable\<^sub>e f)"
   by (auto simp add: NotEq_def)
+
+lemma udifferentiable_foldr:
+  "differentiable\<^sub>P (foldr (\<and>\<^sub>P) xs true\<^sub>P) = foldr (\<and>) (map differentiable\<^sub>P xs) True"
+  by (induct xs, simp_all add: TrueP_def closure)
+
+lemma udifferentiable_eucl_nth:
+  fixes e :: "('a::executable_euclidean_space, _) uexpr"
+  assumes "differentiable\<^sub>e e" "k < DIM('a)"
+  shows "differentiable\<^sub>e \<^U>(eucl_nth \<guillemotleft>k\<guillemotright> e)"
+  using assms
+  by (rel_simp, simp add: differentiable_eucl_nth')
+
+lemma foldr_map_True: "foldr (\<and>) (map (\<lambda>x. True) xs) True"
+  by (induct xs, simp_all)
+
+lemma udifferentiable_EqEucl [closure]:
+  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>P (e =\<^sub>E f)"
+  unfolding EqEucl_def
+  apply (auto simp add: udifferentiable_foldr comp_def)
+  apply (subst map_cong[of _ _ "(\<lambda>x::nat. differentiable\<^sub>e \<^U>(eucl_nth \<guillemotleft>x\<guillemotright> e) \<and> differentiable\<^sub>e \<^U>(eucl_nth \<guillemotleft>x\<guillemotright> f))" "\<lambda> x. True"])
+  apply (simp)
+   apply (simp add: udifferentiable_eucl_nth)
+  apply (simp add:  foldr_map_True)
+  done
 
 lemma dInv:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"

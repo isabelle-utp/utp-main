@@ -20,6 +20,8 @@ abbreviation uexpr_differentiable ::
   "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> bool" ("differentiable\<^sub>e")
   where "differentiable\<^sub>e f \<equiv> differentiable\<^sub>e f when true"
 
+translations "differentiable\<^sub>e f" <= "differentiable\<^sub>e f when true"
+
 declare uexpr_differentiable_when_def [upred_defs]
 
 update_uexpr_rep_eq_thms
@@ -92,6 +94,16 @@ lemma udifferentiable_cos [closure]:
   using differentiable_compose field_differentiable_imp_differentiable field_differentiable_within_cos
   by (rel_blast)
 
+lemma udifferentiable_vector_2 [closure]:
+  fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> differentiable\<^sub>e U(\<^bold>[[e, f]\<^bold>])"
+  apply (rel_simp)
+  apply (rule differentiable_Mat)
+  apply (rename_tac c m i j)
+  apply (case_tac "j = 0")
+   apply (simp_all)
+  done
+
 subsection \<open> Differentiation \<close>
 
 text \<open> For convenience in the use of ODEs, we differentiate with respect to a known context of
@@ -138,7 +150,7 @@ lemma uderiv_mult [uderiv]:
   by (rel_simp, simp add: frechet_derivative_mult)
 
 lemma uderiv_scaleR [uderiv]:
-  fixes f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
+  fixes f :: "('a::{ordered_euclidean_space}, 'c::ordered_euclidean_space, 's) hyexpr"
   shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e *\<^sub>R f)"
   by (rel_simp, simp add: frechet_derivative_scaleR)
 
@@ -157,6 +169,23 @@ lemma uderiv_cos [uderiv]:
   shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(cos e) = U(F' \<turnstile> \<partial>\<^sub>e e * - sin e)"
   by (rel_simp, simp add: frechet_derivative_cos)
 
+lemma uderiv_sin [uderiv]:
+  fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(sin e) = U(F' \<turnstile> \<partial>\<^sub>e e * cos e)"
+  by (rel_simp, simp add: frechet_derivative_sin)
+
+lemma uderiv_vector_2 [uderiv]:
+  fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(\<^bold>[[e, f]\<^bold>]) = U(\<^bold>[[F' \<turnstile> \<partial>\<^sub>e e, F' \<turnstile> \<partial>\<^sub>e f]\<^bold>])"
+  apply (rel_simp)
+  apply (subst frechet_derivative_Mat)
+   apply (rename_tac c m i j)
+   apply (case_tac "j = 0")
+    apply (simp)
+   apply (simp)
+  apply (simp add: deriv_mat_def abs_mat_def comp_def upt_rec)
+  done
+
 text \<open> The derivative of a variable represented by a bounded linear lens into the continuous state 
   space uses the said lens to obtain the derivative from the context @{term F'}. \<close>
 
@@ -167,7 +196,7 @@ lemma uderiv_var:
 
 lemma uderiv_pr_var [uderiv]:
   assumes "bounded_linear (get\<^bsub>x\<^esub>)"
-  shows "F' \<turnstile> \<partial>\<^sub>e &\<^bold>c:x = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
+  shows "(F' \<turnstile> \<partial>\<^sub>e &\<^bold>c:x) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
   using assms by (simp add: pr_var_def uderiv_var)
 
 end
