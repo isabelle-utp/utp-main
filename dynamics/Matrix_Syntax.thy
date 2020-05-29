@@ -13,7 +13,7 @@ syntax
 
 translations
   (type) "'a^'n" <= (type) "('a, 'n) vec"
-  (type) "'a mat['m, 'n]" == (type) "'a^'m^'n"
+  (type) "'a mat['m, 'n]" == (type) "'a^'n^'m"
   (type) "'a vec['n]" == (type) "'a mat[1, 'n]"
 
 text \<open> We add standard syntax for some matrix / vector operators. \<close>
@@ -154,12 +154,12 @@ lemma Mat_eq_iff: "M = N \<longleftrightarrow> of_Mat M = of_Mat N"
   by (metis of_Mat_inverse) 
 
 lemma Mat_eq_iff': 
-  "((Mat M)::'a mat['m::nat,'n::nat]) = Mat N \<longleftrightarrow> (\<forall> i < CARD('n). \<forall> j < CARD('m). M!i!j = N!i!j)"
+  "((Mat M)::'a mat['m::nat,'n::nat]) = Mat N \<longleftrightarrow> (\<forall> i < CARD('m). \<forall> j < CARD('n). M!i!j = N!i!j)"
   apply (simp add: matrix_eq_iff)
   apply (auto)
    apply (rename_tac i j)
-  apply (drule_tac x="of_nat' i :: 'n" in spec)
-   apply (drule_tac x="of_nat' j :: 'm" in spec)
+  apply (drule_tac x="of_nat' i :: 'm" in spec)
+   apply (drule_tac x="of_nat' j :: 'n" in spec)
   apply (simp)
   done
 
@@ -327,6 +327,11 @@ text \<open> We can construct matrices either using the form @{term "Matrix[[1,2
   using emboldened bracket @{term "\<^bold>[[1,2],[3,4]\<^bold>]"}. Further examples are given below. \<close>
 
 term "\<^bold>[[1::real,2]\<^bold>]"
+
+term "\<^bold>[[1 , 9, -13], 
+       [20, 6, 6  ]\<^bold>]" 
+
+term "(**)"
 
 term "Matrix[[1::real,2]] ** Matrix[[1],[1]]"
 

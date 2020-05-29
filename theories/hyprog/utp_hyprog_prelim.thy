@@ -51,7 +51,7 @@ lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i\<^e
 subsubsection \<open> Matrix Lens \<close>
 
 definition mat_lens :: "'i \<Rightarrow> 'j \<Rightarrow> ('a \<Longrightarrow> 'a mat['i, 'j])" where
-[lens_defs]: "mat_lens i j = vec_lens i ;\<^sub>L vec_lens j"
+[lens_defs]: "mat_lens i j = vec_lens j ;\<^sub>L vec_lens i"
 
 lemma mat_vwb_lens [simp]: "vwb_lens (mat_lens i j)"
   by (simp add: mat_lens_def)
