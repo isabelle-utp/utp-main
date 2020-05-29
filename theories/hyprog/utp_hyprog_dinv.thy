@@ -249,6 +249,13 @@ lemma uderiv_EqEucl [uderiv]:
   apply (simp)
   done
 
+lemma hyprop_eval_EqEucl [simp]: "\<lbrakk>e =\<^sub>E f\<rbrakk>\<^sub>P = (e =\<^sub>u f)"
+  apply (simp add: EqEucl_def hyprop_eval_foldr )
+  apply (rel_simp, simp add: foldr_uinf comp_def foldr_conj_iff_forall)
+  apply (rel_simp)
+  apply (auto intro: exec_eucl_space_eqI)
+  done
+
 lemma uderiv_NotP [uderiv]:
   "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (\<not>\<^sub>P e)\<rbrakk>\<^sub>P = undefined"
   apply (induct e) oops \<comment> \<open> Any ideas? \<close>
@@ -348,5 +355,24 @@ lemma dCut_split:
   assumes "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u" "\<lbrace>[q]\<^sub>P\<rbrace>ode F' (B \<and> [p]\<^sub>P)\<lbrace>[q]\<^sub>P\<rbrace>\<^sub>u"
   shows "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' B\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
   by (metis assms(1) assms(2) dCut hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2) hyprop_eval.simps(4) hyprop_pred_def)
-  
+
+text \<open> Differential Induction Tactic \<close>
+
+named_theorems lift_hyprop
+
+text \<open> Algorithm: (1) lift all UTP predicates to syntactic hybrid predicates, (2) apply differential
+  induction rule, (3) prove the invariant is differentiable, (4) differentiate the invariant,
+  including application of substitutions. \<close>
+
+method dInduct = 
+  (simp add: lift_hyprop closure, rule_tac dInv, (simp_all add: hyprop_pred_def)?, simp add: uderiv closure, simp add : uderiv closure usubst)
+
+lemma lift_hyprop_1 [lift_hyprop]: 
+  "U(x < y) = [x <\<^sub>P y]\<^sub>P"
+  "U(x \<le> y) = [x \<le>\<^sub>P y]\<^sub>P"
+  "U(e = f) = [e =\<^sub>E f]\<^sub>P"
+  "U([P]\<^sub>P \<and> [Q]\<^sub>P) = [P \<and>\<^sub>P Q]\<^sub>P"
+  "U([P]\<^sub>P \<or> [Q]\<^sub>P) = [P \<or>\<^sub>P Q]\<^sub>P"
+  by (simp_all add: hyprop_pred_def)
+
 end
