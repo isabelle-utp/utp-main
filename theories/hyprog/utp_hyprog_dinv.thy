@@ -352,9 +352,9 @@ lemma dInv':
 
 lemma dCut_split:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u" "\<lbrace>[q]\<^sub>P\<rbrace>ode F' (B \<and> [p]\<^sub>P)\<lbrace>[q]\<^sub>P\<rbrace>\<^sub>u"
-  shows "\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>ode F' B\<lbrace>[p \<and>\<^sub>P q]\<^sub>P\<rbrace>\<^sub>u"
-  by (metis assms(1) assms(2) dCut hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2) hyprop_eval.simps(4) hyprop_pred_def)
+  assumes "\<lbrace>p\<rbrace>ode F' B\<lbrace>p\<rbrace>\<^sub>u" "\<lbrace>q\<rbrace>ode F' (B \<and> p)\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>p \<and> q\<rbrace>ode F' B\<lbrace>p \<and> q\<rbrace>\<^sub>u"
+  by (meson assms(1) assms(2) dCut hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2))
 
 text \<open> Differential Induction Tactic \<close>
 

@@ -139,6 +139,7 @@ text \<open> A hybrid state-space consists, minimally, of a suitable topological
 
 alphabet 'c::t2_space hybs =
   cvec :: "'c"
+(*  cghost :: "'c" *)
 
 text \<open> The remainder of the state-space is discrete and we make no requirements of it \<close>
 
