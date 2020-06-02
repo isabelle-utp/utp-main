@@ -165,8 +165,14 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
 
   fun appl_insert_U ctx ts = insert_U [] [] ctx ts;
 
-  val print_tr = [ (@{const_syntax "var"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
-                 , (@{const_syntax "lit"}, K (fn ts => Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
+  val print_tr = [ (@{const_syntax "var"}, 
+                    K (fn ts => if (ts = []) 
+                                   then Const ("var", dummyT) 
+                                   else Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
+                 , (@{const_syntax "lit"}, 
+                    K (fn ts => if (ts = []) 
+                                   then Const ("lit", dummyT) 
+                                   else Const (@{syntax_const "_UTP"}, dummyT) $ hd(ts)))
                  , (@{const_syntax "trop"}, trop_insert_U)
                  , (@{const_syntax "bop"}, bop_insert_U)
                  , (@{const_syntax "uop"}, uop_insert_U)
@@ -174,7 +180,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
                  , (@{const_syntax "uexpr_appl"}, appl_insert_U)];
   val ty_print_tr = map mark_uexpr_leaf utp_terminals;
   (* FIXME: We should also mark expressions that are free variables *)
-  val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (hd ts, tl ts))) ];
+  val no_print_tr = [ (@{syntax_const "_UTP"}, K (fn ts => Term.list_comb (@{print} hd ts, tl ts))) ];
   fun nolift_const thy (n, opt) =  
         let val Const (c, _) = Proof_Context.read_const {proper = true, strict = false} (Proof_Context.init_global thy) n 
         in NoLiftUTP.map (Symtab.update (c, (map Value.parse_int opt))) thy end;

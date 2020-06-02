@@ -647,8 +647,19 @@ subsection \<open> Framing \<close>
 
 text \<open> The following operator states that a relation only modifies variables within @{term a}. \<close>
 
-abbreviation modifies :: "'s hrel \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> bool" (infix "mods" 30) where
+abbreviation modifies :: "'s hrel \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> bool"  where
 "modifies P a \<equiv> P is frame a"
+
+abbreviation not_modifies :: "'s hrel \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> bool" where
+"not_modifies P a \<equiv> P is antiframe a"
+
+syntax
+  "_modifies"     :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infix "mods" 30)
+  "_not_modifies" :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infix "nmods" 30)
+
+translations
+  "_modifies P x" == "CONST modifies P x"
+  "_not_modifies P x" == "CONST not_modifies P x"
 
 lemma mods_skip [closure]:
   "vwb_lens a \<Longrightarrow> II mods a"
@@ -685,6 +696,33 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+
+lemma nmods_intro:
+  "\<lbrakk> vwb_lens x; \<And> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright> \<rbrakk> \<Longrightarrow> P nmods x"
+  by (rel_auto, metis vwb_lens_wb wb_lens.get_put wb_lens.put_twice)
+
+lemma nmods_skip [closure]: "vwb_lens a \<Longrightarrow> II nmods a" 
+  by rel_auto
+
+lemma nmods_seq [closure]:
+  assumes "weak_lens a" "P nmods a" "Q nmods a"
+  shows "P ;; Q nmods a"
+  using assms by (rel_auto', metis weak_lens.put_get)
+
+lemma nmods_cond [closure]:
+  assumes "P nmods a" "Q nmods a"
+  shows "P \<triangleleft> b \<triangleright>\<^sub>r Q nmods a"
+  using assms by (rel_auto')
+
+lemma nmods_gcmd [closure]: "P nmods a \<Longrightarrow> (b \<longrightarrow>\<^sub>r P) nmods a"
+  by (rel_auto)
+
+lemma nmods_choice [closure]: "\<lbrakk> P nmods a; Q nmods a \<rbrakk> \<Longrightarrow> P \<sqinter> Q nmods a"
+  by (rel_auto)
+
+lemma nmods_assigns [closure]:
+  "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a nmods x"
+  by (rel_auto, metis vwb_lens.put_eq)
 
 no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert 
   frame antiframe modify freeze conv_r

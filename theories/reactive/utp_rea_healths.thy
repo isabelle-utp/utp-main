@@ -125,7 +125,7 @@ lemma skip_is_R1 [closure]: "II is R1"
   by (rel_auto)
 
 lemma subst_R1: "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; $tr\<acute> \<sharp>\<^sub>s \<sigma>  \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (R1 P) = R1(\<sigma> \<dagger> P)"
-  by (simp add: R1_def usubst)
+  by (simp add: R1_def usubst usubst_apply_unrest)
   
 lemma subst_R1_closed [closure]: "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; $tr\<acute> \<sharp>\<^sub>s \<sigma>; P is R1 \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> P is R1"
   by (metis Healthy_def subst_R1)

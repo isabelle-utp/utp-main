@@ -307,7 +307,7 @@ lemma subst_upd_plus [usubst]:
 
 text \<open> If a variable is unrestricted in a substitution then it's application has no effect. \<close>
 
-lemma usubst_apply_unrest [usubst]:
+lemma usubst_apply_unrest:
   "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>s x = var x"
   by (transfer, auto simp add: fun_eq_iff)
      (metis mwb_lens_weak vwb_lens_mwb vwb_lens_wb wb_lens.get_put weak_lens.view_determination)

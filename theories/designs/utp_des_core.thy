@@ -202,7 +202,7 @@ lemma state_subst_design [usubst]:
 
 lemma design_subst [usubst]:
   "\<lbrakk> $ok \<sharp>\<^sub>s \<sigma>; $ok\<acute> \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> (P \<turnstile> Q) = (\<sigma> \<dagger> P) \<turnstile> (\<sigma> \<dagger> Q)"
-  by (simp add: design_def usubst)
+  by (simp add: design_def usubst usubst_apply_unrest)
 
 lemma design_msubst [usubst]:
   "(P(x) \<turnstile> Q(x))\<lbrakk>x\<rightarrow>v\<rbrakk> = (P(x)\<lbrakk>x\<rightarrow>v\<rbrakk> \<turnstile> Q(x)\<lbrakk>x\<rightarrow>v\<rbrakk>)"
