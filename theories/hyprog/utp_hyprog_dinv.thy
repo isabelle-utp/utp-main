@@ -356,6 +356,12 @@ lemma dCut_split:
   shows "\<lbrace>p \<and> q\<rbrace>ode F' B\<lbrace>p \<and> q\<rbrace>\<^sub>u"
   by (meson assms(1) assms(2) dCut hoare_r_conj hoare_r_weaken_pre(1) hoare_r_weaken_pre(2))
 
+lemma dCut_split':
+  fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
+  assumes "\<lbrace>p\<rbrace>ode F' B\<lbrace>p\<rbrace>\<^sub>u" "\<lbrace>q\<rbrace>ode F' (B \<and> p)\<lbrace>q\<rbrace>\<^sub>u"
+  shows "\<lbrace>p \<and> q\<rbrace>ode F' B\<lbrace>q\<rbrace>\<^sub>u"
+  using assms(1) assms(2) dCut hoare_r_weaken_pre(1) hoare_r_weaken_pre(2) by blast
+
 text \<open> Differential Induction Tactic \<close>
 
 named_theorems lift_hyprop

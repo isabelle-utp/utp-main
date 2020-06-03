@@ -7,7 +7,7 @@ begin
 subsection \<open> dL Rules \<close>
 
 theorem dWeakening: \<comment> \<open> Differential Weakening \<close>
-  "`B \<Rightarrow> C` \<Longrightarrow> \<^bold>[ode F' B\<^bold>]C = true"
+  "`B \<Rightarrow> C` \<Longrightarrow> \<^bold>{A\<^bold>}ode F' B\<^bold>{C\<^bold>}"
   by (rel_simp, simp add: lit.rep_eq uexpr_appl.rep_eq)
 
 lemma hoare_ode_meaning:

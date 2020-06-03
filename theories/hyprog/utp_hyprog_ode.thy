@@ -79,4 +79,21 @@ lemma ode_mono:
   "`(C \<Rightarrow> B)` \<Longrightarrow> ode F' B \<sqsubseteq> ode F' C"
   by (rel_blast)
 
+lemma frame_nmods_indep [closure]: "\<lbrakk> vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> a:[P] nmods b"
+  by (rel_auto, metis lens_indep.lens_put_comm vwb_lens_wb wb_lens.get_put)
+
+text \<open> ODE evolutions do not modify discrete variables \<close>
+
+lemma ode_nmods_discrete: "ode F' B nmods \<^bold>d"
+  by (simp add: ode_def closure)
+
+lemma disc_nmods_invar:
+  "\<lbrakk> \<^bold>c \<sharp> b; P nmods \<^bold>d \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
+  by (rel_simp', force)
+
+lemma cont_nmods_invar:
+  "\<lbrakk> \<^bold>d \<sharp> b; P nmods \<^bold>c \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
+  by (rel_simp', force)
+
+
 end
