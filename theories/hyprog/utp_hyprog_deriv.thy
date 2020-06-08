@@ -199,4 +199,14 @@ lemma uderiv_pr_var [uderiv]:
   shows "(F' \<turnstile> \<partial>\<^sub>e &\<^bold>c:x) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
   using assms by (simp add: pr_var_def uderiv_var)
 
+
+text \<open> Example \<close>
+
+lemma 
+  fixes x :: "real \<Longrightarrow> real"
+  assumes "vwb_lens x" "bounded_linear (get\<^bsub>x\<^esub>)"
+  shows "[x \<mapsto>\<^sub>s &x] \<turnstile> \<partial>\<^sub>e (2*&\<^bold>c:x) = 2*&\<^bold>c:x"
+  by (simp add: uderiv usubst closure assms alpha, rel_simp)
+
+
 end
