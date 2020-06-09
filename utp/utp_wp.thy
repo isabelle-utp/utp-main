@@ -132,6 +132,10 @@ lemma total_det_then_wlp_wp_equiv: "\<lbrakk> Pre(P) = true; ufunctional P \<rbr
 lemma Pre_as_wp: "Pre(P) = P wp true"
   by (simp add: wp_true)
 
+lemma nmods_via_wp:
+  "\<lbrakk> vwb_lens x; \<And> v. P wp (&x = \<guillemotleft>v\<guillemotright>) = U(&x = \<guillemotleft>v\<guillemotright>) \<rbrakk> \<Longrightarrow> P nmods x"
+  by (rel_auto, metis vwb_lens.put_eq)
+
 method wp_calc =
   (rule wp_refine_intro wp_eq_intro, wp_tac)
 

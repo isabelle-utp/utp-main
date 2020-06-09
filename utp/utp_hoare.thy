@@ -328,5 +328,10 @@ lemma antiframe_strong_hoare_r:
   assumes "vwb_lens a" "a \<natural> r" "a \<sharp> q" "\<lbrace>p \<and> r\<rbrace>P\<lbrace>q\<rbrace>\<^sub>u"  
   shows "\<lbrace>p \<and> r\<rbrace> a:\<lbrakk>P\<rbrakk> \<lbrace>q \<and> r\<rbrace>\<^sub>u"
   using assms by (rel_auto, metis)
-  
+
+lemma nmods_invariant:
+  assumes "S nmods a" "a \<natural> p"
+  shows "\<^bold>{p\<^bold>}S\<^bold>{p\<^bold>}"
+  using assms by (rel_auto, metis)
+
 end

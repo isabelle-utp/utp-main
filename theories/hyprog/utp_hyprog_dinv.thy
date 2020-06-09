@@ -373,6 +373,8 @@ text \<open> Algorithm: (1) lift all UTP predicates to syntactic hybrid predicat
 method dInduct = 
   (simp add: lift_hyprop closure, rule_tac dInv, (simp_all add: hyprop_pred_def)?, simp add: uderiv closure, simp add : uderiv closure usubst)
 
+method dInduct_auto = (dInduct; (rel_simp, auto simp add: algebra_simps))
+
 lemma lift_hyprop_1 [lift_hyprop]: 
   "U(x < y) = [x <\<^sub>P y]\<^sub>P"
   "U(x \<le> y) = [x \<le>\<^sub>P y]\<^sub>P"
