@@ -14,7 +14,7 @@ find_theorems continuous Deriv.differentiable
 lemma derivation_lemma1:
   fixes e :: "('a::ordered_euclidean_space, 'c::executable_euclidean_space, 's) hyexpr"
   assumes "differentiable\<^sub>e e" "(F has_vector_derivative \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) (at t within A)"
-  shows "((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F has_vector_derivative \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t within A)"
+  shows "((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F has_vector_derivative \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t within A)"
   using assms
   apply (rel_auto)
   apply (simp add: frechet_derivative_works)
@@ -37,7 +37,7 @@ declare [[coercion taut]]
 
 lemma dI_eq:
   fixes e :: "('a::ordered_euclidean_space, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e e = 0))"
+  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> (\<L>\<^bsub>F'\<^esub> e = 0))"
   shows "\<lbrace>e = 0\<rbrace>ode F' B\<lbrace>e = 0\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "'s"
@@ -65,7 +65,7 @@ using assms proof (rel_auto')
 
   have "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F
                       has_vector_derivative 
-                    \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t)"
+                    \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t)"
     using a(3)
     by (simp add: assms(1) derivation_lemma1)
 
@@ -96,7 +96,7 @@ qed
 
 lemma dI_ge:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> 0 \<le> F' \<turnstile> \<partial>\<^sub>e e)"
+  assumes "differentiable\<^sub>e e" "\<^U>(B \<Rightarrow> 0 \<le> \<L>\<^bsub>F'\<^esub> e)"
   shows "\<lbrace>0 \<le> e\<rbrace>ode F' B\<lbrace>0 \<le> e\<rbrace>\<^sub>u" and "\<lbrace>0 < e\<rbrace>ode F' B\<lbrace>0 < e\<rbrace>\<^sub>u"
 using assms proof (rel_auto')
   fix l :: real and F :: "real \<Rightarrow> 'c" and s :: "'s"
@@ -123,24 +123,24 @@ using assms proof (rel_auto')
 
   hence "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F
                       has_vector_derivative 
-                    \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t)"
+                    \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)) (at t)"
     by (simp add: a(3) assms(1) derivation_lemma1)
 
   hence "\<forall>t\<in>{0..l}. ((\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F
                       has_derivative 
-                    (\<lambda> x. x *\<^sub>R \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>))) (at t)"
+                    (\<lambda> x. x *\<^sub>R \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>))) (at t)"
     using has_vector_derivative_def by blast
-  hence "\<exists>x\<in>{0..l}. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F 0, \<dots> = s\<rparr>) = l * \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F x, \<dots> = s\<rparr>)"
-    using a(2) mvt_very_simple[of 0 l "(\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F" "\<lambda> t. (\<lambda> x. x *\<^sub>R \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>))"]
+  hence "\<exists>x\<in>{0..l}. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>) - \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F 0, \<dots> = s\<rparr>) = l * \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F x, \<dots> = s\<rparr>)"
+    using a(2) mvt_very_simple[of 0 l "(\<lambda>x. \<lbrakk>e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = x, \<dots> = s\<rparr>)) \<circ> F" "\<lambda> t. (\<lambda> x. x *\<^sub>R \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>))"]
     by (simp add: has_derivative_at_withinI)
 
   then obtain t 
-    where "0 \<le> t" "t \<le> l" "\<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>) \<ge> 0" "\<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>) \<ge> 0"
-          "\<lbrakk>e\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr> - \<lbrakk>e\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = F 0, \<dots> = s\<rparr> = l * \<lbrakk>F' \<turnstile>  \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)"
-    apply (simp add: uexpr_deriv.rep_eq lens_defs)
+    where "0 \<le> t" "t \<le> l" "\<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>) \<ge> 0" "\<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr>) \<ge> 0"
+          "\<lbrakk>e\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = F l, \<dots> = s\<rparr> - \<lbrakk>e\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = F 0, \<dots> = s\<rparr> = l * \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>)"
+    apply (simp add: lie_deriv.rep_eq lens_defs)
     using d0 by force
 
-  moreover have "l * \<lbrakk>F' \<turnstile> \<partial>\<^sub>e e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>) \<ge> 0"
+  moreover have "l * \<lbrakk>\<L>\<^bsub>F'\<^esub> e\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F t, \<dots> = s\<rparr>) \<ge> 0"
     using a(2) calculation(3) by auto
 
   ultimately show 
@@ -187,12 +187,12 @@ definition EqEucl :: "('a::executable_euclidean_space, 'c::executable_euclidean_
 utp_const Eq Less LessEq And Or Greater GreaterEq NotEq NotP Implies EqEucl
 
 fun hyprop_deriv :: 
-  "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("(_ \<turnstile> \<partial>\<^sub>P _)" [100, 101] 100) where
-"F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e =\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
-"F' \<turnstile> \<partial>\<^sub>P (e <\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e \<le>\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
-"F' \<turnstile> \<partial>\<^sub>P (e \<le>\<^sub>P f) = (F' \<turnstile> \<partial>\<^sub>e e \<le>\<^sub>P F' \<turnstile> \<partial>\<^sub>e f)" |
-"F' \<turnstile> \<partial>\<^sub>P (p \<and>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)" |
-"F' \<turnstile> \<partial>\<^sub>P (p \<or>\<^sub>P q) = (F' \<turnstile> \<partial>\<^sub>P p \<and>\<^sub>P F' \<turnstile> \<partial>\<^sub>P q)"
+  "'c usubst \<Rightarrow> ('c::executable_euclidean_space, 's) hyprop \<Rightarrow> ('c, 's) hyprop" ("\<L>\<^sub>P\<^bsub>_\<^esub>") where
+"\<L>\<^sub>P\<^bsub>F'\<^esub> (e =\<^sub>P f) = (\<L>\<^bsub>F'\<^esub> e =\<^sub>P \<L>\<^bsub>F'\<^esub> f)" |
+"\<L>\<^sub>P\<^bsub>F'\<^esub> (e <\<^sub>P f) = (\<L>\<^bsub>F'\<^esub> e \<le>\<^sub>P \<L>\<^bsub>F'\<^esub> f)" |
+"\<L>\<^sub>P\<^bsub>F'\<^esub> (e \<le>\<^sub>P f) = (\<L>\<^bsub>F'\<^esub> e \<le>\<^sub>P \<L>\<^bsub>F'\<^esub> f)" |
+"\<L>\<^sub>P\<^bsub>F'\<^esub> (p \<and>\<^sub>P q) = (\<L>\<^sub>P\<^bsub>F'\<^esub> p \<and>\<^sub>P \<L>\<^sub>P\<^bsub>F'\<^esub> q)" |
+"\<L>\<^sub>P\<^bsub>F'\<^esub> (p \<or>\<^sub>P q) = (\<L>\<^sub>P\<^bsub>F'\<^esub> p \<and>\<^sub>P \<L>\<^sub>P\<^bsub>F'\<^esub> q)"
 
 utp_const hyprop_deriv
 
@@ -216,13 +216,13 @@ lemma hyprop_eval_Implies [simp]: "\<lbrakk>e \<Rightarrow>\<^sub>P f\<rbrakk>\<
   by (simp add: Implies_def, rel_simp)
 
 lemma uderiv_NotEq [uderiv]:
-  "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (e \<noteq>\<^sub>P f)\<rbrakk>\<^sub>P = ((F' \<turnstile> \<partial>\<^sub>e e) =\<^sub>u (F' \<turnstile> \<partial>\<^sub>e f))"
+  "\<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> (e \<noteq>\<^sub>P f)\<rbrakk>\<^sub>P = ((\<L>\<^bsub>F'\<^esub> e) =\<^sub>u (\<L>\<^bsub>F'\<^esub> f))"
   by (simp add: NotEq_def, rel_auto)
 
 lemma hyprop_eval_foldr: "\<lbrakk>foldr (\<and>\<^sub>P) xs true\<^sub>P\<rbrakk>\<^sub>P = foldr (\<and>) (map hyprop_eval xs) true"
   by (induct xs, simp_all)
 
-lemma hyprop_eval_deriv_foldr: "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (foldr (\<and>\<^sub>P) xs true\<^sub>P)\<rbrakk>\<^sub>P = foldr (\<and>) (map (\<lambda> x. \<lbrakk>F' \<turnstile> \<partial>\<^sub>P x\<rbrakk>\<^sub>P) xs) true"
+lemma hyprop_eval_deriv_foldr: "\<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> (foldr (\<and>\<^sub>P) xs true\<^sub>P)\<rbrakk>\<^sub>P = foldr (\<and>) (map (\<lambda> x. \<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> x\<rbrakk>\<^sub>P) xs) true"
   by (induct xs, simp_all add: TrueP_def)
 
 lemma foldr_uinf:
@@ -238,7 +238,7 @@ lemma exec_eucl_space_eqI:
   by (metis Basis_list atLeastLessThan_iff eucl_nth_def eucl_of_list_list_of_eucl euclidean_eqI index_less inner_commute inner_eucl_of_list length_Basis_list length_map list_of_eucl_def order_refl zero_order(1))
 
 lemma uderiv_EqEucl [uderiv]:
-  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P (e =\<^sub>E f)\<rbrakk>\<^sub>P = ((F' \<turnstile> \<partial>\<^sub>e e) =\<^sub>u (F' \<turnstile> \<partial>\<^sub>e f))"
+  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> (e =\<^sub>E f)\<rbrakk>\<^sub>P = ((\<L>\<^bsub>F'\<^esub> e) =\<^sub>u (\<L>\<^bsub>F'\<^esub> f))"
   apply (simp add: EqEucl_def hyprop_eval_deriv_foldr)
   apply (rel_simp, simp add: foldr_uinf)
   apply (simp add: comp_def)
@@ -257,7 +257,7 @@ lemma hyprop_eval_EqEucl [simp]: "\<lbrakk>e =\<^sub>E f\<rbrakk>\<^sub>P = (e =
   done
 
 lemma uderiv_NotP [uderiv]:
-  "\<lbrakk>F' \<turnstile> \<partial>\<^sub>P (\<not>\<^sub>P e)\<rbrakk>\<^sub>P = undefined"
+  "\<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> (\<not>\<^sub>P e)\<rbrakk>\<^sub>P = undefined"
   apply (induct e) oops \<comment> \<open> Any ideas? \<close>
 
 utp_const hyprop_eval
@@ -302,13 +302,13 @@ lemma udifferentiable_EqEucl [closure]:
 
 lemma dInv:
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>P p" "`B \<Rightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P p\<rbrakk>\<^sub>P`"
+  assumes "differentiable\<^sub>P p" "`B \<Rightarrow> \<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> p\<rbrakk>\<^sub>P`"
   shows "\<lbrace>[p]\<^sub>P\<rbrace>ode F' B\<lbrace>[p]\<^sub>P\<rbrace>\<^sub>u"
 using assms proof (simp add: hyprop_pred_def, induct p)
   case (Eq x1 x2)
-  hence a: "\<^U>(B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 = F' \<turnstile> \<partial>\<^sub>e x2)" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "\<^U>(B \<Rightarrow> \<L>\<^bsub>F'\<^esub> x1 = \<L>\<^bsub>F'\<^esub> x2)" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x1 - F' \<turnstile> \<partial>\<^sub>e x2) = 0`"
+  from a(1) have b: "`B \<Rightarrow> (\<L>\<^bsub>F'\<^esub> x1 - \<L>\<^bsub>F'\<^esub> x2) = 0`"
     by (rel_auto)
   hence "\<lbrace>(x1 - x2) = 0\<rbrace> ode F' B \<lbrace>(x1 - x2) = 0\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_eq uderiv closure)
@@ -316,9 +316,9 @@ using assms proof (simp add: hyprop_pred_def, induct p)
     by (rel_auto')
 next
   case (Less x1 x2)
-  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le> F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "`B \<Rightarrow> \<L>\<^bsub>F'\<^esub> x1 \<le> \<L>\<^bsub>F'\<^esub> x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge> 0`"
+  from a(1) have b: "`B \<Rightarrow> (\<L>\<^bsub>F'\<^esub> x2 - \<L>\<^bsub>F'\<^esub> x1) \<ge> 0`"
     by (rel_auto)
   hence "\<lbrace>0 < (x2 - x1)\<rbrace> ode F' B \<lbrace>0 < (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
@@ -326,9 +326,9 @@ next
     by (rel_auto')
 next
   case (LessEq x1 x2)
-  hence a: "`B \<Rightarrow> F' \<turnstile> \<partial>\<^sub>e x1 \<le> F' \<turnstile> \<partial>\<^sub>e x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
+  hence a: "`B \<Rightarrow> \<L>\<^bsub>F'\<^esub> x1 \<le> \<L>\<^bsub>F'\<^esub> x2`" "differentiable\<^sub>e x1" "differentiable\<^sub>e x2"
     by (auto)
-  from a(1) have b: "`B \<Rightarrow> (F' \<turnstile> \<partial>\<^sub>e x2 - F' \<turnstile> \<partial>\<^sub>e x1) \<ge> 0`"
+  from a(1) have b: "`B \<Rightarrow> (\<L>\<^bsub>F'\<^esub> x2 - \<L>\<^bsub>F'\<^esub> x1) \<ge> 0`"
     by (rel_auto)
   hence "\<lbrace>0 \<le> (x2 - x1)\<rbrace> ode F' B \<lbrace>0 \<le> (x2 - x1)\<rbrace>\<^sub>u"
     by (simp add: a(2) a(3) dI_ge uderiv closure)
@@ -346,7 +346,7 @@ qed
 
 lemma dInv':
   fixes e :: "(real, 'c::executable_euclidean_space, 's) hyexpr"
-  assumes "differentiable\<^sub>P I" "`B \<Rightarrow> \<lbrakk>F' \<turnstile> \<partial>\<^sub>P I\<rbrakk>\<^sub>P`" "`P \<Rightarrow> [I]\<^sub>P`"
+  assumes "differentiable\<^sub>P I" "`B \<Rightarrow> \<lbrakk>\<L>\<^sub>P\<^bsub>F'\<^esub> I\<rbrakk>\<^sub>P`" "`P \<Rightarrow> [I]\<^sub>P`"
   shows "\<lbrace>P\<rbrace>ode F' B\<lbrace>[I]\<^sub>P\<rbrace>\<^sub>u"
   using assms(1) assms(2) assms(3) dInv pre_str_hoare_r by blast
 

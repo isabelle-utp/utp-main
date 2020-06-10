@@ -110,73 +110,73 @@ text \<open> For convenience in the use of ODEs, we differentiate with respect t
   derivative for the variables. This means we don't have to deal with symbolic variable derivatives
   and so the state space is unchanged by differentiation. \<close>
 
-lift_definition uexpr_deriv :: 
-  "'c usubst \<Rightarrow> ('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> ('a, 'c, 's) hyexpr" ("(_ \<turnstile> \<partial>\<^sub>e _)" [100, 101] 100)
+lift_definition lie_deriv :: 
+  "'c usubst \<Rightarrow> ('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr \<Rightarrow> ('a, 'c, 's) hyexpr" ("\<L>\<^bsub>_\<^esub>")
 is "\<lambda> \<sigma> f s. frechet_derivative (\<lambda> x. f (put\<^bsub>cvec\<^esub> s x)) (at (get\<^bsub>cvec\<^esub> s)) (\<sigma> (get\<^bsub>cvec\<^esub> s))" .
 
 update_uexpr_rep_eq_thms
 
-utp_const uexpr_deriv
+utp_const lie_deriv
 
 named_theorems uderiv
 
-lemma uderiv_zero [uderiv]: "F' \<turnstile> \<partial>\<^sub>e 0 = 0"
+lemma uderiv_zero [uderiv]: "\<L>\<^bsub>F'\<^esub> 0 = 0"
   by (rel_simp, simp add: frechet_derivative_const)
 
-lemma uderiv_one [uderiv]: "F' \<turnstile> \<partial>\<^sub>e 1 = 0"
+lemma uderiv_one [uderiv]: "\<L>\<^bsub>F'\<^esub> 1 = 0"
   by (rel_simp, simp add: frechet_derivative_const)
 
-lemma uderiv_numeral [uderiv]: "F' \<turnstile> \<partial>\<^sub>e (numeral n) = 0"
+lemma uderiv_numeral [uderiv]: "\<L>\<^bsub>F'\<^esub> (numeral n) = 0"
   by (rel_simp, simp add: frechet_derivative_const)
 
-lemma uderiv_lit [uderiv]: "F' \<turnstile> \<partial>\<^sub>e (\<guillemotleft>v\<guillemotright>) = 0"
+lemma uderiv_lit [uderiv]: "\<L>\<^bsub>F'\<^esub> (\<guillemotleft>v\<guillemotright>) = 0"
   by (rel_simp, simp add: frechet_derivative_const)
 
 lemma uderiv_plus [uderiv]:
-  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> F' \<turnstile> \<partial>\<^sub>e (e + f) = (F' \<turnstile> \<partial>\<^sub>e e + F' \<turnstile> \<partial>\<^sub>e f)"
+  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<L>\<^bsub>F'\<^esub> (e + f) = (\<L>\<^bsub>F'\<^esub> e + \<L>\<^bsub>F'\<^esub> f)"
   by (rel_simp, simp add: frechet_derivative_plus)
 
 lemma uderiv_uminus [uderiv]: 
-  "differentiable\<^sub>e e \<Longrightarrow> F' \<turnstile> \<partial>\<^sub>e (- e) = - (F' \<turnstile> \<partial>\<^sub>e e)"
+  "differentiable\<^sub>e e \<Longrightarrow> \<L>\<^bsub>F'\<^esub> (- e) = - (\<L>\<^bsub>F'\<^esub> e)"
   by (rel_simp, simp add: frechet_derivative_uminus)
 
 lemma uderiv_minus [uderiv]: 
-  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> F' \<turnstile> \<partial>\<^sub>e (e - f) = (F' \<turnstile> \<partial>\<^sub>e e) - (F' \<turnstile> \<partial>\<^sub>e f)"
+  "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<L>\<^bsub>F'\<^esub> (e - f) = (\<L>\<^bsub>F'\<^esub> e) - (\<L>\<^bsub>F'\<^esub> f)"
   by (rel_simp, simp add: frechet_derivative_minus)
 
 lemma uderiv_mult [uderiv]:
   fixes e f :: "('a::{ordered_euclidean_space, real_normed_algebra}, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e * f) = (e * F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e * f)"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> (e * f) = (e * \<L>\<^bsub>F'\<^esub> f + \<L>\<^bsub>F'\<^esub> e * f)"
   by (rel_simp, simp add: frechet_derivative_mult)
 
 lemma uderiv_scaleR [uderiv]:
   fixes f :: "('a::{ordered_euclidean_space}, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e *\<^sub>R f)"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> \<^U>(e *\<^sub>R f) = \<^U>(e *\<^sub>R \<L>\<^bsub>F'\<^esub> f + \<L>\<^bsub>F'\<^esub> e *\<^sub>R f)"
   by (rel_simp, simp add: frechet_derivative_scaleR)
 
 lemma uderiv_inner [uderiv]:
   fixes f :: "('a::ordered_euclidean_space, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e \<^U>(e \<bullet> f) = \<^U>(e \<bullet> F' \<turnstile> \<partial>\<^sub>e f + F' \<turnstile> \<partial>\<^sub>e e \<bullet> f)"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> \<^U>(e \<bullet> f) = \<^U>(e \<bullet> \<L>\<^bsub>F'\<^esub> f + \<L>\<^bsub>F'\<^esub> e \<bullet> f)"
   by (rel_simp, simp add: frechet_derivative_inner)
 
 lemma uderiv_power [uderiv]:
   fixes e :: "('a::{ordered_euclidean_space, real_normed_field}, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e (e ^ n) = of_nat n * F' \<turnstile> \<partial>\<^sub>e e * e ^ (n - 1)"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> (e ^ n) = of_nat n * \<L>\<^bsub>F'\<^esub> e * e ^ (n - 1)"
   by (rel_simp, simp add: frechet_derivative_power ueval)
 
 lemma uderiv_cos [uderiv]:
   fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(cos e) = U(F' \<turnstile> \<partial>\<^sub>e e * - sin e)"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> U(cos e) = U(\<L>\<^bsub>F'\<^esub> e * - sin e)"
   by (rel_simp, simp add: frechet_derivative_cos)
 
 lemma uderiv_sin [uderiv]:
   fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "differentiable\<^sub>e e \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(sin e) = U(F' \<turnstile> \<partial>\<^sub>e e * cos e)"
+  shows "differentiable\<^sub>e e \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> U(sin e) = U(\<L>\<^bsub>F'\<^esub> e * cos e)"
   by (rel_simp, simp add: frechet_derivative_sin)
 
 lemma uderiv_vector_2 [uderiv]:
   fixes e :: "(real, 'c::ordered_euclidean_space, 's) hyexpr"
-  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  F' \<turnstile> \<partial>\<^sub>e U(\<^bold>[[e, f]\<^bold>]) = U(\<^bold>[[F' \<turnstile> \<partial>\<^sub>e e, F' \<turnstile> \<partial>\<^sub>e f]\<^bold>])"
+  shows "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow>  \<L>\<^bsub>F'\<^esub> U(\<^bold>[[e, f]\<^bold>]) = U(\<^bold>[[\<L>\<^bsub>F'\<^esub> e, \<L>\<^bsub>F'\<^esub> f]\<^bold>])"
   apply (rel_simp)
   apply (subst frechet_derivative_Mat)
    apply (rename_tac c m i j)
@@ -191,12 +191,12 @@ text \<open> The derivative of a variable represented by a bounded linear lens i
 
 lemma uderiv_var:
   assumes "bounded_linear (get\<^bsub>x\<^esub>)"
-  shows "F' \<turnstile> \<partial>\<^sub>e (utp_expr.var (x ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p cvec"
+  shows "\<L>\<^bsub>F'\<^esub> (utp_expr.var (x ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p cvec"
   by (rel_simp, metis assms bounded_linear_imp_has_derivative frechet_derivative_at)
 
 lemma uderiv_pr_var [uderiv]:
   assumes "bounded_linear (get\<^bsub>x\<^esub>)"
-  shows "(F' \<turnstile> \<partial>\<^sub>e &\<^bold>c:x) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
+  shows "(\<L>\<^bsub>F'\<^esub> &\<^bold>c:x) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
   using assms by (simp add: pr_var_def uderiv_var)
 
 
@@ -205,7 +205,7 @@ text \<open> Example \<close>
 lemma 
   fixes x :: "real \<Longrightarrow> real"
   assumes "vwb_lens x" "bounded_linear (get\<^bsub>x\<^esub>)"
-  shows "[x \<mapsto>\<^sub>s &x] \<turnstile> \<partial>\<^sub>e (2*&\<^bold>c:x) = 2*&\<^bold>c:x"
+  shows "\<L>\<^bsub>[x \<mapsto>\<^sub>s &x]\<^esub> (2*&\<^bold>c:x) = 2*&\<^bold>c:x"
   by (simp add: uderiv usubst closure assms alpha, rel_simp)
 
 
