@@ -198,6 +198,27 @@ lemma plus_Mat:
    apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
   done
 
+lemma minus_Mat:
+  assumes "length M \<ge> CARD('j)" "\<And> x. x \<in> set(M) \<Longrightarrow> length(x) \<ge> CARD('i)"
+    "length N \<ge> CARD('j)" "\<And> x. x \<in> set(N) \<Longrightarrow> length(x) \<ge> CARD('i)"
+  shows "(Mat M :: 'a::real_vector^'i::nat^'j::nat) - Mat N = Mat (map2 (map2 (-)) M N)"
+  apply (simp add: Mat_def minus_vec_def fun_eq_iff)
+  apply (subst nth_map)
+  apply (simp)
+  using assms less_le_trans nat_of_less_CARD apply blast
+  apply (subst nth_zip)
+  using assms less_le_trans nat_of_less_CARD apply blast
+  using assms less_le_trans nat_of_less_CARD apply blast
+  apply (simp)
+  apply (subst nth_map)
+  apply (simp)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
+  apply (subst nth_zip)
+    apply (auto)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
+   apply (meson assms less_le_trans nat_of_less_CARD nth_mem)
+  done
+
 text \<open> Matrix derivatives \<close>
 
 lemma frechet_derivative_list_vec:

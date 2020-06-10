@@ -220,7 +220,7 @@ let val utp_tr_rules = map (fn (l, r) => Syntax.Print_Rule (("logic", l), ("logi
 utp_const
   plus minus uminus times divide inverse inverse_divide power power2
   subst_upd(1) usubst usubst_lookup(1) 
-  utrue ufalse
+  utrue ufalse cond
 
 term "\<^U>(3 + &x)"
 
