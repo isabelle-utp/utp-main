@@ -56,8 +56,9 @@ definition mat_lens :: "'i \<Rightarrow> 'j \<Rightarrow> ('a \<Longrightarrow> 
 lemma mat_vwb_lens [simp]: "vwb_lens (mat_lens i j)"
   by (simp add: mat_lens_def)
 
-lemma mat_lens_indep [simp]: "\<lbrakk> i\<^sub>1 \<noteq> i\<^sub>2; j\<^sub>1 \<noteq> j\<^sub>2 \<rbrakk> \<Longrightarrow> mat_lens i\<^sub>1 j\<^sub>1 \<bowtie> mat_lens i\<^sub>2 j\<^sub>2"
-  by (simp add: mat_lens_def)
+lemma mat_lens_indep [simp]: "\<lbrakk> i\<^sub>1 \<noteq> i\<^sub>2 \<or> j\<^sub>1 \<noteq> j\<^sub>2 \<rbrakk> \<Longrightarrow> mat_lens i\<^sub>1 j\<^sub>1 \<bowtie> mat_lens i\<^sub>2 j\<^sub>2"
+  by (simp add: mat_lens_def
+     ,metis lens_indep_left_comp lens_indep_left_ext lens_indep_right_ext vec_lens_indep vec_vwb_lens vwb_lens_mwb)
 
 lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i k\<^esub>)"
   by (simp add: mat_lens_def) 
