@@ -1613,7 +1613,7 @@ qed
 subsection \<open>Validating Entry\<close>
 
 definition UserAllowedEntry :: "IDStation upred" where
-[upred_defs]:
+[tis_defs, upred_defs]:
 "UserAllowedEntry = 
   U(((\<exists> t\<in>\<guillemotleft>ValidToken\<guillemotright>. 
       \<guillemotleft>goodT(t)\<guillemotright> = &iuserToken:currentUserToken
@@ -1807,11 +1807,12 @@ definition ReadEnrolmentFloppy :: "IDStation hrel" where
    &ifloppy:floppyPresence = present)
   \<longrightarrow>\<^sub>r currentScreen:screenMsg := validatingEnrolmentData ;; currentDisplay := blank"
 
-definition "ReadEnrolmentData = (ReadEnrolmentFloppy \<or> RequestEnrolment)"
+definition [tis_defs]: "ReadEnrolmentData = (ReadEnrolmentFloppy \<or> RequestEnrolment)"
 
 subsubsection \<open>Validating Enrolment data from Floppy\<close>
 
 definition EnrolmentDataOK :: "IDStation upred" where
+[tis_defs]:
 "EnrolmentDataOK = (U(&ifloppy:currentFloppy \<in> \<guillemotleft>range enrolmentFile\<guillemotright> \<and>
    enrolmentFile_of &ifloppy:currentFloppy \<in> \<guillemotleft>ValidEnrol\<guillemotright>))"
 
@@ -1866,7 +1867,7 @@ definition ValidateEnrolmentDataFail :: "IDStation hrel" where
        internal:enclaveStatus := waitingEndEnrol ;;
        currentDisplay := blank"
 
-definition "ValidateEnrolmentData = (ValidateEnrolmentDataOK \<or> ValidateEnrolmentDataFail)"
+definition [tis_defs]: "ValidateEnrolmentData = (ValidateEnrolmentDataOK \<or> ValidateEnrolmentDataFail)"
 
 subsubsection \<open>Completing a Failed Enrolment\<close>
 
@@ -1910,7 +1911,7 @@ definition WaitingFloppyRemoval :: "IDStation hrel" where
    &ifloppy:floppyPresence = present)
   \<longrightarrow>\<^sub>r II"
 
-definition "CompleteFailedEnrolment = (FailedEnrolFloppyRemoved \<or> WaitingFloppyRemoval)"
+definition [tis_defs]: "CompleteFailedEnrolment = (FailedEnrolFloppyRemoved \<or> WaitingFloppyRemoval)"
 
 subsubsection \<open>The Complete Enrolment\<close>
 
@@ -2426,6 +2427,21 @@ definition AdminTokenGuardOK :: "IDStation upred" where
    ))
   )"
 
+text \<open> SFR1(a): If the system invariants hold, the door is initially locked, and a @{term TISUserEntryOp} 
+  transition is enabled that unlocks the door, then (1) a valid user token is present and (2)
+  either a valid finger print or a valid authorisation certificate is also present. \<close>
+
+text \<open> SFR1(b): If the system invariants hold, the door is initially locked, and a @{term TISAdminOp} 
+  transition is enabled that unlocks the door, then an admin token is present with the role
+  ``guard'' attached. \<close>
+
+abbreviation (input) "FSFR1 \<equiv>
+  &tis:doorLatchAlarm:currentLatch = locked \<and> IDStation \<oplus>\<^sub>p tis \<tturnstile>
+    (TISOp ;; TISUpdate) wp (&realWorld:controlled:latch = unlocked) \<Rightarrow> 
+    (((UserTokenOK \<and> FingerOK) \<or> UserTokenWithOKAuthCert) \<or> AdminTokenGuardOK) \<oplus>\<^sub>p tis"
+
+declare subst_lit_aext [usubst del]
+
 lemma admin_unlock:
   "[&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
         \<dagger> ((TISAdminOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)) =
@@ -2433,42 +2449,43 @@ lemma admin_unlock:
         &tis:admin:currentAdminOp = \<guillemotleft>Some overrideLock\<guillemotright> \<and> &tis:admin:rolePresent \<noteq> None \<and> &tis:admin:currentAdminOp \<noteq> None)"
   by (simp add: tis_defs wp usubst unrest alpha, rel_auto)
 
+declare subst_lit_aext [usubst]
+
 lemma user_unlock:
   "[&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>]
         \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)) = 
    U(&tis:internal:status = \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> \<and> &tis:iuserToken:userTokenPresence = \<guillemotleft>absent\<guillemotright>)"
   by (simp add: tis_defs alpha unrest usubst wp)
 
-text \<open> SFR1(a): If the system invariants hold, the door is initially locked, and a @{term TISUserEntryOp} 
-  transition is enabled that unlocks the door, then (1) a valid user token is present and (2)
-  either a valid finger print or a valid authorisation certificate is also present. \<close>
-
-abbreviation "FSFR1 \<equiv> `(IDStation_inv) \<oplus>\<^sub>p tis \<and> 
-     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
-        \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
-   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p tis`"
-
-lemma FSFR1_proof:
-  "`(IDStation_inv) \<oplus>\<^sub>p tis \<and> 
-     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
-        \<dagger> ((TISUserEntryOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>))
-   \<Rightarrow> ((UserTokenOK \<and> FingerOK) \<or> (UserTokenWithOKAuthCert)) \<oplus>\<^sub>p tis`" 
-  apply (simp add: user_unlock)
+lemma unlock:
+  "[&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
+        \<dagger> ((TISOpThenUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)) =
+\<^U>(&tis:internal:status = waitingRemoveTokenSuccess \<and> &tis:iuserToken:userTokenPresence = absent \<or>
+          ((&tis:internal:enclaveStatus = waitingStartAdminOp \<and> &tis:iadminToken:adminTokenPresence = present) \<and>
+          &tis:admin:currentAdminOp = Some overrideLock \<and>
+          (&tis:admin:rolePresent) \<noteq> None \<and> (&tis:admin:currentAdminOp) \<noteq> None))"
+  apply (simp add: TISOp_def seqr_or_distl wp_disj user_unlock usubst admin_unlock)
+  apply (simp add: tis_defs alpha unrest usubst wp call_def)
   apply (rel_auto)
   done
 
-text \<open> SFR1(b): If the system invariants hold, the door is initially locked, and a @{term TISAdminOp} 
-  transition is enabled that unlocks the door, then an admin token is present with the role
-  ``guard'' attached. \<close>
-
-lemma FSFR1b:
-  "`((IDStation_inv2 \<and> (Admin \<oplus>\<^sub>p admin) \<and> IDStation_inv10) \<oplus>\<^sub>p tis \<and> 
-     [&tis:doorLatchAlarm:currentLatch \<mapsto>\<^sub>s \<guillemotleft>locked\<guillemotright>] 
-        \<dagger> ((TISAdminOp ;; TISUpdate) wp (&realWorld:controlled:latch = \<guillemotleft>unlocked\<guillemotright>)))
-   \<Rightarrow> AdminTokenGuardOK
- \<oplus>\<^sub>p tis`" 
-  apply (simp add: admin_unlock)
-  apply (simp add: Admin_def alpha)
+lemma FSFR1_proof: "FSFR1"
+  apply (rule sVarEqI)
+   apply (simp_all add: usubst unrest unlock)
+  apply (rule sImplI)
+  apply (simp add: distrib(4))
+  apply (rule sAsmDisj)
+   apply (simp add: aext_or)
+   apply (rule sDisjI1)
+   apply (rule sWk[where P="U(&tis:internal:status = waitingRemoveTokenSuccess \<and> &tis:iuserToken:userTokenPresence = absent) \<and>
+    U(&tis:doorLatchAlarm:currentLatch = locked) \<and> (IDStation_inv1 \<and> IDStation_inv9) \<oplus>\<^sub>p tis"])
+    apply (rel_auto)
+   apply (rel_auto)
+  apply (rule sWk[where P="(U((&tis:internal:enclaveStatus = waitingStartAdminOp \<and> &tis:iadminToken:adminTokenPresence = present) \<and>
+          &tis:admin:currentAdminOp = Some overrideLock \<and>
+          (&tis:admin:rolePresent) \<noteq> None \<and> (&tis:admin:currentAdminOp) \<noteq> None) \<and> (IDStation_inv2 \<and> (Admin \<oplus>\<^sub>p admin) \<and> IDStation_inv10) \<oplus>\<^sub>p tis)"])
+   apply (rel_simp')
+  apply (force)
   apply (rel_auto)
   done
 

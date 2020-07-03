@@ -357,6 +357,9 @@ lemma subst_aext_comp [usubst]:
 lemma subst_arestr [usubst]: "vwb_lens a \<Longrightarrow> \<sigma> \<dagger> (P \<restriction>\<^sub>e a) = (((\<sigma> \<oplus>\<^sub>s a) \<dagger> P) \<restriction>\<^sub>e a)"
   by (pred_auto)
 
+lemma subst_lit_aext [usubst]: "weak_lens a \<Longrightarrow> (P \<oplus>\<^sub>p a)\<lbrakk>\<guillemotleft>v\<guillemotright>/&a:x\<rbrakk> =  (P\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk> \<oplus>\<^sub>p a)"
+  by (rel_simp)
+
 subsection \<open> Substitution Alphabet Restriction \<close>
 
 text \<open> This allows us to reduce the alphabet of a substitution, in a similar way to expressions. \<close>
