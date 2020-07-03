@@ -18,9 +18,11 @@ statemachine GasAnalysis =
   transitions
     t1: "from InitState to NoGas action gs := []; anl := 0"
     t2: "from NoGas to Analysis trigger gas?(gs)"
-    t3: "from Analysis to NoGas condition (sts = noGas) action resume"
+    t3: "from Analysis to NoGas condition (sts = noGas) 
+         action resume"
     t4: "from Analysis to GasDetected condition (sts = gasD)"
-    t5: "from GasDetected to FinalState condition goreq(ins, thr) action stop"
+    t5: "from GasDetected to FinalState condition goreq(ins, thr) 
+         action stop"
     t6: "from GasDetected to Reading condition (\<not> goreq(ins, thr)) 
          action anl := location(gs) ; turn!(anl)"
     t7: "from Reading to Analysis trigger gas?(gs)"
