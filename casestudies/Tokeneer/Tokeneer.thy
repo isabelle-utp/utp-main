@@ -945,7 +945,7 @@ definition PollKeyboard :: "SystemState hrel" where
       ($realWorld:monitored:keyboard \<triangleleft> $realWorld:monitored:keyboard \<noteq>\<^sub>u \<guillemotleft>noKB\<guillemotright> \<triangleright> $tis:ikeyboard:currentKeyedData))"
 
 definition TISPoll :: "SystemState hrel" where
-[upred_defs]:
+[tis_defs, upred_defs]:
 "TISPoll =
   (\<comment> \<open> PollTime \<close>
    tis:doorLatchAlarm:currentTime := &realWorld:monitored:now ;;
@@ -2387,6 +2387,7 @@ abbreviation "TISInit \<equiv> tis:[InitIDStation]\<^sup>+"
 section \<open>The Whole ID Station\<close>
 
 definition TISOp :: "SystemState hrel" where
+[tis_defs]:
 "TISOp = ((TISEnrolOp 
   \<or> TISUserEntryOp
   \<or> TISAdminLogon
@@ -2489,6 +2490,36 @@ lemma FSFR1_proof: "FSFR1"
   apply (rel_auto)
   done
 
+term entryPeriod
+
+abbreviation "IDStation_inv11 \<equiv> 
+  U(&internal:status = \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> \<Rightarrow>
+    (\<exists> t. \<guillemotleft>goodT(t)\<guillemotright> = &iuserToken:currentUserToken
+        \<and> (&doorLatchAlarm:currentTime \<in> &config:entryPeriod \<guillemotleft>role (privCert t)\<guillemotright> \<guillemotleft>class (clearance (privCert t))\<guillemotright>)
+          \<or> &doorLatchAlarm:currentTime \<in> &config:entryPeriod \<guillemotleft>role (the (authCert t))\<guillemotright> \<guillemotleft>class (clearance (the (authCert t)))\<guillemotright>))"
+lemma "\<^bold>{IDStation_inv11\<^bold>}UnlockDoorOK\<^bold>{IDStation_inv11\<^bold>}"
+  by (hoare_wlp_auto)
+
+lemma "\<^bold>{IDStation_inv11\<^bold>}WaitingTokenRemoval\<^bold>{IDStation_inv11\<^bold>}"
+  by (hoare_wlp_auto)
+
+lemma "\<^bold>{IDStation_inv11\<^bold>}TokenRemovalTimeout\<^bold>{IDStation_inv11\<^bold>}"
+  by (hoare_wlp_auto)
+
+lemma "\<^bold>{IDStation_inv11\<^bold>}EntryOK\<^bold>{IDStation_inv11\<^bold>}"
+  by (hoare_wlp_auto)
+
+lemma "\<^bold>{IDStation_inv11 \<oplus>\<^sub>p tis\<^bold>}TISPoll ;; TISUnlockDoor\<^bold>{IDStation_inv11 \<oplus>\<^sub>p tis\<^bold>}"
+  apply (simp add: wlp_hoare_link wp unrest usubst tis_defs)
+  oops
+
+lemma "(TISReadUserToken wp (&tis:audit:auditAlarm = alarming))\<lbrakk>\<guillemotleft>silent\<guillemotright>/&tis:audit:auditAlarm\<rbrakk> = false"
+  by (simp add: tis_defs alpha unrest usubst wp)
+
+lemma "(AddElementsToLog wp (&audit:auditAlarm = alarming))\<lbrakk>\<guillemotleft>silent\<guillemotright>/&audit:auditAlarm\<rbrakk> = undefined"
+  apply (simp add: tis_defs alpha unrest usubst wp)
+  oops
+
 definition AlarmInv :: "SystemState upred" where
 [upred_defs, tis_defs]:
 "AlarmInv = U(&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
@@ -2510,10 +2541,40 @@ lemma "\<^bold>{&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotr
          @(DoorLatchAlarm \<oplus>\<^sub>p (&tis:doorLatchAlarm)\<^sub>v)\<^bold>} TISUpdate \<^bold>{&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<^bold>}"
   oops
 
+lemma "`TISUserEntryOp wp (&tis:ifloppy = \<guillemotleft>f\<guillemotright>) \<Rightarrow> U(&tis:ifloppy = \<guillemotleft>f\<guillemotright>)`"
+  by (simp add: tis_defs alpha unrest usubst wp, rel_auto)
+
+lemma 
+  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
+  shows "`U((TISUserEntryOp wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
+  using assms
+  by (simp add: tis_defs alpha unrest usubst wp)
+
+lemma 
+  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
+  shows "`U((UEC(StartUpdateConfigData) wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
+  using assms
+  by (simp add: tis_defs alpha unrest usubst wp)
+
+lemma 
+  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
+  shows "`U((UEC(FinishUpdateConfigDataOK) wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
+  using assms
+  apply (simp add: tis_defs alpha unrest usubst wp)
+
+(*
+lemma 
+  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
+  shows "`(TISOverrideDoorLockOp wp true) \<Rightarrow> U(&tis:iadminToken:adminTokenPresence = present)`"
+  apply (simp add: tis_defs alpha unrest usubst wp, rel_simp')
+*)
+
 lemma FSFR6_proof:
-  "\<^bold>{&tis:iadminToken:adminTokenPresence = absent \<and> &tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}
-    TISOp
+  \<^bold>{&tis:iadminToken:adminTokenPresence = present \<and> tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}
+    TISUserEntryOp
    \<^bold>{&tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}"
   oops
+
+
 
 end
