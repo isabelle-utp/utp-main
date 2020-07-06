@@ -1284,6 +1284,9 @@ definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
 definition call :: "('a \<Rightarrow> 's hrel) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> 's hrel" ("call") where
 [upred_defs]: "call F e = (\<Sqinter> x \<bullet> ?[\<guillemotleft>x\<guillemotright> = e] ;; F x)"
 
+lemma nmods_call [closure]: "\<lbrakk> \<And> v. (P v) nmods x \<rbrakk> \<Longrightarrow> (call P e) nmods x"
+  by (rel_auto)
+
 utp_lift_notation call (0)
 
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
@@ -2490,8 +2493,6 @@ lemma FSFR1_proof: "FSFR1"
   apply (rel_auto)
   done
 
-term entryPeriod
-
 abbreviation "IDStation_inv11 \<equiv> 
   U(&internal:status = \<guillemotleft>waitingRemoveTokenSuccess\<guillemotright> \<Rightarrow>
     (\<exists> t. \<guillemotleft>goodT(t)\<guillemotright> = &iuserToken:currentUserToken
@@ -2535,46 +2536,89 @@ lemma FSFR3_proof:
           \<Rightarrow> &doorLatchAlarm:doorAlarm = alarming)`"
   by rel_auto
 
-lemma "\<^bold>{&realWorld:controlled:latch = \<guillemotleft>locked\<guillemotright> \<and>
-        &tis:doorLatchAlarm:currentDoor = \<guillemotleft>dopen\<guillemotright> \<and>
-        &tis:doorLatchAlarm:currentTime \<ge> &tis:doorLatchAlarm:alarmTimeout \<and>
-         @(DoorLatchAlarm \<oplus>\<^sub>p (&tis:doorLatchAlarm)\<^sub>v)\<^bold>} TISUpdate \<^bold>{&realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>\<^bold>}"
-  oops
+lemma nmods_UEC [closure]: "\<lbrakk> vwb_lens a; P nmods a \<rbrakk> \<Longrightarrow> UEC(P) nmods &tis:a"
+  by (simp add: UEC_def closure)
 
-lemma "`TISUserEntryOp wp (&tis:ifloppy = \<guillemotleft>f\<guillemotright>) \<Rightarrow> U(&tis:ifloppy = \<guillemotleft>f\<guillemotright>)`"
-  by (simp add: tis_defs alpha unrest usubst wp, rel_auto)
+declare nmods_assigns [closure del]
 
-lemma 
-  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
-  shows "`U((TISUserEntryOp wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
-  using assms
-  by (simp add: tis_defs alpha unrest usubst wp)
+lemma TISUserEntryOp_nmods_config: "TISUserEntryOp nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
 
-lemma 
-  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
-  shows "`U((UEC(StartUpdateConfigData) wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
-  using assms
-  by (simp add: tis_defs alpha unrest usubst wp)
+lemma TISEnrolOp_nmods_config: "TISEnrolOp nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
 
-lemma 
-  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
-  shows "`U((UEC(FinishUpdateConfigDataOK) wp (&tis:ifloppy = \<guillemotleft>f\<^sub>2\<guillemotright>))\<lbrakk>\<guillemotleft>f\<^sub>1\<guillemotright>/&tis:ifloppy\<rbrakk> \<Rightarrow> &tis:iadminToken:adminTokenPresence = present)`"
-  using assms
-  apply (simp add: tis_defs alpha unrest usubst wp)
+lemma TISAdminLogon_nmods_config: "TISAdminLogon nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
 
-(*
-lemma 
-  assumes "f\<^sub>1 \<noteq> f\<^sub>2"
-  shows "`(TISOverrideDoorLockOp wp true) \<Rightarrow> U(&tis:iadminToken:adminTokenPresence = present)`"
-  apply (simp add: tis_defs alpha unrest usubst wp, rel_simp')
-*)
+lemma TISStartAdminOp_nmods_config: "TISStartAdminOp nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
 
-lemma FSFR6_proof:
-  \<^bold>{&tis:iadminToken:adminTokenPresence = present \<and> tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}
-    TISUserEntryOp
-   \<^bold>{&tis:ifloppy = \<guillemotleft>f\<guillemotright>\<^bold>}"
-  oops
+lemma StartUpdateConfigData_nmods_config:
+  "StartUpdateConfigData nmods config"
+  by (simp add: tis_defs closure)
 
+lemma FinishUpdateConfigOK_absent_nmods_config: 
+  "?[&iadminToken:adminTokenPresence = absent] ;; FinishUpdateConfigDataOK nmods config"
+proof -
+  have "?[&iadminToken:adminTokenPresence = absent] ;; AdminOpFinishContext = false"
+    by rel_simp'
+  hence "?[&iadminToken:adminTokenPresence = absent] ;; FinishUpdateConfigDataOK = false"
+    by (simp add: FinishUpdateConfigDataOK_def RA1)
+  thus ?thesis
+    by (metis assume_false config_vwb_lens nmods_guard)
+qed
 
+lemma FinishUpdateConfigDataFail_nmods_config:
+  "FinishUpdateConfigDataFail nmods config"
+  by (simp add: tis_defs closure)
+
+lemma BadAdminLogout_nmods_config:
+  "BadAdminLogout nmods config"
+  by (simp add: tis_defs closure)
+
+lemma FinishUpdateConfigData_absent_nmods_config:
+  "(?[&iadminToken:adminTokenPresence = absent] ;; FinishUpdateConfigData) nmods config"
+  by (simp add: FinishUpdateConfigData_def seqr_or_distr closure BadAdminLogout_nmods_config FinishUpdateConfigDataFail_nmods_config FinishUpdateConfigOK_absent_nmods_config)
+
+lemma frext_guard [frame]: "vwb_lens a \<Longrightarrow> a:[?[b]]\<^sup>+ = ?[b \<oplus>\<^sub>p a]"
+  by (rel_auto)
+
+lemma TISUpdateConfigDataOp_absent_nmods_config:
+  "?[&tis:iadminToken:adminTokenPresence = absent] ;; TISUpdateConfigDataOp nmods &tis:config"
+proof -
+  have "\<And> P. ?[&tis:iadminToken:adminTokenPresence = absent] ;; UEC(P) 
+            = UEC(?[&iadminToken:adminTokenPresence = absent] ;; P)"
+    by (simp add: UEC_def seq_UINF_distl' frame alpha seqr_assoc)
+  thus ?thesis
+    by (simp add: TISUpdateConfigDataOp_def seqr_or_distr closure 
+        FinishUpdateConfigData_absent_nmods_config StartUpdateConfigData_nmods_config)
+qed
+
+lemma TISOverrideDoorLockOp_nmods_config: "TISOverrideDoorLockOp nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
+
+lemma TISShutdownOp_nmods_config: "TISShutdownOp nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
+
+lemma TISArchiveLog_nmods_config: "TISArchiveLog nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
+
+lemma TISAdminOp_absent_nmods_config:
+  "?[&tis:iadminToken:adminTokenPresence = absent] ;; TISAdminOp nmods &tis:config"
+  by (simp add: TISAdminOp_def seqr_or_distr TISUpdateConfigDataOp_absent_nmods_config closure
+      TISOverrideDoorLockOp_nmods_config TISShutdownOp_nmods_config TISArchiveLog_nmods_config)
+
+lemma TISAdminLogout_nmods_config: "TISAdminLogout nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
+
+lemma TISIdle_nmods_config: "TISIdle nmods &tis:config"
+  by (simp add: tis_defs closure del: UEC_def)
+
+abbreviation "FSFR6 == ?[&tis:iadminToken:adminTokenPresence = absent] ;; TISOp nmods &tis:config"
+
+lemma FSFR6_proof: FSFR6
+  by (simp add: TISOp_def seqr_or_distr closure TISUserEntryOp_nmods_config TISEnrolOp_nmods_config
+      TISAdminLogon_nmods_config TISStartAdminOp_nmods_config TISAdminLogout_nmods_config
+      TISIdle_nmods_config TISAdminOp_absent_nmods_config)
 
 end

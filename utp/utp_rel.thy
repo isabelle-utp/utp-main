@@ -724,6 +724,27 @@ lemma nmods_assigns [closure]:
   "\<lbrakk> vwb_lens x; x \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<langle>\<sigma>\<rangle>\<^sub>a nmods x"
   by (rel_auto, metis vwb_lens.put_eq)
 
+lemma nmods_assign [closure]: "\<lbrakk> vwb_lens y; x \<bowtie> y \<rbrakk> \<Longrightarrow> x := v nmods y"
+  by (rel_auto, metis lens_indep.lens_put_comm vwb_lens_wb wb_lens.get_put)
+
+lemma nmods_frext_comp [closure]:"\<lbrakk> vwb_lens a; vwb_lens x; P nmods x \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ nmods &a:x"
+  by (rel_auto, metis lens_override_def lens_override_idem)
+
+lemma nmods_frext_indep [closure]:"\<lbrakk> vwb_lens a; vwb_lens x; x \<bowtie> a \<rbrakk> \<Longrightarrow> a:[P]\<^sup>+ nmods x"
+  by (rel_auto, metis lens_indep_get lens_override_def lens_override_idem)
+
+lemma nmods_UINF [closure]: "\<lbrakk> \<And> v. P v nmods x \<rbrakk> \<Longrightarrow> (\<Sqinter> v \<bullet> P v) nmods x"
+  by (rel_auto)
+
+lemma nmods_guard [closure]: "vwb_lens x \<Longrightarrow> ?[p] nmods x"
+  by (rel_auto)
+
+lemma nmods_miracle [closure]: "false nmods x"
+  by rel_auto
+
+lemma nmods_disj [closure]: "\<lbrakk> P nmods a; Q nmods a \<rbrakk> \<Longrightarrow> (P \<or> Q) nmods a"
+  by (rel_auto)
+
 no_utp_lift rcond uassigns id seqr useq uskip rcond rassume rassert 
   frame antiframe modify freeze conv_r
   rgcmd while_top while_bot while_inv while_inv_bot while_vrt
