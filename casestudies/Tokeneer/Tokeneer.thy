@@ -2528,12 +2528,14 @@ definition AlarmInv :: "SystemState upred" where
               &tis:doorLatchAlarm:currentTime \<ge> &tis:doorLatchAlarm:alarmTimeout
              \<Rightarrow> &realWorld:controlled:alarm = \<guillemotleft>alarming\<guillemotright>)"
 
-lemma FSFR3_proof:
-  "`IDStation \<Rightarrow>
+abbreviation "FSFR3 \<equiv>
+  `IDStation \<Rightarrow>
          U(&doorLatchAlarm:currentLatch = locked
           \<and> &doorLatchAlarm:currentDoor = dopen
           \<and> &doorLatchAlarm:currentTime \<ge> &doorLatchAlarm:alarmTimeout
           \<Rightarrow> &doorLatchAlarm:doorAlarm = alarming)`"
+
+lemma FSFR3_proof: "FSFR3"
   by rel_auto
 
 lemma nmods_UEC [closure]: "\<lbrakk> vwb_lens a; P nmods a \<rbrakk> \<Longrightarrow> UEC(P) nmods &tis:a"
