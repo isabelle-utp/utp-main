@@ -3076,11 +3076,22 @@ lemma TISAdminLogout_nmods_config: "TISAdminLogout nmods &tis:config"
 lemma TISIdle_nmods_config: "TISIdle nmods &tis:config"
   by (simp add: tis_defs closure del: UEC_def)
 
-abbreviation "FSFR6 == ?[&tis:iadminToken:adminTokenPresence = absent] ;; TISOp nmods &tis:config"
+lemma TISOp_nmods_floppy: "TISOp nmods &tis:ifloppy"
+  by (simp add: tis_defs closure del: UEC_def)
+
+term "in_var"
+
+lemma nmods_union [closure]: "\<lbrakk> P nmods x; P nmods y \<rbrakk> \<Longrightarrow> P nmods (x ; y)"
+  by (rel_auto, force)
+
+abbreviation "FSFR6 == ?[&tis:iadminToken:adminTokenPresence = absent] ;; TISOp nmods {&tis:config, &tis:ifloppy}"
 
 lemma FSFR6_proof: FSFR6
-  by (simp add: TISOp_def seqr_or_distr closure TISUserEntryOp_nmods_config TISEnrolOp_nmods_config
+  apply (rule nmods_union)
+  apply (simp add: TISOp_def seqr_or_distr closure TISUserEntryOp_nmods_config TISEnrolOp_nmods_config
       TISAdminLogon_nmods_config TISStartAdminOp_nmods_config TISAdminLogout_nmods_config
-      TISIdle_nmods_config TISAdminOp_absent_nmods_config)
+      TISIdle_nmods_config TISAdminOp_absent_nmods_config )
+  apply (simp add: TISOp_nmods_floppy closure)
+  done
 
 end
