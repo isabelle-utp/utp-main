@@ -180,6 +180,22 @@ definition ValidEnrol :: "Enrol set" where
               the(isValidatedBy cert) = subjectPubK issuerCert \<and>
               issuer (cid cert) = subject issuerCert))})"
 
+lemma ValidEnrol_functional:
+  "e \<in> ValidEnrol \<Longrightarrow> functional {(subject c, subjectPubK c) | c. c \<in> issuerCerts e}"
+  apply (simp add: functional_def)
+  apply (simp add: ValidEnrol_def Enrol_def)
+  apply (rule inj_onI)
+  apply (force)
+  done
+
+lemma Enrol_function:
+  "e \<in> ValidEnrol \<Longrightarrow> {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART"
+  apply (rule rel_pfun_intro)
+  apply (simp add: rel_typed_def Enrol_def ValidEnrol_def)
+   apply blast
+  apply (simp add: ValidEnrol_functional)
+  done
+
 
 subsection \<open>World Outside the ID Station\<close>
 
@@ -1261,14 +1277,16 @@ lemma pre_KeyStore:
   done
 *)
 
+
+
 definition UpdateKeyStore :: "Enrol \<Rightarrow> IDStation hrel" where
 [upred_defs, tis_defs]:
 "UpdateKeyStore e = 
   (\<guillemotleft>e \<in> ValidEnrol\<guillemotright>)
   \<longrightarrow>\<^sub>r keyStore:ownName := \<guillemotleft>Some (subject (tisCert e))\<guillemotright>
     ;; keyStore:issuerKey := &keyStore:issuerKey 
-                           \<union> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
-                           \<union> {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
+                           +\<^sub>r \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
+                           +\<^sub>r {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
 
 (*
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
@@ -1287,6 +1305,12 @@ definition call :: "('a \<Rightarrow> 's hrel) \<Rightarrow> ('a, 's) uexpr \<Ri
 lemma nmods_call [closure]: "\<lbrakk> \<And> v. (P v) nmods x \<rbrakk> \<Longrightarrow> (call P e) nmods x"
   by (rel_auto)
 
+lemma hoare_call [hoare_safe]: "\<lbrakk> \<And> x. \<^bold>{\<guillemotleft>x\<guillemotright> = e \<and> P\<^bold>}F x\<^bold>{Q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{P\<^bold>}call F e\<^bold>{Q\<^bold>}"
+  by (rel_auto)
+
+lemma wlp_call [wp]: "(call F e) wlp b = U(\<forall> x. \<guillemotleft>x\<guillemotright> = e \<Rightarrow> F x wlp b)"
+  by (simp add: call_def wp)
+
 utp_lift_notation call (0)
 
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
@@ -1295,6 +1319,54 @@ definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
   (&ifloppy:currentFloppy \<in> range(enrolmentFile))
   \<longrightarrow>\<^sub>r call UpdateKeyStore (enrolmentFile_of &ifloppy:currentFloppy)"
 
+declare ValidEnrol_def [upred_defs del, tis_defs del]
+
+lemma rel_pfun_pair: "\<lbrakk> x \<in> A; y \<in> B \<rbrakk> \<Longrightarrow> {(x, y)} \<in> A \<rightharpoonup>\<^sub>r B"
+  by (simp add: rel_pfun_def rel_typed_def)
+
+lemma UpdateKeyStore_KeyStore_inv: "\<^bold>{KeyStore \<oplus>\<^sub>p keyStore\<^bold>}UpdateKeyStore x\<^bold>{KeyStore \<oplus>\<^sub>p keyStore\<^bold>}"
+  apply (simp add: tis_defs del:Enrol_def, hoare_auto)
+   apply (rule rel_pfun_override)
+   apply (rule rel_pfun_override)
+  apply (auto)
+  using Enrol_function apply blast
+  apply (rule rel_pfun_pair)
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  apply blast
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+   apply (rule rel_pfun_override)
+   apply (rule rel_pfun_override)
+      apply (auto)
+  using Enrol_function apply blast
+  apply (rule rel_pfun_pair)
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  apply blast
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  done
+
+lemma hoare_sep_inv: "\<lbrakk> \<^bold>{p\<^bold>}S\<^bold>{p\<^bold>}; \<^bold>{q\<^bold>}S\<^bold>{q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{p \<and> q\<^bold>}S\<^bold>{p \<and> q\<^bold>}"
+  by (rel_auto)
+
+lemma UpdateKeyStore_IDStation_wf: "\<^bold>{IDStation_wf\<^bold>}UpdateKeyStore x\<^bold>{IDStation_wf\<^bold>}"
+  apply (simp add: IDStation_wf_def)
+  apply (auto intro!:hoare_sep_inv)
+  apply (simp add: tis_defs, hoare_auto)
+    apply (simp add: tis_defs, hoare_auto)
+      apply (simp add: UpdateKeyStore_KeyStore_inv)
+     apply (simp add: tis_defs, hoare_auto)
+    apply (simp add: tis_defs, hoare_auto)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
+
+lemma UpdateKeyStoreFromFloppy_IDStation_wf: "\<^bold>{IDStation_wf\<^bold>}UpdateKeyStoreFromFloppy\<^bold>{IDStation_wf\<^bold>}"
+  apply (simp add: UpdateKeyStoreFromFloppy_def)
+  apply (hoare_split)
+  apply (metis UpdateKeyStore_IDStation_wf conj_comm hoare_r_weaken_pre(2))
+  done
+  
 section \<open>The User Entry Operation (2)\<close>
 
 subsection \<open>Reading the User Token\<close>
@@ -1810,6 +1882,12 @@ definition ReadEnrolmentFloppy :: "IDStation hrel" where
    &ifloppy:floppyPresence = present)
   \<longrightarrow>\<^sub>r currentScreen:screenMsg := validatingEnrolmentData ;; currentDisplay := blank"
 
+lemma ReadEnrolmentFloppy_correct: "\<^bold>{IDStation\<^bold>}ReadEnrolmentFloppy\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (simp add: tis_defs, hoare_auto)
+  apply (simp add: tis_defs, hoare_auto)
+  done
+
 definition [tis_defs]: "ReadEnrolmentData = (ReadEnrolmentFloppy \<or> RequestEnrolment)"
 
 subsubsection \<open>Validating Enrolment data from Floppy\<close>
@@ -1839,11 +1917,48 @@ definition ValidateEnrolmentDataOK :: "IDStation hrel" where
 "ValidateEnrolmentDataOK = 
   (&internal:enclaveStatus = waitingEnrol \<and>
    EnrolmentDataOK)
-  \<longrightarrow>\<^sub>r UpdateKeyStoreFromFloppy ;; AddElementsToLog ;;
+  \<longrightarrow>\<^sub>r UpdateKeyStoreFromFloppy ;; 
        currentScreen:screenMsg := welcomeAdmin ;;
        internal:enclaveStatus := enclaveQuiescent ;;
        internal:status := quiescent ;;
-       currentDisplay := welcom"
+       currentDisplay := welcom" (* AddElementsToLog ;; *)
+
+lemma [simp]:
+  "\<lbrakk> k \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART; e \<in> ValidEnrol \<rbrakk> \<Longrightarrow> 
+       k +\<^sub>r {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} +\<^sub>r {(subject (tisCert e), subjectPubK (tisCert e))}
+       \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART"
+   apply (rule rel_pfun_override)
+   apply (rule rel_pfun_override)
+  apply (auto)
+  using Enrol_function apply blast
+  apply (rule rel_pfun_pair)
+  apply (simp add: Enrol_def ValidEnrol_def subset_eq)
+  apply blast
+  done
+
+lemma ValidEnrol_props [simp]: 
+  assumes "e \<in> ValidEnrol" 
+  shows "subject (tisCert e) \<in> ISSUER"
+  using assms by (auto simp add: ValidEnrol_def Enrol_def)
+
+declare ValidEnrol_def [tis_defs del, upred_defs del]
+
+lemma ValidateEnrolmentDataOK_wf: "\<^bold>{IDStation_wf\<^bold>}ValidateEnrolmentDataOK\<^bold>{IDStation_wf\<^bold>}"
+  apply (simp add: IDStation_wf_def)
+  apply (simp add: ValidateEnrolmentDataOK_def, hoare_split)
+         apply (simp add: tis_defs call_def, hoare_auto)
+        apply (simp add: tis_defs call_def, hoare_auto)
+       apply (rule hoare_r_conseq[OF UpdateKeyStoreFromFloppy_IDStation_wf])
+        apply (rel_auto)
+  apply (rel_auto)
+  apply (simp add: tis_defs call_def, hoare_auto)
+  apply (simp add: tis_defs call_def, hoare_auto)
+  apply (simp add: tis_defs call_def, hoare_auto)
+   apply (simp add: tis_defs call_def, hoare_auto)
+  done
+
+(* TODO: Complete proving IDStation invariants for enrolment operations *)
+
 
 (*
 definition ValidateEnrolmentDataFail :: "SystemState hrel" where
@@ -1869,6 +1984,10 @@ definition ValidateEnrolmentDataFail :: "IDStation hrel" where
        currentScreen:screenMsg := enrolmentFailed ;;
        internal:enclaveStatus := waitingEndEnrol ;;
        currentDisplay := blank"
+
+lemma ValidateEnrolmentDataFail_correct: "\<^bold>{IDStation\<^bold>}ValidateEnrolmentDataFail\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+  oops
 
 definition [tis_defs]: "ValidateEnrolmentData = (ValidateEnrolmentDataOK \<or> ValidateEnrolmentDataFail)"
 
@@ -1944,7 +2063,7 @@ definition AdminLogout :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "AdminLogout =
   ((&admin:rolePresent \<noteq> \<guillemotleft>None\<guillemotright>
-   ) \<longrightarrow>\<^sub>r admin:rolePresent := \<guillemotleft>None\<guillemotright> ;; admin:currentAdminOp := \<guillemotleft>None\<guillemotright>)"
+   ) \<longrightarrow>\<^sub>r admin:rolePresent := \<guillemotleft>None\<guillemotright> ;; admin:currentAdminOp := \<guillemotleft>None\<guillemotright> ;; admin:availableOps := {})"
 
 definition AdminStartOp :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -1983,6 +2102,23 @@ definition LoginAborted :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "LoginAborted = ((&internal:enclaveStatus = \<guillemotleft>gotAdminToken\<guillemotright>) \<longrightarrow>\<^sub>r BadAdminTokenTear)"
 
+lemma LoginAborted_correct:
+  "\<^bold>{IDStation\<^bold>}LoginAborted\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition ReadAdminToken :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "ReadAdminToken =
@@ -1991,6 +2127,23 @@ definition ReadAdminToken :: "IDStation hrel" where
     \<and> &admin:rolePresent = \<guillemotleft>None\<guillemotright>
     \<and> &iadminToken:adminTokenPresence = \<guillemotleft>present\<guillemotright>
    ) \<longrightarrow>\<^sub>r internal:enclaveStatus := \<guillemotleft>gotAdminToken\<guillemotright>)"
+
+lemma ReadAdminToken_correct:
+  "\<^bold>{IDStation\<^bold>}ReadAdminToken\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
 
 definition TISReadAdminToken :: "SystemState hrel" where
 [upred_defs, tis_defs]: "TISReadAdminToken = UEC(ReadAdminToken)"
@@ -2009,6 +2162,16 @@ lemma ValidateAdminTokenOK_correct:
   "\<^bold>{IDStation\<^bold>}ValidateAdminTokenOK\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
    apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
   apply (hoare_wlp_auto defs: tis_defs)
   done
 
@@ -2024,7 +2187,7 @@ definition ValidateAdminTokenFail :: "IDStation hrel" where
 lemma ValidateAdminTokenFail_correct:
   "\<^bold>{IDStation\<^bold>}ValidateAdminTokenFail\<^bold>{IDStation\<^bold>}"
   apply (rule IDStation_correct_intro)
-   apply (hoare_wlp_auto defs: tis_defs)
+  apply (simp add: tis_defs, hoare_auto)
   apply (simp add: IDStation_inv_def)
   apply (auto simp add: hoare_post_conj_split)
           apply (hoare_wlp_auto defs: tis_defs)
@@ -2044,6 +2207,10 @@ definition TISValidateAdminToken :: "SystemState hrel" where
 "TISValidateAdminToken =
   (UEC(ValidateAdminTokenOK) \<or> UEC(ValidateAdminTokenFail) \<or> UEC(LoginAborted))"
 
+lemma TISValidateAdminToken_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISValidateAdminToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: LoginAborted_correct TISValidateAdminToken_def UEC_correct ValidateAdminTokenFail_correct ValidateAdminTokenOK_correct disj_upred_def hoare_ndet)
+
 definition FailedAdminTokenRemove :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "FailedAdminTokenRemove =
@@ -2052,18 +2219,60 @@ definition FailedAdminTokenRemove :: "IDStation hrel" where
    ) \<longrightarrow>\<^sub>r currentScreen:screenMsg := \<guillemotleft>welcomeAdmin\<guillemotright> ;; 
           internal:enclaveStatus := \<guillemotleft>enclaveQuiescent\<guillemotright>)"
 
+lemma FailedAdminTokenRemove_correct:
+  "\<^bold>{IDStation\<^bold>}FailedAdminTokenRemove\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition WaitingAdminTokenRemoval :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "WaitingAdminTokenRemoval = 
   ((&internal:enclaveStatus = \<guillemotleft>waitingRemoveAdminTokenFail\<guillemotright>
     \<and> &iadminToken:adminTokenPresence = \<guillemotleft>present\<guillemotright>) \<longrightarrow>\<^sub>r II)"
 
+lemma WaitingAdminTokenRemoval_correct:
+  "\<^bold>{IDStation\<^bold>}WaitingAdminTokenRemoval\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition TISCompleteFailedAdminLogon :: "SystemState hrel" where
 [upred_defs, tis_defs]:
 "TISCompleteFailedAdminLogon = (UEC(FailedAdminTokenRemove) \<or> UEC(WaitingAdminTokenRemoval))"
 
+lemma TISCompleteFailedAdminLogon_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISCompleteFailedAdminLogon\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: FailedAdminTokenRemove_correct TISCompleteFailedAdminLogon_def UEC_correct WaitingAdminTokenRemoval_correct disj_upred_def hoare_ndet)
+
 definition [upred_defs, tis_defs]:
 "TISAdminLogon = (TISReadAdminToken \<or> TISValidateAdminToken \<or> TISCompleteFailedAdminLogon)"
+
+lemma TISAdminLogon_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISAdminLogon\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: ReadAdminToken_correct TISAdminLogon_def TISCompleteFailedAdminLogon_correct TISReadAdminToken_def TISValidateAdminToken_correct UEC_correct disj_upred_def hoare_ndet)
 
 definition StartOpContext :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2083,6 +2292,23 @@ definition ValidateOpRequestOK :: "IDStation hrel" where
          currentScreen:screenMsg := \<guillemotleft>doingOp\<guillemotright> ;; 
          internal:enclaveStatus := \<guillemotleft>waitingStartAdminOp\<guillemotright>)"
 
+lemma ValidateOpRequestOK_correct:
+  "\<^bold>{IDStation\<^bold>}ValidateOpRequestOK\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition ValidateOpRequestFail :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "ValidateOpRequestFail = 
@@ -2091,15 +2317,53 @@ definition ValidateOpRequestFail :: "IDStation hrel" where
     \<longrightarrow>\<^sub>r StartOpContext ;;  
          currentScreen:screenMsg := \<guillemotleft>invalidRequest\<guillemotright>)"
 
+lemma ValidateOpRequestFail_correct:
+  "\<^bold>{IDStation\<^bold>}ValidateOpRequestFail\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition NoOpRequest :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "NoOpRequest = 
   ((&ikeyboard:keyedDataPresence = \<guillemotleft>absent\<guillemotright>) \<longrightarrow>\<^sub>r StartOpContext)"
 
+lemma NoOpRequest_correct:
+  "\<^bold>{IDStation\<^bold>}NoOpRequest\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition [upred_defs, tis_defs]:
 "ValidateOpRequest = (ValidateOpRequestOK \<or> ValidateOpRequestFail \<or> NoOpRequest)"
 
 definition [upred_defs, tis_defs]: "TISStartAdminOp = UEC(ValidateOpRequest)"
+
+lemma TISStartAdminOp_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISStartAdminOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: NoOpRequest_correct TISStartAdminOp_def UEC_correct ValidateOpRequestFail_correct ValidateOpRequestOK_correct ValidateOpRequest_def disj_upred_def hoare_ndet)
 
 definition AdminOpStartedContext :: "IDStation upred" where
 [upred_defs, tis_defs]:
@@ -2110,7 +2374,7 @@ definition AdminOpFinishContext :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "AdminOpFinishContext =
   (&internal:enclaveStatus = waitingFinishAdminOp \<and> &iadminToken:adminTokenPresence = present)
-  \<longrightarrow>\<^sub>r internal:enclaveStatus := enclaveQuiescent"
+  \<longrightarrow>\<^sub>r internal:enclaveStatus := enclaveQuiescent ;; admin:currentAdminOp := None"
 
 definition ShutdownOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2125,6 +2389,23 @@ definition ShutdownOK :: "IDStation hrel" where
           currentDisplay := \<guillemotleft>blank\<guillemotright>
   )"
 
+lemma ShutdownOK_correct:
+  "\<^bold>{IDStation\<^bold>}ShutdownOK\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition ShutdownWaitingDoor :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "ShutdownWaitingDoor =
@@ -2134,9 +2415,30 @@ definition ShutdownWaitingDoor :: "IDStation hrel" where
    ) \<longrightarrow>\<^sub>r currentScreen:screenMsg := \<guillemotleft>closeDoor\<guillemotright>
   )"
 
+lemma ShutdownWaitingDoor_correct:
+  "\<^bold>{IDStation\<^bold>}ShutdownWaitingDoor\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition TISShutdownOp :: "SystemState hrel" where
 [upred_defs, tis_defs]:
 "TISShutdownOp = (UEC(ShutdownOK) \<or> UEC(ShutdownWaitingDoor))"
+
+lemma TISShutdownOp_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISShutdownOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: ShutdownOK_correct ShutdownWaitingDoor_correct TISShutdownOp_def UEC_correct disj_upred_def hoare_ndet)
 
 definition OverrideDoorLockOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2148,9 +2450,22 @@ definition OverrideDoorLockOK :: "IDStation hrel" where
           UnlockDoor ;;
           AdminFinishOp)"  
 
-lemma  "\<^bold>{IDStation_inv\<^bold>}OverrideDoorLockOK\<^bold>{IDStation_inv\<^bold>}"
+lemma OverrideDoorLockOK_correct:
+  "\<^bold>{IDStation\<^bold>}OverrideDoorLockOK\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
   apply (rule IDStation_inv_intro)
-  oops
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
 
 definition TISOverrideDoorLockOp :: "SystemState hrel" where
 [upred_defs, tis_defs]:
@@ -2158,6 +2473,27 @@ definition TISOverrideDoorLockOp :: "SystemState hrel" where
   (UEC(OverrideDoorLockOK)
     \<or> UEC((&internal:enclaveStatus = \<guillemotleft>waitingStartAdminOp\<guillemotright> 
         \<and> &admin:currentAdminOp = \<guillemotleft>Some(overrideLock)\<guillemotright>) \<longrightarrow>\<^sub>r BadAdminLogout))"
+
+lemma TISOverrideDoorLockOp_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISOverrideDoorLockOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  apply (simp add: TISOverrideDoorLockOp_def)
+  apply (rule hoare_disj)
+  using OverrideDoorLockOK_correct UEC_correct apply blast 
+  apply (rule UEC_correct)
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
 
 definition StartArchiveLogOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2233,6 +2569,23 @@ definition StartUpdateConfigOK :: "IDStation hrel" where
     currentScreen:screenMsg := doingOp ;;
     internal:enclaveStatus := waitingFinishAdminOp"
 
+lemma StartUpdateConfigOK_correct:
+  "\<^bold>{IDStation\<^bold>}StartUpdateConfigOK\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition StartUpdateConfigWaitingFloppy :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "StartUpdateConfigWaitingFloppy =
@@ -2240,11 +2593,50 @@ definition StartUpdateConfigWaitingFloppy :: "IDStation hrel" where
   \<and> &ifloppy:floppyPresence = absent) \<longrightarrow>\<^sub>r
     currentScreen:screenMsg := insertConfigData"
 
+lemma StartUpdateConfigWaitingFloppy_correct:
+  "\<^bold>{IDStation\<^bold>}StartUpdateConfigWaitingFloppy\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition StartUpdateConfigData :: "IDStation hrel" where
 [upred_defs, tis_defs]:
 "StartUpdateConfigData \<equiv> StartUpdateConfigOK \<or> StartUpdateConfigWaitingFloppy
                        \<or> ?[&internal:enclaveStatus = waitingStartAdminOp \<and>
                            &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright>] ;; BadAdminLogout"
+
+lemma StartUpdateConfigData_correct:
+  "\<^bold>{IDStation\<^bold>}StartUpdateConfigData\<^bold>{IDStation\<^bold>}"
+  apply (simp add: StartUpdateConfigData_def)
+  apply (rule hoare_disj)
+   apply (simp add: StartUpdateConfigOK_correct)
+  apply (rule hoare_disj)
+  apply (simp add: StartUpdateConfigWaitingFloppy_correct)
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
 
 definition FinishUpdateConfigDataOK :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2254,9 +2646,29 @@ definition FinishUpdateConfigDataOK :: "IDStation hrel" where
   \<and> &ifloppy:floppyPresence = present \<comment> \<open> Can this we secured via an invariant? \<close>
   \<and> &ifloppy:currentFloppy \<in> \<guillemotleft>range(configFile)\<guillemotright>
   ) \<longrightarrow>\<^sub>r
-    config := configFile_of &ifloppy:currentFloppy ;;
-    currentScreen:screenMsg := requestAdminOp ;; 
-    AddElementsToLog)"
+    config := configFile_of &ifloppy:currentFloppy ;; 
+    ?[Config \<oplus>\<^sub>p config] ;; \<comment> \<open> This assertion is effectively a check that the config data on the floppy is correct \<close>
+    currentScreen:screenMsg := requestAdminOp ;;
+    \<comment> \<open> The lines are added to preserve the invariants \<close>
+    currentScreen:screenConfig := displayConfigData config
+    )" (* AddElementsToLog *)
+
+lemma FinishUpdateConfigDataOK_correct:
+  "\<^bold>{IDStation\<^bold>}FinishUpdateConfigDataOK\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+         apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
 
 definition FinishUpdateConfigDataFail :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -2268,21 +2680,69 @@ definition FinishUpdateConfigDataFail :: "IDStation hrel" where
     currentScreen:screenMsg := invalidData ;; 
     AddElementsToLog)"
 
+lemma FinishUpdateConfigDataFail_correct:
+  "\<^bold>{IDStation\<^bold>}FinishUpdateConfigDataFail\<^bold>{IDStation\<^bold>}"
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition 
 [upred_defs, tis_defs]:
 "FinishUpdateConfigData \<equiv> FinishUpdateConfigDataOK \<or> FinishUpdateConfigDataFail
                         \<or> ?[&internal:enclaveStatus = waitingFinishAdminOp 
                            \<and> &admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright>] ;; BadAdminLogout"
 
+lemma FinishUpdateConfigData_correct:
+  "\<^bold>{IDStation\<^bold>}FinishUpdateConfigData\<^bold>{IDStation\<^bold>}"
+  apply (simp add: FinishUpdateConfigData_def)
+  apply (rule hoare_disj)
+  apply (simp add: FinishUpdateConfigDataOK_correct)
+  apply (rule hoare_disj)
+  using FinishUpdateConfigDataFail_correct apply blast
+  apply (rule IDStation_correct_intro)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (hoare_wlp_auto defs: tis_defs)
+         apply (hoare_wlp_auto defs: tis_defs)
+        apply (hoare_wlp_auto defs: tis_defs)
+       apply (hoare_wlp_auto defs: tis_defs)
+      apply (hoare_wlp_auto defs: tis_defs)
+     apply (hoare_wlp_auto defs: tis_defs)
+    apply (hoare_wlp_auto defs: tis_defs)
+   apply (hoare_wlp_auto defs: tis_defs)
+  apply (hoare_wlp_auto defs: tis_defs)
+  done
+
 definition TISUpdateConfigDataOp :: "SystemState hrel" where
 [upred_defs, tis_defs]: "TISUpdateConfigDataOp \<equiv> UEC(StartUpdateConfigData \<or> FinishUpdateConfigData)"
 
+lemma TISUpdateConfigDataOp_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISUpdateConfigDataOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: FinishUpdateConfigData_correct StartUpdateConfigData_correct TISUpdateConfigDataOp_def UEC_correct disj_upred_def hoare_ndet)
+  
 definition TISArchiveLog :: "SystemState hrel" where
-[upred_defs, tis_defs]: "TISArchiveLog = false"
+[upred_defs, tis_defs]: "TISArchiveLog = false" \<comment> \<open> TODO \<close>
 
 definition TISAdminOp :: "SystemState hrel" where 
 [upred_defs, tis_defs]:
 "TISAdminOp = (TISOverrideDoorLockOp \<or> TISShutdownOp \<or> TISUpdateConfigDataOp \<or> TISArchiveLog)"
+
+lemma TISAdminOp_correct:
+  "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISAdminOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: TISAdminOp_def TISArchiveLog_def TISOverrideDoorLockOp_correct TISShutdownOp_correct TISUpdateConfigDataOp_correct disj_upred_def hoare_ndet)
+  
 definition TISAdminLogout :: "SystemState hrel" where [upred_defs, tis_defs]: "TISAdminLogout = false"
 definition TISIdle :: "SystemState hrel" where 
 [upred_defs, tis_defs]: 
