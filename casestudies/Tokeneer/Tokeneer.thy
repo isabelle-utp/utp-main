@@ -393,9 +393,9 @@ definition Admin :: "Admin upred" where
 "Admin = 
    U((rolePresent \<noteq> \<guillemotleft>None\<guillemotright> \<Rightarrow> the(rolePresent) \<in> \<guillemotleft>ADMINPRIVILEGE\<guillemotright>) \<and>
     (rolePresent = \<guillemotleft>None\<guillemotright> \<Rightarrow> availableOps = {}) \<and>
-    (rolePresent \<noteq> \<guillemotleft>None\<guillemotright> \<and> the(rolePresent) = \<guillemotleft>guard\<guillemotright> \<Rightarrow> availableOps = {\<guillemotleft>overrideLock\<guillemotright>}) \<and>
-    (rolePresent \<noteq> \<guillemotleft>None\<guillemotright> \<and> the(rolePresent) = \<guillemotleft>auditManager\<guillemotright> \<Rightarrow> availableOps = {\<guillemotleft>archiveLog\<guillemotright>}) \<and>
-    (rolePresent \<noteq> \<guillemotleft>None\<guillemotright> \<and> the(rolePresent) = \<guillemotleft>securityOfficer\<guillemotright> 
+    (rolePresent = \<guillemotleft>Some guard\<guillemotright> \<Rightarrow> availableOps = {\<guillemotleft>overrideLock\<guillemotright>}) \<and>
+    (rolePresent = \<guillemotleft>Some auditManager\<guillemotright> \<Rightarrow> availableOps = {\<guillemotleft>archiveLog\<guillemotright>}) \<and>
+    (rolePresent = \<guillemotleft>Some securityOfficer\<guillemotright> 
          \<Rightarrow> availableOps = {\<guillemotleft>updateConfigData\<guillemotright>,\<guillemotleft>shutdownOp\<guillemotright>}) \<and>
     (currentAdminOp \<noteq> \<guillemotleft>None\<guillemotright> \<Rightarrow>
          the(currentAdminOp) \<in> availableOps \<and> rolePresent \<noteq> \<guillemotleft>None\<guillemotright>)
@@ -1369,18 +1369,6 @@ lemma UpdateKeyStoreFromFloppy_IDStation_wf: "\<^bold>{IDStation_wf\<^bold>}Upda
   
 section \<open>The User Entry Operation (2)\<close>
 
-subsection \<open>Reading the User Token\<close>
-
-definition ReadUserToken :: "IDStation hrel" where
-[upred_defs, tis_defs]:
-"ReadUserToken =
-  ((&internal:enclaveStatus \<in> {enclaveQuiescent, waitingRemoveAdminTokenFail}
-    \<and> &internal:status = quiescent
-    \<and> &iuserToken:userTokenPresence = present
-   ) \<longrightarrow>\<^sub>r currentDisplay := wait ;; internal:status := gotUserToken)"
-
-subsection \<open>Validating the User Token\<close>
-
 definition UEC :: "IDStation hrel \<Rightarrow> SystemState hrel" where
 [upred_defs, tis_defs]:
 "UEC(Op) = 
@@ -1400,36 +1388,25 @@ lemma UEC_correct: "\<^bold>{I\<^bold>}P\<^bold>{I\<^bold>} \<Longrightarrow> \<
   apply (rel_simp)
   done
 
+subsection \<open>Reading the User Token\<close>
+
+definition ReadUserToken :: "IDStation hrel" where
+[upred_defs, tis_defs]: "ReadUserToken =
+  ((&internal:enclaveStatus \<in> {enclaveQuiescent, waitingRemoveAdminTokenFail}
+    \<and> &internal:status = quiescent \<and> &iuserToken:userTokenPresence = present
+   ) \<longrightarrow>\<^sub>r currentDisplay := wait ;; internal:status := gotUserToken)"
+
 lemma ReadUserToken_correct: "\<^bold>{IDStation\<^bold>}ReadUserToken\<^bold>{IDStation\<^bold>}"
-  apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_wlp_auto)
-  apply (simp add: tis_defs, hoare_wlp_auto)
-  done
-
-definition [upred_defs, tis_defs]: "TISReadUserToken = UEC(ReadUserToken)"
-
-lemma TISReadUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISReadUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
-  by (simp add: ReadUserToken_correct TISReadUserToken_def UEC_correct)
-
-lemma "`UserTokenOK \<Rightarrow> (\<^bold>\<exists> e\<in>\<guillemotleft>ValidToken\<guillemotright> \<bullet> \<guillemotleft>goodT(e)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken)`"
-  by (rel_auto)
-
-lemma "`UserTokenWithOKAuthCert \<Rightarrow> (\<^bold>\<exists> e\<in>\<guillemotleft>TokenWithValidAuth\<guillemotright> \<bullet> \<guillemotleft>goodT(e)\<guillemotright> =\<^sub>u &iuserToken:currentUserToken)`"
-  by (rel_auto)
+  by (rule IDStation_correct_intro; hoare_wlp_auto defs: tis_defs)
 
 definition BioCheckNotRequired :: "IDStation hrel" where
-[upred_defs, tis_defs]:
-"BioCheckNotRequired =
+[upred_defs, tis_defs]: "BioCheckNotRequired =
   ((&internal:status = gotUserToken
-    \<and> &iuserToken:userTokenPresence = present
-    \<and> @UserTokenWithOKAuthCert
+    \<and> &iuserToken:userTokenPresence = present \<and> @UserTokenWithOKAuthCert
     ) \<longrightarrow>\<^sub>r internal:status := waitingEntry ;; currentDisplay := wait)"
 
 lemma BioCheckNotRequired_correct: "\<^bold>{IDStation\<^bold>}BioCheckNotRequired\<^bold>{IDStation\<^bold>}"
-  apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_auto)
-  apply (simp add: tis_defs, hoare_auto)
-  done
+  by (rule IDStation_correct_intro; hoare_wlp_auto defs: tis_defs)
 
 definition BioCheckRequired :: "IDStation hrel" where
 [upred_defs, tis_defs]:
@@ -1440,10 +1417,14 @@ definition BioCheckRequired :: "IDStation hrel" where
   ) \<longrightarrow>\<^sub>r internal:status := \<guillemotleft>waitingFinger\<guillemotright> ;; currentDisplay := \<guillemotleft>insertFinger\<guillemotright>)"
 
 lemma BioCheckRequired_correct: "\<^bold>{IDStation\<^bold>}BioCheckRequired\<^bold>{IDStation\<^bold>}"
-  apply (rule IDStation_correct_intro)
-   apply (simp add: tis_defs, hoare_auto)
-  apply (simp add: tis_defs, hoare_auto)
-  done
+  by (rule IDStation_correct_intro; (simp add: tis_defs, hoare_auto))
+
+definition [upred_defs, tis_defs]: "TISReadUserToken = UEC(ReadUserToken)"
+
+lemma TISReadUserToken_correct: "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISReadUserToken\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
+  by (simp add: ReadUserToken_correct TISReadUserToken_def UEC_correct)
+
+subsection \<open>Validating the User Token\<close>
 
 definition [upred_defs, tis_defs]: "ValidateUserTokenOK = (BioCheckRequired \<or> BioCheckNotRequired)"
 
@@ -1957,6 +1938,11 @@ lemma ValidateEnrolmentDataOK_wf: "\<^bold>{IDStation_wf\<^bold>}ValidateEnrolme
    apply (simp add: tis_defs call_def, hoare_auto)
   done
 
+lemma ValidateEnrolmentDataOK_inv: "\<^bold>{IDStation_inv\<^bold>}ValidateEnrolmentDataOK\<^bold>{IDStation_inv\<^bold>}"
+  apply (rule IDStation_inv_intro)
+           apply (hoare_wlp_auto defs: tis_defs)
+          apply (simp add: IDStation_inv2_def)
+  oops
 (* TODO: Complete proving IDStation invariants for enrolment operations *)
 
 
@@ -2645,9 +2631,9 @@ definition FinishUpdateConfigDataOK :: "IDStation hrel" where
   ((&admin:currentAdminOp = \<guillemotleft>Some(updateConfigData)\<guillemotright> 
   \<and> &ifloppy:floppyPresence = present \<comment> \<open> Can this we secured via an invariant? \<close>
   \<and> &ifloppy:currentFloppy \<in> \<guillemotleft>range(configFile)\<guillemotright>
+  \<and> (Config \<oplus>\<^sub>p config)\<lbrakk>U(configFile_of &ifloppy:currentFloppy)/&config\<rbrakk>
   ) \<longrightarrow>\<^sub>r
     config := configFile_of &ifloppy:currentFloppy ;; 
-    ?[Config \<oplus>\<^sub>p config] ;; \<comment> \<open> This assertion is effectively a check that the config data on the floppy is correct \<close>
     currentScreen:screenMsg := requestAdminOp ;;
     \<comment> \<open> The lines are added to preserve the invariants \<close>
     currentScreen:screenConfig := displayConfigData config
@@ -2738,7 +2724,7 @@ definition TISArchiveLog :: "SystemState hrel" where
 definition TISAdminOp :: "SystemState hrel" where 
 [upred_defs, tis_defs]:
 "TISAdminOp = (TISOverrideDoorLockOp \<or> TISShutdownOp \<or> TISUpdateConfigDataOp \<or> TISArchiveLog)"
-
+                            
 lemma TISAdminOp_correct:
   "\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}TISAdminOp\<^bold>{IDStation \<oplus>\<^sub>p tis\<^bold>}"
   by (simp add: TISAdminOp_def TISArchiveLog_def TISOverrideDoorLockOp_correct TISShutdownOp_correct TISUpdateConfigDataOp_correct disj_upred_def hoare_ndet)
@@ -2883,8 +2869,7 @@ lemma [wp]: "(RealWorldChanges wlp false) = false"
 definition AdminTokenGuardOK :: "IDStation upred" where
 [upred_defs, tis_defs]:
 "AdminTokenGuardOK =
-  (&iadminToken:currentAdminToken \<in>\<^sub>u \<guillemotleft>range(goodT)\<guillemotright> \<and>
-   (\<^bold>\<exists> t\<in>\<guillemotleft>TokenWithValidAuth\<guillemotright> \<bullet>
+  ((\<^bold>\<exists> t\<in>\<guillemotleft>TokenWithValidAuth\<guillemotright> \<bullet>
       (\<guillemotleft>goodT(t)\<guillemotright> =\<^sub>u &iadminToken:currentAdminToken 
       \<and> (\<^bold>\<exists> c \<in> \<guillemotleft>AuthCert\<guillemotright> \<bullet> \<guillemotleft>Some c = authCert t\<guillemotright>
          \<and> \<guillemotleft>role c = guard\<guillemotright>) \<oplus>\<^sub>p keyStore
