@@ -90,11 +90,6 @@ definition in_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\
 definition out_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\<alpha> \<times> '\<beta>::ust)" where
 [simp]: "out_avar x = out_var (avar_ust\<^sub>L x)"
 
-adhoc_overloading
-  ivar in_avar and
-  ovar out_avar and
-  svar avar_lens
-
 subsection \<open> Variable Syntax \<close>
 
 syntax "_MkAxVar1" :: "id \<Rightarrow>         svid" ("{_}" [1000] 1000)

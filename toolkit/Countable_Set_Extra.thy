@@ -12,7 +12,6 @@ imports
   "HOL-Library.Countable_Set_Type"
   Sequence
   FSet_Extra
-  "HOL-Library.Bit"
 begin
 
 subsection \<open> Extra syntax \<close>
@@ -102,12 +101,12 @@ lemma countable_finite_power:
   "countable(A) \<Longrightarrow> countable {B. B \<subseteq> A \<and> finite(B)}"
   by (metis Collect_conj_eq Int_commute countable_Collect_finite_subset)
 
-lift_definition cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset" is
-"\<lambda> A f. if (A = {}) then {} else INTER A f"
-  by (auto)
+lift_definition cInter :: "'a cset cset \<Rightarrow> 'a cset"  ("\<Inter>\<^sub>c_" [900] 900)
+  is "\<lambda>A. if A = {} then {} else \<Inter> A"
+  using countable_INT [of _ _ id] by auto
 
-definition cInter :: "'a cset cset \<Rightarrow> 'a cset" ("\<Inter>\<^sub>c_" [900] 900) where
-"\<Inter>\<^sub>c A = cINTER A id"
+abbreviation (input) cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset"
+  where "cINTER A f \<equiv> cInter (cimage f A)"
 
 lift_definition cfinite :: "'a cset \<Rightarrow> bool" is finite .
 lift_definition cInfinite :: "'a cset \<Rightarrow> bool" is infinite .
@@ -240,24 +239,21 @@ proof (rule injI, transfer)
     by (auto simp add: set_eq_iff)
 qed
 
-lift_definition bit_seq_of_nat_set :: "nat set \<Rightarrow> bit seq"
-is "\<lambda> A i. if (i \<in> A) then 1 else 0" .
+lift_definition bit_seq_of_nat_set :: "nat set \<Rightarrow> bool seq"
+is "\<lambda> A i. i \<in> A" .
 
 lemma bit_seq_of_nat_set_inj: "inj bit_seq_of_nat_set"
   apply (rule injI)
-  apply (transfer, auto)
-   apply (metis bit.distinct(1))
-  apply (meson zero_neq_one)
+  apply transfer
+  apply (auto simp add: fun_eq_iff)
   done
 
 lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
   apply (rule bijI)
    apply (fact bit_seq_of_nat_set_inj)
-  apply (auto simp add: image_def)
-  apply (transfer)
-  apply (rename_tac x)
-  apply (rule_tac x="{i. x i = 1}" in exI)
-  apply (auto)
+  apply transfer
+  apply (rule surjI)
+  apply auto
   done
 
 text \<open> This function is a partial injection from countable sets of natural sets to natural sets.
@@ -361,8 +357,7 @@ lemma image_csets_surj:
   apply (simp add: image_comp)
   apply (auto simp add: image_Collect)
   apply (erule subset_imageE)
-  apply (metis countable_image subset_inj_on the_inv_into_onto)
-  done
+  using countable_image_inj_on subset_inj_on by blast
 
 lemma bij_betw_image_csets:
   "bij_betw f A B \<Longrightarrow> bij_betw ((`\<^sub>c) f) (csets A) (csets B)"

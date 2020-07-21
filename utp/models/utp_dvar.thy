@@ -346,10 +346,7 @@ definition unrest_dvar_upred :: "'a::continuum dvar \<Rightarrow> ('b, '\<alpha>
 "unrest_dvar_upred x P = unrest_uexpr (x\<up>) P"
 
 definition subst_upd_dvar :: "('\<alpha>,'\<beta>::vst) psubst \<Rightarrow> 'a::continuum dvar \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<alpha>,'\<beta>) psubst" where
-"subst_upd_dvar \<sigma> x v = subst_upd_uvar \<sigma> (x\<up>) v"
-
-adhoc_overloading
-  subst_upd subst_upd_dvar
+"subst_upd_dvar \<sigma> x v = subst_upd \<sigma> (x\<up>) v"
 
 declare subst_upd_dvar_def [upred_defs]
 

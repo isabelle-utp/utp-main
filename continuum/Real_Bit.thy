@@ -3,7 +3,7 @@ section \<open> Encoding real numbers as bit sequences \<close>
 theory Real_Bit
 imports
   HOL.Transcendental
-  "HOL-Library.Bit"
+  "HOL-Library.Z2"
   "HOL-Library.Sublist"
   Dyadic
 begin
@@ -613,7 +613,7 @@ proof (induct n)
 next
   case (Suc n) note hyp = this
   from hyp have blran: "(x - binlist (real_bits x n)) * (4 * 2 ^ n) \<in> {0..<2}"
-    by (auto simp add: linordered_field_class.sign_simps(25) mult.commute pos_less_divide_eq)
+    by (auto simp add: mult.commute mult.left_commute pos_less_divide_eq)
   show ?case
   proof (cases "rbit x n (real_bits x n)")
     case zero

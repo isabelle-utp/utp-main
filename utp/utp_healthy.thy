@@ -60,11 +60,11 @@ lemma Healthy_case_prod [closure]:
   by (simp add: prod.case_eq_if)
 
 lemma Healthy_SUPREMUM:
-  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> Sup (H ` A) = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)
 
 lemma Healthy_INFIMUM:
-  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> Inf (H ` A) = \<Squnion> A"
   by (drule Healthy_carrier_image, presburger)
 
 lemma Healthy_nu [closure]:
