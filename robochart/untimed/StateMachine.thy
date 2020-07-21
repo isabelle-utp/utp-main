@@ -206,7 +206,7 @@ fun compileStatemachine (n, ((((((us, vs), es), ss), ins), fins), ts)) thy0 =
         Local_Theory.note ((Binding.name "Wf", []), 
                            [Goal.prove ctx10 [] [] 
                             (Syntax.check_term ctx10 (Const (@{const_name Trueprop}, dummyT) $ (Const (@{const_name WfStateMachine}, dummyT --> dummyT) $ mch_term)))
-                            (fn {context = ctx, prems = _} => Method.NO_CONTEXT_TACTIC ctx10 (Method_Closure.apply_method ctx \<^method>\<open>check_machine\<close> [] [defs] [] ctx10 []))
+                            (fn {context = ctx, prems = _} => NO_CONTEXT_TACTIC ctx10 (Method_Closure.apply_method ctx \<^method>\<open>check_machine\<close> [] [defs] [] ctx10 []))
                            ]) ctx10;
   in Local_Theory.exit_global ctx11
   end;
