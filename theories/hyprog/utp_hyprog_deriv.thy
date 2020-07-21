@@ -121,16 +121,16 @@ utp_const lie_deriv
 named_theorems uderiv
 
 lemma uderiv_zero [uderiv]: "\<L>\<^bsub>F'\<^esub> 0 = 0"
-  by (rel_simp, simp add: frechet_derivative_const)
+  by (rel_simp)
 
 lemma uderiv_one [uderiv]: "\<L>\<^bsub>F'\<^esub> 1 = 0"
-  by (rel_simp, simp add: frechet_derivative_const)
+  by (rel_simp)
 
 lemma uderiv_numeral [uderiv]: "\<L>\<^bsub>F'\<^esub> (numeral n) = 0"
-  by (rel_simp, simp add: frechet_derivative_const)
+  by (rel_simp)
 
 lemma uderiv_lit [uderiv]: "\<L>\<^bsub>F'\<^esub> (\<guillemotleft>v\<guillemotright>) = 0"
-  by (rel_simp, simp add: frechet_derivative_const)
+  by (rel_simp)
 
 lemma uderiv_plus [uderiv]:
   "\<lbrakk> differentiable\<^sub>e e; differentiable\<^sub>e f \<rbrakk> \<Longrightarrow> \<L>\<^bsub>F'\<^esub> (e + f) = (\<L>\<^bsub>F'\<^esub> e + \<L>\<^bsub>F'\<^esub> f)"
