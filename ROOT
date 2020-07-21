@@ -178,7 +178,7 @@ session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
 
 (* Core UTP with Deep Variables *)
 
-session "UTP-Deep" in "utp/models" = "UTP" +
+session "UTP-Deep" in "utp/models/deep" = "UTP" +
   options [browser_info = true, document = false]
   sessions
     Continuum
@@ -186,7 +186,7 @@ session "UTP-Deep" in "utp/models" = "UTP" +
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-Axm" in "utp/models" = "UTP" +
+session "UTP-Axm" in "utp/models/axm" = "UTP" +
   options [browser_info = true, document = false]
   theories utp_axm
 
@@ -194,7 +194,8 @@ session "UTP-Axm" in "utp/models" = "UTP" +
 
 session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
   options [browser_info = true, document = false]
-  theories utp_deep utp_axm
+  sessions "UTP-Axm"
+  theories "UTP-Deep.utp_deep" "UTP-Axm.utp_axm"
 
 (* UTP Theory Base *)
 
@@ -204,24 +205,6 @@ session "UTP-Theories" in "theories" = "UTP-Circus" +
     "UTP-Time"
   theories utp_theories
 
-session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Deep"
-  theories utp_theories_deep
-
-session "UTP-Theories-Axm" in "utp/models" = "UTP-Theories" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Axm"
-  theories utp_axm
-
-session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Deep-Axm"
-  theories utp_axm
-
 (* Imports for Hybrid UTP *)
 
 (* We chose to start another root from the Analysis session (via Dynamics)
@@ -229,12 +212,12 @@ session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
-session "UTP-Hybrid-Imports" = "Dynamics" +
+session "UTP-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
   options [document = false]
   sessions
     "UTP-Time"
   theories
-    "hybrid/utp_hybrid_imports"
+    "utp_hybrid_imports"
 
 (* Hybrid UTP *)
 
