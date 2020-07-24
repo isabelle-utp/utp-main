@@ -514,7 +514,7 @@ translations
 
 lemma usubst_final_cont [usubst]:
   "\<lbrakk> $tr \<sharp>\<^sub>s \<sigma>; out\<alpha> \<sharp>\<^sub>s \<sigma>; $st:\<^bold>c \<sharp>\<^sub>s \<sigma> \<rbrakk> \<Longrightarrow> \<sigma> \<dagger> rl(x) = rl(x)"
-  by (simp add: final_cont_def tt_final_def trace_expr usubst unrest)
+  by (simp add: final_cont_def tt_final_def trace_expr usubst usubst_apply_unrest unrest)
   
 lemma R1_init_cont: "R1(ll(x)) = ll(x)"
   by (rel_auto)
@@ -633,7 +633,7 @@ lemma hInt_subst_init_cont [usubst]:
   by (simp add: hInt_def usubst)
   
 lemma hInt_false [rpred]: "\<lceil>false\<rceil>\<^sub>h = ($tr\<acute> =\<^sub>u $tr)"
-  by (rel_auto, meson eq_iff leI minus_zero_eq tt_end_0_iff tt_end_ge_0)
+  by (rel_auto)
 
 lemma hInt_true [rpred]: "\<lceil>true\<rceil>\<^sub>h = true\<^sub>r"
   by (rel_auto)
@@ -738,7 +738,7 @@ lemma rea_not_hInt [rpred]:
 
 lemma rea_not_hSomewhere [rpred]:
   "(\<not>\<^sub>r \<lfloor>P(ti)\<rfloor>\<^sub>h) = \<lceil>\<not> P(ti)\<rceil>\<^sub>h"
-  apply (rel_auto) using tt_end_gr_zero_iff by fastforce
+  by (rel_auto)
   
 subsection \<open> Continuous Frames \<close>
 
@@ -1334,9 +1334,12 @@ definition hyrel2trel :: "(unit, 'c::t2_space) hyrel \<Rightarrow> 'c trel" ("H2
 lemma hyrel2trel_alt_def:
   "H2T(P) = (\<Sqinter> t \<bullet> wait\<^sub>r \<guillemotleft>t\<guillemotright> ;; [HyStep[real_of_pos t](P)]\<^sub>S)"
   apply (rel_auto)
-  using le_add_diff_inverse apply fastforce
-  apply (metis le_add_diff_inverse real_of_pos tt_end_ge_0)
-  using le_add_diff_inverse apply fastforce+
+  using le_add_diff_inverse real_op_pos_minus apply fastforce
+      apply (metis le_add_diff_inverse real_of_pos tt_end_ge_0)
+  using le_add_diff_inverse real_of_pos_0 apply fastforce
+  apply (metis mk_pos_real_of_pos order_less_irrefl trace_class.diff_cancel tt_end_empty)
+  apply fastforce
+  apply (metis less_irrefl mk_pos_real_of_pos trace_class.diff_cancel tt_end_empty)
 done
 
 lemma hyrel2trel_RR_closed [closure]: "H2T(P) is RR"
@@ -1360,7 +1363,7 @@ lemma hyrel2trel_hEvolve:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "continuous_on {0..} f"
   shows "H2T(&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f(ti)\<guillemotright>  :: (unit,'c) hyrel) = 
-         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; \<^bold>v :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
+         (\<Sqinter> t\<in>{0<..} \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; \<^bold>v :=\<^sub>r \<guillemotleft>f(real_of_pos t)\<guillemotright>)" (is "?lhs = ?rhs")
 proof -
   from assms(1) 
   have "?lhs = R1(\<^bold>\<exists> l \<bullet> (&\<^bold>v \<leftarrow>\<^sub>h \<guillemotleft>f ti\<guillemotright> \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel) \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
@@ -1409,7 +1412,7 @@ lemma hyrel2trel_hEvolves:
   fixes x :: "'a::t2_space \<Longrightarrow> 'c::t2_space"
   assumes "continuous_lens x" "vwb_lens y" "\<And> v\<^sub>0. continuous_on {0..} (f v\<^sub>0)"
   shows "H2T({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h) = 
-         (\<Sqinter> t | \<guillemotleft>t\<guillemotright> >\<^sub>u 0 \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; x :=\<^sub>r \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>real_of_pos t\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
+         (\<Sqinter> t\<in>{0<..} \<bullet> wait\<^sub>r(\<guillemotleft>t\<guillemotright>) ;; x :=\<^sub>r \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>real_of_pos t\<guillemotright>)\<^sub>a)" (is "?lhs = ?rhs")
 proof -
   from assms(1) 
   have "?lhs = R1 (\<^bold>\<exists> l \<bullet> ({[x \<mapsto>\<^sub>s \<guillemotleft>f\<guillemotright>(&y)\<^sub>a(\<guillemotleft>ti\<guillemotright>)\<^sub>a]}\<^sub>h \<and> end\<^sub>u(&tt) =\<^sub>u \<guillemotleft>l\<guillemotright> \<and> rl(&\<^bold>v) \<and> $st:\<^bold>d\<acute> =\<^sub>u $st:\<^bold>d :: (unit,'c) hyrel)  \<restriction>\<^sub>r &st:\<^bold>c \<oplus>\<^sub>r st \<and> &tt =\<^sub>u \<guillemotleft>mk_pos l\<guillemotright>)"
