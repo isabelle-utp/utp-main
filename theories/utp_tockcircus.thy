@@ -4,86 +4,88 @@ theory utp_tockcircus
 imports "UTP-Reactive-Designs.utp_rea_designs" "rcircus/Refusal_Tests"
 begin recall_syntax
 
+subsection \<open> Foundations \<close>
+
 text \<open> We try and characterise a tock-CSP like model using the standard Circus pattern and adapting
-  the CML model. First we represent traces. \<close>
+  the CML model and bits of the refusal testing model. First we represent traces. \<close>
 
-datatype '\<theta> tev = Tock "'\<theta> set" | Evt '\<theta>
+datatype ('t, 'e) teva = Tock "'t" | Evt 'e
 
-text \<open> We don't need a tick event, because this is handled by the $ok$ flag. Nor do we need to
+type_synonym 'e tev = "('e set, 'e) teva"
+
+text \<open> We don't need a tick event, because this is handled by the $wait$ flag. Nor do we need to
   separate refusals and tocks. A refusal in tock-CSP (as I understand) can occur either (1) just
   before a tock occurs, or (2) at the end of a trace. We gain the former by embedding refusals
   in a tock (as in CML). We gain the latter by including the $ref'$ variable as in Circus. We encode
   the healthiness condition that a tock can't occur in a refusal before a tock event using
   the type system. \<close>
 
-alphabet ('\<sigma>, '\<phi>) tc_vars = "('\<phi> list, '\<sigma>) rsp_vars" +
-  ref :: "'\<phi> refusal"
+alphabet ('s, 'e) tc_vars = "('e tev list, 's) rsp_vars" +
+  ref :: "(unit, 'e) teva refusal"
 
 text \<open> The $ref$ variable is not simply a set, but a set augmented with the @{term \<bullet>} that denotes
-  stability. We need this because tick-tock traces can end without a refusal. \<close>
+  stability. We need this because tick-tock traces can end without a refusal. Note that unlike
+  in the trace this is a refusal over @{typ "'e tev"} so that we can refuse tocks at the end. \<close>
 
-type_synonym ('\<sigma>,'\<theta>) taction  = "('\<sigma>, '\<theta> tev) tc_vars hrel"
+text \<open> The interpretation of $wait$ changes to there being both stable (quiescent) and unstable.
+  Extra information is needed for refusals. What is the meaning pericondition? \<close>
 
-fun events :: "'\<theta> tev list \<Rightarrow> '\<theta> tev list" where
-"events [] = []" |
-"events (Tock A # t) = events t" |
-"events (Evt x # t) = (Evt x # events t)"
+type_synonym ('s,'e) taction  = "('s, 'e tev) tc_vars hrel"
 
-lemma events_append [simp]: "events (xs @ ys) = events(xs) @ events(ys)"
-  apply (induct xs, simp_all)
-  apply (rename_tac x xs)
-  apply (case_tac x)
-  apply (simp_all)
-done
+definition tocks :: "'e set \<Rightarrow> 'e tev list set" where
+"tocks X = {t. \<forall> e \<in> set(t). \<exists> Y. e = Tock Y \<and> Y \<subseteq> X}"
 
-fun tocks :: "'\<theta> tev list \<Rightarrow> '\<theta> tev list" where
-"tocks [] = []" |
-"tocks (Tock A # xs) = Tock A # tocks xs" |
-"tocks (Evt x # xs) = tocks xs"
+lemma tocks_Nil [simp]: "[] \<in> tocks X"
+  by (simp add: tocks_def)
 
-fun refusals :: "'\<theta> tev list \<Rightarrow> '\<theta> set" where
-"refusals [] = {}" |
-"refusals (Tock A # t) = A \<union> refusals t" |
-"refusals (Evt x # t) = refusals t"
+lemma tocks_Cons: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
+  by (simp add: tocks_def)
 
-fun idleprefix :: "'\<theta> tev list \<Rightarrow> '\<theta> tev list" where
-"idleprefix [] = []" |
-"idleprefix (Tock A # t) = (Tock A # idleprefix t)" |
-"idleprefix (Evt x # t) = []"
+lemma tocks_append: "\<lbrakk> s \<in> tocks X; t \<in> tocks X \<rbrakk> \<Longrightarrow> s @ t \<in> tocks X"
+  by (auto simp add: tocks_def)
 
-definition "idlesuffix = idleprefix \<circ> rev"
+definition "mk_tocks n = replicate n (Tock {})"
 
-syntax
-  "_events"     :: "logic \<Rightarrow> logic" ("events\<^sub>u'(_')")
-  "_tocks"      :: "logic \<Rightarrow> logic" ("tocks\<^sub>u'(_')")
-  "_refusals"   :: "logic \<Rightarrow> logic" ("refusals\<^sub>u'(_')")
-  "_idleprefix" :: "logic \<Rightarrow> logic" ("idleprefix\<^sub>u'(_')")
-  "_idlesuffix" :: "logic \<Rightarrow> logic" ("idlesuffix\<^sub>u'(_')")
-  "_ev"         :: "logic \<Rightarrow> logic" ("ev\<^sub>u'(_')")
-  "_tock"       :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("tock\<^sub>u'(_,_')")
+lemma mk_tocks: "mk_tocks n \<in> tocks X"
+  by (simp add: mk_tocks_def tocks_def)
 
-translations
-  "events\<^sub>u(t)" == "CONST uop CONST events t"
-  "tocks\<^sub>u(t)" == "CONST uop CONST tocks t"
-  "refusals\<^sub>u(t)" == "CONST uop CONST refusals t"
-  "idleprefix\<^sub>u(t)" == "CONST uop CONST idleprefix t"
-  "idlesuffix\<^sub>u(t)" == "CONST uop CONST idlesuffix t"
-  "ev\<^sub>u(e)" == "CONST uop CONST Evt e"
-  "tock\<^sub>u(t,A)" == "CONST bop CONST Tock t A"
+lemma length_mk_tocks [simp]: "length (mk_tocks n) = n"
+  by (simp add: mk_tocks_def)
 
-definition Div :: "('\<sigma>,'\<theta>) taction" where
+subsection \<open> Basic Constructs \<close>
+
+definition Div :: "('s,'e) taction" where
 [rdes_def]: "Div = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> false)"
 
 text \<open> This is the same as Circus $Skip$, except that it includes a quiescent state. \<close>
 
-definition Skip :: "('\<sigma>,'\<theta>) taction" where
+definition Skip :: "('s,'e) taction" where
 [rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> $st\<acute> = $st))"
 
-definition Stop :: "('\<sigma>,'\<theta>) taction" where
-[rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U(R1(events(&tt) = [])) \<diamondop> false)"
+no_utp_lift lift_state_rel
 
-definition Stop\<^sub>U :: "('\<sigma>,'\<theta>) taction" where
+definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
+[upred_defs]: "AssignsT \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S))" 
+
+definition Stop :: "('s,'e) taction" where
+[rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U(R1(&tt \<in> tocks UNIV)) \<diamondop> false)" \<comment> \<open> FIXME: tock is not in ref' \<close>
+
+definition Stop\<^sub>U :: "('s,'e) taction" where
 [rdes_def]: "Stop\<^sub>U = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr) \<diamondop> false)"
+
+utp_const R2
+
+definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
+[rdes_def]: "Wait n = 
+  \<^bold>R\<^sub>s(true\<^sub>r 
+    \<turnstile> U(R2(&tt \<in> tocks UNIV \<and> length(&tt) \<le> \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> (length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> $ref\<acute> = \<bullet>))) \<comment> \<open> FIXME: tock not in ref' \<close>
+    \<diamondop> U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)))"
+
+lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) \<le> \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> (length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> $ref\<acute> = \<bullet>))) is RR"
+  by (rel_auto)
+
+lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
+  by (rel_auto)
 
 lemma [closure]: "U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) is RR"
   by (rel_auto)
@@ -92,7 +94,7 @@ lemma [closure]: "U($tr\<acute> = $tr \<and> $st\<acute> = $st) is RR"
   apply (rel_auto)
   using minus_zero_eq by blast
 
-lemma [closure]: "U(R1(events(&tt) = [])) is RR"
+lemma [closure]: "U(R1(&tt \<in> tocks UNIV)) is RR"
   by (rel_auto)
 
 lemma "Div ;; Skip = Div"
@@ -106,5 +108,23 @@ lemma "Skip ;; Stop = Stop"
 
 lemma "Stop \<sqsubseteq> Div"
   by (rdes_refine)
+
+utp_const lift_state_pre
+
+lemma "Wait 0 = Skip"
+  by (rdes_eq)
+
+lemma "Wait m ;; Wait n = Wait(m + n)"
+  apply (rdes_simp)
+  oops
+
+lemma "\<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) ;; \<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) =
+       U(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>m\<rceil>\<^sub>S\<^sub>< + \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st))"
+  apply (simp add: R2_form usubst unrest)
+  apply (rel_auto)
+   apply (simp add: tocks_append)
+  oops
+
+text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
 
 end
