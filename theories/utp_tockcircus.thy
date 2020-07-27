@@ -23,7 +23,7 @@ text \<open> We don't need a tick event, because this is handled by the $wait$ f
 alphabet ('s, 'e) tc_vars = "('e tev list, 's) rsp_vars" +
   ref :: "(unit, 'e) teva refusal"
 
-text \<open> The $ref$ variable is not simply a set, but a set augmented with the @{term \<bullet>} that denotes
+text \<open> The $ref$ variable is not simply a set, but a set augmented with the @{term "\<^bold>\<bullet>"} that denotes
   stability. We need this because tick-tock traces can end without a refusal. Note that unlike
   in the trace this is a refusal over @{typ "'e tev"} so that we can refuse tocks at the end. \<close>
 
@@ -52,53 +52,111 @@ lemma mk_tocks: "mk_tocks n \<in> tocks X"
 lemma length_mk_tocks [simp]: "length (mk_tocks n) = n"
   by (simp add: mk_tocks_def)
 
+subsection \<open> Reactive Relation Constructs \<close>
+
+no_utp_lift lift_state_rel
+
+definition tc_stable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> _" ("\<E>'(_, _, _')") where
+[upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
+
+definition tc_unstable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> _" ("\<U>'(_, _')") where
+[upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $ref\<acute> = \<^bold>\<bullet>)"
+
+definition tc_final :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> _" ("\<F>'(_, _, _')") where
+[upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
+
+definition tc_time ("\<T>'(_,_')") where 
+[upred_defs]: "tc_time X A = U(\<exists> t \<in> tocks \<guillemotleft>X\<guillemotright>. $tr\<acute> = $tr @ t \<and> length(t) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)"
+
+utp_lift_notation tc_stable
+utp_lift_notation tc_unstable
+utp_lift_notation tc_final (2)
+utp_lift_notation tc_time
+
+lemma [closure]: "\<E>(s, t, E) is RR"
+  by (rel_auto)
+
+lemma [closure]: "\<U>(s, t) is RR"
+  by (rel_auto)
+
+lemma [closure]: "\<F>(s, t, \<sigma>) is RR"
+  by (rel_auto)
+
+lemma [unrest]: "$st\<acute> \<sharp> \<E>(s, t, E)"
+  by (rel_auto)
+
+lemma [unrest]: "$st\<acute> \<sharp> \<U>(s, t)"
+  by (rel_auto)
+
+lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>\<^sub>1) ;; \<F>(s\<^sub>2, t\<^sub>2, \<sigma>\<^sub>2) = \<F>(s\<^sub>1 \<and> \<sigma>\<^sub>1 \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma>\<^sub>1 \<dagger> t\<^sub>2, \<sigma>\<^sub>2 \<circ>\<^sub>s \<sigma>\<^sub>1)"
+  by (rel_auto)
+
+lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<E>(s\<^sub>2, t\<^sub>2, E) = \<E>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2, \<sigma> \<dagger> E)"
+  by (rel_auto)
+
+lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<U>(s\<^sub>2, t\<^sub>2) = \<U>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2)"
+  by (rel_auto)
+
 subsection \<open> Basic Constructs \<close>
 
 definition Div :: "('s,'e) taction" where
-[rdes_def]: "Div = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> false)"
+[rdes_def]: "Div = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
 
 text \<open> This is the same as Circus $Skip$, except that it includes a quiescent state. \<close>
 
 definition Skip :: "('s,'e) taction" where
-[rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> $st\<acute> = $st))"
-
-no_utp_lift lift_state_rel
+[rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
 
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
-[upred_defs]: "AssignsT \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S))" 
+[upred_defs]: "AssignsT \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
 
 definition Stop :: "('s,'e) taction" where
-[rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U(R1(&tt \<in> tocks UNIV)) \<diamondop> false)" \<comment> \<open> FIXME: tock is not in ref' \<close>
+[rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U(R1(&tt \<in> tocks UNIV) \<and> Tock () \<notin>\<^sub>\<R> $ref\<acute>) \<diamondop> false)"
 
 definition Stop\<^sub>U :: "('s,'e) taction" where
 [rdes_def]: "Stop\<^sub>U = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr) \<diamondop> false)"
 
 utp_const R2
 
+term "\<E>(true, [], {Tock ()})"
+
+term "(\<Sqinter> X \<bullet> \<U>(true, [Tock \<guillemotleft>X\<guillemotright>]))"
+
+definition Pause :: "('s,'e) taction" where
+"Pause = 
+  \<^bold>R\<^sub>s(true\<^sub>r 
+  \<turnstile> \<E>(true, [], {Tock ()}) \<or> (\<Sqinter> X \<bullet> \<U>(true, [Tock X])) 
+  \<diamondop> (\<Sqinter> X \<bullet> \<F>(true, [Tock X], id\<^sub>s)))"
+
+lemma "((\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) < n, \<guillemotleft>t\<guillemotright>, {Tock ()})) 
+       \<or> (\<Sqinter> t \<bullet> \<U>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>))) is RR"
+  by (simp add: closure)
+
+lemma "(\<Sqinter> t \<bullet> \<F>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>, id\<^sub>s)) is RR"
+  by (simp add: closure)
+
+
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
   \<^bold>R\<^sub>s(true\<^sub>r 
-    \<turnstile> U(R2(&tt \<in> tocks UNIV \<and> length(&tt) \<le> \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> (length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> $ref\<acute> = \<bullet>))) \<comment> \<open> FIXME: tock not in ref' \<close>
-    \<diamondop> U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)))"
+    \<turnstile> ((\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) < n, \<guillemotleft>t\<guillemotright>, {Tock ()})) 
+       \<or> (\<Sqinter> t \<bullet> \<U>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>)))
+    \<diamondop> (\<Sqinter> t \<bullet> \<F>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>, id\<^sub>s)))"
 
-lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) \<le> \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> (length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<Rightarrow> $ref\<acute> = \<bullet>))) is RR"
-  by (rel_auto)
 
 lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
   by (rel_auto)
 
-lemma [closure]: "U($tr\<acute> = $tr \<and> $ref\<acute> = \<bullet>) is RR"
-  by (rel_auto)
 
 lemma [closure]: "U($tr\<acute> = $tr \<and> $st\<acute> = $st) is RR"
   apply (rel_auto)
   using minus_zero_eq by blast
 
-lemma [closure]: "U(R1(&tt \<in> tocks UNIV)) is RR"
+lemma [closure]: "U(R1(&tt \<in> tocks UNIV) \<and> Tock () \<notin>\<^sub>\<R> $ref\<acute>) is RR"
   by (rel_auto)
 
 lemma "Div ;; Skip = Div"
-  by (rdes_eq)
+  by (rdes_simp)
 
 lemma "Skip ;; Skip = Skip"
   by (rdes_eq)
@@ -115,7 +173,7 @@ lemma "Wait 0 = Skip"
   by (rdes_eq)
 
 lemma "Wait m ;; Wait n = Wait(m + n)"
-  apply (rdes_simp)
+  apply (rdes_eq_split)
   oops
 
 lemma "\<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) ;; \<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) =

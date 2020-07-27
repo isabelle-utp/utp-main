@@ -6,13 +6,16 @@ begin
 
 subsection \<open> Refusal Sets \<close>
 
-datatype 'e refusal = rfnil ("\<bullet>") | rfset "'e set" ("[_]\<^sub>\<R>")
+datatype 'e refusal = rfnil ("\<^bold>\<bullet>") | rfset "'e set" ("[_]\<^sub>\<R>")
+
+abbreviation empty_refusal :: "'e refusal" ("{}\<^sub>\<R>") where
+"empty_refusal \<equiv> [{}]\<^sub>\<R>"
 
 instantiation refusal :: (type) order
 begin
   fun less_eq_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> bool" where
-  "\<bullet> \<le> S = True" |
-  "R \<le> \<bullet> = (R = \<bullet>)" |
+  "\<^bold>\<bullet> \<le> S = True" |
+  "R \<le> \<^bold>\<bullet> = (R = \<^bold>\<bullet>)" |
   "[X]\<^sub>\<R> \<le> [Y]\<^sub>\<R> = (X \<subseteq> Y)"
   definition less_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> bool" where
   "less_refusal S R = (S \<le> R \<and> \<not> R \<le> S)"
@@ -34,7 +37,7 @@ abbreviation rsubseteq :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> boo
 "S \<subseteq>\<^sub>\<R> R \<equiv> S \<le> R"
 
 fun rmember :: "'a \<Rightarrow> 'a refusal \<Rightarrow> bool" ("(_/ \<in>\<^sub>\<R> _)" [51, 51] 50) where
-"x \<in>\<^sub>\<R> \<bullet> = False" | "x \<in>\<^sub>\<R> [R]\<^sub>\<R> = (x \<in> R)"
+"x \<in>\<^sub>\<R> \<^bold>\<bullet> = False" | "x \<in>\<^sub>\<R> [R]\<^sub>\<R> = (x \<in> R)"
 
 abbreviation rnot_member ("(_/ \<notin>\<^sub>\<R> _)" [51, 51] 50)
   where "rnot_member x A \<equiv> \<not> (x \<in>\<^sub>\<R>  A)"
@@ -42,13 +45,13 @@ abbreviation rnot_member ("(_/ \<notin>\<^sub>\<R> _)" [51, 51] 50)
 instantiation refusal :: (type) lattice
 begin
   fun sup_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal"  where
-  "sup \<bullet> R = R" |
-  "sup S \<bullet> = S" |
+  "sup \<^bold>\<bullet> R = R" |
+  "sup S \<^bold>\<bullet> = S" |
   "sup [S]\<^sub>\<R> [R]\<^sub>\<R> = [S \<union> R]\<^sub>\<R>"
 
   fun inf_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal"  where
-  "inf \<bullet> R = \<bullet>" |
-  "inf S \<bullet> = \<bullet>" |
+  "inf \<^bold>\<bullet> R = \<^bold>\<bullet>" |
+  "inf S \<^bold>\<bullet> = \<^bold>\<bullet>" |
   "inf [S]\<^sub>\<R> [R]\<^sub>\<R> = [S \<inter> R]\<^sub>\<R>"
 instance proof
   fix x y z :: "'a refusal"
@@ -76,7 +79,7 @@ abbreviation rinter :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a ref
 subsection \<open> Refusal Events \<close>
 
 typedef 'e revent = "{(X :: 'e refusal, a :: 'e). a \<notin>\<^sub>\<R> X}"
-  by (rule_tac x="(\<bullet>, undefined)" in exI, simp)
+  by (rule_tac x="(\<^bold>\<bullet>, undefined)" in exI, simp)
 
 setup_lifting type_definition_revent
 
