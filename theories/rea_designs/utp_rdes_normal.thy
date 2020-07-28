@@ -6,10 +6,13 @@ theory utp_rdes_normal
     "UTP-KAT.utp_kleene"
 begin
 
-text \<open> This additional healthiness condition is analogous to H3 \<close>
+text \<open> These additional healthiness conditions are analogous to H3 \<close>
 
 definition RD3 where
 [upred_defs]: "RD3(P) = P ;; II\<^sub>R"
+
+definition RD3c where
+[upred_defs]: "RD3c(P) = P ;; II\<^sub>C"
 
 lemma RD3_idem: "RD3(RD3(P)) = RD3(P)"
 proof -
@@ -44,6 +47,14 @@ proof -
     by (metis (no_types, hide_lams) H2_def RD2_def RD3_def a seqr_assoc)
 qed
 
+lemma RD3c_left_subsumes_RD2: "RD3c(RD2(P)) = RD3c(P)"
+proof -
+  have a:"J ;; II\<^sub>C = II\<^sub>C"
+    by (rel_auto)
+  show ?thesis
+    by (simp add: H2_def RD2_def RD3c_def a seqr_assoc)
+qed
+
 lemma RD3_implies_RD2: "P is RD3 \<Longrightarrow> P is RD2"
   by (metis Healthy_def RD3_right_subsumes_RD2)
 
@@ -61,28 +72,6 @@ proof -
     by (simp add: assms(2) rpred wp_rea_def R1_preR)
   finally show ?thesis
     by (metis Healthy_def SRD_as_reactive_design assms(1))
-qed
-
-lemma RHS_tri_design_right_unit_lemma:
-  assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R" "$wait\<acute> \<sharp> R"
-  shows "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
-proof -
-  have "\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; II\<^sub>R = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R) ;; \<^bold>R\<^sub>s(true \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))"
-    by (simp add: srdes_skip_tri_design, rel_auto)
-  also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> (R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))))"
-    by (simp_all add: RHS_tri_design_composition assms unrest R2s_true R1_false R2s_false)
-  also have "... = \<^bold>R\<^sub>s ((\<not> R1 (\<not> R2s P) ;; R1 true) \<turnstile> (\<exists> $st\<acute> \<bullet> Q) \<diamondop> R1 (R2s R))"
-  proof -
-    from assms(3,4) have "(R1 (R2s R) ;; R1 (R2s ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R))) = R1 (R2s R)"
-      by (rel_auto, metis (no_types, lifting) minus_zero_eq, meson order_refl trace_class.diff_cancel)
-    thus ?thesis
-      by simp
-  qed
-  also have "... = \<^bold>R\<^sub>s((\<not> (\<not> P) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
-    by (metis (no_types, lifting) R1_R2s_R1_true_lemma R1_R2s_R2c R2c_not RHS_design_R2c_pre RHS_design_neg_R1_pre RHS_design_post_R1 RHS_design_post_R2s)
-  also have "... = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r P) ;; true\<^sub>r) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q) \<diamondop> R))"
-    by (rel_auto)
-  finally show ?thesis .
 qed
 
 lemma RHS_tri_design_RD3_intro:
@@ -117,8 +106,14 @@ lemma RHS_tri_design_RD3_intro_form:
 definition NSRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
 where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
 
+definition NRD :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+where [upred_defs]: "NRD = RD1 \<circ> RD3c \<circ> RH"
+
 lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
   by (rel_auto, blast+)
+
+lemma RD1_RD3c_commute: "RD1(RD3c(P)) = RD3c(RD1(P))"
+  by (rel_auto)
 
 lemma NSRD_is_SRD [closure]: "P is NSRD \<Longrightarrow> P is SRD"
   by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
@@ -135,7 +130,21 @@ lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
 
 lemma NSRD_Continuous [closure]: "Continuous NSRD"
   by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
-    
+
+lemma NRD_form:
+  "NRD(P) = \<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+proof -
+  have "NRD(P) = RD3c(RD(P))"
+    by (metis NRD_def RD1_RD3c_commute RD3c_left_subsumes_RD2 RD_alt_def comp_eq_dest_lhs)
+  also have "... = RD3c(\<^bold>R(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (simp add: RD_as_reactive_tri_design)
+  also have "... = \<^bold>R(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) ;; II\<^sub>C"
+    by (simp add: RD3c_def)
+  also have "... = \<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (simp add: RH_tri_design_right_unit_lemma unrest)
+  finally show ?thesis .
+qed
+
 lemma NSRD_form:
   "NSRD(P) = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
 proof -

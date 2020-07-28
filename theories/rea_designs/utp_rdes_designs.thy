@@ -518,6 +518,10 @@ lemma R1_design_R1_pre:
 lemma RHS_design_ok_wait: "\<^bold>R\<^sub>s(P\<lbrakk>true,false/$ok,$wait\<rbrakk> \<turnstile> Q\<lbrakk>true,false/$ok,$wait\<rbrakk>) = \<^bold>R\<^sub>s(P \<turnstile> Q)"
   by (rel_auto)
 
+lemma RH_design_neg_R1_pre:
+  "\<^bold>R ((\<not> R1 P) \<turnstile> R) = \<^bold>R ((\<not> P) \<turnstile> R)"
+  by (rel_auto)
+
 lemma RHS_design_neg_R1_pre:
   "\<^bold>R\<^sub>s ((\<not> R1 P) \<turnstile> R) = \<^bold>R\<^sub>s ((\<not> P) \<turnstile> R)"
   by (rel_auto)
@@ -527,6 +531,10 @@ lemma RHS_design_conj_neg_R1_pre:
   by (rel_auto)
 
 lemma RHS_pre_lemma: "(\<^bold>R\<^sub>s P)\<^sup>f\<^sub>f = R1(R2c(P\<^sup>f\<^sub>f))"
+  by (rel_auto)
+
+lemma RH_design_R2c_pre:
+  "\<^bold>R(R2c(P) \<turnstile> Q) = \<^bold>R(P \<turnstile> Q)"
   by (rel_auto)
 
 lemma RHS_design_R2c_pre:
@@ -553,7 +561,31 @@ lemma R1_design_refine_RR:
   assumes "P\<^sub>1 is RR" "P\<^sub>2 is RR" "Q\<^sub>1 is RR" "Q\<^sub>2 is RR"
   shows "R1(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
   by (simp add: R1_design_refine assms unrest closure)
-    
+
+lemma RH_design_refine:
+  assumes 
+    "P\<^sub>1 is R1" "P\<^sub>2 is R1" "Q\<^sub>1 is R1" "Q\<^sub>2 is R1"
+    "P\<^sub>1 is R2c" "P\<^sub>2 is R2c" "Q\<^sub>1 is R2c" "Q\<^sub>2 is R2c"
+    "$ok \<sharp> P\<^sub>1" "$ok\<acute> \<sharp> P\<^sub>1" "$ok \<sharp> P\<^sub>2" "$ok\<acute> \<sharp> P\<^sub>2"
+    "$ok \<sharp> Q\<^sub>1" "$ok\<acute> \<sharp> Q\<^sub>1" "$ok \<sharp> Q\<^sub>2" "$ok\<acute> \<sharp> Q\<^sub>2"    
+    "$wait \<sharp> P\<^sub>1" "$wait \<sharp> P\<^sub>2" "$wait \<sharp> Q\<^sub>1" "$wait \<sharp> Q\<^sub>2"    
+  shows "\<^bold>R(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> \<^bold>R(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+proof -
+  have "\<^bold>R(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> \<^bold>R(Q\<^sub>1 \<turnstile> Q\<^sub>2) \<longleftrightarrow> R1(R3c(R2c(P\<^sub>1 \<turnstile> P\<^sub>2))) \<sqsubseteq> R1(R3c(R2c(Q\<^sub>1 \<turnstile> Q\<^sub>2)))"
+    by (simp add: R2c_R3c_commute RH_def)
+  also have "... \<longleftrightarrow> R1(R3c(P\<^sub>1 \<turnstile> P\<^sub>2)) \<sqsubseteq> R1(R3c(Q\<^sub>1 \<turnstile> Q\<^sub>2))"
+    by (simp add: Healthy_if R2c_design assms)
+  also have "... \<longleftrightarrow> R1(R3c(P\<^sub>1 \<turnstile> P\<^sub>2))\<lbrakk>false/$wait\<rbrakk> \<sqsubseteq> R1(R3c(Q\<^sub>1 \<turnstile> Q\<^sub>2))\<lbrakk>false/$wait\<rbrakk>"
+    by (rel_auto, metis+)
+  also have "... \<longleftrightarrow> R1(P\<^sub>1 \<turnstile> P\<^sub>2)\<lbrakk>false/$wait\<rbrakk> \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2)\<lbrakk>false/$wait\<rbrakk>"      
+    by (rel_auto)
+  also have "... \<longleftrightarrow> R1(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqsubseteq> R1(Q\<^sub>1 \<turnstile> Q\<^sub>2)"      
+    by (simp add: usubst assms closure unrest)
+  also have "... \<longleftrightarrow> `P\<^sub>1 \<Rightarrow> Q\<^sub>1` \<and> `P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> P\<^sub>2`"
+    by (simp add: R1_design_refine assms)
+  finally show ?thesis .
+qed 
+
 lemma RHS_design_refine:
   assumes 
     "P\<^sub>1 is R1" "P\<^sub>2 is R1" "Q\<^sub>1 is R1" "Q\<^sub>2 is R1"
@@ -577,6 +609,11 @@ proof -
     by (simp add: R1_design_refine assms)
   finally show ?thesis .
 qed 
+
+lemma rdes_refine_intro:
+  assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"
+  shows "\<^bold>R(P\<^sub>1 \<turnstile> Q\<^sub>1) \<sqsubseteq> \<^bold>R(P\<^sub>2 \<turnstile> Q\<^sub>2)"
+  by (simp add: RH_mono assms design_refine_intro)
 
 lemma srdes_refine_intro:
   assumes "`P\<^sub>1 \<Rightarrow> P\<^sub>2`" "`P\<^sub>1 \<and> Q\<^sub>2 \<Rightarrow> Q\<^sub>1`"

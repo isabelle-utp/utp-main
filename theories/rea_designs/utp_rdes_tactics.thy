@@ -36,15 +36,15 @@ method rdes_simp uses cls cong simps =
 text \<open> Tactic to split a refinement conjecture into three POs \<close>
 
 method rdes_refine_split uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; rule_tac srdes_tri_refine_intro')
+  (rdes_simp cls: cls cong: cong simps: simps; rule_tac rdes_tri_refine_intro' srdes_tri_refine_intro')
 
 text \<open> Tactics to split an equality conjecture into three POs \<close>
 
 method rdes_eq_split uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro))
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac rdes_tri_eq_intro srdes_tri_eq_intro))
 
 method rdes_eq_split' uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac srdes_tri_eq_intro'))
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac rdes_tri_eq_intro' srdes_tri_eq_intro'))
 
 text \<open> Tactic to prove a refinement \<close>
   
@@ -62,7 +62,7 @@ method rdes_eq' uses cls cong simps =
 text \<open> Via antisymmetry \<close>
 
 method rdes_eq_anti uses cls cong simps =
-  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac antisym; (rule_tac srdes_tri_refine_intro; rel_auto)))
+  (rdes_simp cls: cls cong: cong simps: simps; (rule_tac antisym; (rule_tac rdes_tri_refine_intro srdes_tri_refine_intro; rel_auto)))
 
 text \<open> Tactic to calculate pre/peri/postconditions from reactive designs \<close>
 

@@ -355,6 +355,9 @@ proof -
   finally show ?thesis .
 qed
 
+lemma R3c_refines_R3h: "R3h(P) \<sqsubseteq> R3c(P)"
+  by (rel_auto)
+
 subsection \<open> RD2: A reactive specification cannot require non-termination \<close>
 
 definition RD2 where
@@ -421,6 +424,9 @@ lemma RH_Idempotent: "Idempotent \<^bold>R"
 
 lemma RH_Monotonic: "Monotonic \<^bold>R"
   by (metis (no_types, lifting) R1_Monotonic R2c_Monotonic R3c_mono RH_def mono_def)
+
+lemma RH_mono: "P \<sqsubseteq> Q \<Longrightarrow> \<^bold>R(P) \<sqsubseteq> \<^bold>R(Q)"
+  using mono_def RH_Monotonic by blast
 
 lemma RH_Continuous: "Continuous \<^bold>R"
   by (simp add: Continuous_comp R1_Continuous R2c_Continuous R3c_Continuous RH_comp)
