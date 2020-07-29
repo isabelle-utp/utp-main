@@ -89,6 +89,12 @@ fun idleprefix :: "'e tev list \<Rightarrow> 'e tev list" where
 
 subsection \<open> Reactive Relation Constructs \<close>
 
+definition TRR1 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRR1(P) = (\<exists> $ref \<bullet> P)"
+
+definition TRR2 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRR2(P) = (U($tr\<acute> = $tr \<and> $ref\<acute> = \<^bold>\<bullet>) \<or> P)"
+
 definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR(P) = (\<exists> $ref \<bullet> RR(P))"
 
@@ -292,6 +298,23 @@ lemma TC1_rdes:
   using assms
   by (rdes_simp simps: trr_left_unit)
 
+lemma trr_right_unit: 
+  assumes "P is TRR" "$ref\<acute> \<sharp> P"
+  shows "P ;; II\<^sub>t = P"
+proof -
+  have "TRR(\<exists> $ref\<acute> \<bullet> P) ;; II\<^sub>t = TRR(\<exists> $ref\<acute> \<bullet> P)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2) ex_unrest)
+qed
+
+lemma TC2_rdes:
+  assumes "Q is TRR" "$ref\<acute> \<sharp> R" "R is TRR"
+  shows "TC2(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
+  using assms
+  apply (rdes_simp simps: trr_right_unit)
+  oops
+
 subsection \<open> Basic Constructs \<close>
 
 text \<open> The divergent action cannot terminate and exhibits only instability in the pericondition. \<close>
@@ -300,7 +323,10 @@ definition Div :: "('s,'e) taction" where
 [rdes_def]: "Div = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
 
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
-[upred_defs]: "AssignsT \<sigma> = \<^bold>R(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
+[rdes_def]: "AssignsT \<sigma> = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
+
+lemma "AssignsT \<sigma> ;; Skip = AssignsT \<sigma>"
+  by (rdes_eq)
 
 text \<open> A timed deadlock does not terminate, but permits any period of time to pass, always remaining
   in a quiescent state where another $tock$ can occur. \<close>
@@ -319,8 +345,14 @@ text \<open> SDF: Check the following definition against the tick-tock paper. It
 definition DoT :: "'e \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(_')") where
 [rdes_def]: "DoT a =
   \<^bold>R(true\<^sub>r 
-  \<turnstile> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<E>(true, [], {Tock (), Evt \<guillemotleft>a\<guillemotright>})
+  \<turnstile> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; (\<E>(true, [], {Tock (), Evt \<guillemotleft>a\<guillemotright>}) \<or> \<U>(true, [\<guillemotleft>a\<guillemotright>]))
   \<diamondop> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<F>(true, [\<guillemotleft>a\<guillemotright>], id\<^sub>s))"
+
+lemma "do\<^sub>T(e) ;; Skip = do\<^sub>T(e)"
+  apply (rdes_eq_split)
+    apply (simp_all add: rpred closure seqr_assoc usubst)
+  apply (rel_auto)
+  done
 
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
