@@ -30,7 +30,17 @@ text \<open> The $ref$ variable is not simply a set, but a set augmented with th
 text \<open> The interpretation of $wait$ changes to there being both stable (quiescent) and unstable.
   Extra information is needed for refusals. What is the meaning pericondition? \<close>
 
-type_synonym ('s,'e) taction  = "('s, 'e tev) tc_vars hrel"
+(* FIXME: Nasty hack below *)
+
+declare des_vars.splits [alpha_splits del]
+declare rp_vars.splits [alpha_splits del]
+declare des_vars.splits [alpha_splits del]
+declare rsp_vars.splits [alpha_splits del]
+declare rsp_vars.splits [alpha_splits]
+declare rp_vars.splits [alpha_splits]
+declare des_vars.splits [alpha_splits]
+
+type_synonym ('s,'e) taction  = "('s, 'e) tc_vars hrel"
 
 definition tocks :: "'e set \<Rightarrow> 'e tev list set" where
 "tocks X = {t. \<forall> e \<in> set(t). \<exists> Y. e = Tock Y \<and> Y \<subseteq> X}"
@@ -41,8 +51,14 @@ lemma tocks_Nil [simp]: "[] \<in> tocks X"
 lemma tocks_Cons: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
   by (simp add: tocks_def)
 
-lemma tocks_append: "\<lbrakk> s \<in> tocks X; t \<in> tocks X \<rbrakk> \<Longrightarrow> s @ t \<in> tocks X"
+lemma tocks_append [simp]: "\<lbrakk> s \<in> tocks X; t \<in> tocks X \<rbrakk> \<Longrightarrow> s @ t \<in> tocks X"
   by (auto simp add: tocks_def)
+
+lemma tocks_take [simp]: "s \<in> tocks X \<Longrightarrow> take n s \<in> tocks X"
+  by (auto simp add: tocks_def, meson in_set_takeD)
+
+lemma tocks_drop [simp]: "s \<in> tocks X \<Longrightarrow> drop n s \<in> tocks X"
+  by (auto simp add: tocks_def, meson in_set_dropD)
 
 definition "mk_tocks n = replicate n (Tock {})"
 
@@ -52,21 +68,38 @@ lemma mk_tocks: "mk_tocks n \<in> tocks X"
 lemma length_mk_tocks [simp]: "length (mk_tocks n) = n"
   by (simp add: mk_tocks_def)
 
+fun events :: "'e tev list \<Rightarrow> 'e tev list" where
+"events [] = []" |
+"events (Tock A # t) = events t" |
+"events (Evt x # t) = (Evt x # events t)"
+
+lemma events_append [simp]: "events (xs @ ys) = events(xs) @ events(ys)"
+  apply (induct xs, simp_all)
+  apply (rename_tac x xs)
+  apply (case_tac x)
+  apply (simp_all)
+done
+
+fun idleprefix :: "'e tev list \<Rightarrow> 'e tev list" where
+"idleprefix [] = []" |
+"idleprefix (Tock A # t) = (Tock A # idleprefix t)" |
+"idleprefix (Evt x # t) = []"
+
 subsection \<open> Reactive Relation Constructs \<close>
 
 no_utp_lift lift_state_rel
 
-definition tc_stable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> _" ("\<E>'(_, _, _')") where
+definition tc_stable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
 [upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
 
-definition tc_unstable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> _" ("\<U>'(_, _')") where
+definition tc_unstable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<U>'(_, _')") where
 [upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $ref\<acute> = \<^bold>\<bullet>)"
 
-definition tc_final :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> _" ("\<F>'(_, _, _')") where
+definition tc_final :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
 [upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
 
-definition tc_time ("\<T>'(_,_')") where 
-[upred_defs]: "tc_time X A = U(\<exists> t \<in> tocks \<guillemotleft>X\<guillemotright>. $tr\<acute> = $tr @ t \<and> length(t) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)"
+definition tc_time ("\<T>'(_, _')") where 
+[upred_defs]: "tc_time X A = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
 
 utp_lift_notation tc_stable
 utp_lift_notation tc_unstable
@@ -80,6 +113,9 @@ lemma [closure]: "\<U>(s, t) is RR"
   by (rel_auto)
 
 lemma [closure]: "\<F>(s, t, \<sigma>) is RR"
+  by (rel_auto)
+
+lemma [closure]: "\<T>(X, A) is RR"
   by (rel_auto)
 
 lemma [unrest]: "$st\<acute> \<sharp> \<E>(s, t, E)"
@@ -97,24 +133,77 @@ lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<E>(s\<^sub>2, t\<^sub>
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<U>(s\<^sub>2, t\<^sub>2) = \<U>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2)"
   by (rel_auto)
 
+lemma split_time_dom:
+  fixes l :: nat
+  assumes "m\<^sub>1 + m\<^sub>2 \<le> l" "l \<le> m\<^sub>1 + m\<^sub>2 + (n\<^sub>1 + n\<^sub>2)"
+  shows "(\<exists> n. n \<le> l \<and> m\<^sub>1 \<le> n \<and> m\<^sub>2 + n \<le> l \<and> n \<le> m\<^sub>1+n\<^sub>1 \<and> l \<le> m\<^sub>2+n\<^sub>2+n)"
+  using assms
+  by presburger
+
+lemma [rpred]: "\<T>(X, {0}) ;; \<E>(s, t, E) = \<E>(s, t, E)"
+  by (rel_simp)
+
+lemma [rpred]: "\<T>(X, {0}) ;; \<U>(s, t) = \<U>(s, t)"
+  by (rel_simp)
+
+lemma [rpred]: "\<T>(X, {0}) ;; \<F>(s, t, \<sigma>) = \<F>(s, t, \<sigma>)"
+  by (rel_auto)
+
+lemma time_single_single [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n}) = \<T>(X, {m+n})"
+  apply rel_auto
+  apply (rename_tac tr st x)
+  apply (rule_tac x="tr @ take (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in exI)
+  apply (auto)
+  apply (rule_tac x="drop (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in bexI)
+   apply (auto)
+  done
+
+lemma time_single_upto [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..<n}) = \<T>(X, {m..<m+n})"
+  apply rel_auto
+  apply (rename_tac tr st x)
+  apply (rule_tac x="tr @ take (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in exI)
+  apply (auto)
+  apply (rule_tac x="drop (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in bexI)
+   apply (auto)
+  done
+
+lemma [rpred]: "\<T>(X, {m\<^sub>1..m\<^sub>1+n\<^sub>1}) ;; \<T>(X, {m\<^sub>2..m\<^sub>2+n\<^sub>2}) = \<T>(X, {m\<^sub>1 + m\<^sub>2..m\<^sub>1 + m\<^sub>2+(n\<^sub>1 + n\<^sub>2)})"
+proof (rel_auto)
+  fix tr st t
+
+  assume a: "t \<in> tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st)" "\<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st \<le> length t" "length t \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st + (\<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st)"
+  then obtain n where n: "n \<le> length t" "\<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st \<le> n" "\<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st + n \<le> length t" "n \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st+\<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st" "length t \<le> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st+\<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st+n"
+    using split_time_dom by blast
+
+  with a show "\<exists>tr' st'.
+          (\<exists>x\<in>tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st). tr' = tr @ x \<and> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st \<le> length x \<and> length x \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st \<and> st' = st) \<and>
+          (\<exists>xa\<in>tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st'). tr @ t = tr' @ xa \<and> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' \<le> length xa \<and> length xa \<le> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st' \<and> st = st')"
+    apply (rule_tac x="tr @ take n t" in exI)
+    apply (rule_tac x="st" in exI)
+    apply (auto)
+    apply (rule_tac x="drop n t" in bexI)
+     apply (auto)
+    done
+qed
+
 subsection \<open> Basic Constructs \<close>
 
 definition Div :: "('s,'e) taction" where
-[rdes_def]: "Div = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
+[rdes_def]: "Div = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
 
 text \<open> This is the same as Circus $Skip$, except that it includes a quiescent state. \<close>
 
 definition Skip :: "('s,'e) taction" where
-[rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
+[rdes_def]: "Skip = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
 
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
-[upred_defs]: "AssignsT \<sigma> = \<^bold>R\<^sub>s(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
+[upred_defs]: "AssignsT \<sigma> = \<^bold>R(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
 
 definition Stop :: "('s,'e) taction" where
-[rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U(R1(&tt \<in> tocks UNIV) \<and> Tock () \<notin>\<^sub>\<R> $ref\<acute>) \<diamondop> false)"
+[rdes_def]: "Stop = \<^bold>R(true\<^sub>r \<turnstile> \<T>({}, {0..}) ;; \<E>(true, [], {Tock ()}) \<diamondop> false)"
 
 definition Stop\<^sub>U :: "('s,'e) taction" where
-[rdes_def]: "Stop\<^sub>U = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr) \<diamondop> false)"
+[rdes_def]: "Stop\<^sub>U = \<^bold>R(true\<^sub>r \<turnstile> \<E>(true, [], {}) \<diamondop> false)"
 
 utp_const R2
 
@@ -122,11 +211,23 @@ term "\<E>(true, [], {Tock ()})"
 
 term "(\<Sqinter> X \<bullet> \<U>(true, [Tock \<guillemotleft>X\<guillemotright>]))"
 
-definition Pause :: "('s,'e) taction" where
-"Pause = 
-  \<^bold>R\<^sub>s(true\<^sub>r 
-  \<turnstile> \<E>(true, [], {Tock ()}) \<or> (\<Sqinter> X \<bullet> \<U>(true, [Tock X])) 
-  \<diamondop> (\<Sqinter> X \<bullet> \<F>(true, [Tock X], id\<^sub>s)))"
+term tocks
+
+term "\<E>(true, [], {Tock ()})"
+term "\<E>(\<guillemotleft>t\<guillemotright> \<in> tocks (UNIV - {\<guillemotleft>a\<guillemotright>}), \<guillemotleft>t\<guillemotright>, {Tock (), Evt \<guillemotleft>a\<guillemotright>})"
+
+term "tocks (UNIV - {a::'e})"
+
+term "(\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t \<in> tocks (UNIV - {a})\<guillemotright>, \<guillemotleft>t\<guillemotright>, {}))"
+
+text \<open> SDF: Check the following definition against the tick-tock paper. It only allows prefixing
+  of non-tock events for now. \<close>
+
+definition DoT :: "'e \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(_')") where
+[rdes_def]: "DoT a =
+  \<^bold>R(true\<^sub>r 
+  \<turnstile> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<E>(true, [], {Tock (), Evt \<guillemotleft>a\<guillemotright>})
+  \<diamondop> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<F>(true, [Evt \<guillemotleft>a\<guillemotright>], id\<^sub>s))"
 
 lemma "((\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) < n, \<guillemotleft>t\<guillemotright>, {Tock ()})) 
        \<or> (\<Sqinter> t \<bullet> \<U>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>))) is RR"
@@ -138,10 +239,10 @@ lemma "(\<Sqinter> t \<bullet> \<F>(\<guillemotleft>t\<guillemotright> \<in> toc
 
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
-  \<^bold>R\<^sub>s(true\<^sub>r 
-    \<turnstile> ((\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) < n, \<guillemotleft>t\<guillemotright>, {Tock ()})) 
-       \<or> (\<Sqinter> t \<bullet> \<U>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>)))
-    \<diamondop> (\<Sqinter> t \<bullet> \<F>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>, id\<^sub>s)))"
+  \<^bold>R(true\<^sub>r 
+    \<turnstile> ((\<T>({}, {0..<n}) ;; \<E>(true, [], {Tock ()})) 
+       \<or> (\<T>({}, {n}) ;; \<U>(true, [])))
+    \<diamondop> \<T>({}, {n}))"
 
 
 lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
@@ -169,19 +270,21 @@ lemma "Stop \<sqsubseteq> Div"
 
 utp_const lift_state_pre
 
-lemma "Wait 0 = Skip"
+lemma Wait_0: "Wait 0 = Skip"
   by (rdes_eq)
 
-lemma "Wait m ;; Wait n = Wait(m + n)"
+lemma Wait_Wait: "Wait m ;; Wait n = Wait(m + n)"
   apply (rdes_eq_split)
-  oops
-
-lemma "\<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>m\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) ;; \<^U>(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) =
-       U(R2 (&tt \<in> tocks UNIV \<and> length (&tt) = \<lceil>m\<rceil>\<^sub>S\<^sub>< + \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st))"
-  apply (simp add: R2_form usubst unrest)
+    apply (rel_auto)
+   apply (simp_all add: rpred closure seqr_assoc[THEN sym])
   apply (rel_auto)
-   apply (simp add: tocks_append)
-  oops
+  done
+
+definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
+"extChoice P Q =
+  \<^bold>R(true\<^sub>r 
+  \<turnstile> [$tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s idleprefix(&tt)] \<dagger> (peri\<^sub>R(P) \<and> peri\<^sub>R(Q)) \<diamondop> false)"
+
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
 
