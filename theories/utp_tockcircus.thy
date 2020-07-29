@@ -310,10 +310,8 @@ qed
 
 lemma TC2_rdes:
   assumes "Q is TRR" "$ref\<acute> \<sharp> R" "R is TRR"
-  shows "TC2(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
-  using assms
-  apply (rdes_simp simps: trr_right_unit)
-  oops
+  shows "TC2(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
+  using assms by (rdes_simp simps: trr_right_unit)
 
 subsection \<open> Basic Constructs \<close>
 
