@@ -80,6 +80,8 @@ lemma events_append [simp]: "events (xs @ ys) = events(xs) @ events(ys)"
   apply (simp_all)
 done
 
+text \<open> This function is taken from CML and I think might be useful here too. \<close>
+
 fun idleprefix :: "'e tev list \<Rightarrow> 'e tev list" where
 "idleprefix [] = []" |
 "idleprefix (Tock A # t) = (Tock A # idleprefix t)" |
@@ -89,17 +91,33 @@ subsection \<open> Reactive Relation Constructs \<close>
 
 no_utp_lift lift_state_rel
 
-definition tc_stable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
-[upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
+text \<open> We introduce a small algebra for peri- and postconditions to capture timed behaviours. The
+  first operator captures stable intermediate (i.e. quiescent) behaviours. Here, @{term s} is a 
+  predicate on the state (a condition), @{term t} is a trace over non-tock events, and @{term E} 
+  is the set of events being accepted at this point. FIXME: Should stable observations
+  also update the state? \<close>
 
-definition tc_unstable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<U>'(_, _')") where
-[upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> $ref\<acute> = \<^bold>\<bullet>)"
+definition tc_stable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
+[upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
 
-definition tc_final :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
-[upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
+text \<open> We also need unstable intermediate observations, which the following relation provides. It
+  has no set associated, since no refusal set is observed. \<close>
 
-definition tc_time ("\<T>'(_, _')") where 
-[upred_defs]: "tc_time X A = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
+definition tc_unstable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<U>'(_, _')") where
+[upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> $ref\<acute> = \<^bold>\<bullet>)"
+
+text \<open> A final observation is similar to a stable observation, except it can update the state 
+  variables and does not characterise a refusal set. \<close>
+
+definition tc_final :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
+[upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
+
+text \<open> A timed observation represents a period of delay. The set @{term X} characterises the set of
+  events that are accepted during this period. The set @{term A} characterises the possible delay
+  periods, for example @{term "{0..n}"} means a delay of between $0$ and $n$ units. \<close>
+
+definition tc_time :: "('e set, 's) uexpr \<Rightarrow> (nat set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<T>'(_, _')") where 
+[upred_defs]: "\<T>(X, A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
 
 utp_lift_notation tc_stable
 utp_lift_notation tc_unstable
@@ -211,10 +229,12 @@ qed
 
 subsection \<open> Basic Constructs \<close>
 
+text \<open> The divergent action cannot terminate and exhibits only instability in the pericondition. \<close>
+
 definition Div :: "('s,'e) taction" where
 [rdes_def]: "Div = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
 
-text \<open> This is the same as Circus $Skip$, except that it includes a quiescent state. \<close>
+text \<open> This is the same as Circus $Skip$, except that it includes an unstable intermediate state. \<close>
 
 definition Skip :: "('s,'e) taction" where
 [rdes_def]: "Skip = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
@@ -222,26 +242,16 @@ definition Skip :: "('s,'e) taction" where
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
 [upred_defs]: "AssignsT \<sigma> = \<^bold>R(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
 
+text \<open> A timed deadlock does not terminate, but permits any period of time to pass, always remaining
+  in a quiescent state where another $tock$ can occur. \<close>
+
 definition Stop :: "('s,'e) taction" where
 [rdes_def]: "Stop = \<^bold>R(true\<^sub>r \<turnstile> \<T>({}, {0..}) ;; \<E>(true, [], {Tock ()}) \<diamondop> false)"
 
+text \<open> An untimed deadlock is stable, but does not accept any events. \<close>
+
 definition Stop\<^sub>U :: "('s,'e) taction" where
 [rdes_def]: "Stop\<^sub>U = \<^bold>R(true\<^sub>r \<turnstile> \<E>(true, [], {}) \<diamondop> false)"
-
-utp_const R2
-
-term "\<E>(true, [], {Tock ()})"
-
-term "(\<Sqinter> X \<bullet> \<U>(true, [Tock \<guillemotleft>X\<guillemotright>]))"
-
-term tocks
-
-term "\<E>(true, [], {Tock ()})"
-term "\<E>(\<guillemotleft>t\<guillemotright> \<in> tocks (UNIV - {\<guillemotleft>a\<guillemotright>}), \<guillemotleft>t\<guillemotright>, {Tock (), Evt \<guillemotleft>a\<guillemotright>})"
-
-term "tocks (UNIV - {a::'e})"
-
-term "(\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t \<in> tocks (UNIV - {a})\<guillemotright>, \<guillemotleft>t\<guillemotright>, {}))"
 
 text \<open> SDF: Check the following definition against the tick-tock paper. It only allows prefixing
   of non-tock events for now. \<close>
@@ -250,15 +260,7 @@ definition DoT :: "'e \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(_')") where
 [rdes_def]: "DoT a =
   \<^bold>R(true\<^sub>r 
   \<turnstile> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<E>(true, [], {Tock (), Evt \<guillemotleft>a\<guillemotright>})
-  \<diamondop> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<F>(true, [Evt \<guillemotleft>a\<guillemotright>], id\<^sub>s))"
-
-lemma "((\<Sqinter> t \<bullet> \<E>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) < n, \<guillemotleft>t\<guillemotright>, {Tock ()})) 
-       \<or> (\<Sqinter> t \<bullet> \<U>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>))) is RR"
-  by (simp add: closure)
-
-lemma "(\<Sqinter> t \<bullet> \<F>(\<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> length(\<guillemotleft>t\<guillemotright>) = n, \<guillemotleft>t\<guillemotright>, id\<^sub>s)) is RR"
-  by (simp add: closure)
-
+  \<diamondop> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<F>(true, [\<guillemotleft>a\<guillemotright>], id\<^sub>s))"
 
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
@@ -267,17 +269,7 @@ definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
        \<or> (\<T>({}, {n}) ;; \<U>(true, [])))
     \<diamondop> \<T>({}, {n}))"
 
-
-lemma [closure]: "U(R2(&tt \<in> tocks UNIV \<and> length(&tt) = \<lceil>n\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
-  by (rel_auto)
-
-
-lemma [closure]: "U($tr\<acute> = $tr \<and> $st\<acute> = $st) is RR"
-  apply (rel_auto)
-  using minus_zero_eq by blast
-
-lemma [closure]: "U(R1(&tt \<in> tocks UNIV) \<and> Tock () \<notin>\<^sub>\<R> $ref\<acute>) is RR"
-  by (rel_auto)
+subsection \<open> Algebraic Laws \<close>
 
 lemma "Div ;; Skip = Div"
   by (rdes_simp)
