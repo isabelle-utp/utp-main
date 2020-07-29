@@ -124,6 +124,11 @@ lemma [unrest]: "$st\<acute> \<sharp> \<E>(s, t, E)"
 lemma [unrest]: "$st\<acute> \<sharp> \<U>(s, t)"
   by (rel_auto)
 
+text \<open> Unstable observations are subsumed by stable ones \<close>
+
+lemma instability_subsumed: "\<E>(s, t, E) \<sqsubseteq> \<U>(s, t)"
+  by (rel_auto)
+
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>\<^sub>1) ;; \<F>(s\<^sub>2, t\<^sub>2, \<sigma>\<^sub>2) = \<F>(s\<^sub>1 \<and> \<sigma>\<^sub>1 \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma>\<^sub>1 \<dagger> t\<^sub>2, \<sigma>\<^sub>2 \<circ>\<^sub>s \<sigma>\<^sub>1)"
   by (rel_auto)
 
@@ -158,7 +163,25 @@ lemma time_single_single [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n}) = \<T>(X, {m+n})
    apply (auto)
   done
 
-lemma time_single_upto [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..<n}) = \<T>(X, {m..<m+n})"
+lemma time_single_lessthan [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..<n}) = \<T>(X, {m..<m+n})"
+  apply rel_auto
+  apply (rename_tac tr st x)
+  apply (rule_tac x="tr @ take (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in exI)
+  apply (auto)
+  apply (rule_tac x="drop (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in bexI)
+   apply (auto)
+  done
+
+lemma time_single_atMost [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..n}) = \<T>(X, {m..m+n})"
+  apply rel_auto
+  apply (rename_tac tr st x)
+  apply (rule_tac x="tr @ take (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in exI)
+  apply (auto)
+  apply (rule_tac x="drop (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in bexI)
+   apply (auto)
+  done
+
+lemma time_single_atLeast [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n..}) = \<T>(X, {m+n..})"
   apply rel_auto
   apply (rename_tac tr st x)
   apply (rule_tac x="tr @ take (\<lbrakk>m\<rbrakk>\<^sub>e st) x" in exI)
@@ -279,6 +302,12 @@ lemma Wait_Wait: "Wait m ;; Wait n = Wait(m + n)"
    apply (simp_all add: rpred closure seqr_assoc[THEN sym])
   apply (rel_auto)
   done
+
+text \<open> This is a pleasing result although @{const Wait} raises instability, this is swallowed up 
+  by the sequential composition. \<close>
+
+lemma Wait_Stop: "Wait m ;; Stop = Stop"
+  by (rdes_eq_split, simp_all add: rpred closure seqr_assoc[THEN sym], rel_auto)
 
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
 "extChoice P Q =
