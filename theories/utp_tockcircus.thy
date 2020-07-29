@@ -89,7 +89,40 @@ fun idleprefix :: "'e tev list \<Rightarrow> 'e tev list" where
 
 subsection \<open> Reactive Relation Constructs \<close>
 
+definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRR(P) = (\<exists> $ref \<bullet> RR(P))"
+
+lemma TRR_idem: "TRR(TRR(P)) = TRR(P)"
+  by (rel_auto)
+
+lemma Idempotent_TRR [closure]: "Idempotent TRR"
+  by (simp add: TRR_idem Idempotent_def)
+
+lemma Continuous_CRR [closure]: "Continuous TRR"
+  by (rel_blast)
+
+lemma TRR_intro:
+  assumes "$ref \<sharp> P" "P is RR"
+  shows "P is TRR"
+  by (simp add: TRR_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+
+lemma TRR_unrest_ref [unrest]: "P is TRR \<Longrightarrow> $ref \<sharp> P"
+  by (metis (no_types, hide_lams) Healthy_def' TRR_def exists_twice in_var_uvar ref_vwb_lens unrest_as_exists vwb_lens_mwb)
+
+lemma TRR_implies_RR [closure]: 
+  assumes "P is TRR"
+  shows "P is RR"
+proof -
+  have "RR(TRR(P)) = TRR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
 no_utp_lift lift_state_rel
+
+definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
+[upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
 
 text \<open> We introduce a small algebra for peri- and postconditions to capture timed behaviours. The
   first operator captures stable intermediate (i.e. quiescent) behaviours. Here, @{term s} is a 
@@ -124,16 +157,19 @@ utp_lift_notation tc_unstable
 utp_lift_notation tc_final (2)
 utp_lift_notation tc_time
 
-lemma [closure]: "\<E>(s, t, E) is RR"
+lemma [closure]: "II\<^sub>t is TRR"
   by (rel_auto)
 
-lemma [closure]: "\<U>(s, t) is RR"
+lemma [closure]: "\<E>(s, t, E) is TRR"
   by (rel_auto)
 
-lemma [closure]: "\<F>(s, t, \<sigma>) is RR"
+lemma [closure]: "\<U>(s, t) is TRR"
   by (rel_auto)
 
-lemma [closure]: "\<T>(X, A) is RR"
+lemma [closure]: "\<F>(s, t, \<sigma>) is TRR"
+  by (rel_auto)
+
+lemma [closure]: "\<T>(X, A) is TRR"
   by (rel_auto)
 
 lemma [unrest]: "$st\<acute> \<sharp> \<E>(s, t, E)"
@@ -156,20 +192,23 @@ lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<E>(s\<^sub>2, t\<^sub>
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<U>(s\<^sub>2, t\<^sub>2) = \<U>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2)"
   by (rel_auto)
 
-lemma split_time_dom:
-  fixes l :: nat
-  assumes "m\<^sub>1 + m\<^sub>2 \<le> l" "l \<le> m\<^sub>1 + m\<^sub>2 + (n\<^sub>1 + n\<^sub>2)"
-  shows "(\<exists> n. n \<le> l \<and> m\<^sub>1 \<le> n \<and> m\<^sub>2 + n \<le> l \<and> n \<le> m\<^sub>1+n\<^sub>1 \<and> l \<le> m\<^sub>2+n\<^sub>2+n)"
-  using assms
-  by presburger
+lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
+  by (rule TRR_intro, simp_all add: closure unrest)
 
-lemma [rpred]: "\<T>(X, {0}) ;; \<E>(s, t, E) = \<E>(s, t, E)"
-  by (rel_simp)
+lemma trr_left_unit: 
+  assumes "P is TRR"
+  shows "II\<^sub>t ;; P = P"
+proof -
+  have "II\<^sub>t ;; TRR(P) = TRR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed 
 
-lemma [rpred]: "\<T>(X, {0}) ;; \<U>(s, t) = \<U>(s, t)"
-  by (rel_simp)
+lemma [rpred]: "\<T>(X, {0}) = II\<^sub>t"
+  by (rel_auto)
 
-lemma [rpred]: "\<T>(X, {0}) ;; \<F>(s, t, \<sigma>) = \<F>(s, t, \<sigma>)"
+lemma [rpred]: "\<F>(true, [], id\<^sub>s) = II\<^sub>t"
   by (rel_auto)
 
 lemma time_single_single [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n}) = \<T>(X, {m+n})"
@@ -208,6 +247,13 @@ lemma time_single_atLeast [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n..}) = \<T>(X, {m+
    apply (auto)
   done
 
+lemma split_time_dom:
+  fixes l :: nat
+  assumes "m\<^sub>1 + m\<^sub>2 \<le> l" "l \<le> m\<^sub>1 + m\<^sub>2 + (n\<^sub>1 + n\<^sub>2)"
+  shows "(\<exists> n. n \<le> l \<and> m\<^sub>1 \<le> n \<and> m\<^sub>2 + n \<le> l \<and> n \<le> m\<^sub>1+n\<^sub>1 \<and> l \<le> m\<^sub>2+n\<^sub>2+n)"
+  using assms
+  by presburger
+
 lemma [rpred]: "\<T>(X, {m\<^sub>1..m\<^sub>1+n\<^sub>1}) ;; \<T>(X, {m\<^sub>2..m\<^sub>2+n\<^sub>2}) = \<T>(X, {m\<^sub>1 + m\<^sub>2..m\<^sub>1 + m\<^sub>2+(n\<^sub>1 + n\<^sub>2)})"
 proof (rel_auto)
   fix tr st t
@@ -227,17 +273,31 @@ proof (rel_auto)
     done
 qed
 
+subsection \<open> Healthiness Conditions \<close>
+
+text \<open> This is the same as Circus $Skip$, except that it includes an unstable intermediate state. \<close>
+
+definition Skip :: "('s,'e) taction" where
+[rdes_def]: "Skip = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
+
+definition TC1 :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
+[rdes_def]: "TC1(P) = Skip ;; P"
+
+definition TC2 :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
+[rdes_def]: "TC2(P) = P ;; Skip"
+
+lemma TC1_rdes:
+  assumes "Q is TRR" "R is TRR"
+  shows "TC1(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
+  using assms
+  by (rdes_simp simps: trr_left_unit)
+
 subsection \<open> Basic Constructs \<close>
 
 text \<open> The divergent action cannot terminate and exhibits only instability in the pericondition. \<close>
 
 definition Div :: "('s,'e) taction" where
 [rdes_def]: "Div = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
-
-text \<open> This is the same as Circus $Skip$, except that it includes an unstable intermediate state. \<close>
-
-definition Skip :: "('s,'e) taction" where
-[rdes_def]: "Skip = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], id\<^sub>s))"
 
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
 [upred_defs]: "AssignsT \<sigma> = \<^bold>R(true \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
@@ -270,9 +330,6 @@ definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
     \<diamondop> \<T>({}, {n}))"
 
 subsection \<open> Algebraic Laws \<close>
-
-lemma "Div ;; Skip = Div"
-  by (rdes_simp)
 
 lemma "Skip ;; Skip = Skip"
   by (rdes_eq)
