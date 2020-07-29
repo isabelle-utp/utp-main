@@ -145,6 +145,36 @@ proof -
   finally show ?thesis .
 qed
 
+lemma NRD_intro:
+  assumes "P is RD" "(\<not>\<^sub>r pre\<^sub>R(P)) ;; true\<^sub>r = (\<not>\<^sub>r pre\<^sub>R(P))"
+  shows "P is NRD"
+proof -
+  have "NRD(P) = \<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
+    by (simp add: NRD_form)
+  also have "... = \<^bold>R(pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)"
+    by (simp add: assms rpred closure)
+  also have "... = P"
+    by (simp add: RD_reactive_tri_design assms(1))
+  finally show ?thesis
+    using Healthy_def by blast
+qed
+
+lemma NRD_intro':
+  assumes "P is R2" "P is R3c" "P is RD1" "P is RD3c"
+  shows "P is NRD"
+  by (metis (no_types, hide_lams) Healthy_def NRD_def R1_R2c_is_R2 RH_def assms comp_apply)
+
+lemma NRD_RC_intro:
+  assumes "P is RD" "pre\<^sub>R(P) is RC"
+  shows "P is NRD"
+  by (metis Healthy_def NRD_form RD_reactive_tri_design assms(1) assms(2)
+      rea_not_false  wp_rea_RC_false wp_rea_def)
+    
+lemma NRD_rdes_intro [closure]:
+  assumes "P is RC" "Q is RR" "R is RR"
+  shows "\<^bold>R(P \<turnstile> Q \<diamondop> R) is NRD"
+  by (rule NRD_RC_intro, simp_all add: rdes closure assms unrest)
+
 lemma NSRD_form:
   "NSRD(P) = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
 proof -

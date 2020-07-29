@@ -405,7 +405,7 @@ lemma ndiv_srd_refines_preR_true:
 proof
   assume ?lhs
   thus ?rhs
-    by (metis R1_preR ndiv_srd_def preR_antitone preR_rdes rea_true_RR rea_true_disj(2) utp_pred_laws.sup.orderE)    
+    by (metis R1_preR ndiv_srd_def preR_antitone preR_srdes rea_true_RR rea_true_disj(2) utp_pred_laws.sup.orderE)    
 next
   assume ?rhs
   hence "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
@@ -519,7 +519,7 @@ lemma rdes_frame_ext_SRD_closed:
 
 lemma preR_rdes_frame_ext: 
   "P is NSRD \<Longrightarrow> pre\<^sub>R(a:[P]\<^sub>R\<^sup>+) = rel_aext (pre\<^sub>R(P)) (map_st\<^sub>L a)"
-  by (simp add: preR_RR preR_rdes rdes_frame_ext_def rea_aext_RR)
+  by (simp add: preR_RR preR_srdes rdes_frame_ext_def rea_aext_RR)
   
 lemma unrest_rel_aext_st' [unrest]: "$st\<acute> \<sharp> P \<Longrightarrow> $st\<acute> \<sharp>  rel_aext P (map_st\<^sub>L a)"
   by (rel_auto)
@@ -529,7 +529,7 @@ lemma rdes_frame_ext_NSRD_closed:
   apply (rule NSRD_RC_intro)
     apply (rule rdes_frame_ext_SRD_closed)
   apply (simp_all add: closure unrest rdes)
-   apply (simp add: NSRD_neg_pre_RC RC_rel_aext_st_closed preR_RR preR_rdes rdes_frame_ext_def rea_aext_RR)
+   apply (simp add: NSRD_neg_pre_RC RC_rel_aext_st_closed preR_RR preR_srdes rdes_frame_ext_def rea_aext_RR)
   apply (simp add: rdes_frame_ext_def)
   apply (simp add: rdes closure unrest)
   done

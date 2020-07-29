@@ -402,15 +402,30 @@ lemma wait'_cond_peri_post_cmt [rdes]:
 
 lemma preR_rdes [rdes]: 
   assumes "P is RR"
+  shows "pre\<^sub>R(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = P"
+  by (simp add: rea_pre_RH_design unrest usubst assms Healthy_if RR_implies_R2c RR_implies_R1)
+
+lemma preR_srdes [rdes]: 
+  assumes "P is RR"
   shows "pre\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = P"
   by (simp add: rea_pre_RHS_design unrest usubst assms Healthy_if RR_implies_R2c RR_implies_R1)
 
 lemma periR_rdes [rdes]: 
   assumes "P is RR" "Q is RR"
+  shows "peri\<^sub>R(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = (P \<Rightarrow>\<^sub>r Q)"
+  by (simp add: rea_peri_RH_design unrest usubst assms Healthy_if RR_implies_R2c closure)
+
+lemma periR_srdes [rdes]: 
+  assumes "P is RR" "Q is RR"
   shows "peri\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = (P \<Rightarrow>\<^sub>r Q)"
   by (simp add: rea_peri_RHS_design unrest usubst assms Healthy_if RR_implies_R2c closure)
 
 lemma postR_rdes [rdes]: 
+  assumes "P is RR" "R is RR"
+  shows "post\<^sub>R(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = (P \<Rightarrow>\<^sub>r R)"
+  by (simp add: rea_post_RH_design unrest usubst assms Healthy_if RR_implies_R2c closure)
+
+lemma postR_srdes [rdes]: 
   assumes "P is RR" "R is RR"
   shows "post\<^sub>R(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = (P \<Rightarrow>\<^sub>r R)"
   by (simp add: rea_post_RHS_design unrest usubst assms Healthy_if RR_implies_R2c closure)
