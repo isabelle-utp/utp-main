@@ -348,20 +348,6 @@ lemma disj_CRR_closed [closure]:
 lemma rea_not_CRR_closed [closure]:
   "P is CRR \<Longrightarrow> (\<not>\<^sub>r P) is CRR"
   using false_CRR rea_implies_CRR_closed by fastforce
-
-lemma disj_R1_closed [closure]: "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> (P \<or> Q) is R1"
-  by (rel_blast)
-    
-lemma st_cond_R1_closed [closure]: "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> (P \<triangleleft> b \<triangleright>\<^sub>R Q) is R1"
-  by (rel_blast)
-    
-lemma cond_st_RR_closed [closure]:
-  assumes "P is RR" "Q is RR"
-  shows "(P \<triangleleft> b \<triangleright>\<^sub>R Q) is RR"
-  apply (rule RR_intro, simp_all add: unrest closure assms, simp add: Healthy_def R2c_condr)
-  apply (simp add: Healthy_if assms RR_implies_R2c)
-  apply (rel_auto)
-done
     
 lemma cond_st_CRR_closed [closure]:
   "\<lbrakk> P is CRR; Q is CRR \<rbrakk> \<Longrightarrow> (P \<triangleleft> b \<triangleright>\<^sub>R Q) is CRR"

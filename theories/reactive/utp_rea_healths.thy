@@ -301,7 +301,10 @@ lemma R2_mono: "P \<sqsubseteq> Q \<Longrightarrow> R2(P) \<sqsubseteq> R2(Q)"
 
 lemma R2_implies_R1 [closure]: "P is R2 \<Longrightarrow> P is R1"
   by (rel_blast)
-    
+
+lemma R2_implies_R2c [closure]: "P is R2 \<Longrightarrow> P is R2c"
+  by (rel_blast)
+
 lemma R2c_Continuous: "Continuous R2c"
   by (rel_simp)
 

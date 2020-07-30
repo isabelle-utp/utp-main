@@ -292,9 +292,6 @@ proof -
   finally show ?thesis .
 qed
 
-lemma periR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R1"
-  by (simp add: Healthy_def' R1_peri_SRD)
-
 lemma R1_R2c_peri_RHS:
   assumes "P is SRD"
   shows "R1(R2c(peri\<^sub>R(P))) = peri\<^sub>R(P)"
@@ -326,9 +323,6 @@ lemma R2c_post_SRD:
   shows "R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
   by (metis R1_R2c_commute R1_R2s_R2c R1_R2s_post_SRD R1_post_SRD assms)
 
-lemma postR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R1"
-  by (simp add: Healthy_def' R1_post_SRD)
-
 lemma R1_R2c_post_RHS:
   assumes "P is SRD"
   shows "R1(R2c(post\<^sub>R(P))) = post\<^sub>R(P)"
@@ -342,27 +336,51 @@ lemma R2c_preR:
   "P is SRD \<Longrightarrow> R2c(pre\<^sub>R(P)) = pre\<^sub>R(P)"
   by (metis (no_types, lifting) R1_R2c_commute R2c_idem SRD_reactive_design rea_pre_RHS_design)
 
-lemma preR_R2c_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2c"
-  by (simp add: Healthy_def' R2c_preR)
+lemma preR_R2_closed [closure]: 
+  assumes "P is R2"
+  shows "pre\<^sub>R P is R2"
+proof -
+  have "R2(pre\<^sub>R(R2(P))) = pre\<^sub>R(R2(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma periR_R2_closed [closure]: 
+  assumes "P is R2"
+  shows "peri\<^sub>R P is R2"
+proof -
+  have "R2(peri\<^sub>R(R2(P))) = peri\<^sub>R(R2(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma postR_R2_closed [closure]: 
+  assumes "P is R2"
+  shows "post\<^sub>R P is R2"
+proof -
+  have "R2(post\<^sub>R(R2(P))) = post\<^sub>R(R2(P))"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma postR_SRD_R1 [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R1"
+  by (simp add: Healthy_def' R1_post_SRD)
 
 lemma R2c_periR:
   "P is SRD \<Longrightarrow> R2c(peri\<^sub>R(P)) = peri\<^sub>R(P)"
   by (metis (no_types, lifting) R1_R2c_commute R1_R2s_R2c R1_R2s_peri_SRD R2c_idem)
 
-lemma periR_R2c_closed [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R2c"
-  by (simp add: Healthy_def R2c_peri_SRD)
-
 lemma R2c_postR:
   "P is SRD \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
   by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
 
-lemma postR_R2c_closed [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R2c"
-  by (simp add: Healthy_def R2c_post_SRD)
-
-lemma periR_RR [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is RR"
+lemma periR_RR [closure]: "P is R2 \<Longrightarrow> peri\<^sub>R(P) is RR"
   by (rule RR_intro, simp_all add: closure unrest)
   
-lemma postR_RR [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is RR"
+lemma postR_RR [closure]: "P is R2 \<Longrightarrow> post\<^sub>R(P) is RR"
   by (rule RR_intro, simp_all add: closure unrest)
 
 lemma wpR_trace_ident_pre [wp]:
@@ -384,15 +402,6 @@ lemma trace_ident_left_postR:
 lemma trace_ident_right_postR:
   "post\<^sub>R(P) ;; ($tr\<acute> =\<^sub>u $tr \<and> \<lceil>II\<rceil>\<^sub>R) = post\<^sub>R(P)"
   by (rel_auto)
-
-lemma preR_R2_closed [closure]: "P is SRD \<Longrightarrow> pre\<^sub>R(P) is R2"
-  by (simp add: R2_comp_def Healthy_comp closure)
-
-lemma periR_R2_closed [closure]: "P is SRD \<Longrightarrow> peri\<^sub>R(P) is R2"
-  by (simp add: Healthy_def' R1_R2c_peri_RHS R2_R2c_def)
-    
-lemma postR_R2_closed [closure]: "P is SRD \<Longrightarrow> post\<^sub>R(P) is R2"
-  by (simp add: Healthy_def' R1_R2c_post_RHS R2_R2c_def)
 
 subsubsection \<open> Calculation laws \<close>
 
@@ -994,6 +1003,20 @@ proof -
   finally show ?thesis .
 qed
 
+lemma RD_composition_wp:
+  assumes "P is RD" "Q is RD"
+  shows "(P ;; Q) = \<^bold>R (((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile>
+                       (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+  (is "?lhs = ?rhs")
+proof -
+  have "(P ;; Q) = (\<^bold>R(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) ;; \<^bold>R(pre\<^sub>R(Q) \<turnstile> peri\<^sub>R(Q) \<diamondop> post\<^sub>R(Q)))"
+    by (simp add: RD_reactive_tri_design assms(1) assms(2))
+  also from assms
+  have "... = ?rhs"
+    by (simp add: RH_tri_design_composition_wp unrest closure disj_upred_def)
+  finally show ?thesis .
+qed
+
 lemma SRD_composition_wp:
   assumes "P is SRD" "Q is SRD"
   shows "(P ;; Q) = \<^bold>R\<^sub>s (((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile>
@@ -1167,6 +1190,42 @@ lemma srdes_tri_eq_intro':
 
 subsection \<open> Closure laws \<close>
 
+subsubsection \<open> Regular \<close>
+
+lemma RD_srdes_skip [closure]: "II\<^sub>C is RD"
+  by (simp add: rdes_skip_def RH_design_is_RD unrest)
+
+lemma RD_seqr_closure [closure]:
+  assumes "P is RD" "Q is RD"
+  shows "(P ;; Q) is RD"
+proof -
+  have "(P ;; Q) = \<^bold>R (((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile> 
+                       (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+    by (simp add: RD_composition_wp assms(1) assms(2))
+  also have "... is RD"
+    by (rule RH_design_is_RD, simp_all add: wp_rea_def unrest)
+  finally show ?thesis .
+qed
+
+lemma RD_power_Suc [closure]: "P is RD \<Longrightarrow> P\<^bold>^(Suc n) is RD"
+proof (induct n)
+  case 0
+  then show ?case
+    by (simp)
+next
+  case (Suc n)
+  then show ?case
+    using RD_seqr_closure by (simp add: RD_seqr_closure upred_semiring.power_Suc) 
+qed
+
+lemma RD_power_comp [closure]: "P is RD \<Longrightarrow> P ;; P\<^bold>^n is RD"
+  by (metis RD_power_Suc upred_semiring.power_Suc)
+
+lemma uplus_RD_closed [closure]: "P is RD \<Longrightarrow> P\<^sup>+ is RD"
+  by (simp add: uplus_power_def closure)
+
+subsubsection \<open> Stateful \<close>
+
 lemma SRD_srdes_skip [closure]: "II\<^sub>R is SRD"
   by (simp add: srdes_skip_def RHS_design_is_SRD unrest)
 
@@ -1296,6 +1355,15 @@ qed
 
 subsection \<open> Algebraic laws \<close>
 
+lemma RD_left_unit:
+  assumes "P is RD"
+  shows "II\<^sub>C ;; P = P"
+  by (simp add: RD1_left_unit RD_healths(1) RD_healths(4) assms)
+
+lemma skip_rdes_self_unit [simp]:
+  "II\<^sub>C ;; II\<^sub>C = II\<^sub>C"
+  by (simp add: RD_left_unit closure)
+
 lemma SRD_left_unit:
   assumes "P is SRD"
   shows "II\<^sub>R ;; P = P"
@@ -1354,6 +1422,11 @@ lemma SRD_right_Miracle_tri_lemma:
   assumes "P is SRD"
   shows "P ;; Miracle = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> false)"
   by (simp add: SRD_composition_wp closure rdes assms wp, rel_auto)
+
+text \<open> Reactive designs are left unital \<close>
+
+interpretation rdes_left_unital: utp_theory_left_unital "RD" "II\<^sub>C"
+  by (unfold_locales, simp_all add: closure RD_left_unit)
 
 text \<open> Stateful reactive designs are left unital \<close>
 

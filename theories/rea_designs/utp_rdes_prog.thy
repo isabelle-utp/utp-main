@@ -409,7 +409,7 @@ proof
 next
   assume ?rhs
   hence "ndiv\<^sub>R \<sqsubseteq> \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))"
-    by (simp add: RHS_tri_design_conj assms ndiv_srd_def periR_SRD_R1 postR_SRD_R1 rea_true_conj(1) rea_true_impl utp_pred_laws.inf.absorb_iff2)
+    by (simp add: RHS_tri_design_conj assms ndiv_srd_def closure rea_true_conj(1) rea_true_impl utp_pred_laws.inf.absorb_iff2)
   thus ?lhs
     by (simp add: SRD_reactive_tri_design assms)
 qed
@@ -514,7 +514,7 @@ lemma rdes_frame_ext_SRD_closed:
   unfolding rdes_frame_ext_def
   apply (rule SRD_rdes_intro)
   apply (simp_all add: closure unrest )
-  apply (simp add: RR_R2_intro ok'_pre_unrest ok_pre_unrest preR_R2_closed rea_aext_RR wait_pre_unrest)
+  apply (simp add: RR_R2_intro ok'_pre_unrest ok_pre_unrest wait_pre_unrest closure)
   done
 
 lemma preR_rdes_frame_ext: 

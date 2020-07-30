@@ -484,6 +484,16 @@ lemma RD_Continuous: "Continuous RD"
 lemma R3_RD_RP: "R3(RD(P)) = RP(RD1(RD2(P)))"
   by (metis (no_types, lifting) R1_R2c_is_R2 R2_R3_commute R3_cancels_R3c RD1_RH_commute RD2_RH_commute RD_alt_def RH_def RP_def)
 
+lemma RD_healths [closure]:
+  assumes "P is RD"
+  shows "P is R1" "P is R2" "P is R3c" "P is RD1" "P is RD2"
+  apply (metis Healthy_def R1_idem RD1_RH_commute RD2_RH_commute RH_def RD_alt_def assms)
+  apply (metis Healthy_def R1_R2c_is_R2 R2_idem RD1_RH_commute RD2_RH_commute RH_def RD_alt_def assms)
+  apply (metis Healthy_def R3_RD_RP R3c_via_RD1_R3 RD1_RD2_commute RD1_RH_commute RD2_R3c_commute RD2_RH_commute RD_alt_def RD_def assms)
+  apply (metis Healthy_Idempotent Healthy_def RD1_Idempotent RD_alt_def assms)
+  apply (metis H2_idem Healthy_def RD1_RD2_commute RD2_def RD_def assms)
+  done
+
 lemma RD1_RHS_commute: "RD1(\<^bold>R\<^sub>s(P)) = \<^bold>R\<^sub>s(RD1(P))"
   by (simp add: RD1_R1_commute RD1_R2c_commute RD1_R3h_commute RHS_def)
 

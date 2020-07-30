@@ -6,6 +6,9 @@ begin
 
 subsection \<open> Reactive design forms \<close>
 
+lemma rdes_skip_def: "II\<^sub>C = \<^bold>R(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
+  apply (rel_auto) using minus_zero_eq by blast+
+
 lemma srdes_skip_def: "II\<^sub>R = \<^bold>R\<^sub>s(true \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> \<not> $wait\<acute> \<and> \<lceil>II\<rceil>\<^sub>R))"
   apply (rel_auto) using minus_zero_eq by blast+
 

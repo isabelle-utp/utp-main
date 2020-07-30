@@ -39,6 +39,31 @@ proof -
     by (metis (no_types, hide_lams) H2_def RD2_def RD3_def a seqr_assoc)
 qed
 
+lemma RD3c_idem: "RD3c(RD3c(P)) = RD3c(P)"
+proof -
+  have a: "II\<^sub>C ;; II\<^sub>C = II\<^sub>C"
+    by simp
+  show ?thesis
+    by (simp add: RD3c_def seqr_assoc a)
+qed
+
+lemma RD3c_Idempotent [closure]: "Idempotent RD3c"
+  by (simp add: Idempotent_def RD3c_idem)
+
+lemma RD3c_continuous: "RD3c(\<Sqinter>A) = (\<Sqinter>P\<in>A. RD3c(P))"
+  by (simp add: RD3c_def seq_Sup_distr)
+
+lemma RD3c_Continuous [closure]: "Continuous RD3c"
+  by (simp add: Continuous_def RD3c_continuous)
+
+lemma RD3c_right_subsumes_RD2: "RD2 (RD3c P) = RD3c P"
+proof -
+  have a:"II\<^sub>C ;; J = II\<^sub>C"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: a H2_def RD2_def RD3c_def seqr_assoc)
+qed
+
 lemma RD3_left_subsumes_RD2: "RD3(RD2(P)) = RD3(P)"
 proof -
   have a:"J ;; II\<^sub>R = II\<^sub>R"
@@ -103,33 +128,34 @@ lemma RHS_tri_design_RD3_intro_form:
     apply (simp_all add: assms unrest)
   done
 
-definition NSRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
-where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
-
-definition NRD :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
-where [upred_defs]: "NRD = RD1 \<circ> RD3c \<circ> RH"
-
 lemma RD1_RD3_commute: "RD1(RD3(P)) = RD3(RD1(P))"
   by (rel_auto, blast+)
 
 lemma RD1_RD3c_commute: "RD1(RD3c(P)) = RD3c(RD1(P))"
   by (rel_auto)
 
-lemma NSRD_is_SRD [closure]: "P is NSRD \<Longrightarrow> P is SRD"
-  by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
+definition NSRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp"
+where [upred_defs]: "NSRD = RD1 \<circ> RD3 \<circ> RHS"
 
-lemma NSRD_elim [RD_elim]: 
-  "\<lbrakk> P is NSRD; Q(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) \<rbrakk> \<Longrightarrow> Q(P)"
+definition NRD :: "('t::trace,'\<alpha>) hrel_rp \<Rightarrow> ('t,'\<alpha>) hrel_rp"
+where [upred_defs]: "NRD = RD1 \<circ> RD3c \<circ> RH"
+
+lemma NRD_is_RD [closure]: "P is NRD \<Longrightarrow> P is RD"
+  by (simp add: Healthy_def NRD_def RD_def)
+     (metis (no_types, lifting) R1_R3c_commute R1_seqr R1_skip_rea R2c_R1_seq R2c_R3c_commute R2c_skip_rea R3_skipr R3c_semir_form R3c_via_RD1_R3 RD1_R1_commute RD1_R2c_commute RD1_R3c_commute RD1_RD2_commute RD1_idem RD3c_def RD3c_right_subsumes_RD2 RH_def RP_def RP_idem skip_rea_RD1_skip)
+
+lemma NRD_elim [RD_elim]: 
+  "\<lbrakk> P is NRD; Q(\<^bold>R(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: RD_elim closure)
 
-lemma NSRD_idem: "NSRD(NSRD(P)) = NSRD(P)"
-  by (metis (no_types, hide_lams) Healthy_def NSRD_def RD1_RD2_commute RD1_RD3_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RD3_def RD3_idem RD3_left_subsumes_RD2 RHS_idem SRD_def comp_apply fun.map_comp srdes_left_unital.Healthy_Sequence srdes_left_unital.Healthy_Unit)
-  
-lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
-  by (simp add: Idempotent_def NSRD_idem)
+lemma NRD_idem: "NRD(NRD(P)) = NRD(P)"
+  by (metis (no_types, hide_lams) Healthy_Idempotent Healthy_def Idempotent_def NRD_def R1_R3c_commute R1_skip_rea R2_R2c_def R2_idem R2_seqr_closure R2c_R3c_commute R2c_skip_rea R3c_Idempotent R3c_def R3c_seq_closure R3c_via_RD1_R3 RD1_RD3c_commute RD1_RH_commute RD1_idem RD3c_def RD3c_idem RD_healths(3) RH_def comp_assoc comp_eq_dest_lhs rdes_left_unital.Healthy_Unit rea_lift_R1 rea_lift_def)
+    
+lemma NRD_Idempotent [closure]: "Idempotent NRD"
+  by (simp add: Idempotent_def NRD_idem)
 
-lemma NSRD_Continuous [closure]: "Continuous NSRD"
-  by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
+lemma NRD_Continuous [closure]: "Continuous NRD"
+  by (simp add: Continuous_comp NRD_def RD1_Continuous RD3c_Continuous RH_Continuous)
 
 lemma NRD_form:
   "NRD(P) = \<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
@@ -144,6 +170,46 @@ proof -
     by (simp add: RH_tri_design_right_unit_lemma unrest)
   finally show ?thesis .
 qed
+
+lemma NRD_healthy_form:
+  assumes "P is NRD"
+  shows "\<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) = P"
+  by (metis Healthy_def NRD_form assms)
+
+lemma NRD_neg_pre_unit:
+  assumes "P is NRD"
+  shows "(\<not>\<^sub>r pre\<^sub>R(P)) ;; true\<^sub>r = (\<not>\<^sub>r pre\<^sub>R(P))"
+proof -
+  have "(\<not>\<^sub>r pre\<^sub>R(P)) = (\<not>\<^sub>r pre\<^sub>R(\<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))))"
+    by (simp add: NRD_healthy_form assms)
+  also have "... = R1 (R2c ((\<not>\<^sub>r pre\<^sub>R P) ;; R1 true))"
+    by (simp add: rea_pre_RH_design R1_negate_R1 R1_idem R1_rea_not' R2c_rea_not usubst rpred unrest closure)
+  also have "... = (\<not>\<^sub>r pre\<^sub>R P) ;; R1 true"
+    by (simp add: R1_R2c_seqr_distribute closure assms)
+  finally show ?thesis
+    by (simp add: rea_not_def)
+qed
+
+lemma NRD_wait'_unrest_pre [unrest]:
+  assumes "P is NRD"
+  shows "$wait\<acute> \<sharp> pre\<^sub>R(P)"
+proof -
+  have "pre\<^sub>R(P) = pre\<^sub>R(\<^bold>R((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> (peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))))"
+    by (simp add: NRD_healthy_form assms)
+  also have "... = (R1 (R2c (\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R P) ;; R1 true)))"
+    by (simp add: rea_pre_RH_design usubst unrest)
+  also have "$wait\<acute> \<sharp> ..."
+    by (simp add: R1_def R2c_def unrest)
+  finally show ?thesis .
+qed
+
+lemma preR_NRD_RR [closure]: "P is NRD \<Longrightarrow> pre\<^sub>R(P) is RR"
+  by (rule RR_intro, simp_all add: closure unrest)
+
+lemma NRD_neg_pre_RC [closure]:
+  assumes "P is NRD"
+  shows "pre\<^sub>R(P) is RC"
+  by (rule RC_intro, simp_all add: closure assms NRD_neg_pre_unit rpred)
 
 lemma NRD_intro:
   assumes "P is RD" "(\<not>\<^sub>r pre\<^sub>R(P)) ;; true\<^sub>r = (\<not>\<^sub>r pre\<^sub>R(P))"
@@ -174,6 +240,28 @@ lemma NRD_rdes_intro [closure]:
   assumes "P is RC" "Q is RR" "R is RR"
   shows "\<^bold>R(P \<turnstile> Q \<diamondop> R) is NRD"
   by (rule NRD_RC_intro, simp_all add: rdes closure assms unrest)
+
+lemma NRD_composition_wp:
+  assumes "P is NRD" "Q is RD"
+  shows "P ;; Q =
+         \<^bold>R ((pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> (post\<^sub>R P ;; peri\<^sub>R Q)) \<diamondop> (post\<^sub>R P ;; post\<^sub>R Q))"
+  by (simp add: RD_composition_wp assms NRD_is_RD wp_rea_def NRD_neg_pre_unit R1_negate_R1 R1_preR ex_unrest rpred)
+
+lemma NSRD_is_SRD [closure]: "P is NSRD \<Longrightarrow> P is SRD"
+  by (simp add: Healthy_def NSRD_def SRD_def, metis Healthy_def RD1_RD3_commute RD2_RHS_commute RD3_def RD3_right_subsumes_RD2 SRD_def SRD_idem SRD_seqr_closure SRD_srdes_skip)
+
+lemma NSRD_elim [RD_elim]: 
+  "\<lbrakk> P is NSRD; Q(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P))) \<rbrakk> \<Longrightarrow> Q(P)"
+  by (simp add: RD_elim closure)
+
+lemma NSRD_idem: "NSRD(NSRD(P)) = NSRD(P)"
+  by (metis (no_types, hide_lams) Healthy_def NSRD_def RD1_RD2_commute RD1_RD3_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RD3_def RD3_idem RD3_left_subsumes_RD2 RHS_idem SRD_def comp_apply fun.map_comp srdes_left_unital.Healthy_Sequence srdes_left_unital.Healthy_Unit)
+  
+lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
+  by (simp add: Idempotent_def NSRD_idem)
+
+lemma NSRD_Continuous [closure]: "Continuous NSRD"
+  by (simp add: Continuous_comp NSRD_def RD1_Continuous RD3_Continuous RHS_Continuous)
 
 lemma NSRD_form:
   "NSRD(P) = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R(P)) ;; R1 true) \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> post\<^sub>R(P)))"
@@ -288,12 +376,12 @@ lemma NSRD_peri_seq_under_pre:
 lemma NSRD_postR_seq_periR_impl:
   assumes "P is NSRD" "Q is NSRD"
   shows "(post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r (post\<^sub>R P ;; peri\<^sub>R Q)) = (post\<^sub>R P ;; peri\<^sub>R Q)"
-  by (metis NSRD_is_SRD NSRD_peri_under_pre assms postR_RR wpR_impl_post_spec)
+  by (metis NSRD_is_SRD NSRD_peri_under_pre SRD_healths(2) assms postR_RR wpR_impl_post_spec)
   
 lemma NSRD_postR_seq_postR_impl:
   assumes "P is NSRD" "Q is NSRD"
   shows "(post\<^sub>R P wp\<^sub>r pre\<^sub>R Q \<Rightarrow>\<^sub>r (post\<^sub>R P ;; post\<^sub>R Q)) = (post\<^sub>R P ;; post\<^sub>R Q)"
-  by (metis NSRD_is_SRD NSRD_post_under_pre assms postR_RR wpR_impl_post_spec)
+  by (metis NSRD_is_SRD NSRD_post_under_pre SRD_healths(2) assms postR_RR wpR_impl_post_spec)
 
 lemma NSRD_peri_under_assms:
   assumes "P is NSRD" "Q is NSRD"
@@ -398,15 +486,20 @@ proof -
     by (simp add: R1_seqr R2c_R1_seq calculation)
   finally show ?thesis ..
 qed
-  
+
+lemma preR_NRD_seq [rdes]:
+  assumes "P is NRD" "Q is RD"
+  shows "pre\<^sub>R(P ;; Q) = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q)"
+  by (simp add: NRD_composition_wp assms rea_pre_RH_design usubst unrest wp_rea_def R2c_disj
+      R1_disj R2c_and R2c_preR R1_R2c_commute[THEN sym] R1_extend_conj' R1_idem R2c_not closure 
+      R1_rea_not' R2c_rea_not preR_NSRD_seq_lemma Healthy_if)
+
 lemma preR_NSRD_seq [rdes]:
   assumes "P is NSRD" "Q is SRD"
   shows "pre\<^sub>R(P ;; Q) = (pre\<^sub>R P \<and> post\<^sub>R P wp\<^sub>r pre\<^sub>R Q)"
   by (simp add: NSRD_composition_wp assms rea_pre_RHS_design usubst unrest wp_rea_def R2c_disj
-      R1_disj R2c_and R2c_preR R1_R2c_commute[THEN sym] R1_extend_conj' R1_idem R2c_not closure)
-     (metis (no_types, lifting) Healthy_def Healthy_if NSRD_is_SRD R1_R2c_commute 
-      R1_R2c_seqr_distribute R1_seqr_closure assms(1) assms(2) postR_R2c_closed postR_SRD_R1 
-      preR_R2c_closed rea_not_R1 rea_not_R2c)
+      R1_disj R2c_and R2c_preR R1_R2c_commute[THEN sym] R1_extend_conj' R1_idem R2c_not closure 
+      R1_rea_not' R2c_rea_not preR_NSRD_seq_lemma)
   
 lemma periR_NSRD_seq [rdes]:
   assumes "P is NSRD" "Q is NSRD"
@@ -421,6 +514,16 @@ lemma postR_NSRD_seq [rdes]:
   by (simp add: NSRD_composition_wp assms closure rea_post_RHS_design usubst unrest wp_rea_def
       R1_extend_conj' R1_disj R1_R2c_seqr_distribute R2c_disj R2c_and R2c_rea_impl R1_rea_impl' 
       R2c_preR R2c_periR R1_rea_not' R2c_rea_not)
+
+lemma NRD_seqr_closure [closure]:
+  assumes "P is NRD" "Q is NRD"
+  shows "(P ;; Q) is NRD"
+proof -
+  have "(\<not>\<^sub>r post\<^sub>R P wp\<^sub>r pre\<^sub>R Q) ;; true\<^sub>r = (\<not>\<^sub>r post\<^sub>R P wp\<^sub>r pre\<^sub>R Q)"
+    by (simp add: wp_rea_def rpred assms closure seqr_assoc NRD_neg_pre_unit)
+  thus ?thesis
+    by (rule_tac NRD_intro, simp_all add: seqr_or_distl NRD_neg_pre_unit assms closure rdes unrest)
+qed
 
 lemma NSRD_seqr_closure [closure]:
   assumes "P is NSRD" "Q is NSRD"
@@ -610,7 +713,7 @@ next
   have "... = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R P \<or> (post\<^sub>R P wp\<^sub>r pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r post\<^sub>R P ;; ((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P)))"
   proof -
     have "(\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) is R1"
-      by (simp add: NSRD_is_SRD R1_Continuous R1_power Sup_Continuous_closed assms postR_SRD_R1)
+      by (simp add: R1_Continuous assms closure)
     hence 1:"((\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) is R1"
       by (simp add: closure assms)
     hence "(pre\<^sub>R (P ;; P \<^bold>^ n) \<Rightarrow>\<^sub>r (\<Sqinter>i\<in>{0..n}. post\<^sub>R P \<^bold>^ i) ;; peri\<^sub>R P) is R1"
