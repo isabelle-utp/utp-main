@@ -289,10 +289,29 @@ definition Skip :: "('s,'e) taction" where
 definition TC1 :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
 [rdes_def]: "TC1(P) = Skip ;; P"
 
+lemma Skip_self_unit: "Skip ;; Skip = Skip"
+  by rdes_eq
+
+lemma TC1_idem: "TC1(TC1(P)) = TC1(P)"
+  by (simp add: RA1 Skip_self_unit TC1_def)
+
 definition TC2 :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
 [rdes_def]: "TC2(P) = P ;; Skip"
 
-lemma TC1_rdes:
+lemma TC2_idem: "TC2(TC2(P)) = TC2(P)"
+  by (simp add: seqr_assoc Skip_self_unit TC2_def)
+
+abbreviation "TC \<equiv> NRD \<circ> TC2 \<circ> TC1"
+
+lemma TC_implies_NRD [closure]: "P is TC \<Longrightarrow> P is NRD"
+  by (metis (no_types, hide_lams) Healthy_def NRD_idem comp_apply)
+
+lemma NRD_rdes [rdes_def]:
+  assumes "P is RC" "Q is RR" "R is RR"
+  shows "NRD(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = (\<^bold>R(P \<turnstile> Q \<diamondop> R))"
+  by (simp add: Healthy_if NRD_rdes_intro assms)
+
+lemma TC1_rdes [rdes_def]:
   assumes "Q is TRR" "R is TRR"
   shows "TC1(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
   using assms
@@ -308,10 +327,41 @@ proof -
     by (simp add: Healthy_if assms(1) assms(2) ex_unrest)
 qed
 
-lemma TC2_rdes:
+lemma TC2_rdes [rdes_def]:
   assumes "Q is TRR" "$ref\<acute> \<sharp> R" "R is TRR"
   shows "TC2(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
   using assms by (rdes_simp simps: trr_right_unit)
+
+lemma TC_implies_TC1 [closure]: 
+  assumes "P is TC"
+  shows "P is TC1"
+proof -
+  have a:"P is NRD"
+    by (simp add: closure assms)
+  have "TC1(TC(P)) = TC(P)"
+    by (rdes_eq cls: a)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma TC_implies_TC2 [closure]: 
+  assumes "P is TC"
+  shows "P is TC2"
+proof -
+  have a:"P is NRD"
+    by (simp add: closure assms)
+  have "TC2(TC(P)) = TC(P)"
+    by (rdes_eq cls: a)
+  thus ?thesis
+    by (metis Healthy_def assms)
+qed
+
+lemma TC_closed_seqr [closure]: "\<lbrakk> P is TC; Q is TC \<rbrakk> \<Longrightarrow> P ;; Q is TC"
+  apply (auto intro!: Healthy_comp)
+  apply (simp add: closure)
+  apply (metis (no_types, hide_lams) Healthy_def RA1 TC2_def TC_implies_TC2)
+  apply (metis (no_types, hide_lams) Healthy_def RA1 TC1_def TC_implies_TC1)
+  done
 
 subsection \<open> Basic Constructs \<close>
 
@@ -320,11 +370,14 @@ text \<open> The divergent action cannot terminate and exhibits only instability
 definition Div :: "('s,'e) taction" where
 [rdes_def]: "Div = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> false)"
 
+lemma Div_TC [closure]: "Div is TC"
+  by (rule Healthy_intro, rdes_eq)
+
 definition AssignsT :: "'s usubst \<Rightarrow> ('s,'e) taction" ("\<langle>_\<rangle>\<^sub>T") where
 [rdes_def]: "AssignsT \<sigma> = \<^bold>R(true\<^sub>r \<turnstile> \<U>(true, []) \<diamondop> \<F>(true, [], \<sigma>))" 
 
-lemma "AssignsT \<sigma> ;; Skip = AssignsT \<sigma>"
-  by (rdes_eq)
+lemma AssignsT_TC [closure]: "\<langle>\<sigma>\<rangle>\<^sub>T is TC"
+  by (rule Healthy_intro, rdes_eq)
 
 text \<open> A timed deadlock does not terminate, but permits any period of time to pass, always remaining
   in a quiescent state where another $tock$ can occur. \<close>
@@ -332,10 +385,16 @@ text \<open> A timed deadlock does not terminate, but permits any period of time
 definition Stop :: "('s,'e) taction" where
 [rdes_def]: "Stop = \<^bold>R(true\<^sub>r \<turnstile> \<T>({}, {0..}) ;; \<E>(true, [], {Tock ()}) \<diamondop> false)"
 
+lemma Stop_TC [closure]: "Stop is TC"
+  by (rule Healthy_intro, rdes_eq)
+
 text \<open> An untimed deadlock is stable, but does not accept any events. \<close>
 
 definition Stop\<^sub>U :: "('s,'e) taction" where
 [rdes_def]: "Stop\<^sub>U = \<^bold>R(true\<^sub>r \<turnstile> \<E>(true, [], {}) \<diamondop> false)"
+
+lemma Stop\<^sub>U_TC [closure]: "Stop\<^sub>U is TC"
+  by (rule Healthy_intro, rdes_eq)
 
 text \<open> SDF: Check the following definition against the tick-tock paper. It only allows prefixing
   of non-tock events for now. \<close>
@@ -346,11 +405,8 @@ definition DoT :: "'e \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(_')") where
   \<turnstile> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; (\<E>(true, [], {Tock (), Evt \<guillemotleft>a\<guillemotright>}) \<or> \<U>(true, [\<guillemotleft>a\<guillemotright>]))
   \<diamondop> \<T>({\<guillemotleft>a\<guillemotright>}, {0..}) ;; \<F>(true, [\<guillemotleft>a\<guillemotright>], id\<^sub>s))"
 
-lemma "do\<^sub>T(e) ;; Skip = do\<^sub>T(e)"
-  apply (rdes_eq_split)
-    apply (simp_all add: rpred closure seqr_assoc usubst)
-  apply (rel_auto)
-  done
+lemma DoT_TC: "do\<^sub>T(e) is TC"
+  by (rule Healthy_intro, rdes_eq)
 
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
@@ -359,10 +415,10 @@ definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
        \<or> (\<T>({}, {n}) ;; \<U>(true, [])))
     \<diamondop> \<T>({}, {n}))"
 
-subsection \<open> Algebraic Laws \<close>
+lemma Wait_TC: "Wait n is TC"
+  by (rule Healthy_intro, rdes_eq)
 
-lemma "Skip ;; Skip = Skip"
-  by (rdes_eq)
+subsection \<open> Algebraic Laws \<close>
 
 lemma "Skip ;; Stop = Stop"
   by (rdes_eq)
