@@ -51,6 +51,9 @@ lemma tocks_Nil [simp]: "[] \<in> tocks X"
 lemma tocks_Cons: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
   by (simp add: tocks_def)
 
+lemma tocks_subset: "\<lbrakk> A \<subseteq> B; t \<in> tocks A\<rbrakk> \<Longrightarrow> t \<in> tocks B"
+  by (auto simp add: tocks_def)
+
 lemma tocks_append [simp]: "\<lbrakk> s \<in> tocks X; t \<in> tocks X \<rbrakk> \<Longrightarrow> s @ t \<in> tocks X"
   by (auto simp add: tocks_def)
 
@@ -278,6 +281,36 @@ proof (rel_auto)
      apply (auto)
     done
 qed
+
+definition filter_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("time'(_')") where
+[upred_defs]: "filter_time P = U(P \<and> &tt \<in> tocks UNIV)"
+
+utp_const filter_time
+
+lemma [rpred]: "time(\<T>(X, A)) = \<T>(X, A)" 
+  by (rel_auto, simp add: tocks_subset)
+
+lemma [rpred]: "time(\<T>(X, A) ;; \<E>(s, [], E)) = \<T>(X, A) ;; \<E>(s, [], E)"
+  by (rel_auto, simp add: tocks_subset)
+
+lemma [rpred]: "time(\<T>(X, A) ;; \<U>(s, [])) = \<T>(X, A) ;; \<U>(s, [])"
+  by (rel_auto, simp add: tocks_subset)
+
+lemma [rpred]: "time(\<E>(s, [], E)) = \<E>(s, [], E)"
+  by (rel_auto)
+
+lemma [rpred]: "time(\<E>(s, t # ts, E)) = false"
+  by (rel_simp, simp add: tocks_def)
+
+lemma [rpred]: "time(\<U>(s, t # ts)) = false"
+  by (rel_simp, simp add: tocks_def)
+
+lemma [rpred]: "(\<T>(X\<^sub>1, A\<^sub>1) \<and> \<T>(X\<^sub>2, A\<^sub>2)) = \<T>(X\<^sub>1 \<union> X\<^sub>2, A\<^sub>1 \<inter> A\<^sub>2)"
+  apply (rel_auto)
+  apply (auto simp add: tocks_def)
+  apply fastforce
+   apply (metis Compl_eq_Diff_UNIV Un_subset_iff disjoint_eq_subset_Compl semilattice_inf_class.inf_commute)+
+  done
 
 subsection \<open> Healthiness Conditions \<close>
 
