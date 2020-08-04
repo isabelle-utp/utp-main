@@ -549,23 +549,13 @@ text \<open> This is a pleasing result although @{const Wait} raises instability
 lemma Wait_Stop: "Wait m ;; Stop = Stop"
   by (rdes_eq_split, simp_all add: rpred closure seqr_assoc[THEN sym], rel_auto)
 
-term "(\<T>({}, {0..<m}) ;; \<E>(true, [], {Tock ()}) \<or>
-         \<T>({}, {m}) ;; \<U>(true, []) \<or>
-         \<T>({}, {m}) ;; \<T>({a}, {0..}) ;; \<E>(true, [], {Tock (), Evt a}) \<or>
-         \<T>({}, {m}) ;; \<T>({a}, {0..}) ;; \<U>(true, [a]) \<or> \<T>({}, {m}) ;; (\<T>({a}, {0..}) ;; \<F>(true, [a], id\<^sub>s)) ;; \<U>(true, [])) \<diamondop>
-        (\<T>({}, {m}) ;; (\<T>({a}, {0..}) ;; \<F>(true, [a], id\<^sub>s)) ;; \<F>(true, [], \<^U>([x \<mapsto>\<^sub>s &x + 1])))"
-
-term " \<^bold>R (\<^U>(R1 true) \<turnstile>
-        (\<T>({}, {0..<m}) ;; \<E>(true, [], {Tock ()}) \<or>
-         \<T>({}, {m}) ;; \<U>(true, []) \<or>
-         \<T>({}, {m}) ;; \<T>({a}, {0..}) ;; \<E>(true, [], {Tock (), Evt a}) \<or>
-         \<T>({}, {m}) ;; \<T>({a}, {0..}) ;; \<U>(true, [a]) \<or> \<T>({}, {m}) ;; (\<T>({a}, {0..}) ;; \<F>(true, [a], id\<^sub>s)) ;; \<U>(true, [])) \<diamondop>
-        (\<T>({}, {m}) ;; (\<T>({a}, {0..}) ;; \<F>(true, [a], id\<^sub>s)) ;; \<F>(true, [], \<^U>([x \<mapsto>\<^sub>s &x + 1]))))"
-
-lemma "\<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle>\<^sub>T ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle>\<^sub>T = undefined"
-  apply (rdes_simp)
-  apply (simp add: rpred seqr_assoc usubst)
-  oops
+lemma "\<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle>\<^sub>T ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle>\<^sub>T = 
+        \<^bold>R (\<^U>(R1 true) \<turnstile>
+         (\<U>(true, []) \<or>
+          \<F>(true, [], \<^U>([x \<mapsto>\<^sub>s &x + 1])) ;; \<T>({a}, {0..}) ;; \<E>(true, [], {Tock (), Evt a}) \<or>
+          \<F>(true, [], \<^U>([x \<mapsto>\<^sub>s &x + 1])) ;; \<T>({a}, {0..}) ;; \<U>(true, [a])) \<diamondop>
+         \<F>(true, [], \<^U>([x \<mapsto>\<^sub>s &x + 1])) ;; \<T>({a}, {0..}) ;; \<F>(true, [a], \<^U>([x \<mapsto>\<^sub>s &x + 1])))"
+  by (rdes_simp, simp add: rpred seqr_assoc usubst)
 
 lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle>\<^sub>T = 
       \<^bold>R (true\<^sub>r \<turnstile>
@@ -581,7 +571,9 @@ lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
 "P \<box> Q =
   \<^bold>R(true\<^sub>r 
-  \<turnstile> time(peri\<^sub>R(P)) \<and> time(peri\<^sub>R(Q)) \<or> peri\<^sub>R(P) \<triangleright>\<^sub>t peri\<^sub>R(Q) \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t peri\<^sub>R(P)
+  \<turnstile> time(peri\<^sub>R(P)) \<and> time(peri\<^sub>R(Q)) 
+    \<or> peri\<^sub>R(P) \<triangleright>\<^sub>t peri\<^sub>R(Q)
+    \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t peri\<^sub>R(P)
   \<diamondop> time(post\<^sub>R(P)) \<and> time(post\<^sub>R(Q)) \<or> peri\<^sub>R(P) \<triangleright>\<^sub>t post\<^sub>R(Q) \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t post\<^sub>R(P))"
 
 (*
