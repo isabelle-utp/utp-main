@@ -123,6 +123,13 @@ lemma assigns_final_hoare [hoare_safe]:
   "\<lbrace>p\<rbrace>S\<lbrace>\<sigma> \<dagger> q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>S ;; \<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
   by (rel_auto)
 
+lemma ndet_assign_hoare_r [hoare_safe]:
+  "`U(p \<Rightarrow> (\<forall> v. q\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>))` \<Longrightarrow> \<lbrace>p\<rbrace>x := *\<lbrace>q\<rbrace>\<^sub>u"
+  by (rel_auto)
+
+lemma ndet_assign_bwd: "\<lbrace>\<forall> v. p\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>\<rbrace>x := *\<lbrace>p\<rbrace>\<^sub>u"
+  by (rel_auto)
+
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
   by rel_auto
 
