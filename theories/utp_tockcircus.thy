@@ -164,6 +164,8 @@ text \<open> A timed observation represents a period of delay. The set @{term X}
 definition tc_time :: "('e set, 's) uexpr \<Rightarrow> (nat set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<T>'(_, _')") where 
 [upred_defs]: "\<T>(X, A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
 
+datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Event "('e, 's) uexpr"
+
 utp_lift_notation tc_stable
 utp_lift_notation tc_unstable
 utp_lift_notation tc_final (2)
@@ -294,6 +296,9 @@ definition filter_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("ti
 definition merge_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t" 65) where
 [upred_defs]: "P \<triangleright>\<^sub>t Q = U(R1(\<exists> t e es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (\<exists> $ref\<acute> \<bullet> P\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>) \<and> Q \<and> &tt = \<guillemotleft>t @ (Evt e # es)\<guillemotright>))"
 
+definition merge_time' :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t''" 65) where
+[upred_defs]: "P \<triangleright>\<^sub>t' Q = U(R1(\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> set \<guillemotleft>es\<guillemotright> \<subseteq> range Evt \<and> (\<exists> $ref\<acute> \<bullet> P\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>) \<and> Q \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
+
 utp_const filter_time merge_time
 
 lemma tock_prefix_eq:
@@ -324,12 +329,35 @@ proof (safe)
     by (metis "1" assms(1) list.inject same_append_eq)
 qed
 
-
 lemma tocks_inter: "\<lbrakk> t \<in> tocks X; t \<in> tocks Y \<rbrakk> \<Longrightarrow> t \<in> tocks (X \<inter> Y)"
   by (auto simp add: tocks_def, metis teva.inject(1))
 
+lemma [rpred]: "P \<triangleright>\<^sub>t false = false"
+  by (rel_auto)
+
 lemma [rpred]: "P \<triangleright>\<^sub>t (Q \<or> R) = (P \<triangleright>\<^sub>t Q \<or> P \<triangleright>\<^sub>t R)"
   by (rel_auto)
+
+lemma [rpred]: "(P \<or> Q) \<triangleright>\<^sub>t R = (P \<triangleright>\<^sub>t R \<or> Q \<triangleright>\<^sub>t R)"
+  by (rel_auto)
+
+lemma [rpred]: "P \<triangleright>\<^sub>t' (Q \<or> R) = (P \<triangleright>\<^sub>t' Q \<or> P \<triangleright>\<^sub>t' R)"
+  by (rel_blast)
+
+lemma [rpred]: "(P \<or> Q) \<triangleright>\<^sub>t' R = (P \<triangleright>\<^sub>t' R \<or> Q \<triangleright>\<^sub>t' R)"
+  by (rel_blast)
+
+lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, [], B)) = false"
+  by (rel_simp)
+     (metis append.assoc append_Cons list.simps(3) plus_list_def tock_prefix_eq trace_class.add_diff_cancel_left)
+
+lemma [rpred]: "P \<triangleright>\<^sub>t \<T>(A, B) = false"
+  by (rel_simp, metis append.assoc append_Cons list.simps(3) self_append_conv tock_prefix_eq)
+
+lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, [])) = false"
+  by (rel_simp)
+     (metis append.assoc append_Cons list.simps(3) plus_list_def tock_prefix_eq trace_class.add_diff_cancel_left)
+
 
 lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<E>(s\<^sub>1, [], A)) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, e # es, B)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, e # es, B)"
   apply (rel_auto)
@@ -358,12 +386,35 @@ lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<E>(s\<^sub>1, [], A)) \<triangl
   apply (simp)
   apply (metis Diff_Int_distrib2 Diff_Un Diff_subset append.assoc bounded_semilattice_inf_top_class.inf_top.left_neutral tocks_subset)
   done
-  
+
+lemma [rpred]: "(\<T>({}, T\<^sub>1) ;; \<U>(true, [])) \<triangleright>\<^sub>t' \<T>({}, T\<^sub>2) = \<T>({}, T\<^sub>1 \<inter> T\<^sub>2)"
+  apply (rel_auto)
+  apply (rename_tac st t1 t2)
+  apply (case_tac "t2=[]")
+  apply (simp)
+  apply (auto simp add: tocks_def)
+  by (metis image_iff insert_subset list.exhaust list.simps(15) semilattice_sup_class.sup.cobounded2 teva.distinct(1))
+
+lemma [rpred]: "(\<T>(X, A) ;; \<E>(s, t, E)) \<triangleright>\<^sub>t' \<T>(Y, B) = (\<T>(X, A) ;; \<U>(s, t)) \<triangleright>\<^sub>t' \<T>(Y, B)"
+  apply (rel_auto)
+  apply (metis (no_types, hide_lams) add.assoc append.assoc)
+  apply (metis append.assoc rmember.simps(1))
+  done
+
+lemma [rpred]: "time(II\<^sub>t) = II\<^sub>t"
+  by (rel_auto)
+
+lemma [rpred]: "time(false) = false"
+  by (rel_auto)
+
 lemma [rpred]: "time(\<T>(X, A)) = \<T>(X, A)" 
   by (rel_auto, simp add: tocks_subset)
 
-lemma [rpred]: "time(\<T>(X, A) ;; \<E>(s, [], E)) = \<T>(X, A) ;; \<E>(s, [], E)"
+lemma time_tocks_stable [rpred]: "time(\<T>(X, A) ;; \<E>(s, [], E)) = \<T>(X, A) ;; \<E>(s, [], E)"
   by (rel_auto, simp add: tocks_subset)
+
+lemma [rpred]: "time(P \<or> Q) = (time(P) \<or> time(Q))"
+  by (rel_auto)
 
 lemma [rpred]: "time(\<T>(X, A) ;; \<U>(s, [])) = \<T>(X, A) ;; \<U>(s, [])"
   by (rel_auto, simp add: tocks_subset)
@@ -383,6 +434,25 @@ lemma [rpred]: "(\<T>(X\<^sub>1, A\<^sub>1) \<and> \<T>(X\<^sub>2, A\<^sub>2)) =
   apply fastforce
    apply (metis Compl_eq_Diff_UNIV Un_subset_iff disjoint_eq_subset_Compl semilattice_inf_class.inf_commute)+
   done
+
+lemma [rpred]: "(\<T>(A, T\<^sub>1) ;; \<E>(s\<^sub>1, [], {Tock ()}) \<and> \<T>(B, T\<^sub>2) ;; \<E>(s\<^sub>2, [], {Tock ()})) 
+       = \<T>(A \<union> B, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, [], {Tock ()})"
+  apply (rel_auto)
+  apply (simp add: Diff_Un tocks_inter)
+  apply (metis Diff_Compl Diff_Un Diff_subset tocks_subset)
+  apply (metis Diff_Int_distrib2 Diff_Un Diff_subset bounded_semilattice_inf_top_class.inf_top.left_neutral tocks_subset)
+  done
+
+lemma [rpred]: "(\<T>(X, A) ;; \<E>(true, [], E\<^sub>1) \<and> \<T>(Y, B) ;; \<E>(true, [], E\<^sub>2)) = \<T>(X \<union> Y, A \<inter> B) ;; \<E>(true, [], E\<^sub>1 \<union> E\<^sub>2)"
+  apply (rel_auto)
+  apply (metis Diff_Un tocks_inter)
+  apply (metis Diff_Compl Diff_Un Diff_subset tocks_subset)
+  by (metis Diff_Compl Diff_Un Diff_subset semilattice_sup_class.sup_commute tocks_subset)
+
+lemma nat_set_simps [simp]:
+  fixes m::"(nat, _) uexpr"
+  shows "U({0..<m} \<inter> {m}) = U({})" "U(A \<inter> A) = U(A)"
+  by (rel_simp+)
 
 subsection \<open> Healthiness Conditions \<close>
 
@@ -520,6 +590,8 @@ definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
        \<or> (\<T>({}, {n}) ;; \<U>(true, [])))
     \<diamondop> \<T>({}, {n}))"
 
+utp_lift_notation Wait
+
 lemma Wait_TC: "Wait n is TC"
   by (rule Healthy_intro, rdes_eq)
 
@@ -571,14 +643,38 @@ lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
 "P \<box> Q =
   \<^bold>R(true\<^sub>r 
-  \<turnstile> time(peri\<^sub>R(P)) \<and> time(peri\<^sub>R(Q)) 
+  \<turnstile> (time(peri\<^sub>R(P)) \<and> time(peri\<^sub>R(Q)) 
     \<or> peri\<^sub>R(P) \<triangleright>\<^sub>t peri\<^sub>R(Q)
-    \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t peri\<^sub>R(P)
-  \<diamondop> time(post\<^sub>R(P)) \<and> time(post\<^sub>R(Q)) \<or> peri\<^sub>R(P) \<triangleright>\<^sub>t post\<^sub>R(Q) \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t post\<^sub>R(P))"
+    \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t peri\<^sub>R(P))
+  \<diamondop> (peri\<^sub>R(P) \<triangleright>\<^sub>t' post\<^sub>R(Q) \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t' post\<^sub>R(P)))"
 
-(*
-lemma "\<^bold>R(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
-*)
+lemma extChoice_rdes_def [rdes_def]:
+  assumes "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
+  shows
+  "\<^bold>R(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R(true\<^sub>r \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
+       \<^bold>R(true\<^sub>r 
+        \<turnstile> (time(P\<^sub>2) \<and> time(Q\<^sub>2) \<or> P\<^sub>2 \<triangleright>\<^sub>t Q\<^sub>2 \<or> Q\<^sub>2 \<triangleright>\<^sub>t P\<^sub>2)
+        \<diamondop> (P\<^sub>2 \<triangleright>\<^sub>t' Q\<^sub>3 \<or> Q\<^sub>2 \<triangleright>\<^sub>t' P\<^sub>3))"
+  by (simp add: extChoice_def rdes assms closure rpred)
+
+lemma "Skip \<box> Stop = Skip"
+  apply (rdes_eq)
+  by (meson rmember.simps(1))
+  
+lemma "Wait m \<box> Wait m = Wait m"
+  by (rdes_simp)
+
+lemma "Wait m \<box> Wait n = Wait U(min m n)"
+  by (rdes_eq)
+
+lemma "Stop \<box> do\<^sub>T(a) = do\<^sub>T(a)"
+  apply (rdes_eq_split)
+    apply (simp_all add: rpred closure)
+  apply (rel_auto)
+  apply (metis rmember.simps(1) subset_UNIV tocks_subset)
+   apply (metis rmember.simps(1) subset_UNIV tocks_subset)
+  apply (rel_auto)
+  by (metis Diff_subset empty_subsetI insert_subset list.simps(15) range_eqI rmember.simps(1) set_empty2 tocks_subset)
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
 
