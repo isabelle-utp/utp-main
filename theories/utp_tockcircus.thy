@@ -136,13 +136,29 @@ no_utp_lift lift_state_rel
 definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
 [upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
 
+(*
+datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Evts "('e list, 's) uexpr"
+
+fun tsyme :: "('s,'e) tsym \<Rightarrow> ('s,'e) taction" where
+"tsyme (Time X A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)" |
+"tsyme (Evts t) = U($tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub><)"
+*)
+
+abbreviation tsyme :: "('e tev list, 's) uexpr list \<Rightarrow> ('s, 'e) taction" where
+"tsyme ts \<equiv> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>foldr (bop (@)) ts \<guillemotleft>[]\<guillemotright>\<rceil>\<^sub>S\<^sub><)"
+
+utp_const tsyme
+
+lemma foldr_concat_eval [uexpr_transfer_extra]: "\<lbrakk>foldr (bop (@)) xs t\<rbrakk>\<^sub>e s = concat (map (\<lambda> e. \<lbrakk>e\<rbrakk>\<^sub>e s) xs) @ \<lbrakk>t\<rbrakk>\<^sub>e s"
+  by (induct xs, rel_auto+)
+
 text \<open> We introduce a small algebra for peri- and postconditions to capture timed behaviours. The
   first operator captures stable intermediate (i.e. quiescent) behaviours. Here, @{term s} is a 
   predicate on the state (a condition), @{term t} is a trace over non-tock events, and @{term E} 
   is the set of events being accepted at this point. FIXME: Should stable observations
   also update the state? \<close>
 
-definition tc_stable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
+definition tc_stable :: "'s upred \<Rightarrow> _ \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
 [upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
 
 text \<open> We also need unstable intermediate observations, which the following relation provides. It
@@ -154,17 +170,15 @@ definition tc_unstable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarr
 text \<open> A final observation is similar to a stable observation, except it can update the state 
   variables and does not characterise a refusal set. \<close>
 
-definition tc_final :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
+definition tc_final :: "'s upred \<Rightarrow> _ \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
 [upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
 
 text \<open> A timed observation represents a period of delay. The set @{term X} characterises the set of
   events that are accepted during this period. The set @{term A} characterises the possible delay
   periods, for example @{term "{0..n}"} means a delay of between $0$ and $n$ units. \<close>
 
-definition tc_time :: "('e set, 's) uexpr \<Rightarrow> (nat set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<T>'(_, _')") where 
+definition tc_time :: "('e set, 's) uexpr \<Rightarrow> (nat set, 's) uexpr \<Rightarrow> _" ("\<T>'(_, _')") where 
 [upred_defs]: "\<T>(X, A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
-
-datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Event "('e, 's) uexpr"
 
 utp_lift_notation tc_stable
 utp_lift_notation tc_unstable
@@ -300,6 +314,29 @@ definition merge_time' :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rig
 [upred_defs]: "P \<triangleright>\<^sub>t' Q = U(R1(\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> set \<guillemotleft>es\<guillemotright> \<subseteq> range Evt \<and> (\<exists> $ref\<acute> \<bullet> P\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>) \<and> Q \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
 
 utp_const filter_time merge_time
+
+lemma time_TRR [closure]: assumes "P is TRR" shows "time(P) is TRR"
+proof -
+  have "TRR(time(TRR(P))) = time(TRR(P))" by rel_blast
+  thus "time(P) is TRR" by (metis Healthy_def assms)
+qed
+
+lemma merge_time_TRR [closure]: assumes "P is TRR" "Q is TRR" shows "P \<triangleright>\<^sub>t Q is TRR"
+proof -
+  have "TRR(P) \<triangleright>\<^sub>t TRR(Q) is TRR"
+    by rel_blast
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+
+lemma merge_time'_TRR [closure]: assumes "P is TRR" "Q is TRR" shows "P \<triangleright>\<^sub>t' Q is TRR"
+proof -
+  have "TRR(P) \<triangleright>\<^sub>t' TRR(Q) is TRR"
+    by rel_blast
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
 
 lemma tock_prefix_eq:
   assumes "x @ (Evt a # as) = y @ (Evt b # bs)" "x \<in> tocks X" "y \<in> tocks Y"
@@ -666,6 +703,9 @@ lemma "Wait m \<box> Wait m = Wait m"
 
 lemma "Wait m \<box> Wait n = Wait U(min m n)"
   by (rdes_eq)
+
+lemma append_in_dist_conat: "\<lbrakk> x \<in> xs; y \<in> ys \<rbrakk> \<Longrightarrow> x @ y \<in> xs \<^sup>\<frown> ys"
+  by (auto simp add: dist_concat_def)
 
 lemma "Stop \<box> do\<^sub>T(a) = do\<^sub>T(a)"
   apply (rdes_eq_split)
