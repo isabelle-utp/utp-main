@@ -87,6 +87,27 @@ text \<open> ODE evolutions do not modify discrete variables \<close>
 lemma ode_nmods_discrete: "ode F' B nmods \<^bold>d"
   by (simp add: ode_def closure)
 
+text \<open> If a continuous variable has a zero derivative then it is not modified. \<close>
+
+lemma ode_nmods_constant_cvar:
+  assumes "vwb_lens x" "bounded_linear get\<^bsub>x\<^esub>" "\<langle>F'\<rangle>\<^sub>s x = 0"
+  shows "ode F' B nmods \<^bold>c:x"
+proof (rel_simp', auto)
+  fix m f t
+  assume a: "0 \<le> t" "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> (f has_vector_derivative \<lbrakk>F'\<rbrakk>\<^sub>e (f x)) (at x) \<and> \<lbrakk>B\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = f x, \<dots> = m\<rparr>"
+  from assms(3) have "\<forall>t. get\<^bsub>x\<^esub> (\<lbrakk>F'\<rbrakk>\<^sub>e t) = 0"
+    by (rel_simp)
+  hence b: "\<forall>y. 0 \<le> y \<and> y \<le> t \<longrightarrow> ((get\<^bsub>x\<^esub> \<circ> f) has_vector_derivative 0) (at y)"
+    by (metis a(2) assms(2) bounded_linear_imp_has_derivative vector_derivative_diff_chain_within)
+  have "\<exists> c. \<forall>y. 0 \<le> y \<and> y \<le> t \<longrightarrow> get\<^bsub>x\<^esub> (f y) = c"
+    using b has_vector_derivative_at_within 
+    by (rule_tac has_vector_derivative_zero_constant[of "{0..t}" "(get\<^bsub>x\<^esub> \<circ> f)", simplified]; blast)
+  hence "get\<^bsub>x\<^esub> (f t) = get\<^bsub>x\<^esub> (f 0)"
+    using a(1) by blast
+  thus "f t = put\<^bsub>x\<^esub> (f t) (get\<^bsub>x\<^esub> (f 0))"
+    by (metis assms(1) vwb_lens_wb wb_lens.get_put)
+qed
+
 lemma disc_nmods_invar:
   "\<lbrakk> \<^bold>c \<sharp> b; P nmods \<^bold>d \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
   by (rel_simp', force)
