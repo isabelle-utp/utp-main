@@ -9,8 +9,6 @@ begin
 lemma cvec_lemma: "\<lparr>cvec\<^sub>v = x, \<dots> = hybs.more s\<rparr> = s\<lparr>cvec\<^sub>v := x\<rparr>"
   by (auto)
 
-find_theorems continuous Deriv.differentiable
-
 lemma derivation_lemma1:
   fixes e :: "('a::ordered_euclidean_space, 'c::executable_euclidean_space, 's) hyexpr"
   assumes "differentiable\<^sub>e e" "(F has_vector_derivative \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) (at t within A)"
@@ -371,7 +369,7 @@ text \<open> Algorithm: (1) lift all UTP predicates to syntactic hybrid predicat
   including application of substitutions. \<close>
 
 method dInduct = 
-  (simp add: lift_hyprop closure, rule_tac dInv, (simp_all add: hyprop_pred_def)?, simp add: uderiv closure, simp add : uderiv closure usubst)
+  ((simp add: lift_hyprop closure; rule_tac dInv; (simp add: hyprop_pred_def)?), simp add: uderiv closure, simp add : uderiv closure usubst)
 
 method dInduct_auto = (dInduct; (rel_simp, auto simp add: algebra_simps))
 
