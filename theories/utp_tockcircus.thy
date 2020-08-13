@@ -4,6 +4,18 @@ theory utp_tockcircus
 imports "UTP-Reactive-Designs.utp_rea_designs" "rcircus/Refusal_Tests"
 begin recall_syntax
 
+subsection \<open> Preliminaries \<close>
+
+instantiation list :: (type) monoid_mult
+begin
+definition [simp]: "one_list = []"
+definition [simp]: "times_list = (@)"
+instance by (intro_classes; simp)
+end
+
+lemma power_replicate: "[x]^n = replicate n x"
+  by (induct n; simp)
+
 subsection \<open> Foundations \<close>
 
 text \<open> We try and characterise a tock-CSP like model using the standard Circus pattern and adapting
@@ -42,6 +54,8 @@ declare des_vars.splits [alpha_splits]
 
 type_synonym ('s,'e) taction  = "('s, 'e) tc_vars hrel"
 
+subsubsection \<open> Tocks \<close>
+
 definition tocks :: "'e set \<Rightarrow> 'e tev list set" where
 "tocks X = {t. \<forall> e \<in> set(t). \<exists> Y. e = Tock Y \<and> Y \<subseteq> X}"
 
@@ -54,10 +68,13 @@ lemma tocks_Tock: "t \<in> tocks X \<Longrightarrow> set t \<subseteq> range Toc
 lemma tocks_Cons: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
   by (simp add: tocks_def)
 
+lemma tocks_Evt [simp]: "Evt e # t \<in> tocks X = False"
+  by (simp add: tocks_def)
+
 lemma tocks_subset: "\<lbrakk> A \<subseteq> B; t \<in> tocks A\<rbrakk> \<Longrightarrow> t \<in> tocks B"
   by (auto simp add: tocks_def)
 
-lemma tocks_append [simp]: "\<lbrakk> s \<in> tocks X; t \<in> tocks X \<rbrakk> \<Longrightarrow> s @ t \<in> tocks X"
+lemma tocks_append [simp]: "s @ t \<in> tocks X \<longleftrightarrow> (s \<in> tocks X \<and> t \<in> tocks X)"
   by (auto simp add: tocks_def)
 
 lemma tocks_take [simp]: "s \<in> tocks X \<Longrightarrow> take n s \<in> tocks X"
@@ -73,6 +90,60 @@ lemma mk_tocks: "mk_tocks n \<in> tocks X"
 
 lemma length_mk_tocks [simp]: "length (mk_tocks n) = n"
   by (simp add: mk_tocks_def)
+
+subsubsection \<open> Tocks Order \<close>
+
+text \<open> This order states that two traces have the same length, and agree on the order of events 
+  and tocks, but each tock can refuse fewer events. \<close>
+
+definition tock_ord :: "'e tev list \<Rightarrow> 'e tev list \<Rightarrow> bool" (infix "\<subseteq>\<^sub>t" 50) where
+"(t\<^sub>1 \<subseteq>\<^sub>t t\<^sub>2) = (length t\<^sub>1 = length t\<^sub>2 \<and> (\<forall> i<length t\<^sub>1. t\<^sub>1!i = t\<^sub>2!i \<or> (\<exists> X Y. X \<subseteq> Y \<and> t\<^sub>1!i = Tock X \<and> t\<^sub>2!i = Tock Y)))"
+
+lemma tock_ord_refl: "x \<subseteq>\<^sub>t x"
+  by (simp add: tock_ord_def)
+
+lemma tock_ord_trans: "\<lbrakk> x \<subseteq>\<^sub>t y; y \<subseteq>\<^sub>t z \<rbrakk> \<Longrightarrow> x \<subseteq>\<^sub>t z"
+  by (auto simp add: tock_ord_def, smt dual_order.trans teva.inject(1))
+
+lemma tock_ord_antisym: "\<lbrakk> x \<subseteq>\<^sub>t y; y \<subseteq>\<^sub>t x \<rbrakk> \<Longrightarrow> x = y"
+  by (auto simp add: tock_ord_def, metis nth_equalityI subset_antisym teva.inject(1))
+
+lemma tock_ord_least [simp]: "t \<subseteq>\<^sub>t [] \<longleftrightarrow> t = []"
+  by (auto simp add: tock_ord_def)
+
+lemma tock_ord_Nil [simp]: "[] \<subseteq>\<^sub>t t \<longleftrightarrow> t = []"
+  by (auto simp add: tock_ord_def)
+
+lemma tock_ord_append: "\<lbrakk> x\<^sub>1 \<subseteq>\<^sub>t y\<^sub>1; x\<^sub>2 \<subseteq>\<^sub>t y\<^sub>2 \<rbrakk> \<Longrightarrow> x\<^sub>1 @ x\<^sub>2 \<subseteq>\<^sub>t y\<^sub>1 @ y\<^sub>2"
+  apply (auto simp add: tock_ord_def)
+  by (smt diff_add_cancel_left' nat_add_left_cancel_less not_less nth_append)
+
+lemma tock_ord_decompose:
+  assumes  "x \<subseteq>\<^sub>t y @ z" 
+  shows "take (length y) x \<subseteq>\<^sub>t y" "drop (length y) x \<subseteq>\<^sub>t z"
+  using assms
+  by (auto simp add: tock_ord_def)
+     (metis add_leE not_less nth_append, metis nat_add_left_cancel_less nth_append_length_plus)
+
+lemma tocks_order_power:
+  assumes "t \<in> tocks A"
+  shows "t \<subseteq>\<^sub>t [Tock A]^length t"
+proof -
+  from assms have "\<forall>i<length t. t ! i = Tock A \<or> (\<exists>X. X \<subseteq> A \<and> t ! i = Tock X)"
+    by (simp add: tocks_def, meson in_set_conv_nth)
+  thus ?thesis
+    by (auto simp add: tock_ord_def power_replicate)
+qed
+
+lemma tock_power_in_tocks: "[Tock A]^n \<in> tocks A"
+  by (simp add: tocks_def power_replicate)
+
+lemma tocks_ord_closed:
+  "\<lbrakk> t\<^sub>1 \<in> tocks A; t\<^sub>2 \<subseteq>\<^sub>t t\<^sub>1 \<rbrakk> \<Longrightarrow> t\<^sub>2 \<in> tocks A"
+  by (auto simp add: tocks_def tock_ord_def in_set_conv_nth)
+     (metis (no_types, hide_lams) nth_mem subset_trans teva.inject(1))
+
+subsubsection \<open> Other Functions \<close>
 
 fun events :: "'e tev list \<Rightarrow> 'e tev list" where
 "events [] = []" |
@@ -140,17 +211,26 @@ definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
 datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Evts "('e list, 's) uexpr"
 
 fun tsyme :: "('s,'e) tsym \<Rightarrow> ('s,'e) taction" where
-"tsyme (Time X A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)" |
+"tsyme (Time X A) = U(\<exists> t \<in> tocks \<lceil>- X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)" |
 "tsyme (Evts t) = U($tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub><)"
 *)
 
+(*
 abbreviation tsyme :: "('e tev list, 's) uexpr list \<Rightarrow> ('s, 'e) taction" where
-"tsyme ts \<equiv> ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<lceil>foldr (bop (@)) ts \<guillemotleft>[]\<guillemotright>\<rceil>\<^sub>S\<^sub><)"
+"tsyme ts \<equiv> (bop (\<subseteq>\<^sub>t) $tr\<acute> ($tr ^\<^sub>u \<lceil>foldr (bop (@)) ts \<guillemotleft>[]\<guillemotright>\<rceil>\<^sub>S\<^sub><))"
+*)
+
+abbreviation tsyme :: "('e tev list, 's) uexpr \<Rightarrow> ('s, 'e) taction" where
+"tsyme t \<equiv> U(\<exists> t\<^sub>0. $tr\<acute> = $tr @ \<guillemotleft>t\<^sub>0\<guillemotright> \<and> t\<^sub>0 \<subseteq>\<^sub>t \<lceil>t\<rceil>\<^sub>S\<^sub><)"
 
 utp_const tsyme
 
 lemma foldr_concat_eval [uexpr_transfer_extra]: "\<lbrakk>foldr (bop (@)) xs t\<rbrakk>\<^sub>e s = concat (map (\<lambda> e. \<lbrakk>e\<rbrakk>\<^sub>e s) xs) @ \<lbrakk>t\<rbrakk>\<^sub>e s"
   by (induct xs, rel_auto+)
+
+definition [upred_defs]: "tc_time' X t = U(replicate t (Tock (-X)))"
+
+utp_const tc_time'
 
 text \<open> We introduce a small algebra for peri- and postconditions to capture timed behaviours. The
   first operator captures stable intermediate (i.e. quiescent) behaviours. Here, @{term s} is a 
@@ -158,32 +238,34 @@ text \<open> We introduce a small algebra for peri- and postconditions to captur
   is the set of events being accepted at this point. FIXME: Should stable observations
   also update the state? \<close>
 
-definition tc_stable :: "'s upred \<Rightarrow> _ \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
-[upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
+definition tc_stable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ((unit, 'e) teva set, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<E>'(_, _, _')") where
+[upred_defs]: "\<E>(s,t,E) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> tsyme t \<and> (\<forall> e\<in>\<lceil>E\<rceil>\<^sub>S\<^sub><. \<guillemotleft>e\<guillemotright> \<notin>\<^sub>\<R> $ref\<acute>))"
 
 text \<open> We also need unstable intermediate observations, which the following relation provides. It
   has no set associated, since no refusal set is observed. \<close>
 
-definition tc_unstable :: "'s upred \<Rightarrow> ('e list, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<U>'(_, _')") where
-[upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> $ref\<acute> = \<^bold>\<bullet>)"
+definition tc_unstable :: "'s upred \<Rightarrow> ('e tev list, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("\<U>'(_, _')") where
+[upred_defs]: "\<U>(s,t) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> tsyme t \<and> $ref\<acute> = \<^bold>\<bullet>)"
 
 text \<open> A final observation is similar to a stable observation, except it can update the state 
   variables and does not characterise a refusal set. \<close>
 
-definition tc_final :: "'s upred \<Rightarrow> _ \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
-[upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> $tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
-
+definition tc_final :: "'s upred \<Rightarrow>('e tev list, 's) uexpr \<Rightarrow> 's usubst \<Rightarrow> ('s, 'e) taction" ("\<F>'(_, _, _')") where
+[upred_defs]: "\<F>(s,t,\<sigma>) = U(\<lceil>s\<rceil>\<^sub>S\<^sub>< \<and> tsyme t \<and> \<lceil>\<langle>\<sigma>\<rangle>\<^sub>a\<rceil>\<^sub>S)" 
+  
 text \<open> A timed observation represents a period of delay. The set @{term X} characterises the set of
   events that are accepted during this period. The set @{term A} characterises the possible delay
   periods, for example @{term "{0..n}"} means a delay of between $0$ and $n$ units. \<close>
 
 definition tc_time :: "('e set, 's) uexpr \<Rightarrow> (nat set, 's) uexpr \<Rightarrow> _" ("\<T>'(_, _')") where 
-[upred_defs]: "\<T>(X, A) = U(\<exists> t \<in> tocks \<lceil>UNIV - X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
+[upred_defs]: "\<T>(X, A) = U(\<exists> t \<in> tocks \<lceil>- X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)"
 
 utp_lift_notation tc_stable
 utp_lift_notation tc_unstable
 utp_lift_notation tc_final (2)
 utp_lift_notation tc_time
+
+utp_const tc_stable
 
 lemma [closure]: "II\<^sub>t is TRR"
   by (rel_auto)
@@ -211,14 +293,74 @@ text \<open> Unstable observations are subsumed by stable ones \<close>
 lemma instability_subsumed: "\<E>(s, t, E) \<sqsubseteq> \<U>(s, t)"
   by (rel_auto)
 
-lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>\<^sub>1) ;; \<F>(s\<^sub>2, t\<^sub>2, \<sigma>\<^sub>2) = \<F>(s\<^sub>1 \<and> \<sigma>\<^sub>1 \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma>\<^sub>1 \<dagger> t\<^sub>2, \<sigma>\<^sub>2 \<circ>\<^sub>s \<sigma>\<^sub>1)"
-  by (rel_auto)
+lemma tc_final_compose [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>\<^sub>1) ;; \<F>(s\<^sub>2, t\<^sub>2, \<sigma>\<^sub>2) = \<F>(s\<^sub>1 \<and> \<sigma>\<^sub>1 \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma>\<^sub>1 \<dagger> t\<^sub>2, \<sigma>\<^sub>2 \<circ>\<^sub>s \<sigma>\<^sub>1)"
+  apply (rel_auto)
+  using tock_ord_append tock_ord_refl tock_ord_trans apply fastforce
+  apply (metis append.assoc append_take_drop_id tock_ord_decompose)
+  done
+
+lemma time_stable_compose:
+  "\<T>(X, A) ;; \<E>(s, t, E) = U(\<Sqinter> n. \<E>(n \<in> A \<and> s, bop (^) [Tock (-X)] n @ t, E))"
+  apply (rel_auto)
+   apply (rename_tac st ref x y)
+   apply (rule_tac x="length x" in exI)
+  apply (simp)
+   apply (simp add: Compl_eq_Diff_UNIV tock_ord_append tock_ord_refl tock_ord_trans tocks_order_power)
+  apply (rename_tac tr st ref n x)
+  apply (rule exI)
+  apply (rule_tac x="st" in exI)
+  apply (rule)
+   apply (simp)
+   apply (rule_tac x="take n x" in bexI)
+  apply (auto)
+  apply (metis length_replicate length_take power_replicate tock_ord_decompose(1) tock_ord_def)
+  apply (metis length_replicate power_replicate tock_ord_decompose(1) tock_power_in_tocks tocks_ord_closed)
+  apply (metis append_take_drop_id length_replicate power_replicate tock_ord_decompose(2))
+  done
+
+lemma time_unstable_compose:
+  "\<T>(X, A) ;; \<U>(s, t) = (\<Sqinter> n \<bullet> \<U>(\<guillemotleft>n\<guillemotright> \<in> A \<and> s, bop (^) [Tock (-X)] \<guillemotleft>n\<guillemotright> @ t))"
+  apply (rel_auto)
+  apply (metis tock_ord_append tocks_order_power)
+  apply (rename_tac tr st n x)
+  apply (rule exI)
+  apply (rule_tac x="st" in exI)
+  apply (rule)
+   apply (simp)
+   apply (rule_tac x="take n x" in bexI)
+  apply (auto)
+  apply (metis length_replicate length_take power_replicate tock_ord_decompose(1) tock_ord_def)
+  apply (metis length_replicate power_replicate tock_ord_decompose(1) tock_power_in_tocks tocks_ord_closed)
+  apply (metis append_take_drop_id length_replicate power_replicate tock_ord_decompose(2))
+  done
+
+lemma time_final_compose:
+  "\<T>(X, A) ;; \<F>(s, t, \<sigma>) = (\<Sqinter> n \<bullet> \<F>(\<guillemotleft>n\<guillemotright> \<in> A \<and> s, bop (^) [Tock (-X)] \<guillemotleft>n\<guillemotright> @ t, \<sigma>))"
+  apply (rel_auto)
+  apply (metis tock_ord_append tocks_order_power)
+  apply (rename_tac tr st n x)
+  apply (rule exI)
+  apply (rule_tac x="st" in exI)
+  apply (rule)
+   apply (simp)
+   apply (rule_tac x="take n x" in bexI)
+  apply (auto)
+  apply (metis length_replicate length_take power_replicate tock_ord_decompose(1) tock_ord_def)
+  apply (metis length_replicate power_replicate tock_ord_decompose(1) tock_power_in_tocks tocks_ord_closed)
+  apply (metis append_take_drop_id length_replicate power_replicate tock_ord_decompose(2))
+  done
 
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<E>(s\<^sub>2, t\<^sub>2, E) = \<E>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2, \<sigma> \<dagger> E)"
-  by (rel_auto)
+  apply (rel_auto)
+  apply (metis tock_ord_append)
+  apply (metis append.assoc append_take_drop_id tock_ord_decompose(1) tock_ord_decompose(2))
+  done
 
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<U>(s\<^sub>2, t\<^sub>2) = \<U>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2)"
-  by (rel_auto)
+  apply (rel_auto)
+  apply (metis tock_ord_append)
+  apply (metis append.assoc append_take_drop_id tock_ord_decompose(1) tock_ord_decompose(2))
+  done
 
 lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
   by (rule TRR_intro, simp_all add: closure unrest)
@@ -240,7 +382,7 @@ lemma [rpred]: "\<T>(X, {0}) = II\<^sub>t"
   by (rel_auto)
 
 lemma [rpred]: "\<F>(true, [], id\<^sub>s) = II\<^sub>t"
-  by (rel_auto)
+  by (rel_simp)
 
 lemma time_single_single [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n}) = \<T>(X, {m+n})"
   apply rel_auto
@@ -289,13 +431,13 @@ lemma [rpred]: "\<T>(X, {m\<^sub>1..m\<^sub>1+n\<^sub>1}) ;; \<T>(X, {m\<^sub>2.
 proof (rel_auto)
   fix tr st t
 
-  assume a: "t \<in> tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st)" "\<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st \<le> length t" "length t \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st + (\<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st)"
+  assume a: "t \<in> tocks (- \<lbrakk>X\<rbrakk>\<^sub>e st)" "\<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st \<le> length t" "length t \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st + (\<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st)"
   then obtain n where n: "n \<le> length t" "\<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st \<le> n" "\<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st + n \<le> length t" "n \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st+\<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st" "length t \<le> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st+\<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st+n"
     using split_time_dom by blast
 
   with a show "\<exists>tr' st'.
-          (\<exists>x\<in>tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st). tr' = tr @ x \<and> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st \<le> length x \<and> length x \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st \<and> st' = st) \<and>
-          (\<exists>xa\<in>tocks (UNIV - \<lbrakk>X\<rbrakk>\<^sub>e st'). tr @ t = tr' @ xa \<and> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' \<le> length xa \<and> length xa \<le> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st' \<and> st = st')"
+          (\<exists>x\<in>tocks (- \<lbrakk>X\<rbrakk>\<^sub>e st). tr' = tr @ x \<and> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st \<le> length x \<and> length x \<le> \<lbrakk>m\<^sub>1\<rbrakk>\<^sub>e st + \<lbrakk>n\<^sub>1\<rbrakk>\<^sub>e st \<and> st' = st) \<and>
+          (\<exists>xa\<in>tocks (- \<lbrakk>X\<rbrakk>\<^sub>e st'). tr @ t = tr' @ xa \<and> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' \<le> length xa \<and> length xa \<le> \<lbrakk>m\<^sub>2\<rbrakk>\<^sub>e st' + \<lbrakk>n\<^sub>2\<rbrakk>\<^sub>e st' \<and> st = st')"
     apply (rule_tac x="tr @ take n t" in exI)
     apply (rule_tac x="st" in exI)
     apply (auto)
@@ -384,45 +526,89 @@ lemma [rpred]: "P \<triangleright>\<^sub>t' (Q \<or> R) = (P \<triangleright>\<^
 lemma [rpred]: "(P \<or> Q) \<triangleright>\<^sub>t' R = (P \<triangleright>\<^sub>t' R \<or> Q \<triangleright>\<^sub>t' R)"
   by (rel_blast)
 
+
 lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, [], B)) = false"
-  by (rel_simp)
-     (metis append.assoc append_Cons list.simps(3) plus_list_def tock_prefix_eq trace_class.add_diff_cancel_left)
+  by (rel_auto)
 
 lemma [rpred]: "P \<triangleright>\<^sub>t \<T>(A, B) = false"
-  by (rel_simp, metis append.assoc append_Cons list.simps(3) self_append_conv tock_prefix_eq)
+  by (rel_auto)
 
 lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, [])) = false"
   by (rel_simp)
-     (metis append.assoc append_Cons list.simps(3) plus_list_def tock_prefix_eq trace_class.add_diff_cancel_left)
 
+lemma tock_ord_Evt: "x \<subseteq>\<^sub>t Evt e # y \<Longrightarrow> (\<exists> t. x = Evt e # t \<and> t \<subseteq>\<^sub>t y)"
+  apply (simp add: tock_ord_def)
+  apply (rule_tac x="tl x" in exI)
+  apply (auto)
+  apply (metis hd_Cons_tl length_0_conv nat.simps(3) nth_Cons_0 teva.distinct(1) zero_less_Suc)
+  apply (metis Nitpick.size_list_simp(2) Suc_less_eq nat.simps(3) nth_Cons_Suc nth_tl)
+  done
 
-lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<E>(s\<^sub>1, [], A)) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, e # es, B)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, e # es, B)"
+lemma tock_ord_EvtE [elim!]: "\<lbrakk> x \<subseteq>\<^sub>t Evt e # y; \<And> t. \<lbrakk> x = Evt e # t; t \<subseteq>\<^sub>t y \<rbrakk> \<Longrightarrow> P \<rbrakk> \<Longrightarrow> P"
+  by (metis tock_ord_Evt)
+
+lemma tock_ord_Evt_hd_eq [simp]: "Evt e # x \<subseteq>\<^sub>t Evt f # y \<longleftrightarrow> (e = f \<and> x \<subseteq>\<^sub>t y)"
+  by (auto simp add: tock_ord_def)
+     (smt One_nat_def add.commute diff_add_cancel_left' length_Cons less_Suc0 list.size(4) nat_add_left_cancel_less not_less nth_Cons')
+
+lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<E>(s\<^sub>1, [], A)) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, Evt e # es, B)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es, B)"
   apply (rel_auto)
    apply (drule tock_prefix_eq)
   apply (auto)[1]
     apply (auto)[1]
    apply (auto)[1]
-   apply (rename_tac tr st ref x E)
+   apply (rename_tac tr st ref x E y)
    apply (rule exI)
    apply (rule_tac x="st" in exI)
    apply (simp)
    apply (rule)
   apply (rule_tac x="x" in bexI)
   apply (simp)
-  apply (metis Diff_Un tocks_inter)
-  apply (auto)
-   apply (rename_tac tr st ts)
-  apply (rule_tac x="ts" in exI)
+    apply (metis tocks_inter) 
+    apply (rule_tac x="Evt (\<lbrakk>e\<rbrakk>\<^sub>e st) # y" in exI)
+  apply (simp)
+   apply (rename_tac tr st ref x y)
+  apply (rule_tac x="x" in exI)
   apply (simp)
      apply (rule)
       apply (auto)[1]
    apply (metis subset_UNIV tocks_subset)
       apply (auto)[1]
-  apply (metis Diff_Compl Diff_Un Diff_subset tocks_subset)
+  apply (metis Diff_Compl Diff_subset tocks_subset)
    apply (rule_tac x="\<^bold>\<bullet>" in exI)
   apply (simp)
-  apply (metis Diff_Int_distrib2 Diff_Un Diff_subset append.assoc bounded_semilattice_inf_top_class.inf_top.left_neutral tocks_subset)
+  apply (metis append_eq_appendI semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
   done
+
+lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<E>(s\<^sub>1, [], A)) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, Evt e # es)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<U>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es)"
+  apply (rel_auto)
+   apply (drule tock_prefix_eq)
+  apply (auto)[1]
+    apply (auto)[1]
+   apply (auto)[1]
+   apply (rename_tac tr st x E y)
+   apply (rule exI)
+   apply (rule_tac x="st" in exI)
+   apply (simp)
+   apply (rule)
+  apply (rule_tac x="x" in bexI)
+  apply (simp)
+    apply (metis tocks_inter) 
+    apply (rule_tac x="Evt (\<lbrakk>e\<rbrakk>\<^sub>e st) # y" in exI)
+  apply (simp)
+   apply (rename_tac tr st x y)
+  apply (rule_tac x="x" in exI)
+  apply (simp)
+     apply (rule)
+      apply (auto)[1]
+   apply (metis subset_UNIV tocks_subset)
+      apply (auto)[1]
+  apply (metis Diff_Compl Diff_subset tocks_subset)
+   apply (rule_tac x="\<^bold>\<bullet>" in exI)
+  apply (simp)
+  apply (metis append_eq_appendI semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
+  done
+
 
 lemma [rpred]: "(\<T>({}, T\<^sub>1) ;; \<U>(true, [])) \<triangleright>\<^sub>t' \<T>({}, T\<^sub>2) = \<T>({}, T\<^sub>1 \<inter> T\<^sub>2)"
   apply (rel_auto)
@@ -430,12 +616,19 @@ lemma [rpred]: "(\<T>({}, T\<^sub>1) ;; \<U>(true, [])) \<triangleright>\<^sub>t
   apply (case_tac "t2=[]")
   apply (simp)
   apply (auto simp add: tocks_def)
-  by (metis image_iff insert_subset list.exhaust list.simps(15) semilattice_sup_class.sup.cobounded2 teva.distinct(1))
-
+  apply (metis imageE list.set_intros(1) neq_Nil_conv subset_image_iff teva.distinct(1))
+  done
+  
 lemma [rpred]: "(\<T>(X, A) ;; \<E>(s, t, E)) \<triangleright>\<^sub>t' \<T>(Y, B) = (\<T>(X, A) ;; \<U>(s, t)) \<triangleright>\<^sub>t' \<T>(Y, B)"
   apply (rel_auto)
-  apply (metis (no_types, hide_lams) add.assoc append.assoc)
-  apply (metis append.assoc rmember.simps(1))
+   apply (metis (mono_tags, hide_lams) add.assoc append_assoc tocks_append)
+  apply (rename_tac tr st x y z)
+  apply (rule_tac x="y@z" in exI)
+  apply (rule)
+   apply (simp)
+  apply (rule_tac x="x" in exI)
+  apply (simp)
+  apply (metis add.assoc append.assoc rmember.simps(1))
   done
 
 lemma [rpred]: "time(II\<^sub>t) = II\<^sub>t"
@@ -459,32 +652,32 @@ lemma [rpred]: "time(\<T>(X, A) ;; \<U>(s, [])) = \<T>(X, A) ;; \<U>(s, [])"
 lemma [rpred]: "time(\<E>(s, [], E)) = \<E>(s, [], E)"
   by (rel_auto)
 
-lemma [rpred]: "time(\<E>(s, t # ts, E)) = false"
-  by (rel_simp, simp add: tocks_def)
+lemma [rpred]: "time(\<E>(s, Evt t # ts, E)) = false"
+  by (rel_simp)
 
-lemma [rpred]: "time(\<U>(s, t # ts)) = false"
-  by (rel_simp, simp add: tocks_def)
+lemma [rpred]: "time(\<U>(s, Evt t # ts)) = false"
+  by (rel_simp)
 
 lemma [rpred]: "(\<T>(X\<^sub>1, A\<^sub>1) \<and> \<T>(X\<^sub>2, A\<^sub>2)) = \<T>(X\<^sub>1 \<union> X\<^sub>2, A\<^sub>1 \<inter> A\<^sub>2)"
   apply (rel_auto)
   apply (auto simp add: tocks_def)
   apply fastforce
-   apply (metis Compl_eq_Diff_UNIV Un_subset_iff disjoint_eq_subset_Compl semilattice_inf_class.inf_commute)+
   done
 
 lemma [rpred]: "(\<T>(A, T\<^sub>1) ;; \<E>(s\<^sub>1, [], {Tock ()}) \<and> \<T>(B, T\<^sub>2) ;; \<E>(s\<^sub>2, [], {Tock ()})) 
        = \<T>(A \<union> B, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, [], {Tock ()})"
   apply (rel_auto)
   apply (simp add: Diff_Un tocks_inter)
-  apply (metis Diff_Compl Diff_Un Diff_subset tocks_subset)
-  apply (metis Diff_Int_distrib2 Diff_Un Diff_subset bounded_semilattice_inf_top_class.inf_top.left_neutral tocks_subset)
+  apply (metis Diff_Compl Diff_subset tocks_subset)
+  apply (metis semilattice_inf_class.inf_le2 tocks_subset)
   done
 
 lemma [rpred]: "(\<T>(X, A) ;; \<E>(true, [], E\<^sub>1) \<and> \<T>(Y, B) ;; \<E>(true, [], E\<^sub>2)) = \<T>(X \<union> Y, A \<inter> B) ;; \<E>(true, [], E\<^sub>1 \<union> E\<^sub>2)"
   apply (rel_auto)
-  apply (metis Diff_Un tocks_inter)
-  apply (metis Diff_Compl Diff_Un Diff_subset tocks_subset)
-  by (metis Diff_Compl Diff_Un Diff_subset semilattice_sup_class.sup_commute tocks_subset)
+  apply (metis tocks_inter)
+  apply (metis Diff_Compl Diff_subset tocks_subset)
+  apply (metis semilattice_inf_class.inf_le2 tocks_subset)
+  done
 
 lemma nat_set_simps [simp]:
   fixes m::"(nat, _) uexpr"
@@ -614,8 +807,8 @@ text \<open> SDF: Check the following definition against the tick-tock paper. It
 definition DoT :: "('e, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(_')") where
 [rdes_def]: "DoT a =
   \<^bold>R(true\<^sub>r 
-  \<turnstile> \<T>({a}, {0..}) ;; (\<E>(true, [], {Tock (), Evt a}) \<or> \<U>(true, [a]))
-  \<diamondop> \<T>({a}, {0..}) ;; \<F>(true, [a], id\<^sub>s))"
+  \<turnstile> \<T>({a}, {0..}) ;; (\<E>(true, [], {Tock (), Evt a}) \<or> \<U>(true, [Evt a]))
+  \<diamondop> \<T>({a}, {0..}) ;; \<F>(true, [Evt a], id\<^sub>s))"
 
 lemma DoT_TC: "do\<^sub>T(e) is TC"
   by (rule Healthy_intro, rdes_eq)
@@ -675,7 +868,7 @@ lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle
          \<T>({}, {m}) ;; \<T>({a}, {0..}) ;; \<F>(true, [a], [x \<mapsto>\<^sub>s &x + 1]))"
   apply (rdes_simp)
   apply (simp add: rpred seqr_assoc usubst)
-  done
+  oops
 
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
 "P \<box> Q =
@@ -694,9 +887,11 @@ lemma extChoice_rdes_def [rdes_def]:
         \<diamondop> (P\<^sub>2 \<triangleright>\<^sub>t' Q\<^sub>3 \<or> Q\<^sub>2 \<triangleright>\<^sub>t' P\<^sub>3))"
   by (simp add: extChoice_def rdes assms closure rpred)
 
+lemma [dest]: "x \<in>\<^sub>\<R> \<^bold>\<bullet> \<Longrightarrow> P"
+  by (metis rmember.simps(1))
+
 lemma "Skip \<box> Stop = Skip"
-  apply (rdes_eq)
-  by (meson rmember.simps(1))
+  by (rdes_eq, auto)
   
 lemma "Wait m \<box> Wait m = Wait m"
   by (rdes_simp)
@@ -707,14 +902,18 @@ lemma "Wait m \<box> Wait n = Wait U(min m n)"
 lemma append_in_dist_conat: "\<lbrakk> x \<in> xs; y \<in> ys \<rbrakk> \<Longrightarrow> x @ y \<in> xs \<^sup>\<frown> ys"
   by (auto simp add: dist_concat_def)
 
+lemma [rpred]: "time(\<T>(X, T) ;; \<U>(true, [Evt a])) = false"
+  by (rel_simp)
+
+lemma [simp]: "U(insert x (insert x A)) = U(insert x A)"
+  by (rel_auto)
+
 lemma "Stop \<box> do\<^sub>T(a) = do\<^sub>T(a)"
   apply (rdes_eq_split)
     apply (simp_all add: rpred closure)
+  apply (simp add: time_final_compose)
   apply (rel_auto)
-  apply (metis rmember.simps(1) subset_UNIV tocks_subset)
-   apply (metis rmember.simps(1) subset_UNIV tocks_subset)
-  apply (rel_auto)
-  by (metis Diff_subset empty_subsetI insert_subset list.simps(15) range_eqI rmember.simps(1) set_empty2 tocks_subset)
+  oops
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
 
