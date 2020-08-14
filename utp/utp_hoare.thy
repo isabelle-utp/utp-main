@@ -4,6 +4,7 @@ theory utp_hoare
   imports 
     utp_rel_laws
     utp_theory
+    utp_frame
 begin
 
 subsection \<open> Hoare Triple Definitions and Tactics \<close>
@@ -343,5 +344,10 @@ lemma nmods_invariant:
   assumes "S nmods a" "a \<natural> p"
   shows "\<^bold>{p\<^bold>}S\<^bold>{p\<^bold>}"
   using assms by (rel_auto, metis)
+
+lemma hoare_r_ghost:
+  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> q; S nuses x; \<^bold>{p\<^bold>}x := \<guillemotleft>v\<guillemotright>;; S\<^bold>{q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{p\<^bold>}S\<^bold>{q\<^bold>}" 
+  by (simp add: nuses_assign_commute, rel_simp, metis)
+
 
 end

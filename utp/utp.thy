@@ -31,6 +31,7 @@ imports
   utp_lift_pretty
   utp_sym_eval
   utp_tactics
+  utp_frame
   utp_hoare
   utp_wlp
   utp_wp

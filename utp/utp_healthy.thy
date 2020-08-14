@@ -221,6 +221,9 @@ lemma Continuous_Disjunctous: "Continuous H \<Longrightarrow> Disjunctuous H"
   apply (simp)
   done
 
+lemma Continuous_choice_dist: "Continuous H \<Longrightarrow> H(P \<sqinter> Q) = H(P) \<sqinter> H(Q)"
+  using Continuous_Disjunctous Disjunctuous_def by blast
+
 lemma Continuous_Monotonic [closure]: "Continuous H \<Longrightarrow> Monotonic H"
   by (simp add: Continuous_Disjunctous Disjunctuous_Monotonic)
 
