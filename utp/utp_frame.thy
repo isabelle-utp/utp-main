@@ -263,6 +263,11 @@ lemma antiframe_seq [frame]:
    apply (metis vwb_lens_wb wb_lens_def weak_lens.put_get)
   apply (metis vwb_lens_wb wb_lens.put_twice wb_lens_def weak_lens.put_get)
   done
+
+lemma antiframe_copy_assign:
+  "vwb_lens x \<Longrightarrow> (x := \<guillemotleft>v\<guillemotright> ;; x:\<lbrakk>P\<rbrakk> ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; x:\<lbrakk>P\<rbrakk>)"
+  by rel_auto
+
   
 lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
@@ -310,9 +315,23 @@ proof -
     by (simp add: Healthy_if assms)
 qed
 
+lemma nmods_copy_assign:
+  "\<lbrakk> vwb_lens x; P nmods x \<rbrakk> \<Longrightarrow> (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; P)"
+  by (metis Healthy_if antiframe_copy_assign)
+
 lemma nmods_intro:
-  "\<lbrakk> vwb_lens x; \<And> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright> \<rbrakk> \<Longrightarrow> P nmods x"
+  "\<lbrakk> vwb_lens x; \<And> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; P) \<rbrakk> \<Longrightarrow> P nmods x"
   by (rel_auto, metis vwb_lens_wb wb_lens.get_put wb_lens.put_twice)
+
+lemma nmods_iff_copy_assign:
+  assumes "vwb_lens x"
+  shows "P nmods x \<longleftrightarrow> (\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; P))"
+proof
+  show "(\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; P)) \<Longrightarrow> P nmods x"
+    by (simp add: assms nmods_intro)
+  show "P nmods x \<Longrightarrow> (\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (x := \<guillemotleft>v\<guillemotright> ;; P))"
+    by (simp add: assms nmods_copy_assign)
+qed
 
 lemma nmods_skip [closure]: "vwb_lens a \<Longrightarrow> II nmods a" 
   by rel_auto
@@ -400,6 +419,47 @@ lemma hide_nmods [closure]: "rrestr x P nmods x"
 lemma nuses_implies_nmods [closure]: "P nuses x \<Longrightarrow> P nmods x"
   by (metis Healthy_if hide_nmods)
 
+lemma nuses_assign_commute:
+  assumes "mwb_lens x" "P nuses x"
+  shows "x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
+proof -
+  from assms(1) have "x := \<guillemotleft>v\<guillemotright> ;; rrestr x P = rrestr x P ;; x := \<guillemotleft>v\<guillemotright>"
+    by (rel_auto, metis mwb_lens.put_put, metis)
+  thus ?thesis
+    by (simp add: Healthy_if assms(2))
+qed
+
+lemma nuses_iff_assign_commute:
+  assumes "vwb_lens x"
+  shows "P nuses x \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
+proof
+  assume "P nuses x"
+  thus "\<forall>v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
+    by (simp add: assms nuses_assign_commute)
+next
+  assume "\<forall>v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
+  thus "P nuses x"
+    by (rel_simp, metis (full_types) assms mwb_lens.put_put vwb_lens_mwb vwb_lens_wb 
+        wb_lens.source_stability wb_lens_def weak_lens.put_get)
+qed
+
+lemma nuses_nmods_intro:
+  assumes "vwb_lens x" "P nmods x" "(\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>))"
+  shows "P nuses x"
+  by (metis assms(1) assms(2) assms(3) nmods_copy_assign nuses_iff_assign_commute)
+
+lemma nuses_iff_nmods_and_reduce:
+  assumes "vwb_lens x"
+  shows "P nuses x \<longleftrightarrow> ((P nmods x) \<and>(\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>)))"
+proof 
+  have "P nuses x \<Longrightarrow> (\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>))"
+    by (simp add: assms nmods_copy_assign nuses_assign_commute nuses_implies_nmods)
+  thus "P nuses x \<Longrightarrow> (P nmods x) \<and> (\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>))"
+    by (simp add: closure)
+  show "((P nmods x) \<and> (\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>))) \<Longrightarrow> P nuses x"
+    using assms nuses_nmods_intro by blast
+qed
+
 lemma nuses_false [closure]: "false nuses x" 
   by rel_auto
 
@@ -416,6 +476,10 @@ lemma nuses_assigns [closure]:
 lemma nuses_assign:
   "\<lbrakk> vwb_lens x; x \<bowtie> y; x \<sharp> e \<rbrakk> \<Longrightarrow> y := e nuses x"
   by (simp add: closure unrest)
+
+lemma nuses_nd_assign [closure]:
+  "\<lbrakk> vwb_lens x; x \<bowtie> y \<rbrakk> \<Longrightarrow> y := * nuses x"
+  by (simp add: nd_assign_def closure unrest)
 
 lemma nuses_seq [closure]:
   assumes "mwb_lens x" "P nuses x" "Q nuses x"
@@ -460,30 +524,6 @@ lemma nuses_star [closure]:
 lemma nuses_while [closure]:
   "\<lbrakk> vwb_lens x; x \<sharp> b; P nuses x \<rbrakk> \<Longrightarrow> (while b do P od) nuses x"
   by (simp add: while_star_form closure unrest)
-
-lemma nuses_assign_commute:
-  assumes "mwb_lens x" "P nuses x"
-  shows "x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
-proof -
-  from assms(1) have "x := \<guillemotleft>v\<guillemotright> ;; rrestr x P = rrestr x P ;; x := \<guillemotleft>v\<guillemotright>"
-    by (rel_auto, metis mwb_lens.put_put, metis)
-  thus ?thesis
-    by (simp add: Healthy_if assms(2))
-qed
-
-lemma nuses_iff_assign_commute:
-  assumes "vwb_lens x"
-  shows "P nuses x \<longleftrightarrow> (\<forall> v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>)"
-proof
-  assume "P nuses x"
-  thus "\<forall>v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
-    by (simp add: assms nuses_assign_commute)
-next
-  assume "\<forall>v. x := \<guillemotleft>v\<guillemotright> ;; P = P ;; x := \<guillemotleft>v\<guillemotright>"
-  thus "P nuses x"
-    by (rel_simp, metis (full_types) assms mwb_lens.put_put vwb_lens_mwb vwb_lens_wb 
-        wb_lens.source_stability wb_lens_def weak_lens.put_get)
-qed
 
 subsection \<open> UTP Theories \<close>
 

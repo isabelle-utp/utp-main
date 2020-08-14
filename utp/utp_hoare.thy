@@ -349,5 +349,4 @@ lemma hoare_r_ghost:
   "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> q; S nuses x; \<^bold>{p\<^bold>}x := \<guillemotleft>v\<guillemotright>;; S\<^bold>{q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{p\<^bold>}S\<^bold>{q\<^bold>}" 
   by (simp add: nuses_assign_commute, rel_simp, metis)
 
-
 end
