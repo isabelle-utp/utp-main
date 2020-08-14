@@ -1,7 +1,7 @@
 section \<open> Experiment in creating Circus with a Refusal Testing Semantics \<close>
 
 theory utp_rcircus
-  imports Refusal_Tests "UTP-Reactive-Designs.utp_rea_designs"
+  imports Refusal_Tests utp_rea_designs
 begin
 
 recall_syntax
@@ -22,24 +22,66 @@ translations
 
 subsection \<open> Refusal Circus Alphabet \<close>
 
-alphabet ('\<sigma>, '\<phi>) rcsp_vars = "('\<phi> list, '\<sigma>) rsp_vars" +
+alphabet '\<phi> rcsp_vars = "'\<sigma> rsp_vars" +
   rref :: "'\<phi> refusal"
 
+declare rcsp_vars.defs [lens_defs]
+declare rcsp_vars.splits [alpha_splits]
 
-type_synonym ('\<sigma>,'\<phi>) raction  = "('\<sigma>,'\<phi>) rcsp_vars hrel"
+text \<open>
+  The following two locale interpretations are a technicality to improve the
+  behaviour of the automatic tactics. They enable (re)interpretation of state
+  spaces in order to remove any occurrences of lens types, replacing them by
+  tuple types after the tactics @{method pred_simp} and @{method rel_simp}
+  are applied. Eventually, it would be desirable to automate preform these
+  interpretations automatically as part of the @{command alphabet} command.
+\<close>
+
+interpretation alphabet_rcsp_prd:
+  lens_interp "\<lambda>(ok, wait, tr, m). (ok, wait, tr, rref\<^sub>v m, more m)"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+interpretation alphabet_rcsp_rel:
+  lens_interp "\<lambda>(ok, ok', wait, wait', tr, tr', m, m').
+    (ok, ok', wait, wait', tr, tr', rref\<^sub>v m, rref\<^sub>v m', more m, more m')"
+apply (unfold_locales)
+apply (rule injI)
+apply (clarsimp)
+done
+
+lemma rcircus_var_ords [usubst]:
+  "$rref \<prec>\<^sub>v $rref\<acute>"
+  "$ok \<prec>\<^sub>v $rref" "$ok\<acute> \<prec>\<^sub>v $rref\<acute>" "$ok \<prec>\<^sub>v $rref\<acute>" "$ok\<acute> \<prec>\<^sub>v $rref"
+  "$rref \<prec>\<^sub>v $wait" "$rref\<acute> \<prec>\<^sub>v $wait\<acute>" "$rref \<prec>\<^sub>v $wait\<acute>" "$rref\<acute> \<prec>\<^sub>v $wait"
+  "$rref \<prec>\<^sub>v $st" "$rref\<acute> \<prec>\<^sub>v $st\<acute>" "$rref \<prec>\<^sub>v $st\<acute>" "$rref\<acute> \<prec>\<^sub>v $st"
+  "$rref \<prec>\<^sub>v $tr" "$rref\<acute> \<prec>\<^sub>v $tr\<acute>" "$rref \<prec>\<^sub>v $tr\<acute>" "$rref\<acute> \<prec>\<^sub>v $tr"
+  by (simp_all add: var_name_ord_def)
+
+type_synonym ('\<sigma>,'\<phi>) st_rcsp = "('\<sigma>, '\<phi> revent list, ('\<phi>, unit) rcsp_vars_scheme) rsp"
+type_synonym ('\<sigma>,'\<phi>) raction  = "('\<sigma>,'\<phi>) st_rcsp hrel"
   
 text \<open> There is some slight imprecision with the translations, in that we don't bother to check
   if the trace event type and refusal set event types are the same. Essentially this is because
   its very difficult to construct processes where this would be the case. However, it may
   be better to add a proper ML print translation in the future. \<close>
   
+translations
+  (type) "('\<sigma>,'\<phi>) st_rcsp" <= (type) "('\<sigma>, '\<phi> list, '\<phi>1 rcsp_vars) rsp"
+  (type) "('\<sigma>,'\<phi>) raction" <= (type) "('\<sigma>, '\<phi>) st_rcsp hrel"
+  
+notation rcsp_vars_child_lens\<^sub>a ("\<Sigma>\<^sub>c")
+notation rcsp_vars_child_lens ("\<Sigma>\<^sub>C")
+
 subsection \<open> Basic laws \<close>
 
-lemma R2c_tr_ext: "R2c (U($tr\<acute> = $tr @ [\<lceil>a\<rceil>\<^sub>S\<^sub><])) = U($tr\<acute> = $tr @ [\<lceil>a\<rceil>\<^sub>S\<^sub><])"
+lemma R2c_tr_ext: "R2c ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>) = ($tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<lceil>a\<rceil>\<^sub>S\<^sub><\<rangle>)"
   by (rel_auto)
 
 lemma circus_alpha_bij_lens:
-  "bij_lens ({$ok,$ok\<acute>,$wait,$wait\<acute>,$tr,$tr\<acute>,$st,$st\<acute>,$rref,$rref\<acute>}\<^sub>\<alpha> :: _ \<Longrightarrow> ('s,'e) rcsp_vars \<times> ('s,'e) rcsp_vars)"
+  "bij_lens ({$ok,$ok\<acute>,$wait,$wait\<acute>,$tr,$tr\<acute>,$st,$st\<acute>,$rref,$rref\<acute>}\<^sub>\<alpha> :: _ \<Longrightarrow> ('s,'e) st_rcsp \<times> ('s,'e) st_rcsp)"
   by (unfold_locales, lens_simp+)
 
 subsection \<open> Unrestriction laws \<close>
@@ -127,31 +169,32 @@ subsection \<open> Basic Actions \<close>
 
 lemma rref_closure_1 [closure]: "($tr\<acute> =\<^sub>u $tr \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<bullet>\<guillemotright>) is RR"
   apply (rel_auto)
-  by (simp add: zero_list_def)
+  using minus_zero_eq by blast
 
 lemma rref_closure_2 [closure]: "$tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st is RR"
   apply (rel_auto)
   using minus_zero_eq by blast
 
 lemma rref_closure_3 [closure]: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sup>\<R> $rref\<acute>) is RR"
-  by (rel_auto, simp add: zero_list_def)
-  
-lemma rref_closure_4 [closure]: "(\<^bold>\<exists> e \<bullet> U($tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
+  apply (rel_auto)
+  using minus_zero_eq by blast
+
+lemma rref_closure_4 [closure]: "(\<^bold>\<exists> e \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>e\<guillemotright>\<rangle> \<and> \<guillemotleft>revent(e)\<guillemotright> =\<^sub>u \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st) is RR"
   by (rel_auto)
 
-lemma rref_closure_5 [closure]: "(\<^bold>\<exists> e \<bullet> U($tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<guillemotleft>\<bullet>\<guillemotright>)) is RR"
+lemma rref_closure_5 [closure]: "(\<^bold>\<exists> e \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>e\<guillemotright>\<rangle> \<and> \<guillemotleft>revent(e)\<guillemotright> =\<^sub>u \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<bullet>\<guillemotright>) is RR"
   by (rel_auto)
 
 definition Stop :: "('s, 'e) raction" where
 [upred_defs, rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
 
 definition Skip :: "('s, 'e) raction" where
-[upred_defs, rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $rref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> $st\<acute> = $st))"
+[upred_defs, rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> ($tr\<acute> =\<^sub>u $tr \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<bullet>\<guillemotright>) \<diamondop> ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st))"
 
 definition Do :: "('e, 's) uexpr \<Rightarrow> ('s, 'e) raction" where
 [upred_defs, rdes_def]: 
-"Do(a) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (U($tr\<acute> = $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sup>\<R> $rref\<acute>) \<or> U(\<exists> e. $tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<bullet>))
-                  \<diamondop> U(\<exists> e. $tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st))"
+"Do(a) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sup>\<R> $rref\<acute>) \<or> (\<^bold>\<exists> e \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>e\<guillemotright>\<rangle> \<and> \<guillemotleft>revent(e)\<guillemotright> =\<^sub>u \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<bullet>\<guillemotright>))
+                  \<diamondop> (\<^bold>\<exists> e \<bullet> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<langle>\<guillemotleft>e\<guillemotright>\<rangle> \<and> \<guillemotleft>revent(e)\<guillemotright> =\<^sub>u \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> =\<^sub>u $st))"
 
 lemma "Skip ;; Stop = Stop"
   by (rdes_eq)

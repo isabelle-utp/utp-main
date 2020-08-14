@@ -4,7 +4,6 @@ theory utp_hoare
   imports 
     utp_rel_laws
     utp_theory
-    utp_frame
 begin
 
 subsection \<open> Hoare Triple Definitions and Tactics \<close>
@@ -75,16 +74,6 @@ lemma post_weak_hoare_r:
 lemma hoare_r_conseq: "\<lbrakk> \<lbrace>p\<^sub>2\<rbrace>S\<lbrace>q\<^sub>2\<rbrace>\<^sub>u; `p\<^sub>1 \<Rightarrow> p\<^sub>2`; `q\<^sub>2 \<Rightarrow> q\<^sub>1` \<rbrakk> \<Longrightarrow> \<lbrace>p\<^sub>1\<rbrace>S\<lbrace>q\<^sub>1\<rbrace>\<^sub>u"
   by rel_auto
 
-lemma hoare_r_cut:
-  assumes "\<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}" "\<^bold>{b \<and> c\<^bold>}P\<^bold>{c\<^bold>}"
-  shows "\<^bold>{b \<and> c\<^bold>}P\<^bold>{b \<and> c\<^bold>}"
-  using assms by rel_auto
-
-lemma hoare_r_cut_simple: 
-  assumes "\<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}" "\<^bold>{c\<^bold>}P\<^bold>{c\<^bold>}"
-  shows "\<^bold>{b \<and> c\<^bold>}P\<^bold>{b \<and> c\<^bold>}"
-  using assms by rel_auto
-
 subsection \<open> Sequence Laws \<close>
 
 lemma seq_hoare_r: "\<lbrakk> \<lbrace>p\<rbrace>Q\<^sub>1\<lbrace>s\<rbrace>\<^sub>u ; \<lbrace>s\<rbrace>Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u \<rbrakk> \<Longrightarrow> \<lbrace>p\<rbrace>Q\<^sub>1 ;; Q\<^sub>2\<lbrace>r\<rbrace>\<^sub>u"
@@ -132,13 +121,6 @@ lemma assigns_init_hoare_general:
 
 lemma assigns_final_hoare [hoare_safe]:
   "\<lbrace>p\<rbrace>S\<lbrace>\<sigma> \<dagger> q\<rbrace>\<^sub>u \<Longrightarrow> \<lbrace>p\<rbrace>S ;; \<langle>\<sigma>\<rangle>\<^sub>a\<lbrace>q\<rbrace>\<^sub>u"
-  by (rel_auto)
-
-lemma ndet_assign_hoare_r [hoare_safe]:
-  "`U(p \<Rightarrow> (\<forall> v. q\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>))` \<Longrightarrow> \<lbrace>p\<rbrace>x := *\<lbrace>q\<rbrace>\<^sub>u"
-  by (rel_auto)
-
-lemma ndet_assign_bwd: "\<lbrace>\<forall> v. p\<lbrakk>\<guillemotleft>v\<guillemotright>/&x\<rbrakk>\<rbrace>x := *\<lbrace>p\<rbrace>\<^sub>u"
   by (rel_auto)
 
 lemma skip_hoare_r [hoare_safe]: "\<lbrace>p\<rbrace>II\<lbrace>p\<rbrace>\<^sub>u"
@@ -351,10 +333,5 @@ lemma nmods_invariant:
   assumes "S nmods a" "a \<natural> p"
   shows "\<^bold>{p\<^bold>}S\<^bold>{p\<^bold>}"
   using assms by (rel_auto, metis)
-
-lemma hoare_r_ghost:
-  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> q; S nuses x; \<^bold>{p\<^bold>}x := \<guillemotleft>v\<guillemotright>;; S\<^bold>{q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{p\<^bold>}S\<^bold>{q\<^bold>}" 
-  by (simp add: nuses_assign_commute, rel_simp, metis)
-
 
 end
