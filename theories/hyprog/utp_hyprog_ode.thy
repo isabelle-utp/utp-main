@@ -16,12 +16,16 @@ abbreviation solves ::
   "(real \<Rightarrow> 'a::executable_euclidean_space) \<Rightarrow> ('a \<Rightarrow> 'a) \<Rightarrow> ('a, 's) hybs_scheme upred \<Rightarrow> 's \<Rightarrow> real \<Rightarrow> bool" where
   "solves F F' B s l \<equiv>  (\<forall>x. 0 \<le> x \<and> x \<le> l \<longrightarrow> (F has_vector_derivative F' (F x)) (at x) \<and> (\<lbrakk>B\<rbrakk>\<^sub>e (\<lparr>cvec\<^sub>v = F x, \<dots> = s\<rparr>)))"
 
-abbreviation solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> 'c usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
-"solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<lbrakk>\<F>'\<rbrakk>\<^sub>e) \<tau> (\<F> \<tau>)) (at \<tau>) 
+definition solves\<^sub>u :: "(real \<Rightarrow> 'c::executable_euclidean_space) \<Rightarrow> 'c usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow>  real \<Rightarrow> _" where
+[upred_defs]:
+"solves\<^sub>u \<F> \<F>' B l \<equiv> (\<^bold>\<forall> \<tau> \<in> {0..\<guillemotleft>l\<guillemotright>}\<^sub>u \<bullet> \<guillemotleft>(\<F> has_vector_derivative (\<lambda> _. \<lbrakk>\<F>'\<rbrakk>\<^sub>e) \<tau> (\<F> \<tau>)) (at \<tau>)
                       \<guillemotright> \<and> \<lceil>B\<lbrakk>\<guillemotleft>\<F>(\<tau>)\<guillemotright>/&cvec\<rbrakk>\<rceil>\<^sub><)"
 
 definition ode :: "'c::executable_euclidean_space usubst \<Rightarrow> ('c, 's) hypred \<Rightarrow> ('c, 's) hyrel" where
 [upred_defs]: "ode \<F>' B = cvec:[\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> \<ge>\<^sub>u 0 \<and> solves\<^sub>u \<F> \<F>' B l \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>]"
+
+lemma ode_alt_def: "ode \<F>' B = ((\<^bold>\<exists> (\<F>, l) \<bullet> \<guillemotleft>l\<guillemotright> \<ge>\<^sub>u 0 \<and> solves\<^sub>u \<F> \<F>' B l \<and> $cvec =\<^sub>u \<guillemotleft>\<F>(0)\<guillemotright> \<and> $cvec\<acute> =\<^sub>u \<guillemotleft>\<F>(l)\<guillemotright>) \<and> U($\<^bold>d\<acute> = $\<^bold>d))"
+  by (rel_auto)
 
 text \<open> A framed ODE allows us to explicitly specify only certain continuous variables using a
   suitable lens that selects those variables we are interested in. The remainder are held constant
@@ -106,6 +110,70 @@ proof (rel_simp', auto)
     using a(1) by blast
   thus "f t = put\<^bsub>x\<^esub> (f t) (get\<^bsub>x\<^esub> (f 0))"
     by (metis assms(1) vwb_lens_wb wb_lens.get_put)
+qed
+
+lemma usubst_in_var_frame [usubst]:"\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (a:[P])\<lbrakk>e/$x\<rbrakk> = (a:[P\<lbrakk>e/$x\<rbrakk>])"
+  by (rel_auto)
+
+lemma solves_unrest_in_var:
+  shows "$\<^bold>c:x \<sharp> (solves\<^sub>u \<F> \<F>' B l)"
+  by (rel_simp')
+
+lemma solves_unrest_out_var:
+  shows "$\<^bold>c:x\<acute> \<sharp> (solves\<^sub>u \<F> \<F>' B l)"
+  by (rel_simp')
+
+utp_const solves\<^sub>u (0 3)
+
+lemma has_derivative_vec_upd:
+  "((\<lambda>f. vec_upd f i x) has_derivative (\<lambda>f. vec_upd f i 0)) F"
+  apply (simp add: vec_upd_def)
+  apply (rule has_derivative_vec)
+  apply (rename_tac v)
+  apply (case_tac "v = i")
+   apply (simp_all)
+  apply (rule bounded_linear_imp_has_derivative, simp add: bounded_linear_vec_nth)
+  done
+
+lemma vec_upd_prop:
+  "\<lbrakk> \<forall>b. get\<^bsub>vec_lens i\<^esub> (\<lbrakk>F'\<rbrakk>\<^sub>e b) = 0 \<rbrakk> \<Longrightarrow> vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0 = n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)"
+  by (smt fun_upd_apply lens.simps(1) scale_zero_right vec_lambda_unique vec_lens_def vec_upd_def vector_component(7))
+
+lemma ode_nuses_constant_cvar:
+  assumes "\<langle>F'\<rangle>\<^sub>s (vec_lens i) = 0" "\<pi>[i] \<sharp> F'" "\<^bold>c:\<pi>[i] \<sharp> B"
+  shows "ode F' B nuses \<^bold>c:\<pi>[i]"
+proof (rule nuses_nmods_intro, simp_all add: assms ode_nmods_constant_cvar)
+  from assms show "\<forall>v. \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright> ;; ode F' B ;; \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright> = ode F' B ;; \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright>"
+    apply (rel_auto')
+     apply (rename_tac v s d F l)
+     apply (rule_tac x="\<lparr>cvec\<^sub>v = vec_upd (F l) i (vec_nth s i), \<dots> = d\<rparr>" in exI)
+     apply (simp)
+     apply (rule_tac x="(\<lambda> t. vec_upd (F t) i (vec_nth s i))" in exI)
+     apply (rule_tac x="l" in exI)
+     apply (simp)
+     apply (auto)[1]
+       apply (simp add: has_vector_derivative_def)
+       apply (rule_tac f'="\<lambda> n. vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0" in has_derivative_eq_rhs)
+        apply (rule_tac g="(\<lambda>a. vec_upd a i (vec_nth s i))" and g'="(\<lambda>a. vec_upd a i 0)" in has_derivative_compose)
+         apply blast
+        apply (simp add: has_derivative_vec_upd vec_lens_def)
+       apply (metis (mono_tags, lifting) scale_zero_right vec_upd_nth vector_scaleR_component)
+      apply (metis (mono_tags) hybs.select_convs(1) hybs.update_convs(1))
+     apply (metis vec_upd_nth vec_upd_upd)
+    apply (rename_tac v d F l)
+    apply (rule_tac x="\<lparr>cvec\<^sub>v = vec_upd (F l) i v, \<dots> = d\<rparr>" in exI)
+    apply (simp)
+    apply (rule_tac x="(\<lambda> t. vec_upd (F t) i v)" in exI)
+    apply (rule_tac x="l" in exI)
+    apply (auto)
+     apply (simp add: has_vector_derivative_def)
+     apply (rule_tac f'="\<lambda> n. vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0" in has_derivative_eq_rhs)
+      apply (rule_tac g="(\<lambda>a. vec_upd a i v)" and g'="(\<lambda>a. vec_upd a i 0)" in has_derivative_compose)
+       apply (blast)
+    using has_derivative_vec_upd apply blast
+     apply (metis (no_types, hide_lams) scale_zero_right vec_upd_nth vector_scaleR_component)
+    apply (metis hybs.select_convs(1) hybs.update_convs(1))
+    done
 qed
 
 lemma disc_nmods_invar:

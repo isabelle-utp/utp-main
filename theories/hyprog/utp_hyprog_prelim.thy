@@ -33,17 +33,26 @@ subsubsection \<open> Finite Cartesian Product Lens \<close>
 
 declare [[coercion vec_nth]]
 
+definition vec_upd :: "'a^'i \<Rightarrow> 'i \<Rightarrow> 'a \<Rightarrow> 'a^'i" where
+"vec_upd s k v = (\<chi> x. fun_upd (vec_nth s) k v x)"
+
+lemma vec_nth_upd [simp]: "vec_nth (vec_upd f k v) k = v"
+  by (simp add: vec_upd_def)
+
+lemma vec_upd_nth [simp]: "vec_upd f k (vec_nth f k) = f"
+  by (simp add: vec_upd_def)
+
+lemma vec_upd_upd [simp]: "vec_upd (vec_upd f k v) k u = vec_upd f k u"
+  by (simp add: vec_upd_def fun_eq_iff)
+
 definition vec_lens :: "'i \<Rightarrow> ('a \<Longrightarrow> 'a^'i)" where
-[lens_defs]: "vec_lens k = \<lparr> lens_get = (\<lambda> s. vec_nth s k), lens_put = (\<lambda> s v. (\<chi> x. fun_upd (vec_nth s) k v x)) \<rparr>"
+[lens_defs]: "vec_lens k = \<lparr> lens_get = (\<lambda> s. vec_nth s k), lens_put = (\<lambda> s. vec_upd s k) \<rparr>"
 
 lemma vec_vwb_lens [simp]: "vwb_lens (vec_lens k)"
-  apply (unfold_locales)
-  apply (simp_all add: vec_lens_def fun_eq_iff)
-  using vec_lambda_unique apply force
-  done
+  by (unfold_locales, simp_all add: vec_lens_def)
 
 lemma vec_lens_indep [simp]: "i \<noteq> j \<Longrightarrow> vec_lens i \<bowtie> vec_lens j"
-  by (unfold_locales, simp_all add: vec_lens_def fun_eq_iff)
+  by (unfold_locales, simp_all add: vec_lens_def vec_upd_def fun_eq_iff)
 
 lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i\<^esub>)"
   by (simp add: vec_lens_def bounded_linear_vec_nth)
@@ -159,11 +168,13 @@ type_synonym ('c, 's) hyrel = "('c, 's) hybs_scheme hrel"
 subsection \<open> Syntax \<close>
 
 syntax
+  "_vec_lens"  :: "logic \<Rightarrow> svid" ("\<pi>[_]")
   "_eucl_lens" :: "logic \<Rightarrow> svid" ("\<Pi>[_]")
   "_cvec_lens" :: "svid" ("\<^bold>c")
   "_dst_lens"  :: "svid" ("\<^bold>d")
 
 translations
+  "_vec_lens x" == "CONST vec_lens x"
   "_eucl_lens x" == "CONST eucl_lens x"
   "_cvec_lens" == "CONST cvec"
   "_dst_lens" == "CONST dst"
