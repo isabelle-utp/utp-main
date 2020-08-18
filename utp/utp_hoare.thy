@@ -353,7 +353,15 @@ lemma nmods_invariant:
   using assms by (rel_auto, metis)
 
 lemma hoare_r_ghost:
-  "\<lbrakk> vwb_lens x; x \<sharp> p; x \<sharp> q; S nuses x; \<^bold>{p\<^bold>}x := \<guillemotleft>v\<guillemotright>;; S\<^bold>{q\<^bold>} \<rbrakk> \<Longrightarrow> \<^bold>{p\<^bold>}S\<^bold>{q\<^bold>}" 
-  by (simp add: nuses_assign_commute, rel_simp, metis)
+  assumes "vwb_lens x" "x \<sharp> p" "x \<sharp> q" "S nuses x" "\<^bold>{p\<^bold>}x := e;; S\<^bold>{q\<^bold>}"
+  shows "\<^bold>{p\<^bold>}S\<^bold>{q\<^bold>}" 
+proof -
+  have "\<^bold>{p\<^bold>}x := e;; rrestr x S\<^bold>{q\<^bold>}"
+    by (simp add: Healthy_if assms(4) assms(5))
+  with assms(1-3) have "\<^bold>{p\<^bold>}rrestr x S\<^bold>{q\<^bold>}"
+    by (rel_simp,metis mwb_lens.put_put vwb_lens_mwb)
+  thus ?thesis
+    by (simp add: Healthy_if assms(4))
+qed
 
 end
