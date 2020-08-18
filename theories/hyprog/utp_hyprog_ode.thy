@@ -94,87 +94,72 @@ lemma ode_nmods_discrete: "ode F' B nmods \<^bold>d"
 text \<open> If a continuous variable has a zero derivative then it is not modified. \<close>
 
 lemma ode_nmods_constant_cvar:
-  assumes "vwb_lens x" "bounded_linear get\<^bsub>x\<^esub>" "\<langle>F'\<rangle>\<^sub>s x = 0"
+  assumes "clens x" "\<langle>F'\<rangle>\<^sub>s x = 0"
   shows "ode F' B nmods \<^bold>c:x"
 proof (rel_simp', auto)
   fix m f t
   assume a: "0 \<le> t" "\<forall>x. 0 \<le> x \<and> x \<le> t \<longrightarrow> (f has_vector_derivative \<lbrakk>F'\<rbrakk>\<^sub>e (f x)) (at x) \<and> \<lbrakk>B\<rbrakk>\<^sub>e \<lparr>cvec\<^sub>v = f x, \<dots> = m\<rparr>"
-  from assms(3) have "\<forall>t. get\<^bsub>x\<^esub> (\<lbrakk>F'\<rbrakk>\<^sub>e t) = 0"
+  from assms(2) have "\<forall>t. get\<^bsub>x\<^esub> (\<lbrakk>F'\<rbrakk>\<^sub>e t) = 0"
     by (rel_simp)
   hence b: "\<forall>y. 0 \<le> y \<and> y \<le> t \<longrightarrow> ((get\<^bsub>x\<^esub> \<circ> f) has_vector_derivative 0) (at y)"
-    by (metis a(2) assms(2) bounded_linear_imp_has_derivative vector_derivative_diff_chain_within)
+    by (metis (no_types, lifting) a(2) assms(1) bounded_linear_imp_has_derivative cont_lens_bounded_linear vector_derivative_diff_chain_within)
   have "\<exists> c. \<forall>y. 0 \<le> y \<and> y \<le> t \<longrightarrow> get\<^bsub>x\<^esub> (f y) = c"
     using b has_vector_derivative_at_within 
     by (rule_tac has_vector_derivative_zero_constant[of "{0..t}" "(get\<^bsub>x\<^esub> \<circ> f)", simplified]; blast)
   hence "get\<^bsub>x\<^esub> (f t) = get\<^bsub>x\<^esub> (f 0)"
     using a(1) by blast
   thus "f t = put\<^bsub>x\<^esub> (f t) (get\<^bsub>x\<^esub> (f 0))"
-    by (metis assms(1) vwb_lens_wb wb_lens.get_put)
+    using assms(1) cont_lens_vwb' vwb_lens.put_eq by force
 qed
 
-lemma usubst_in_var_frame [usubst]:"\<lbrakk> vwb_lens a; x \<subseteq>\<^sub>L a; out\<alpha> \<sharp> e \<rbrakk> \<Longrightarrow> (a:[P])\<lbrakk>e/$x\<rbrakk> = (a:[P\<lbrakk>e/$x\<rbrakk>])"
-  by (rel_auto)
-
-lemma solves_unrest_in_var:
-  shows "$\<^bold>c:x \<sharp> (solves\<^sub>u \<F> \<F>' B l)"
-  by (rel_simp')
-
-lemma solves_unrest_out_var:
-  shows "$\<^bold>c:x\<acute> \<sharp> (solves\<^sub>u \<F> \<F>' B l)"
-  by (rel_simp')
-
-utp_const solves\<^sub>u (0 3)
-
-lemma has_derivative_vec_upd:
-  "((\<lambda>f. vec_upd f i x) has_derivative (\<lambda>f. vec_upd f i 0)) F"
-  apply (simp add: vec_upd_def)
-  apply (rule has_derivative_vec)
-  apply (rename_tac v)
-  apply (case_tac "v = i")
-   apply (simp_all)
-  apply (rule bounded_linear_imp_has_derivative, simp add: bounded_linear_vec_nth)
-  done
-
-lemma vec_upd_prop:
-  "\<lbrakk> \<forall>b. get\<^bsub>vec_lens i\<^esub> (\<lbrakk>F'\<rbrakk>\<^sub>e b) = 0 \<rbrakk> \<Longrightarrow> vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0 = n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)"
-  by (smt fun_upd_apply lens.simps(1) scale_zero_right vec_lambda_unique vec_lens_def vec_upd_def vector_component(7))
-
 lemma ode_nuses_constant_cvar:
-  assumes "\<langle>F'\<rangle>\<^sub>s (vec_lens i) = 0" "\<pi>[i] \<sharp> F'" "\<^bold>c:\<pi>[i] \<sharp> B"
-  shows "ode F' B nuses \<^bold>c:\<pi>[i]"
-proof (rule nuses_nmods_intro, simp_all add: assms ode_nmods_constant_cvar)
-  from assms show "\<forall>v. \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright> ;; ode F' B ;; \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright> = ode F' B ;; \<^bold>c:\<pi>[i] := \<guillemotleft>v\<guillemotright>"
+  fixes x :: "'b::real_normed_vector \<Longrightarrow> 'c::executable_euclidean_space"
+  assumes "clens('c) x" "\<langle>F'\<rangle>\<^sub>s x = 0" "x \<sharp> F'" "\<^bold>c:x \<sharp> B"
+  shows "ode F' B nuses \<^bold>c:x"
+using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_cvar)
+  from assms show "\<forall>v. \<^bold>c:x := \<guillemotleft>v\<guillemotright> ;; ode F' B ;; \<^bold>c:x := \<guillemotleft>v\<guillemotright> = ode F' B ;; \<^bold>c:x := \<guillemotleft>v\<guillemotright>"
     apply (rel_auto')
      apply (rename_tac v s d F l)
-     apply (rule_tac x="\<lparr>cvec\<^sub>v = vec_upd (F l) i (vec_nth s i), \<dots> = d\<rparr>" in exI)
+     apply (rule_tac x="\<lparr>cvec\<^sub>v = put\<^bsub>x\<^esub> (F l) (get\<^bsub>x\<^esub> s), \<dots> = d\<rparr>" in exI)
      apply (simp)
-     apply (rule_tac x="(\<lambda> t. vec_upd (F t) i (vec_nth s i))" in exI)
+     apply (rule_tac x="(\<lambda> t. put\<^bsub>x\<^esub> (F t) (get\<^bsub>x\<^esub> s))" in exI)
      apply (rule_tac x="l" in exI)
      apply (simp)
      apply (auto)[1]
+     apply (rename_tac v s d F l t)
        apply (simp add: has_vector_derivative_def)
-       apply (rule_tac f'="\<lambda> n. vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0" in has_derivative_eq_rhs)
-        apply (rule_tac g="(\<lambda>a. vec_upd a i (vec_nth s i))" and g'="(\<lambda>a. vec_upd a i 0)" in has_derivative_compose)
+       apply (rule_tac f'="\<lambda> n. put\<^bsub>x\<^esub> (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) 0" in has_derivative_eq_rhs)
+        apply (rule_tac g="(\<lambda>a. put\<^bsub>x\<^esub> a (get\<^bsub>x\<^esub> s))" and g'="(\<lambda>a. put\<^bsub>x\<^esub> a 0)" in has_derivative_compose)
          apply blast
-        apply (simp add: has_derivative_vec_upd vec_lens_def)
-       apply (metis (mono_tags, lifting) scale_zero_right vec_upd_nth vector_scaleR_component)
-      apply (metis (mono_tags) hybs.select_convs(1) hybs.update_convs(1))
-     apply (metis vec_upd_nth vec_upd_upd)
+        apply (rule cont_lens.has_derivative_put[OF assms(1)])
+    using bounded_linear_ident apply blast
+        apply (rule has_derivative_const)
+    apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.get_put)
+    apply (metis hybs.select_convs(1) hybs.update_convs(1))
+    apply (metis cont_lens_vwb vwb_lens.put_eq)
     apply (rename_tac v d F l)
-    apply (rule_tac x="\<lparr>cvec\<^sub>v = vec_upd (F l) i v, \<dots> = d\<rparr>" in exI)
+    apply (rule_tac x="\<lparr>cvec\<^sub>v = put\<^bsub>x\<^esub> (F l) v, \<dots> = d\<rparr>" in exI)
     apply (simp)
-    apply (rule_tac x="(\<lambda> t. vec_upd (F t) i v)" in exI)
+    apply (rule_tac x="(\<lambda> t. put\<^bsub>x\<^esub> (F t) v)" in exI)
     apply (rule_tac x="l" in exI)
     apply (auto)
+    apply (rename_tac v d F l t)
      apply (simp add: has_vector_derivative_def)
-     apply (rule_tac f'="\<lambda> n. vec_upd (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F x)) i 0" in has_derivative_eq_rhs)
-      apply (rule_tac g="(\<lambda>a. vec_upd a i v)" and g'="(\<lambda>a. vec_upd a i 0)" in has_derivative_compose)
+     apply (rule_tac f'="\<lambda> n. put\<^bsub>x\<^esub> (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) 0" in has_derivative_eq_rhs)
+      apply (rule_tac g="(\<lambda>a. put\<^bsub>x\<^esub> a v)" and g'="(\<lambda>a. put\<^bsub>x\<^esub> a 0)" in has_derivative_compose)
        apply (blast)
-    using has_derivative_vec_upd apply blast
-     apply (metis (no_types, hide_lams) scale_zero_right vec_upd_nth vector_scaleR_component)
+        apply (rule cont_lens.has_derivative_put[OF assms(1)])
+        using bounded_linear_ident apply blast
+        apply (rule has_derivative_const)
+    apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.source_stability wb_lens_def weak_lens.put_get)    
     apply (metis hybs.select_convs(1) hybs.update_convs(1))
     done
-qed
+qed      
+
+lemma ode_nuses_constant_cvar_eucl:
+  assumes "\<langle>F'\<rangle>\<^sub>s (vec_lens i) = 0" "\<pi>[i] \<sharp> F'" "\<^bold>c:\<pi>[i] \<sharp> B"
+  shows "ode F' B nuses \<^bold>c:\<pi>[i]"
+  by (rule ode_nuses_constant_cvar, simp_all add: assms)
 
 lemma disc_nmods_invar:
   "\<lbrakk> \<^bold>c \<sharp> b; P nmods \<^bold>d \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
@@ -183,6 +168,5 @@ lemma disc_nmods_invar:
 lemma cont_nmods_invar:
   "\<lbrakk> \<^bold>d \<sharp> b; P nmods \<^bold>c \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
   by (rel_simp', force)
-
 
 end

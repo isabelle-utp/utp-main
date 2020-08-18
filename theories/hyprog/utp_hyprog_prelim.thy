@@ -27,6 +27,86 @@ lemma bounded_linear_lens_comp [simp]:
 
 subsection \<open> Continuous Variable Lenses \<close>
 
+(*
+definition "cont_lens x = 
+  (vwb_lens x \<and> bounded_linear get\<^bsub>x\<^esub> \<and> 
+   (\<forall> f g g' t X. 
+        (bounded_linear f \<and> (g has_derivative g') (at t within X))
+        \<longrightarrow> ((\<lambda>s. put\<^bsub>x\<^esub> (f s) (g s)) has_derivative (\<lambda>s. put\<^bsub>x\<^esub> (f s) (g' s))) (at t within X)))"
+*)
+
+locale cont_lens = vwb_lens +
+  assumes
+  bounded_linear_get: "bounded_linear get"
+  and
+  has_derivative_put: 
+    "\<And> (f::'i::real_normed_vector\<Rightarrow>_) g g' t X. 
+        \<lbrakk> bounded_linear f; (g has_derivative g') (at t within X) \<rbrakk> 
+        \<Longrightarrow> ((\<lambda>s. put (f s) (g s)) has_derivative (\<lambda>s. put (f s) (g' s))) (at t within X)"
+
+syntax 
+  "_clens"  :: "logic" ("clens")
+  "_clensp" :: "type \<Rightarrow> logic" ("clens'(_')")
+
+translations
+  "clens('a)" == "CONST cont_lens TYPE('a)"
+  "clens" => "CONST cont_lens TYPE(_::real_normed_vector)"
+
+lemma cont_lens_vwb [simp]:
+  fixes x :: "'a::real_normed_vector \<Longrightarrow> 's::real_normed_vector"
+  assumes "clens('s) x"
+  shows "vwb_lens x"
+  using assms cont_lens_def by blast
+
+lemma cont_lens_vwb' [simp]:
+  assumes "clens x"
+  shows "vwb_lens x"
+  using assms cont_lens_def by blast
+
+lemma cont_lens_bounded_linear [simp]: "clens x \<Longrightarrow> bounded_linear get\<^bsub>x\<^esub>"
+  by (simp add: cont_lens.bounded_linear_get)
+
+lemma cont_lens_intro:
+  assumes 
+    "vwb_lens x" "bounded_linear get\<^bsub>x\<^esub>"
+    "\<And> (f::'i::real_normed_vector\<Rightarrow>_) g g' t X. 
+        \<lbrakk>bounded_linear f; (g has_derivative g') (at t within X)\<rbrakk> \<Longrightarrow> 
+         ((\<lambda>s. put\<^bsub>x\<^esub> (f s) (g s)) has_derivative (\<lambda>s. put\<^bsub>x\<^esub> (f s) (g' s))) (at t within X)"
+  shows "clens('i) x"
+proof -
+  interpret vwb_lens x by (simp add: assms)
+  show ?thesis by (intro_locales, simp add: cont_lens_axioms_def assms)
+qed
+
+lemma cont_lens_one [simp]: "clens id_lens"
+  by (rule cont_lens_intro, simp_all, simp_all add: lens_defs id_def)
+
+lemma cont_lens_fst [simp]: "clens fst\<^sub>L"
+  by (rule cont_lens_intro, simp_all)
+     (simp add: lens_defs prod.case_eq_if bounded_linear_imp_has_derivative has_derivative_Pair has_derivative_snd)
+
+lemma cont_lens_snd [simp]: "clens snd\<^sub>L"
+  by (rule cont_lens_intro, simp_all)
+     (simp add: lens_defs prod.case_eq_if bounded_linear_imp_has_derivative has_derivative_Pair has_derivative_fst)
+
+lemma cont_lens_comp [simp]:
+  fixes x :: "'a::real_normed_vector \<Longrightarrow> 'b::real_normed_vector" 
+    and y :: "'b \<Longrightarrow> 'c::real_normed_vector"
+  assumes "clens('i::real_normed_vector) x" "clens('i) y"
+  shows "clens('i)(x ;\<^sub>L y)"
+using assms proof (rule_tac cont_lens_intro, simp_all)
+  fix f :: "'i \<Rightarrow> 'c" and g :: "'i \<Rightarrow> 'a" and g' t X
+  assume f: "bounded_linear f" "(g has_derivative g') (at t within X)"
+
+  show "((\<lambda>s. put\<^bsub>x ;\<^sub>L y\<^esub> (f s) (g s)) has_derivative (\<lambda>s. put\<^bsub>x ;\<^sub>L y\<^esub> (f s) (g' s))) (at t within X)"
+    apply (simp add: lens_comp_def)
+    apply (rule cont_lens.has_derivative_put)
+      apply (simp_all add: assms f)
+    apply (rule cont_lens.has_derivative_put)
+      apply (simp_all add: assms f)
+    using assms bounded_linear_compose cont_lens_bounded_linear f(1) by blast
+qed
+
 text \<open> We begin by defining some lenses that will be useful in characterising continuous variables \<close>
 
 subsubsection \<open> Finite Cartesian Product Lens \<close>
@@ -57,6 +137,27 @@ lemma vec_lens_indep [simp]: "i \<noteq> j \<Longrightarrow> vec_lens i \<bowtie
 lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i\<^esub>)"
   by (simp add: vec_lens_def bounded_linear_vec_nth)
 
+lemma has_derivative_vec_upd:
+  assumes "bounded_linear f" "(g has_derivative g') F"
+  shows "((\<lambda>s. vec_upd (f s) i (g s)) has_derivative (\<lambda>s. vec_upd (f s) i (g' s))) F"
+  apply (simp add: vec_upd_def)
+  apply (rule has_derivative_vec)
+  apply (rename_tac v)
+  apply (case_tac "v = i")
+   apply (simp_all add: assms)
+  apply (rule bounded_linear_imp_has_derivative)
+  apply (rule bounded_linear_compose[of _ f])
+  apply (simp_all add: bounded_linear_compose bounded_linear_vec_nth assms)
+  done
+
+lemma vec_cont_lens [simp]: "clens (vec_lens k)"
+proof -
+  interpret vwb_lens "vec_lens k"
+    by simp
+  show ?thesis
+    by (intro_locales, auto intro: has_derivative_vec_upd simp add: cont_lens_axioms_def vec_lens_def)
+qed
+
 subsubsection \<open> Matrix Lens \<close>
 
 definition mat_lens :: "'i \<Rightarrow> 'j \<Rightarrow> ('a \<Longrightarrow> 'a mat['i, 'j])" where
@@ -71,6 +172,9 @@ lemma mat_lens_indep [simp]: "\<lbrakk> i\<^sub>1 \<noteq> i\<^sub>2 \<or> j\<^s
 
 lemma bounded_linear_mat_lens [simp]: "bounded_linear (get\<^bsub>mat_lens i k\<^esub>)"
   by (simp add: mat_lens_def) 
+
+lemma mat_cont_lens [simp]: "clens (mat_lens i j)"
+  by (simp add: mat_lens_def)
 
 subsubsection \<open> Executable Euclidean Space Lens \<close>
 
