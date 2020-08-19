@@ -27,14 +27,17 @@ lemma bounded_linear_lens_comp [simp]:
 
 subsection \<open> Continuous Variable Lenses \<close>
 
+text \<open> Continuous variables are modelled by lenses whose get and put functions are 
+  bounded linear transformations between two vector spaces. \<close>
+
 locale cont_lens = vwb_lens +
-  assumes
-  bounded_linear_get: "bounded_linear get"
-  and
-  has_derivative_put:
-    "((\<lambda> (s, v). put s v) has_derivative (\<lambda> (s, v). put s v)) (at t within X)"
+  assumes bounded_linear_get: "bounded_linear get"
+  and bounded_linear_put: "bounded_linear (\<lambda> (s, v). put s v)"
 begin
-                                   
+
+lemma has_derivative_put: "((\<lambda> (s, v). put s v) has_derivative (\<lambda> (s, v). put s v)) (at t within X)"
+  using bounded_linear_imp_has_derivative bounded_linear_put by blast
+  
 lemma has_derivative_put':
   assumes "bounded_linear f" "(g has_derivative g') (at t within X)"
   shows "((\<lambda>s. put (f s) (g s)) has_derivative (\<lambda>s. put (f s) (g' s))) (at t within X)"
@@ -58,69 +61,50 @@ lemma cont_lens_bounded_linear [simp]: "cont_lens x \<Longrightarrow> bounded_li
 
 lemma cont_lens_intro:
   assumes 
-    "vwb_lens x" "bounded_linear get\<^bsub>x\<^esub>" 
-    "\<And> t X. ((\<lambda> (s, v). put\<^bsub>x\<^esub> s v) has_derivative (\<lambda> (s, v). put\<^bsub>x\<^esub> s v)) (at t within X)"
+    "vwb_lens x" "bounded_linear get\<^bsub>x\<^esub>" "bounded_linear (\<lambda> (s, v). put\<^bsub>x\<^esub> s v)"
   shows "cont_lens x"
 proof -
   interpret vwb_lens x by (simp add: assms)
   show ?thesis by (intro_locales, simp add: cont_lens_axioms_def assms)
 qed
 
-
 lemma cont_lens_one [simp]: "cont_lens id_lens"
 proof -
   have b: "bounded_linear (\<lambda> (x, y). y)"
     using bounded_linear_snd by (metis cond_case_prod_eta snd_conv) 
   show ?thesis
-    by (rule_tac cont_lens_intro, simp_all, simp_all add: lens_defs id_def snd_def b bounded_linear_imp_has_derivative)
+    by (rule_tac cont_lens_intro, simp_all, simp_all add: lens_defs id_def snd_def b)
 qed  
 
 lemma cont_lens_fst [simp]: "cont_lens fst\<^sub>L"
-  apply (rule cont_lens_intro, simp_all)
-  apply (simp add: lens_defs prod.case_eq_if bounded_linear_imp_has_derivative has_derivative_Pair has_derivative_snd)
-  apply (rule has_derivative_compose)
-  apply (simp_all add: prod.case_eq_if bounded_linear_fst bounded_linear_imp_has_derivative bounded_linear_snd_comp has_derivative_Pair)
-  done
+  by (rule cont_lens_intro, simp_all, simp add: lens_defs split_beta' bounded_linear_intros)
 
 lemma cont_lens_snd [simp]: "cont_lens snd\<^sub>L"
-  apply (rule cont_lens_intro, simp_all)
-  apply (simp add: lens_defs prod.case_eq_if bounded_linear_imp_has_derivative has_derivative_Pair has_derivative_snd)
-  apply (rule has_derivative_compose)
-  apply (simp_all add: prod.case_eq_if bounded_linear_snd bounded_linear_imp_has_derivative bounded_linear_fst_comp has_derivative_Pair)
-  done
+  by (rule cont_lens_intro, simp_all, simp add: lens_defs split_beta' bounded_linear_intros)
+
+lemma bounded_linear_lens_comp_put:
+  assumes "vwb_lens x" "bounded_linear (\<lambda> (s, v). put\<^bsub>x\<^esub> s v)"
+    "vwb_lens y" "bounded_linear (\<lambda> (s, v). put\<^bsub>y\<^esub> s v)"
+    "bounded_linear get\<^bsub>y\<^esub>"
+  shows "bounded_linear (\<lambda>(s, v). put\<^bsub>y\<^esub> s (put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v))"
+proof -
+  from bounded_linear_compose[OF assms(2) bounded_linear_Pair[OF bounded_linear_compose[OF assms(5) bounded_linear_fst] bounded_linear_snd]]
+  have 1: "bounded_linear (\<lambda> (s, v). put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v)"
+    by (simp add: split_beta')
+
+  from bounded_linear_compose[OF assms(4) bounded_linear_Pair[OF bounded_linear_fst 1]]
+  show ?thesis  
+    by (simp add: split_beta')
+qed
 
 lemma cont_lens_comp [simp]:
   fixes x :: "'a::real_normed_vector \<Longrightarrow> 'b::real_normed_vector" 
     and y :: "'b \<Longrightarrow> 'c::real_normed_vector"
   assumes "cont_lens x" "cont_lens y"
   shows "cont_lens (x ;\<^sub>L y)"
-  using assms proof (rule_tac cont_lens_intro, simp_all)
-  fix t :: "'c \<times> 'a" and X
-  have 1: "((\<lambda>(s, v). (get\<^bsub>y\<^esub> s, v)) has_derivative (\<lambda>(s, v). (get\<^bsub>y\<^esub> s, v))) (at t within X)"
-    by (force intro: derivative_intros has_derivative_compose 
-               simp add: prod.case_eq_if assms bounded_linear.has_derivative bounded_linear_fst 
-                         bounded_linear_imp_has_derivative bounded_linear_snd)
-
-  have 2: "((\<lambda>(xa, y). put\<^bsub>x\<^esub> xa y) has_derivative (\<lambda>(xa, y). put\<^bsub>x\<^esub> xa y)) (at (case t of (s, v) \<Rightarrow> (get\<^bsub>y\<^esub> s, v)))"
-    by (simp add: assms(1) cont_lens.has_derivative_put)
-
-  from has_derivative_compose[OF 1 2]
-  have "((\<lambda>(s, v). put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v) has_derivative (\<lambda>(s, v). put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v)) (at t within X)"
-    by (simp add: prod.case_eq_if 1 2, simp add: split_beta')
-
-  hence 3: "((\<lambda>(s, v). (s, put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v)) has_derivative (\<lambda>(s, v). (s, put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v))) (at t within X)"
-    apply (simp add: split_beta')
-    apply (rule_tac has_derivative_Pair)
-    apply (simp_all)
-    using bounded_linear_fst bounded_linear_imp_has_derivative by blast
-
-  have 4: "((\<lambda>(s, v). put\<^bsub>y\<^esub> s v) has_derivative (\<lambda>(s, v). put\<^bsub>y\<^esub> s v)) (at (case t of (s, v) \<Rightarrow> (s, put\<^bsub>x\<^esub> (get\<^bsub>y\<^esub> s) v)))"
-    using assms(2) cont_lens.has_derivative_put by blast
-
-  from has_derivative_compose[OF 3 4]
-  show "((\<lambda>(s, v). put\<^bsub>x ;\<^sub>L y\<^esub> s v) has_derivative (\<lambda>(s, v). put\<^bsub>x ;\<^sub>L y\<^esub> s v)) (at t within X)"
-    by (simp add: lens_comp_def prod.case_eq_if split_beta')
-qed
+  using assms 
+  by (rule_tac cont_lens_intro, simp_all)
+     (simp add: bounded_linear_lens_comp_put cont_lens.bounded_linear_put lens_comp_def)
 
 text \<open> We begin by defining some lenses that will be useful in characterising continuous variables \<close>
 
@@ -152,27 +136,31 @@ lemma vec_lens_indep [simp]: "i \<noteq> j \<Longrightarrow> vec_lens i \<bowtie
 lemma bounded_linear_vec_lens [simp]: "bounded_linear (get\<^bsub>vec_lens i\<^esub>)"
   by (simp add: vec_lens_def bounded_linear_vec_nth)
 
-lemma has_derivative_vec_upd: "((\<lambda> (s, v). vec_upd s i v) has_derivative (\<lambda> (s, v). vec_upd s i v)) (at t within X)"
-  apply (unfold_locales)
-  apply (simp add: vec_upd_def)
-  apply (rule has_derivative_compose)
-  apply (simp add: prod.case_eq_if)
-  apply (rule has_derivative_vec)
-  apply (rename_tac v)
-  apply (case_tac "v = i")
-   apply (simp_all)
-  apply (simp add: bounded_linear_imp_has_derivative bounded_linear_snd)
-  apply (rule bounded_linear_imp_has_derivative)
-  apply (rule bounded_linear_compose[where g="fst"])
-  apply (simp_all add: bounded_linear_compose bounded_linear_vec_nth bounded_linear_fst)
+lemma vec_upd_additive: "vec_upd (s\<^sub>1 + s\<^sub>2) i (v\<^sub>1 + v\<^sub>2) = vec_upd s\<^sub>1 i v\<^sub>1 + vec_upd s\<^sub>2 i v\<^sub>2"
+  using vec_lambda_unique by (fastforce simp add: vec_upd_def)
+
+lemma vec_upd_scaleR: "n *\<^sub>R vec_upd s i v = vec_upd (n *\<^sub>R s) i (n *\<^sub>R v)"
+  by (simp add: vec_upd_def scaleR_vec_def fun_eq_iff)
+
+lemma vec_upd_bounded_linear: "bounded_linear (\<lambda> (s, v). vec_upd s i v)"
+  apply (simp add: vec_upd_def split_beta')
+  apply (rule bounded_linear_vec)
+  apply (rename_tac x)
+  apply (case_tac "x = i")
+  apply (simp_all)
+  using bounded_linear_snd apply blast
+  apply (rule bounded_linear_compose[OF bounded_linear_vec_nth bounded_linear_fst])
   done
+
+lemma has_derivative_vec_upd: "((\<lambda> (s, v). vec_upd s i v) has_derivative (\<lambda> (s, v). vec_upd s i v)) (at t within X)"
+  using bounded_linear_imp_has_derivative vec_upd_bounded_linear by blast
 
 lemma vec_cont_lens [simp]: "cont_lens (vec_lens k)"
 proof -
   interpret vwb_lens "vec_lens k"
     by simp
   show ?thesis
-    by (intro_locales, auto intro: has_derivative_vec_upd simp add: cont_lens_axioms_def vec_lens_def)
+    by (intro_locales, auto intro: vec_upd_bounded_linear simp add: cont_lens_axioms_def vec_lens_def)
 qed
 
 subsubsection \<open> Matrix Lens \<close>
