@@ -94,7 +94,7 @@ lemma ode_nmods_discrete: "ode F' B nmods \<^bold>d"
 text \<open> If a continuous variable has a zero derivative then it is not modified. \<close>
 
 lemma ode_nmods_constant_cvar:
-  assumes "clens x" "\<langle>F'\<rangle>\<^sub>s x = 0"
+  assumes "cont_lens x" "\<langle>F'\<rangle>\<^sub>s x = 0"
   shows "ode F' B nmods \<^bold>c:x"
 proof (rel_simp', auto)
   fix m f t
@@ -109,12 +109,12 @@ proof (rel_simp', auto)
   hence "get\<^bsub>x\<^esub> (f t) = get\<^bsub>x\<^esub> (f 0)"
     using a(1) by blast
   thus "f t = put\<^bsub>x\<^esub> (f t) (get\<^bsub>x\<^esub> (f 0))"
-    using assms(1) cont_lens_vwb' vwb_lens.put_eq by force
+    using assms(1) cont_lens_vwb vwb_lens.put_eq by force
 qed
 
 lemma ode_nuses_constant_cvar:
   fixes x :: "'b::real_normed_vector \<Longrightarrow> 'c::executable_euclidean_space"
-  assumes "clens('c) x" "\<langle>F'\<rangle>\<^sub>s x = 0" "x \<sharp> F'" "\<^bold>c:x \<sharp> B"
+  assumes "cont_lens x" "\<langle>F'\<rangle>\<^sub>s x = 0" "x \<sharp> F'" "\<^bold>c:x \<sharp> B"
   shows "ode F' B nuses \<^bold>c:x"
 using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_cvar)
   from assms show "\<forall>v. \<^bold>c:x := \<guillemotleft>v\<guillemotright> ;; ode F' B ;; \<^bold>c:x := \<guillemotleft>v\<guillemotright> = ode F' B ;; \<^bold>c:x := \<guillemotleft>v\<guillemotright>"
@@ -131,7 +131,7 @@ using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_
        apply (rule_tac f'="\<lambda> n. put\<^bsub>x\<^esub> (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) 0" in has_derivative_eq_rhs)
         apply (rule_tac g="(\<lambda>a. put\<^bsub>x\<^esub> a (get\<^bsub>x\<^esub> s))" and g'="(\<lambda>a. put\<^bsub>x\<^esub> a 0)" in has_derivative_compose)
          apply blast
-        apply (rule cont_lens.has_derivative_put[OF assms(1)])
+        apply (rule cont_lens.has_derivative_put'[OF assms(1)])
     using bounded_linear_ident apply blast
         apply (rule has_derivative_const)
     apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.get_put)
@@ -148,7 +148,7 @@ using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_
      apply (rule_tac f'="\<lambda> n. put\<^bsub>x\<^esub> (n *\<^sub>R \<lbrakk>F'\<rbrakk>\<^sub>e (F t)) 0" in has_derivative_eq_rhs)
       apply (rule_tac g="(\<lambda>a. put\<^bsub>x\<^esub> a v)" and g'="(\<lambda>a. put\<^bsub>x\<^esub> a 0)" in has_derivative_compose)
        apply (blast)
-        apply (rule cont_lens.has_derivative_put[OF assms(1)])
+        apply (rule cont_lens.has_derivative_put'[OF assms(1)])
         using bounded_linear_ident apply blast
         apply (rule has_derivative_const)
     apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.source_stability wb_lens_def weak_lens.put_get)    
