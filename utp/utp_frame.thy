@@ -333,6 +333,12 @@ proof
     by (simp add: assms nmods_copy_assign)
 qed
 
+lemma nmods_zero [closure]: "P nmods \<emptyset>"
+  by (rel_auto)
+
+lemma nmods_plus [closure]: "\<lbrakk> P nmods a; P nmods b \<rbrakk> \<Longrightarrow> P nmods (a ; b)"
+  by (rel_auto, force)
+
 lemma nmods_skip [closure]: "vwb_lens a \<Longrightarrow> II nmods a" 
   by rel_auto
 
@@ -447,6 +453,17 @@ lemma nuses_nmods_intro:
   assumes "vwb_lens x" "P nmods x" "(\<forall> v. (x := \<guillemotleft>v\<guillemotright> ;; P ;; x := \<guillemotleft>v\<guillemotright>) = (P ;; x := \<guillemotleft>v\<guillemotright>))"
   shows "P nuses x"
   by (metis assms(1) assms(2) assms(3) nmods_copy_assign nuses_iff_assign_commute)
+
+lemma nuses_zero [closure]: "P nuses \<emptyset>"
+  by (rel_auto)
+
+lemma rrestr_twice: "\<lbrakk> vwb_lens a; vwb_lens b; a \<bowtie> b \<rbrakk> \<Longrightarrow> rrestr a (rrestr b P) = rrestr (a +\<^sub>L b) P"
+  by (rel_auto, auto simp add: lens_indep_vwb_iff, (metis vwb_lens.put_eq)+)
+
+lemma nuses_plus [closure]: 
+  assumes "vwb_lens a" "vwb_lens b" "a \<bowtie> b" "P nuses a" "P nuses b" 
+  shows "P nuses (a ; b)"
+  by (metis Healthy_def assms rrestr_twice)
 
 lemma nuses_iff_nmods_and_reduce:
   assumes "vwb_lens x"

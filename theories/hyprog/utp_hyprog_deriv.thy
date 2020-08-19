@@ -31,12 +31,12 @@ lemma udifferentiable_consts [closure]:
   by (rel_simp)+
 
 lemma udifferentiable_var [closure]:
-  assumes "bounded_linear (get\<^bsub>x\<^esub>)"
+  assumes "cont_lens x"
   shows "differentiable\<^sub>e (utp_expr.var (x ;\<^sub>L \<^bold>c))"
   by (rel_simp, simp add: assms bounded_linear_imp_differentiable)
 
 lemma udifferentiable_pr_var [closure]: 
-  assumes "bounded_linear (get\<^bsub>x\<^esub>)"
+  assumes "cont_lens x"
   shows "differentiable\<^sub>e (utp_expr.var (pr_var (x ;\<^sub>L \<^bold>c)))"
   by (rel_simp, simp add: assms bounded_linear_imp_differentiable)
 
@@ -190,23 +190,22 @@ text \<open> The derivative of a variable represented by a bounded linear lens i
   space uses the said lens to obtain the derivative from the context @{term F'}. \<close>
 
 lemma uderiv_var:
-  assumes "bounded_linear (get\<^bsub>x\<^esub>)"
+  assumes "cont_lens x"
   shows "\<L>\<^bsub>F'\<^esub> (utp_expr.var (x ;\<^sub>L \<^bold>c)) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p cvec"
-  by (rel_simp, metis assms bounded_linear_imp_has_derivative frechet_derivative_at)
+  by (rel_simp)
+     (metis assms bounded_linear_imp_has_derivative cont_lens.bounded_linear_get frechet_derivative_at)
 
 lemma uderiv_pr_var [uderiv]:
-  assumes "bounded_linear (get\<^bsub>x\<^esub>)"
+  assumes "cont_lens x"
   shows "(\<L>\<^bsub>F'\<^esub> &\<^bold>c:x) = \<langle>F'\<rangle>\<^sub>s x \<oplus>\<^sub>p \<^bold>c"
   using assms by (simp add: pr_var_def uderiv_var)
-
 
 text \<open> Example \<close>
 
 lemma 
   fixes x :: "real \<Longrightarrow> real"
-  assumes "vwb_lens x" "bounded_linear (get\<^bsub>x\<^esub>)"
+  assumes "cont_lens x"
   shows "\<L>\<^bsub>[x \<mapsto>\<^sub>s &x]\<^esub> (2*&\<^bold>c:x) = 2*&\<^bold>c:x"
   by (simp add: uderiv usubst closure assms alpha, rel_simp)
-
 
 end
