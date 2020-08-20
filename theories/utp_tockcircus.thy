@@ -192,6 +192,15 @@ lemma idle_active_decomp:
    apply (simp_all)
   done
 
+lemma idleprefix_prefix: "idleprefix(t) \<le> t"
+  by (metis Prefix_Order.prefixI idle_active_decomp)
+
+lemma tocks_idleprefix_fp [simp]:
+  "t \<in> tocks A \<Longrightarrow> idleprefix(t) = t"
+  by (metis hd_Cons_tl hd_activesuffix idle_active_decomp rangeE self_append_conv tocks_Evt tocks_append)
+
+lemma idleprefix_idem [simp]: "idleprefix (idleprefix t) = idleprefix t"
+  using idleprefix_tocks tocks_idleprefix_fp by blast
 
 subsection \<open> Reactive Relation Constructs \<close>
 
@@ -229,6 +238,27 @@ proof -
     by (rel_auto)
   thus ?thesis
     by (metis Healthy_def assms)
+qed
+
+text \<open> The following healthiness condition is a weakened form of prefix closure -- a relation must
+  admit every idle prefix with the state unchanged and the unstable refusal. \<close>
+
+definition TIP :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TIP(P) = (P \<or> U((\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> \<exists> t. P\<lbrakk>[],\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> = $tr @ idleprefix(\<guillemotleft>t\<guillemotright>)) \<and> $st\<acute> = $st \<and> $ref\<acute> = \<^bold>\<bullet>))"
+
+utp_const RR TIP
+
+lemma TIP_idem [simp]: "TIP (TIP P) = TIP P"
+  by (rel_auto, blast)
+
+lemma TIP_prop:
+  assumes "P is RR" "P is TIP"
+  shows "U(P\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> P" 
+proof -
+  have "U(TIP(RR(P))\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> RR(P)"
+    by (rel_simp, blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms(1) assms(2))
 qed
 
 no_utp_lift lift_state_rel
@@ -309,6 +339,9 @@ lemma [closure]: "\<F>(s, t, \<sigma>) is TRR"
   by (rel_auto)
 
 lemma [closure]: "\<T>(X, A) is TRR"
+  by (rel_auto)
+
+lemma [closure]: "\<T>(X, A) is TIP"
   by (rel_auto)
 
 lemma [unrest]: "$st\<acute> \<sharp> \<E>(s, t, E)"
@@ -1000,6 +1033,49 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+
+lemma [rpred]:
+  assumes "P is RR" 
+  shows "(time(P) \<or> (P \<triangleright>\<^sub>t P)) = (P \<triangleright>\<^sub>t' P)"
+proof -
+  have "(time(RR(P)) \<or> (RR P \<triangleright>\<^sub>t RR P)) = (RR P \<triangleright>\<^sub>t' RR P)"
+    apply (rel_auto)
+      apply blast
+     apply fastforce
+    apply (metis hd_Cons_tl tocks_Nil)
+    done
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+
+
+lemma 
+  assumes "P is RR" "P is TIP"
+  shows "P \<triangleright>\<^sub>t' P \<sqsubseteq> P"
+proof -
+  have "RR P \<triangleright>\<^sub>t' RR P \<sqsubseteq> (U(RR(P) \<and> P\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>))"
+  apply (rel_simp)
+  apply (rename_tac ok wait tr st ref ok' wait' tr' st' ref' a aa ab b)
+(*  apply (subst (asm) Healthy_if[THEN sym, OF assms]) *)
+   apply (rule_tac x="idleprefix(tr' - tr)" in exI)
+  apply (simp)
+   apply (rule_tac x="activesuffix(tr' - tr)" in exI)
+    apply (auto)
+    using hd_activesuffix apply blast
+    apply (rule_tac x="\<^bold>\<bullet>" in exI)
+     apply (rule_tac x="ok" in exI)
+     apply (rule_tac x="ok'" in exI)
+     apply (rule_tac x="wait" in exI)
+     apply (rule_tac x="wait'" in exI)
+    oops
+
+
+
+lemma 
+  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r"
+  shows "P \<box> P = P"
+  apply (rdes_eq_split cls: assms)
+  oops
 
 lemma
   assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r"
