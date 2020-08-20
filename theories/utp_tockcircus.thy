@@ -900,6 +900,13 @@ definition DoT :: "('e, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(
 lemma DoT_TC: "do\<^sub>T(e) is TC"
   by (rule Healthy_intro, rdes_eq)
 
+definition InputT ::
+  "('a, 'e) chan \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('s, 'e) taction" where
+"InputT c P = 
+  \<^bold>R(true\<^sub>r 
+  \<turnstile> (\<Sqinter> v \<bullet> \<T>({(c\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u}, {0..}) ;; (\<E>(@P v, [], {Tock (), Evt (c\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u}) \<or> \<U>(@P v, [Evt (c\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u])))
+  \<diamondop> (\<Sqinter> v \<bullet> \<T>({(c\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u}, {0..}) ;; \<F>(@P v, [Evt (c\<cdot>\<guillemotleft>v\<guillemotright>)\<^sub>u], id\<^sub>s)))"
+
 definition Wait :: "(nat, 's) uexpr \<Rightarrow> ('s,'e) taction" where
 [rdes_def]: "Wait n = 
   \<^bold>R(true\<^sub>r 
