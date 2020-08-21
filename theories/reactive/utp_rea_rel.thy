@@ -15,7 +15,9 @@ subsection \<open> Healthiness Conditions \<close>
 
 definition RR :: "('t::trace, '\<alpha>, '\<beta>) rel_rp \<Rightarrow> ('t, '\<alpha>, '\<beta>) rel_rp" where
 [upred_defs]: "RR(P) = (\<exists> {$ok,$ok\<acute>,$wait,$wait\<acute>} \<bullet> R2(P))"
-  
+
+utp_const RR
+
 lemma RR_idem: "RR(RR(P)) = RR(P)"
   by (rel_auto)
 
@@ -71,6 +73,25 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+
+lemma RR_eq_transfer:
+  assumes "P is RR" "Q is RR" 
+    "(\<And> t. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false, $tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> P) 
+          = U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false, $tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> Q))"
+  shows "P = Q"
+proof -
+  have "(\<And> t. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false, $tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> RR P) 
+            = U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s false, $wait\<acute> \<mapsto>\<^sub>s false, $tr \<mapsto>\<^sub>s 0, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>] \<dagger> RR Q))"
+    by (metis Healthy_if assms(1) assms(2) assms(3))
+  hence "RR P = RR Q"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if assms(1) assms(2))
+qed
+
+text \<open> Tailored proof strategy for reactive relations -- eliminates irrelevant variables like ok, wait, and tr. \<close>
+
+method rrel_auto uses cls = (rule RR_eq_transfer, simp add: closure cls, simp add: closure cls, rel_auto)
 
 lemma R4_RR_closed [closure]:
   assumes "P is RR"
