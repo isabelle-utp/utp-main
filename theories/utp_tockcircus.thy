@@ -35,6 +35,7 @@ text \<open> We don't need a tick event, because this is handled by the $wait$ f
 alphabet ('s, 'e) tc_vars = "('e tev list, 's) rsp_vars" +
   ref :: "(unit, 'e) teva refusal"
 
+
 text \<open> The $ref$ variable is not simply a set, but a set augmented with the @{term "\<^bold>\<bullet>"} that denotes
   stability. We need this because tick-tock traces can end without a refusal. Note that unlike
   in the trace this is a refusal over @{typ "'e tev"} so that we can refuse tocks at the end. \<close>
@@ -44,10 +45,23 @@ text \<open> The interpretation of $wait$ changes to there being both stable (qu
 
 (* FIXME: Nasty hack below *)
 
+lemma tc_rel_splits:
+  "(\<forall> s s'. P s s') = 
+   (\<forall>ok ok' wait wait' tr tr' st st' ref ref' more more'. P \<lparr>ok\<^sub>v = ok, wait\<^sub>v = wait, tr\<^sub>v = tr, st\<^sub>v = st, ref\<^sub>v = ref, \<dots> = more\<rparr>
+                                                             \<lparr>ok\<^sub>v = ok', wait\<^sub>v = wait', tr\<^sub>v = tr', st\<^sub>v = st', ref\<^sub>v = ref', \<dots> = more'\<rparr>)"
+  by (metis rsp_vars.select_convs(2) rsp_vars.surjective tc_vars.surjective)
+
+lemma tc_splits:
+  "(\<forall>r. P r) = (\<forall>ok wait tr st ref more. P \<lparr>ok\<^sub>v = ok, wait\<^sub>v = wait, tr\<^sub>v = tr, st\<^sub>v = st, ref\<^sub>v = ref, \<dots> = more\<rparr>)"
+  "(\<exists>r. P r) = (\<exists> ok wait tr st ref more. P \<lparr>ok\<^sub>v = ok, wait\<^sub>v = wait, tr\<^sub>v = tr, st\<^sub>v = st, ref\<^sub>v = ref, \<dots> = more\<rparr>)"
+  by (metis rp_vars.select_convs(3) rsp_vars.surjective tc_vars.surjective)+
+
+declare tc_vars.splits [alpha_splits del]
 declare des_vars.splits [alpha_splits del]
 declare rp_vars.splits [alpha_splits del]
-declare des_vars.splits [alpha_splits del]
 declare rsp_vars.splits [alpha_splits del]
+declare tc_splits [alpha_splits]
+declare tc_rel_splits [alpha_splits]
 declare rsp_vars.splits [alpha_splits]
 declare rp_vars.splits [alpha_splits]
 declare des_vars.splits [alpha_splits]
@@ -192,12 +206,18 @@ lemma idle_active_decomp:
    apply (simp_all)
   done
 
+lemma idleprefix_concat_Evt [simp]: "idleprefix (t @ Evt e # t') = idleprefix t"
+  by ((induct t; simp), metis idleprefix.simps(2) idleprefix.simps(3) teva.exhaust)
+
 lemma idleprefix_prefix: "idleprefix(t) \<le> t"
   by (metis Prefix_Order.prefixI idle_active_decomp)
 
 lemma tocks_idleprefix_fp [simp]:
   "t \<in> tocks A \<Longrightarrow> idleprefix(t) = t"
   by (metis hd_Cons_tl hd_activesuffix idle_active_decomp rangeE self_append_conv tocks_Evt tocks_append)
+
+lemma tocks_iff_idleprefix_fp: "t \<in> tocks UNIV \<longleftrightarrow> idleprefix t = t"
+  by (metis idleprefix_tocks tocks_idleprefix_fp)
 
 lemma idleprefix_idem [simp]: "idleprefix (idleprefix t) = idleprefix t"
   using idleprefix_tocks tocks_idleprefix_fp by blast
@@ -216,10 +236,10 @@ definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 lemma TRR_idem: "TRR(TRR(P)) = TRR(P)"
   by (rel_auto)
 
-lemma Idempotent_TRR [closure]: "Idempotent TRR"
+lemma TRR_Idempotent [closure]: "Idempotent TRR"
   by (simp add: TRR_idem Idempotent_def)
 
-lemma Continuous_CRR [closure]: "Continuous TRR"
+lemma TRR_Continuous [closure]: "Continuous TRR"
   by (rel_blast)
 
 lemma TRR_intro:
@@ -240,6 +260,61 @@ proof -
     by (metis Healthy_def assms)
 qed
 
+utp_const TRR
+
+lemma TRR_transfer:
+  fixes P Q :: "('s, 'e) taction"
+  assumes "P is TRR" "Q is TRR" 
+    "(\<And> t s s' r. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>] \<dagger> P) 
+                 = U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>] \<dagger> Q))"
+  shows "P = Q"
+proof -
+  have "(\<And> t s s' r. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>] \<dagger> TRR P) 
+                    = U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>] \<dagger> TRR Q))"
+    by (metis Healthy_if assms(1) assms(2) assms(3))
+  hence "TRR P = TRR Q"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if assms(1) assms(2))
+qed
+
+text \<open> Tailored proof strategy -- eliminates irrelevant variables like ok, wait, tr and ref. \<close>
+
+method trr_auto uses cls = (rule TRR_transfer, simp add: closure cls, simp add: closure cls, rel_auto)
+
+definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
+[upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+
+lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
+  by (rule TRR_intro, simp_all add: closure unrest)
+
+lemma trr_left_unit: 
+  assumes "P is TRR"
+  shows "II\<^sub>t ;; P = P"
+proof -
+  have "II\<^sub>t ;; TRR(P) = TRR(P)"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed 
+
+interpretation trel_theory: utp_theory_continuous TRR
+  rewrites "P \<in> carrier trel_theory.thy_order \<longleftrightarrow> P is TRR"
+  and "le trel_theory.thy_order = (\<sqsubseteq>)"
+  and "eq trel_theory.thy_order = (=)"  
+  and trel_top: "trel_theory.utp_top = false"
+  and trel_bottom: "trel_theory.utp_bottom = true\<^sub>r"
+proof -
+  interpret utp_theory_continuous TRR
+    by (unfold_locales, simp_all add: add: TRR_idem TRR_Continuous)
+  show top:"utp_top = false"
+    by (simp add: healthy_top, rel_auto)
+  show bot:"utp_bottom = true\<^sub>r"
+    by (simp add: healthy_bottom, rel_auto)
+  show "utp_theory_continuous TRR"
+    by (unfold_locales, simp_all add: closure rpred top)
+qed (simp_all)
+
 text \<open> The following healthiness condition is a weakened form of prefix closure -- a relation must
   admit every idle prefix with the state unchanged and the unstable refusal. \<close>
 
@@ -252,10 +327,10 @@ lemma TIP_idem [simp]: "TIP (TIP P) = TIP P"
   by (rel_auto, blast)
 
 lemma TIP_prop:
-  assumes "P is RR" "P is TIP"
+  assumes "P is TRR" "P is TIP"
   shows "U(P\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> P" 
 proof -
-  have "U(TIP(RR(P))\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> RR(P)"
+  have "U(TIP(TRR(P))\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> TRR(P)"
     by (rel_simp, blast)
   thus ?thesis
     by (simp add: Healthy_if assms(1) assms(2))
@@ -263,8 +338,6 @@ qed
 
 no_utp_lift lift_state_rel
 
-definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
-[upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
 
 (*
 datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Evts "('e list, 's) uexpr"
@@ -427,19 +500,6 @@ lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<U>(s\<^sub>2, t\<^sub>
   apply (metis append.assoc append_take_drop_id tock_ord_decompose(1) tock_ord_decompose(2))
   done
 
-lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
-  by (rule TRR_intro, simp_all add: closure unrest)
-
-lemma trr_left_unit: 
-  assumes "P is TRR"
-  shows "II\<^sub>t ;; P = P"
-proof -
-  have "II\<^sub>t ;; TRR(P) = TRR(P)"
-    by (rel_auto)
-  thus ?thesis
-    by (simp add: Healthy_if assms)
-qed 
-
 lemma [rpred]: "\<T>(X, {}) = false"
   by (rel_auto)
 
@@ -514,16 +574,27 @@ qed
 definition filter_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("time'(_')") where
 [upred_defs]: "filter_time P = U(P \<and> &tt \<in> tocks UNIV)"
 
+utp_const UINFIMUM (1) USUPREMUM (1)
+
+text \<open> We make the decision that state changes are not observable during idle periods, as this
+  would complicate the semantics. They are only reveal at termination and quiescence. \<close>
+
+definition tmerge :: "'i set \<Rightarrow> ('i \<Rightarrow> ('s, 'e) taction) \<Rightarrow> ('s, 'e) taction" where
+[upred_defs]: "tmerge I P = U((\<exists> t e es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (\<Squnion> i\<in>I \<bullet> (\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> (@P i)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>)) \<and> (\<Sqinter> i \<in> I \<bullet> @P i) \<and> &tt = \<guillemotleft>t @ (Evt e # es)\<guillemotright>))"
+
+definition filter_active :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("active'(_')") where 
+[upred_defs]: "filter_active(P) = U(\<exists> t e t'. P \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> &tt = \<guillemotleft>t @ (Evt e # t')\<guillemotright>)"
+
 text \<open> The two merge types are subtly different. The first forces an event to allow resolution. The
   second also allows the empty trace to resolve it (needed for postconditions). \<close>
 
 definition merge_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t" 65) where
-[upred_defs]: "P \<triangleright>\<^sub>t Q = U(R1(\<exists> t e es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (\<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ (Evt e # es)\<guillemotright>))"
+[upred_defs]: "P \<triangleright>\<^sub>t Q = U(R1(\<exists> t e es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ (Evt e # es)\<guillemotright>))"
 
 definition merge_time' :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t''" 65) where
-[upred_defs]: "P \<triangleright>\<^sub>t' Q = U(R1(\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (length \<guillemotleft>es\<guillemotright> > 0 \<Rightarrow> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt)) \<and> (\<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
+[upred_defs]: "P \<triangleright>\<^sub>t' Q = U(R1(\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (length \<guillemotleft>es\<guillemotright> > 0 \<Rightarrow> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt)) \<and> (\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
 
-utp_const filter_time merge_time
+utp_const filter_time filter_active merge_time merge_time' tmerge
 
 lemma time_TRR [closure]: assumes "P is TRR" shows "time(P) is TRR"
 proof -
@@ -531,22 +602,70 @@ proof -
   thus "time(P) is TRR" by (metis Healthy_def assms)
 qed
 
-lemma merge_time_TRR [closure]: assumes "P is TRR" "Q is TRR" shows "P \<triangleright>\<^sub>t Q is TRR"
+lemma active_TRR [closure]: assumes "P is TRR" shows "active(P) is TRR"
 proof -
-  have "TRR(P) \<triangleright>\<^sub>t TRR(Q) is TRR"
-    by rel_blast
-  thus ?thesis
-    by (simp add: Healthy_if assms)
+  have "TRR(active(TRR(P))) = active(TRR(P))" by rel_blast
+  thus "active(P) is TRR" by (metis Healthy_def assms)
 qed
 
+lemma TRR_time_merge [closure]:
+  assumes "P is TRR" "Q is TRR"
+  shows "P \<triangleright>\<^sub>t Q is TRR"
+proof -
+  have "TRR P \<triangleright>\<^sub>t TRR Q is TRR"
+    by (rel_blast)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
 
-lemma merge_time'_TRR [closure]: assumes "P is TRR" "Q is TRR" shows "P \<triangleright>\<^sub>t' Q is TRR"
+lemma TRR_merge_time' [closure]: assumes "P is TRR" "Q is TRR" shows "P \<triangleright>\<^sub>t' Q is TRR"
 proof -
   have "TRR(P) \<triangleright>\<^sub>t' TRR(Q) is TRR"
     by (rel_simp, fastforce)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+
+
+lemma TRR_idle_or_active:
+  assumes "P is TRR"
+  shows "(time(P) \<or> active(P)) = P"
+  by (trr_auto cls: assms)
+     (metis hd_Cons_tl hd_activesuffix idle_active_decomp idleprefix_tocks rangeE tocks_Nil tocks_append)
+
+ 
+lemma refine_eval_dest: "P \<sqsubseteq> Q \<Longrightarrow> \<lbrakk>Q\<rbrakk>\<^sub>e s \<Longrightarrow> \<lbrakk>P\<rbrakk>\<^sub>e s"
+  by (rel_auto)
+
+lemma tmerge_is_active:
+  assumes "P is TRR" "P is TIP"
+  shows "tmerge {P} id = active(P)"
+proof -
+  have "tmerge {TRR P} id is TRR"
+    by (rel_blast)
+  hence 1: "tmerge {P} id is TRR"
+    by (simp add: Healthy_if assms)
+  hence 2: "active(P) is TRR"
+    by (simp add: closure assms)
+  show ?thesis
+    apply (rule TRR_transfer[OF 1 2])
+    apply (simp add: tmerge_def filter_active_def usubst unrest)
+    apply (rel_simp')
+    apply (auto)
+    apply (drule refine_eval_dest[OF TIP_prop[OF assms(1) assms(2)]])
+    apply (rel_simp')
+    apply (rename_tac s t e t')
+    apply (rule_tac x="t" in exI, auto)
+    done
+qed
+
+lemma time_merge_self:
+  assumes "P is TRR" "P is TIP"
+  shows "P \<triangleright>\<^sub>t P = active(P)"
+  apply (trr_auto cls: assms)
+  apply (drule refine_eval_dest[OF TIP_prop[OF assms(1) assms(2)]])
+  apply (rel_blast)
+  done
+
 
 lemma tock_prefix_eq:
   assumes "x @ (Evt a # as) = y @ (Evt b # bs)" "x \<in> tocks X" "y \<in> tocks Y"
@@ -592,7 +711,7 @@ lemma [rpred]: "P \<triangleright>\<^sub>t (Q \<or> R) = (P \<triangleright>\<^s
   by (rel_auto)
 
 lemma [rpred]: "(P \<or> Q) \<triangleright>\<^sub>t R = (P \<triangleright>\<^sub>t R \<or> Q \<triangleright>\<^sub>t R)"
-  by (rel_auto)
+  by (rel_blast)
 
 lemma [rpred]: "P \<triangleright>\<^sub>t' (Q \<or> R) = (P \<triangleright>\<^sub>t' Q \<or> P \<triangleright>\<^sub>t' R)"
   by (rel_blast)
@@ -626,57 +745,15 @@ lemma tock_ord_Evt_hd_eq [simp]: "Evt e # x \<subseteq>\<^sub>t Evt f # y \<long
      (smt One_nat_def add.commute diff_add_cancel_left' length_Cons less_Suc0 list.size(4) nat_add_left_cancel_less not_less nth_Cons')
 
 lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, Evt e # es, B)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es, B)"
-  apply (rel_auto)
-   apply (drule tock_prefix_eq)
-  apply (auto)[1]
-    apply (auto)[1]
-   apply (auto)[1]
-   apply (rename_tac tr st ref x y)
-   apply (rule exI)
-   apply (rule_tac x="st" in exI)
-   apply (simp)
-   apply (rule)
-  apply (rule_tac x="x" in bexI)
-  apply (simp)
-    apply (metis tocks_inter) 
-    apply (rule_tac x="Evt (\<lbrakk>e\<rbrakk>\<^sub>e st) # y" in exI)
-  apply (simp)
-   apply (rename_tac tr st ref x y)
-  apply (rule_tac x="x" in exI)
-  apply (simp)
-     apply (rule)
-      apply (auto)[1]
-   apply (metis subset_UNIV tocks_subset)
-      apply (auto)[1]
-  apply (metis Diff_Compl Diff_subset tocks_subset)
-  apply (metis append_eq_appendI semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
+  apply (trr_auto)
+  apply (metis tock_ord_Evt_hd_eq tock_prefix_eq tocks_inter)
+  apply (metis Compl_eq_Diff_UNIV Diff_Compl Diff_subset semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
   done
 
 lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, Evt e # es)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<U>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es)"
-  apply (rel_auto)
-   apply (drule tock_prefix_eq)
-  apply (auto)[1]
-    apply (auto)[1]
-   apply (auto)[1]
-   apply (rename_tac tr st x y)
-   apply (rule exI)
-   apply (rule_tac x="st" in exI)
-   apply (simp)
-   apply (rule)
-  apply (rule_tac x="x" in bexI)
-  apply (simp)
-    apply (metis tocks_inter) 
-    apply (rule_tac x="Evt (\<lbrakk>e\<rbrakk>\<^sub>e st) # y" in exI)
-  apply (simp)
-   apply (rename_tac tr st x y)
-  apply (rule_tac x="x" in exI)
-  apply (simp)
-     apply (rule)
-      apply (auto)[1]
-   apply (metis subset_UNIV tocks_subset)
-      apply (auto)[1]
-  apply (metis Diff_Compl Diff_subset tocks_subset)
-  apply (metis append_eq_appendI semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
+  apply (trr_auto)
+  apply (metis idleprefix_concat_Evt tock_ord_Evt_hd_eq tocks_idleprefix_fp tocks_inter)
+  apply (metis Compl_eq_Diff_UNIV Diff_Compl Diff_subset semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
   done
 
 lemma tock_prefix_eq':
@@ -690,30 +767,10 @@ proof -
 qed
 
 lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t' (\<T>(E\<^sub>2, T\<^sub>2) ;; \<F>(s\<^sub>2, Evt e # es, \<sigma>)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<F>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es, \<sigma>)"
-  apply (rel_auto)
-   apply (rename_tac tr st a b x E t)
-   apply (drule tock_prefix_eq')
-      apply (simp)
-     apply (simp)
-    apply (simp)
-   apply (rule exI)
-   apply (rule_tac x="st" in exI)
-   apply (simp)
-   apply (rule)
-  apply (rule_tac x="a" in bexI)
-  apply (auto)[1]
-    apply (metis tocks_inter)
-  apply simp 
-   apply (rename_tac tr st x y)
-  apply (rule_tac x="x" in exI)
-  apply (simp)
-     apply (rule)
-   apply (metis subset_UNIV tocks_subset)
-      apply (auto)[1]
-  apply (metis Diff_Compl Diff_subset tocks_subset)
-  apply (metis append.assoc semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_subset)
+  apply (trr_auto)
+  apply (metis append_Nil2 hd_Cons_tl idleprefix_concat_Evt tock_ord_Evt_hd_eq tocks_idleprefix_fp tocks_inter)
+  apply (metis idleprefix_tocks list.sel(1) range_eqI semilattice_inf_class.inf_le1 semilattice_inf_class.inf_le2 tock_ord_Evt_hd_eq tocks_idleprefix_fp tocks_subset)
   done
-
 
 lemma [rpred]: "(\<T>({}, T\<^sub>1) ;; \<U>(true, [])) \<triangleright>\<^sub>t' \<T>({}, T\<^sub>2) = \<T>({}, T\<^sub>1 \<inter> T\<^sub>2)"
   by (rel_auto, metis add.right_neutral hd_Cons_tl list.size(3) tocks_Evt)
@@ -899,6 +956,8 @@ definition DoT :: "('e, 's) uexpr \<Rightarrow> ('s, 'e) taction" ("do\<^sub>T'(
 
 lemma DoT_TC: "do\<^sub>T(e) is TC"
   by (rule Healthy_intro, rdes_eq)
+
+(* FIXME: This is not even close to correct ... *)
 
 definition InputT ::
   "('a, 'e) chan \<Rightarrow> ('a \<Rightarrow> 's upred) \<Rightarrow> ('s, 'e) taction" where
