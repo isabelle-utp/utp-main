@@ -344,6 +344,10 @@ qed
 no_utp_lift lift_state_rel
 
 
+definition TDC :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
+[upred_defs]: "TDC(P) = U(\<exists> ref\<^sub>0. P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<le> \<guillemotleft>ref\<^sub>0\<guillemotright>)"
+
+
 (*
 datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Evts "('e list, 's) uexpr"
 
@@ -406,6 +410,9 @@ utp_const tc_stable
 
 lemma [closure]: "\<E>(s, t, E, p) is TRR"
   by (rel_auto)
+
+lemma [closure]: "\<E>(s, t, E, p) is TDC"
+  by (rel_auto, (meson refusal_mp)+)
 
 lemma [closure]: "\<U>(s, t) is TRR"
   by (rel_auto)

@@ -76,6 +76,9 @@ abbreviation runion :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a ref
 abbreviation rinter :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal"  (infixl "\<inter>\<^sub>\<R>" 70)
   where "rinter \<equiv> Lattices.inf"
 
+lemma refusal_mp: "\<lbrakk> A \<subseteq>\<^sub>\<R> B; x \<in>\<^sub>\<R> A \<rbrakk> \<Longrightarrow> x \<in>\<^sub>\<R> B"
+  by (cases A, simp_all, metis (full_types) less_eq_refusal.elims(2) refusal.distinct(1) rmember.simps(2) subsetD)
+
 subsection \<open> Refusal Events \<close>
 
 typedef 'e revent = "{(X :: 'e refusal, a :: 'e). a \<notin>\<^sub>\<R> X}"
