@@ -80,11 +80,11 @@ syntax
   \<comment> \<open> Frame Extension \<close>
   "_rel_frext" :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("_:[_]\<^sup>+" [99,0] 100)
   \<comment> \<open> Nameset \<close>
-  "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("ns _ \<bullet> _" [0,10] 10)
+  "_nameset"        :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>n\<^bold>s _ \<bullet> _" [0,10] 10)
   \<comment> \<open> Modify \<close>
-  "_modify"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("mdf _ \<bullet> _" [0,10] 10)
+  "_modify"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>m\<^bold>d\<^bold>f _ \<bullet> _" [0,10] 10)
   \<comment> \<open> Freeze \<close>
-  "_freeze"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("frz _ \<bullet> _" [0,10] 10)
+  "_freeze"         :: "salpha \<Rightarrow> logic \<Rightarrow> logic" ("\<^bold>f\<^bold>r\<^bold>z _ \<bullet> _" [0,10] 10)
   \<comment> \<open> Modifies Predicate \<close>
   "_modifies"     :: "logic \<Rightarrow> salpha \<Rightarrow> logic" (infix "mods" 30)
   \<comment> \<open> Not Modifies Predicate \<close>
@@ -269,10 +269,10 @@ lemma antiframe_copy_assign:
   by rel_auto
 
   
-lemma nameset_skip: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II) = II\<^bsub>x\<^esub>"
+lemma nameset_skip: "vwb_lens x \<Longrightarrow> (\<^bold>n\<^bold>s x \<bullet> II) = II\<^bsub>x\<^esub>"
   by (rel_auto, meson vwb_lens_wb wb_lens.get_put)
     
-lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (ns x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
+lemma nameset_skip_ra: "vwb_lens x \<Longrightarrow> (\<^bold>n\<^bold>s x \<bullet> II\<^bsub>x\<^esub>) = II\<^bsub>x\<^esub>"
   by (rel_auto)
     
 declare sublens_def [lens_defs]
@@ -389,18 +389,18 @@ subsection \<open> Modify and Freeze Laws \<close>
 
 text \<open> Assignments made to modify variables are retained, but lost for frozen ones. \<close>
 
-lemma modify_assigns: "(mdf a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> \<rhd>\<^sub>s a\<rangle>\<^sub>a"
+lemma modify_assigns: "(\<^bold>m\<^bold>d\<^bold>f a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> \<rhd>\<^sub>s a\<rangle>\<^sub>a"
   by (rel_auto)
 
 lemma modify_assign:
-  "vwb_lens x \<Longrightarrow> (mdf x \<bullet> x := v) = x := v"
+  "vwb_lens x \<Longrightarrow> (\<^bold>m\<^bold>d\<^bold>f x \<bullet> x := v) = x := v"
   by (simp add: modify_assigns usubst)
 
-lemma freeze_assigns: "(frz a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> -\<^sub>s a\<rangle>\<^sub>a"
+lemma freeze_assigns: "(\<^bold>f\<^bold>r\<^bold>z a \<bullet> \<langle>\<sigma>\<rangle>\<^sub>a) = \<langle>\<sigma> -\<^sub>s a\<rangle>\<^sub>a"
   by (rel_auto)
 
 lemma freeze_assign:
-  "vwb_lens x \<Longrightarrow> (frz x \<bullet> x := v) = II"
+  "vwb_lens x \<Longrightarrow> (\<^bold>f\<^bold>r\<^bold>z x \<bullet> x := v) = II"
   by (simp add: freeze_assigns usubst skip_r_def)
 
 lemma frame_modify_same_fixpoints:
