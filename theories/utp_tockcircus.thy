@@ -76,8 +76,11 @@ lemma tocks_Nil [simp]: "[] \<in> tocks X"
 lemma tocks_Tock: "t \<in> tocks X \<Longrightarrow> set t \<subseteq> range Tock"
   by (auto simp add: tocks_def)
 
-lemma tocks_Cons: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
+lemma tocks_Cons [intro]: "\<lbrakk> Y \<subseteq> X; t \<in> tocks X \<rbrakk> \<Longrightarrow> Tock Y # t \<in> tocks X"
   by (simp add: tocks_def)
+
+lemma tocks_inter [intro!]: "\<lbrakk> t \<in> tocks X; t \<in> tocks Y \<rbrakk> \<Longrightarrow> t \<in> tocks (X \<inter> Y)"
+  by (auto simp add: tocks_def, metis teva.inject(1))
 
 lemma tocks_Evt [simp]: "Evt e # t \<in> tocks X = False"
   by (simp add: tocks_def)
@@ -93,6 +96,12 @@ lemma tocks_take [simp]: "s \<in> tocks X \<Longrightarrow> take n s \<in> tocks
 
 lemma tocks_drop [simp]: "s \<in> tocks X \<Longrightarrow> drop n s \<in> tocks X"
   by (auto simp add: tocks_def, meson in_set_dropD)
+
+lemma tocks_inter1 [dest]: "t \<in> tocks (X \<inter> Y) \<Longrightarrow> t \<in> tocks(X)"
+  by (auto simp add: tocks_def)
+
+lemma tocks_inter2 [dest]: "t \<in> tocks (X \<inter> Y) \<Longrightarrow> t \<in> tocks(Y)"
+  by (auto simp add: tocks_def)
 
 definition "mk_tocks n = replicate n (Tock {})"
 
@@ -543,24 +552,44 @@ proof (trr_auto)
     done
 qed
 
+definition filter_idle :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("idle'(_')") where
+[upred_defs]: "filter_idle P = U(P \<and> &tt \<in> tocks UNIV)"
+
 definition filter_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("time'(_')") where
-[upred_defs]: "filter_time P = U(P \<and> &tt \<in> tocks UNIV)"
+[upred_defs]: "filter_time P = (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> idle(P))"
+
+definition filter_active :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("active'(_')") where 
+[upred_defs]: "filter_active(P) = U(\<exists> t e t'. P \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> &tt = \<guillemotleft>t @ (Evt e # t')\<guillemotright>)"
 
 text \<open> We make the decision that state changes are not observable during idle periods, as this
-  would complicate the semantics. They are only reveal at termination and quiescence. \<close>
+  would complicate the semantics. They are only revealed at termination and quiescence. \<close>
 
-term UINFIMUM
+definition merge_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t" 65) where
+[upred_defs]: 
+  "P \<triangleright>\<^sub>t Q = 
+    U(R1
+      (\<exists> t es. &tt = \<guillemotleft>t @ es\<guillemotright> \<comment> \<open> The trace can be decomposed into two pieces \<close>
+            \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<comment> \<open> The first piece is a sequence of tocks \<close>
+            \<and> (\<guillemotleft>es\<guillemotright> = [] \<comment> \<open> The second piece is either empty ... \<close>
+               \<or> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt)) \<comment> \<open> ... or begins with an event \<close>
+            \<and> (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<comment> \<open> The first piece is a trace of @{term P} \<close>
+            \<and> Q \<comment> \<open> @{term Q} admits the whole trace \<close>
+            ))"
 
 text \<open> There is a trace whose idle prefix is shared by all elements of the set, and at least
   one element which admits the trace plus at least one event. \<close>
 
 definition tmerge :: "'i set \<Rightarrow> ('i \<Rightarrow> ('s, 'e) taction) \<Rightarrow> ('s, 'e) taction" where
 [upred_defs]: 
-  "tmerge I P = U((\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV 
-                   \<and> (length \<guillemotleft>es\<guillemotright> > 0 \<Rightarrow> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt))
-                   \<and> (\<Squnion> i\<in>I \<bullet> (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> (@P i)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>)) 
-                   \<and> (\<Sqinter> i \<in> I \<bullet> @P i) 
-                   \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
+  "tmerge I P = 
+      U(R1
+        (\<exists> t es. &tt = \<guillemotleft>t @ es\<guillemotright>
+               \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV 
+               \<and> (\<guillemotleft>es\<guillemotright> = [] 
+                  \<or> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt))
+               \<and> (\<Squnion> i\<in>I \<bullet> (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> (@P i)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk>)) 
+               \<and> (\<Sqinter> i \<in> I \<bullet> @P i) 
+               ))"
 
 syntax
   "_tmerge" :: "pttrn \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("\<And>\<^sub>t _\<in>_ \<bullet> _" [0, 0, 10] 10)
@@ -568,26 +597,14 @@ syntax
 translations
   "\<And>\<^sub>t i\<in>I \<bullet> P" == "CONST tmerge I (\<lambda> i. P)"
 
-definition filter_active :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("active'(_')") where 
-[upred_defs]: "filter_active(P) = U(\<exists> t e t'. P \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> &tt = \<guillemotleft>t @ (Evt e # t')\<guillemotright>)"
+text \<open> The time merge operator merges the delay traces of one relation with active traces of another. \<close>
 
-text \<open> The two merge types are subtly different. The first forces an event to allow resolution. The
-  second also allows the empty trace to resolve it (needed for postconditions). \<close>
+utp_const filter_idle filter_active merge_time tmerge
 
-(*
-definition merge_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t" 65) where
-[upred_defs]: "P \<triangleright>\<^sub>t Q = U(R1(\<exists> t e es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ (Evt e # es)\<guillemotright>))"
-*)
-
-definition merge_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixr "\<triangleright>\<^sub>t" 65) where
-[upred_defs]: "P \<triangleright>\<^sub>t Q = U(R1(\<exists> t es. \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> (length \<guillemotleft>es\<guillemotright> > 0 \<Rightarrow> hd(\<guillemotleft>es\<guillemotright>) \<in> range(Evt)) \<and> (\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P)\<lbrakk>\<guillemotleft>t\<guillemotright>/&tt\<rbrakk> \<and> Q \<and> &tt = \<guillemotleft>t @ es\<guillemotright>))"
-
-utp_const filter_time filter_active merge_time tmerge
-
-lemma time_TRR [closure]: assumes "P is TRR" shows "time(P) is TRR"
+lemma time_TRR [closure]: assumes "P is TRR" shows "idle(P) is TRR"
 proof -
-  have "TRR(time(TRR(P))) = time(TRR(P))" by rel_blast
-  thus "time(P) is TRR" by (metis Healthy_def assms)
+  have "TRR(idle(TRR(P))) = idle(TRR(P))" by rel_blast
+  thus "idle(P) is TRR" by (metis Healthy_def assms)
 qed
 
 lemma active_TRR [closure]: assumes "P is TRR" shows "active(P) is TRR"
@@ -601,15 +618,17 @@ lemma TRR_merge_time [closure]:
   shows "P \<triangleright>\<^sub>t Q is TRR"
 proof -
   have "TRR(P) \<triangleright>\<^sub>t TRR(Q) is TRR"
-    by (rel_simp, fastforce)
+    by (rel_simp, metis)
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
 
+lemma active_disj [rpred]: "active(P \<or> Q) = (active(P) \<or> active(Q))"
+  by rel_auto
 
 lemma TRR_idle_or_active [rpred]:
   assumes "P is TRR"
-  shows "(time(P) \<or> active(P)) = P"
+  shows "(idle(P) \<or> active(P)) = P"
   by (trr_auto cls: assms)
      (metis hd_Cons_tl hd_activesuffix idle_active_decomp idleprefix_tocks rangeE tocks_Nil tocks_append)
 
@@ -623,14 +642,19 @@ lemma Healthy_after: "\<lbrakk> \<And> i. P i is H \<rbrakk> \<Longrightarrow> H
 lemma tmerge_cong:  
   assumes "\<And> i. i \<in> I \<Longrightarrow> P i = Q i"
   shows "(\<And>\<^sub>t i\<in>I \<bullet> P i) = (\<And>\<^sub>t i\<in>I \<bullet> Q i)"
-  using assms by (rel_simp, metis append.right_neutral)
+  using assms apply (rel_auto)
+  apply (metis idle_active_decomp minus_cancel plus_list_def tocks_idleprefix_fp trace_class.add_diff_cancel_left)
+  apply (metis rangeI)
+  apply (metis (full_types) append_Nil2)
+  apply (metis rangeI)
+  done
 
 lemma RR_tmerge [closure]:
   assumes "\<And> i. i \<in> I \<Longrightarrow> P i is RR"
   shows "(\<And>\<^sub>t i\<in>I \<bullet> P i) is RR"
 proof -
   have "(\<And>\<^sub>t i\<in>I \<bullet> RR (P i)) is RR"
-    by (rel_auto) (metis append_Nil2, force+)
+    by (rel_auto, blast+)
   thus ?thesis
     by (metis Healthy_if assms tmerge_cong)
 qed
@@ -673,11 +697,11 @@ lemma time_merge_self [rpred]:
   done
 
 lemma time_conj:
-  "time(P \<and> Q) = (time(P) \<and> time(Q))"
+  "idle(P \<and> Q) = (idle(P) \<and> idle(Q))"
   by (rel_auto)
 
 lemma time_merge_time_left:
-  "time(P) \<triangleright>\<^sub>t Q = P \<triangleright>\<^sub>t Q"
+  "idle(P) \<triangleright>\<^sub>t Q = P \<triangleright>\<^sub>t Q"
   by (rel_auto, blast+)
 
 lemma TRR_conj [closure]:
@@ -702,13 +726,6 @@ qed
   
 lemma shEx_or: "(\<^bold>\<exists> x \<bullet> P \<or> Q) = ((\<^bold>\<exists> x \<bullet> P) \<or> (\<^bold>\<exists> x \<bullet> Q))"
   by (rel_auto)
-
-lemma tmerge_dual:
-  assumes "P i is TRR" "P j is TRR"
-  shows "tmerge {i, j} P = ((P i \<and> P j) \<triangleright>\<^sub>t P i \<or> (P i \<and> P j) \<triangleright>\<^sub>t P j)"
-  apply (simp add: tmerge_def uinf_or usup_and)
-  apply (simp add: utp_pred_laws.distrib(3-4) shEx_or)
-  oops
 
 lemma tock_prefix_eq:
   assumes "x @ (Evt a # as) = y @ (Evt b # bs)" "x \<in> tocks X" "y \<in> tocks Y"
@@ -738,8 +755,41 @@ proof (safe)
     by (metis "1" assms(1) list.inject same_append_eq)
 qed
 
-lemma tocks_inter: "\<lbrakk> t \<in> tocks X; t \<in> tocks Y \<rbrakk> \<Longrightarrow> t \<in> tocks (X \<inter> Y)"
-  by (auto simp add: tocks_def, metis teva.inject(1))
+
+lemma tmerge_dual_1:
+  assumes "P i is TRR" "P j is TRR"
+  shows "tmerge {i, j} P = 
+          ((P i \<triangleright>\<^sub>t P i \<and> P j \<triangleright>\<^sub>t P i) \<or> (P i \<triangleright>\<^sub>t P j \<and> P j \<triangleright>\<^sub>t P j))"
+  apply (trr_auto cls: assms)
+  apply blast
+
+                      apply blast
+  apply (metis (no_types) append_Nil2)
+  apply blast
+  apply blast
+  apply blast
+  apply auto
+  apply blast
+            apply blast
+           apply blast
+          apply blast
+         apply blast
+  apply (metis append_Nil2 list.collapse tocks_Evt)
+  apply (metis (no_types) append_self_conv tocks_append)
+  apply (smt append_self_conv hd_Cons_tl idleprefix_concat_Evt rangeI tocks_idleprefix_fp)
+  apply blast
+  apply (metis append_Nil2 hd_Cons_tl tocks_Evt)
+  apply (metis append_Nil2 hd_Cons_tl tocks_Evt)
+  apply (smt append_Nil2 hd_Cons_tl rangeI tock_prefix_eq tocks_Evt tocks_append)
+  done
+
+lemma [simp]: "(Q \<and> (P \<triangleright>\<^sub>t Q)) = (P \<triangleright>\<^sub>t Q)" "((P \<triangleright>\<^sub>t Q) \<and> Q) = (P \<triangleright>\<^sub>t Q)"
+  by (rel_auto; blast)+
+
+lemma tmerge_dual:
+  assumes "P i is TRR" "P j is TRR" "P i is TIP" "P j is TIP"
+  shows "tmerge {i, j} P = (P j \<triangleright>\<^sub>t P i \<or> P i \<triangleright>\<^sub>t P j)"
+  by (simp add: tmerge_dual_1 assms time_merge_self)
 
 lemma [rpred]: "(P ;; \<E>(s, t, E, p)) \<triangleright>\<^sub>t Q = (P ;; \<U>(s, t)) \<triangleright>\<^sub>t Q"
   by (simp add: merge_time_def seqr_exists_right[THEN sym] stability_modulo_ref)
@@ -779,6 +829,23 @@ lemma tock_ord_Evt_hd_eq [simp]: "Evt e # x \<subseteq>\<^sub>t Evt f # y \<long
   by (auto simp add: tock_ord_def)
      (smt One_nat_def add.commute diff_add_cancel_left' length_Cons less_Suc0 list.size(4) nat_add_left_cancel_less not_less nth_Cons')
 
+lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, [], B, p)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, [], B, p)"
+  apply (trr_auto)
+  apply (metis list.collapse tocks_Evt tocks_Nil)
+  apply (metis add.right_neutral list.collapse list.size(3) tocks_Evt)
+  apply (metis list.collapse tocks_Evt tocks_Nil)
+    apply (metis add.right_neutral list.collapse list.size(3) tocks_Evt)
+  apply (metis append_Nil2 tocks_idleprefix_fp tocks_iff_idleprefix_fp tocks_inter1 tocks_inter2)
+  apply (metis append_Nil2 tocks_idleprefix_fp tocks_iff_idleprefix_fp tocks_inter1 tocks_inter2)
+  done
+
+lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, [])) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<U>(s\<^sub>1 \<and> s\<^sub>2, [])"
+  apply (trr_auto)
+  apply (metis list.collapse tocks_Evt tocks_Nil)
+  apply (metis add.right_neutral list.collapse list.size(3) tocks_Evt)
+  using tocks_idleprefix_fp tocks_iff_idleprefix_fp apply blast
+  done
+
 lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, Evt e # es, B, p)) = \<T>(E\<^sub>1 \<union> E\<^sub>2, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, Evt e # es, B, p)"
   oops
 
@@ -805,58 +872,42 @@ lemma [rpred]: "(\<T>(E\<^sub>1, T\<^sub>1) ;; \<U>(s\<^sub>1, [])) \<triangleri
 lemma [rpred]: "(\<T>({}, T\<^sub>1) ;; \<U>(true, [])) \<triangleright>\<^sub>t \<T>({}, T\<^sub>2) = \<T>({}, T\<^sub>1 \<inter> T\<^sub>2)"
   by (rel_auto, metis add.right_neutral hd_Cons_tl list.size(3) tocks_Evt, blast)
   
-lemma [rpred]: "time(II\<^sub>t) = II\<^sub>t"
+lemma [rpred]: "idle(II\<^sub>t) = II\<^sub>t"
   by (rel_auto)
 
-lemma [rpred]: "time(false) = false"
+lemma [rpred]: "idle(false) = false"
   by (rel_auto)
 
-lemma [rpred]: "time(\<T>(X, A)) = \<T>(X, A)" 
+lemma [rpred]: "idle(\<T>(X, A)) = \<T>(X, A)" 
   by (rel_auto, simp add: tocks_subset)
 
-lemma time_tocks_stable [rpred]: "time(\<T>(X, A) ;; \<E>(s, [], E, p)) = \<T>(X, A) ;; \<E>(s, [], E, p)"
+lemma time_tocks_stable [rpred]: "idle(\<T>(X, A) ;; \<E>(s, [], E, p)) = \<T>(X, A) ;; \<E>(s, [], E, p)"
   by (rel_auto; simp add: tocks_subset)
 
-lemma [rpred]: "time(P \<or> Q) = (time(P) \<or> time(Q))"
+lemma [rpred]: "idle(P \<or> Q) = (idle(P) \<or> idle(Q))"
   by (rel_auto)
 
-lemma [rpred]: "time(\<T>(X, A) ;; \<U>(s, [])) = \<T>(X, A) ;; \<U>(s, [])"
+lemma [rpred]: "idle(\<T>(X, A) ;; \<U>(s, [])) = \<T>(X, A) ;; \<U>(s, [])"
   by (rel_auto, simp add: tocks_subset)
 
-lemma [rpred]: "time(\<E>(s, [], E, p)) = \<E>(s, [], E, p)"
+lemma [rpred]: "idle(\<E>(s, [], E, p)) = \<E>(s, [], E, p)"
   by (rel_auto)
 
-lemma [rpred]: "time(\<E>(s, Evt t # ts, E, p)) = false"
+lemma [rpred]: "idle(\<E>(s, Evt t # ts, E, p)) = false"
   by (rel_simp)
 
-lemma [rpred]: "time(\<U>(s, Evt t # ts)) = false"
+lemma [rpred]: "idle(\<U>(s, Evt t # ts)) = false"
   by (rel_simp)
 
 lemma [rpred]: "(\<T>(X\<^sub>1, A\<^sub>1) \<and> \<T>(X\<^sub>2, A\<^sub>2)) = \<T>(X\<^sub>1 \<union> X\<^sub>2, A\<^sub>1 \<inter> A\<^sub>2)"
-  apply (rel_auto)
-  apply (auto simp add: tocks_def)
-  apply fastforce
-  done
+  by (rel_auto)
 
 lemma [rpred]: "(\<T>(A, T\<^sub>1) ;; \<E>(s\<^sub>1, [], {}, true) \<and> \<T>(B, T\<^sub>2) ;; \<E>(s\<^sub>2, [], {}, true)) 
        = \<T>(A \<union> B, T\<^sub>1 \<inter> T\<^sub>2) ;; \<E>(s\<^sub>1 \<and> s\<^sub>2, [], {}, true)"
-  apply (rel_auto)
-  apply (simp add: Diff_Un tocks_inter)
-  apply (metis Diff_Compl Diff_subset tocks_subset)
-  apply (metis semilattice_inf_class.inf_le2 tocks_subset)
-  done
+  by (rel_auto)
 
 lemma [rpred]: "(\<T>(X, A) ;; \<E>(true, [], E\<^sub>1, p\<^sub>1) \<and> \<T>(Y, B) ;; \<E>(true, [], E\<^sub>2, p\<^sub>2)) = \<T>(X \<union> Y, A \<inter> B) ;; \<E>(true, [], E\<^sub>1 \<union> E\<^sub>2, p\<^sub>1 \<and> p\<^sub>2)"
-  apply (rel_auto)
-  apply (metis tocks_inter)
-  using tocks_inter apply blast
-  using tocks_inter apply blast
-  using tocks_inter apply blast
-  apply (metis Diff_Compl Diff_subset tocks_subset)
-  apply (metis semilattice_inf_class.inf_le2 tocks_subset)
-  apply (meson lattice_class.inf_sup_ord(1) tocks_subset)
-  apply (meson lattice_class.inf_sup_ord(2) tocks_subset)
-  done
+  by (rel_auto)
 
 lemma nat_set_simps [simp]:
   fixes m::"(nat, _) uexpr"
@@ -1052,25 +1103,69 @@ lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle
 definition ExtChoice :: "'i set \<Rightarrow> ('i \<Rightarrow> ('s, 'e) taction) \<Rightarrow> ('s, 'e) taction" where
 "ExtChoice I P =
   \<^bold>R((\<And> i\<in>I \<bullet> pre\<^sub>R(P i))
-   \<turnstile> (\<And> i\<in>I \<bullet> time(peri\<^sub>R(P i))) \<or> active(\<And>\<^sub>t i\<in>I \<bullet> peri\<^sub>R(P i))
-   \<diamondop> (\<And>\<^sub>t i\<in>I \<bullet> peri\<^sub>R(P i)))"
+   \<turnstile> ((\<And> i\<in>I \<bullet> idle(peri\<^sub>R(P i))) \<or> active(\<And>\<^sub>t i\<in>I \<bullet> peri\<^sub>R(P i)))
+   \<diamondop> ((\<And> i\<in>I \<bullet> time(peri\<^sub>R(P i))) \<and> (\<Sqinter> i\<in>I \<bullet> post\<^sub>R(P i))))"
 
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
 "P \<box> Q =
   \<^bold>R((pre\<^sub>R(P) \<and> pre\<^sub>R(Q))
-  \<turnstile> (time(peri\<^sub>R(P)) \<and> time(peri\<^sub>R(Q)) 
+  \<turnstile> (idle(peri\<^sub>R(P)) \<and> idle(peri\<^sub>R(Q)) 
     \<or> active(peri\<^sub>R(P) \<triangleright>\<^sub>t peri\<^sub>R(Q))
     \<or> active(peri\<^sub>R(Q) \<triangleright>\<^sub>t peri\<^sub>R(P)))
   \<diamondop> (peri\<^sub>R(P) \<triangleright>\<^sub>t post\<^sub>R(Q) \<or> peri\<^sub>R(Q) \<triangleright>\<^sub>t post\<^sub>R(P)))"
+
+text \<open> Can we express the latter two pericondition clauses as: \<close>
+
+term "time(peri\<^sub>R(P)) \<and> active(peri\<^sub>R(Q))"
+
+lemma "active(P \<triangleright>\<^sub>t Q) = P \<triangleright>\<^sub>t active(Q)"
+  apply (rel_auto)
+  apply (metis rangeI)
+  apply blast
+  done
+
+lemma filter_time_TRR [closure]:
+  assumes "P is TRR"
+  shows "time(P) is TRR"
+proof -
+  have "time(TRR(P)) is TRR"
+    by (rel_auto, blast+)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma 
+  assumes "P is TRR" "Q is TRR"
+  shows "(P \<triangleright>\<^sub>t active(Q)) = (time(P) \<and> active(Q))"
+  apply (trr_auto cls: assms)
+  oops
 
 lemma extChoice_rdes_def [rdes_def]:
   assumes "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
   shows
   "\<^bold>R(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R(true\<^sub>r \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
        \<^bold>R(true\<^sub>r 
-        \<turnstile> (time(P\<^sub>2) \<and> time(Q\<^sub>2) \<or> active(P\<^sub>2 \<triangleright>\<^sub>t Q\<^sub>2) \<or> active(Q\<^sub>2 \<triangleright>\<^sub>t P\<^sub>2))
+        \<turnstile> (idle(P\<^sub>2) \<and> idle(Q\<^sub>2) \<or> active(P\<^sub>2 \<triangleright>\<^sub>t Q\<^sub>2) \<or> active(Q\<^sub>2 \<triangleright>\<^sub>t P\<^sub>2))
         \<diamondop> (P\<^sub>2 \<triangleright>\<^sub>t Q\<^sub>3 \<or> Q\<^sub>2 \<triangleright>\<^sub>t P\<^sub>3))"
   by (simp add: extChoice_def rdes assms closure rpred)
+
+lemma periR_TRR [closure]:
+  assumes "P is TRR"
+  shows "peri\<^sub>R(P) is TRR"
+proof -
+  have "peri\<^sub>R(TRR(P)) is TRR"
+    by (rel_auto)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma 
+  assumes "peri\<^sub>R P is TRR" "peri\<^sub>R Q is TRR" "peri\<^sub>R P is TIP" "peri\<^sub>R Q is TIP"
+  shows "ExtChoice {P, Q} id = extChoice P Q"
+  apply (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and ac_simps)
+  apply (rule rdes_tri_eq_intro)
+    apply (simp_all)
+  oops
 
 lemma [dest]: "x \<in>\<^sub>\<R> \<^bold>\<bullet> \<Longrightarrow> P"
   by (metis rmember.simps(1))
@@ -1082,7 +1177,8 @@ lemma "Wait m \<box> Wait m = Wait m"
   by (rdes_eq)
 
 lemma "Wait m \<box> Wait n = Wait U(min m n)"
-  by (rdes_eq)
+  apply (rdes_eq_split, simp_all add: rpred closure)
+  oops
 
 lemma "Skip \<box> Stop\<^sub>U = Skip"
   by (rdes_eq)
@@ -1099,18 +1195,37 @@ lemma "Wait(n + 1) \<box> Stop\<^sub>U = Stop\<^sub>U"
 lemma append_in_dist_conat: "\<lbrakk> x \<in> xs; y \<in> ys \<rbrakk> \<Longrightarrow> x @ y \<in> xs \<^sup>\<frown> ys"
   by (auto simp add: dist_concat_def)
 
-lemma [rpred]: "time(\<T>(X, T) ;; \<U>(true, [Evt a])) = false"
+lemma [rpred]: "idle(\<T>(X, T) ;; \<U>(true, [Evt a])) = false"
   by (rel_simp)
 
 lemma [simp]: "U(insert x (insert x A)) = U(insert x A)"
   by (rel_auto)
 
+lemma [rpred]: "active(\<T>(X, {0..})) = false"
+  by (rel_auto)
+
+lemma [rpred]: "active(\<T>(X, T) ;; \<E>(s, [], E, p)) = false"
+  by (trr_auto)
+
+lemma [rpred]: "active(\<T>(X, T) ;; \<U>(s, [])) = false"
+  by (trr_auto)
 
 lemma [rpred]: "P \<triangleright>\<^sub>t (\<Sqinter> i \<bullet> Q(i)) = (\<Sqinter> i \<bullet> P \<triangleright>\<^sub>t Q(i))"
   by (rel_auto, blast+)
 
 lemma "Stop \<box> do\<^sub>T(a) = do\<^sub>T(a)"
-  apply (rdes_eq_split) oops
+  apply (rdes_eq_split)
+    apply (simp_all add: rpred closure)
+  apply (trr_simp)
+  apply (safe)
+  apply (auto)
+  apply (metis (full_types) list.sel(1) range_eqI tock_ord_Evt_hd_eq tock_ord_Nil tocks_idleprefix_fp tocks_iff_idleprefix_fp)
+  using tocks_idleprefix_fp tocks_iff_idleprefix_fp apply blast
+  apply (metis tocks_idleprefix_fp tocks_iff_idleprefix_fp)
+  using tocks_idleprefix_fp tocks_iff_idleprefix_fp apply blast
+  done
+
+find_theorems "(\<triangleright>\<^sub>t)"
 
 lemma "Wait m \<box> Skip = Skip"
   by (rdes_eq, metis list.exhaust_sel tocks_Evt)
@@ -1118,7 +1233,7 @@ lemma "Wait m \<box> Skip = Skip"
 lemma "Stop \<box> \<langle>\<sigma>\<rangle>\<^sub>T = \<langle>\<sigma>\<rangle>\<^sub>T"
   by (rdes_eq)
 
-lemma [rpred]: "time(\<U>(b, [])) = \<U>(b, [])"
+lemma [rpred]: "idle(\<U>(b, [])) = \<U>(b, [])"
   by (rel_auto)
 
 lemma RR_idleprefix_merge' [rpred]:
@@ -1128,7 +1243,7 @@ lemma RR_idleprefix_merge' [rpred]:
 
 lemma [rpred]:
   assumes "P is TRR" 
-  shows "(time(P) \<or> active(P \<triangleright>\<^sub>t P)) = (P \<triangleright>\<^sub>t P)"
+  shows "(idle(P) \<or> active(P \<triangleright>\<^sub>t P)) = (P \<triangleright>\<^sub>t P)"
   apply (trr_auto cls: assms)
   apply blast
   apply blast
