@@ -230,14 +230,20 @@ lemma idleprefix_idem [simp]: "idleprefix (idleprefix t) = idleprefix t"
 
 subsection \<open> Reactive Relation Constructs \<close>
 
+definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
+[upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+
 definition TRR1 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
-[upred_defs]: "TRR1(P) = (\<exists> $ref \<bullet> P)"
+[upred_defs]: "TRR1(P) = (II\<^sub>t ;; P)"
 
 definition TRR2 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR2(P) = (U($tr\<acute> = $tr \<and> $ref\<acute> = \<^bold>\<bullet>) \<or> P)"
 
 definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
-[upred_defs]: "TRR(P) = (\<exists> $pat \<bullet> \<exists> $ref \<bullet> RR(P))"
+[upred_defs]: "TRR(P) = TRR1(RR(P))"
+
+definition TRC :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRC(P) = TRR1(RC(P))"
 
 lemma TRR_idem: "TRR(TRR(P)) = TRR(P)"
   by (rel_auto)
@@ -248,16 +254,19 @@ lemma TRR_Idempotent [closure]: "Idempotent TRR"
 lemma TRR_Continuous [closure]: "Continuous TRR"
   by (rel_blast)
 
+lemma TRR_alt_def: "TRR(P :: ('s,'e) taction) = (\<exists> $pat \<bullet> \<exists> $ref \<bullet> RR(P))"
+  by rel_blast
+
 lemma TRR_intro:
   assumes "$ref \<sharp> P" "$pat \<sharp> P" "P is RR"
   shows "P is TRR"
-  by (simp add: TRR_def Healthy_def, simp add: Healthy_if assms ex_unrest)
+  by (simp add: TRR_alt_def Healthy_def, simp add: Healthy_if assms ex_unrest)
 
 lemma TRR_unrest_ref [unrest]: "P is TRR \<Longrightarrow> $ref \<sharp> P"
-  by (metis (no_types, lifting) Healthy_if TRR_def exists_twice in_var_indep in_var_uvar ref_vwb_lens tc_vars.indeps(2) unrest_as_exists unrest_ex_diff vwb_lens_mwb)
+  by (metis (no_types, lifting) Healthy_if TRR_alt_def exists_twice in_var_indep in_var_uvar ref_vwb_lens tc_vars.indeps(2) unrest_as_exists unrest_ex_diff vwb_lens_mwb)
 
 lemma TRR_unrest_pat [unrest]: "P is TRR \<Longrightarrow> $pat \<sharp> P"
-  by (metis (no_types, hide_lams) Healthy_if TRR_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
+  by (metis (no_types, hide_lams) Healthy_if TRR_alt_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
 
 lemma TRR_implies_RR [closure]: 
   assumes "P is TRR"
@@ -268,6 +277,35 @@ proof -
   thus ?thesis
     by (metis Healthy_def assms)
 qed
+
+lemma TRC_implies_TRR [closure]:
+  assumes "P is TRC"
+  shows "P is TRR"
+proof -
+  have "TRC(P) is TRR"
+    apply (rel_auto)
+    apply (meson eq_iff minus_cancel_le)
+    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix plus_list_def trace_class.add_diff_cancel_left)
+    done
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma TRC_implies_RC2:
+  assumes "P is TRC"
+  shows "P is RC2"
+proof -
+  have "TRC(P) is RC2"
+    by (rel_auto, blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma TRC_implies_RC [closure]: "P is TRC \<Longrightarrow> P is RC"
+  by (simp add: RC_intro_prefix_closed TRC_implies_RC2 TRC_implies_TRR TRR_implies_RR)
+
+lemma TRR_closed_TRC [closure]: "TRC(P) is TRR"
+  by (metis (no_types, hide_lams) Healthy_Idempotent Healthy_if RC1_RR_closed RC_def TRC_def TRR_Idempotent TRR_def comp_apply rrel_theory.HCond_Idempotent)
 
 utp_const RR TRR 
 
@@ -293,24 +331,65 @@ method trr_simp uses cls = (rule TRR_transfer, simp add: closure cls, simp add: 
 
 method trr_auto uses cls = (rule TRR_transfer, simp add: closure cls, simp add: closure cls, rel_auto)
 
-definition tc_skip :: "('s, 'e) taction" ("II\<^sub>t") where
-[upred_defs]: "tc_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
-
 lemma TRR_tc_skip [closure]: "II\<^sub>t is TRR"
   by (rel_auto)
+
+lemma TRR_closed_disj [closure]:
+  assumes "P is TRR" "Q is TRR"
+  shows "(P \<or> Q) is TRR"
+  by (rule TRR_intro, simp_all add: unrest closure assms)
+
+lemma TRR_closed_neg [closure]: "P is TRR \<Longrightarrow> \<not>\<^sub>r P is TRR"
+  by (rule TRR_intro, simp_all add: unrest closure)
+
+lemma TRR_closed_impl [closure]:
+  assumes "P is TRR" "Q is TRR"
+  shows "(P \<Rightarrow>\<^sub>r Q) is TRR"
+  by (simp add: TRR_closed_disj TRR_closed_neg assms(1) assms(2) rea_impl_def)
 
 lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
   by (rule TRR_intro, simp_all add: closure unrest)
 
+lemma TRR_closed_wp [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P wp\<^sub>r Q is TRR"
+  by (simp add: wp_rea_def closure)
+
+lemma tc_skip_self_unit [simp]: "II\<^sub>t ;; II\<^sub>t = II\<^sub>t"
+  by (trr_auto)
+
 lemma trr_left_unit: 
   assumes "P is TRR"
   shows "II\<^sub>t ;; P = P"
+  by (metis Healthy_if TRR1_def TRR_def TRR_implies_RR assms)
+
+method rrel_simp uses cls = (rule RR_eq_transfer, simp add: closure cls, simp add: closure cls)
+
+lemma TRR_ident_intro:
+  assumes "P is RR" "II\<^sub>t ;; P = P"
+  shows "P is TRR"
+  by (metis Healthy_def TRR1_def TRR_def assms(1) assms(2))
+
+lemma TRR_wp_unit [wp]:
+  assumes "P is TRC"
+  shows "II\<^sub>t wp\<^sub>r P = P"
 proof -
-  have "II\<^sub>t ;; TRR(P) = TRR(P)"
-    by (rel_auto)
+  have "II\<^sub>t wp\<^sub>r (TRC P) = TRC P"
+    by (trr_auto cls: assms)
   thus ?thesis
     by (simp add: Healthy_if assms)
-qed 
+qed
+
+lemma TRC_wp_intro:
+  assumes "P is RC" "II\<^sub>t wp\<^sub>r P = P"
+  shows "P is TRC"
+proof -
+  have "II\<^sub>t wp\<^sub>r (RC2 (RR P)) is TRC"
+    apply (rel_auto)
+    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix order_refl plus_list_def trace_class.add_diff_cancel_left)
+    apply (meson minus_cancel_le order.trans)
+    done
+  thus ?thesis
+    by (simp add: Healthy_if RC_implies_RR RC_prefix_closed assms)
+qed
 
 interpretation trel_theory: utp_theory_continuous TRR
   rewrites "P \<in> carrier trel_theory.thy_order \<longleftrightarrow> P is TRR"
@@ -355,20 +434,6 @@ no_utp_lift lift_state_rel
 
 definition TDC :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" where
 [upred_defs]: "TDC(P) = U(\<exists> ref\<^sub>0. P\<lbrakk>\<guillemotleft>ref\<^sub>0\<guillemotright>/$ref\<acute>\<rbrakk> \<and> $ref\<acute> \<le> \<guillemotleft>ref\<^sub>0\<guillemotright>)"
-
-
-(*
-datatype ('s,'e) tsym = Time "('e set, 's) uexpr" "(nat set, 's) uexpr" | Evts "('e list, 's) uexpr"
-
-fun tsyme :: "('s,'e) tsym \<Rightarrow> ('s,'e) taction" where
-"tsyme (Time X A) = U(\<exists> t \<in> tocks \<lceil>- X\<rceil>\<^sub>S\<^sub><. $tr\<acute> = $tr @ \<guillemotleft>t\<guillemotright> \<and> length(\<guillemotleft>t\<guillemotright>) \<in> \<lceil>A\<rceil>\<^sub>S\<^sub><)" |
-"tsyme (Evts t) = U($tr\<acute> = $tr @ \<lceil>map Evt t\<rceil>\<^sub>S\<^sub><)"
-*)
-
-(*
-abbreviation tsyme :: "('e tev list, 's) uexpr list \<Rightarrow> ('s, 'e) taction" where
-"tsyme ts \<equiv> (bop (\<subseteq>\<^sub>t) $tr\<acute> ($tr ^\<^sub>u \<lceil>foldr (bop (@)) ts \<guillemotleft>[]\<guillemotright>\<rceil>\<^sub>S\<^sub><))"
-*)
 
 abbreviation tsyme :: "('e tev list, 's) uexpr \<Rightarrow> ('s, 'e) taction" where
 "tsyme t \<equiv> U(\<exists> t\<^sub>0. $tr\<acute> = $tr @ \<guillemotleft>t\<^sub>0\<guillemotright> \<and> t\<^sub>0 \<subseteq>\<^sub>t \<lceil>t\<rceil>\<^sub>S\<^sub><)"
@@ -803,17 +868,6 @@ lemma [rpred]: "P \<triangleright>\<^sub>t (Q \<or> R) = (P \<triangleright>\<^s
 lemma [rpred]: "(P \<or> Q) \<triangleright>\<^sub>t R = (P \<triangleright>\<^sub>t R \<or> Q \<triangleright>\<^sub>t R)"
   by (rel_simp, metis)
 
-(*
-lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<E>(s\<^sub>2, [], B, p)) = false"
-  by (rel_auto)
-
-lemma [rpred]: "P \<triangleright>\<^sub>t \<T>(A, B) = false"
-  by (rel_auto)
-
-lemma [rpred]: "P \<triangleright>\<^sub>t (\<T>(E\<^sub>2, T\<^sub>2) ;; \<U>(s\<^sub>2, [])) = false"
-  by (rel_simp)
-*)
-
 lemma tock_ord_Evt: "x \<subseteq>\<^sub>t Evt e # y \<Longrightarrow> (\<exists> t. x = Evt e # t \<and> t \<subseteq>\<^sub>t y)"
   apply (simp add: tock_ord_def)
   apply (rule_tac x="tl x" in exI)
@@ -946,11 +1000,16 @@ lemma NRD_rdes [rdes_def]:
   shows "NRD(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = (\<^bold>R(P \<turnstile> Q \<diamondop> R))"
   by (simp add: Healthy_if NRD_rdes_intro assms)
 
-lemma TC1_rdes [rdes_def]:
-  assumes "Q is TRR" "R is TRR"
-  shows "TC1(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
+lemma TC1_rdes:
+  assumes "P is RC" "Q is RR" "R is RR"
+  shows "TC1(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(II\<^sub>t wp\<^sub>r P \<turnstile> (\<U>(true, []) \<or> TRR(Q)) \<diamondop> TRR(R))"
   using assms
-  by (rdes_simp simps: trr_left_unit)
+  by (rdes_simp simps: trr_left_unit, simp add: TRR_def TRR1_def Healthy_if)
+
+lemma TC1_TRR_rdes [rdes_def]:
+  assumes "P is TRC" "Q is TRR" "R is TRR"
+  shows "TC1(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(P \<turnstile> (\<U>(true, []) \<or> Q) \<diamondop> R)"
+  by (subst TC1_rdes, simp_all add: closure assms wp Healthy_if)
 
 lemma trr_right_unit: 
   assumes "P is TRR" "$ref\<acute> \<sharp> P" "$pat\<acute> \<sharp> P"
@@ -963,8 +1022,8 @@ proof -
 qed
 
 lemma TC2_rdes [rdes_def]:
-  assumes "Q is TRR" "$ref\<acute> \<sharp> R" "$pat\<acute> \<sharp> R" "R is TRR"
-  shows "TC2(\<^bold>R(true\<^sub>r \<turnstile> Q \<diamondop> R)) = \<^bold>R(true\<^sub>r \<turnstile> (Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
+  assumes "P is TRC" "Q is TRR" "$ref\<acute> \<sharp> R" "$pat\<acute> \<sharp> R" "R is TRR"
+  shows "TC2(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(P \<turnstile>(Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
   using assms by (rdes_simp simps: trr_right_unit)
 
 lemma TC_implies_TC1 [closure]: 
@@ -997,6 +1056,30 @@ lemma TC_closed_seqr [closure]: "\<lbrakk> P is TC; Q is TC \<rbrakk> \<Longrigh
   apply (metis (no_types, hide_lams) Healthy_def RA1 TC2_def TC_implies_TC2)
   apply (metis (no_types, hide_lams) Healthy_def RA1 TC1_def TC_implies_TC1)
   done
+
+lemma TC_inner_TRR [closure]:
+  assumes "P is TC"
+  shows "pre\<^sub>R(P) is TRC" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
+proof -
+  have a: "P is NRD"
+    using TC_implies_NRD assms by blast
+  have 1: "P = \<^bold>R(II\<^sub>t wp\<^sub>r pre\<^sub>R P \<turnstile> (\<U>(true, []) \<or> TRR (peri\<^sub>R P)) \<diamondop> TRR (post\<^sub>R P))"
+    by (metis Healthy_if NRD_is_RD NRD_neg_pre_RC RD_healths(2) RD_reactive_tri_design TC1_rdes TC_implies_TC1 a assms periR_RR postR_RR)
+  hence 2: "II\<^sub>t wp\<^sub>r pre\<^sub>R P = pre\<^sub>R P"
+    by (metis TRR_implies_RR TRR_tc_skip a preR_NRD_RR preR_rdes wp_rea_RR_closed)
+  thus [closure]: "pre\<^sub>R(P) is TRC"
+    by (simp add: NRD_neg_pre_RC TRC_wp_intro a)
+  have "peri\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r (\<U>(true, []) \<or> TRR (peri\<^sub>R P)))"
+    by (subst 1, simp add: rdes closure assms 2)
+  also have "... is TRR"
+    by (simp add: closure assms)
+  finally show "peri\<^sub>R(P) is TRR" .
+  have "post\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r TRR (post\<^sub>R P))"
+    by (metis 1 2 Healthy_Idempotent TRR_implies_RR a postR_rdes preR_NRD_RR trel_theory.HCond_Idempotent)
+  also have "... is TRR"
+    by (simp add: closure assms)
+  finally show "post\<^sub>R(P) is TRR" .
+qed
 
 subsection \<open> Basic Constructs \<close>
 
@@ -1155,16 +1238,6 @@ lemma extChoice_rdes_def [rdes_def]:
         \<diamondop> (time(P\<^sub>2) \<and> Q\<^sub>3 \<or> time(Q\<^sub>2) \<and> P\<^sub>3))"
   by (simp add: extChoice_def rdes assms closure rpred)
 
-lemma periR_TRR [closure]:
-  assumes "P is TRR"
-  shows "peri\<^sub>R(P) is TRR"
-proof -
-  have "peri\<^sub>R(TRR(P)) is TRR"
-    by (rel_auto)
-  thus ?thesis
-    by (simp add: Healthy_if assms)
-qed
-
 lemma TIP_has_time [rpred]:
   assumes "P is TRR" "P is TIP"
   shows "(P \<and> time(P)) = P"
@@ -1201,21 +1274,20 @@ proof -
 qed
 
 lemma ExtChoice_unary:
-  \<comment> \<open> FIXME: Need proper healthiness conditions \<close>
-  assumes "P is NRD" "peri\<^sub>R P is TRR" "post\<^sub>R P is TRR"
+  assumes "P is TC"
   shows "ExtChoice {P} id = P"
   by (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and uinf_or RD_reactive_tri_design)
 
 lemma ExtChoice_binary:
-  assumes "peri\<^sub>R P is TRR" "peri\<^sub>R Q is TRR"  "post\<^sub>R P is TRR" "post\<^sub>R Q is TRR" "P \<noteq> Q"
+  assumes "P is TC" "Q is TC" "P \<noteq> Q" 
   shows "ExtChoice {P, Q} id = extChoice P Q"
   apply (subgoal_tac "{P, Q} - {Q} = {P}")
-  apply (simp add: ExtChoice_def tmerge_dual closure assms(1-4) extChoice_def rpred usup_and uinf_or conj_disj_distr)
+  apply (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and uinf_or conj_disj_distr)
   apply (rule rdes_tri_eq_intro)
     apply (simp_all add: assms)
   apply (simp add: disj_comm utp_pred_laws.inf.commute utp_pred_laws.sup.left_commute)
   apply (simp add: utp_pred_laws.inf_commute utp_pred_laws.sup_commute)
-  apply (simp add: assms(5) insert_Diff_if)
+  apply (simp add: assms insert_Diff_if)
   done
 
 lemma [dest]: "x \<in>\<^sub>\<R> \<^bold>\<bullet> \<Longrightarrow> P"
