@@ -291,7 +291,7 @@ proof -
     by (simp add: Healthy_if assms)
 qed
 
-lemma TRC_implies_RC2:
+lemma TRC_implies_RC2 [closure]:
   assumes "P is TRC"
   shows "P is RC2"
 proof -
@@ -480,8 +480,6 @@ utp_lift_notation tc_unstable
 utp_lift_notation tc_final (2)
 utp_lift_notation tc_time
 
-utp_const tc_stable
-
 lemma [closure]: "\<E>(s, t, E, p) is TRR"
   by (rel_auto)
 
@@ -618,13 +616,13 @@ proof (trr_auto)
 qed
 
 definition filter_idle :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("idle'(_')") where
-[upred_defs]: "filter_idle P = U(P \<and> &tt \<in> tocks UNIV)"
+[upred_defs]: "filter_idle P = U(R1(P \<and> &tt \<in> tocks UNIV))"
 
 definition filter_time :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("time'(_')") where
 [upred_defs]: "filter_time P = U(R1(\<exists> $st\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> P\<lbrakk>idleprefix(&tt)/&tt\<rbrakk>))"
 
 definition filter_active :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction" ("active'(_')") where 
-[upred_defs]: "filter_active(P) = U(\<exists> t e t'. P \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> &tt = \<guillemotleft>t @ (Evt e # t')\<guillemotright>)"
+[upred_defs]: "filter_active(P) = U(R1(\<exists> t e t'. P \<and> \<guillemotleft>t\<guillemotright> \<in> tocks UNIV \<and> &tt = \<guillemotleft>t @ (Evt e # t')\<guillemotright>))"
 
 text \<open> We make the decision that state changes are not observable during idle periods, as this
   would complicate the semantics. They are only revealed at termination and quiescence. \<close>
@@ -666,7 +664,7 @@ text \<open> The time merge operator merges the delay traces of one relation wit
 
 utp_const filter_idle filter_active merge_time tmerge
 
-lemma time_TRR [closure]: assumes "P is TRR" shows "idle(P) is TRR"
+lemma idle_TRR [closure]: assumes "P is TRR" shows "idle(P) is TRR"
 proof -
   have "TRR(idle(TRR(P))) = idle(TRR(P))" by rel_blast
   thus "idle(P) is TRR" by (metis Healthy_def assms)
@@ -676,6 +674,12 @@ lemma active_TRR [closure]: assumes "P is TRR" shows "active(P) is TRR"
 proof -
   have "TRR(active(TRR(P))) = active(TRR(P))" by rel_blast
   thus "active(P) is TRR" by (metis Healthy_def assms)
+qed
+
+lemma time_TRR [closure]: assumes "P is TRR" shows "time(P) is TRR"
+proof -
+  have "TRR(time(TRR(P))) = time(TRR(P))" by rel_blast
+  thus "time(P) is TRR" by (metis Healthy_def assms)
 qed
 
 lemma TRR_merge_time [closure]: 
@@ -689,6 +693,21 @@ proof -
 qed
 
 lemma active_disj [rpred]: "active(P \<or> Q) = (active(P) \<or> active(Q))"
+  by rel_auto
+
+lemma idle_conj [rpred]: "idle(P \<and> Q) = (idle(P) \<and> idle(Q))"
+  by (rel_auto)
+
+lemma idle_idem [rpred]: "idle(idle(P)) = idle(P)"
+  by rel_auto
+
+lemma idle_true [rpred]: "idle(true) = \<T>({}, {0..}) ;; \<E>(true, [], {}, true)"
+  by rel_auto
+
+lemma idle_true': "idle(true) = U(R1(&tt \<in> tocks UNIV))"
+  by rel_auto
+
+lemma active_idem [rpred]: "active(active(P)) = active(P)"
   by rel_auto
 
 lemma TRR_idle_or_active [rpred]:
@@ -1184,17 +1203,24 @@ lemma "Wait(m) ;; do\<^sub>T(a) ;; \<langle>[x \<mapsto>\<^sub>s &x + 1]\<rangle
   oops
 
 definition ExtChoice :: "'i set \<Rightarrow> ('i \<Rightarrow> ('s, 'e) taction) \<Rightarrow> ('s, 'e) taction" where
+[upred_defs]:
 "ExtChoice I P =
-  \<^bold>R((\<And> i\<in>I \<bullet> pre\<^sub>R(P i)) \<comment> \<open> Require all preconditions \<close>
+  \<^bold>R(R1(\<And> i\<in>I \<bullet> pre\<^sub>R(P i)) \<comment> \<open> Require all preconditions \<close>
 
-   \<turnstile> ((\<And> i\<in>I \<bullet> idle(peri\<^sub>R(P i))) \<comment> \<open> Allow all idle behaviours \<close>
+   \<turnstile> (idle(\<And> i\<in>I \<bullet> idle(peri\<^sub>R(P i))) \<comment> \<open> Allow all idle behaviours \<close>
       \<or> (\<Or> i\<in>I \<bullet> active(peri\<^sub>R(P i)) \<comment> \<open> Allow one active action to resolve the choice ...\<close>
          \<and> (\<And> j\<in>I-{i} \<bullet> time(peri\<^sub>R(P j))))) \<comment> \<open> ... whilst the others remain idle \<close>
 
    \<diamondop> ((\<Or> i\<in>I \<bullet> post\<^sub>R(P i) \<comment> \<open> The postcondition can terminate the external choice without an event ... \<close>
       \<and> (\<And> j\<in>I-{i} \<bullet> time(peri\<^sub>R(P j))))))" \<comment> \<open> ... whilst the others remain quiescent and idle \<close>
 
+(*
 definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
+[upred_defs]: "P \<box> Q = ExtChoice {P, Q} id"
+*)
+
+definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Rightarrow> ('s, 'e) taction" (infixl "\<box>" 69) where
+[upred_defs]:
 "P \<box> Q =
   \<^bold>R((pre\<^sub>R(P) \<and> pre\<^sub>R(Q))
   \<turnstile> (idle(peri\<^sub>R(P)) \<and> idle(peri\<^sub>R(Q)) 
@@ -1202,41 +1228,114 @@ definition extChoice :: "('s, 'e) taction \<Rightarrow> ('s, 'e) taction \<Right
     \<or> time(peri\<^sub>R(Q)) \<and> active(peri\<^sub>R(P)))
   \<diamondop> (time(peri\<^sub>R(P)) \<and> post\<^sub>R(Q) \<or> time(peri\<^sub>R(Q)) \<and> post\<^sub>R(P)))"
 
-text \<open> Can we express the latter two pericondition clauses as: \<close>
-
-term "time(peri\<^sub>R(P)) \<and> active(peri\<^sub>R(Q))"
-
-lemma "active(P \<triangleright>\<^sub>t Q) = P \<triangleright>\<^sub>t active(Q)"
-  apply (rel_auto)
-  apply (metis rangeI)
-  apply blast
-  done
-
-lemma filter_time_TRR [closure]:
-  assumes "P is TRR"
-  shows "time(P) is TRR"
+lemma TRR_USUP_closed [closure]:
+  assumes "\<And> i. P(i) is TRR" "I \<noteq> {}"
+  shows "(\<And> i\<in>I \<bullet> P(i)) is TRR"
 proof -
-  have "time(TRR(P)) is TRR"
+  have "(\<And> i\<in>I \<bullet> P(i)) = (\<not>\<^sub>r (\<Or> i\<in>I \<bullet> \<not>\<^sub>r P(i)))"
+    by (simp add: rpred closure assms)
+  also have "... is TRR"
+    by (meson TRR_closed_neg UINF_mem_Continuous_closed assms(1) assms(2) trel_theory.HCond_Cont)
+  finally show ?thesis .
+qed
+
+lemma ExtChoice_empty:
+  "ExtChoice {} P = Stop"
+  by (simp add: ExtChoice_def Stop_def rpred)
+
+lemma ExtChoice_single: 
+  assumes "P i is NRD" "peri\<^sub>R(P i) is TRR"
+  shows "ExtChoice {i} P = P i"
+  by (simp add: ExtChoice_def Healthy_if rpred closure assms RD_reactive_tri_design)
+
+lemma TRR_RC2_closed [closure]:
+   assumes "P is TRR" shows "RC2(P) is TRR"
+proof -
+  have "RC2(TRR(P)) is TRR"
     by (rel_auto)
+       (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc plus_list_def trace_class.add_diff_cancel_left)+
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
 
-lemma 
-  assumes "P is TRR" "Q is TRR"
-  shows "active(P \<triangleright>\<^sub>t Q) = (time(P) \<and> active(Q))"
-  apply (trr_auto cls: assms)
-  apply (metis append_Nil2 hd_Cons_tl idleprefix_concat_Evt tocks_idleprefix_fp)
-  by fastforce  
+lemma ExtChoice_rdes_def [rdes_def]:
+  assumes "\<And> i. P\<^sub>1(i) is TRC" "\<And> i. P\<^sub>2(i) is TRR" "\<And> i. P\<^sub>3(i) is TRR"
+  shows "ExtChoice I (\<lambda> i. \<^bold>R(P\<^sub>1(i) \<turnstile> P\<^sub>2(i) \<diamondop> P\<^sub>3(i))) = 
+ \<^bold>R ((\<And> i\<in>I \<bullet> P\<^sub>1(i)) 
+    \<turnstile> (idle(\<And> i\<in>I \<bullet> idle(P\<^sub>2 i)) \<or> (\<Or> i\<in>I \<bullet> active(P\<^sub>2 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j)))) \<diamondop>
+        (\<Or> i\<in>I \<bullet> (P\<^sub>3 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j))))"
+proof (cases "I = {}")
+  case True
+  then show ?thesis by (simp add: ExtChoice_empty rpred Stop_def, rel_auto)
+next
+  case False
+  note ne [closure] = this
+  then show ?thesis
+  proof (cases "\<exists> i. I = {i}")
+    case True
+    then show ?thesis 
+      by (clarsimp simp add: ExtChoice_single rdes closure assms rpred)
+  next
+    case False
+    have [closure]:"\<And>i. i \<in> I \<Longrightarrow> \<not> I \<subseteq> {i}"
+      using False by blast
+    have "((\<And> i\<in>I \<bullet> RC2(P\<^sub>1(i))) \<Rightarrow>\<^sub>r (idle(\<And> i\<in>I \<bullet> idle(RC2(P\<^sub>1 i) \<Rightarrow>\<^sub>r P\<^sub>2 i)) \<or> (\<Or> i\<in>I \<bullet> active(RC2(P\<^sub>1 i) \<Rightarrow>\<^sub>r P\<^sub>2 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(RC2(P\<^sub>1 j) \<Rightarrow>\<^sub>r P\<^sub>2 j)))))
+        = ((\<And> i\<in>I \<bullet> RC2(P\<^sub>1(i))) \<Rightarrow>\<^sub>r (idle(\<And> i\<in>I \<bullet> idle(P\<^sub>2 i)) \<or> (\<Or> i\<in>I \<bullet> active(P\<^sub>2 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j)))))"
+      apply (trr_simp cls: assms, safe)
+      apply meson
+      apply meson
+      apply blast
+      apply blast
+      apply (metis idleprefix_concat_Evt list_append_prefixD tocks_idleprefix_fp)
+      apply (metis idleprefix_concat_Evt list_append_prefixD tocks_idleprefix_fp)
+      apply (metis idleprefix_concat_Evt list_append_prefixD tocks_idleprefix_fp)
+      apply blast+
+      done
+    hence 1: "((\<And> i\<in>I \<bullet> P\<^sub>1(i)) \<Rightarrow>\<^sub>r (idle(\<And> i\<in>I \<bullet> idle(P\<^sub>1 i \<Rightarrow>\<^sub>r P\<^sub>2 i)) \<or> (\<Or> i\<in>I \<bullet> active(P\<^sub>1 i \<Rightarrow>\<^sub>r P\<^sub>2 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>1 j \<Rightarrow>\<^sub>r P\<^sub>2 j)))))
+            = ((\<And> i\<in>I \<bullet> P\<^sub>1(i)) \<Rightarrow>\<^sub>r (idle(\<And> i\<in>I \<bullet> idle(P\<^sub>2 i)) \<or> (\<Or> i\<in>I \<bullet> active(P\<^sub>2 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j)))))"
+      by (simp add: Healthy_if assms closure)
+    have "((\<And> i\<in>I \<bullet> RC2(P\<^sub>1(i))) \<Rightarrow>\<^sub>r (\<Or> i\<in>I \<bullet> (RC2(P\<^sub>1 i) \<Rightarrow>\<^sub>r P\<^sub>3 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(RC2(P\<^sub>1 j) \<Rightarrow>\<^sub>r P\<^sub>2 j))))
+          = ((\<And> i\<in>I \<bullet> RC2(P\<^sub>1(i))) \<Rightarrow>\<^sub>r (\<Or> i\<in>I \<bullet> (P\<^sub>3 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j))))"
+      apply (trr_simp cls: assms, safe)
+      apply auto[1]
+      apply (meson idleprefix_prefix order.trans)
+      apply blast
+      done
+    hence 2: "((\<And> i\<in>I \<bullet> P\<^sub>1(i)) \<Rightarrow>\<^sub>r (\<Or> i\<in>I \<bullet> (P\<^sub>1 i \<Rightarrow>\<^sub>r P\<^sub>3 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>1 j \<Rightarrow>\<^sub>r P\<^sub>2 j))))
+          =  ((\<And> i\<in>I \<bullet> P\<^sub>1(i)) \<Rightarrow>\<^sub>r (\<Or> i\<in>I \<bullet> (P\<^sub>3 i) \<and> (\<And> j\<in>I - {i} \<bullet> time(P\<^sub>2 j))))"
+      by (simp add: Healthy_if assms closure)
+    show ?thesis
+      by (simp add: ExtChoice_def rdes assms closure Healthy_if)
+         (metis (no_types, lifting) "1" "2" rdes_tri_eq_intro rea_impl_mp)
+  qed
+qed
+
+lemma ExtChoice_dual:
+  assumes "P is TC" "Q is TC" "P \<noteq> Q"
+  shows
+    "ExtChoice {P, Q} id = P \<box> Q"
+  apply (subgoal_tac "{P, Q} - {Q} = {P}")
+  apply (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and uinf_or conj_disj_distr)
+  apply (rule rdes_tri_eq_intro)
+    apply (simp_all add: assms Healthy_if closure)
+  apply (simp add: disj_comm utp_pred_laws.inf.commute utp_pred_laws.sup.left_commute rpred closure assms)
+  apply (simp add: utp_pred_laws.inf_commute utp_pred_laws.sup_commute)
+  apply (simp add: assms insert_Diff_if)
+  done
+
+text \<open> Proving idempotence of binary external choice is complicated by the need to show that
+  @{term "(time(peri\<^sub>R(P)) \<and> post\<^sub>R(P)) = post\<^sub>R(P)"} \<close>
+
+lemma TRC_rea_true: "true\<^sub>r is TRC" by rel_auto
 
 lemma extChoice_rdes_def [rdes_def]:
-  assumes "P\<^sub>2 is RR" "P\<^sub>3 is RR" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR"
+  assumes "P\<^sub>2 is TRR" "P\<^sub>3 is TRR" "Q\<^sub>2 is TRR" "Q\<^sub>3 is TRR"
   shows
   "\<^bold>R(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<box> \<^bold>R(true\<^sub>r \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) =
        \<^bold>R(true\<^sub>r 
         \<turnstile> (idle(P\<^sub>2) \<and> idle(Q\<^sub>2) \<or> time(P\<^sub>2) \<and> active(Q\<^sub>2) \<or> time(Q\<^sub>2) \<and> active(P\<^sub>2))
         \<diamondop> (time(P\<^sub>2) \<and> Q\<^sub>3 \<or> time(Q\<^sub>2) \<and> P\<^sub>3))"
-  by (simp add: extChoice_def rdes assms closure rpred)
+  by (simp add: extChoice_def ExtChoice_def rdes closure assms rpred)
 
 lemma TIP_has_time [rpred]:
   assumes "P is TRR" "P is TIP"
@@ -1274,21 +1373,9 @@ proof -
 qed
 
 lemma ExtChoice_unary:
-  assumes "P is TC"
-  shows "ExtChoice {P} id = P"
-  by (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and uinf_or RD_reactive_tri_design)
-
-lemma ExtChoice_binary:
-  assumes "P is TC" "Q is TC" "P \<noteq> Q" 
-  shows "ExtChoice {P, Q} id = extChoice P Q"
-  apply (subgoal_tac "{P, Q} - {Q} = {P}")
-  apply (simp add: ExtChoice_def tmerge_dual closure assms extChoice_def rpred usup_and uinf_or conj_disj_distr)
-  apply (rule rdes_tri_eq_intro)
-    apply (simp_all add: assms)
-  apply (simp add: disj_comm utp_pred_laws.inf.commute utp_pred_laws.sup.left_commute)
-  apply (simp add: utp_pred_laws.inf_commute utp_pred_laws.sup_commute)
-  apply (simp add: assms insert_Diff_if)
-  done
+  assumes "P i is TC"
+  shows "ExtChoice {i} P = P i"
+  by (simp add: ExtChoice_single TC_implies_NRD TC_inner_TRR(2) assms)
 
 lemma [dest]: "x \<in>\<^sub>\<R> \<^bold>\<bullet> \<Longrightarrow> P"
   by (metis rmember.simps(1))
