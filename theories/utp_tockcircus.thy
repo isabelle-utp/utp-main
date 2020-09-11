@@ -239,11 +239,17 @@ definition TRR1 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 definition TRR2 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR2(P) = (U($tr\<acute> = $tr \<and> $ref\<acute> = \<^bold>\<bullet>) \<or> P)"
 
+definition TRR3 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRR3(P) = (P ;; II\<^sub>t)"
+
 definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR(P) = TRR1(RR(P))"
 
 definition TRC :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRC(P) = TRR1(RC(P))"
+
+definition TRF :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRF(P) = TRR3(TRR(P))"
 
 lemma TRR_idem: "TRR(TRR(P)) = TRR(P)"
   by (rel_auto)
@@ -309,7 +315,24 @@ lemma TRR_closed_TRC [closure]: "TRC(P) is TRR"
 
 utp_const RR TRR 
 
-lemma TRR_transfer:
+lemma TRR_transfer_refine:
+  fixes P Q :: "('s, 'e) taction"
+  assumes "P is TRR" "Q is TRR" 
+    "(\<And> t s s' r p. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>, $pat \<mapsto>\<^sub>s false, $pat\<acute> \<mapsto>\<^sub>s \<guillemotleft>p\<guillemotright>] \<dagger> P) 
+                   \<sqsubseteq> U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>, $pat \<mapsto>\<^sub>s false, $pat\<acute> \<mapsto>\<^sub>s \<guillemotleft>p\<guillemotright>] \<dagger> Q))"
+  shows "P \<sqsubseteq> Q"
+proof -
+  have "(\<And> t s s' r p. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>, $pat \<mapsto>\<^sub>s false, $pat\<acute> \<mapsto>\<^sub>s \<guillemotleft>p\<guillemotright>] \<dagger> TRR P) 
+                     \<sqsubseteq> U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>, $pat \<mapsto>\<^sub>s false, $pat\<acute> \<mapsto>\<^sub>s \<guillemotleft>p\<guillemotright>] \<dagger> TRR Q))"
+    by (metis Healthy_if assms(1) assms(2) assms(3))
+  hence "TRR P \<sqsubseteq> TRR Q"
+    by (rel_auto)
+  thus ?thesis
+    by (metis Healthy_if assms(1) assms(2))
+qed
+
+
+lemma TRR_transfer_eq:
   fixes P Q :: "('s, 'e) taction"
   assumes "P is TRR" "Q is TRR" 
     "(\<And> t s s' r p. U([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true, $tr \<mapsto>\<^sub>s [], $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>t\<guillemotright>, $st \<mapsto>\<^sub>s \<guillemotleft>s\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>s'\<guillemotright>, $ref \<mapsto>\<^sub>s \<^bold>\<bullet>, $ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>r\<guillemotright>, $pat \<mapsto>\<^sub>s false, $pat\<acute> \<mapsto>\<^sub>s \<guillemotleft>p\<guillemotright>] \<dagger> P) 
@@ -324,6 +347,8 @@ proof -
   thus ?thesis
     by (metis Healthy_if assms(1) assms(2))
 qed
+
+lemmas TRR_transfer = TRR_transfer_refine TRR_transfer_eq
 
 text \<open> Tailored proof strategy -- eliminates irrelevant variables like ok, wait, tr and ref. \<close>
 
@@ -1040,6 +1065,21 @@ proof -
     by (simp add: Healthy_if assms ex_unrest)
 qed
 
+lemma TRF_intro:
+  assumes "P is TRR" "$ref\<acute> \<sharp> P" "$pat\<acute> \<sharp> P"
+  shows "P is TRF"
+  by (metis Healthy_def TRF_def TRR3_def assms trr_right_unit)
+
+lemma TRF_unrests [unrest]:
+  assumes "P is TRF"
+  shows "$ref\<acute> \<sharp> P" "$pat\<acute> \<sharp> P"
+proof -
+  have "$ref\<acute> \<sharp> TRF(P)" "$pat\<acute> \<sharp> TRF(P)" 
+    by (rel_auto)+
+  thus "$ref\<acute> \<sharp> P" "$pat\<acute> \<sharp> P"
+    by (simp_all add: Healthy_if assms)
+qed
+
 lemma TC2_rdes [rdes_def]:
   assumes "P is TRC" "Q is TRR" "$ref\<acute> \<sharp> R" "$pat\<acute> \<sharp> R" "R is TRR"
   shows "TC2(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(P \<turnstile>(Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
@@ -1454,20 +1494,63 @@ lemma [rpred]:
   apply (metis hd_Cons_tl tocks_Nil)
   done
 
+lemma TRR_TIP_closed [closure]:
+  assumes "P is TRR"
+  shows "TIP(P) is TRR"
+proof -
+  have "TIP(TRR(P)) is TRR"
+    by (rel_auto; fastforce)
+  thus ?thesis by (simp add: Healthy_if assms)
+qed
+
+utp_const TRF
+
+lemma unstable_TRF:
+  assumes "P is TRF"
+  shows "P ;; \<U>(true, []) = U((\<exists> $st\<acute> \<bullet> P) \<and> $ref\<acute> = \<^bold>\<bullet> \<and> $pat\<acute> = false)"
+proof -
+  have "TRF P ;; \<U>(true, []) = U((\<exists> $st\<acute> \<bullet> TRF P) \<and> $ref\<acute> = \<^bold>\<bullet> \<and> $pat\<acute> = false)"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
+lemma [closure]: "P is TRR \<Longrightarrow> TRF(P) is TRR"
+  by (simp add: Healthy_if TRF_def TRR3_def TRR_closed_seq TRR_tc_skip)
+
 lemma 
-  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "peri\<^sub>R(P) is TIP"
+  assumes "P is TRR" "P is TIP" "Q is TRR" "(P \<or> (Q ;; \<U>(true, []))) = P"
+  shows "(time(P) \<and> Q) = Q"
+proof -
+  have 1: "P \<sqsubseteq> Q ;; \<U>(true, [])"
+    by (simp add: assms(4) utp_pred_laws.sup.orderI)
+  have "(TRF(Q ;; \<U>(true, []))) \<sqsubseteq> Q"
+    by (trr_auto cls: assms, blast)
+
+  hence "(TRF(Q ;; \<U>(true, []) \<and> P)) \<sqsubseteq> Q"
+    by (simp add: 1 utp_pred_laws.inf.absorb1) 
+
+  have "(time(P \<or> (TRF Q ;; \<U>(true, []))) \<and> TRF Q) \<sqsubseteq> (TRF(Q ;; \<U>(true, []) \<and> P))"
+    apply (trr_simp cls: assms)
+    apply (drule refine_eval_dest[OF TIP_prop[OF assms(1) assms(2)]])
+    apply (rel_simp)
+    oops \<comment> \<open> Almost there! \<close>
+    
+
+lemma 
+  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "peri\<^sub>R(P) is TIP" "post\<^sub>R(P) is TRR"
   shows "P \<box> P = P"
-  apply (rdes_eq_split cls: assms)
+  apply (rdes_eq_split cls: assms)  
   apply (simp add: assms rpred closure)
-  apply (simp add: TRR_idle_or_active assms(3))
+  apply (simp add: TIP_time_active TRR_idle_or_active assms(3) assms(4) utp_pred_laws.inf_commute)
   oops
 
+text \<open> Need some additional assumptions \<close>
+
 lemma
-  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r"
+  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
   shows "Stop \<box> P = P"
-  apply (rdes_eq_split cls: assms)
-  apply (simp_all add: rpred closure assms)
-  apply (rel_auto)
+  apply (rdes_eq cls: assms)
   oops
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
