@@ -1582,11 +1582,23 @@ lemma extChoice_idem:
 
 text \<open> Need some additional assumptions \<close>
 
+lemma [rpred]: "(\<T>({}, {0..}) ;; \<E>(true, [], {}, true) \<and> idle(P)) = idle(P)"
+  by (rel_auto)
+
+lemma TRR_conj_time [rpred]:
+  assumes "P is TRR"
+  shows "(time(\<T>({}, {0..}) ;; \<E>(true, [], {}, true)) \<and> P) = P"
+proof -
+  have "(time(\<T>({}, {0..}) ;; \<E>(true, [], {}, true)) \<and> TRR(P)) = TRR(P)"
+    by (rel_blast)
+  thus ?thesis
+    by (simp add: Healthy_if assms)
+qed
+
 lemma
   assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
   shows "Stop \<box> P = P"
-  apply (rdes_eq_split cls: assms)
-  oops
+  by (rdes_eq_split cls: assms)
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
 
