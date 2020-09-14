@@ -42,6 +42,9 @@ fun rmember :: "'a \<Rightarrow> 'a refusal \<Rightarrow> bool" ("(_/ \<in>\<^su
 abbreviation rnot_member ("(_/ \<notin>\<^sub>\<R> _)" [51, 51] 50)
   where "rnot_member x A \<equiv> \<not> (x \<in>\<^sub>\<R>  A)"
 
+lemma rfnil_mem_dest [dest]: "x \<in>\<^sub>\<R> \<^bold>\<bullet> \<Longrightarrow> P"
+  by (metis rmember.simps(1))
+
 instantiation refusal :: (type) lattice
 begin
   fun sup_refusal :: "'a refusal \<Rightarrow> 'a refusal \<Rightarrow> 'a refusal"  where

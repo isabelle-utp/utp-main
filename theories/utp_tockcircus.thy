@@ -242,6 +242,12 @@ definition TRR2 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 definition TRR3 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR3(P) = (P ;; II\<^sub>t)"
 
+definition uns :: "('s,'e) taction" where
+[upred_defs]: "uns = U($tr\<acute> = $tr \<and> $ref\<acute> = \<^bold>\<bullet> \<and> $pat\<acute> = false)"
+
+definition TRR4 :: "('s,'e) taction \<Rightarrow> ('s,'e) taction \<Rightarrow> ('s,'e) taction" where
+[upred_defs]: "TRR4 P Q = (Q \<or> P ;; uns)"
+
 definition TRR :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 [upred_defs]: "TRR(P) = TRR1(RR(P))"
 
@@ -1086,9 +1092,9 @@ proof -
 qed
 
 lemma TC2_rdes [rdes_def]:
-  assumes "P is TRC" "Q is TRR" "$ref\<acute> \<sharp> R" "$pat\<acute> \<sharp> R" "R is TRR"
-  shows "TC2(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(P \<turnstile>(Q \<or> R ;; \<U>(true, [])) \<diamondop> R)"
-  using assms by (rdes_simp simps: trr_right_unit)
+  assumes "P is TRC" "Q is TRR" "R is TRR"
+  shows "TC2(\<^bold>R(P \<turnstile> Q \<diamondop> R)) = \<^bold>R(P \<turnstile>(Q \<or> R ;; \<U>(true, [])) \<diamondop> R ;; II\<^sub>t)"
+  using assms by (rdes_simp)
 
 lemma TC_implies_TC1 [closure]: 
   assumes "P is TC"
