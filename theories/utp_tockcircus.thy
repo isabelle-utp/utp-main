@@ -437,7 +437,7 @@ text \<open> The following healthiness condition is a weakened form of prefix cl
   admit every idle prefix with the state unchanged and the unstable refusal. \<close>
 
 definition TIP :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
-[upred_defs]: "TIP(P) = (P \<or> U((\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> \<exists> t. P\<lbrakk>[],\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> = $tr @ idleprefix(\<guillemotleft>t\<guillemotright>)) \<and> $st\<acute> = $st \<and> $ref\<acute> = \<^bold>\<bullet>))"
+[upred_defs]: "TIP(P) = (P \<or> U((\<exists> $st\<acute> \<bullet> \<exists> $ref\<acute> \<bullet> \<exists> $pat\<acute> \<bullet> \<exists> t. P\<lbrakk>[],\<guillemotleft>t\<guillemotright>/$tr,$tr\<acute>\<rbrakk> \<and> $tr\<acute> = $tr @ idleprefix(\<guillemotleft>t\<guillemotright>)) \<and> $st\<acute> = $st \<and> $ref\<acute> = \<^bold>\<bullet> \<and> $pat\<acute> = false))"
 
 utp_const RR TIP
 
@@ -446,9 +446,9 @@ lemma TIP_idem [simp]: "TIP (TIP P) = TIP P"
 
 lemma TIP_prop:
   assumes "P is TRR" "P is TIP"
-  shows "U(P\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> P" 
+  shows "U(P\<lbrakk>$st,\<^bold>\<bullet>,false,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$pat\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> P" 
 proof -
-  have "U(TIP(TRR(P))\<lbrakk>$st,\<^bold>\<bullet>,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> TRR(P)"
+  have "U(TIP(TRR(P))\<lbrakk>$st,\<^bold>\<bullet>,false,[],idleprefix($tr\<acute>-$tr)/$st\<acute>,$ref\<acute>,$pat\<acute>,$tr,$tr\<acute>\<rbrakk>) \<sqsubseteq> TRR(P)"
     by (rel_simp, blast)
   thus ?thesis
     by (simp add: Healthy_if assms(1) assms(2))
@@ -716,6 +716,11 @@ proof -
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
+
+lemma 
+  assumes "P is TRR"
+  shows "(P \<and> time(P)) is TIP"
+  apply (rel_auto) oops
 
 lemma active_disj [rpred]: "active(P \<or> Q) = (active(P) \<or> active(Q))"
   by rel_auto
@@ -1518,39 +1523,69 @@ qed
 lemma [closure]: "P is TRR \<Longrightarrow> TRF(P) is TRR"
   by (simp add: Healthy_if TRF_def TRR3_def TRR_closed_seq TRR_tc_skip)
 
-lemma 
-  assumes "P is TRR" "P is TIP" "Q is TRR" "(P \<or> (Q ;; \<U>(true, []))) = P"
-  shows "(time(P) \<and> Q) = Q"
+lemma [closure]: "P is TRR \<Longrightarrow> TRR3(P) is TRR"
+  by (simp add: Healthy_if TRR3_def TRR_closed_seq TRR_tc_skip)
+
+thm RD_elim
+
+lemma RR_elim: "\<lbrakk> P is RR; Q ([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true] \<dagger> P) \<rbrakk> \<Longrightarrow> Q P"
+  by (simp add: usubst unrest)
+
+lemma TRR_elim: "\<lbrakk> P is TRR; Q ([$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true] \<dagger> P) \<rbrakk> \<Longrightarrow> Q P"
+  by (simp add: usubst unrest closure)
+
+lemma [closure]: "P is TRR \<Longrightarrow> [$ok \<mapsto>\<^sub>s true, $ok\<acute> \<mapsto>\<^sub>s true, $wait \<mapsto>\<^sub>s true, $wait\<acute> \<mapsto>\<^sub>s true] \<dagger> P is TRR"
+  by (simp add: usubst unrest closure)
+
+lemma TRF_implies_TRR3 [closure]: "P is TRF \<Longrightarrow> P is TRR3"
+  by (metis (no_types, hide_lams) Healthy_def RA1 TRF_def TRR3_def tc_skip_self_unit)
+
+lemma TRF_implies_TRR [closure]: "P is TRF \<Longrightarrow> P is TRR"
+  by (metis Healthy_def TRF_def TRR3_def TRR_closed_seq TRR_tc_skip trel_theory.HCond_Idem)
+
+lemma TRF_time [closure]:
+  "P is TRR \<Longrightarrow> time(P) is TRF"
+  by (rule TRF_intro, simp add: closure unrest, simp_all add: filter_time_def unrest)
+
+lemma TRF_right_unit:
+  "P is TRF \<Longrightarrow> P ;; II\<^sub>t = P"
+  by (metis Healthy_if TRF_def TRF_implies_TRR TRR3_def)
+
+text \<open> If a pericondition @{term P} contains an unstable version of each postcondition observation
+  in @{term Q}, then every time trace of the @{term P} has an extension in @{term Q}. \<close>
+
+lemma time_peri_in_post:
+  assumes "P is TRR" "P is TIP" "Q is TRF" "P \<sqsubseteq> Q ;; \<U>(true, [])"
+  shows "time(P) \<sqsubseteq> Q"
 proof -
-  have 1: "P \<sqsubseteq> Q ;; \<U>(true, [])"
-    by (simp add: assms(4) utp_pred_laws.sup.orderI)
-  have "(TRF(Q ;; \<U>(true, []))) \<sqsubseteq> Q"
+  have "Q ;; \<U>(true, []) ;; II\<^sub>t \<sqsubseteq> Q"
     by (trr_auto cls: assms, blast)
+  also have "P ;; II\<^sub>t \<sqsubseteq> ..."
+    by (simp add: RA1 assms(4) urel_dioid.mult_isor)
+  also have "time(P) ;; II\<^sub>t \<sqsubseteq> ..."
+    by (simp add: TIP_has_time assms(1) assms(2) urel_dioid.mult_isor utp_pred_laws.inf.orderI)
+  also have "... = time(P)"
+    by (simp add: TRF_right_unit TRF_time assms(1))
+  finally show ?thesis .
+qed
 
-  hence "(TRF(Q ;; \<U>(true, []) \<and> P)) \<sqsubseteq> Q"
-    by (simp add: 1 utp_pred_laws.inf.absorb1) 
-
-  have "(time(P \<or> (TRF Q ;; \<U>(true, []))) \<and> TRF Q) \<sqsubseteq> (TRF(Q ;; \<U>(true, []) \<and> P))"
-    apply (trr_simp cls: assms)
-    apply (drule refine_eval_dest[OF TIP_prop[OF assms(1) assms(2)]])
-    apply (rel_simp)
-    oops \<comment> \<open> Almost there! \<close>
-    
-
-lemma 
-  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "peri\<^sub>R(P) is TIP" "post\<^sub>R(P) is TRR"
+lemma extChoice_idem:
+  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "peri\<^sub>R(P) is TIP" "post\<^sub>R(P) is TRF"
+    "peri\<^sub>R P \<sqsubseteq> post\<^sub>R P ;; \<U>(true, [])"
   shows "P \<box> P = P"
   apply (rdes_eq_split cls: assms)  
   apply (simp add: assms rpred closure)
-  apply (simp add: TIP_time_active TRR_idle_or_active assms(3) assms(4) utp_pred_laws.inf_commute)
-  oops
+   apply (simp add: TIP_time_active TRR_idle_or_active assms(3) assms(4) utp_pred_laws.inf_commute)
+  using time_peri_in_post[OF assms(3) assms(4) assms(5) assms(6)]
+  apply (simp add: utp_pred_laws.inf.absorb2)
+  done
 
 text \<open> Need some additional assumptions \<close>
 
 lemma
   assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
   shows "Stop \<box> P = P"
-  apply (rdes_eq cls: assms)
+  apply (rdes_eq_split cls: assms)
   oops
 
 text \<open> Pedro Comment: Renaming should be a relation rather than a function. \<close>
