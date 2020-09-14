@@ -83,14 +83,16 @@ lemma TC_closed_seqr [closure]: "\<lbrakk> P is TC; Q is TC \<rbrakk> \<Longrigh
   apply (metis (no_types, hide_lams) Healthy_def RA1 TC1_def TC_implies_TC1)
   done
 
-lemma TC_inner_TRR [closure]:
+lemma TC_inner_closures [closure]:
   assumes "P is TC"
-  shows "pre\<^sub>R(P) is TRC" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
+  shows "pre\<^sub>R(P) is TRC" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRF" "peri\<^sub>R P \<sqsubseteq> post\<^sub>R P ;; \<U>(true, [])"
 proof -
   have a: "P is NRD"
     using TC_implies_NRD assms by blast
-  have 1: "P = \<^bold>R(II\<^sub>t wp\<^sub>r pre\<^sub>R P \<turnstile> (\<U>(true, []) \<or> TRR (peri\<^sub>R P)) \<diamondop> TRR (post\<^sub>R P))"
-    by (metis Healthy_if NRD_is_RD NRD_neg_pre_RC RD_healths(2) RD_reactive_tri_design TC1_rdes TC_implies_TC1 a assms periR_RR postR_RR)
+  have b: "P = TC1(\<^bold>R(pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P))"
+    by (simp add: Healthy_if NRD_is_RD RD_reactive_tri_design TC_implies_TC1 TC_implies_TC2 a assms)
+  hence 1: "P = \<^bold>R(II\<^sub>t wp\<^sub>r pre\<^sub>R P \<turnstile> (\<U>(true, []) \<or> TRR (peri\<^sub>R P)) \<diamondop> TRR (post\<^sub>R P))"
+    by (simp add: TC1_rdes TC2_rdes closure assms)
   hence 2: "II\<^sub>t wp\<^sub>r pre\<^sub>R P = pre\<^sub>R P"
     by (metis TRR_implies_RR TRR_tc_skip a preR_NRD_RR preR_rdes wp_rea_RR_closed)
   thus [closure]: "pre\<^sub>R(P) is TRC"
@@ -99,13 +101,29 @@ proof -
     by (subst 1, simp add: rdes closure assms 2)
   also have "... is TRR"
     by (simp add: closure assms)
-  finally show "peri\<^sub>R(P) is TRR" .
+  finally show [closure]: "peri\<^sub>R(P) is TRR" .
   have "post\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r TRR (post\<^sub>R P))"
     by (metis 1 2 Healthy_Idempotent TRR_implies_RR a postR_rdes preR_NRD_RR trel_theory.HCond_Idempotent)
   also have "... is TRR"
     by (simp add: closure assms)
-  finally show "post\<^sub>R(P) is TRR" .
+  finally have [closure]: "post\<^sub>R(P) is TRR" .  
+  have "P = TC2(\<^bold>R(pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P))"
+    by (simp add: Healthy_if NRD_is_RD RD_reactive_tri_design TC_implies_TC2 a assms)
+  hence 3: "P = \<^bold>R (pre\<^sub>R P \<turnstile> (peri\<^sub>R P \<or> post\<^sub>R P ;; \<U>(true, [])) \<diamondop> post\<^sub>R P ;; II\<^sub>t)"
+    by (simp add: TC2_rdes closure assms)
+  hence "post\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r post\<^sub>R P ;; II\<^sub>t)"
+    by (metis TRR_implies_RR TRR_tc_skip \<open>post\<^sub>R P is TRR\<close> a postR_rdes preR_NRD_RR rrel_theory.Healthy_Sequence)
+  also have "... is TRF"
+    by (rule TRF_intro, simp_all add: closure assms unrest)  
+  finally show "post\<^sub>R(P) is TRF" .
+  have "peri\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r (peri\<^sub>R P \<or> post\<^sub>R P ;; \<U>(true, [])))"
+    by (subst 3, simp add: rdes closure)  
+  thus "peri\<^sub>R P \<sqsubseteq> post\<^sub>R P ;; \<U>(true, [])"
+    by (metis (no_types, hide_lams) rea_impl_disj utp_pred_laws.sup.cobounded1 utp_pred_laws.sup_commute) 
 qed
+
+lemma TC_elim [RD_elim]: "P is TC \<Longrightarrow> Q (\<^bold>R (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)) \<Longrightarrow> Q P"
+  using NRD_elim TC_implies_NRD by blast
 
 subsection \<open> Basic Constructs \<close>
 
@@ -324,7 +342,7 @@ lemma extChoice_rdes_def [rdes_def]:
 lemma ExtChoice_unary:
   assumes "P i is TC"
   shows "ExtChoice {i} P = P i"
-  by (simp add: ExtChoice_single TC_implies_NRD TC_inner_TRR(2) assms)
+  by (simp add: ExtChoice_single TC_implies_NRD TC_inner_closures(2) assms)
 
 lemma [rpred]: "active(\<T>(X, A) ;; \<E>(s, [], E, p)) = false"
   by (rel_auto)
@@ -365,20 +383,20 @@ lemma "Stop \<box> \<langle>\<sigma>\<rangle>\<^sub>T = \<langle>\<sigma>\<rangl
   by (rdes_eq)
 
 lemma extChoice_idem:
-  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "peri\<^sub>R(P) is TIP" "post\<^sub>R(P) is TRF"
-    "peri\<^sub>R P \<sqsubseteq> post\<^sub>R P ;; \<U>(true, [])"
+  assumes "P is TC" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TIP"
   shows "P \<box> P = P"
   apply (rdes_eq_split cls: assms)  
   apply (simp add: assms rpred closure)
-   apply (simp add: TIP_time_active TRR_idle_or_active assms(3) assms(4) utp_pred_laws.inf_commute)
-  using time_peri_in_post[OF assms(3) assms(4) assms(5) assms(6)]
-  apply (simp add: utp_pred_laws.inf.absorb2)
+   apply (simp_all add: assms utp_pred_laws.inf_commute closure rpred)
+  apply (rule utp_pred_laws.inf.absorb1[THEN sym])
+  apply (rule time_peri_in_post)
+  apply (simp_all add: closure assms)
   done
 
 text \<open> Need some additional assumptions \<close>
 
 lemma
-  assumes "P is NRD" "pre\<^sub>R(P) = true\<^sub>r" "peri\<^sub>R(P) is TRR" "post\<^sub>R(P) is TRR"
+  assumes "P is TC" "pre\<^sub>R(P) = true\<^sub>r"
   shows "Stop \<box> P = P"
   by (rdes_eq_split cls: assms)
 

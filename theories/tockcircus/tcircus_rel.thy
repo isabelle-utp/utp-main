@@ -188,6 +188,9 @@ lemma TRR_TRF [closure]: "P is TRR \<Longrightarrow> TRF(P) is TRR"
 lemma TRR_TRR3 [closure]: "P is TRR \<Longrightarrow> TRR3(P) is TRR"
   by (simp add: Healthy_if TRR3_def TRR_closed_seq TRR_tc_skip)
 
+lemma TRF_tc_skip [closure]: "II\<^sub>t is TRF"
+  by rel_auto
+
 no_utp_lift RR TRR TRF
 
 lemma TRR_transfer_refine:
@@ -299,6 +302,11 @@ lemma TRR_ident_intro:
   assumes "P is RR" "II\<^sub>t ;; P = P"
   shows "P is TRR"
   by (metis Healthy_def TRR1_def TRR_def assms(1) assms(2))
+
+lemma TRR_wp_closure [closure]:
+  assumes "P is TRR" "Q is TRC"
+  shows "P wp\<^sub>r Q is TRC"
+  by (metis Healthy_def TRC_def TRC_implies_RC TRC_implies_TRR TRR1_def TRR_closed_wp TRR_implies_RR TRR_left_unit assms(1) assms(2) wp_rea_RC)
 
 lemma TRR_wp_unit [wp]:
   assumes "P is TRC"
