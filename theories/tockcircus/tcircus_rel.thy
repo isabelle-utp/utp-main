@@ -76,10 +76,19 @@ definition TRF :: "('s,'e) taction \<Rightarrow> ('s,'e) taction" where
 lemma TRR_idem: "TRR(TRR(P)) = TRR(P)"
   by (rel_auto)
 
+lemma TRF_idem: "TRF(TRF(P)) = TRF(P)"
+  by (rel_auto)
+
 lemma TRR_Idempotent [closure]: "Idempotent TRR"
   by (simp add: TRR_idem Idempotent_def)
 
+lemma TRF_Idempotent [closure]: "Idempotent TRF"
+  by (simp add: TRF_idem Idempotent_def)
+
 lemma TRR_Continuous [closure]: "Continuous TRR"
+  by (rel_blast)
+
+lemma TRF_Continuous [closure]: "Continuous TRF"
   by (rel_blast)
 
 lemma TRR_alt_def: "TRR(P :: ('s,'e) taction) = (\<exists> $pat \<bullet> \<exists> $ref \<bullet> RR(P))"
@@ -163,7 +172,7 @@ proof -
     by (simp add: Healthy_if assms ex_unrest)
 qed
 
-lemma TRF_right_unit:
+lemma TRF_right_unit [rpred]:
   "P is TRF \<Longrightarrow> P ;; II\<^sub>t = P"
   by (metis Healthy_if TRF_def TRF_implies_TRR TRR3_def)
 
@@ -230,9 +239,9 @@ lemmas TRR_transfer = TRR_transfer_refine TRR_transfer_eq
 
 text \<open> Tailored proof strategy -- eliminates irrelevant variables like ok, wait, tr and ref. \<close>
 
-method trr_simp uses cls = (rule TRR_transfer, simp add: closure cls, simp add: closure cls, rel_simp)
+method trr_simp uses cls = (rule_tac TRR_transfer, simp add: closure cls, simp add: closure cls, rel_simp)
 
-method trr_auto uses cls = (rule TRR_transfer, simp add: closure cls, simp add: closure cls, rel_auto)
+method trr_auto uses cls = (rule_tac TRR_transfer, simp add: closure cls, simp add: closure cls, rel_auto)
 
 lemma TRR_closed_disj [closure]:
   assumes "P is TRR" "Q is TRR"
@@ -341,12 +350,29 @@ interpretation trel_theory: utp_theory_continuous TRR
   and trel_bottom: "trel_theory.utp_bottom = true\<^sub>r"
 proof -
   interpret utp_theory_continuous TRR
-    by (unfold_locales, simp_all add: add: TRR_idem TRR_Continuous)
-  show top:"utp_top = false"
+    by (unfold_locales, simp_all add: TRR_idem TRR_Continuous)
+  show top:"utp_top = false"          
     by (simp add: healthy_top, rel_auto)
   show bot:"utp_bottom = true\<^sub>r"
     by (simp add: healthy_bottom, rel_auto)
   show "utp_theory_continuous TRR"
+    by (unfold_locales, simp_all add: closure rpred top)
+qed (simp_all)
+
+interpretation tfin_theory: utp_theory_continuous TRF
+  rewrites "P \<in> carrier tfin_theory.thy_order \<longleftrightarrow> P is TRF"
+  and "le tfin_theory.thy_order = (\<sqsubseteq>)"
+  and "eq tfin_theory.thy_order = (=)"  
+  and tfin_top: "tfin_theory.utp_top = false"
+  and tfin_bottom: "tfin_theory.utp_bottom = true\<^sub>r"
+proof -
+  interpret utp_theory_continuous TRF
+    by (unfold_locales, simp_all add: TRF_idem TRF_Continuous)
+  show top:"utp_top = false"
+    by (simp add: healthy_top, rel_auto)
+  show bot:"utp_bottom = true\<^sub>r"
+    by (simp add: healthy_bottom, rel_auto)
+  show "utp_theory_continuous TRF"
     by (unfold_locales, simp_all add: closure rpred top)
 qed (simp_all)
 
