@@ -81,7 +81,7 @@ abbreviation "inps t \<equiv> [x. inp x \<leftarrow> t]"
 abbreviation "outps t \<equiv> [x. outp x \<leftarrow> t]"
 
 lemma P1_lemma:
-  "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | true]\<^sub>C \<sqsubseteq> while\<^sub>C true do DoBuff od"
+  "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | false]\<^sub>C \<sqsubseteq> while\<^sub>C true do DoBuff od"
   apply (rdes_refine_split)
     apply (simp_all add: rpred closure usubst)
   apply (rule conjI)
@@ -99,17 +99,17 @@ lemma P1_lemma:
     apply (smt Prefix_Order.Cons_prefix_Cons append.left_neutral append_Cons ch_buffer.simps(6) concat_map_maps hd_Cons_tl less_eq_list_def maps_simps(1) prefix_code(2))
 done 
 
-lemma P1: "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | true]\<^sub>C \<sqsubseteq> Buffer"
+lemma P1: "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | false]\<^sub>C \<sqsubseteq> Buffer"
 proof -
-  have "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | true]\<^sub>C
+  have "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | false]\<^sub>C
         \<sqsubseteq>
-        Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | true]\<^sub>C"
+        Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | false]\<^sub>C"
     by (rdes_refine)
-  moreover have "Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | true]\<^sub>C 
+  moreover have "Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> inps(\<guillemotleft>trace\<guillemotright>)) | false]\<^sub>C 
                  \<sqsubseteq>
-                 Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | true]\<^sub>C"
+                 Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | false]\<^sub>C"
     by (rdes_refine)
-  moreover have "Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | true]\<^sub>C
+  moreover have "Init ;; [true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | false]\<^sub>C
                  \<sqsubseteq>
                  Buffer"
     by (simp add: Buffer_def P1_lemma urel_dioid.mult_isol)
