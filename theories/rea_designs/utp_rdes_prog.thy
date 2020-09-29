@@ -827,6 +827,21 @@ proof (simp add: rdes_def assms, rule srdes_tri_refine_intro')
   qed
 qed
 
+lemma WhileR_post_lemma:
+  assumes 
+    "P\<^sub>1 is RC" "P\<^sub>2 is RR" "P\<^sub>3 is RR"
+    "Q\<^sub>1 is RC" "Q\<^sub>2 is RR" "Q\<^sub>3 is RR" "$st\<acute> \<sharp> Q\<^sub>2" "Q\<^sub>3 is R4"
+    "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) \<sqsubseteq> while\<^sub>R b do \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3) od"
+  shows "P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> [\<not>b]\<^sup>\<top>\<^sub>r)"
+proof -  
+  from assms have "P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)"
+    by (simp add: rdes_def assms RHS_tri_design_refine' closure)
+  moreover have "(P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r) \<sqsubseteq> (P\<^sub>1 \<and> [\<not> b]\<^sup>\<top>\<^sub>r)"
+    by (metis (no_types, hide_lams) order_refl rea_assume_RR rea_skip_unit(2) rrel_theory.Star_unfoldl semilattice_sup_class.le_sup_iff urel_dioid.mult_isor utp_pred_laws.inf_mono)
+  thus ?thesis
+    by (meson calculation order.trans) 
+qed
+
 subsection \<open> Iteration Construction \<close>
 
 definition IterateR
