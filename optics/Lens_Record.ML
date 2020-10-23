@@ -8,6 +8,9 @@ end;
 structure Lens_Utils : LENS_UTILS =
 struct
 
+open Syntax;
+open Lens_Lib;
+
 (* We set up the following syntactic entities that correspond to various parts of Isabelle syntax
   and names that we depend on. These code would need to be updated if the names of the Isabelle
   and lens theories and/or theorems change. *)
@@ -21,22 +24,9 @@ val base_moreN = "base_more"
 val bij_lens_suffix = "_bij_lens"
 val vwb_lens_suffix = "_vwb_lens"
 val sym_lens_suffix = "_sym_lens"
-val indepsN = "indeps"
-val sublensN = "sublenses"
-val quotientN = "quotients"
-val compositionN = "compositions"
 val Trueprop = @{const_name Trueprop}
 val HOLeq = @{const_name HOL.eq}
-val bij_lens = @{const_name bij_lens}
-val vwb_lens = @{const_name vwb_lens}
-val sym_lens = @{const_name sym_lens}
-val lens_indep = @{const_name lens_indep}
-val lens_plus = @{const_name lens_plus}
-val lens_quotient = @{const_name lens_quotient}
-val lens_comp = @{const_name lens_comp}
-val id_lens = @{const_name id_lens}
-val sublens = @{const_name sublens}
-val lens_equiv = @{const_name lens_equiv}
+
 val lens_suffix = "\<^sub>v"
 val lens_defsN = "lens_defs"
 val lens_defs = (Binding.empty, [Token.make_src (lens_defsN, Position.none) []])
@@ -82,8 +72,7 @@ fun lens_proof tname x thy =
       Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
-              [ Const (Trueprop, dummyT)
-              $ (Const (vwb_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT))]))
+              [mk_vwb_lens (const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x))]))
       (fn {context = context, prems = _}
                            => EVERY [ Locale.intro_locales_tac {strict = true, eager = true} context []
                                     , PARALLEL_ALLGOALS (asm_simp_tac 
@@ -97,7 +86,7 @@ fun lens_sym_proof tname thy =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ (Const (sym_lens, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ all_lensN, dummyT))]))
+              $ (const sym_lensN $ const (Context.theory_name thy ^ "." ^ tname ^ "." ^ all_lensN))]))
       (fn {context = context, prems = _}
                            => EVERY [ Classical.rule_tac context [@{thm sym_lens.intro}] [] 1
                                     , PARALLEL_ALLGOALS (asm_simp_tac 
@@ -149,9 +138,9 @@ fun lens_bij_proof tname thy =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ (Const (bij_lens, dummyT) $ 
-                (Const (lens_plus, dummyT) $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
-                                           $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ child_lensN, dummyT)))]))
+              $ (const (bij_lensN) $ 
+                (const (lens_plusN) $ const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN)
+                                    $ const (Context.theory_name thy ^ "." ^ tname ^ "." ^ child_lensN)))]))
       (fn {context = context, prems = _}
                            => EVERY [ Locale.intro_locales_tac {strict = true, eager = true} context []
                                     , auto_tac (fold add_simp (get_thms thy lens_defsN @ [get_thm thy prod_case_eq_ifN])
@@ -169,11 +158,10 @@ fun indep_proof tname thy (x, y) =
   Goal.prove_global thy [] []
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
-              [ Const (Trueprop, dummyT)
-              $ ( Const (lens_indep, dummyT)
-                $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
-                $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ y, dummyT)
-                )]))
+              [ mk_indep 
+                (const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x))
+                (const (Context.theory_name thy ^ "." ^ tname ^ "." ^ y))
+              ]))
       (prove_indep tname thy)
   end
 
@@ -183,9 +171,9 @@ fun equiv_more_proof tname pname thy fs =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ ( Const (lens_equiv, dummyT)
+              $ ( Const (lens_equivN, dummyT)
                 $ Const (pname ^ "." ^ child_lensN, dummyT)
-                $ foldr1 (fn (x, y) => Const (lens_plus, dummyT) $ x $ y) 
+                $ foldr1 (fn (x, y) => Const (lens_plusN, dummyT) $ x $ y) 
                          (map (fn n => Const (theory_name thy ^ "." ^ tname ^ "." ^ n, dummyT)) (fs @ [child_lensN]))
                 )]))
       (prove_equiv tname thy)
@@ -197,9 +185,9 @@ fun equiv_base_proof tname parent thy fs =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ ( Const (lens_equiv, dummyT)
+              $ ( Const (lens_equivN, dummyT)
                 $ Const (theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
-                $ foldr1 (fn (x, y) => Const (lens_plus, dummyT) $ x $ y) 
+                $ foldr1 (fn (x, y) => Const (lens_plusN, dummyT) $ x $ y) 
                          ((case parent of NONE => [] | SOME (_, pname) => [Const (pname ^ "." ^ base_lensN, dummyT)]) @ 
                           map (fn n => Const (theory_name thy ^ "." ^ tname ^ "." ^ n, dummyT)) fs)
                 )]))
@@ -212,11 +200,11 @@ fun equiv_partition_proof tname thy =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ ( Const (lens_equiv, dummyT)
-                $ ( Const (lens_plus, dummyT) 
+              $ ( Const (lens_equivN, dummyT)
+                $ ( Const (lens_plusN, dummyT) 
                   $ Const (theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
                   $ Const (theory_name thy ^ "." ^ tname ^ "." ^ child_lensN, dummyT))
-                $ Const (id_lens, dummyT)
+                $ Const (id_lensN, dummyT)
                 )]))
       (prove_equiv tname thy)
   end
@@ -229,7 +217,7 @@ fun sublens_proof tname pname thy y x =
       (hd (Type_Infer_Context.infer_types
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
-              $ ( Const (sublens, dummyT)
+              $ ( Const (sublensN, dummyT)
                 $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
                 $ Const (pname ^ "." ^ y, dummyT)
                 )]))
@@ -243,7 +231,7 @@ fun quotient_proof tname thy x =
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
               $ ( Const (HOLeq, dummyT)
-                $ (Const (lens_quotient, dummyT) 
+                $ (Const (lens_quotientN, dummyT) 
                    $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
                    $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
                   )
@@ -259,7 +247,7 @@ fun composition_proof tname thy x =
               (Proof_Context.init_global thy)
               [ Const (Trueprop, dummyT)
               $ ( Const (HOLeq, dummyT)
-                $ (Const (lens_comp, dummyT) 
+                $ (Const (lens_compN, dummyT) 
                    $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ x, dummyT)
                    $ Const (Context.theory_name thy ^ "." ^ tname ^ "." ^ base_lensN, dummyT)
                   )
@@ -267,13 +255,6 @@ fun composition_proof tname thy x =
                 )]))
       (prove_quotient tname thy)
 end
-
-
-fun pairWith _ [] = []
-  | pairWith x (y :: ys) = [(x, y), (y, x)] @ pairWith x ys;
-
-fun pairings [] = []
-  | pairings (x :: xs) = pairWith x xs @ pairings xs;
 
 (* Finally we have the function that actually constructs the record, lenses for each field,
    independence proofs, and also sublens proofs. *)
@@ -295,8 +276,8 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
     val mldef = (child_lensN, child_lensN ^ " = " ^ FLDLENS ^ " more"); 
     val sldef = (all_lensN, all_lensN ^ " \<equiv> \<lparr> " ^ slens_view ^ " = " ^ base_lensN ^ ", " ^ slens_coview ^ " = " ^ child_lensN ^ " \<rparr>");
     val plnames = if (raw_parent = NONE) then [] else lnames  @ [child_lensN];
-    fun pindeps thy = map (fn thm => @{thm sublens_pres_indep} OF [thm]) (get_thms thy sublensN)
-                    @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensN)
+    fun pindeps thy = map (fn thm => @{thm sublens_pres_indep} OF [thm]) (get_thms thy sublensesN)
+                    @ map (fn thm => @{thm sublens_pres_indep'} OF [thm]) (get_thms thy sublensesN)
  in thy     (* Add a new record for the new alphabet lenses *)
          |> add_record_cmd {overloaded = false} (raw_params, binding) raw_parent fields
             (* Add the record definition theorems to lens_defs *)
@@ -315,11 +296,11 @@ fun add_alphabet_cmd _ (raw_params, binding) raw_parent raw_fields thy =
             (* Add a bij lens proof for the base and more lenses *)
          |> (fn thy => snd (add_thm ((Binding.make (base_moreN ^ bij_lens_suffix, Position.none), lens_bij_proof tname thy), [Simplifier.simp_add]) thy))
             (* Add sublens proofs *)
-         |> (fn thy => snd (add_thmss [((Binding.make (sublensN, Position.none), map (sublens_proof tname pname thy plchild) plnames @ map (sublens_proof tname (Context.theory_name thy ^ "." ^ tname) thy base_lensN) lnames), [Simplifier.simp_add])] thy))
+         |> (fn thy => snd (add_thmss [((Binding.make (sublensesN, Position.none), map (sublens_proof tname pname thy plchild) plnames @ map (sublens_proof tname (Context.theory_name thy ^ "." ^ tname) thy base_lensN) lnames), [Simplifier.simp_add])] thy))
             (* Add quotient proofs *)
-         |> (fn thy => snd (add_thmss [((Binding.make (quotientN, Position.none), map (quotient_proof tname thy) lnames), [Simplifier.simp_add])] thy))
+         |> (fn thy => snd (add_thmss [((Binding.make (quotientsN, Position.none), map (quotient_proof tname thy) lnames), [Simplifier.simp_add])] thy))
             (* Add composition proofs *)
-         |> (fn thy => snd (add_thmss [((Binding.make (compositionN, Position.none), map (composition_proof tname thy) lnames), [Simplifier.simp_add])] thy))
+         |> (fn thy => snd (add_thmss [((Binding.make (compositionsN, Position.none), map (composition_proof tname thy) lnames), [Simplifier.simp_add])] thy))
             (* Add independence proofs for each pairing of lenses *)
          |> (fn thy => snd (add_thmss
               [((Binding.make (indepsN, Position.none), map (indep_proof tname thy) (pairings (lnames @ [child_lensN]) @ pairings [base_lensN, child_lensN]) (*@ map (parent_indep_proof_1 tname pname thy plchild) plnames @ map (parent_indep_proof_2 tname pname thy plchild) plnames *) @ pindeps thy), [Simplifier.simp_add])] thy))

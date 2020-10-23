@@ -2,7 +2,7 @@ section \<open>Lens Instances\<close>
 
 theory Lens_Instances
   imports Lens_Order Lens_Symmetric "HOL-Eisbach.Eisbach"
-  keywords "alphabet" :: "thy_defn"
+  keywords "alphabet" "statespace" :: "thy_defn"
 begin
 
 text \<open>In this section we define a number of concrete instantiations of the lens locales, including
@@ -246,12 +246,27 @@ text \<open>We also introduce the \textbf{alphabet} command that creates a recor
   pair of lenses an independence theorem is generated. Alphabets can also be extended which yields 
   sublens proofs between the extension field lens and record extension lenses. \<close>
 
+ML_file \<open>Lens_Lib.ML\<close>
 ML_file \<open>Lens_Record.ML\<close>
 
 text \<open>The following theorem attribute stores splitting theorems for alphabet types which which is useful
   for proof automation.\<close>
 
 named_theorems alpha_splits
+
+subsection \<open>Locale State Spaces \<close>
+
+text \<open> Alternative to the alphabet command, we also introduce the statespace command, which
+  implements Schirmer and Wenzel's locale-based approach to state space modelling~\cite{Schirmer2009}. 
+
+  It has the advantage of allowing multiple inheritance of state spaces, and also variable names are 
+  fully internalised with the locales. The approach is also far simpler than record-based state
+  spaces. 
+
+  It has the disadvantage that variables may not be fully polymorphic, unlike for the
+  alphabet command. This makes it in general unsuitable for UTP theory alphabets. \<close>
+
+ML_file \<open>Lens_Statespace.ML\<close>
 
 subsection \<open>Type Definition Lens\<close>
 
