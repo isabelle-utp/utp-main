@@ -1,13 +1,14 @@
 signature LENS_STATESPACE =
 sig
+  val mk_statespace_elements: bstring -> (bstring * typ) list -> xstring list -> theory -> Element.context_i list
   val compile_statespace: bstring -> (bstring * typ) list -> xstring list -> theory -> theory
   val statespace_cmd: bstring -> xstring list -> (bstring * string) list -> theory -> theory
 end
 
 structure Lens_Statespace =
 struct
-(* Compile a state space from a given state space name and list of variable declarations *)
-fun compile_statespace ssn vds exts thy =
+  (* Produce a list of new elements for a locale to characterise a state space *)
+  fun mk_statespace_elements vds exts thy = 
   let
     open Lens_Lib;
     open Syntax;
@@ -23,10 +24,7 @@ fun compile_statespace ssn vds exts thy =
     val impind = List.concat (map (pairsWith vns) (map (map fst) ilnsls))
     val indeps = map (fn (x, y) => mk_indep (free x) (free y)) 
                      (pairings (vns) @ impind)
-    val locexs = map (fn i => (i, (("", false), (Expression.Positional [], [])))) imps
-  in
-  (Local_Theory.exit_global o snd o 
-  Expression.add_locale (Binding.name ssn) Binding.empty (locexs,[]) 
+  in 
   (* Fix each of the variables as lenses *)
   [ Element.Fixes vfixes 
   (* Assume that all lenses are very well-behaved and independent (as in a product space) *)
@@ -34,7 +32,21 @@ fun compile_statespace ssn vds exts thy =
                      , map (fn vwb => (vwb, [])) vwbs),
                      ((Binding.name "indeps", [simp])
                      , map (fn vwb => (vwb, [])) indeps)]
-  ]) thy
+  ]
+  end
+
+
+  (* Compile a state space from a given state space name and list of variable declarations *)
+  fun compile_statespace ssn vds exts thy =
+  let
+    open Lens_Lib;
+    open Syntax;
+    val imps   = map (fn e => Locale.check thy (e, Position.none)) exts
+    val locexs = map (fn i => (i, (("", false), (Expression.Positional [], [])))) imps
+  in
+  (Local_Theory.exit_global o snd o 
+  Expression.add_locale (Binding.name ssn) Binding.empty (locexs,[]) 
+  (mk_statespace_elements vds exts thy)) thy
   end
 
   fun statespace_cmd n exts vds thy = 
