@@ -15,6 +15,10 @@ statespace myss2 = myss + myss' +
 context myss2
 begin
 
-thm indeps
+lemma "x \<bowtie> y"
+  by (simp)
 
 end
+
+statespace myss3 = myss2 +
+  v :: string

@@ -18,9 +18,12 @@ fun compile_statespace ssn vds exts thy =
     val simp   = Attrib.check_src ctx (Token.make_src ("simp", Position.none) [])
     val imps   = map (fn e => Locale.check thy (e, Position.none)) exts
     (* List of lenses imported *)
-    val implns = List.concat (map (filter (isLensT o snd) o map fst o Locale.params_of thy) imps)
-    val indeps = map (fn (x, y) => mk_indep (free x) (free y)) (pairings (vns @ map fst implns))
-    val locexs = map (fn i => (i, (("", true), (Expression.Positional [], [])))) imps
+    val ilnsls = map (filter (isLensT o snd) o map fst o Locale.params_of thy) imps
+    (* Independence axioms from imports *)
+    val impind = List.concat (map (pairsWith vns) (map (map fst) ilnsls))
+    val indeps = map (fn (x, y) => mk_indep (free x) (free y)) 
+                     (pairings (vns) @ impind)
+    val locexs = map (fn i => (i, (("", false), (Expression.Positional [], [])))) imps
   in
   (Local_Theory.exit_global o snd o 
   Expression.add_locale (Binding.name ssn) Binding.empty (locexs,[]) 
