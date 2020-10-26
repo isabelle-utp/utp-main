@@ -22,3 +22,8 @@ end
 
 statespace myss3 = myss2 +
   v :: string
+
+context myss3
+begin
+
+end

@@ -147,4 +147,6 @@ proof (unfold_locales)
   qed
 qed
 
+ML_file \<open>Prism_Lib.ML\<close>
+
 end
