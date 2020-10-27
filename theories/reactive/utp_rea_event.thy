@@ -13,17 +13,16 @@ type_synonym '\<theta> event = "'\<theta>"
 subsection \<open> Channels \<close>
 
 text \<open>
-  Typed channels are modelled as functions. Below, @{typ "'a"} determines the
-  channel type and @{typ "'\<theta>"} the underlying event type. As with values, it
+  Typed channels are modelled as prisms. Below, @{typ "'a"} determines the
+  channel type and @{typ "'\<theta>"} the underlying event alphabet type. As with values, it
   is difficult to introduce channels as monomorphic types due to the fact that
   they can have arbitrary parametrisations in term of @{typ "'a"}. Applying a
   channel to an element of its type yields an event, as we may expect. Though
   this is not formalised here, we may also sensibly assume that all channel-
-  representing functions are injective. Note: is there benefit in formalising
-  this here?
+  representing functions are injective.
 \<close>
 
-type_synonym ('a, '\<theta>) chan = "'a \<Rightarrow> '\<theta> event"
+type_synonym ('a, '\<theta>) chan = "'a \<Longrightarrow>\<^sub>\<triangle> '\<theta> event"
 
 text \<open>
   A downside of the approach is that the event type @{typ "'\<theta>"} must be able
@@ -38,21 +37,13 @@ text \<open>
 subsubsection \<open> Operators \<close>
 
 text \<open>
-  The Z type of a channel corresponds to the entire carrier of the underlying
-  HOL type of that channel.
-\<close>
-
-definition chan_type :: "('a, '\<theta>) chan \<Rightarrow> 'a set" ("\<delta>\<^sub>u") where
-[upred_defs]: "\<delta>\<^sub>u c = UNIV"
-
-text \<open>
   The next lifted function creates an expression that yields a channel event,
   from an expression on the channel type @{typ "'a"}.
 \<close>
 
 definition chan_apply ::
   "('a, '\<theta>) chan \<Rightarrow> ('a, '\<alpha>) uexpr \<Rightarrow> ('\<theta> event, '\<alpha>) uexpr" ("'(_\<cdot>/_')\<^sub>u") where
-[upred_defs]: "(c\<cdot>e)\<^sub>u = uop c e"
+[upred_defs]: "(c\<cdot>e)\<^sub>u = uop (build\<^bsub>c\<^esub>) e"
 
 no_utp_lift chan_apply (0)
 

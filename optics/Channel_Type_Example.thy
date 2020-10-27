@@ -7,6 +7,8 @@ chantype ch_buffer =
   outp :: nat
   mod :: bool
 
+thm ch_buffer.inp_wb_prism
+
 thm ch_buffer.codeps
 
 end

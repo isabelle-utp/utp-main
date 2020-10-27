@@ -874,9 +874,9 @@ definition do\<^sub>I :: "
   ('a \<Rightarrow> ('\<sigma>, '\<theta>) action) \<Rightarrow>
   ('\<sigma>, '\<theta>) action" where
 "do\<^sub>I c x P = (
-  ($tr\<acute> =\<^sub>u $tr \<and> {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> (c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u} \<inter>\<^sub>u $ref\<acute> =\<^sub>u {}\<^sub>u)
+  ($tr\<acute> =\<^sub>u $tr \<and> {e | P(e) \<bullet> (c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u} \<inter>\<^sub>u $ref\<acute> =\<^sub>u {}\<^sub>u)
     \<triangleleft> $wait\<acute> \<triangleright>
-  (($tr\<acute> - $tr) \<in>\<^sub>u {e : \<guillemotleft>\<delta>\<^sub>u(c)\<guillemotright> | P(e) \<bullet> U([(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u])} \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
+  (($tr\<acute> - $tr) \<in>\<^sub>u {e | P(e) \<bullet> U([(c\<cdot>\<guillemotleft>e\<guillemotright>)\<^sub>u])} \<and> (c\<cdot>$x\<acute>)\<^sub>u =\<^sub>u last\<^sub>u($tr\<acute>)))"
 
 lemma InputCSP_CSP [closure]: "InputCSP c A P is CSP"
   by (simp add: CSP_ExtChoice InputCSP_def)
