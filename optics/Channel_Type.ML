@@ -21,7 +21,7 @@ fun wb_prism_proof x thms ctx =
       (fn {context = context, prems = _}
                            => EVERY [ PARALLEL_ALLGOALS (full_simp_tac (fold add_simp thms context))
                                     , Classical.rule_tac context [@{thm wb_ctor_prism_intro}] [] 1
-                                    , auto_tac ctx
+                                    , auto_tac (context delsimprocs [@{simproc unit_eq}])
                                     ])
   end
 

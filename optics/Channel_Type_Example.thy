@@ -3,7 +3,7 @@ theory Channel_Type_Example
 begin
 
 chantype ch_buffer =
-  inp :: nat
+  inp :: unit
   outp :: nat
   mod :: bool
 

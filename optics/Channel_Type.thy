@@ -12,6 +12,7 @@ definition ctor_prism :: "('a \<Rightarrow> 'd) \<Rightarrow> ('d \<Rightarrow> 
 [lens_defs]: 
 "ctor_prism ctor disc sel = \<lparr> prism_match = (\<lambda> d. if (disc d) then Some (sel d) else None)
                             , prism_build = ctor \<rparr>"
+
 lemma wb_ctor_prism_intro:
   assumes 
     "\<And> v. disc (ctor v)" 
