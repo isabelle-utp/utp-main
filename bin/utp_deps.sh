@@ -9,4 +9,4 @@ CONTRIB_DIR=$ISABELLE_UTP/contrib
 printf "Checking and obtaining Isabelle/UTP AFP dependencies... \n\n"
 
 # Download required AFP entries
-while read in; do $BIN_DIR/afp_get.sh -u "$in" ; done < $CONTRIB_DIR/ROOTS
+while read in; do $BIN_DIR/afp_get.sh "$in" ; done < $CONTRIB_DIR/ROOTS
