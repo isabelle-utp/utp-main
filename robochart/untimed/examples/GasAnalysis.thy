@@ -33,12 +33,12 @@ context GasAnalysis
 begin
 
 lemma nmap:"nmap\<^bsub>machine\<^esub> = 
-    [''InitState'' \<mapsto> InitState, ''NoGas'' \<mapsto> NoGas, ''Reading'' \<mapsto> Reading, ''FinalState'' \<mapsto>
-     FinalState, ''Analysis'' \<mapsto> Analysis, ''GasDetected'' \<mapsto> GasDetected]"
+    [STR ''InitState'' \<mapsto> InitState, STR ''NoGas'' \<mapsto> NoGas, STR ''Reading'' \<mapsto> Reading, STR ''FinalState'' \<mapsto>
+     FinalState, STR ''Analysis'' \<mapsto> Analysis, STR ''GasDetected'' \<mapsto> GasDetected]"
   by (simp add: sm_node_map_def machine_def states_def simps)
 
-lemma tmap:"tmap\<^bsub>machine\<^esub> = [''InitState'' \<mapsto> [t1], ''NoGas'' \<mapsto> [t2], ''Reading'' \<mapsto> [t7], ''FinalState'' \<mapsto> [], ''Analysis'' 
-     \<mapsto> [t4, t3], ''GasDetected'' \<mapsto> [t6, t5]]"
+lemma tmap:"tmap\<^bsub>machine\<^esub> = [STR ''InitState'' \<mapsto> [t1], STR ''NoGas'' \<mapsto> [t2], STR ''Reading'' \<mapsto> [t7], STR ''FinalState'' \<mapsto> [], STR ''Analysis'' 
+     \<mapsto> [t4, t3], STR ''GasDetected'' \<mapsto> [t6, t5]]"
   by (simp add: sm_trans_map_def machine_def states_def transitions_def simps)
 
 lemma [simp]: "ninit\<^bsub>machine\<^esub> = InitState"
@@ -49,14 +49,14 @@ lemma nds:
   by (simp add: machine_def states_def)
 
 lemma fnds:
-  "finals\<^bsub>machine\<^esub> = [''FinalState'']"
+  "finals\<^bsub>machine\<^esub> = [STR ''FinalState'']"
   by (simp add: machine_def states_def)
 lemma nodes:
-  "nnames\<^bsub>machine\<^esub> = {''GasDetected'', ''Analysis'', ''FinalState'', ''Reading'', ''NoGas'', ''InitState''}"
+  "nnames\<^bsub>machine\<^esub> = {STR ''GasDetected'', STR ''Analysis'', STR ''FinalState'', STR ''Reading'', STR ''NoGas'', STR ''InitState''}"
   by (simp add: sm_node_names_def defs)
 
 lemma inters:
-  "inames\<^bsub>machine\<^esub> = {''Analysis'', ''GasDetected'', ''Reading'', ''NoGas'', ''InitState''}"
+  "inames\<^bsub>machine\<^esub> = {STR ''Analysis'', STR ''GasDetected'', STR ''Reading'', STR ''NoGas'', STR ''InitState''}"
   by (auto simp add: sm_inter_names_def sm_inters_def defs)
 
 notation null_event ("\<^bold>\<epsilon>")

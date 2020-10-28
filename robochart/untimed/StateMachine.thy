@@ -135,9 +135,9 @@ fun compileStateDecls defs typ ctx =
   fold (fn (b, t) => fn (ts, simps, ctx) =>        
            let 
              val pt = Syntax.check_term ctx (Type.constraint typ (Syntax.parse_term ctx t));
-             val tm = n_node_update $ (absdummy dummyT (mk_string (Binding.name_of b))) $ pt;
+             val tm = n_node_update $ (absdummy dummyT (mk_literal (Binding.name_of b))) $ pt;
              val ((trm, (nm, thm)), ctx') = Specification.definition NONE [] [] ((Binding.empty, []), mk_def typ $ Free (Binding.name_of b, typ) $ tm) ctx
-             val nm_thm = prove_eq_simplify ctx' (n_name $ trm) (mk_string (Binding.name_of b)) [thm]
+             val nm_thm = prove_eq_simplify ctx' (n_name $ trm) (mk_literal (Binding.name_of b)) [thm]
              val (en, dr, ex) = case pt of 
                                   (Const _ $ _ $ x $ y $ z) => (x, y, z) |
                                   t => raise TERM ("Incorrect form for state declaration:", [t]);
@@ -198,8 +198,8 @@ fun compileStatemachine (n, ((((((us, vs), es), ss), ins), fins), ts)) thy0 =
       val (sds, simps, ctx4) = compileStateDecls ss stateT ctx3;
       val statesDef = mk_def (listT stateT) $ Free ("states", (listT stateT)) $ mk_list stateT (map fst sds)
       val ((st_term, (_, st_thm)), ctx5) = Specification.definition NONE [] [] ((Binding.empty, []), statesDef) ctx4;
-      val fins' = (case fins of NONE => [] | SOME ss => map (mk_string o Binding.name_of) ss);
-      val machineDef = mk_def machineT $ Free ("machine", machineT) $ (mk_StateMachine $ mk_string (Binding.name_of ins) $ mk_list @{typ string} fins' $ st_term $ tr_term)
+      val fins' = (case fins of NONE => [] | SOME ss => map (mk_literal o Binding.name_of) ss);
+      val machineDef = mk_def machineT $ Free ("machine", machineT) $ (mk_StateMachine $ mk_literal (Binding.name_of ins) $ mk_list @{typ String.literal} fins' $ st_term $ tr_term)
       val ((mch_term, (_, mch_thm)), ctx6) = Specification.definition NONE [] [] ((Binding.empty, []), machineDef) ctx5;
       val null_event = Syntax.read_term ctx6 "null_event";
       val semDef = mk_def actT $ Free ("action", actT) $ (sm_semantics $ mch_term $ null_event);

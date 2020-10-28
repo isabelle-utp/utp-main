@@ -62,7 +62,6 @@ fun compile_chantype (name, chans) ctx =
     open Prism_Lib; open Lens_Lib; open Local_Theory; open Specification; open Syntax
     val ctrs = map (fn (n, t) => (((Binding.empty, Binding.name (n ^ ctor_suffix)), [(Binding.empty, t)]), Mixfix.NoSyn)) chans 
     val pnames = map fst chans
-    val _ = @{print} (Named_Target.locale_of ctx)
     val thypfx = 
       case (Named_Target.locale_of ctx) of
         SOME loc => loc ^ "." |

@@ -8,11 +8,13 @@ subsection \<open> State Machine Syntax \<close>
 
 text \<open> All state machine statespace types extend the following type which provides a state control variable \<close>
 
+type_synonym ID = String.literal
+
 alphabet robochart_ctrl =
-  rc_ctrl :: string 
+  rc_ctrl :: ID 
 
 type_synonym 's rcst = "'s robochart_ctrl_scheme"
-type_synonym ('s, 'e) RoboAction = "('s robochart_ctrl_scheme, 'e) Action"
+type_synonym ('s, 'e) RoboAction = "('s robochart_ctrl_scheme, 'e) Actions.Action"
 type_synonym 's RoboPred = "'s robochart_ctrl_scheme upred"
 
 translations
@@ -32,16 +34,16 @@ translations
   "_svid_dot \<^bold>r x" <= "x ;\<^sub>L \<^bold>r"
 
 record ('s, 'e) Transition = 
-  tn_source    :: string
-  tn_target    :: string
-  tn_trigger   :: "('s, 'e) Action option"
+  tn_source    :: ID
+  tn_target    :: ID
+  tn_trigger   :: "('s, 'e) Actions.Action option"
   tn_condition :: "'s upred"
-  tn_action    :: "('s, 'e) Action"
+  tn_action    :: "('s, 'e) Actions.Action"
 
 declare Transition.defs [simp]
 
 record ('s, 'e) Node =
-  n_name   :: "string"
+  n_name   :: "ID"
   n_entry  :: "('s, 'e) Action"
   n_during :: "('s, 'e) Action"
   n_exit   :: "('s, 'e) Action"
@@ -49,8 +51,8 @@ record ('s, 'e) Node =
 declare Node.defs [simp]
 
 record ('s, 'e) StateMachine =
-  sm_initial     :: "string" ("init\<index>")
-  sm_finals      :: "string list" ("finals\<index>")
+  sm_initial     :: "String.literal" ("init\<index>")
+  sm_finals      :: "String.literal list" ("finals\<index>")
   sm_nodes       :: "('s, 'e) Node list" ("nodes\<index>")
   sm_transitions :: "('s, 'e) Transition list" ("\<^bold>T\<index>")
 
@@ -58,7 +60,7 @@ declare StateMachine.defs [simp]
 
 thm set_map
 
-definition sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> string set" ("nnames\<index>") where
+definition sm_node_names :: "('s, 'e) StateMachine \<Rightarrow> String.literal set" ("nnames\<index>") where
 "sm_node_names sm \<equiv> n_name ` set(sm_nodes sm)"
 
 definition sm_inters :: "('s, 'e) StateMachine \<Rightarrow> ('s, 'e) Node list" where
@@ -70,10 +72,10 @@ definition sm_inter_names ("inames\<index>") where
 abbreviation sm_final_names ("fnames\<index>") where
 "sm_final_names M \<equiv> set (finals\<^bsub>M\<^esub>)"
 
-definition sm_node_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Node)" ("nmap\<index>") where
+definition sm_node_map :: "('s, 'e) StateMachine \<Rightarrow> (ID \<rightharpoonup> ('s, 'e) Node)" ("nmap\<index>") where
 "sm_node_map M = map_of (map (\<lambda> n. (n_name n, n)) (sm_nodes M))"
 
-definition sm_trans_map :: "('s, 'e) StateMachine \<Rightarrow> (string \<rightharpoonup> ('s, 'e) Transition list)" ("tmap\<index>") where
+definition sm_trans_map :: "('s, 'e) StateMachine \<Rightarrow> (ID \<rightharpoonup> ('s, 'e) Transition list)" ("tmap\<index>") where
 "sm_trans_map M = map_of (map (\<lambda> n. (n_name n, filter (\<lambda> t. tn_source t = n_name n) (sm_transitions M))) (sm_nodes M))"
 
 lemma dom_sm_node_map: "dom(nmap\<^bsub>M\<^esub>) = nnames\<^bsub>M\<^esub>"
@@ -443,19 +445,19 @@ syntax
 
 translations
   "_transition s1 s2 e b a" =>
-  "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some e) b a"
+  "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST Some e) b a"
 
-  "_transition_action s1 s2 a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) true a"
+  "_transition_action s1 s2 a" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST None) true a"
 
-  "_transition_condition s1 s2 b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b (CONST Actions.skips)"
+  "_transition_condition s1 s2 b" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST None) b (CONST Actions.skips)"
 
-  "_transition_condition_action s1 s2 b a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST None) b a"
+  "_transition_condition_action s1 s2 b a" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST None) b a"
 
-  "_transition_trigger s1 s2 t" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true (CONST Actions.skips)"
+  "_transition_trigger s1 s2 t" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST Some t) true (CONST Actions.skips)"
 
-  "_transition_trigger_action s1 s2 t a" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) true a"
+  "_transition_trigger_action s1 s2 t a" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST Some t) true a"
 
-  "_transition_trigger_condition s1 s2 t b" => "CONST Transition.make IDSTR(s1) IDSTR(s2) (CONST Some t) b (CONST Actions.skips)"
+  "_transition_trigger_condition s1 s2 t b" => "CONST Transition.make IDLIT(s1) IDLIT(s2) (CONST Some t) b (CONST Actions.skips)"
 
 
   "_state e d x" => "CONST Node.make (CONST undefined) e d x"
