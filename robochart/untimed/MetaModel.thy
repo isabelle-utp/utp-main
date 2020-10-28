@@ -148,19 +148,19 @@ abbreviation "trigger_semantics t null_event \<equiv>
 
 no_utp_lift tn_condition
 
-definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
+definition tr_semantics :: "('s, 'e) Transition \<Rightarrow> (unit, 'e) chan \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>T") where
 "tr_semantics t null_event \<equiv> 
   tn_condition t \<oplus>\<^sub>p rc_state \<^bold>& 
   rc_state:[trigger_semantics t null_event ; tn_action t]\<^sub>A\<^sup>+ ; rc_ctrl := \<guillemotleft>tn_target t\<guillemotright>"
 
 definition node_semantics :: 
-  "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
+  "('s, 'e) StateMachine \<Rightarrow> (unit, 'e) chan \<Rightarrow> ('s, 'e) Node \<Rightarrow> ('s, 'e) RoboAction" ("_;_ \<turnstile> \<lbrakk>_\<rbrakk>\<^sub>N" [10,0,0] 10) where
   "node_semantics M null_event node  = 
   (rc_state:[n_entry node]\<^sub>A\<^sup>+ ;
    (foldr (\<box>) (map (\<lambda> t. \<lbrakk>t\<rbrakk>\<^sub>T null_event) (the (tmap\<^bsub>M\<^esub> (n_name node)))) stop) ;
    rc_state:[n_exit node]\<^sub>A\<^sup>+)"
 
-definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> 'e \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
+definition sm_semantics :: "('s, 'e) StateMachine \<Rightarrow> (unit, 'e) chan \<Rightarrow> ('s, 'e) RoboAction" ("\<lbrakk>_\<rbrakk>\<^sub>M") where
 "sm_semantics M null_event = 
     (rc_ctrl := \<guillemotleft>sm_initial M\<guillemotright> ;
     iteration (map (\<lambda> n. (&rc_ctrl =\<^sub>u \<guillemotleft>n_name n\<guillemotright>, M;null_event \<turnstile> \<lbrakk>n\<rbrakk>\<^sub>N)) (sm_inters M)))"

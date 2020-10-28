@@ -96,10 +96,19 @@ compileVarDecls (uses: string option, sm_binding : binding, NONE) =
   snd o Typedecl.abbrev_cmd (Binding.suffix_name "_alphabet" sm_binding, [], Mixfix.NoSyn) (the_default "unit" uses));;
 
 fun compileEventDecls (SOME defs) =
-  basic_datatype (Binding.name "events", 
+  Channel_Type.compile_chantype 
+    ("events",
+    (("null_event", "unit") ::
+    map (fn (b, SOME t) => (Binding.name_of b, t) |
+            (b, NONE) => (Binding.name_of b, "unit")) defs)) |
+    
+
+(*
+  basic_datatype (Binding.name "events",
                   (((Binding.empty, Binding.name "null_event"), []), Mixfix.NoSyn) ::
                   map (fn (b, SOME t) => (((Binding.empty, b), [(Binding.empty, t)]), Mixfix.NoSyn) |
                           (b, NONE) => (((Binding.empty, b), []), Mixfix.NoSyn)) defs) |
+*)
 
 compileEventDecls NONE = compileEventDecls (SOME []);
 

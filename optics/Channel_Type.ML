@@ -56,7 +56,7 @@ fun defs qual inds f ctx =
         let val (thm, ctx') = def qual (i, f i) ctx 
         in (thms @ [thm], ctx') end) inds ([], ctx)
 
-fun mk_chantype (name, chans) ctx =
+fun compile_chantype (name, chans) ctx =
   let 
     open BNF_FP_Def_Sugar; open BNF_FP_Rec_Sugar_Util; open BNF_LFP; open Ctr_Sugar
     open Prism_Lib; open Lens_Lib; open Local_Theory; open Specification; open Syntax
@@ -96,5 +96,5 @@ let open Parse; open Parse_Spec; open Scan in
   Outer_Syntax.command @{command_keyword chantype} "define a channel datatype"
     ((name --
       (@{keyword "="} |-- repeat1 (name -- ($$$ "::" |-- !!! typ))))
-    >> (fn x => Toplevel.local_theory NONE NONE (Channel_Type.mk_chantype x)))
+    >> (fn x => Toplevel.local_theory NONE NONE (Channel_Type.compile_chantype x)))
   end;

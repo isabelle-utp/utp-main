@@ -97,14 +97,14 @@ lift_definition guard :: "'s upred \<Rightarrow> ('s, 'e) Action \<Rightarrow> (
 
 utp_lift_notation guard (1)
 
-lift_definition sync :: "'e \<Rightarrow> ('s, 'e) Action" ("\<^bold>s'(_')") is "\<lambda> e. e \<^bold>\<rightarrow> Skip" by (simp add: closure)
+lift_definition sync :: "(unit, 'e) chan \<Rightarrow> ('s, 'e) Action" ("\<^bold>s'(_')") is "\<lambda> e. e!(\<guillemotleft>()\<guillemotright>) \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
-lift_definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')" [999,0] 999)
+lift_definition send :: "('a, 'e) chan \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')" [999,0] 999)
   is "\<lambda> c v. c!(v) \<^bold>\<rightarrow> Skip" by (simp add: closure)
 
 utp_lift_notation send (0)
 
-lift_definition receive :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')" [999,0] 999)
+lift_definition receive :: "('a, 'e) chan \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')" [999,0] 999)
   is "\<lambda> c x. c?(v) \<^bold>\<rightarrow> x :=\<^sub>C \<guillemotleft>v\<guillemotright>" by (simp add: InputCSP_def closure)
 
 lift_definition ext_choice :: "('s, 'e) Action \<Rightarrow> ('s, 'e) Action \<Rightarrow> ('s, 'e) Action" is "(\<box>)"
@@ -564,7 +564,7 @@ lemma chaos_contract [contract]: "chaos = [false \<turnstile> false | false]"
 lemma stop_contract [contract]: "stop = [true \<turnstile> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{}\<^sub>u) | false]"
   by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
 
-lemma sync_contract [contract]: "sync e = [true \<turnstile> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{\<guillemotleft>e\<guillemotright>}\<^sub>u) | \<^bold>\<Phi>(true,id\<^sub>s,\<guillemotleft>[e]\<guillemotright>)]"
+lemma sync_contract [contract]: "sync e = [true \<turnstile> \<^bold>\<E>(true,\<guillemotleft>[]\<guillemotright>,{U((e\<cdot>())\<^sub>u)}\<^sub>u) | \<^bold>\<Phi>(true,id\<^sub>s,U([(e\<cdot>())\<^sub>u]))]"
   by (simp add: action_rep_eq rrel_rep_eq, rdes_eq)
 
 lemma seq_lemma_1: 
