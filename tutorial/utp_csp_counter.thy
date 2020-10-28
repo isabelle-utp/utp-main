@@ -3,13 +3,18 @@ section \<open> Counter in CSP \<close>
 theory utp_csp_counter
   imports "UTP-Circus.utp_circus"
 begin
+
+utp_lift_notation csp_enable
+utp_lift_notation csp_do
+utp_const chan_apply (0)
   
-datatype ch_counter = count (get_val: nat)
+chantype ch_counter = 
+  count :: nat
 
 alphabet st_counter =
   ctr :: nat
 
-lemma get_val_count [simp]: "get_val \<circ> count = id"
+lemma get_val_count [simp]: "un_count_C \<circ> count_C = id"
   by (auto)
   
 text \<open> This one of the simplest possible stateful CSP processes. It starts from a given number
@@ -19,25 +24,22 @@ abbreviation "CtrBdy \<equiv> (count.(&ctr) \<^bold>\<rightarrow> ctr :=\<^sub>C
   
 definition "Counter(n) = (ctr :=\<^sub>C \<guillemotleft>n\<guillemotright> ;; (\<mu>\<^sub>C X \<bullet> CtrBdy ;; X))"
   
-text \<open> We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. The precondition
-  is simply true because there is no possibility of divergence. \<close>
-  
-lemma preR_CtrBdy: "pre\<^sub>R(CtrBdy) = true\<^sub>r"
-  by (simp add: rdes rpred closure usubst)
-    
-text \<open> The pericondition states that in all initial states (true), and after doing no events
-  (trace is empty), the count event is not being refused. \<close>
-    
-lemma periR_CtrBdy [rdes]: "peri\<^sub>R(CtrBdy) = \<E>(true, \<langle>\<rangle>, {(count\<cdot>&ctr)\<^sub>u}\<^sub>u)"
-  by (simp add: rdes closure usubst alpha unrest)
+text \<open> We calculate the pre, peri-, and postconditions of @{term "CtrBdy"} below. \<close>
 
-text \<open> The postcondition states that the counter is incremented by one, and the trace is increased
+lemma CtrBdy_contract:
+  "CtrBdy =  
+    \<^bold>R\<^sub>s(true\<^sub>r 
+       \<turnstile> \<E>(true,[], {(count\<cdot>&ctr)\<^sub>u}) 
+       \<diamondop> \<Phi>(true,[&ctr \<mapsto>\<^sub>s &ctr + 1],[(count\<cdot>&ctr)\<^sub>u]))"
+  by (rdes_simp)
+    
+text \<open> The precondition is simply true because there is no possibility of divergence.
+  The pericondition states that in all initial states (true), and after doing no events
+  (trace is empty), the count event is not being refused. The postcondition states that 
+  the counter is incremented by one, and the trace is increased
   by the count event. \<close>
     
-lemma postR_CtrBdy [rdes]: "post\<^sub>R(CtrBdy) = \<Phi>(true, [ctr \<mapsto>\<^sub>s &ctr + 1], \<langle>(count\<cdot>&ctr)\<^sub>u\<rangle>)"
-  by (simp add: rdes closure rpred usubst unrest alpha)
-    
-text \<open> The recursive case is a little more interesting. \<close>
+    text \<open> The recursive case is a little more interesting. \<close>
     
 lemma preR_Counter [rdes]: "pre\<^sub>R(Counter(n)) = true\<^sub>r"
   by (simp add: Counter_def rdes closure rpred unrest wp usubst)

@@ -18,11 +18,11 @@ text \<open> In the paper money is represented as a nat, here we use an int so t
 alphabet st_mdx =
   accts :: "(index, money) pfun" \<comment> \<open> Index record of each card's balance \<close>
   
-datatype ch_mdx = 
-  pay "index \<times> index \<times> money" | \<comment> \<open> Request a payment between two cards \<close>
-  transfer "index \<times> index \<times> money" | \<comment> \<open> Effect the transfer \<close>
-  accept index | \<comment> \<open> Accept the payment \<close>
-  reject index \<comment> \<open> Reject it \<close>
+chantype ch_mdx = 
+  pay :: "index \<times> index \<times> money" \<comment> \<open> Request a payment between two cards \<close>
+  transfer :: "index \<times> index \<times> money" \<comment> \<open> Effect the transfer \<close>
+  accept :: index \<comment> \<open> Accept the payment \<close>
+  reject :: index \<comment> \<open> Reject it \<close>
   
 type_synonym action_mdx = "(st_mdx, ch_mdx) action"
   

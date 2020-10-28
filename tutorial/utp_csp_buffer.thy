@@ -18,8 +18,9 @@ alphabet st_buffer =
 text \<open> Channels are created using the \textbf{datatype} command. In this case we can either input
   a value to go in the buffer, or output one presently in the buffer. \<close>
 
-datatype ch_buffer =
-  inp nat | outp nat
+chantype ch_buffer =
+  inp :: nat 
+  outp :: nat
 
 text \<open> We create a useful type to describe an action of the buffer as a CSP action parametrised
   by the state and event alphabet. \<close>
@@ -77,8 +78,8 @@ subsection \<open> Verifications \<close>
 
 text \<open> We first show that the buffer always outputs the same elements that were input first. \<close>
 
-abbreviation "inps t \<equiv> [x. inp x \<leftarrow> t]"
-abbreviation "outps t \<equiv> [x. outp x \<leftarrow> t]"
+abbreviation "inps t \<equiv> [x. inp_C x \<leftarrow> t]"
+abbreviation "outps t \<equiv> [x. outp_C x \<leftarrow> t]"
 
 lemma P1_lemma:
   "[true \<turnstile> U(outps(\<guillemotleft>trace\<guillemotright>) \<le> (buff @ inps(\<guillemotleft>trace\<guillemotright>))) | false]\<^sub>C \<sqsubseteq> while\<^sub>C true do DoBuff od"
