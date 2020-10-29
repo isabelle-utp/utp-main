@@ -621,7 +621,7 @@ subsection \<open> List Domain and Range \<close>
 abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
 "seq_dom xs \<equiv> {0..<length xs}"
 
-abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
+abbreviation (input) seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
 
 subsection \<open> Extracting List Elements \<close>

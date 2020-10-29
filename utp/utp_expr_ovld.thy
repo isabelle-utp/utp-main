@@ -11,10 +11,18 @@ text \<open> For convenience, we often want to utilise the same expression synta
   overload their definitions using appropriate implementations. In order for this to work,
   each collection must have its own unique type. Thus we do not use the HOL map type directly,
   but rather our own partial function type, for example. \<close>
-  
+
+\<comment> \<open> Empty elements, for example empty set, nil list, 0... \<close> 
+abbreviation (input) "uempty \<equiv> 0"
+
+class ovrd = plus
+begin
+
+definition [upred_defs]: "ovrd = plus"
+
+end
+
 consts
-  \<comment> \<open> Empty elements, for example empty set, nil list, 0... \<close> 
-  uempty     :: "'f"
   \<comment> \<open> Function application, map application, list application... \<close>
   uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
   \<comment> \<open> Overriding \<close>
@@ -48,16 +56,20 @@ definition ffun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightar
 
 text \<open> We then set up the overloading for a number of useful constructs for various collections. \<close>
 
+definition [upred_defs]: "list_apply = nth"
+definition [upred_defs]: "list_upd = list_augment"
+definition [upred_defs]: "list_card = length"
+definition [upred_defs]: "list_ran = set"
+
 adhoc_overloading
-  uempty 0 and
-  uapply rel_apply and uapply fun_apply and uapply nth and uapply pfun_app and uapply ffun_app and
-  uovrd rel_override and uovrd plus
-  uupd rel_update and uupd pfun_upd and uupd ffun_upd and uupd list_augment and
-  udom Domain and udom pdom and udom fdom and udom seq_dom and
-  uran Range and uran pran and uran fran and uran set and
+  uapply rel_apply and uapply fun_apply and uapply list_apply and 
+  uapply pfun_app and uapply ffun_app and uovrd rel_override and uovrd ovrd
+  uupd rel_update and uupd pfun_upd and uupd ffun_upd and uupd list_upd and
+  udom Domain and udom pdom and udom fdom and udom seq_dom and udom dom and
+  uran Range and uran pran and uran fran and uran list_ran and uran ran
   udomres rel_domres and udomres pdom_res and udomres fdom_res and
   uranres pran_res and udomres fran_res and
-  ucard card and ucard pcard and ucard length and
+  ucard card and ucard pcard and ucard list_card and
   usums list_sum and usums Sum and usums pfun_sum and
   uentries pfun_entries and uentries ffun_entries
 
@@ -91,7 +103,6 @@ translations
   "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
   "#\<^sub>u(f)" <= "CONST ucard f"
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
-  "0" <= "CONST uempty" \<comment> \<open> We have to do this so we don't see uempty. Is there a better way of printing? \<close>
 
   \<comment> \<open> Overloaded construct translations \<close>
   "f(x,y,z,u)\<^sub>a" == "CONST bop CONST uapply f (x,y,z,u)\<^sub>u"
