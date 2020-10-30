@@ -38,20 +38,31 @@ struct
   ]
   end
 
+  val STATE = "STATE_TYPE"
+  val CHAN = "CHAN_TYPE"
 
   fun compile_dataspace nm exts cds assms vds chds thy =
   let
     open Lens_Lib;
     open Syntax;
     val imps   = map (fn e => Locale.check thy (e, Position.none)) exts
-    val locexs = map (fn i => (i, (("", false), (Expression.Positional [], [])))) imps
+    (* When extending existing dataspaces, we instantiate their respective state and channel
+       types to avoid ambiguity (via a locale "where" clause) *)
+    val pinsts = Expression.Named 
+                    [(STATE, Logic.mk_type astateT)
+                    ,(CHAN, Logic.mk_type achanT)]
+    val locexs = map (fn i => (i, (("", false), (pinsts, [])))) imps
+    (* We also create fixed parameters for the types so they can be instantiated later *)
+    val st_par = (Binding.name STATE, SOME (Term.itselfT astateT), NoSyn)
+    val ch_par = (Binding.name CHAN, SOME (Term.itselfT achanT), NoSyn)
   in
   (Local_Theory.exit_global o snd o 
-  Expression.add_locale (Binding.name nm) Binding.empty (locexs,[]) 
+  Expression.add_locale (Binding.name nm) Binding.empty (locexs, []) 
   (mk_constant_elements cds 
    @ [Element.Assumes assms]
    @ Lens_Statespace.mk_statespace_elements vds exts thy
-   @ mk_channel_elements exts chds thy)) thy
+   @ mk_channel_elements exts chds thy
+   @ [Element.Fixes [st_par, ch_par]])) thy
   end
   
   fun dataspace_cmd nm exts cds rassms vds chds thy = 
