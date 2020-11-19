@@ -12,18 +12,30 @@ text \<open> A reactive design is productive if it strictly increases the trace,
 definition Productive :: "('s, 't::trace, '\<alpha>) hrel_rsp \<Rightarrow> ('s, 't, '\<alpha>) hrel_rsp" where
 [upred_defs]: "Productive(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
 
+lemma Productive_alt_def:
+  "Productive(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> true\<^sub>r \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
+  by (rel_auto)
+
 lemma Productive_RHS_design_form:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
   shows "Productive(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> (R \<and> $tr <\<^sub>u $tr\<acute>))"
-  using assms by (simp add: Productive_def RHS_tri_design_par unrest)
+  using assms by (simp add: Productive_def RHS_tri_design_par unrest rpred)
+
+text \<open> We use the @{term R4} healthiness condition to characterise that the postcondition must
+  extend the trace for a reactive design to be productive. \<close>
+
+lemma Productive_RHS_R4_design_form:
+  assumes "P is RR" "Q is RR" "R is RR"
+  shows "Productive(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R4(R))"
+  by (simp add: Productive_RHS_design_form closure assms unrest R4_def)
 
 lemma Productive_form:
   "Productive(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
 proof -
-  have "Productive(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true \<turnstile> true \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
-    by (simp add: Productive_def SRD_as_reactive_tri_design)
+  have "Productive(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)) \<parallel>\<^sub>R \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> true\<^sub>r \<diamondop> ($tr <\<^sub>u $tr\<acute>))"
+    by (simp add: Productive_alt_def SRD_as_reactive_tri_design)
   also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> (post\<^sub>R(P) \<and> $tr <\<^sub>u $tr\<acute>))"
-    by (simp add: RHS_tri_design_par unrest)
+    by (simp add: RHS_tri_design_par unrest rpred, rel_auto)
   finally show ?thesis .
 qed
 
@@ -46,7 +58,7 @@ proof -
       by (simp add: SRD_reactive_tri_design assms(1))
   qed
   thus ?thesis
-    by (metis Healthy_def RHS_tri_design_par Productive_def ok'_pre_unrest unrest_true utp_pred_laws.inf_right_idem utp_pred_laws.inf_top_right)
+    by (metis Healthy_def Productive_form assms(1))
 qed
 
 lemma Productive_post_refines_tr_increase:
@@ -150,9 +162,6 @@ proof (rule Productive_intro)
     by (simp add: rea_pre_RHS_design rea_post_RHS_design usubst R1_def R2c_def R2s_def assms unrest)
 qed
 
-text \<open> We use the @{term R4} healthiness condition to characterise that the postcondition must
-  extend the trace for a reactive design to be productive. \<close>
-
 lemma Productive_rdes_RR_intro [closure]:
   assumes "P is RR" "Q is RR" "R is RR" "R is R4"
   shows "(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) is Productive"
@@ -160,11 +169,11 @@ lemma Productive_rdes_RR_intro [closure]:
 
 lemma Productive_Miracle [closure]: "Miracle is Productive"
   unfolding Miracle_tri_def Healthy_def
-  by (subst Productive_RHS_design_form, simp_all add: unrest)
+  by (subst Productive_RHS_design_form, simp_all add: unrest closure)
 
 lemma Productive_Chaos [closure]: "Chaos is Productive"
   unfolding Chaos_tri_def Healthy_def
-  by (subst Productive_RHS_design_form, simp_all add: unrest)
+  by (subst Productive_RHS_design_form, simp_all add: unrest closure)
 
 lemma Productive_intChoice [closure]:
   assumes "P is SRD" "P is Productive" "Q is SRD" "Q is Productive"
@@ -178,9 +187,12 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<and> pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<or> peri\<^sub>R Q) \<diamondop> (((post\<^sub>R P) \<or> (post\<^sub>R Q)) \<and> $tr\<acute> >\<^sub>u $tr))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   also have "... is Productive"
-    by (simp add: Healthy_def Productive_RHS_design_form  unrest)
+    by (metis Healthy_def Productive_form assms(1) assms(3) calculation periR_inf postR_inf preR_inf srdes_theory.meet_is_healthy)
   finally show ?thesis .
 qed
+
+lemma cond_R1_closure [closure]: "\<lbrakk> P is R1; Q is R1 \<rbrakk> \<Longrightarrow> P \<triangleleft> b \<triangleright>\<^sub>R Q is R1"
+  by (rel_auto)
 
 lemma Productive_cond_rea [closure]:
   assumes "P is SRD" "P is Productive" "Q is SRD" "Q is Productive"
@@ -194,7 +206,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((pre\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R pre\<^sub>R Q) \<turnstile> (peri\<^sub>R P \<triangleleft> b \<triangleright>\<^sub>R peri\<^sub>R Q) \<diamondop> (((post\<^sub>R P) \<triangleleft> b \<triangleright>\<^sub>R (post\<^sub>R Q)) \<and> $tr\<acute> >\<^sub>u $tr))"
     by (rule cong[of "\<^bold>R\<^sub>s" "\<^bold>R\<^sub>s"], simp, rel_auto)
   also have "... is Productive"
-    by (simp add: Healthy_def Productive_RHS_design_form  unrest)
+    by (simp add: Healthy_def, simp add: Productive_RHS_design_form closure unrest assms)
   finally show ?thesis .
 qed
 

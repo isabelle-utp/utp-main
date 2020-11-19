@@ -3,9 +3,9 @@ section \<open> Instantaneous Reactive Designs \<close>
 theory utp_rdes_instant
   imports utp_rdes_prog
 begin
-  
+
 definition ISRD1 :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
-[upred_defs]: "ISRD1(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> ($tr\<acute> =\<^sub>u $tr))"
+[upred_defs]: "ISRD1(P) = P \<parallel>\<^sub>R \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> false \<diamondop> ($tr =\<^sub>u $tr\<acute>))"
 
 definition ISRD :: "('s,'t::trace,'\<alpha>) hrel_rsp \<Rightarrow> ('s,'t,'\<alpha>) hrel_rsp" where
 [upred_defs]: "ISRD = ISRD1 \<circ> NSRD"
@@ -15,19 +15,21 @@ lemma ISRD1_idem: "ISRD1(ISRD1(P)) = ISRD1(P)"
     
 lemma ISRD1_monotonic: "P \<sqsubseteq> Q \<Longrightarrow> ISRD1(P) \<sqsubseteq> ISRD1(Q)"
   by (rel_auto)
- 
+
+thm R5_def
+
 lemma ISRD1_RHS_design_form:
   assumes "$ok\<acute> \<sharp> P" "$ok\<acute> \<sharp> Q" "$ok\<acute> \<sharp> R"
-  shows "ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> (R \<and> $tr\<acute> =\<^sub>u $tr))"
+  shows "ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> R5(R))"
   using assms by (simp add: ISRD1_def choose_srd_def RHS_tri_design_par unrest, rel_auto)
 
 lemma ISRD1_form:
-  "ISRD1(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> (post\<^sub>R(P) \<and> $tr\<acute> =\<^sub>u $tr))"
+  "ISRD1(SRD(P)) = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> (R5(post\<^sub>R(P))))"
   by (simp add: ISRD1_RHS_design_form SRD_as_reactive_tri_design unrest)
 
 lemma ISRD1_rdes_def [rdes_def]: 
-  "\<lbrakk> P is RR; R is RR \<rbrakk> \<Longrightarrow> ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> (R \<and> $tr\<acute> =\<^sub>u $tr))"
-  by (simp add: ISRD1_def rdes_def closure rpred)
+  "\<lbrakk> P is RR; R is RR \<rbrakk> \<Longrightarrow> ISRD1(\<^bold>R\<^sub>s(P \<turnstile> Q \<diamondop> R)) = \<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> R5(R))"
+  by (simp add: ISRD1_def R5_def rdes_def closure rpred)
 
 lemma ISRD_intro: 
   assumes "P is NSRD" "peri\<^sub>R(P) = (\<not>\<^sub>r pre\<^sub>R(P))" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> post\<^sub>R(P)"
@@ -44,16 +46,16 @@ proof -
 qed
 
 lemma ISRD1_rdes_intro:
-  assumes "P is RR" "Q is RR" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> Q"
+  assumes "P is RR" "Q is RR" "($tr =\<^sub>u $tr\<acute>) \<sqsubseteq> Q"
   shows "\<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> Q) is ISRD1"
   unfolding Healthy_def
-  by (simp add: ISRD1_rdes_def assms closure unrest utp_pred_laws.inf.absorb1)
+  by (simp add: ISRD1_rdes_def R5_def assms closure unrest utp_pred_laws.inf.absorb1)
 
 lemma ISRD_rdes_intro [closure]:
-  assumes "P is RC" "Q is RR" "($tr\<acute> =\<^sub>u $tr) \<sqsubseteq> Q"
+  assumes "P is RC" "Q is RR" "($tr =\<^sub>u $tr\<acute>) \<sqsubseteq> Q"
   shows "\<^bold>R\<^sub>s(P \<turnstile> false \<diamondop> Q) is ISRD"
   unfolding Healthy_def
-  by (simp add: ISRD_def closure Healthy_if ISRD1_rdes_def assms unrest utp_pred_laws.inf.absorb1)
+  by (simp add: ISRD_def R5_def closure Healthy_if ISRD1_rdes_def assms unrest utp_pred_laws.inf.absorb1)
 
 lemma ISRD_implies_ISRD1:
   assumes "P is ISRD"
@@ -69,8 +71,8 @@ lemma ISRD_implies_SRD:
   assumes "P is ISRD"
   shows "P is SRD"
 proof -
-  have 1:"ISRD(P) = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R P) ;; R1 true \<and> R1 true) \<turnstile> false \<diamondop> (post\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr))"
-    by (simp add: NSRD_form ISRD1_def ISRD_def RHS_tri_design_par rdes_def unrest closure)
+  have 1:"ISRD(P) = \<^bold>R\<^sub>s((\<not>\<^sub>r (\<not>\<^sub>r pre\<^sub>R P) ;; R1 true \<and> R1 true) \<turnstile> false \<diamondop> (post\<^sub>R P \<and> $tr =\<^sub>u $tr\<acute>))"
+    by (simp add: NSRD_form ISRD1_def R5_def ISRD_def RHS_tri_design_par rdes_def unrest closure)
   moreover have "... is SRD"
     by (simp add: closure unrest)
   ultimately have "ISRD(P) is SRD"
@@ -78,7 +80,7 @@ proof -
   with assms show ?thesis
     by (simp add: Healthy_def)
 qed
-    
+
 lemma ISRD_implies_NSRD [closure]: 
   assumes "P is ISRD"
   shows "P is NSRD"
@@ -89,10 +91,10 @@ proof -
     by (simp add: assms ISRD_implies_SRD Healthy_if)
   also have "... = ISRD1 (\<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false\<^sub>h \<turnstile> (\<exists> $st\<acute> \<bullet> peri\<^sub>R P) \<diamondop> post\<^sub>R P))"
     by (simp add: RD3_def, subst SRD_right_unit_tri_lemma, simp_all add: assms ISRD_implies_SRD)
-  also have "... = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false\<^sub>h \<turnstile> false \<diamondop> (post\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr))"
+  also have "... = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false\<^sub>h \<turnstile> false \<diamondop> (post\<^sub>R P \<and> $tr =\<^sub>u $tr\<acute>))"
     by (simp add: RHS_tri_design_par ISRD1_def unrest choose_srd_def rpred closure ISRD_implies_SRD assms)
   also have "... = (... ;; II\<^sub>R)"
-    by (rdes_simp, simp add: RHS_tri_normal_design_composition' closure assms unrest ISRD_implies_SRD wp rpred wp_rea_false_RC)
+    by (rdes_simp, simp add: RHS_tri_normal_design_composition' closure assms unrest ISRD_implies_SRD R5_def wp rpred wp_rea_false_RC)
   also have "... is RD3"
     by (simp add: Healthy_def RD3_def seqr_assoc)
   finally show ?thesis
@@ -101,19 +103,19 @@ qed
   
 lemma ISRD_form:
   assumes "P is ISRD"
-  shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> (post\<^sub>R(P) \<and> $tr\<acute> =\<^sub>u $tr)) = P"
+  shows "\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> R5(post\<^sub>R(P))) = P"
 proof -
   have "P = ISRD1(P)"
     by (simp add: ISRD_implies_ISRD1 assms Healthy_if)
   also have "... = ISRD1(\<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> peri\<^sub>R(P) \<diamondop> post\<^sub>R(P)))"
     by (simp add: SRD_reactive_tri_design ISRD_implies_SRD assms)
-  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> (post\<^sub>R(P) \<and> $tr\<acute> =\<^sub>u $tr))"
-    by (simp add: ISRD1_rdes_def closure assms)
+  also have "... = \<^bold>R\<^sub>s(pre\<^sub>R(P) \<turnstile> false \<diamondop> R5(post\<^sub>R(P)))"
+    by (simp add: ISRD1_rdes_def R5_def closure assms)
   finally show ?thesis ..
 qed
     
 lemma ISRD_elim [RD_elim]: 
-  "\<lbrakk> P is ISRD; Q(\<^bold>R\<^sub>s (pre\<^sub>R(P) \<turnstile> false \<diamondop> (post\<^sub>R(P) \<and> $tr\<acute> =\<^sub>u $tr))) \<rbrakk> \<Longrightarrow> Q(P)"
+  "\<lbrakk> P is ISRD; Q(\<^bold>R\<^sub>s (pre\<^sub>R(P) \<turnstile> false \<diamondop> R5(post\<^sub>R(P)))) \<rbrakk> \<Longrightarrow> Q(P)"
   by (simp add: ISRD_form)
   
 lemma skip_srd_ISRD [closure]: "II\<^sub>R is ISRD"
@@ -162,6 +164,23 @@ qed
 
 lemma recursive_assign_Chaos:
   "(\<mu>\<^sub>R X \<bullet> \<langle>\<sigma>\<rangle>\<^sub>R ;; X) = Chaos"
-  by (rule ISRD_recurse_Chaos, simp_all add: closure rdes, rel_auto)
+  by (rule ISRD_recurse_Chaos, simp_all add: closure rdes, rel_auto)  
+
+lemma unproductive_form:
+  assumes "P\<^sub>2 is RR" "P\<^sub>3 is RR" "P\<^sub>3 is R5" "P\<^sub>3 \<noteq> false"
+  shows "\<not> (\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) is Productive)"
+proof -
+  have "Productive(\<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3)) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> R4(P\<^sub>3))"
+    by (simp add: Productive_RHS_R4_design_form closure assms)
+  also have "... = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> false)"
+    by (metis Healthy_if R4_R5 assms(3))
+  also have "... \<noteq> \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3)"
+    by (simp add: R5_implies_R1 assms rea_true_conj(1) rrel_theory.bottom_closed rrel_theory.top_closed srdes_tri_eq_iff)
+  finally show ?thesis
+    using Healthy_if by blast
+qed
+
+lemma unproductive_assigns: "\<not> (\<langle>\<sigma>\<rangle>\<^sub>R is Productive)"
+  unfolding rdes_def by (rule unproductive_form, simp_all add: closure, rel_auto+)
 
 end

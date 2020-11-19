@@ -327,6 +327,9 @@ lemma AssignsCSP_ICSP [closure]: "\<langle>\<sigma>\<rangle>\<^sub>C is ICSP"
   apply (rel_auto)
 done
 
+lemma unproductive_AssignsCSP: "\<not> (\<langle>\<sigma>\<rangle>\<^sub>C is Productive)"
+  unfolding rdes_def by (rule unproductive_form, simp_all add: closure, rel_auto+)
+
 lemma AssignsCSP_as_AssignsR: "\<langle>\<sigma>\<rangle>\<^sub>R ;; Skip = \<langle>\<sigma>\<rangle>\<^sub>C"
   by (rdes_eq)
 

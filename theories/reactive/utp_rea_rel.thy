@@ -394,6 +394,9 @@ lemma rea_skip_RR [closure]:
   "II\<^sub>r is RR"
   apply (rel_auto) using minus_zero_eq by blast
 
+lemma tr_eq_tr'_RR_closed [closure]: "$tr =\<^sub>u $tr\<acute> is RR"
+  apply (rel_auto) using minus_zero_eq by auto
+
 lemma tr'_eq_tr_RR_closed [closure]: "$tr\<acute> =\<^sub>u $tr is RR"
   apply (rel_auto) using minus_zero_eq by auto
 

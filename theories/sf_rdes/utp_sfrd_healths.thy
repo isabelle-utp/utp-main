@@ -98,7 +98,7 @@ lemma postR_Skip [rdes]: "post\<^sub>R(Skip) = \<Phi>(true,id\<^sub>s,\<guillemo
 
 lemma Productive_Stop [closure]:
   "Stop is Productive"
-  by (simp add: Stop_RHS_tri_design Healthy_def Productive_RHS_design_form unrest)
+  by (simp add: Stop_RHS_tri_design Healthy_def Productive_RHS_design_form unrest closure)
 
 lemma Skip_left_lemma:
   assumes "P is CSP"
@@ -600,6 +600,9 @@ lemma PCSP_elim [RD_elim]:
   shows "P X"
   by (metis R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms comp_apply)
 
+lemma R5_alt_def: "R5(P) = (P \<and> $tr\<acute> =\<^sub>u $tr)"
+  by rel_auto
+
 lemma ICSP_implies_NCSP [closure]:
   assumes "P is ICSP"
   shows "P is NCSP"
@@ -613,7 +616,7 @@ proof -
   also have "... = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(NCSP P)) wp\<^sub>r false) \<turnstile> 
                        false \<diamondop> 
                        ((\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NCSP P)) \<and> $tr\<acute> =\<^sub>u $tr))"
-      by (simp_all add: ISRD1_RHS_design_form closure rdes unrest)
+    by (simp_all add: ISRD1_RHS_design_form R5_alt_def closure rdes unrest)
   also have "... is NCSP"
     apply (rule NCSP_rdes_intro)
         apply (rule CRC_intro)
@@ -628,7 +631,7 @@ lemma ICSP_implies_ISRD [closure]:
   by (metis (no_types, hide_lams) Healthy_def ICSP_implies_NCSP ISRD_def NCSP_implies_NSRD assms comp_apply)
 
 lemma ICSP_elim [RD_elim]: 
-  assumes "X is ICSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> false \<diamondop> (post\<^sub>R X \<and> $tr\<acute> =\<^sub>u $tr)))"
+  assumes "X is ICSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> false \<diamondop> R5(post\<^sub>R X)))"
   shows "P X"
   by (metis Healthy_if NCSP_implies_CSP ICSP_implies_NCSP ISRD1_form assms comp_apply)
 
@@ -643,7 +646,7 @@ proof -
   from assms(3) have 1:"(post\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr) ;; true\<^sub>r = true\<^sub>r"
     by (rel_auto, metis (full_types, hide_lams) dual_order.antisym order_refl)
   show ?thesis
-    by (rdes_simp cls: assms(1), simp add: csp_enable_nothing assms(2) ICSP_Stop_right_zero_lemma[OF 1])
+    by (rdes_simp cls: assms(1), simp add: R5_alt_def csp_enable_nothing assms(2) ICSP_Stop_right_zero_lemma[OF 1])
 qed
 
 lemma ICSP_intro: "\<lbrakk> P is NCSP; P is ISRD1 \<rbrakk> \<Longrightarrow> P is ICSP"
