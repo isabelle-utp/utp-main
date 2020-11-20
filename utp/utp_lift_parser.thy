@@ -203,6 +203,16 @@ parse_translation \<open>
   [(@{syntax_const "_UTP"}, fn ctx => fn term => utp_lift ctx (Term_Position.strip_positions (hd term)))]
 \<close>
 
+text \<open> A grammar category for UTP lifted expressions \<close>
+
+nonterminal utp_expr
+
+syntax "_utp_expr" :: "logic \<Rightarrow> utp_expr" ("_")
+
+parse_translation \<open>
+  [(@{syntax_const "_utp_expr"}, fn ctx => fn term => utp_lift ctx (hd term))]
+\<close>
+
 subsection \<open> Examples \<close>
 
 text \<open> A couple of examples \<close>
