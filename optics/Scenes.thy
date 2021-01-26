@@ -389,6 +389,16 @@ next
     by (simp add: assms b lens_equiv_def sublens_iff_subscene subscene_refl)
 qed
 
+definition lens_insert :: "('a \<Longrightarrow> 'b) \<Rightarrow> 'b scene \<Rightarrow> 'b scene" ("insert\<^sub>S") where
+"lens_insert x A = (if (\<lbrakk>x\<rbrakk>\<^sub>\<sim> \<le> A) then \<lbrakk>x\<rbrakk>\<^sub>\<sim> \<squnion>\<^sub>S A else A)"
+
+lemma lens_insert_idem: "insert\<^sub>S x (insert\<^sub>S x A) = insert\<^sub>S x A"
+  apply (auto simp add: lens_insert_def less_eq_scene_def)
+  apply (transfer)
+  apply (auto simp add: lens_override_overshadow_left)
+  apply (metis lens_override_overshadow_left)
+  done
+
 text \<open> Membership operations. These have slightly hacky definitions at the moment in order to
   cater for @{term mwb_lens}. See if they can be generalised? \<close>
 
