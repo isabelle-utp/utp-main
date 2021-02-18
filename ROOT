@@ -18,7 +18,7 @@ session "Profiling" in "profiling"
 session "Continuum" in "continuum" = "HOL-Cardinals" +
   options [document = false, timeout = 1000]
   sessions
-    "UTP-Toolkit"
+    "Z_Toolkit"
   theories
     Continuum
     Dyadic
@@ -61,7 +61,7 @@ session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
 
 (* Core UTP Framework *)
 
-session "UTP" in "utp" = "UTP-Toolkit" +
+session "UTP" in "utp" = "Z_Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories [document = false]
     utp_parser_utils

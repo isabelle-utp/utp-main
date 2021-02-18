@@ -43,7 +43,6 @@ abbreviation (input) uconverse ("(_\<^sup>~)" [1000] 999) where "P\<^sup>~ \<equ
 
 syntax \<comment> \<open> Sets \<close>
   "_uset"       :: "args => ('a set, '\<alpha>) uexpr" ("{(_)}\<^sub>u")
-  "_ucarrier"   :: "type \<Rightarrow> logic" ("[_]\<^sub>T")
   "_uid"        :: "type \<Rightarrow> logic" ("id[_]")
   "_uproduct"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr "\<times>\<^sub>u" 80)
   "_urelcomp"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixr ";\<^sub>u" 75)
@@ -51,7 +50,6 @@ syntax \<comment> \<open> Sets \<close>
 translations
   "{x, xs}\<^sub>u" => "insert\<^sub>u x {xs}\<^sub>u"
   "{x}\<^sub>u"     => "insert\<^sub>u x \<guillemotleft>{}\<guillemotright>"
-  "['a]\<^sub>T"     == "\<guillemotleft>CONST set_of TYPE('a)\<guillemotright>"
   "id['a]"    == "\<guillemotleft>CONST Id_on (CONST set_of TYPE('a))\<guillemotright>"
   "A \<times>\<^sub>u B"    == "CONST bop CONST Product_Type.Times A B"
   "A ;\<^sub>u B"    == "CONST bop CONST relcomp A B"

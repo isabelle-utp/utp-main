@@ -228,12 +228,12 @@ nonterminal utuple_args and umaplet and umaplets
 
 syntax \<comment> \<open> Core expression constructs \<close>
   "_ucoerce"    :: "logic \<Rightarrow> type \<Rightarrow> logic" (infix ":\<^sub>u" 50)
-  "_uabs"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda> _ \<bullet> _" [0, 10] 10)
+  "_uabs"    :: "pttrn \<Rightarrow> logic \<Rightarrow> logic" ("\<lambda>\<^sub>u _ \<bullet> _" [0, 10] 10)
   "_ulens_ovrd" :: "logic \<Rightarrow> logic \<Rightarrow> salpha \<Rightarrow> logic" ("_ \<oplus> _ on _" [85, 0, 86] 86)
   "_ulens_get"  :: "logic \<Rightarrow> svar \<Rightarrow> logic" ("_:_" [900,901] 901)
 
 translations
-  "\<lambda> x \<bullet> p" == "CONST uabs (\<lambda> x. p)"
+  "\<lambda>\<^sub>u x \<bullet> p" == "CONST uabs (\<lambda> x. p)"
   "x :\<^sub>u 'a" == "x :: ('a, _) uexpr"
   "_ulens_ovrd f g a" => "CONST bop (CONST lens_override a) f g"
   "_ulens_ovrd f g a" <= "CONST bop (\<lambda>x y. CONST lens_override x1 y1 a) f g"

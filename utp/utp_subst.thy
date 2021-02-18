@@ -52,7 +52,7 @@ lift_definition subst_nil :: "('\<alpha>, '\<beta>) psubst" ("nil\<^sub>s") is "
 lift_definition subst_id :: "'\<alpha> usubst" ("id\<^sub>s") is "\<lambda>s. s" .
 
 lift_definition subst_comp :: "('\<beta>, '\<gamma>) psubst \<Rightarrow> ('\<alpha>, '\<beta>) psubst \<Rightarrow> ('\<alpha>, '\<gamma>) psubst" (infixl "\<circ>\<^sub>s" 55) is
-"(\<circ>)" .
+"Fun.comp" .
 
 lift_definition inv_subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> ('\<beta>, '\<alpha>) psubst" ("inv\<^sub>s") is inv .
 lift_definition inj_subst :: "('\<alpha>, '\<beta>) psubst \<Rightarrow> bool" ("inj\<^sub>s") is inj .
@@ -405,7 +405,7 @@ lemma subst_lit [usubst]: "\<sigma> \<dagger> \<guillemotleft>v\<guillemotright>
 lemma subst_var [usubst]: "\<sigma> \<dagger> var x = \<langle>\<sigma>\<rangle>\<^sub>s x"
   by (transfer, simp)
 
-lemma usubst_uabs [usubst]: "\<sigma> \<dagger> (\<lambda> x \<bullet> P(x)) = (\<lambda> x \<bullet> \<sigma> \<dagger> P(x))"
+lemma usubst_uabs [usubst]: "\<sigma> \<dagger> (\<lambda>\<^sub>u x \<bullet> P(x)) = (\<lambda>\<^sub>u x \<bullet> \<sigma> \<dagger> P(x))"
   by (transfer, simp)
 
 lemma unrest_usubst_del [unrest]: "\<lbrakk> vwb_lens x; x \<sharp> (\<langle>\<sigma>\<rangle>\<^sub>s x); x \<sharp>\<^sub>s \<sigma> -\<^sub>s x \<rbrakk> \<Longrightarrow>  x \<sharp> (\<sigma> \<dagger> P)"

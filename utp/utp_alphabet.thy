@@ -144,7 +144,7 @@ lemma aext_var [alpha]:
   "var x \<oplus>\<^sub>p a = var (x ;\<^sub>L a)"
   by (pred_auto)
 
-lemma aext_ulambda [alpha]: "((\<lambda> x \<bullet> P(x)) \<oplus>\<^sub>p a) = (\<lambda> x \<bullet> P(x) \<oplus>\<^sub>p a)"
+lemma aext_ulambda [alpha]: "((\<lambda>\<^sub>u x \<bullet> P(x)) \<oplus>\<^sub>p a) = (\<lambda>\<^sub>u x \<bullet> P(x) \<oplus>\<^sub>p a)"
   by (pred_auto)
 
 text \<open> Alphabet extension is monotonic and continuous. \<close>

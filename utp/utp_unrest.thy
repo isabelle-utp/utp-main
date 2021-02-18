@@ -219,7 +219,7 @@ text \<open> For a $\lambda$-term we need to show that the characteristic functi
   not restrict $v$ for any input value $x$. \<close>
     
 lemma unrest_ulam [unrest]:
-  "\<lbrakk> \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda> x \<bullet> F x)"
+  "\<lbrakk> \<And> x. v \<sharp> F x \<rbrakk> \<Longrightarrow> v \<sharp> (\<lambda>\<^sub>u x \<bullet> F x)"
   by (transfer, simp)
 
 end
