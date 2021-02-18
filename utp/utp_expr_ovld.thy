@@ -1,8 +1,8 @@
 section \<open> Overloaded Expression Constructs \<close>
 
 theory utp_expr_ovld
-  imports utp
-begin
+  imports "Z_Toolkit.Z_Toolkit" utp
+begin recall_syntax
 
 subsection \<open> Overloadable Constants \<close>
 
@@ -25,20 +25,12 @@ end
 consts
   \<comment> \<open> Function application, map application, list application... \<close>
   uapply     :: "'f \<Rightarrow> 'k \<Rightarrow> 'v"
-  \<comment> \<open> Overriding \<close>
-  uovrd      :: "'f \<Rightarrow> 'f \<Rightarrow> 'f"
   \<comment> \<open> Function update, map update, list update... \<close>
   uupd       :: "'f \<Rightarrow> 'k \<Rightarrow> 'v \<Rightarrow> 'f"
   \<comment> \<open> Domain of maps, lists... \<close>
   udom       :: "'f \<Rightarrow> 'a set"
   \<comment> \<open> Range of maps, lists... \<close>
   uran       :: "'f \<Rightarrow> 'b set"
-  \<comment> \<open> Domain restriction \<close>
-  udomres    :: "'a set \<Rightarrow> 'f \<Rightarrow> 'f"
-  \<comment> \<open> Range restriction \<close>
-  uranres    :: "'f \<Rightarrow> 'b set \<Rightarrow> 'f"
-  \<comment> \<open> Collection cardinality \<close>
-  ucard      :: "'f \<Rightarrow> nat"
   \<comment> \<open> Collection summation \<close>
   usums      :: "'f \<Rightarrow> 'a"
   \<comment> \<open> Construct a collection from a list of entries \<close>
@@ -63,13 +55,10 @@ definition [upred_defs]: "list_ran = set"
 
 adhoc_overloading
   uapply rel_apply and uapply fun_apply and uapply list_apply and 
-  uapply pfun_app and uapply ffun_app and uovrd rel_override and uovrd ovrd
+  uapply pfun_app and uapply ffun_app and
   uupd rel_update and uupd pfun_upd and uupd ffun_upd and uupd list_upd and
-  udom Domain and udom pdom and udom fdom and udom seq_dom and udom dom and
-  uran Range and uran pran and uran fran and uran list_ran and uran ran
-  udomres rel_domres and udomres pdom_res and udomres fdom_res and
-  uranres pran_res and udomres fran_res and
-  ucard card and ucard pcard and ucard list_card and
+  udom Domain and udom pdom and udom fdom and udom seq_dom and
+  uran Range and uran pran and uran fran and uran list_ran and
   usums list_sum and usums Sum and usums pfun_sum and
   uentries pfun_entries and uentries ffun_entries
 
@@ -85,23 +74,17 @@ syntax
   "_UMaplets"   :: "[umaplet, umaplets] => umaplets" ("_,/ _")
   "_UMapUpd"    :: "[logic, umaplets] => logic" ("_/'(_')\<^sub>u" [900,0] 900)
   "_UMap"       :: "umaplets => logic" ("(1[_]\<^sub>u)")
-  "_ucard"      :: "logic \<Rightarrow> logic" ("#\<^sub>u'(_')")
   "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_usum"       :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
-  "_udom_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<lhd>\<^sub>u" 85)
-  "_uran_res"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infixl "\<rhd>\<^sub>u" 85)
   "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
 
 translations
   \<comment> \<open> Pretty printing for adhoc-overloaded constructs \<close>
   "f(x)\<^sub>a"    <= "CONST uapply f x"
-  "f \<oplus> g"   <= "CONST uovrd f g"
   "dom\<^sub>u(f)" <= "CONST udom f"
   "ran\<^sub>u(f)" <= "CONST uran f"  
-  "A \<lhd>\<^sub>u f" <= "CONST udomres A f"
-  "f \<rhd>\<^sub>u A" <= "CONST uranres f A"
-  "#\<^sub>u(f)" <= "CONST ucard f"
+
   "f(k \<mapsto> v)\<^sub>u" <= "CONST uupd f k v"
 
   \<comment> \<open> Overloaded construct translations \<close>
@@ -109,15 +92,11 @@ translations
   "f(x,y,z)\<^sub>a" == "CONST bop CONST uapply f (x,y,z)\<^sub>u"
   "f(x,y)\<^sub>a"  == "CONST bop CONST uapply f (x,y)\<^sub>u"  
   "f(x)\<^sub>a"    == "CONST bop CONST uapply f x"
-  "f \<oplus> g"  == "CONST bop CONST uovrd f g"
-  "#\<^sub>u(xs)"  == "CONST uop CONST ucard xs"
   "sum\<^sub>u(A)" == "CONST uop CONST usums A"
   "dom\<^sub>u(f)" == "CONST uop CONST udom f"
   "ran\<^sub>u(f)" == "CONST uop CONST uran f"
   "[]\<^sub>u"     => "\<guillemotleft>CONST uempty\<guillemotright>"
   "\<bottom>\<^sub>u"     == "\<guillemotleft>CONST undefined\<guillemotright>"
-  "A \<lhd>\<^sub>u f" == "CONST bop (CONST udomres) A f"
-  "f \<rhd>\<^sub>u A" == "CONST bop (CONST uranres) f A"
   "entr\<^sub>u(d,f)" == "CONST bop CONST uentries d \<guillemotleft>f\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
@@ -139,7 +118,7 @@ lemma lit_divide_apply [lit_norm]: "\<guillemotleft>(/)\<guillemotright>(x)\<^su
 lemma pfun_entries_apply [simp]:
   "(entr\<^sub>u(d,f) :: (('k, 'v) pfun, '\<alpha>) uexpr)(i)\<^sub>a = ((\<guillemotleft>f\<guillemotright>(i)\<^sub>a) \<triangleleft> i \<in>\<^sub>u d \<triangleright> \<bottom>\<^sub>u)"
   by (pred_auto)
-    
+
 lemma udom_uupdate_pfun [simp]:
   fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"
   shows "dom\<^sub>u(m(k \<mapsto> v)\<^sub>u) = {k}\<^sub>u \<union>\<^sub>u dom\<^sub>u(m)"
