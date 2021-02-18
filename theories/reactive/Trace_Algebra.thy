@@ -2,8 +2,8 @@ section \<open> Trace Algebras \<close>
 
 theory Trace_Algebra
   imports 
-    "UTP-Toolkit.List_Extra"
-    "UTP-Toolkit.Positive"
+    "Z_Toolkit.List_Extra"
+    "Z_Toolkit.Positive"
 begin
 
 text \<open> Trace algebras provide a useful way in the UTP of characterising different notions of trace

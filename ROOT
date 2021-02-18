@@ -63,6 +63,9 @@ session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
 
 session "UTP" in "utp" = "Z_Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
+  sessions
+    "HOL-Algebra"
+    "Total_Recall"
   theories [document = false]
     utp_parser_utils
   theories 
