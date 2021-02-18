@@ -24,15 +24,6 @@ theory utp_toolkit
   "HOL-Algebra.Galois_Connection"
   "HOL-Eisbach.Eisbach"
   "Optics.Optics"
-  Countable_Set_Extra
-  FSet_Extra
-  Relation_Extra
-  Map_Extra
-  List_Extra
-  List_Lexord_Alt
-  Partial_Fun
-  Finite_Fun
-  Infinity
-  Positive
-  Total_Recall
+  "Z_Toolkit.Relation_Lib"  
+  Total_Recall.Total_Recall
 begin end

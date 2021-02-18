@@ -18,7 +18,7 @@ session "Profiling" in "profiling"
 session "Continuum" in "continuum" = "HOL-Cardinals" +
   options [document = false, timeout = 1000]
   sessions
-    "Z_Toolkit"
+    "UTP-Toolkit"
   theories
     Continuum
     Dyadic
@@ -50,22 +50,17 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
 (* UTP Mathematical Toolkit *)
 
 session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
-  options [document = pdf, document_output = "output", timeout = 1000]
+  options [document = none]
   sessions
     Optics
+    Z_Toolkit
+    Total_Recall
   theories utp_toolkit
-  document_files
-    "root.tex"
-    "root.bib"
-    "document.sty"
 
 (* Core UTP Framework *)
 
-session "UTP" in "utp" = "Z_Toolkit" +
+session "UTP" in "utp" = "UTP-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
-  sessions
-    "HOL-Algebra"
-    "Total_Recall"
   theories [document = false]
     utp_parser_utils
   theories 
