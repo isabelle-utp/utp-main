@@ -1,7 +1,7 @@
 subsection \<open> Instances for Partial Monoids \<close>
 
 theory Partial_Monoids_Instances
-  imports Partial_Monoids "UTP-Toolkit.utp_toolkit"
+  imports Partial_Monoids "Z_Toolkit.Z_Toolkit"
 begin
 
 subsection \<open> Partial Functions \<close>

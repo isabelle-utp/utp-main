@@ -38,7 +38,7 @@ text \<open> Heap deallocation removes an area of memory from the heap. \<close>
 definition
   heap_dealloc :: "(addr, 's) uexpr \<Rightarrow> 's mprog" ("dealloc'(_')")
   where [upred_defs, ndes_simp]:
-  "dealloc(l) = (U((l \<oplus>\<^sub>p str) \<in> udom(&hp)) \<turnstile>\<^sub>n hp := (udom(&hp) - {l \<oplus>\<^sub>p str}) \<lhd>\<^sub>u &hp)"
+  "dealloc(l) = (U((l \<oplus>\<^sub>p str) \<in> fdom(&hp)) \<turnstile>\<^sub>n hp := (fdom(&hp) - {l \<oplus>\<^sub>p str}) \<lhd>\<^sub>f &hp)"
 
 subsection \<open> Weakest Precondition Semantics \<close>
 
@@ -49,7 +49,7 @@ lemma wp_heap_alloc [wp]:
   by (simp add: ndes_simp wp usubst unrest, rel_auto)
 
 lemma wp_heap_dealloc [wp]: 
-  "dealloc(e) wp\<^sub>D p = (e \<oplus>\<^sub>p str \<in>\<^sub>u dom\<^sub>u(&hp) \<and> p\<lbrakk>(dom\<^sub>u(&hp) - {e \<oplus>\<^sub>p str}\<^sub>u) \<lhd>\<^sub>u &hp/&hp\<rbrakk>)"
+  "dealloc(e) wp\<^sub>D p = U(e \<oplus>\<^sub>p str \<in> fdom(&hp) \<and> p\<lbrakk>(fdom(&hp) - {e \<oplus>\<^sub>p str}) \<lhd>\<^sub>f &hp/&hp\<rbrakk>)"
   by (rel_auto)
 
 subsection \<open> Example properties \<close>
