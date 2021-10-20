@@ -746,7 +746,8 @@ proof -
               $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
               [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> 
               $st\<acute> =\<^sub>u $st) ;; R1 true)"
-    by (simp add: wrR_def par_by_merge_seq_remove merge_csp_do_right pr_var_def closure Healthy_if rpred)
+    by (simp add: wrR_def par_by_merge_seq_remove merge_csp_do_right pr_var_def closure Healthy_if rpred image_image)
+       (rel_auto)
   also have "... =
         (\<not>\<^sub>r (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<lceil>s\<^sub>2\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> [s\<^sub>1]\<^sub>S\<^sub>< \<and>
                      [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t) ;; R1 true)"
@@ -796,7 +797,7 @@ proof -
                    $ref\<acute> \<subseteq>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> \<union>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright>) \<inter>\<^sub>u \<guillemotleft>cs\<guillemotright> \<union>\<^sub>u (\<guillemotleft>ref\<^sub>0\<guillemotright> \<inter>\<^sub>u \<guillemotleft>ref\<^sub>1\<guillemotright> - \<guillemotleft>cs\<guillemotright>) \<and>
                    [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t \<and> $st\<acute> =\<^sub>u $st) ;;\<^sub>h
           R1 true)"
-    by (simp add: wrR_def par_by_merge_seq_remove merge_csp_enable_right pr_var_def closure Healthy_if rpred)
+    by (simp add: wrR_def par_by_merge_seq_remove merge_csp_enable_right pr_var_def closure Healthy_if rpred, rel_auto)
   also have "... =
         (\<not>\<^sub>r (\<^bold>\<exists> tt\<^sub>0 \<bullet> (\<lceil>s\<^sub>2\<rceil>\<^sub>S\<^sub>< \<and> \<lceil>t\<^sub>2\<rceil>\<^sub>S\<^sub>< \<le>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>) \<and> [s\<^sub>1]\<^sub>S\<^sub>< \<and>
                      [\<guillemotleft>trace\<guillemotright> \<in>\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright> \<star>\<^bsub>cs\<^esub> t\<^sub>1 \<and> \<guillemotleft>tt\<^sub>0\<guillemotright> \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright> =\<^sub>u t\<^sub>1 \<restriction>\<^sub>u \<guillemotleft>cs\<guillemotright>]\<^sub>t) ;; R1 true)"
@@ -996,7 +997,7 @@ proof -
                    [$ref\<acute> \<mapsto>\<^sub>s \<guillemotleft>ref\<^sub>0\<guillemotright>, $st\<acute> \<mapsto>\<^sub>s \<guillemotleft>st\<^sub>0\<guillemotright>, $tr \<mapsto>\<^sub>s \<langle>\<rangle>, $tr\<acute> \<mapsto>\<^sub>s \<guillemotleft>tt\<^sub>0\<guillemotright>] \<dagger> (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r P)) \<and>
                     $ref\<acute> \<subseteq>\<^sub>u \<guillemotleft>ref\<^sub>0\<guillemotright> \<and> [\<guillemotleft>trace\<guillemotright> =\<^sub>u \<guillemotleft>tt\<^sub>0\<guillemotright>]\<^sub>t \<and> 
                     $st\<acute> =\<^sub>u $st) ;; R1 true)"
-      by (simp add: wrR_def par_by_merge_seq_remove rpred merge_csp_do_right ex_unrest Healthy_if pr_var_def closure assms unrest usubst)
+      by (simp add: wrR_def par_by_merge_seq_remove rpred merge_csp_do_right ex_unrest Healthy_if pr_var_def closure assms unrest usubst, rel_auto)
   also have "... = (\<not>\<^sub>r (\<exists> $ref\<acute>;$st\<acute> \<bullet> RR(\<not>\<^sub>r P)) ;; R1 true)"
     by (rel_auto, meson order_refl)
   also have "... = (\<not>\<^sub>r (\<not>\<^sub>r P) ;; R1 true)"
