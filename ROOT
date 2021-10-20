@@ -50,7 +50,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
 (* UTP Mathematical Toolkit *)
 
 session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
-  options [document = none]
+  options [document = false]
   sessions
     Optics
     Z_Toolkit

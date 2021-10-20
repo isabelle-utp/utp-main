@@ -337,7 +337,7 @@ lemma nmods_zero [closure]: "P nmods \<emptyset>"
   by (rel_auto)
 
 lemma nmods_plus [closure]: "\<lbrakk> P nmods a; P nmods b \<rbrakk> \<Longrightarrow> P nmods (a ; b)"
-  by (rel_auto, force)
+  by (rel_auto, metis)
 
 lemma nmods_skip [closure]: "vwb_lens a \<Longrightarrow> II nmods a" 
   by rel_auto

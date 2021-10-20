@@ -12,10 +12,10 @@ text \<open> Create a type with invariants attached; similar to a Z schema. \<cl
 ML \<open>
 val _ =
   Outer_Syntax.command @{command_keyword schema} "define a new schema type"
-    (Parse_Spec.overloaded -- (Parse.type_args_constrained -- Parse.binding) --
+    ((Parse.type_args_constrained -- Parse.binding) --
       (@{keyword "="} |-- Scan.option (Parse.typ --| @{keyword "+"}) --
         Scan.repeat1 Parse.const_binding) -- Scan.optional (@{keyword "where"} |-- (Scan.repeat1 (Scan.option (Parse.binding --| Parse.$$$ ":") |-- Parse.term))) ["true"]
-    >> (fn (((overloaded, x), (y, z)), ts) =>
+    >> (fn ((x, (y, z)), ts) =>
         let (* Get the new type name *)
             val n = Binding.name_of (snd x)
             (* Produce a list of type variables *)
@@ -27,7 +27,7 @@ val _ =
             val ib = (SOME (Binding.make (invn, Position.none), SOME ("((" ^ varl ^ ")" ^ n ^ "_scheme) " ^ upred), NoSyn))
             open HOLogic in
         Toplevel.theory
-          (Lens_Utils.add_alphabet_cmd {overloaded = overloaded} x y z
+          (Lens_Utils.add_alphabet_cmd x y z
            #> Named_Target.theory_map
               (fn ctx =>
                let val invs = Library.foldr1 HOLogic.mk_conj (map (Syntax.parse_term ctx) ts)
