@@ -265,13 +265,13 @@ lemma seq_Sup_distr: "(\<Sqinter> A) ;; Q = (\<Sqinter> P\<in>A. P ;; Q)"
   by (transfer, auto)
 
 lemma seq_UINF_distl: "P ;; (\<Sqinter> Q\<in>A \<bullet> F(Q)) = (\<Sqinter> Q\<in>A \<bullet> P ;; F(Q))"
-  by (simp add: UINF_as_Sup_collect seq_Sup_distl)
+  by (simp add: UINF_as_Sup_collect seq_Sup_distl image_image)
 
 lemma seq_UINF_distl': "P ;; (\<Sqinter> Q \<bullet> F(Q)) = (\<Sqinter> Q \<bullet> P ;; F(Q))"
   by (metis UINF_mem_UNIV seq_UINF_distl)
 
 lemma seq_UINF_distr: "(\<Sqinter> P\<in>A \<bullet> F(P)) ;; Q = (\<Sqinter> P\<in>A \<bullet> F(P) ;; Q)"
-  by (simp add: UINF_as_Sup_collect seq_Sup_distr)
+  by (simp add: UINF_as_Sup_collect seq_Sup_distr image_image)
 
 lemma seq_UINF_distr': "(\<Sqinter> P \<bullet> F(P)) ;; Q = (\<Sqinter> P \<bullet> F(P) ;; Q)"
   by (metis UINF_mem_UNIV seq_UINF_distr)
@@ -280,7 +280,7 @@ lemma seq_SUP_distl: "P ;; (\<Sqinter>i\<in>A. Q(i)) = (\<Sqinter>i\<in>A. P ;; 
   by (metis image_image seq_Sup_distl)
 
 lemma seq_SUP_distr: "(\<Sqinter>i\<in>A. P(i)) ;; Q = (\<Sqinter>i\<in>A. P(i) ;; Q)"
-  by (simp add: seq_Sup_distr)
+  by (simp add: seq_Sup_distr image_image)
 
 subsection \<open> Skip Laws \<close>
     
@@ -720,10 +720,10 @@ proof -
     by auto
   moreover have "(\<Sqinter>i. P(i)) = \<Sqinter> (P ` UNIV)"
     by (blast)
-  moreover have "\<Sqinter> (P ` insert 0 {1..}) = P(0) \<sqinter> SUPREMUM {1..} P"
+  moreover have "\<Sqinter> (P ` insert 0 {1..}) = P(0) \<sqinter> (SUP i\<in>{1..}. P i)"
     by (simp)
-  moreover have "SUPREMUM {1..} P = (\<Sqinter>i. P(i+1))"
-    by (simp add: atLeast_Suc_greaterThan greaterThan_0)
+  moreover have "(SUP i\<in>{1..}. P i) = (\<Sqinter>i. P(i+1))"
+    by (simp add: atLeast_Suc_greaterThan greaterThan_0 image_image)
   ultimately show ?thesis
     by (simp only:)
 qed

@@ -187,9 +187,9 @@ instance uexpr :: (boolean_algebra, type) boolean_algebra
 instantiation uexpr :: (complete_lattice, type) complete_lattice
 begin
   lift_definition Inf_uexpr :: "('a, 'b) uexpr set \<Rightarrow> ('a, 'b) uexpr"
-  is "\<lambda> PS A. INF P:PS. P(A)" .
+  is "\<lambda> PS A. INF P\<in>PS. P(A)" .
   lift_definition Sup_uexpr :: "('a, 'b) uexpr set \<Rightarrow> ('a, 'b) uexpr"
-  is "\<lambda> PS A. SUP P:PS. P(A)" .
+  is "\<lambda> PS A. SUP P\<in>PS. P(A)" .
 instance
   by (intro_classes)
      (transfer, auto intro: INF_lower SUP_upper simp add: INF_greatest SUP_least)+

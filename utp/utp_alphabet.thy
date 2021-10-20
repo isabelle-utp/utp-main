@@ -151,7 +151,7 @@ lemma aext_mono: "P \<sqsubseteq> Q \<Longrightarrow> P \<oplus>\<^sub>p a \<sqs
   by (pred_auto)
 
 lemma aext_cont [alpha]: "vwb_lens a \<Longrightarrow> (\<Sqinter> A) \<oplus>\<^sub>p a = (\<Sqinter> P\<in>A.  P \<oplus>\<^sub>p a)"
-  by (pred_simp)
+  by (pred_simp, simp add: image_image aext.rep_eq)
    
 text \<open> If a variable is unrestricted in a predicate, then the extended variable is unrestricted
   in the predicate with an alphabet extension. \<close>

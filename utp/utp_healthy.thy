@@ -59,12 +59,14 @@ lemma Healthy_case_prod [closure]:
   "\<lbrakk> \<And> x y. P x y is H \<rbrakk> \<Longrightarrow> case_prod P v is H"
   by (simp add: prod.case_eq_if)
 
+term Sup
+
 lemma Healthy_SUPREMUM:
-  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> SUPREMUM A H = \<Sqinter> A"
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (SUP i\<in>A. H i) = \<Sqinter> A"
   by (drule Healthy_carrier_image, presburger)
 
 lemma Healthy_INFIMUM:
-  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> INFIMUM A H = \<Squnion> A"
+  "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (INF i\<in>A. H i) = \<Squnion> A"
   by (drule Healthy_carrier_image, presburger)
 
 lemma Healthy_nu [closure]:
@@ -226,7 +228,7 @@ lemma Continuous_Monotonic [closure]: "Continuous H \<Longrightarrow> Monotonic 
 
 lemma Continuous_comp [intro]:
   "\<lbrakk> Continuous f; Continuous g \<rbrakk> \<Longrightarrow> Continuous (f \<circ> g)"
-  by (simp add: Continuous_def)
+  by (simp add: Continuous_def image_image)
 
 lemma Continuous_const [closure]: "Continuous (\<lambda> X. P)"
   by pred_auto
@@ -307,7 +309,7 @@ qed
 text \<open> All continuous functions are also Scott-continuous \<close>
 
 lemma sup_continuous_Continuous [closure]: "Continuous F \<Longrightarrow> sup_continuous F"
-  by (simp add: Continuous_def sup_continuous_def)
+  by (simp add: Continuous_def sup_continuous_def image_image)
 
 lemma USUP_healthy: "A \<subseteq> \<lbrakk>H\<rbrakk>\<^sub>H \<Longrightarrow> (\<Squnion> P\<in>A \<bullet> F(P)) = (\<Squnion> P\<in>A \<bullet> F(H(P)))"
   by (rule USUP_cong, simp add: Healthy_subset_member)
