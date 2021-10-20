@@ -196,7 +196,7 @@ instance
 end
 
 instance uexpr :: (complete_distrib_lattice, type) complete_distrib_lattice
-  by (intro_classes; transfer; auto simp add: INF_SUP_set)
+  by (intro_classes; transfer; auto simp add: INF_SUP_set image_image)
 
 instance uexpr :: (complete_boolean_algebra, type) complete_boolean_algebra ..
   

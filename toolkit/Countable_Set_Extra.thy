@@ -10,9 +10,7 @@ section \<open> Countable Sets: Extra functions and properties \<close>
 theory Countable_Set_Extra
 imports
   "HOL-Library.Countable_Set_Type"
-  Sequence
-  FSet_Extra
-  "HOL-Library.Bit_Operations"
+  Infinite_Sequence
 begin
 
 subsection \<open> Extra syntax \<close>
@@ -102,12 +100,12 @@ lemma countable_finite_power:
   "countable(A) \<Longrightarrow> countable {B. B \<subseteq> A \<and> finite(B)}"
   by (metis Collect_conj_eq Int_commute countable_Collect_finite_subset)
 
-lift_definition cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset" is
-"\<lambda> A f. if (A = {}) then {} else INTER A f"
-  by (auto)
+lift_definition cInter :: "'a cset cset \<Rightarrow> 'a cset"  ("\<Inter>\<^sub>c_" [900] 900)
+  is "\<lambda>A. if A = {} then {} else \<Inter> A"
+  using countable_INT [of _ _ id] by auto
 
-definition cInter :: "'a cset cset \<Rightarrow> 'a cset" ("\<Inter>\<^sub>c_" [900] 900) where
-"\<Inter>\<^sub>c A = cINTER A id"
+abbreviation (input) cINTER :: "'a cset \<Rightarrow> ('a \<Rightarrow> 'b cset) \<Rightarrow> 'b cset"
+  where "cINTER A f \<equiv> cInter (cimage f A)"
 
 lift_definition cfinite :: "'a cset \<Rightarrow> bool" is finite .
 lift_definition cInfinite :: "'a cset \<Rightarrow> bool" is infinite .
@@ -154,9 +152,6 @@ lemma CCollect_ext_Some [simp]:
   done
 
 lift_definition list_of_cset :: "'a :: linorder cset \<Rightarrow> 'a list" is sorted_list_of_set .
-
-lift_definition fset_cset :: "'a fset \<Rightarrow> 'a cset" is id
-  using uncountable_infinite by auto
 
 definition cset_count :: "'a cset \<Rightarrow> 'a \<Rightarrow> nat" where
 "cset_count A =
@@ -210,27 +205,27 @@ proof (rule injI)
     by (metis cset_seq_ran rcset_inverse)
 qed
 
-lift_definition cset2seq :: "'a cset \<Rightarrow> 'a seq"
+lift_definition cset2infseq :: "'a cset \<Rightarrow> 'a infseq"
 is "(\<lambda> A i. if (i \<in> cset_count A ` rcset A) then inv_into (rcset A) (cset_count A) i else (SOME x. x \<in>\<^sub>c A))" .
 
-lemma range_cset2seq:
-  "A \<noteq> {}\<^sub>c \<Longrightarrow> range (Rep_seq (cset2seq A)) = rcset A"
-  by (force intro: someI2 simp add: cset2seq.rep_eq cset_count_inj_seq bot_cset.rep_eq cin.rep_eq)
+lemma range_cset2infseq:
+  "A \<noteq> {}\<^sub>c \<Longrightarrow> range (Rep_infseq (cset2infseq A)) = rcset A"
+  by (force intro: someI2 simp add: cset2infseq.rep_eq cset_count_inj_seq bot_cset.rep_eq cin.rep_eq)
 
 lemma infinite_cset_count_surj: "infinite (rcset A) \<Longrightarrow> surj (cset_count A)"
   using bij_betw_imp_surj cset_count_infinite_bij by auto
 
-lemma cset2seq_inj:
-  "inj_on cset2seq {A. A \<noteq> {}\<^sub>c}"
+lemma cset2infseq_inj:
+  "inj_on cset2infseq {A. A \<noteq> {}\<^sub>c}"
   apply (rule inj_onI)
   apply (simp)
-  apply (metis range_cset2seq rcset_inject)
+  apply (metis range_cset2infseq rcset_inject)
   done
 
-lift_definition nat_seq2set :: "nat seq \<Rightarrow> nat set" is
+lift_definition nat_infseq2set :: "nat infseq \<Rightarrow> nat set" is
 "\<lambda> f. prod_encode ` {(x, f x) | x. True}" .
 
-lemma inj_nat_seq2set: "inj nat_seq2set"
+lemma inj_nat_infseq2set: "inj nat_infseq2set"
 proof (rule injI, transfer)
   fix f g
   assume "prod_encode ` {(x, f x) |x. True} = prod_encode ` {(x, g x) |x. True}"
@@ -240,24 +235,21 @@ proof (rule injI, transfer)
     by (auto simp add: set_eq_iff)
 qed
 
-lift_definition bit_seq_of_nat_set :: "nat set \<Rightarrow> bit seq"
-is "\<lambda> A i. if (i \<in> A) then 1 else 0" .
+lift_definition bit_infseq_of_nat_set :: "nat set \<Rightarrow> bool infseq"
+is "\<lambda> A i. i \<in> A" .
 
-lemma bit_seq_of_nat_set_inj: "inj bit_seq_of_nat_set"
+lemma bit_infseq_of_nat_set_inj: "inj bit_infseq_of_nat_set"
   apply (rule injI)
-  apply (transfer, auto)
-   apply (metis bit.distinct(1))
-  apply (meson zero_neq_one)
+  apply transfer
+  apply (auto simp add: fun_eq_iff)
   done
 
-lemma bit_seq_of_nat_cset_bij: "bij bit_seq_of_nat_set"
+lemma bit_infseq_of_nat_cset_bij: "bij bit_infseq_of_nat_set"
   apply (rule bijI)
-   apply (fact bit_seq_of_nat_set_inj)
-  apply (auto simp add: image_def)
-  apply (transfer)
-  apply (rename_tac x)
-  apply (rule_tac x="{i. x i = 1}" in exI)
-  apply (auto)
+   apply (fact bit_infseq_of_nat_set_inj)
+  apply transfer
+  apply (rule surjI)
+  apply auto
   done
 
 text \<open> This function is a partial injection from countable sets of natural sets to natural sets.
@@ -265,23 +257,23 @@ text \<open> This function is a partial injection from countable sets of natural
         bijection between these two types. \<close>
 
 definition nat_set_cset_collapse :: "nat set cset \<Rightarrow> nat set" where
-"nat_set_cset_collapse = inv bit_seq_of_nat_set \<circ> seq_inj \<circ> cset2seq \<circ> (\<lambda> A. (bit_seq_of_nat_set `\<^sub>c A))"
+"nat_set_cset_collapse = inv bit_infseq_of_nat_set \<circ> infseq_inj \<circ> cset2infseq \<circ> (\<lambda> A. (bit_infseq_of_nat_set `\<^sub>c A))"
 
 lemma nat_set_cset_collapse_inj: "inj_on nat_set_cset_collapse {A. A \<noteq> {}\<^sub>c}"
 proof -
-  have "(`\<^sub>c) bit_seq_of_nat_set ` {A. A \<noteq> {}\<^sub>c} \<subseteq> {A. A \<noteq> {}\<^sub>c}"
+  have "(`\<^sub>c) bit_infseq_of_nat_set ` {A. A \<noteq> {}\<^sub>c} \<subseteq> {A. A \<noteq> {}\<^sub>c}"
     by (auto simp add:cimage.rep_eq)
   thus ?thesis
     apply (simp add: nat_set_cset_collapse_def)
     apply (rule comp_inj_on)
-     apply (meson bit_seq_of_nat_set_inj cset.inj_map injD inj_onI)
+     apply (meson bit_infseq_of_nat_set_inj cset.inj_map injD inj_onI)
     apply (rule comp_inj_on)
-     apply (metis cset2seq_inj subset_inj_on)
+     apply (metis cset2infseq_inj subset_inj_on)
     apply (rule comp_inj_on)
      apply (rule subset_inj_on)
-      apply (rule seq_inj)
+      apply (rule infseq_inj)
      apply (simp)
-    apply (meson UNIV_I bij_imp_bij_inv bij_is_inj bit_seq_of_nat_cset_bij subsetI subset_inj_on)
+    apply (meson UNIV_I bij_imp_bij_inv bij_is_inj bit_infseq_of_nat_cset_bij subsetI subset_inj_on)
     done
 qed
 
@@ -361,9 +353,7 @@ lemma image_csets_surj:
   apply (simp add: image_comp)
   apply (auto simp add: image_Collect)
   apply (erule subset_imageE)
-  apply (auto)
-  apply (metis countable_image rcset_inverse rcset_to_rcset subset_inj_on the_inv_into_onto)
-  done
+  using countable_image_inj_on subset_inj_on by blast
 
 lemma bij_betw_image_csets:
   "bij_betw f A B \<Longrightarrow> bij_betw ((`\<^sub>c) f) (csets A) (csets B)"

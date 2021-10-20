@@ -409,7 +409,7 @@ lemma bij_map_Some:
   apply (safe)
     apply (metis (hide_lams, no_types) comp_inj_on_iff f_the_inv_into_f inj_on_inverseI option.sel)
    apply (metis (hide_lams, no_types) comp_apply image_iff option.sel)
-  apply (metis imageI image_comp option.sel)
+  apply (metis Option.these_def Some_image_these_eq image_image these_image_Some_eq)
   done
 
 lemma ran_map_add [simp]:
@@ -700,7 +700,7 @@ next
   moreover from False have "map_of_list xs \<noteq> Map.empty"
     by (metis ran_empty ran_map_of_list set_empty)
   ultimately show ?thesis
-    by (auto simp add: list_of_map_def map_of_list_def nth_equalityI)
+    by (auto intro!:nth_equalityI simp add: list_of_map_def map_of_list_def  fun_eq_iff)
 qed
 
 subsection \<open> Map Comprehension \<close>

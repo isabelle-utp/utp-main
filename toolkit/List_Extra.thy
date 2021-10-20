@@ -1,9 +1,9 @@
-(******************************************************************************)
-(* Project: Isabelle/UTP Toolkit                                              *)
-(* File: List_Extra.thy                                                       *)
-(* Authors: Simon Foster and Frank Zeyda                                      *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
-(******************************************************************************)
+(*****************************************************************************************)
+(* Project: Isabelle/UTP Toolkit                                                         *)
+(* File: List_Extra.thy                                                                  *)
+(* Authors: Simon Foster, Pedro Ribeiro, and Frank Zeyda                                 *)
+(* Emails: simon.foster@york.ac.uk, pedro.ribeiro@york.ac.uk, and frank.zeyda@york.ac.uk *)
+(*****************************************************************************************)
 
 section \<open> Lists: extra functions and properties \<close>
 
@@ -18,6 +18,11 @@ begin
 subsection \<open> Useful Abbreviations \<close>
 
 abbreviation "list_sum xs \<equiv> foldr (+) xs 0"
+
+subsection \<open> Sets \<close>
+
+lemma set_Fpow [simp]: "set xs \<in> Fpow A \<longleftrightarrow> set xs \<subseteq> A"
+  by (auto simp add: Fpow_def)
 
 subsection \<open> Folds \<close>
 
@@ -98,6 +103,31 @@ lemma sorted_distinct [intro]: "\<lbrakk> sorted (xs); distinct(xs) \<rbrakk> \<
   apply (metis (no_types, hide_lams) Suc_leI Suc_less_eq Suc_pred gr0_conv_Suc not_le not_less_iff_gr_or_eq nth_Cons_Suc nth_mem nth_non_equal_first_eq)
   done
 
+text \<open> The concatenation of two lists is sorted provided (1) both the lists are sorted, and (2) 
+  the final and first elements are ordered. \<close>
+
+lemma sorted_append_middle:
+  "sorted(xs@ys) = (sorted xs \<and> sorted ys \<and> (xs \<noteq> [] \<and> ys \<noteq> [] \<longrightarrow> xs!(length xs - 1) \<le> ys!0))"
+proof -
+  have "\<And>x y. \<lbrakk> sorted xs; sorted ys; xs ! (length xs - Suc 0) \<le> ys ! 0 \<rbrakk> \<Longrightarrow> x \<in> set xs \<Longrightarrow> y \<in> set ys \<Longrightarrow> x \<le> y"
+  proof -
+    fix x y
+    assume "sorted xs" "sorted ys" "xs ! (length xs - Suc 0) \<le> ys ! 0" "x \<in> set xs" "y \<in> set ys"
+    moreover then obtain i j where i: "x = xs!i" "i < length xs" and j: "y = ys!j" "j < length ys"
+      by (auto simp add: in_set_conv_nth)
+    moreover have "xs ! i \<le> xs!(length xs - 1)"
+      by (metis One_nat_def Suc_diff_Suc Suc_leI Suc_le_mono \<open>i < length xs\<close> \<open>sorted xs\<close> diff_less diff_zero gr_implies_not_zero nat.simps(3) sorted_iff_nth_mono zero_less_iff_neq_zero)
+    moreover have "ys!0 \<le> ys ! j"
+      by (simp add: calculation(2) calculation(9) sorted_nth_mono)
+    ultimately have "xs ! i \<le> ys ! j"
+      by (metis One_nat_def dual_order.trans) 
+    thus "x \<le> y"
+      by (simp add: i j)
+  qed
+  thus ?thesis
+    by (auto simp add: sorted_append)
+qed
+
 text \<open> Is the given list a permutation of the given set? \<close>
 
 definition is_sorted_list_of_set :: "('a::ord) set \<Rightarrow> 'a list \<Rightarrow> bool" where
@@ -148,9 +178,7 @@ definition sorted_list_of_set_alt :: "('a::ord) set \<Rightarrow> 'a list" where
 
 lemma is_sorted_list_of_set:
   "finite A \<Longrightarrow> is_sorted_list_of_set A (sorted_list_of_set A)"
-  apply (simp add: is_sorted_list_of_set_def)
-  
-  done
+  using sorted_distinct sorted_list_of_set(2) by (fastforce simp add: is_sorted_list_of_set_def)
 
 lemma sorted_list_of_set_other_def:
   "finite A \<Longrightarrow> sorted_list_of_set(A) = (THE xs. sorted(xs) \<and> distinct(xs) \<and> set xs = A)"
@@ -445,6 +473,18 @@ proof -
   finally show ?thesis .
 qed
 
+lemma list_prefix_iff:
+  "(prefix xs ys \<longleftrightarrow> (length xs \<le> length ys \<and> (\<forall> i<length xs. xs!i = ys!i)))"
+  apply (auto)
+  apply (simp add: prefix_imp_length_lteq)
+  apply (metis nth_append prefix_def)
+  apply (metis nth_take_lemma order_refl take_all take_is_prefix)
+  done
+
+lemma list_le_prefix_iff:
+  "(xs \<le> ys \<longleftrightarrow> (length xs \<le> length ys \<and> (\<forall> i<length xs. xs!i = ys!i)))"
+  by (simp add: less_eq_list_def list_prefix_iff)
+
 text \<open> Greatest common prefix \<close>
 
 fun gcp :: "'a list \<Rightarrow> 'a list \<Rightarrow> 'a list" where
@@ -596,7 +636,7 @@ subsection \<open> List Domain and Range \<close>
 abbreviation seq_dom :: "'a list \<Rightarrow> nat set" ("dom\<^sub>l") where
 "seq_dom xs \<equiv> {0..<length xs}"
 
-abbreviation seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
+abbreviation (input) seq_ran :: "'a list \<Rightarrow> 'a set" ("ran\<^sub>l") where
 "seq_ran xs \<equiv> set xs"
 
 subsection \<open> Extracting List Elements \<close>
@@ -854,6 +894,17 @@ lemma length_list_minus:
   shows "length(t - s) = length(t) - length(s)"
   using assms by (simp add: minus_list_def prefix_order.dual_order.strict_implies_order)
 
+lemma length_minus_le: "length (ys - xs) \<le> length ys"
+  by (simp add: minus_list_def)
+
+lemma length_minus_less: "\<lbrakk> xs \<le> ys; xs \<noteq> [] \<rbrakk> \<Longrightarrow> length (ys - xs) < length ys"
+  by (auto simp add: minus_list_def less_eq_list_def)
+     (metis diff_less length_greater_0_conv prefix_bot.bot.extremum_uniqueI)
+
+lemma filter_minus [simp]: "ys \<le> xs \<Longrightarrow> filter P (xs - ys) = filter P xs - filter P ys"
+  by (simp add: minus_list_def less_eq_list_def filter_mono_prefix)
+     (metis filter_append filter_mono_prefix prefix_drop same_append_eq)
+
 subsection \<open> Laws on @{term take}, @{term drop}, and @{term nths} \<close>
 
 lemma take_prefix: "m \<le> n \<Longrightarrow> take m xs \<le> take n xs"
@@ -889,6 +940,68 @@ lemma nths_list_update_out: "k \<notin> A \<Longrightarrow> nths (list_update xs
 lemma nths_list_augment_out: "\<lbrakk> k < length xs; k \<notin> A \<rbrakk> \<Longrightarrow> nths (list_augment xs k x) A = nths xs A"
   by (simp add: list_augment_as_update nths_list_update_out)
 
+lemma nths_single: "n < length xs \<Longrightarrow> nths xs {n} = [xs ! n]"
+proof (induct xs arbitrary: n)
+  case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  have "\<And> n. n > 0 \<Longrightarrow> {j. Suc j = n} = {n-1}" by auto
+  with Cons show ?case by (auto simp add: nths_Cons)
+qed
+
+lemma nths_uptoLessThan:
+  "\<lbrakk> m \<le> n; n < length xs \<rbrakk> \<Longrightarrow> nths xs {m..n} = xs ! m # nths xs {Suc m..n}"
+proof (induct xs arbitrary: m n)
+case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  have l1: "\<And> m n. \<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> Suc j \<and> Suc j \<le> n} = {m-1..n-1}"
+    by (auto)
+  have l2: "\<And> m n. \<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> j \<and> Suc j \<le> n} = {m..n-1}"
+    by (auto)
+  from Cons show ?case by (auto simp add: nths_Cons l1 l2)
+qed
+
+lemma nths_upt_nth: "\<lbrakk> j < i; i < length xs \<rbrakk> \<Longrightarrow> (nths xs {0..<i}) ! j = xs ! j"
+  by (metis lessThan_atLeast0 nth_take nths_upt_eq_take)
+
+
+lemma nths_upt_length: "\<lbrakk> m \<le> n; n \<le> length xs \<rbrakk> \<Longrightarrow> length (nths xs {m..<n}) = n-m"
+  by (metis atLeastLessThan_empty diff_is_0_eq length_map length_upt list.size(3) not_less nths_empty seq_extract_as_map seq_extract_def)
+
+lemma nths_upt_le_length: 
+  "\<lbrakk> m \<le> n; Suc n \<le> length xs \<rbrakk> \<Longrightarrow> length (nths xs {m..n}) = Suc n - m"
+  by (metis atLeastLessThanSuc_atLeastAtMost le_SucI nths_upt_length)
+
+lemma sl1: "n > 0 \<Longrightarrow> {j. Suc j \<le> n} = {0..n-1}"
+  by (auto)
+
+lemma sl2: "\<lbrakk> 0 < m; m \<le> n \<rbrakk> \<Longrightarrow> {j. m \<le> Suc j \<and> Suc j \<le> n} = {m-1..n-1}"
+  by auto
+
+lemma nths_upt_le_nth: "\<lbrakk> m \<le> n; Suc n \<le> length xs; i < Suc n - m \<rbrakk> 
+  \<Longrightarrow> (nths xs {m..n}) ! i = xs ! (i + m)"
+proof (induct xs arbitrary: m n i)
+  case Nil
+  then show ?case by (simp)
+next
+  case (Cons a xs)
+  then show ?case   
+  proof (cases "i = 0")
+    case True
+    with Cons show ?thesis by (auto simp add: nths_Cons sl2)
+  next
+    case False
+    with Cons show ?thesis by (auto simp add: nths_Cons sl1 sl2)
+  qed
+qed    
+
+lemma nths_upt_le_append_split:
+  "\<lbrakk> j \<le> i; i < length xs \<rbrakk> \<Longrightarrow> nths xs {0..<j} @ nths xs {j..i} = nths xs {0..i}"
+  by (auto simp add: list_eq_iff_nth_eq nths_upt_length nths_upt_le_length nths_upt_le_nth nths_upt_nth nth_append)
+
 subsection \<open> List power \<close>
 
 overloading
@@ -909,5 +1022,154 @@ lemma listpow_Suc_right: "xs ^^ Suc n = xs ^^ n @ xs"
 
 lemma listpow_add: "xs ^^ (m + n) = xs ^^ m @ xs ^^ n"
   by (induct m) simp_all
+
+subsection \<open> Alternative List Lexicographic Order \<close>
+
+text \<open> Since we can't instantiate the order class twice for lists, and we want prefix as
+  the default order for the UTP we here add syntax for the lexicographic order relation. \<close>
+
+definition list_lex_less :: "'a::linorder list \<Rightarrow> 'a list \<Rightarrow> bool" (infix "<\<^sub>l" 50)
+where "xs <\<^sub>l ys \<longleftrightarrow> (xs, ys) \<in> lexord {(u, v). u < v}"
+
+lemma list_lex_less_neq [simp]: "x <\<^sub>l y \<Longrightarrow> x \<noteq> y"
+  apply (simp add: list_lex_less_def)
+  apply (meson case_prodD less_irrefl lexord_irreflexive mem_Collect_eq)
+done
+
+lemma not_less_Nil [simp]: "\<not> x <\<^sub>l []"
+  by (simp add: list_lex_less_def)
+
+lemma Nil_less_Cons [simp]: "[] <\<^sub>l a # x"
+  by (simp add: list_lex_less_def)
+
+lemma Cons_less_Cons [simp]: "a # x <\<^sub>l b # y \<longleftrightarrow> a < b \<or> a = b \<and> x <\<^sub>l y"
+  by (simp add: list_lex_less_def)
+
+subsection \<open> Bounded List Universe \<close>
+
+text \<open> Analogous to @{const List.n_lists}, but includes all lists with a length up to the given number. \<close>
+
+definition b_lists :: "nat \<Rightarrow> 'a list \<Rightarrow> 'a list list" where
+"b_lists n xs = concat (map (\<lambda> n. List.n_lists n xs) [0..<Suc n])"
+
+lemma b_lists_Nil [simp]: "b_lists n [] = [[]]"
+  unfolding b_lists_def by (induct n) simp_all 
+
+lemma length_b_lists_elem: "ys \<in> set (b_lists n xs) \<Longrightarrow> length ys \<le> n"
+  unfolding b_lists_def
+  by (auto simp add: length_n_lists_elem)
+
+lemma b_lists_in_lists: "ys \<in> set (b_lists n xs) \<Longrightarrow> ys \<in> lists (set xs)"
+  by (auto simp add: b_lists_def in_mono set_n_lists)
+
+lemma in_blistsI: "\<lbrakk> length xs \<le> n; xs \<in> lists (set A) \<rbrakk> \<Longrightarrow> xs \<in> set (b_lists n A)"
+  apply (auto simp add: b_lists_def)
+  apply (rule_tac x="length xs" in bexI)
+   apply (auto simp add: set_n_lists subsetI)
+  done
+
+lemma ex_list_nonempty_carrier:
+  assumes "A \<noteq> {}"
+  obtains xs where "length xs = n" "set xs \<subseteq> A"
+proof -
+  obtain a where a: "a \<in> A"
+    using assms by blast
+  hence "set (replicate n a) \<subseteq> A"
+    by (simp add: set_replicate_conv_if)
+  with that show ?thesis
+    by (meson length_replicate)
+qed
+
+lemma n_lists_inj:
+  assumes "xs \<noteq> []" "List.n_lists m xs = List.n_lists n xs"
+  shows "m = n"
+proof (rule ccontr)
+  assume mn: "m \<noteq> n"
+  hence "m < n \<or> m > n"
+    by auto
+  moreover have "m < n \<longrightarrow> False"
+  proof
+    assume "m < n"
+    then obtain ys where ys: "length ys = n" "set ys \<subseteq> set xs"
+      by (metis all_not_in_conv assms(1) ex_list_nonempty_carrier length_0_conv neq0_conv nth_mem)
+    hence "ys \<in> set (List.n_lists n xs)"
+      by (simp add: set_n_lists)
+    moreover have "ys \<notin> set (List.n_lists m xs)"
+      using length_n_lists_elem mn ys(1) by blast
+    ultimately show False
+      by (simp add: assms(2))
+  qed
+  moreover have "m > n \<longrightarrow> False"
+  proof
+    assume "n < m"
+    then obtain ys where ys: "length ys = m" "set ys \<subseteq> set xs"
+      by (metis all_not_in_conv assms(1) ex_list_nonempty_carrier length_0_conv neq0_conv nth_mem)
+    hence "ys \<in> set (List.n_lists m xs)"
+      by (simp add: set_n_lists)
+    moreover have "ys \<notin> set (List.n_lists n xs)"
+      using length_n_lists_elem mn ys(1) by blast
+    ultimately show False
+      by (simp add: assms(2))
+  qed
+  ultimately show False
+    by blast
+qed 
+
+lemma distinct_b_lists: "distinct xs \<Longrightarrow> distinct (b_lists n xs)"
+  apply (cases "xs = []")
+  apply (simp)
+  apply (auto simp add: b_lists_def)
+    apply (rule distinct_concat)
+  apply (simp add: distinct_map)
+  apply (simp add: inj_onI n_lists_inj)
+  using distinct_n_lists apply auto[1]
+  apply (auto)
+  using length_n_lists_elem apply blast
+  apply (simp add: distinct_n_lists)
+  using length_n_lists_elem apply blast
+  done
+
+definition blists :: "nat \<Rightarrow> 'a set \<Rightarrow> 'a list set" where
+  "blists n A = {xs\<in>lists A. length xs \<le> n}"
+
+lemma blists_b_lists [code]: "blists n (set xs) = set (b_lists n xs)"
+  apply (auto simp add: blists_def in_blistsI in_listsI)
+  apply (meson b_lists_in_lists in_lists_conv_set)
+  apply (meson length_b_lists_elem)
+  done
+
+subsection \<open> Disjointness and Partitions \<close>
+
+definition list_disjoint :: "'a set list \<Rightarrow> bool" where
+"list_disjoint xs = (\<forall> i < length xs. \<forall> j < length xs. i \<noteq> j \<longrightarrow> xs!i \<inter> xs!j = {})"
+
+definition list_partitions :: "'a set list \<Rightarrow> 'a set \<Rightarrow> bool" where
+"list_partitions xs T = (list_disjoint xs \<and> \<Union> (set xs) = T)"
+
+lemma list_disjoint_Nil [simp]: "list_disjoint []"
+  by (simp add: list_disjoint_def)
+
+lemma list_disjoint_Cons [simp]: "list_disjoint (A # Bs) = ((\<forall> B \<in> set Bs. A \<inter> B = {}) \<and> list_disjoint Bs)"
+  apply (simp add: list_disjoint_def disjoint_iff)
+  apply (auto)
+  apply (metis Suc_less_eq in_set_conv_nth nat.distinct(1) neq0_conv nth_Cons_0 nth_Cons_Suc)
+   apply (metis lessI lift_Suc_mono_less_iff nat.inject nth_Cons_Suc)
+  apply (rename_tac i j x)
+  apply (case_tac i)
+  apply (simp_all)
+  apply (metis less_Suc_eq_0_disj list.sel(3) nth_Cons' nth_mem nth_tl)
+  done
+
+subsection \<open> Code Generation \<close>
+
+lemma set_singleton_iff: "set xs = {x} \<longleftrightarrow> remdups xs = [x]"
+  apply (auto)
+  apply (metis card_set empty_set insert_not_empty length_0_conv length_Suc_conv list.simps(15) remdups.simps(1) remdups.simps(2) set_remdups the_elem_set)
+  apply (metis empty_iff empty_set set_ConsD set_remdups)
+  apply (metis list.set_intros(1) set_remdups)
+  done
+
+lemma list_singleton_iff: "(\<exists> x. xs = [x]) \<longleftrightarrow> (length xs = 1)"
+  by (auto simp add: length_Suc_conv)
 
 end

@@ -7,6 +7,7 @@
 
 (* Profiling Library *)
 
+(*
 session "Profiling" in "profiling"
   = "HOL" +
   options [document = false, timeout = 1000]
@@ -43,6 +44,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
     "document.sty"
     "zed.sty"
     "csp.sty"
+*)
 
 (* UTP Mathematical Toolkit *)
 
@@ -72,12 +74,14 @@ session "UTP" in "utp" = "UTP-Toolkit" +
     "root.tex"
     "document.sty"
 
+(*
 (* Pseudo Z-Notation *)
 
 session "ZedLite" in "zedlite" = "UTP" +
   options [document = false]
   theories [document = false]
     zedlite
+*)
 
 (* UTP and Kleene Algebra with Tests (KAT) *)
 
@@ -92,7 +96,7 @@ session "UTP-KAT" in "theories/kleene" = "UTP" +
     "document.sty"
 
 (* UTP Designs *)
-
+(*
 session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_designs
@@ -305,4 +309,4 @@ session "Tokeneer" in "casestudies/Tokeneer" = "ZedLite" +
     Tokeneer
   document_files
     "root.tex"
-
+*)
