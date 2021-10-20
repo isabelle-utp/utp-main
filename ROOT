@@ -96,7 +96,7 @@ session "UTP-KAT" in "theories/kleene" = "UTP" +
     "document.sty"
 
 (* UTP Designs *)
-(*
+
 session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_designs
@@ -106,7 +106,7 @@ session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
     "document.sty"
 
 (* UTP Undefinedness *)
-
+(*
 session "UTP-Undef" in "theories/undef" = "UTP-Designs" +
   options [document = false]
   theories utp_undef
@@ -127,7 +127,7 @@ session "UTP-Impl" in "impl" = "UTP-Memory" +
     utp_impl
 
 (* UTP Generalised Reactive Processes *)
-
+*)
 session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_reactive
@@ -171,7 +171,7 @@ session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
     "root.bib"
     "root.tex"
     "document.sty"
-
+(*
 (* Core UTP with Deep Variables *)
 
 session "UTP-Deep" in "utp/models/deep" = "UTP" +

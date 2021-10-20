@@ -145,7 +145,7 @@ lemma renamer_id: "renamer id"
   by (unfold_locales, simp_all)
 
 lemma renamer_comp: "\<lbrakk> renamer f; renamer g \<rbrakk> \<Longrightarrow> renamer (f \<circ> g)"
-  by (unfold_locales, simp_all add: inj_comp renamer.injective)
+  by (unfold_locales, simp_all add: inj_compose renamer.injective)
 
 lemma renamer_map: "inj f \<Longrightarrow> renamer (map f)"
   by (unfold_locales, simp_all add: plus_list_def)

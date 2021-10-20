@@ -17,9 +17,13 @@ text \<open> The alphabet of reactive processes contains a boolean variable $wai
   the design alphabet, and thus includes the $ok$ variable. For more information on these, see
   the UTP book~\cite{Hoare&98}, or the associated tutorial~\cite{Cavalcanti&06}. \<close>
 
-alphabet 't::trace rp_vars = des_vars +
+default_sort trace
+
+alphabet 't rp_vars = "des_vars" +
   wait :: bool
-  tr   :: "'t"
+  tr   :: "'t::trace"
+
+default_sort type
 
 type_synonym ('t, '\<alpha>) rp = "('t, '\<alpha>) rp_vars_scheme"
 

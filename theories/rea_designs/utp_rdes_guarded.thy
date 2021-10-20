@@ -309,7 +309,7 @@ proof -
     qed
   qed
   also have "... = (\<Sqinter>i. P \<^bold>^ (i+1)) ;; Miracle"
-    by (simp add: seq_Sup_distr)
+    by (simp add: seq_Sup_distr image_image)
   finally show ?thesis
     by (simp add: UINF_as_Sup[THEN sym])
 qed
