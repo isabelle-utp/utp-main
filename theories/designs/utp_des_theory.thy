@@ -1,10 +1,10 @@
-subsection {* UTP theory of Designs *}
+subsection \<open>UTP theory of Designs\<close>
 
 theory utp_des_theory
   imports utp_des_healths
 begin
   
-subsection {* UTP theories *}
+subsection \<open>UTP theories\<close>
 
 interpretation des_theory: utp_theory_continuous "\<^bold>H"
   rewrites "P \<in> carrier des_theory.thy_order \<longleftrightarrow> P is \<^bold>H"
@@ -50,10 +50,10 @@ interpretation ndes_kleene: utp_theory_kleene "\<^bold>N" II\<^sub>D
 abbreviation ndes_star :: "_ \<Rightarrow> _"  ("_\<^sup>\<star>\<^sup>D" [999] 999) where
 "P\<^sup>\<star>\<^sup>D \<equiv> ndes_unital.utp_star"
 
-subsection {* Galois Connection *}
+subsection \<open>Galois Connection\<close>
 
-text {* Example Galois connection between designs and relations. Based on Jim's example in COMPASS
-        deliverable D23.5. *}
+text \<open>Example Galois connection between designs and relations. Based on Jim's example in COMPASS
+        deliverable D23.5.\<close>
 
 definition [upred_defs]: "Des(R) = \<^bold>H(\<lceil>R\<rceil>\<^sub>D \<and> $ok\<acute>)"
 definition [upred_defs]: "Rel(D) = \<lfloor>D\<lbrakk>true,true/$ok,$ok\<acute>\<rbrakk>\<rfloor>\<^sub>D"
@@ -106,15 +106,15 @@ next
 qed
 
 
-text {* From this interpretation we gain many Galois theorems. Some require simplification to
-        remove superfluous assumptions. *}
+text \<open>From this interpretation we gain many Galois theorems. Some require simplification to
+        remove superfluous assumptions.\<close>
 
 thm Des_Rel_coretract.deflation[simplified]
 thm Des_Rel_coretract.inflation
 thm Des_Rel_coretract.upper_comp[simplified]
 thm Des_Rel_coretract.lower_comp
 
-subsection {* Fixed Points *}
+subsection \<open>Fixed Points\<close>
 
 notation des_theory.utp_lfp ("\<mu>\<^sub>D")
 notation des_theory.utp_gfp ("\<nu>\<^sub>D")
@@ -137,7 +137,7 @@ translations
 thm des_theory.LFP_unfold
 thm des_theory.GFP_unfold
 
-text {* Specialise @{thm [source] mu_refine_intro} to designs. *}
+text \<open>Specialise @{thm [source] mu_refine_intro} to designs.\<close>
 
 lemma design_mu_refine_intro:
   assumes "$ok\<acute> \<sharp> C" "$ok\<acute> \<sharp> S" "(C \<turnstile> S) \<sqsubseteq> F(C \<turnstile> S)" "`C \<Rightarrow> (\<mu>\<^sub>D F \<Leftrightarrow> \<nu>\<^sub>D F)`"
@@ -159,8 +159,8 @@ lemma H1_H2_mu_refine_intro:
   shows "P \<sqsubseteq> \<mu>\<^sub>D F"
   by (metis H1_H2_eq_rdesign Healthy_if assms rdesign_mu_refine_intro)
 
-text {* Foundational theorem for recursion introduction using a well-founded relation. Contributed
-  by Dr. Yakoub Nemouchi. *}
+text \<open>Foundational theorem for recursion introduction using a well-founded relation. Contributed
+  by Dr. Yakoub Nemouchi.\<close>
 
 theorem rdesign_mu_wf_refine_intro: 
   assumes   WF: "wf R"

@@ -1,25 +1,25 @@
-section {* Design Signature and Core Laws *}
+section \<open> Design Signature and Core Laws \<close>
 
 theory utp_des_core
 imports "UTP-KAT.utp_kleene"
 begin
 
-text {* UTP designs~\cite{Cavalcanti04,Hoare&98} are a subset of the alphabetised relations that
+text \<open> UTP designs~\cite{Cavalcanti04,Hoare&98} are a subset of the alphabetised relations that
   use a boolean observational variable $ok$ to record the start and termination of a program. For 
   more information on designs please see Chapter 3 of the UTP book~\cite{Hoare&98}, or
-  the more accessible designs tutorial~\cite{Cavalcanti04}. *}
+  the more accessible designs tutorial~\cite{Cavalcanti04}. \<close>
 
-subsection {* Definitions *}
+subsection \<open> Definitions \<close>
 
-text {* Two named theorem sets exist are created to group theorems that, respectively, provide
-  pre-postcondition definitions, and simplify operators to their normal design form. *}
+text \<open> Two named theorem sets exist are created to group theorems that, respectively, provide
+  pre-postcondition definitions, and simplify operators to their normal design form. \<close>
 
 named_theorems ndes and ndes_simp
 
 alphabet des_vars =
   ok :: bool
   
-text {*
+text \<open>
   The two locale interpretations below are a technicality to improve automatic
   proof support via the predicate and relational tactics. This is to enable the
   (re-)interpretation of state spaces to remove any occurrences of lens types
@@ -27,7 +27,7 @@ text {*
   of their derivatives have been applied. Eventually, it would be desirable to
   automate both interpretations as part of a custom outer command for defining
   alphabets.
-*}
+\<close>
 
 (*
 interpretation des_vars: lens_interp "\<lambda>r. (ok\<^sub>v r, more r)"
@@ -70,7 +70,7 @@ proof -
     by (simp add: bij_lens_equiv_id)
 qed
 
-text {* Define the lens functor for designs *}
+text \<open> Define the lens functor for designs \<close>
   
 definition lmap_des_vars :: "('\<alpha> \<Longrightarrow> '\<beta>) \<Rightarrow> ('\<alpha> des_vars_scheme \<Longrightarrow> '\<beta> des_vars_scheme)" ("lmap\<^sub>D")
 where [lens_defs]: "lmap_des_vars = lmap[des_vars]"
@@ -87,8 +87,8 @@ lemma lmap_id: "lmap\<^sub>D 1\<^sub>L = 1\<^sub>L"
 lemma lmap_comp: "lmap\<^sub>D (f ;\<^sub>L g) = lmap\<^sub>D f ;\<^sub>L lmap\<^sub>D g"
   by (simp add: lens_defs fun_eq_iff)
 
-text {* The following notations define liftings from non-design predicates into design
-  predicates using alphabet extensions. *}
+text \<open> The following notations define liftings from non-design predicates into design
+  predicates using alphabet extensions. \<close>
 
 abbreviation lift_desr ("\<lceil>_\<rceil>\<^sub>D")
 where "\<lceil>P\<rceil>\<^sub>D \<equiv> P \<oplus>\<^sub>p (\<Sigma>\<^sub>D \<times>\<^sub>L \<Sigma>\<^sub>D)"
@@ -111,13 +111,13 @@ translations "_dcond P b Q" == "CONST dcond P b Q"
 definition design::"('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>" 59) where
 [upred_defs]: "P \<turnstile> Q = ($ok \<and> P \<Rightarrow> $ok\<acute> \<and> Q)"
 
-text {* An rdesign is a design that uses the Isabelle type system to prevent reference to ok in the
-        assumption and commitment. *}
+text \<open> An rdesign is a design that uses the Isabelle type system to prevent reference to ok in the
+        assumption and commitment. \<close>
 
 definition rdesign::"('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>r" 59) where 
 [upred_defs]: "(P \<turnstile>\<^sub>r Q) = \<lceil>P\<rceil>\<^sub>D \<turnstile> \<lceil>Q\<rceil>\<^sub>D"
   
-text {* An ndesign is a normal design, i.e. where the assumption is a condition *}
+text \<open> An ndesign is a normal design, i.e. where the assumption is a condition \<close>
 
 definition ndesign::"'\<alpha> cond \<Rightarrow> ('\<alpha>, '\<beta>) urel \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" (infixl "\<turnstile>\<^sub>n" 59) where 
 [upred_defs]: "(p \<turnstile>\<^sub>n Q) = (\<lceil>p\<rceil>\<^sub>< \<turnstile>\<^sub>r Q)"
@@ -144,7 +144,7 @@ translations
   "P\<^sup>t" \<rightleftharpoons> "CONST usubst (CONST subst_upd CONST id (CONST ovar CONST ok) true) P"
   "\<top>\<^sub>D" => "CONST not_upred (CONST utp_expr.var (CONST ivar CONST ok))"
 
-subsection {* Lifting, Unrestriction, and Substitution *}
+subsection \<open> Lifting, Unrestriction, and Substitution \<close>
 
 lemma drop_desr_inv [simp]: "\<lfloor>\<lceil>P\<rceil>\<^sub>D\<rfloor>\<^sub>D = P"
   by (simp add: prod_mwb_lens)
@@ -221,7 +221,7 @@ lemma ok_post: "($ok \<and> \<lceil>post\<^sub>D(P)\<rceil>\<^sub>D) = ($ok \<an
   apply (rel_auto)
   done
 
-subsection {* Basic Design Laws *}
+subsection \<open> Basic Design Laws \<close>
 
 lemma design_export_ok: "P \<turnstile> Q = (P \<turnstile> ($ok \<and> Q))"
   by (rel_auto)
@@ -301,7 +301,7 @@ proof -
   finally show ?thesis ..
 qed
 
-subsection {* Sequential Composition Laws *}
+subsection \<open> Sequential Composition Laws \<close>
 
 theorem design_skip_idem [simp]:
   "(II\<^sub>D ;; II\<^sub>D) = II\<^sub>D"
@@ -443,7 +443,7 @@ theorem design_bot_left_zero: "(\<bottom>\<^sub>D ;; (P \<turnstile> Q)) = \<bot
 theorem design_top_left_zero: "(\<top>\<^sub>D ;; (P \<turnstile> Q)) = \<top>\<^sub>D"
   by (rel_auto)
 
-subsection {* Preconditions and Postconditions *}
+subsection \<open> Preconditions and Postconditions \<close>
 
 theorem design_npre:
   "(P \<turnstile> Q)\<^sup>f = (\<not> $ok \<or> \<not> P\<^sup>f)"
@@ -493,7 +493,7 @@ lemma preD_USUP_mem: "pre\<^sub>D (\<Squnion> i\<in>A \<bullet> P i) = (\<Sqinte
 lemma preD_USUP_ind: "pre\<^sub>D (\<Squnion> i \<bullet> P i) = (\<Sqinter> i \<bullet> pre\<^sub>D(P i))"
   by (rel_auto)
 
-subsection {* Distribution Laws *}
+subsection \<open> Distribution Laws \<close>
 
 theorem design_choice:
   "(P\<^sub>1 \<turnstile> P\<^sub>2) \<sqinter> (Q\<^sub>1 \<turnstile> Q\<^sub>2) = ((P\<^sub>1 \<and> Q\<^sub>1) \<turnstile> (P\<^sub>2 \<or> Q\<^sub>2))"
@@ -557,7 +557,7 @@ lemma ndesign_USUP_ind [ndes_simp]:
   "(\<Squnion> i \<bullet> p(i) \<turnstile>\<^sub>n Q(i)) = (\<Sqinter> i \<bullet> p(i)) \<turnstile>\<^sub>n (\<Squnion> i \<bullet> \<lceil>p(i)\<rceil>\<^sub>< \<Rightarrow> Q(i))"
   by (rel_auto)
 
-subsection {* Refinement Introduction *}
+subsection \<open> Refinement Introduction \<close>
 
 lemma ndesign_eq_intro:
   assumes "p\<^sub>1 = q\<^sub>1" "P\<^sub>2 = Q\<^sub>2"

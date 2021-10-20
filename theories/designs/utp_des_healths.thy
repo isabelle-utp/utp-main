@@ -1,10 +1,10 @@
-section {* Design Healthiness Conditions *}
+section \<open> Design Healthiness Conditions \<close>
 
 theory utp_des_healths
   imports utp_des_core
 begin
 
-subsection {* H1: No observation is allowed before initiation *}
+subsection \<open> H1: No observation is allowed before initiation \<close>
 
 definition H1 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]: "H1(P) = ($ok \<Rightarrow> P)"
@@ -40,8 +40,8 @@ lemma H1_disj: "H1(P \<or> Q) = (H1(P) \<or> H1(Q))"
 lemma design_export_H1: "(P \<turnstile> Q) = (P \<turnstile> H1(Q))"
   by (rel_auto)
 
-text {* The H1 algebraic laws are valid only when $\alpha(R)$ is homogeneous. This should maybe be
-        generalised. *}
+text \<open> The H1 algebraic laws are valid only when $\alpha(R)$ is homogeneous. This should maybe be
+        generalised. \<close>
 
 theorem H1_algebraic_intro:
   assumes
@@ -151,7 +151,7 @@ proof -
   from assms(2) have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_UINF[of A id, OF assms(1)] show ?thesis
-    by (simp add: UINF_as_Sup_image Healthy_def, presburger)
+    by (simp add: UINF_as_Sup_image Healthy_def)
 qed
 
 lemma H1_USUP:
@@ -165,13 +165,13 @@ proof -
   from assms have "H1 ` A = A"
     by (auto simp add: Healthy_def rev_image_eqI)
   with H1_USUP[of A id] show ?thesis
-    by (simp add: USUP_as_Inf_image Healthy_def, presburger)
+    by (simp add: USUP_as_Inf_image Healthy_def)
 qed
 
 lemma msubst_H1: "(\<And>x. P x is H1) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>v\<rbrakk> is H1"
   by (rel_auto)
 
-subsection {* H2: A specification cannot require non-termination *}
+subsection \<open> H2: A specification cannot require non-termination \<close>
 
 definition J :: "'\<alpha> hrel_des" where 
 [upred_defs]: "J = (($ok \<Rightarrow> $ok\<acute>) \<and> \<lceil>II\<rceil>\<^sub>D)"
@@ -312,7 +312,7 @@ proof -
   finally show ?thesis by simp
 qed
 
-subsection {* Designs as $H1$-$H2$ predicates *}
+subsection \<open> Designs as $H1$-$H2$ predicates \<close>
 
 abbreviation H1_H2 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" ("\<^bold>H") where
 "H1_H2 P \<equiv> H1 (H2 P)"
@@ -508,7 +508,7 @@ proof -
     by (auto simp add: refBy_order)
 qed
 
-subsection {* H3: The design assumption is a precondition *}
+subsection \<open> H3: The design assumption is a precondition \<close>
 
 definition H3 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]: "H3 (P)  \<equiv>  P ;; II\<^sub>D"
@@ -631,7 +631,7 @@ theorem ndesign_is_H3 [closure]: "p \<turnstile>\<^sub>n Q is H3"
 lemma msubst_pre_H3: "(\<And>x. P x is H3) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub><\<rbrakk> is H3"
   by (rel_auto)
 
-subsection {* Normal Designs as $H1$-$H3$ predicates *}
+subsection \<open> Normal Designs as $H1$-$H3$ predicates \<close>
 
 text \<open> A normal design~\cite{Guttman2010} refers only to initial state variables in the precondition. \<close>
 
@@ -782,7 +782,7 @@ lemma USUP_ind_H1_H3_closed [closure]:
 lemma msubst_pre_H1_H3 [closure]: "(\<And>x. P x is \<^bold>N) \<Longrightarrow> P x\<lbrakk>x\<rightarrow>\<lceil>v\<rceil>\<^sub><\<rbrakk> is \<^bold>N"
   by (metis H1_H3_right_unit H3_def Healthy_if Healthy_intro msubst_H1 msubst_pre_H3)
 
-subsection {* H4: Feasibility *}
+subsection \<open> H4: Feasibility \<close>
 
 definition H4 :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]: "H4(P) = ((P;;true) \<Rightarrow> P)"

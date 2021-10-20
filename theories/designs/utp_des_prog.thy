@@ -1,10 +1,10 @@
-section {* Imperative Programming in Designs *}
+section \<open>Imperative Programming in Designs\<close>
 
 theory utp_des_prog
   imports utp_des_tactics
 begin
 
-subsection {* Assignment *}
+subsection \<open>Assignment\<close>
 
 definition assigns_d :: "'\<alpha> usubst \<Rightarrow> '\<alpha> hrel_des" ("\<langle>_\<rangle>\<^sub>D") where 
 [upred_defs]: "assigns_d \<sigma> = (true \<turnstile>\<^sub>r assigns_r \<sigma>)"
@@ -24,7 +24,7 @@ lemma assigns_d_is_H1_H2 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bo
 lemma assigns_d_H1_H3 [closure]: "\<langle>\<sigma>\<rangle>\<^sub>D is \<^bold>N"
   by (metis H1_rdesign H3_ndesign Healthy_def' aext_true assigns_d_def ndesign_def)
 
-text {* Designs are closed under substitutions on state variables only (via lifting) *}
+text \<open>Designs are closed under substitutions on state variables only (via lifting)\<close>
 
 lemma state_subst_H1_H2_closed [closure]: 
   "P is \<^bold>H \<Longrightarrow> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P is \<^bold>H"
@@ -64,7 +64,7 @@ proof -
   finally show ?thesis by (simp_all add: closure assms)
 qed
 
-text {* Normal designs are closed under substitutions on state variables only *}
+text \<open>Normal designs are closed under substitutions on state variables only\<close>
 
 lemma state_subst_H1_H3_closed [closure]: 
   "P is \<^bold>N \<Longrightarrow> \<lceil>\<sigma> \<oplus>\<^sub>s \<Sigma>\<^sub>D\<rceil>\<^sub>s \<dagger> P is \<^bold>N"
@@ -80,7 +80,7 @@ proof -
     using is_H4_alt_def by auto
 qed
 
-subsection {* Guarded Commands *}
+subsection \<open>Guarded Commands\<close>
 
 definition GrdCommD :: "'\<alpha> upred \<Rightarrow> ('\<alpha>, '\<beta>) rel_des \<Rightarrow> ('\<alpha>, '\<beta>) rel_des" where
 [upred_defs]: "GrdCommD b P = P \<triangleleft> b \<triangleright>\<^sub>D \<top>\<^sub>D"
@@ -126,7 +126,7 @@ lemma lmapD_rel_aext_ndes [ndes_simp]:
   "(p \<turnstile>\<^sub>n Q) \<oplus>\<^sub>r lmap\<^sub>D[a] = (p \<oplus>\<^sub>p a \<turnstile>\<^sub>n Q \<oplus>\<^sub>r a)"
   by (rel_auto)
 
-subsection {* Alternation *}
+subsection \<open>Alternation\<close>
   
 consts
   ualtern       :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r \<Rightarrow> 'r"
@@ -136,8 +136,8 @@ definition AlternateD :: "'a set \<Rightarrow> ('a \<Rightarrow> '\<alpha> upred
 [upred_defs, ndes_simp]:
 "AlternateD A g P Q = (\<Sqinter> i\<in>A \<bullet> g(i) \<rightarrow>\<^sub>D P(i)) \<sqinter> ((\<And> i\<in>A \<bullet> \<not> g(i)) \<rightarrow>\<^sub>D Q)"
 
-text {* This lemma shows that our generalised alternation is the same operator as Marcel Oliveira's
-  definition of alternation when the else branch is abort. *}
+text \<open>This lemma shows that our generalised alternation is the same operator as Marcel Oliveira's
+  definition of alternation when the else branch is abort.\<close>
 
 lemma AlternateD_abort_alternate:
   assumes "\<And> i. P(i) is \<^bold>N"
@@ -340,7 +340,7 @@ proof -
   finally show ?thesis .
 qed
    
-subsection {* Iteration *}
+subsection \<open>Iteration\<close>
 
 theorem ndesign_iteration_wlp [ndes_simp]:
   "(p \<turnstile>\<^sub>n Q) ;; (p \<turnstile>\<^sub>n Q) \<^bold>^ n = ((\<And> i\<in>{0..n} \<bullet> (Q \<^bold>^ i) wlp p) \<turnstile>\<^sub>n Q \<^bold>^ Suc n)"
@@ -370,7 +370,7 @@ next
   finally show ?case .
 qed
 
-text {* Overloadable Syntax *}
+text \<open>Overloadable Syntax\<close>
   
 consts
   uiterate       :: "'a set \<Rightarrow> ('a \<Rightarrow> 'p) \<Rightarrow> ('a \<Rightarrow> 'r) \<Rightarrow> 'r"
@@ -485,7 +485,7 @@ lemma IterateD_single_refine_intro:
    apply (rule IterateD_refine_intro[of w "{0}" "\<lambda> i. g" I V, simplified, OF assms(1)])
   oops
 
-subsection {* Let and Local Variables *}
+subsection \<open>Let and Local Variables\<close>
   
 definition LetD :: "('a, '\<alpha>) uexpr \<Rightarrow> ('a \<Rightarrow> '\<alpha> hrel_des) \<Rightarrow> '\<alpha> hrel_des" where
 [upred_defs]: "LetD v P = (P x)\<lbrakk>x \<rightarrow> \<lceil>v\<rceil>\<^sub>D\<^sub><\<rbrakk>"

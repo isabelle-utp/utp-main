@@ -1,4 +1,4 @@
-section {* Refinement Calculus *}
+section \<open>Refinement Calculus\<close>
 
 theory utp_des_refcalc
   imports utp_des_prog
@@ -17,14 +17,14 @@ translations
   "_des_spec (_salphaset (_salphamk x)) p q" <= "CONST des_spec x p (\<lambda> iv. q)"
   "_des_log_const x P" => "\<Squnion> x \<bullet> P"
 
-parse_translation {*
+parse_translation \<open>
 let
   fun init_var_tr [] = Syntax.free "iv"
     | init_var_tr _  = raise Match;
 in
 [(@{syntax_const "_init_var"}, K init_var_tr)]
 end
-*}
+\<close>
   
 abbreviation "choose\<^sub>D x \<equiv> {&x}:[true,true]\<^sub>D"
   

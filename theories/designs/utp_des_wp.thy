@@ -1,4 +1,4 @@
-section {* Design Weakest Preconditions *}
+section \<open>Design Weakest Preconditions\<close>
 
 theory utp_des_wp
   imports utp_des_prog utp_des_hoare
@@ -7,8 +7,8 @@ begin
 definition wp_design :: "('\<alpha>, '\<beta>) rel_des \<Rightarrow> '\<beta> cond \<Rightarrow> '\<alpha> cond" (infix "wp\<^sub>D" 60) where
 [upred_defs]: "Q wp\<^sub>D r = (\<lfloor>pre\<^sub>D(Q) ;; true :: ('\<alpha>, '\<beta>) urel\<rfloor>\<^sub>< \<and> (post\<^sub>D(Q) wlp r))"
 
-text {* If two normal designs have the same weakest precondition for any given postcondition, then
-  the two designs are equivalent. *}
+text \<open>If two normal designs have the same weakest precondition for any given postcondition, then
+  the two designs are equivalent.\<close>
 
 theorem wpd_eq_intro: "\<lbrakk> \<And> r. (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) wp\<^sub>D r = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2) wp\<^sub>D r \<rbrakk> \<Longrightarrow> (p\<^sub>1 \<turnstile>\<^sub>n Q\<^sub>1) = (p\<^sub>2 \<turnstile>\<^sub>n Q\<^sub>2)"
 apply (rel_simp robust; metis curry_conv)
