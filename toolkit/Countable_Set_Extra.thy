@@ -12,7 +12,7 @@ imports
   "HOL-Library.Countable_Set_Type"
   Sequence
   FSet_Extra
-  "HOL-Library.Bit"
+  "HOL-Library.Bit_Operations"
 begin
 
 subsection \<open> Extra syntax \<close>

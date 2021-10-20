@@ -49,6 +49,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
 session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
   options [document = pdf, document_output = "output", timeout = 1000]
   sessions
+    "HOL-Library"
     Optics
   theories utp_toolkit
   document_files
@@ -169,7 +170,7 @@ session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
 
 (* Core UTP with Deep Variables *)
 
-session "UTP-Deep" in "utp/models" = "UTP" +
+session "UTP-Deep" in "utp/models/deep" = "UTP" +
   options [browser_info = true, document = false]
   sessions
     Continuum
@@ -177,15 +178,9 @@ session "UTP-Deep" in "utp/models" = "UTP" +
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-Axm" in "utp/models" = "UTP" +
+session "UTP-Axm" in "utp/models/axm" = "UTP" +
   options [browser_info = true, document = false]
   theories utp_axm
-
-(* Core UTP with Deep & Axiomatic Variables *)
-
-session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
-  options [browser_info = true, document = false]
-  theories utp_deep utp_axm
 
 (* UTP Theory Base *)
 
@@ -194,24 +189,6 @@ session "UTP-Theories" in "theories" = "UTP-Circus" +
   sessions
     "UTP-Time"
   theories utp_theories
-
-session "UTP-Theories-Deep" in "theories" = "UTP-Theories" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Deep"
-  theories utp_theories_deep
-
-session "UTP-Theories-Axm" in "utp/models" = "UTP-Theories" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Axm"
-  theories utp_axm
-
-session "UTP-Theories-Deep-Axm" in "utp/models" = "UTP-Theories-Deep" +
-  options [browser_info = true, document = false]
-  sessions
-    "UTP-Deep-Axm"
-  theories utp_axm
 
 (* Imports for Hybrid UTP *)
 

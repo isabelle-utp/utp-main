@@ -33,7 +33,7 @@ struct
     (prod_ord f (prod_ord g h)) ((x1, (y1, z1)), (x2, (y2, z2)));
 
   val mode_ord = prod_ord string_ord bool_ord;
-  val source_ord = string_ord o (apply2 Input.source_content);
+  val source_ord = string_ord o (apply2 (Input.source_content #> fst));
   val input_ord = source_ord o (apply2 Syntax.read_input);
 
   local
@@ -90,7 +90,7 @@ struct
     else (if mode = Syntax.mode_input then "(input)"
     else "(" ^ prmode ^ (if both then "" else " output") ^ ")");
 
-  val input = (Input.source_content o Syntax.read_input);
+  val input = ((Input.source_content #> fst) o Syntax.read_input);
   val mixfix = (Pretty.string_of o Mixfix.pretty_mixfix);
 end;
 
