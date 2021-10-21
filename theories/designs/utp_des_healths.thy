@@ -535,7 +535,8 @@ proof -
   have "((p \<turnstile> Q) ;; II\<^sub>D) = (\<not> ((\<not> p) ;; true)) \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
     by (simp add: skip_d_alt_def design_composition_subst unrest assms)
   also have "... = p \<turnstile> (Q\<^sup>t ;; II\<lbrakk>true/$ok\<rbrakk>)"
-    using assms precond_equiv seqr_true_lemma by force
+    using assms precond_equiv seqr_true_lemma
+    by metis
   also have "... = p \<turnstile> Q"
     by (rel_auto)
   finally show ?thesis

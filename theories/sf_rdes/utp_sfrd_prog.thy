@@ -370,7 +370,7 @@ syntax
   "_csp_assign_upd" :: "svid \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_[_] :=\<^sub>C _" [61,0,62] 62)
 
 translations
-  "_csp_assign_upd x k v" == "CONST AssignCSP_update (CONST udom) (CONST uupd) x k v"
+  "_csp_assign_upd x k v" == "CONST AssignCSP_update (CONST dom) (CONST uupd) x k v"
 
 lemma AssignCSP_update_CSP [closure]:
   "AssignCSP_update domf updatef x k v is CSP"
