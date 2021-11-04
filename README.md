@@ -15,57 +15,6 @@ allows Isabelle symbols to be pretty-printed in the browser and can be obtained 
 store](https://chrome.google.com/webstore/detail/matisa/jkpdfeicbjekckenhpippdllibmbcinf?hl=en-GB) or [Firefox
 Add-ons](https://addons.mozilla.org/en-US/firefox/addon/matisa/).
 
-Installation
-------------
-
-Installation requires that you have already installed the latest version of Isabelle on your system from
-<http://isabelle.in.tum.de/> (at time of writing this is Isabelle2019). We provide a ROOT file in this repository with a
-number of heap images. Our Isabelle theories depend on a number of entries from the [Archive of Formal
-Proofs](https://www.isa-afp.org) (AFP), and without installing these dependencies you will not be able to start
-Isabelle/UTP. Our repository notably depends on the [Optics](https://www.isa-afp.org/entries/Optics.html) session which
-provides support for lenses, which we use to model variables. Our hybrid systems modelling session ``UTP-Hybrid`` also
-depends on [Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.html).
-
-The easiest way to build the key heap images is using the build script located in ``bin/build.sh``, which also handles
-fetching of appropriate AFP dependencies. Running this script will first attempt to download all the necessary libraries
-from the AFP, and will then build the main UTP heap images one by one.
-
-Alternatively, you can follow the [AFP instructions](https://www.isa-afp.org/using.html), which requires that you
-download and install the whole AFP first. Our build scripts rely on knowing the location of where Isabelle/UTP is
-installed. If they do not correctly guess the location then please set the environment variable ``ISABELLE_UTP`` to the
-absolute path where it is installed.
-
-Either way, once the depedencies are installed and appropriate heap images built, you're ready to go. If you wish to
-develop something using UTP, then you can use the heap image called ``UTP``, that can be loaded by invoking
-
-```bash
-bin/utp-jedit UTP
-```
-
-from the command line in the installed directory. Alternatively you can configure your main Isabelle
-``ROOTS`` file so that it knows about the location of Isabelle/UTP 
-(see <https://isabelle.in.tum.de/dist/Isabelle2017/doc/system.pdf>). If you're developing the
-Isabelle/UTP core you can instead invoke the ``UTP-Toolkit`` heap image. Various other heap images
-exist including:
-
-* ``UTP-Designs`` - imperative programs with total correctness
-* ``UTP-Reactive`` - UTP theory of Generalised Reactive Processes
-* ``UTP-Reactive-Designs`` - Reactive Designs
-* ``UTP-Circus`` - Circus modelling language
-* ``UTP-Hybrid - hybrid relational calculus``
-
-Some of these heap images rely on other entries from the AFP. We therefore provide a utility under ``bin/``
-called ``afp_get.sh`` which fetches entries and places them in the contrib directory. For example, 
-[Ordinary Differential Equations](https://www.isa-afp.org/entries/Ordinary_Differential_Equations.shtml)
-can be obtained by running
-
-```bash
-bin/afp_get.sh Ordinary_Differential_Equations
-```
-
-from the main UTP root directory. Alternatively there is a script ``bin/build.sh`` which fetches all dependencies
-and builds all heap images, and thus may be an easier option for installation. 
-
 Repository overview
 -------------------
 
@@ -89,6 +38,15 @@ including:
 * [``utp_rea_designs.thy``](theories/rea_designs/utp_rea_designs.thy) -- theory of reactive designs
 * [``utp_csp.thy``](theories/circus/utp_circus.thy) -- theory of Circus and CSP
 * [``utp_cml.thy``](theories/utp_cml.thy) -- the COMPASS modelling language (see <http://compass-research.eu>)
+
+Various heap images exist including:
+
+* ``UTP`` - the core UTP components
+* ``UTP-Designs`` - imperative programs with total correctness
+* ``UTP-Reactive`` - UTP theory of Generalised Reactive Processes
+* ``UTP-Reactive-Designs`` - Reactive Designs
+* ``UTP-Circus`` - Circus modelling language
+* ``UTP-Hybrid - hybrid relational calculus``
 
 This repository is constantly a work in progress, so not all laws have yet been proved, though the number
 is constantly growing. Additionally to the UTP theories there is a number of contributed UTP theories included
