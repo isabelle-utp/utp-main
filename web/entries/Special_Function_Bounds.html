@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Real-Valued Special Functions: Upper and Lower Bounds - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">R</font>eal-Valued
+  
+          <font class="first">S</font>pecial
+  
+          <font class="first">F</font>unctions:
+  
+          <font class="first">U</font>pper
+  
+          and
+  
+          <font class="first">L</font>ower
+  
+          <font class="first">B</font>ounds
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Real-Valued Special Functions: Upper and Lower Bounds</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www.cl.cam.ac.uk/~lp15/">Lawrence C. Paulson</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-08-29</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">This development proves upper and lower bounds for several familiar real-valued functions. For sin, cos, exp and sqrt, it defines and verifies infinite families of upper and lower bounds, mostly based on Taylor series expansions. For arctan, ln and exp, it verifies a finite collection of upper and lower bounds, originally obtained from the functions' continued fraction expansions using the computer algebra system Maple. A common theme in these proofs is to take the difference between a function and its approximation, which should be zero at one point, and then consider the sign of the derivative. The immediate purpose of this development is to verify axioms used by MetiTarski, an automatic theorem prover for real-valued special functions. Crucial to MetiTarski's operation is the provision of upper and lower bounds for each function of interest.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Special_Function_Bounds-AFP,
+  author  = {Lawrence C. Paulson},
+  title   = {Real-Valued Special Functions: Upper and Lower Bounds},
+  journal = {Archive of Formal Proofs},
+  month   = aug,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/Special_Function_Bounds.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Sturm_Sequences.html">Sturm_Sequences</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Special_Function_Bounds/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Special_Function_Bounds/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Special_Function_Bounds/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Special_Function_Bounds-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Special_Function_Bounds-2020-04-20.tar.gz">
+              afp-Special_Function_Bounds-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Special_Function_Bounds-2019-06-11.tar.gz">
+              afp-Special_Function_Bounds-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Special_Function_Bounds-2018-08-16.tar.gz">
+              afp-Special_Function_Bounds-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Special_Function_Bounds-2017-10-10.tar.gz">
+              afp-Special_Function_Bounds-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Special_Function_Bounds-2016-12-17.tar.gz">
+              afp-Special_Function_Bounds-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Special_Function_Bounds-2016-02-22.tar.gz">
+              afp-Special_Function_Bounds-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Special_Function_Bounds-2015-05-27.tar.gz">
+              afp-Special_Function_Bounds-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Special_Function_Bounds-2014-09-05.tar.gz">
+              afp-Special_Function_Bounds-2014-09-05.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2014:
+            <a href="../release/afp-Special_Function_Bounds-2014-08-29.tar.gz">
+              afp-Special_Function_Bounds-2014-08-29.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

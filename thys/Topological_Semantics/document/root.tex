@@ -1,0 +1,67 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+%\usepackage{a4wide}
+\usepackage{fullpage}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Topological semantics for paraconsistent and paracomplete logics}
+\author{David Fuenmayor}
+
+\maketitle
+
+\begin{abstract}
+	We introduce a generalized topological semantics for paraconsistent and paracomplete logics by drawing upon early works on topological Boolean algebras (cf.~works by Kuratowski, Zarycki, McKinsey \& Tarski, etc.). In particular, this work exemplarily illustrates the shallow semantical embeddings approach (SSE) employing the proof assistant Isabelle/HOL. By means of the SSE technique we can effectively harness theorem provers, model finders and `hammers' for reasoning with quantified non-classical logics.
+\end{abstract}
+
+\tableofcontents
+
+\vspace*{40pt}
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

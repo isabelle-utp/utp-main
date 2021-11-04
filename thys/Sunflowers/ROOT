@@ -1,0 +1,11 @@
+chapter AFP
+
+session Sunflowers (AFP) = HOL + 
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+  theories
+    Erdos_Rado_Sunflower
+  document_files
+    "root.bib"
+    "root.tex"

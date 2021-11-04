@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Category Theory with Adjunctions and Limits - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>ategory
+  
+          <font class="first">T</font>heory
+  
+          with
+  
+          <font class="first">A</font>djunctions
+  
+          and
+  
+          <font class="first">L</font>imits
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Category Theory with Adjunctions and Limits</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Eugene W. Stark (stark /at/ cs /dot/ stonybrook /dot/ edu)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-06-26</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+This article attempts to develop a usable framework for doing category
+theory in Isabelle/HOL.  Our point of view, which to some extent
+differs from that of the previous AFP articles on the subject, is to
+try to explore how category theory can be done efficaciously within
+HOL, rather than trying to match exactly the way things are done using
+a traditional approach.  To this end, we define the notion of category
+in an "object-free" style, in which a category is represented by a
+single partial composition operation on arrows.  This way of defining
+categories provides some advantages in the context of HOL, including
+the ability to avoid the use of records and the possibility of
+defining functors and natural transformations simply as certain
+functions on arrows, rather than as composite objects.  We define
+various constructions associated with the basic notions, including:
+dual category, product category, functor category, discrete category,
+free category, functor composition, and horizontal and vertical
+composite of natural transformations.  A "set category" locale is
+defined that axiomatizes the notion "category of all sets at a type
+and all functions between them," and a fairly extensive set of
+properties of set categories is derived from the locale assumptions.
+The notion of a set category is used to prove the Yoneda Lemma in a
+general setting of a category equipped with a "hom embedding," which
+maps arrows of the category to the "universe" of the set category.  We
+also give a treatment of adjunctions, defining adjunctions via left
+and right adjoint functors, natural bijections between hom-sets, and
+unit and counit natural transformations, and showing the equivalence
+of these definitions.  We also develop the theory of limits, including
+representations of functors, diagrams and cones, and diagonal
+functors.  We show that right adjoint functors preserve limits, and
+that limits can be constructed via products and equalizers.  We
+characterize the conditions under which limits exist in a set
+category. We also examine the case of limits in a functor category,
+ultimately culminating in a proof that the Yoneda embedding preserves
+limits.
+</p><p>
+Revisions made subsequent to the first version of this article added
+material on equivalence of categories, cartesian categories,
+categories with pullbacks, categories with finite limits, and
+cartesian closed categories.  A construction was given of the category
+of hereditarily finite sets and functions between them, and it was
+shown that this category is cartesian closed.
+</p></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2018-05-29]:
+Revised axioms for the category locale.  Introduced notation for composition and "in hom".
+(revision 8318366d4575)<br>
+[2020-02-15]:
+Move ConcreteCategory.thy from Bicategory to Category3 and use it systematically.
+Make other minor improvements throughout.
+(revision a51840d36867)<br>
+[2020-07-10]:
+Added new material, mostly centered around cartesian categories.
+(revision 06640f317a79)<br>
+[2020-11-04]:
+Minor modifications and extensions made in conjunction with the addition
+of new material to Bicategory.
+(revision 472cb2268826)<br></td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Category3-AFP,
+  author  = {Eugene W. Stark},
+  title   = {Category Theory with Adjunctions and Limits},
+  journal = {Archive of Formal Proofs},
+  month   = jun,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Category3.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="HereditarilyFinite.html">HereditarilyFinite</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="MonoidalCategory.html">MonoidalCategory</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Category3/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Category3/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Category3/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Category3-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Category3-2020-04-18.tar.gz">
+              afp-Category3-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Category3-2019-06-11.tar.gz">
+              afp-Category3-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Category3-2018-08-16.tar.gz">
+              afp-Category3-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Category3-2017-10-10.tar.gz">
+              afp-Category3-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Category3-2016-12-17.tar.gz">
+              afp-Category3-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Category3-2016-06-26.tar.gz">
+              afp-Category3-2016-06-26.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,31 @@
+% Copied from $ISABELLE_HOME/src/Doc/
+
+\usepackage{ifthen}
+
+\newcommand{\indexdef}[3]%
+{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)|bold}}{\index{#3 (#1\ #2)|bold}}}
+\newcommand{\indexref}[3]{\ifthenelse{\equal{}{#1}}{\index{#3 (#2)}}{\index{#3 (#1\ #2)}}}
+
+\newcommand{\isadigitreset}{\def\isadigit##1{##1}}
+
+\newcommand{\isasystem}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\isadigitreset\tt #1}}
+\newcommand{\isatool}[1]{{\def\isacharminus{-}\def\isacharunderscore{\_}\isadigitreset\tt isabelle #1}}
+
+\newcommand{\indexoutertoken}[1]{\indexdef{}{syntax}{#1}}
+\newcommand{\indexouternonterm}[1]{\indexdef{}{syntax}{#1}}
+\newcommand{\indexisarelem}[1]{\indexdef{}{element}{#1}}
+
+\newcommand{\isasymIF}{\isakeyword{if}}
+\newcommand{\isasymFOR}{\isakeyword{for}}
+\newcommand{\isasymAND}{\isakeyword{and}}
+\newcommand{\isasymIS}{\isakeyword{is}}
+\newcommand{\isasymWHERE}{\isakeyword{where}}
+\newcommand{\isasymBEGIN}{\isakeyword{begin}}
+\newcommand{\isasymIMPORTS}{\isakeyword{imports}}
+\newcommand{\isasymIN}{\isakeyword{in}}
+\newcommand{\isasymFIXES}{\isakeyword{fixes}}
+\newcommand{\isasymASSUMES}{\isakeyword{assumes}}
+\newcommand{\isasymSHOWS}{\isakeyword{shows}}
+\newcommand{\isasymOBTAINS}{\isakeyword{obtains}}
+
+\newcommand{\isasymASSM}{\isacommand{assm}}

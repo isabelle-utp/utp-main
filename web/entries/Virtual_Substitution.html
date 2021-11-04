@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verified Quadratic Virtual Substitution for Real Arithmetic - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">V</font>erified
+  
+          <font class="first">Q</font>uadratic
+  
+          <font class="first">V</font>irtual
+  
+          <font class="first">S</font>ubstitution
+  
+          for
+  
+          <font class="first">R</font>eal
+  
+          <font class="first">A</font>rithmetic
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Verified Quadratic Virtual Substitution for Real Arithmetic</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Matias Scharager (mscharag /at/ cs /dot/ cmu /dot/ edu),
+                  Katherine Cordwell (kcordwel /at/ cs /dot/ cmu /dot/ edu),
+                Stefan Mitsch (smitsch /at/ cs /dot/ cmu /dot/ edu) and
+          André Platzer (aplatzer /at/ cs /dot/ cmu /dot/ edu)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2021-10-02</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+This paper presents a formally verified quantifier elimination (QE)
+algorithm for first-order real arithmetic by linear and quadratic
+virtual substitution (VS) in Isabelle/HOL. The Tarski-Seidenberg
+theorem established that the first-order logic of real arithmetic is
+decidable by QE. However, in practice, QE algorithms are highly
+complicated and often combine multiple methods for performance. VS is
+a practically successful method for QE that targets formulas with
+low-degree polynomials. To our knowledge, this is the first work to
+formalize VS for quadratic real arithmetic including inequalities. The
+proofs necessitate various contributions to the existing multivariate
+polynomial libraries in Isabelle/HOL. Our framework is modularized and
+easily expandable (to facilitate integrating future optimizations),
+and could serve as a basis for developing practical general-purpose QE
+algorithms. Further, as our formalization is designed with
+practicality in mind, we export our development to SML and test the
+resulting code on 378 benchmarks from the literature, comparing to
+Redlog, Z3, Wolfram Engine, and SMT-RAT. This identified
+inconsistencies in some tools, underscoring the significance of a
+verified approach for the intricacies of real arithmetic.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Virtual_Substitution-AFP,
+  author  = {Matias Scharager and Katherine Cordwell and Stefan Mitsch and André Platzer},
+  title   = {Verified Quadratic Virtual Substitution for Real Arithmetic},
+  journal = {Archive of Formal Proofs},
+  month   = oct,
+  year    = 2021,
+  note    = {\url{https://isa-afp.org/entries/Virtual_Substitution.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Polynomials.html">Polynomials</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Virtual_Substitution/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Virtual_Substitution/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Virtual_Substitution/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Virtual_Substitution-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+            None
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

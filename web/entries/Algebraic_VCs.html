@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Program Construction and Verification Components Based on Kleene Algebra - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">P</font>rogram
+  
+          <font class="first">C</font>onstruction
+  
+          and
+  
+          <font class="first">V</font>erification
+  
+          <font class="first">C</font>omponents
+  
+          <font class="first">B</font>ased
+  
+          on
+  
+          <font class="first">K</font>leene
+  
+          <font class="first">A</font>lgebra
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Program Construction and Verification Components Based on Kleene Algebra</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Victor B. F. Gomes (vb358 /at/ cl /dot/ cam /dot/ ac /dot/ uk) and
+          <a href="http://staffwww.dcs.shef.ac.uk/people/G.Struth/">Georg Struth</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-06-18</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+Variants of Kleene algebra support program construction and
+verification by algebraic reasoning. This entry provides a
+verification component for Hoare logic based on Kleene algebra with
+tests, verification components for weakest preconditions and strongest
+postconditions based on Kleene algebra with domain and a component for
+step-wise refinement based on refinement Kleene algebra with tests. In
+addition to these components for the partial correctness of while
+programs, a verification component for total correctness based on
+divergence Kleene algebras and one for (partial correctness) of
+recursive programs based on domain quantales are provided. Finally we
+have integrated memory models for programs with pointers and a program
+trace semantics into the weakest precondition component.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Algebraic_VCs-AFP,
+  author  = {Victor B. F. Gomes and Georg Struth},
+  title   = {Program Construction and Verification Components Based on Kleene Algebra},
+  journal = {Archive of Formal Proofs},
+  month   = jun,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Algebraic_VCs.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="KAD.html">KAD</a>, <a href="KAT_and_DRA.html">KAT_and_DRA</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Algebraic_VCs/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Algebraic_VCs/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Algebraic_VCs/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Algebraic_VCs-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Algebraic_VCs-2020-04-18.tar.gz">
+              afp-Algebraic_VCs-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Algebraic_VCs-2019-06-11.tar.gz">
+              afp-Algebraic_VCs-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Algebraic_VCs-2018-08-16.tar.gz">
+              afp-Algebraic_VCs-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Algebraic_VCs-2017-10-10.tar.gz">
+              afp-Algebraic_VCs-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Algebraic_VCs-2016-12-17.tar.gz">
+              afp-Algebraic_VCs-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Algebraic_VCs-2016-06-18.tar.gz">
+              afp-Algebraic_VCs-2016-06-18.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

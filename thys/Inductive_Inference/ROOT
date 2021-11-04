@@ -1,0 +1,21 @@
+chapter AFP
+
+session Inductive_Inference (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+  theories
+    Partial_Recursive
+    Universal
+    Standard_Results
+    Inductive_Inference_Basics
+    CP_FIN_NUM
+    CONS_LIM
+    Lemma_R
+    LIM_BC
+    TOTAL_CONS
+    R1_BC
+    Union
+  document_files
+    "root.tex"
+    "root.bib"

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Light-weight Containers - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">L</font>ight-weight
+  
+          <font class="first">C</font>ontainers
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Light-weight Containers</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a>
+      </td>
+</tr>
+
+  <tr>
+    <td class="datahead">
+              Contributor:
+          </td>
+    <td class="data">
+                  René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at)
+           </td>
+  </tr>
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2013-04-15</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+This development provides a framework for container types like sets and maps such that generated code implements these containers with different (efficient) data structures.
+Thanks to type classes and refinement during code generation, this light-weight approach can seamlessly replace Isabelle's default setup for code generation.
+Heuristics automatically pick one of the available data structures depending on the type of elements to be stored, but users can also choose on their own.
+The extensible design permits to add more implementations at any time.
+<p>
+To support arbitrary nesting of sets, we define a linear order on sets based on a linear order of the elements and provide efficient implementations.
+It even allows to compare complements with non-complements.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2013-07-11]: add pretty printing for sets (revision 7f3f52c5f5fa)<br>
+[2013-09-20]:
+provide generators for canonical type class instantiations
+(revision 159f4401f4a8 by René Thiemann)<br>
+[2014-07-08]: add support for going from partial functions to mappings (revision 7a6fc957e8ed)<br>
+[2018-03-05]: add two application examples: depth-first search and 2SAT (revision e5e1a1da2411)</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Containers-AFP,
+  author  = {Andreas Lochbihler},
+  title   = {Light-weight Containers},
+  journal = {Archive of Formal Proofs},
+  month   = apr,
+  year    = 2013,
+  note    = {\url{https://isa-afp.org/entries/Containers.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Automatic_Refinement.html">Automatic_Refinement</a>, <a href="Collections.html">Collections</a>, <a href="Deriving.html">Deriving</a>, <a href="Finger-Trees.html">Finger-Trees</a>, <a href="Regular-Sets.html">Regular-Sets</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="AI_Planning_Languages_Semantics.html">AI_Planning_Languages_Semantics</a>, <a href="MFOTL_Monitor.html">MFOTL_Monitor</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Containers/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Containers/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Containers/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Containers-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Containers-2020-04-18.tar.gz">
+              afp-Containers-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Containers-2019-06-11.tar.gz">
+              afp-Containers-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Containers-2018-08-16.tar.gz">
+              afp-Containers-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Containers-2017-10-10.tar.gz">
+              afp-Containers-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Containers-2016-12-17.tar.gz">
+              afp-Containers-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Containers-2016-02-22.tar.gz">
+              afp-Containers-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Containers-2015-05-27.tar.gz">
+              afp-Containers-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Containers-2014-08-28.tar.gz">
+              afp-Containers-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Containers-2013-12-11.tar.gz">
+              afp-Containers-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Containers-2013-11-17.tar.gz">
+              afp-Containers-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Containers-2013-04-23.tar.gz">
+              afp-Containers-2013-04-23.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

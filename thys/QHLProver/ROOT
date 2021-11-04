@@ -1,0 +1,12 @@
+chapter AFP
+
+session QHLProver (AFP) = Jordan_Normal_Form +
+  description "Formalization of quantum Hoare logic and applications."
+  options [timeout = 600]
+  sessions
+    Deep_Learning
+  theories
+    Grover
+  document_files
+    "root.bib"
+    "root.tex"

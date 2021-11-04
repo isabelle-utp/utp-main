@@ -1,0 +1,14 @@
+chapter AFP
+
+session "Efficient-Mergesort" (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+    "HOL-Data_Structures"
+  theories
+    Efficient_Sort
+    Mergesort_Complexity
+    Natural_Mergesort
+  document_files
+    "root.bib"
+    "root.tex"

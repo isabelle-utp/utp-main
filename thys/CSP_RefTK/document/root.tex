@@ -1,0 +1,85 @@
+\documentclass[11pt,a4paper]{book}
+\usepackage{isabelle,isabellesym}
+\usepackage{graphicx}
+\graphicspath {{figures/}}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+
+\usepackage{latexsym}
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{The HOL-CSP Refinement Toolkit}
+\author{ Safouan Taha \and Burkhart Wolff \and Lina Ye }
+\maketitle
+\chapter*{Abstract}
+
+   Recently, a modern version of Roscoes and Brookes \cite{brookes-roscoe85} 
+   Failure-Divergence Semantics for CSP has been formalized in Isabelle \cite{HOL-CSP-AFP}. 
+   
+   We use  this formal development called HOL-CSP2.0 to analyse a family of refinement 
+   notions, comprising classic and new ones. 
+   This analysis enables to derive a number of properties that allow to deepen the 
+   understanding of these notions, in particular with respect to specification 
+   decomposition principles for the case of infinite sets of events. The established 
+   relations between the refinement relations help to clarify some obscure points in the 
+   CSP literature, but also provide a weapon for shorter refinement proofs. Furthermore, 
+   we provide a framework for state-normalisation allowing to formally reason on 
+   parameterised process architectures.
+   
+   As a result, we have a modern environment for formal proofs of concurrent systems that 
+   allow for the combination of general infinite processes with locally finite ones in a 
+   logically safe way.  We demonstrate these verification-techniques for classical, 
+   generalised examples: The CopyBuffer for arbitrary data and the Dijkstra's Dining 
+   Philosopher Problem of arbitrary size.
+   
+   If you consider to cite this work, please refer to \cite{HOL-CSP-iFM2020}.
+ 
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{adb-long,root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

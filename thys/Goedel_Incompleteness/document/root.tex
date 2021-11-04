@@ -1,0 +1,53 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{eufrak}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{literal}
+
+
+\begin{document}
+
+\title{An Abstract Formalization of G\"odel's Incompleteness Theorems}
+\author{Andrei Popescu \and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract} We present an abstract formalization of G\"odel's incompleteness theorems.
+We analyze sufficient conditions for the theorems' applicability to a partially specified logic.
+Our abstract perspective enables a comparison between alternative approaches from the literature.
+These include Rosser's variation of the first theorem, Jeroslow's variation of the second theorem,
+and the Swierczkowski–Paulson semantics-based approach. This AFP entry is the main entry point to the results
+described in our CADE-27 paper~\cite{DBLP:conf/cade/0001T19}.
+
+\looseness=-1
+As part of our abstract formalization's validation, we instantiate our locales twice in the separate
+AFP entries \href{https://www.isa-afp.org/entries/Goedel_HFSet_Semantic.html}{Goedel\_HFSet\_Semantic} and
+\href{https://www.isa-afp.org/entries/Goedel_HFSet_Semanticless.html}{Goedel\_HFSet\_Semanticless}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

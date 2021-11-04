@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Amortized Complexity Verified - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>mortized
+  
+          <font class="first">C</font>omplexity
+  
+          <font class="first">V</font>erified
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Amortized Complexity Verified</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www21.in.tum.de/~nipkow">Tobias Nipkow</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-07-07</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+A framework for the analysis of the amortized complexity of functional
+data structures is formalized in Isabelle/HOL and applied to a number of
+standard examples and to the folowing non-trivial ones: skew heaps,
+splay trees, splay heaps and pairing heaps.
+<p>
+A preliminary version of this work (without pairing heaps) is described
+in a <a href="http://www21.in.tum.de/~nipkow/pubs/itp15.html">paper</a>
+published in the proceedings of the conference on Interactive
+Theorem Proving ITP 2015. An extended version of this publication
+is available <a href="http://www21.in.tum.de/~nipkow/pubs/jfp16.html">here</a>.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2015-03-17]: Added pairing heaps by Hauke Brinkop.<br>
+[2016-07-12]: Moved splay heaps from here to Splay_Tree<br>
+[2016-07-14]: Moved pairing heaps from here to the new Pairing_Heap</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Amortized_Complexity-AFP,
+  author  = {Tobias Nipkow},
+  title   = {Amortized Complexity Verified},
+  journal = {Archive of Formal Proofs},
+  month   = jul,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/Amortized_Complexity.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Pairing_Heap.html">Pairing_Heap</a>, <a href="Skew_Heap.html">Skew_Heap</a>, <a href="Splay_Tree.html">Splay_Tree</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Dynamic_Tables.html">Dynamic_Tables</a>, <a href="Root_Balanced_Tree.html">Root_Balanced_Tree</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Amortized_Complexity/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Amortized_Complexity/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Amortized_Complexity/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Amortized_Complexity-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Amortized_Complexity-2020-04-18.tar.gz">
+              afp-Amortized_Complexity-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Amortized_Complexity-2019-06-11.tar.gz">
+              afp-Amortized_Complexity-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Amortized_Complexity-2018-08-16.tar.gz">
+              afp-Amortized_Complexity-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Amortized_Complexity-2017-10-10.tar.gz">
+              afp-Amortized_Complexity-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Amortized_Complexity-2016-12-17.tar.gz">
+              afp-Amortized_Complexity-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Amortized_Complexity-2016-02-22.tar.gz">
+              afp-Amortized_Complexity-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Amortized_Complexity-2015-05-28.tar.gz">
+              afp-Amortized_Complexity-2015-05-28.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2015:
+            <a href="../release/afp-Amortized_Complexity-2015-05-27.tar.gz">
+              afp-Amortized_Complexity-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Amortized_Complexity-2015-05-19.tar.gz">
+              afp-Amortized_Complexity-2015-05-19.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2014:
+            <a href="../release/afp-Amortized_Complexity-2014-08-28.tar.gz">
+              afp-Amortized_Complexity-2014-08-28.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

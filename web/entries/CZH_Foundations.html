@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Category Theory for ZFC in HOL I: Foundations: Design Patterns, Set Theory, Digraphs, Semicategories - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>ategory
+  
+          <font class="first">T</font>heory
+  
+          for
+  
+          <font class="first">Z</font>FC
+  
+          in
+  
+          <font class="first">H</font>OL
+  
+          <font class="first">I</font>:
+  
+          <font class="first">F</font>oundations:
+  
+          <font class="first">D</font>esign
+  
+          <font class="first">P</font>atterns,
+  
+          <font class="first">S</font>et
+  
+          <font class="first">T</font>heory,
+  
+          <font class="first">D</font>igraphs,
+  
+          <font class="first">S</font>emicategories
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Category Theory for ZFC in HOL I: Foundations: Design Patterns, Set Theory, Digraphs, Semicategories</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Mihails Milehins (user9716869 /at/ gmail /dot/ com)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2021-09-06</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+This article provides a foundational framework for the formalization
+of category theory in the object logic ZFC in HOL of the formal proof
+assistant Isabelle. More specifically, this article provides a
+formalization of canonical set-theoretic constructions internalized in
+the type <i>V</i> associated with the ZFC in HOL,
+establishes a design pattern for the formalization of mathematical
+structures using sequences and locales, and showcases the developed
+infrastructure by providing formalizations of the elementary theories
+of digraphs and semicategories. The methodology chosen for the
+formalization of the theories of digraphs and semicategories (and
+categories in future articles) rests on the ideas that were originally
+expressed in the article <i>Set-Theoretical Foundations of
+Category Theory</i> written by Solomon Feferman and Georg
+Kreisel. Thus, in the context of this work, each of the aforementioned
+mathematical structures is represented as a term of the type
+<i>V</i> embedded into a stage of the von Neumann
+hierarchy.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{CZH_Foundations-AFP,
+  author  = {Mihails Milehins},
+  title   = {Category Theory for ZFC in HOL I: Foundations: Design Patterns, Set Theory, Digraphs, Semicategories},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2021,
+  note    = {\url{https://isa-afp.org/entries/CZH_Foundations.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Conditional_Simplification.html">Conditional_Simplification</a>, <a href="Intro_Dest_Elim.html">Intro_Dest_Elim</a>, <a href="ZFC_in_HOL.html">ZFC_in_HOL</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="CZH_Elementary_Categories.html">CZH_Elementary_Categories</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/CZH_Foundations/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/CZH_Foundations/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/CZH_Foundations/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-CZH_Foundations-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+            None
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

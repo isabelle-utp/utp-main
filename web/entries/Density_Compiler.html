@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Verified Compiler for Probability Density Functions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">V</font>erified
+  
+          <font class="first">C</font>ompiler
+  
+          for
+  
+          <font class="first">P</font>robability
+  
+          <font class="first">D</font>ensity
+  
+          <font class="first">F</font>unctions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Verified Compiler for Probability Density Functions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a>,
+                <a href="http://in.tum.de/~hoelzl">Johannes Hölzl</a> and
+          <a href="http://www21.in.tum.de/~nipkow">Tobias Nipkow</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-10-09</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<a href="https://doi.org/10.1007/978-3-642-36742-7_35">Bhat et al. [TACAS 2013]</a> developed an inductive compiler that computes
+density functions for probability spaces described by programs in a
+probabilistic functional language. In this work, we implement such a
+compiler for a modified version of this language within the theorem prover
+Isabelle and give a formal proof of its soundness w.r.t. the semantics of
+the source and target language.  Together with Isabelle's code generation
+for inductive predicates, this yields a fully verified, executable density
+compiler. The proof is done in two steps: First, an abstract compiler
+working with abstract functions modelled directly in the theorem prover's
+logic is defined and proved sound.  Then, this compiler is refined to a
+concrete version that returns a target-language expression.
+<p>
+An article with the same title and authors is published in the proceedings
+of ESOP 2015.
+A detailed presentation of this work can be found in the first author's
+master's thesis.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Density_Compiler-AFP,
+  author  = {Manuel Eberl and Johannes Hölzl and Tobias Nipkow},
+  title   = {A Verified Compiler for Probability Density Functions},
+  journal = {Archive of Formal Proofs},
+  month   = oct,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/Density_Compiler.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Density_Compiler/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Density_Compiler/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Density_Compiler/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Density_Compiler-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Density_Compiler-2020-04-18.tar.gz">
+              afp-Density_Compiler-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Density_Compiler-2019-06-11.tar.gz">
+              afp-Density_Compiler-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Density_Compiler-2018-08-16.tar.gz">
+              afp-Density_Compiler-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Density_Compiler-2017-10-10.tar.gz">
+              afp-Density_Compiler-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Density_Compiler-2016-12-17.tar.gz">
+              afp-Density_Compiler-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Density_Compiler-2016-02-22.tar.gz">
+              afp-Density_Compiler-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Density_Compiler-2015-05-27.tar.gz">
+              afp-Density_Compiler-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Density_Compiler-2014-12-22.tar.gz">
+              afp-Density_Compiler-2014-12-22.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2014:
+            <a href="../release/afp-Density_Compiler-2014-10-09.tar.gz">
+              afp-Density_Compiler-2014-10-09.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

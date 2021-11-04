@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Constructive Cryptography in HOL: the Communication Modeling Aspect - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>onstructive
+  
+          <font class="first">C</font>ryptography
+  
+          in
+  
+          <font class="first">H</font>OL:
+  
+          the
+  
+          <font class="first">C</font>ommunication
+  
+          <font class="first">M</font>odeling
+  
+          <font class="first">A</font>spect
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Constructive Cryptography in HOL: the Communication Modeling Aspect</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a> and
+          S. Reza Sefidgar
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2021-03-17</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+Constructive Cryptography (CC) [<a
+href="https://conference.iiis.tsinghua.edu.cn/ICS2011/content/papers/14.html">ICS
+2011</a>, <a
+href="https://doi.org/10.1007/978-3-642-27375-9_3">TOSCA
+2011</a>, <a
+href="https://doi.org/10.1007/978-3-662-53641-4_1">TCC
+2016</a>] introduces an abstract approach to composable security
+statements that allows one to focus on a particular aspect of security
+proofs at a time. Instead of proving the properties of concrete
+systems, CC studies system classes, i.e., the shared behavior of
+similar systems, and their transformations.  Modeling of systems
+communication plays a crucial role in composability and reusability of
+security statements; yet, this aspect has not been studied in any of
+the existing CC results. We extend our previous CC formalization
+[<a href="https://isa-afp.org/entries/Constructive_Cryptography.html">Constructive_Cryptography</a>,
+<a href="https://doi.org/10.1109/CSF.2019.00018">CSF
+2019</a>] with a new semantic domain called Fused Resource
+Templates (FRT) that abstracts over the systems communication patterns
+in CC proofs. This widens the scope of cryptography proof
+formalizations in the CryptHOL library [<a
+href="https://isa-afp.org/entries/CryptHOL.html">CryptHOL</a>,
+<a
+href="https://doi.org/10.1007/978-3-662-49498-1_20">ESOP
+2016</a>, <a
+href="https://doi.org/10.1007/s00145-019-09341-z">J
+Cryptol 2020</a>].  This formalization is described in <a
+href="http://www.andreas-lochbihler.de/pub/basin2021.pdf">Abstract
+Modeling of Systems Communication in Constructive Cryptography using
+CryptHOL</a>.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Constructive_Cryptography_CM-AFP,
+  author  = {Andreas Lochbihler and S. Reza Sefidgar},
+  title   = {Constructive Cryptography in HOL: the Communication Modeling Aspect},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2021,
+  note    = {\url{https://isa-afp.org/entries/Constructive_Cryptography_CM.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Constructive_Cryptography.html">Constructive_Cryptography</a>, <a href="Game_Based_Crypto.html">Game_Based_Crypto</a>, <a href="Sigma_Commit_Crypto.html">Sigma_Commit_Crypto</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Constructive_Cryptography_CM/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Constructive_Cryptography_CM/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Constructive_Cryptography_CM/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Constructive_Cryptography_CM-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+            None
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Factorization Algorithm of Berlekamp and Zassenhaus - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>he
+  
+          <font class="first">F</font>actorization
+  
+          <font class="first">A</font>lgorithm
+  
+          of
+  
+          <font class="first">B</font>erlekamp
+  
+          and
+  
+          <font class="first">Z</font>assenhaus
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">The Factorization Algorithm of Berlekamp and Zassenhaus</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="https://www.unirioja.es/cu/jodivaso/">Jose Divasón</a>,
+                  <a href="https://sjcjoosten.nl">Sebastiaan Joosten</a>,
+                René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at) and
+          Akihisa Yamada (akihisa /dot/ yamada /at/ aist /dot/ go /dot/ jp)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-10-14</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>We formalize the Berlekamp-Zassenhaus algorithm for factoring
+square-free integer polynomials in Isabelle/HOL. We further adapt an
+existing formalization of Yun’s square-free factorization algorithm to
+integer polynomials, and thus provide an efficient and certified
+factorization algorithm for arbitrary univariate polynomials.
+</p>
+<p>The algorithm first performs a factorization in the prime field GF(p) and
+then performs computations in the integer ring modulo p^k, where both
+p and k are determined at runtime. Since a natural modeling of these
+structures via dependent types is not possible in Isabelle/HOL, we
+formalize the whole algorithm using Isabelle’s recent addition of
+local type definitions.
+</p>
+<p>Through experiments we verify that our algorithm factors polynomials of degree
+100 within seconds.
+</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Berlekamp_Zassenhaus-AFP,
+  author  = {Jose Divasón and Sebastiaan Joosten and René Thiemann and Akihisa Yamada},
+  title   = {The Factorization Algorithm of Berlekamp and Zassenhaus},
+  journal = {Archive of Formal Proofs},
+  month   = oct,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Berlekamp_Zassenhaus.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Algebraic_Numbers.html">Algebraic_Numbers</a>, <a href="LLL_Basis_Reduction.html">LLL_Basis_Reduction</a>, <a href="Smith_Normal_Form.html">Smith_Normal_Form</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Berlekamp_Zassenhaus/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Berlekamp_Zassenhaus/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Berlekamp_Zassenhaus/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Berlekamp_Zassenhaus-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2020-04-18.tar.gz">
+              afp-Berlekamp_Zassenhaus-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2019-06-11.tar.gz">
+              afp-Berlekamp_Zassenhaus-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2018-09-07.tar.gz">
+              afp-Berlekamp_Zassenhaus-2018-09-07.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2018:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2018-08-16.tar.gz">
+              afp-Berlekamp_Zassenhaus-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2017-10-10.tar.gz">
+              afp-Berlekamp_Zassenhaus-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Berlekamp_Zassenhaus-2016-12-17.tar.gz">
+              afp-Berlekamp_Zassenhaus-2016-12-17.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

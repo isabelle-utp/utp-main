@@ -1,0 +1,52 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{eufrak}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{literal}
+
+
+\begin{document}
+
+\title{From Abstract to Concrete G\"odel's Incompleteness Theorems---Part II}
+\author{Andrei Popescu \and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract} We validate an abstract formulation of G\"odel’s Second Incompleteness Theorem from a
+\href{https://www.isa-afp.org/entries/Goedel_Incompleteness.html}{separate AFP entry} by instantiating it to
+the case of \emph{finite consistent extensions of the Hereditarily Finite (HF) Set theory}, i.e., consistent
+FOL theories extending the HF Set theory with a finite set of axioms.
+
+The instantiation draws heavily on infrastructure previously developed by Larry Paulson in his
+\href{https://www.isa-afp.org/entries/Incompleteness.html}{direct formalisation of the concrete result}. It
+strengthens Paulson’s formalization of G\"odel's Second from that entry by \emph{not} assuming soundness, and
+in fact not relying on any notion of model or semantic interpretation. The strengthening was obtained by
+first replacing some of Paulson’s semantic arguments with proofs within his HF calculus, and then plugging in
+some of Paulson's (modified) lemmas to instantiate our soundness-free G\"odel's Second locale.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

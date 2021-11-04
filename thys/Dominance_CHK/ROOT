@@ -1,0 +1,20 @@
+chapter AFP
+
+session "Dominance_CHK" (AFP) = HOL + 
+  options [timeout=300]
+  sessions 
+    "HOL-Data_Structures"
+    "HOL-Library"
+  theories
+    Cfg
+    Dom_Semi_List
+    Dom_Kildall
+    Dom_Kildall_Property
+    Dom_Kildall_Correct
+    Semilat
+    Listn
+    Sorted_List_Operations2
+    Sorted_Less2  
+  document_files
+    "root.bib"
+    "root.tex"

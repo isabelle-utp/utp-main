@@ -1,0 +1,14 @@
+chapter AFP
+
+session "Finite-Map-Extras" (AFP) = HOL +
+  options [timeout = 600]
+
+  sessions
+    "HOL-Library"
+
+  theories
+    Finite_Map_Extras
+
+  document_files
+    "root.tex"
+

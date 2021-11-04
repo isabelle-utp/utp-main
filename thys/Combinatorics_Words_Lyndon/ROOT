@@ -1,0 +1,12 @@
+chapter AFP
+
+session Combinatorics_Words_Lyndon (AFP) = Combinatorics_Words +
+  options [timeout = 300]
+  sessions
+    Szpilrajn
+  theories
+    Lyndon
+    Lyndon_Addition
+  document_files
+    root.tex
+    root.bib

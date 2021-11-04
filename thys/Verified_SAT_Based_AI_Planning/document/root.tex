@@ -1,0 +1,76 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{amsmath, amssymb}
+\usepackage{isabelle,isabellesym}
+\usepackage{verbatim}
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+\usepackage{wasysym}  
+  
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Verified SAT-Based AI Planning}
+\author{Mohammad Abdulaziz and Friedrich Kurz\footnote{Author names are alphabetically ordered.}}
+
+% \subtitle{Proof Document}
+% \author{M. Abdulaziz \and P. Lammich}
+\date{}
+
+\maketitle
+
+We present an executable formally verified SAT encoding of classical AI planning that is based on the encodings by Kautz and Selman~\cite{kautz:selman:92} and the one by Rintanen et al.~\cite{DBLP:journals/ai/RintanenHN06}.
+The encoding was experimentally tested and shown to be usable for reasonably sized standard AI planning benchmarks.
+We also use it as a reference to test a state-of-the-art SAT-based planner, showing that it sometimes falsely claims that problems have no solutions of certain lengths.
+The formalisation in this submission was described in an independent publication~\cite{verifiedSATPlan}.
+
+\tableofcontents
+
+\clearpage
+
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\newcommand{\isaname}[1]{}
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

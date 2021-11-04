@@ -1,0 +1,99 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{marvosym}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+\newcommand{\FOLR}{$\text{FOL}_{\mathbb{R}}$}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Verified Quadratic Virtual Substitution\texorpdfstring{\\}{} for Real Arithmetic}
+
+\author{Matias Scharager,
+Katherine Cordwell,
+Stefan Mitsch and
+Andr\'{e} Platzer}
+
+
+\maketitle
+
+\begin{abstract}
+This paper presents a formally verified quantifier elimination (QE) algorithm for first-order real arithmetic by linear and quadratic virtual substitution (VS) in Isabelle/HOL \cite{weispfenning1988complexity,weispfenning1997quantifier}.
+The Tarski-Seidenberg theorem established that the first-order logic of real arithmetic is decidable by QE.
+However, in practice, QE algorithms are highly complicated and often combine multiple methods for performance.
+VS is a practically successful method for QE that targets formulas with low-degree polynomials.
+To our knowledge, this is the first work to formalize VS for quadratic real arithmetic including inequalities.
+The proofs necessitate various contributions to the existing multivariate polynomial libraries in Isabelle/HOL.
+Our framework is modularized and easily expandable (to facilitate integrating future optimizations), and could serve as a basis for developing practical general-purpose QE algorithms.
+Further, as our formalization is designed with practicality in mind, we export our development to SML and test the resulting code on 378 benchmarks from the literature, comparing to Redlog, Z3, Wolfram Engine, and SMT-RAT.
+This identified inconsistencies in some tools, underscoring the significance of a verified approach for the intricacies of real arithmetic.
+\end{abstract}
+
+\tableofcontents
+
+\section{Related Works}
+
+There has already been some work on formally verified VS: Nipkow \cite{nipkow2010linear} formally verified a VS procedure for \emph{linear} equations and inequalities.
+The building blocks of \FOLR~formulas, or ``atoms," in Nipkow's work only allow for linear polynomials $\sum_i a_i x_i\sim c$, where $\sim\ \in \{=,<\}$, the $x_i$'s are quantified variables and $c$ and the $a_i$'s are real numbers.
+These restrictions ensure that linear QE can always be performed, and they also simplify the substitution procedure and associated proofs.
+Nipkow additionally provides a generic framework that can be applied to several different kinds of atoms (each new atom requires implementing several new code theorems in order to create an exportable algorithm).
+While this is an excellent theoretical framework---we utilize several similar constructs in our formulation---we create an independent formalization that is specific to general \FOLR~formulas, as our main focus is to provide an efficient algorithm in this domain.
+Specializing to one type of atom allows us to implement several optimizations, such as our modified DNF algorithm, which would be unwieldy to develop in a generic setting.
+
+Chaieb \cite{chaieb2008automated} extends Nipkow's work to quadratic equalities.
+His formalizations are not publicly available, but he generously provided us with the code.
+While this was helpful for reference, we chose to build on a newer Isabelle/HOL polynomial library, and we focus on VS as an exportable standalone procedure, whereas Chaieb intrinsically links VS with an auxiliary QE procedure.
+
+We also use the Logical Foundations of Cyber-Physical Systems textbook\cite{Platzer18} for easy reference for the VS algorithm.
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

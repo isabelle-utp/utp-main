@@ -1,0 +1,34 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{isabelle,isabellesym}
+\usepackage{amsfonts,amsmath,amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+\addtolength{\hoffset}{-1,5cm}
+\addtolength{\textwidth}{3cm}
+
+\begin{document}
+
+\title{Grothendieck's Schemes in Algebraic Geometry}
+\author{Anthony Bordg, Lawrence Paulson and Wenda Li}
+\maketitle
+
+\begin{abstract}
+  We formalize mainstream structures in algebraic geometry \cite{hartshorne2013algebraic,lang2005algebra} culminating in Grothendieck's schemes: presheaves of rings, sheaves of rings, ringed spaces, locally ringed spaces, affine schemes and schemes. We prove that the spectrum of a ring is a locally ringed space, hence an affine scheme. Finally, we prove that any affine scheme is a scheme.
+\end{abstract}
+
+\tableofcontents
+
+\parindent 0pt\parskip 0.5ex
+
+% include generated text of all theories
+\input{session}
+
+\section{Acknowledgements}
+The work was supported by the ERC Advanced Grant ALEXANDRIA (Project 742178), funded by the European Research Council.
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+\end{document}

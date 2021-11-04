@@ -1,0 +1,13 @@
+chapter AFP
+
+session "Schutz_Spacetime" (AFP) = HOL +
+  options [timeout = 600]
+  theories [document = false]
+    Util
+  theories
+    TernaryOrdering
+    Minkowski
+    TemporalOrderOnPath
+  document_files
+    "root.bib"
+    "root.tex"

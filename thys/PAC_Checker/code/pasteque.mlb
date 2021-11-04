@@ -1,0 +1,18 @@
+$(SML_LIB)/basis/basis.mlb
+$(SML_LIB)/basis/mlton.mlb 
+
+
+local
+  checker.ML
+in
+structure PAC_Checker
+structure Uint64
+end
+
+local
+  parser.sml
+in
+structure PAC_Parser
+end
+
+pasteque.sml

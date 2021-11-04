@@ -1,0 +1,61 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb,ragged2e}
+\usepackage{pdfsetup}
+
+\isabellestyle{it}
+\renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\justifying\color{blue}}{\end{isapar}}
+\renewcommand\labelitemi{$*$}
+%\urlstyle{rm}
+
+\begin{document}
+
+\title{Relational Disjoint-Set Forests}
+\author{Walter Guttmann}
+\maketitle
+
+\begin{abstract}
+  We give a simple relation-algebraic semantics of read and write operations on associative arrays.
+  The array operations seamlessly integrate with assignments in the Hoare-logic library.
+  Using relation algebras and Kleene algebras we verify the correctness of an array-based implementation of disjoint-set forests with a naive union operation and a find operation with path compression.
+\end{abstract}
+
+\tableofcontents
+
+\section{Overview}
+
+Relation algebras and Kleene algebras have previously been used to reason about graphs and graph algorithms \cite{BackhouseCarre1975,Berghammer1999,BerghammerStruth2010,BerghammerKargerWolf1998,GondranMinoux2008,HoefnerMoeller2012,Moeller1993}.
+The operations of these algebras manipulate entire graphs, which is useful for specification but not directly intended for implementation.
+Low-level array access is a key ingredient for efficient algorithms \cite{CormenLeisersonRivest1990}.
+We give a relation-algebraic semantics for such read/write access to associative arrays.
+This allows us to extend relation-algebraic verification methods to a lower level of more efficient implementations.
+
+In this theory we focus on arrays with the same index and value sets, which can be modelled as homogeneous relations and therefore as elements of relation algebras and Kleene algebras \cite{Kozen1994,Tarski1941}.
+We implement and verify the correctness of disjoint-set forests with path compression and naive union \cite{CormenLeisersonRivest1990,GallerFisher1964,Tarjan1975}.
+
+In order to prepare this theory for future applications with weighted graphs, the verification uses Stone relation algebras, which have weaker axioms than relation algebras \cite{Guttmann2018c}.
+
+Section 2 contains the simple relation-algebraic semantics of associative array read and write and basic properties of these access operations.
+In Section 3 we give a Kleene-relation-algebraic semantics of disjoint-set forests.
+The make-set, find-set and union-sets operations are implemented and verified in Section 4.
+
+This Isabelle/HOL theory formally verifies results in \cite{Guttmann2020b}.
+Theorem numbers from this paper are mentioned in the theory for reference.
+See the paper for further details and related work.
+
+Several Isabelle/HOL theories are related to disjoint sets.
+The theory \texttt{HOL/Library/Disjoint\_Sets.thy} contains results about partitions and sets of disjoint sets and does not consider their implementation.
+An implementation of disjoint-set forests with path compression and a size-based heuristic in the Imperative/HOL framework is verified in Archive of Formal Proofs entry \cite{LammichMeis2012}.
+Improved automation of this proof is considered in Archive of Formal Proofs entry \cite{Zhan2018}.
+These approaches are based on logical specifications whereas the present theory uses relation algebras and Kleene algebras.
+
+\begin{flushleft}
+\input{session}
+\end{flushleft}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

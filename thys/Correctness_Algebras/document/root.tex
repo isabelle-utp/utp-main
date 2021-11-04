@@ -1,0 +1,46 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb,cite,ragged2e,stmaryrd}
+\usepackage{pdfsetup}
+
+\isabellestyle{it}
+\renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\justifying\color{blue}}{\end{isapar}}
+\newcommand{\flqq}{\guillemotleft}
+\newcommand{\frqq}{\guillemotright}
+\renewcommand\labelitemi{$*$}
+\urlstyle{rm}
+
+\begin{document}
+
+\title{Algebras for Iteration, Infinite Executions and Correctness of Sequential Computations}
+\author{Walter Guttmann}
+\maketitle
+
+\begin{abstract}
+  We study models of state-based non-deterministic sequential computations and describe them using algebras.
+  We propose algebras that describe iteration for strict and non-strict computations.
+  They unify computation models which differ in the fixpoints used to represent iteration.
+  We propose algebras that describe the infinite executions of a computation.
+  They lead to a unified approximation order and results that connect fixpoints in the approximation and refinement orders.
+  This unifies the semantics of recursion for a range of computation models.
+  We propose algebras that describe preconditions and the effect of while-programs under postconditions.
+  They unify correctness statements in two dimensions: one statement applies in various computation models to various correctness claims.
+\end{abstract}
+
+These theories consolidate results which have appeared in \cite{BerghammerGuttmann2015b,BerghammerGuttmann2017,Guttmann2009,Guttmann2010a,Guttmann2010d,Guttmann2011b,Guttmann2011a,Guttmann2012c,Guttmann2012b,Guttmann2012a,Guttmann2012d,Guttmann2013,Guttmann2014c,Guttmann2014b,Guttmann2014a,Guttmann2015b,Guttmann2015c,Guttmann2015a,Guttmann2016a,GuttmannStruthWeber2011b}.
+Most are described in \cite{Guttmann2015b}.
+Theorem numbers refer to \cite{Guttmann2015b} except in theory \emph{Lattice-Ordered Semirings}, where they refer to \cite{BerghammerGuttmann2017}, and in theories \emph{Capped Omega Algebras}, \emph{N-Algebras}, \emph{N-Omega-Algebras}, \emph{N-Omega Binary Iterings} and \emph{Recursion}, where they refer to \cite{Guttmann2016a}.
+
+\tableofcontents
+
+\begin{flushleft}
+\input{session}
+\end{flushleft}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

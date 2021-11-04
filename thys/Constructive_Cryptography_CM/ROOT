@@ -1,0 +1,15 @@
+chapter AFP
+
+session Constructive_Cryptography_CM (AFP) = Constructive_Cryptography +
+  options [timeout = 1500]
+  sessions
+    "Game_Based_Crypto"
+    "Sigma_Commit_Crypto"
+  directories
+    "Constructions"
+    "Specifications"
+  theories
+    "Constructions/DH_OTP"    
+  document_files
+    "root.tex"
+    "root.bib"

@@ -1,0 +1,44 @@
+(* Combinator parsing examples *)
+
+$(MLTON_ROOT)/basis/basis.mlb
+
+sml-parse-comb-master/.smackage/lib/cmlib/v2.3.0/cmlib.mlb
+
+(* Parcom proper *)
+local
+
+  sml-parse-comb-master/src/parse.sig
+  sml-parse-comb-master/src/parse.sml
+
+  sml-parse-comb-master/src/charparse.sig
+  sml-parse-comb-master/src/charparse.sml
+
+  sml-parse-comb-master/src/tokparse.sig
+  sml-parse-comb-master/src/tokparse.sml
+  sml-parse-comb-master/src/langparse.sml
+
+in
+
+  signature PARSER_COMBINATORS
+  signature CHAR_PARSER
+  signature MINI_LANGUAGE_DEF
+  signature LANGUAGE_DEF
+  signature TOKEN_PARSER
+
+  structure ParserCombinators
+  structure CharParser
+  structure BasicParser
+
+
+  functor   TokenParser
+  functor   SimpleStyle
+  functor   JavaStyle
+  functor   MLStyle
+
+end
+
+
+(*strips.sml*)
+generated/decode_DIMACS_model.ML
+sas_plus.sml
+decode_model.sml

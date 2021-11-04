@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+#
+# Author: Gerwin Klein, NICTA
+#
+# publishes archive entry + main web pages on isa-afp
+#
+# This script expects Isabelle version >= 2008-10-05
+# (uses isabelle instead of isatool)
+
+## settings
+
+source "$(dirname "$0")/common"
+
+AFP_VERSION=afp-$VERSION
+ISABELLE_VERSION="Isabelle${VERSION}"
+
+DEST=afpweb@isa-afp.org:
+FILES=frs.sourceforge.net:/home/frs/project/afp/afp-$ISABELLE_VERSION/
+SRC=ssh://hg@foss.heptapod.net/isa-afp/$AFP_VERSION
+
+if [ -n "$SF_LOGIN" ]; then
+    LN=$SF_LOGIN
+else
+    LN=$LOGNAME
+fi
+
+FILES=$LN@$FILES
+
+EXPORT_PRE=afp
+HG=hg
+DATE=`date '+%Y-%m-%d'`
+
+TAR=tar
+
+
+## functions
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG [options] [<entries>|-]"
+  echo
+  echo "  Checks out web site and archive entries and publishes them on the isa-afp.org web site"
+  echo
+  echo "Options:"
+  echo "  -r                  use specified Isabelle version"
+  echo "  -f                  do not ask before publishing"
+  echo "  -t <isabelle> <tag> use specified path to isabelle tool script"
+  echo
+  echo "Examples:"
+  echo "  $PRG -r 2009 Example-Submission"
+  echo "  $PRG -t /usr/proj/Isabelle2009/bin/isabelle Isabelle2009 Example-Submission"
+  echo
+  echo "  $PRG Example-Submission"
+  exit 1
+}
+
+## argument checking
+
+[ "$#" -lt "1" -o "$1" = "-?" ] && usage
+
+INTERACTIVE="yes"
+
+while getopts "ft:r:" OPT
+do
+    case "$OPT" in
+      r)
+        VERSION="$OPTARG"
+        ;;
+      f)
+        INTERACTIVE="no"
+        ;;
+      t)
+        ISABELLE_TOOL="$OPTARG"
+        ISABELLE_VERSION="$1"
+        shift
+        ;;
+    esac
+done
+shift $(($OPTIND - 1))
+
+set_isabelle_tool
+
+
+EXPORT=$EXPORT_PRE-$DATE
+
+###
+
+WD="$(pwd)"
+cd "$DIR"
+ROOT="$(hg root)" || fail "could not obtain repo root"
+cd "$ROOT" || fail "could not cd to repo root"
+
+echo "Checking sync with $SRC"
+$HG outgoing $SRC && fail "Push changes to Heptapod first."
+
+echo "Exporting from working copy $ROOT"
+HG_EXPORT=afp-export-$DATE
+rm -rf $HG_EXPORT
+$HG archive -I thys -I web -I etc -I tools $HG_EXPORT || fail "hg archive failed."
+cd $HG_EXPORT
+echo -n $DATE > web/release-date.txt
+mkdir $EXPORT
+mv thys etc tools $EXPORT/
+
+if [ "$1" != "-" ]; then
+    echo "Cleaning up browser_info directory"
+    BROWSER_INFO=`$ISABELLE_TOOL getenv -b ISABELLE_BROWSER_INFO` || fail "could not find browser info"
+    [ -e "$BROWSER_INFO" ] && rm -rf $BROWSER_INFO
+
+    HTML_THYS=web/browser_info/$ISABELLE_VERSION
+    TARS=web/release
+    mkdir -p $HTML_THYS
+    ln -s $ISABELLE_VERSION web/browser_info/current
+    ln -s ../front.css web/entries/front.css
+    mkdir -p $TARS
+
+    echo "Tarring [$EXPORT]"
+    $TAR -cf $EXPORT.tar $EXPORT
+    gzip --best -f $EXPORT.tar
+    ln -s $EXPORT.tar.gz $TARS/afp-current.tar.gz
+    mv $EXPORT.tar.gz $TARS/
+
+    echo "Generating HTML for [$@]"
+    $ISABELLE_TOOL afp_build -- -v -c $@  || fail "isabelle afp_build failed on [$@]"
+
+    cd $EXPORT/thys
+    for ENTRY in $@; do
+        if [ -d $ENTRY ]; then
+            echo "Tarring [$ENTRY]"
+            $TAR -cf $EXPORT_PRE-$ENTRY-$DATE.tar $ENTRY
+            gzip --best -f $EXPORT_PRE-$ENTRY-$DATE.tar
+            mv $EXPORT_PRE-$ENTRY-$DATE.tar.gz ../../$TARS/
+            ln -s $EXPORT_PRE-$ENTRY-$DATE.tar.gz ../../$TARS/$EXPORT_PRE-$ENTRY-current.tar.gz
+            echo "Finished [$ENTRY]"
+        fi
+    done
+    cd ../..
+
+    echo "Copying generated HTML"
+    for DIR in $BROWSER_INFO/*; do
+        if [ -d $DIR ]; then
+            cp -r $DIR $HTML_THYS
+        fi
+    done
+
+    if [ "$INTERACTIVE" == "yes" ]; then
+        echo "Web pages are prepared for publication under"
+        echo "[`pwd`/web/]."
+        echo "Please check content."
+        read -n 1 -p "Type y if you want to publish. Any other key quits." RESPONSE
+    else
+        RESPONSE="y"
+    fi
+else
+    RESPONSE="y"
+fi
+
+if [ "$RESPONSE" == "y" ]; then
+#    if [ "$TARS" != "" ]; then
+#        echo
+#        echo "Pushing $EXPORT to [$FILES]"
+#        scp $TARS/$EXPORT.tar.gz $FILES
+#    fi
+    echo
+    echo "Publishing to [$DEST]"
+    chmod -R g-w web
+    chmod -R a+r web
+    find web -type d | xargs chmod a+x
+    chmod 755 web
+    rsync -rplvz --links --rsh=ssh web/ $DEST && echo "Finished."
+else
+    echo
+    echo "Aborted."
+    exit 1;
+fi
+

@@ -1,0 +1,14 @@
+chapter AFP
+
+session "Safe_Distance" (AFP) = "HOL-Analysis" +
+  options [timeout = 600]
+  sessions
+    "HOL-Decision_Procs"
+    Sturm_Sequences
+  theories
+    Safe_Distance
+    Safe_Distance_Reaction
+    Evaluation
+  document_files
+    "root.tex"
+    "root.bib"

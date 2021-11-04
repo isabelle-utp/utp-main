@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Formalization of Conflict Analysis of Programs with Procedures, Thread Creation, and Monitors - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">F</font>ormalization
+  
+          of
+  
+          <font class="first">C</font>onflict
+  
+          <font class="first">A</font>nalysis
+  
+          of
+  
+          <font class="first">P</font>rograms
+  
+          with
+  
+          <font class="first">P</font>rocedures,
+  
+          <font class="first">T</font>hread
+  
+          <font class="first">C</font>reation,
+  
+          and
+  
+          <font class="first">M</font>onitors
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Formalization of Conflict Analysis of Programs with Procedures, Thread Creation, and Monitors</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Peter Lammich and
+          <a href="http://cs.uni-muenster.de/u/mmo/">Markus Müller-Olm</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2007-12-14</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">In this work we formally verify the soundness and precision of a static program analysis that detects conflicts (e. g. data races) in programs with procedures, thread creation and monitors with the Isabelle theorem prover. As common in static program analysis, our program model abstracts guarded branching by nondeterministic branching, but completely interprets the call-/return behavior of procedures, synchronization by monitors, and thread creation. The analysis is based on the observation that all conflicts already occur in a class of particularly restricted schedules. These restricted schedules are suited to constraint-system-based program analysis. The formalization is based upon a flowgraph-based program model with an operational semantics as reference point.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Program-Conflict-Analysis-AFP,
+  author  = {Peter Lammich and Markus Müller-Olm},
+  title   = {Formalization of Conflict Analysis of Programs with Procedures, Thread Creation, and Monitors},
+  journal = {Archive of Formal Proofs},
+  month   = dec,
+  year    = 2007,
+  note    = {\url{https://isa-afp.org/entries/Program-Conflict-Analysis.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Flow_Networks.html">Flow_Networks</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Program-Conflict-Analysis/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Program-Conflict-Analysis/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Program-Conflict-Analysis/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Program-Conflict-Analysis-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Program-Conflict-Analysis-2020-04-20.tar.gz">
+              afp-Program-Conflict-Analysis-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Program-Conflict-Analysis-2019-06-11.tar.gz">
+              afp-Program-Conflict-Analysis-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Program-Conflict-Analysis-2018-08-16.tar.gz">
+              afp-Program-Conflict-Analysis-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Program-Conflict-Analysis-2017-10-10.tar.gz">
+              afp-Program-Conflict-Analysis-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Program-Conflict-Analysis-2016-12-17.tar.gz">
+              afp-Program-Conflict-Analysis-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Program-Conflict-Analysis-2016-02-22.tar.gz">
+              afp-Program-Conflict-Analysis-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Program-Conflict-Analysis-2015-05-27.tar.gz">
+              afp-Program-Conflict-Analysis-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Program-Conflict-Analysis-2014-08-28.tar.gz">
+              afp-Program-Conflict-Analysis-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Program-Conflict-Analysis-2013-12-11.tar.gz">
+              afp-Program-Conflict-Analysis-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Program-Conflict-Analysis-2013-11-17.tar.gz">
+              afp-Program-Conflict-Analysis-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Program-Conflict-Analysis-2013-03-02.tar.gz">
+              afp-Program-Conflict-Analysis-2013-03-02.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2013:
+            <a href="../release/afp-Program-Conflict-Analysis-2013-02-16.tar.gz">
+              afp-Program-Conflict-Analysis-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Program-Conflict-Analysis-2012-05-24.tar.gz">
+              afp-Program-Conflict-Analysis-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Program-Conflict-Analysis-2011-10-11.tar.gz">
+              afp-Program-Conflict-Analysis-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-Program-Conflict-Analysis-2011-02-11.tar.gz">
+              afp-Program-Conflict-Analysis-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-Program-Conflict-Analysis-2010-07-01.tar.gz">
+              afp-Program-Conflict-Analysis-2010-07-01.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-1:
+            <a href="../release/afp-Program-Conflict-Analysis-2009-12-12.tar.gz">
+              afp-Program-Conflict-Analysis-2009-12-12.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009:
+            <a href="../release/afp-Program-Conflict-Analysis-2009-04-29.tar.gz">
+              afp-Program-Conflict-Analysis-2009-04-29.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2008:
+            <a href="../release/afp-Program-Conflict-Analysis-2008-06-10.tar.gz">
+              afp-Program-Conflict-Analysis-2008-06-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2007:
+            <a href="../release/afp-Program-Conflict-Analysis-2007-12-20.tar.gz">
+              afp-Program-Conflict-Analysis-2007-12-20.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

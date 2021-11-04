@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Reduction Theorem for Store Buffers - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">R</font>eduction
+  
+          <font class="first">T</font>heorem
+  
+          for
+  
+          <font class="first">S</font>tore
+  
+          <font class="first">B</font>uffers
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Reduction Theorem for Store Buffers</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Ernie Cohen (ecohen /at/ amazon /dot/ com) and
+          Norbert Schirmer (norbert /dot/ schirmer /at/ web /dot/ de)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-01-07</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+When verifying a concurrent program, it is usual to assume that memory
+is sequentially consistent.  However, most modern multiprocessors
+depend on store buffering for efficiency, and provide native
+sequential consistency only at a substantial performance penalty.  To
+regain sequential consistency, a programmer has to follow an
+appropriate programming discipline. However, na&iuml;ve disciplines,
+such as protecting all shared accesses with locks, are not flexible
+enough for building high-performance multiprocessor software.  We
+present a new discipline for concurrent programming under TSO (total
+store order, with store buffer forwarding). It does not depend on
+concurrency primitives, such as locks. Instead, threads use ghost
+operations to acquire and release ownership of memory addresses. A
+thread can write to an address only if no other thread owns it, and
+can read from an address only if it owns it or it is shared and the
+thread has flushed its store buffer since it last wrote to an address
+it did not own. This discipline covers both coarse-grained concurrency
+(where data is protected by locks) as well as fine-grained concurrency
+(where atomic operations race to memory).  We formalize this
+discipline in Isabelle/HOL, and prove that if every execution of a
+program in a system without store buffers follows the discipline, then
+every execution of the program with store buffers is sequentially
+consistent. Thus, we can show sequential consistency under TSO by
+ordinary assertional reasoning about the program, without having to
+consider store buffers at all.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Store_Buffer_Reduction-AFP,
+  author  = {Ernie Cohen and Norbert Schirmer},
+  title   = {A Reduction Theorem for Store Buffers},
+  journal = {Archive of Formal Proofs},
+  month   = jan,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/Store_Buffer_Reduction.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Store_Buffer_Reduction/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Store_Buffer_Reduction/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Store_Buffer_Reduction/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Store_Buffer_Reduction-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Store_Buffer_Reduction-2020-04-20.tar.gz">
+              afp-Store_Buffer_Reduction-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Store_Buffer_Reduction-2019-06-11.tar.gz">
+              afp-Store_Buffer_Reduction-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Store_Buffer_Reduction-2019-01-11.tar.gz">
+              afp-Store_Buffer_Reduction-2019-01-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

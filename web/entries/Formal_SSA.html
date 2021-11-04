@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Verified Construction of Static Single Assignment Form - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">V</font>erified
+  
+          <font class="first">C</font>onstruction
+  
+          of
+  
+          <font class="first">S</font>tatic
+  
+          <font class="first">S</font>ingle
+  
+          <font class="first">A</font>ssignment
+  
+          <font class="first">F</font>orm
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Verified Construction of Static Single Assignment Form</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Sebastian Ullrich (sebasti /at/ nullri /dot/ ch) and
+          <a href="http://pp.ipd.kit.edu/person.php?id=88">Denis Lohner</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-02-05</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+We define a functional variant of the static single assignment (SSA)
+form construction algorithm described by <a
+href="https://doi.org/10.1007/978-3-642-37051-9_6">Braun et al.</a>,
+which combines simplicity and efficiency. The definition is based on a
+general, abstract control flow graph representation using Isabelle locales.
+</p>
+<p>
+We prove that the algorithm's output is semantically equivalent to the
+input according to a small-step semantics, and that it is in minimal SSA
+form for the common special case of reducible inputs. We then show the
+satisfiability of the locale assumptions by giving instantiations for a
+simple While language.
+</p>
+<p>
+Furthermore, we use a generic instantiation based on typedefs in order
+to extract OCaml code and replace the unverified SSA construction
+algorithm of the <a href="https://doi.org/10.1145/2579080">CompCertSSA
+project</a> with it.
+</p>
+<p>
+A more detailed description of the verified SSA construction can be found
+in the paper <a href="https://doi.org/10.1145/2892208.2892211">Verified
+Construction of Static Single Assignment Form</a>, CC 2016.
+</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Formal_SSA-AFP,
+  author  = {Sebastian Ullrich and Denis Lohner},
+  title   = {Verified Construction of Static Single Assignment Form},
+  journal = {Archive of Formal Proofs},
+  month   = feb,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Formal_SSA.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="CAVA_Automata.html">CAVA_Automata</a>, <a href="Collections.html">Collections</a>, <a href="Dijkstra_Shortest_Path.html">Dijkstra_Shortest_Path</a>, <a href="Slicing.html">Slicing</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Minimal_SSA.html">Minimal_SSA</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Formal_SSA/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Formal_SSA/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Formal_SSA/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Formal_SSA-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Formal_SSA-2020-04-18.tar.gz">
+              afp-Formal_SSA-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Formal_SSA-2019-06-11.tar.gz">
+              afp-Formal_SSA-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Formal_SSA-2018-08-16.tar.gz">
+              afp-Formal_SSA-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Formal_SSA-2017-10-10.tar.gz">
+              afp-Formal_SSA-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Formal_SSA-2016-12-17.tar.gz">
+              afp-Formal_SSA-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Formal_SSA-2016-02-22.tar.gz">
+              afp-Formal_SSA-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Formal_SSA-2016-02-08.tar.gz">
+              afp-Formal_SSA-2016-02-08.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

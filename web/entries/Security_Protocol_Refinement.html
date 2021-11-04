@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Developing Security Protocols by Refinement - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">D</font>eveloping
+  
+          <font class="first">S</font>ecurity
+  
+          <font class="first">P</font>rotocols
+  
+          by
+  
+          <font class="first">R</font>efinement
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Developing Security Protocols by Refinement</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Christoph Sprenger (sprenger /at/ inf /dot/ ethz /dot/ ch) and
+          Ivano Somaini
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2017-05-24</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We propose a development method for security protocols based on
+stepwise refinement. Our refinement strategy transforms abstract
+security goals into protocols that are secure when operating over an
+insecure channel controlled by a Dolev-Yao-style intruder. As
+intermediate levels of abstraction, we employ messageless guard
+protocols and channel protocols communicating over channels with
+security properties. These abstractions provide insights on why
+protocols are secure and foster the development of families of
+protocols sharing common structure and properties. We have implemented
+our method in Isabelle/HOL and used it to develop different entity
+authentication and key establishment protocols, including realistic
+features such as key confirmation, replay caches, and encrypted
+tickets. Our development highlights that guard protocols and channel
+protocols provide fundamental abstractions for bridging the gap
+between security properties and standard protocol descriptions based
+on cryptographic messages. It also shows that our refinement approach
+scales to protocols of nontrivial size and complexity.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Security_Protocol_Refinement-AFP,
+  author  = {Christoph Sprenger and Ivano Somaini},
+  title   = {Developing Security Protocols by Refinement},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2017,
+  note    = {\url{https://isa-afp.org/entries/Security_Protocol_Refinement.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE.LGPL">GNU Lesser General Public License (LGPL)</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Security_Protocol_Refinement/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Security_Protocol_Refinement/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Security_Protocol_Refinement/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Security_Protocol_Refinement-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Security_Protocol_Refinement-2020-04-20.tar.gz">
+              afp-Security_Protocol_Refinement-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Security_Protocol_Refinement-2019-06-11.tar.gz">
+              afp-Security_Protocol_Refinement-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Security_Protocol_Refinement-2018-08-16.tar.gz">
+              afp-Security_Protocol_Refinement-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Security_Protocol_Refinement-2017-10-10.tar.gz">
+              afp-Security_Protocol_Refinement-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Security_Protocol_Refinement-2017-05-25.tar.gz">
+              afp-Security_Protocol_Refinement-2017-05-25.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

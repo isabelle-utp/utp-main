@@ -1,0 +1,15 @@
+chapter AFP
+
+session Formal_Puiseux_Series (AFP) = "HOL-Computational_Algebra" +
+  options [timeout = 1200]
+  sessions
+    Polynomial_Interpolation
+  theories
+    Puiseux_Polynomial_Library
+    Puiseux_Laurent_Library
+    FPS_Hensel
+    Formal_Puiseux_Series
+  document_files
+    "root.tex"
+    "root.bib"
+

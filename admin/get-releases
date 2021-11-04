@@ -1,0 +1,6 @@
+#!/bin/bash
+
+TMP=/tmp/releases
+
+ssh afpweb@isa-afp.org "ls release" > $TMP
+cat $TMP | grep -v "current\\.tar\\.gz\\|devel\\.tar\\.gz\\|entry-status\\.txt\\|afp-....-..-..\\.tar\\.gz\\|afp-Example-Submission-....-..-..\\.tar\\.gz"

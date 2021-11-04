@@ -1,0 +1,16 @@
+chapter AFP
+
+session "Automated_Stateful_Protocol_Verification" (AFP) = "Stateful_Protocol_Composition_and_Typing" +
+  options [timeout = 2400]
+  sessions
+    "HOL-Eisbach"
+  directories
+    "trac"
+    "examples"
+    "examples/PKCS"
+  theories
+    "PSPSP"
+    "Examples"
+  document_files
+    "root.tex"
+    "root.bib"

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Mechanization of the Algebra for Wireless Networks (AWN) - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">M</font>echanization
+  
+          of
+  
+          the
+  
+          <font class="first">A</font>lgebra
+  
+          for
+  
+          <font class="first">W</font>ireless
+  
+          <font class="first">N</font>etworks
+  
+          <font class="first">(</font>AWN)
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Mechanization of the Algebra for Wireless Networks (AWN)</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www.tbrk.org">Timothy Bourke</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-03-08</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+AWN is a process algebra developed for modelling and analysing
+protocols for Mobile Ad hoc Networks (MANETs) and Wireless Mesh
+Networks (WMNs). AWN models comprise five distinct layers:
+sequential processes, local parallel compositions, nodes, partial
+networks, and complete networks.</p>
+<p>
+This development mechanises the original operational semantics of
+AWN and introduces a variant 'open' operational semantics that
+enables the compositional statement and proof of invariants across
+distinct network nodes. It supports labels (for weakening
+invariants) and (abstract) data state manipulations. A framework for
+compositional invariant proofs is developed, including a tactic
+(inv_cterms) for inductive invariant proofs of sequential processes,
+lifting rules for the open versions of the higher layers, and a rule
+for transferring lifted properties back to the standard semantics. A
+notion of 'control terms' reduces proof obligations to the subset of
+subterms that act directly (in contrast to operators for combining
+terms and joining processes).</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{AWN-AFP,
+  author  = {Timothy Bourke},
+  title   = {Mechanization of the Algebra for Wireless Networks (AWN)},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/AWN.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="AODV.html">AODV</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/AWN/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/AWN/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/AWN/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-AWN-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-AWN-2020-04-18.tar.gz">
+              afp-AWN-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-AWN-2019-06-11.tar.gz">
+              afp-AWN-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-AWN-2018-08-16.tar.gz">
+              afp-AWN-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-AWN-2017-10-10.tar.gz">
+              afp-AWN-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-AWN-2016-12-17.tar.gz">
+              afp-AWN-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-AWN-2016-02-22.tar.gz">
+              afp-AWN-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-AWN-2015-05-27.tar.gz">
+              afp-AWN-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-AWN-2014-08-28.tar.gz">
+              afp-AWN-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-AWN-2014-03-15.tar.gz">
+              afp-AWN-2014-03-15.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

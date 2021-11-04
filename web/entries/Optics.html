@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Optics - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">O</font>ptics
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Optics</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://www-users.cs.york.ac.uk/~simonf/">Simon Foster</a> and
+          Frank Zeyda
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2017-05-25</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+Lenses provide an abstract interface for manipulating data types
+through spatially-separated views. They are defined abstractly in
+terms of two functions, <em>get</em>, the return a value
+from the source type, and <em>put</em> that updates the
+value. We mechanise the underlying theory of lenses, in terms of an
+algebraic hierarchy of lenses, including well-behaved and very
+well-behaved lenses, each lens class being characterised by a set of
+lens laws. We also mechanise a lens algebra in Isabelle that enables
+their composition and comparison, so as to allow construction of
+complex lenses. This is accompanied by a large library of algebraic
+laws. Moreover we also show how the lens classes can be applied by
+instantiating them with a number of Isabelle data types.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2020-03-02]:
+Added partial bijective and symmetric lenses.
+Improved alphabet command generating additional lenses and results.
+Several additional lens relations, including observational equivalence.
+Additional theorems throughout.
+Adaptations for Isabelle 2020.
+(revision 44e2e5c)
+[2021-01-27]
+Addition of new theorems throughout, particularly for prisms.
+New "chantype" command allows the definition of an algebraic datatype with generated prisms.
+New "dataspace" command allows the definition of a local-based state space, including lenses and prisms.
+Addition of various examples for the above.
+(revision 89cf045a)</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Optics-AFP,
+  author  = {Simon Foster and Frank Zeyda},
+  title   = {Optics},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2017,
+  note    = {\url{https://isa-afp.org/entries/Optics.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Optics/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Optics/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Optics/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Optics-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Optics-2020-04-20.tar.gz">
+              afp-Optics-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Optics-2019-06-11.tar.gz">
+              afp-Optics-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Optics-2018-08-16.tar.gz">
+              afp-Optics-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Optics-2017-10-10.tar.gz">
+              afp-Optics-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Optics-2017-06-01.tar.gz">
+              afp-Optics-2017-06-01.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

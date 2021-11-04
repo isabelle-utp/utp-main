@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Tarski's Parallel Postulate implies the 5th Postulate of Euclid, the Postulate of Playfair and the original Parallel Postulate of Euclid - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>arski's
+  
+          <font class="first">P</font>arallel
+  
+          <font class="first">P</font>ostulate
+  
+          implies
+  
+          the
+  
+          <font class="first">5</font>th
+  
+          <font class="first">P</font>ostulate
+  
+          of
+  
+          <font class="first">E</font>uclid,
+  
+          the
+  
+          <font class="first">P</font>ostulate
+  
+          of
+  
+          <font class="first">P</font>layfair
+  
+          and
+  
+          the
+  
+          original
+  
+          <font class="first">P</font>arallel
+  
+          <font class="first">P</font>ostulate
+  
+          of
+  
+          <font class="first">E</font>uclid
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Tarski's Parallel Postulate implies the 5th Postulate of Euclid, the Postulate of Playfair and the original Parallel Postulate of Euclid</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Roland Coghetto (roland_coghetto /at/ hotmail /dot/ com)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2021-01-31</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>The <a href="https://geocoq.github.io/GeoCoq/">GeoCoq library</a>  contains a formalization
+of geometry using the Coq proof assistant. It contains both proofs
+about the foundations of geometry and high-level proofs in the same
+style as in high school.  We port a part of the GeoCoq
+2.4.0 library to Isabelle/HOL: more precisely,
+the files Chap02.v to Chap13_3.v, suma.v as well as the associated
+definitions and some useful files for the demonstration of certain
+parallel postulates. The synthetic approach of the demonstrations is directly
+inspired by those contained in GeoCoq. The names of the lemmas and
+theorems used are kept as far as possible as well as the definitions.
+</p>
+<p>It should be noted that T.J.M. Makarios has done
+<a href="https://www.isa-afp.org/entries/Tarskis_Geometry.html">some proofs in Tarski's Geometry</a>. It uses a definition that does not quite
+coincide with the definition used in Geocoq and here.
+Furthermore, corresponding definitions in the <a href="https://www.isa-afp.org/entries/Poincare_Disc.html">Poincaré Disc Model
+development</a> are not identical to those defined in GeoCoq.
+</p>
+<p>In the last part, it is
+formalized that, in the neutral/absolute space, the axiom of the
+parallels of Tarski's system implies the Playfair axiom, the 5th
+postulate of Euclid and Euclid's original parallel postulate. These
+proofs, which are not constructive, are directly inspired by Pierre
+Boutry, Charly Gries, Julien Narboux and Pascal Schreck.
+</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{IsaGeoCoq-AFP,
+  author  = {Roland Coghetto},
+  title   = {Tarski's Parallel Postulate implies the 5th Postulate of Euclid, the Postulate of Playfair and the original Parallel Postulate of Euclid},
+  journal = {Archive of Formal Proofs},
+  month   = jan,
+  year    = 2021,
+  note    = {\url{https://isa-afp.org/entries/IsaGeoCoq.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE.LGPL">GNU Lesser General Public License (LGPL)</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/IsaGeoCoq/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/IsaGeoCoq/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/IsaGeoCoq/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-IsaGeoCoq-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-IsaGeoCoq-2021-02-01.tar.gz">
+              afp-IsaGeoCoq-2021-02-01.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

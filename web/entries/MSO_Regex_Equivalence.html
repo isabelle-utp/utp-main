@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Decision Procedures for MSO on Words Based on Derivatives of Regular Expressions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">D</font>ecision
+  
+          <font class="first">P</font>rocedures
+  
+          for
+  
+          <font class="first">M</font>SO
+  
+          on
+  
+          <font class="first">W</font>ords
+  
+          <font class="first">B</font>ased
+  
+          on
+  
+          <font class="first">D</font>erivatives
+  
+          of
+  
+          <font class="first">R</font>egular
+  
+          <font class="first">E</font>xpressions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Decision Procedures for MSO on Words Based on Derivatives of Regular Expressions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://traytel.bitbucket.io/">Dmitriy Traytel</a> and
+          <a href="http://www21.in.tum.de/~nipkow">Tobias Nipkow</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-06-12</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+Monadic second-order logic on finite words (MSO) is a decidable yet
+expressive logic into which many decision problems can be encoded. Since MSO
+formulas correspond to regular languages, equivalence of MSO formulas can be
+reduced to the equivalence of some regular structures (e.g. automata). We
+verify an executable decision procedure for MSO formulas that is not based
+on automata but on regular expressions.
+<p>
+Decision procedures for regular expression equivalence have been formalized
+before, usually based on Brzozowski derivatives. Yet, for a straightforward
+embedding of MSO formulas into regular expressions an extension of regular
+expressions with a projection operation is required. We prove total
+correctness and completeness of an equivalence checker for regular
+expressions extended in that way. We also define a language-preserving
+translation of formulas into regular expressions with respect to two
+different semantics of MSO.
+<p>
+The formalization is described in this <a href="http://www21.in.tum.de/~nipkow/pubs/icfp13.html">ICFP 2013 functional pearl</a>.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{MSO_Regex_Equivalence-AFP,
+  author  = {Dmitriy Traytel and Tobias Nipkow},
+  title   = {Decision Procedures for MSO on Words Based on Derivatives of Regular Expressions},
+  journal = {Archive of Formal Proofs},
+  month   = jun,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/MSO_Regex_Equivalence.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Deriving.html">Deriving</a>, <a href="List-Index.html">List-Index</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/MSO_Regex_Equivalence/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/MSO_Regex_Equivalence/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/MSO_Regex_Equivalence/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-MSO_Regex_Equivalence-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-MSO_Regex_Equivalence-2020-04-20.tar.gz">
+              afp-MSO_Regex_Equivalence-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-MSO_Regex_Equivalence-2019-06-11.tar.gz">
+              afp-MSO_Regex_Equivalence-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-MSO_Regex_Equivalence-2018-08-16.tar.gz">
+              afp-MSO_Regex_Equivalence-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-MSO_Regex_Equivalence-2017-10-10.tar.gz">
+              afp-MSO_Regex_Equivalence-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-MSO_Regex_Equivalence-2016-12-17.tar.gz">
+              afp-MSO_Regex_Equivalence-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-MSO_Regex_Equivalence-2016-02-22.tar.gz">
+              afp-MSO_Regex_Equivalence-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-MSO_Regex_Equivalence-2015-05-27.tar.gz">
+              afp-MSO_Regex_Equivalence-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-MSO_Regex_Equivalence-2014-08-28.tar.gz">
+              afp-MSO_Regex_Equivalence-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-MSO_Regex_Equivalence-2014-06-12.tar.gz">
+              afp-MSO_Regex_Equivalence-2014-06-12.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

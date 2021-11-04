@@ -1,0 +1,33 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage[english]{babel}  % for guillemots
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{The Nash-Williams Theorem}
+\author{Lawrence C. Paulson}
+\maketitle
+
+\begin{abstract}
+In 1965, Nash-Williams~\cite{nash-williams-quasi} discovered a generalisation of the infinite form of Ramsey's theorem. Where the latter concerns infinite sets of $n$-element sets for some fixed~$n$, the Nash-Williams theorem concerns infinite sets of finite sets (or lists) subject to a ``no initial segment'' condition. The present formalisation follows Todor\v{c}evi{\'c} \cite{todorcevic-ramsey}.
+\end{abstract}
+
+\tableofcontents
+
+% include generated text of all theories
+\input{session}
+
+\section{Acknowledgements}
+The author was supported by the ERC Advanced Grant ALEXANDRIA (Project 742178) funded by the European Research Council. Todor\v{c}evi{\'c} provided help with the proofs by email.
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

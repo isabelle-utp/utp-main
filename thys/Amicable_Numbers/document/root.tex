@@ -1,0 +1,37 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{Amicable Numbers}
+\author{Angeliki Koutsoukou-Argyraki}
+\maketitle
+
+\begin{abstract}
+This is a formalisation of Amicable Numbers, involving some relevant material including
+Euler's sigma function, some relevant definitions, results and examples as well as rules such as Th\={a}bit ibn Qurra's Rule, Euler's Rule, te Riele's Rule and Borho's Rule with breeders.
+\\ \\
+The main sources are \cite{garciaetal1} \cite{garciaetal2}. Some auxiliary material can be found in \cite{escott} \cite{sandifer}. If not otherwise stated, the source of definitions is \cite{garciaetal1}. In a few definitions where we refer to Wikipedia articles \cite{aliquotwiki} \cite{amicwiki} \cite{betrothedwiki} this is explicitly mentioned.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+
+% include generated text of all theories
+\input{session}
+
+\newpage
+\raggedright
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

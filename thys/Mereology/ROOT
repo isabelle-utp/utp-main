@@ -1,0 +1,17 @@
+chapter AFP
+
+session Mereology (AFP) = HOL +
+  options [timeout = 300]
+  theories
+    PM
+    M
+    MM
+    EM
+    CM
+    CEM
+    GM
+    GMM
+    GEM
+  document_files
+    "root.bib"
+    "root.tex"

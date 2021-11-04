@@ -1,0 +1,13 @@
+chapter AFP
+
+session Design_Theory (AFP) = "HOL-Library"  +
+  options [timeout = 600]
+  sessions
+    Card_Partitions
+    Nested_Multisets_Ordinals
+    Graph_Theory
+  theories
+    Design_Theory_Root
+  document_files
+    "root.bib"
+    "root.tex"

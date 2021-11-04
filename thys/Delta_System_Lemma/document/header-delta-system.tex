@@ -1,0 +1,295 @@
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bbm}  % Para el \bb{1}
+\usepackage{multidef}
+\usepackage{verbatim}
+\usepackage{stmaryrd} %% para \llbracket
+% \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{framed}
+
+%%
+%% \usepackage[bottom=2cm, top=2cm, left=2cm, right=2cm]{geometry}
+%% \usepackage{titling}
+%% \setlength{\droptitle}{-10ex} 
+%%
+\renewcommand{\o}{\vee}
+\renewcommand{\O}{\bigvee}
+\newcommand{\y}{\wedge}
+\newcommand{\Y}{\bigwedge}
+\newcommand{\limp}{\longrightarrow}
+\newcommand{\lsii}{\longleftrightarrow}
+%%
+%\newcommand{\DeclareMathOperator}[2]{\newcommand{#1}{\mathop{\mathrm{#2}}}}
+
+\DeclareMathOperator{\cf}{cf}
+\DeclareMathOperator{\dom}{domain}
+\DeclareMathOperator{\im}{img}
+\DeclareMathOperator{\Fn}{Fn}
+\DeclareMathOperator{\rk}{rk}
+\DeclareMathOperator{\mos}{mos}
+\DeclareMathOperator{\trcl}{trcl}
+\DeclareMathOperator{\Con}{Con}
+\DeclareMathOperator{\Club}{Club}
+
+
+\newcommand{\modelo}[1]{\mathbf{#1}}
+\newcommand{\axiomas}[1]{\mathit{#1}}
+\newcommand{\clase}[1]{\mathsf{#1}}
+\newcommand{\poset}[1]{\mathbb{#1}}
+\newcommand{\operador}[1]{\mathbf{#1}}
+
+%% \newcommand{\Lim}{\clase{Lim}}
+%% \newcommand{\Reg}{\clase{Reg}}
+%% \newcommand{\Card}{\clase{Card}}
+%% \newcommand{\On}{\clase{On}}
+%% \newcommand{\WF}{\clase{WF}}
+%% \newcommand{\HF}{\clase{HF}}
+%% \newcommand{\HC}{\clase{HC}}
+%%
+%% El siguiente comando reemplaza todos los anteriores:
+%%
+\multidef{\clase{#1}}{Card,HC,HF,Lim,On->Ord,Reg,WF,Ord}
+\newcommand{\ON}{\On}
+
+%% En lugar de usar todo el paquete bbm:
+\DeclareMathAlphabet{\mathbbm}{U}{bbm}{m}{n} 
+\newcommand{\1}{\mathbbm{1}}
+\newcommand{\PP}{\mathbbm{P}}
+
+%%
+%% \newcommand{\calD}{\mathcal{D}}
+%% \newcommand{\calS}{\mathcal{S}}
+%% \newcommand{\calU}{\mathcal{U}}
+%% \newcommand{\calB}{\mathcal{B}}
+%% \newcommand{\calL}{\mathcal{L}}
+%% \newcommand{\calF}{\mathcal{F}}
+%% \newcommand{\calT}{\mathcal{T}}
+%% \newcommand{\calW}{\mathcal{W}}
+%% \newcommand{\calA}{\mathcal{A}}
+%%
+%% El siguiente comando reemplaza todos los anteriores:
+%%
+\multidef[prefix=cal]{\mathcal{#1}}{A-Z}
+%%
+%% \newcommand{\A}{\modelo{A}}
+%% \newcommand{\BB}{\modelo{B}}
+%% \newcommand{\ZZ}{\modelo{Z}}
+%% \newcommand{\PP}{\modelo{P}}
+%% \newcommand{\QQ}{\modelo{Q}}
+%% \newcommand{\RR}{\modelo{R}}
+%%
+%% El siguiente comando reemplaza todos los anteriores:
+%%
+\multidef{\modelo{#1}}{A,BB->B,CC->C,NN->N,QQ->Q,RR->R,ZZ->Z}
+
+\multidef[prefix=p]{\mathbb{#1}}{A-Z}
+%% \newcommand{\B}{\modelo{B}}
+%% \newcommand{\C}{\modelo{C}}
+%% \newcommand{\F}{\modelo{F}}
+%% \newcommand{\D}{\modelo{D}}
+
+\newcommand{\Th}{\mb{Th}}
+\newcommand{\Mod}{\mb{Mod}}
+
+\newcommand{\Se}{\operador{S^\prec}}
+\newcommand{\Pu}{\operador{P_u}}
+\renewcommand{\Pr}{\operador{P_R}}
+\renewcommand{\H}{\operador{H}}
+\renewcommand{\S}{\operador{S}}
+\newcommand{\I}{\operador{I}}
+\newcommand{\E}{\operador{E}}
+
+\newcommand{\se}{\preccurlyeq}
+\newcommand{\ee}{\succ}
+\newcommand{\id}{\approx}
+\newcommand{\subm}{\subseteq}
+\newcommand{\ext}{\supseteq}
+\newcommand{\iso}{\cong}
+%%
+\renewcommand{\emptyset}{\varnothing}
+\newcommand{\rel}{\mathcal{R}}
+\newcommand{\Pow}{\mathop{\mathcal{P}}}
+\renewcommand{\P}{\Pow}
+\newcommand{\BP}{\mathrm{BP}}
+\newcommand{\func}{\rightarrow}
+\newcommand{\ord}{\mathrm{Ord}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+\renewcommand{\I}{\mathbb{I}}
+\newcommand{\Q}{\mathbb{Q}}
+\newcommand{\B}{\mathbf{B}}
+\newcommand{\lb}{\langle}
+\newcommand{\rb}{\rangle}
+\newcommand{\impl}{\rightarrow}
+\newcommand{\ent}{\Rightarrow}
+\newcommand{\tne}{\Leftarrow}
+\newcommand{\sii}{\Leftrightarrow}
+\renewcommand{\phi}{\varphi}
+\newcommand{\phis}{{\varphi^*}}
+\renewcommand{\th}{\theta}
+\newcommand{\Lda}{\Lambda}
+\newcommand{\La}{\Lambda}
+\newcommand{\lda}{\lambda}
+\newcommand{\ka}{\kappa}
+\newcommand{\del}{\delta}
+\newcommand{\de}{\delta}
+\newcommand{\ze}{\zeta}
+%\newcommand{\ }{\ }
+\newcommand{\la}{\lambda}
+\newcommand{\al}{\alpha}
+\newcommand{\be}{\beta}
+\newcommand{\ga}{\gamma}
+\newcommand{\Ga}{\Gamma}
+\newcommand{\ep}{\varepsilon}
+\newcommand{\De}{\Delta}
+\newcommand{\defi}{\mathrel{\mathop:}=}
+\newcommand{\forces}{\Vdash}
+%\newcommand{\ap}{\mathbin{\wideparen{\ }}}
+\newcommand{\Tree}{{\mathrm{Tr}_\N}}
+\newcommand{\PTree}{{\mathrm{PTr}_\N}}
+\newcommand{\NWO}{\mathit{NWO}}
+\newcommand{\Suc}{{\N^{<\N}}}%
+\newcommand{\init}{\mathsf{i}}
+\newcommand{\ap}{\mathord{^\smallfrown}}
+\newcommand{\Cantor}{\mathcal{C}}
+%\newcommand{\C}{\Cantor}
+\newcommand{\Baire}{\mathcal{N}}
+\newcommand{\sig}{\ensuremath{\sigma}}
+\newcommand{\fsig}{\ensuremath{F_\sigma}}
+\newcommand{\gdel}{\ensuremath{G_\delta}}
+\newcommand{\Sig}{\ensuremath{\boldsymbol{\Sigma}}}
+\newcommand{\bPi}{\ensuremath{\boldsymbol{\Pi}}}
+\newcommand{\Del}{\ensuremath{\boldsymbol\Delta}}
+%\renewcommand{\F}{\operador{F}}
+\newcommand{\ths}{{\theta^*}}
+\newcommand{\om}{\ensuremath{\omega}}
+%\renewcommand{\c}{\complement}
+\newcommand{\comp}{\mathsf{c}}
+\newcommand{\co}[1]{\left(#1\right)^\comp}
+\newcommand{\len}[1]{\left|#1\right|}
+\DeclareMathOperator{\tlim}{\overline{\mathrm{TLim}}}
+\newcommand{\card}[1]{{\left|#1\right|}}
+\newcommand{\bigcard}[1]{{\bigl|#1\bigr|}}
+%
+% Cardinality
+%
+\newcommand{\lec}{\leqslant_c}
+\newcommand{\gec}{\geqslant_c}
+\newcommand{\lc}{<_c}
+\newcommand{\gc}{>_c}
+\newcommand{\eqc}{=_c}
+\newcommand{\biy}{\approx}
+\newcommand*{\ale}[1]{\aleph_{#1}}
+%
+\newcommand{\Zerm}{\axiomas{Z}}
+\newcommand{\ZC}{\axiomas{ZC}}
+\newcommand{\AC}{\axiomas{AC}}
+\newcommand{\DC}{\axiomas{DC}}
+\newcommand{\MA}{\axiomas{MA}}
+\newcommand{\CH}{\axiomas{CH}}
+\newcommand{\ZFC}{\axiomas{ZFC}}
+\newcommand{\ZF}{\axiomas{ZF}}
+\newcommand{\Inf}{\axiomas{Inf}}
+%
+% Cardinal characteristics
+%
+\newcommand{\cont}{\mathfrak{c}}
+\newcommand{\spl}{\mathfrak{s}}
+\newcommand{\bound}{\mathfrak{b}}
+\newcommand{\mad}{\mathfrak{a}}
+\newcommand{\tower}{\mathfrak{t}}
+%
+\renewcommand{\hom}[2]{{}^{#1}\hskip-0.116ex{#2}}
+\newcommand{\pred}[1][{}]{\mathop{\mathrm{pred}_{#1}}}
+%% Postfix operator with supressable space:
+%% \newcommand*{\iseg}{\relax\ifnum\lastnodetype>0 \mskip\medmuskip\fi{\downarrow}} %
+\newcommand*{\iseg}{{\downarrow}}
+\newcommand{\rr}{\mathrel{R}}
+\newcommand{\restr}{\upharpoonright}
+%\newcommand{\type}{\mathtt{}}
+\newcommand{\app}{\mathop{\mathrm{Aprox}}}
+\newcommand{\hess}{\triangleleft}
+\newcommand{\bx}{\bar{x}}
+\newcommand{\by}{\bar{y}}
+\newcommand{\bz}{\bar{z}}
+\newcommand{\union}{\mathop{\textstyle\bigcup}}
+\newcommand{\sm}{\setminus}
+\newcommand{\sbq}{\subseteq}
+\newcommand{\nsbq}{\subseteq}
+\newcommand{\mty}{\emptyset}
+\newcommand{\dimg}{\text{\textup{``}}} % direct image
+\newcommand{\quine}[1]{\ulcorner{\!#1\!}\urcorner}
+%\newcommand{\ntrm}[1]{\textsl{\textbf{#1}}}
+\newcommand{\Null}{\calN\!\mathit{ull}}
+\DeclareMathOperator{\club}{Club}
+\DeclareMathOperator{\otp}{otp}
+\DeclareMathOperator{\val}{\mathit{val}}
+\DeclareMathOperator{\chk}{\mathit{check}}
+\DeclareMathOperator{\edrel}{\mathit{edrel}}
+\DeclareMathOperator{\eclose}{\mathit{eclose}}
+\DeclareMathOperator{\Memrel}{\mathit{Memrel}}
+\renewcommand{\PP}{\mathbb{P}}
+\renewcommand{\app}{\mathrm{App}}
+\newcommand{\formula}{\isatt{formula}}
+\newcommand{\tyi}{\isatt{i}}
+\newcommand{\tyo}{\isatt{o}}
+\newcommand{\forceisa}{\mathop{\mathtt{forces}}}
+\newcommand{\equ}{\mathbf{e}}
+\newcommand{\bel}{\mathbf{b}}
+\newcommand{\atr}{\mathit{atr}}
+\newcommand{\concat}{\mathbin{@}}
+\newcommand{\dB}[1]{\mathbf{#1}}
+\newcommand{\ed}{\mathrel{\isatt{ed}}}
+\newcommand{\frecR}{\mathrel{\isatt{frecR}}}
+\newcommand{\forceseq}{\mathop{\isatt{forces{\isacharunderscore}eq}}}
+\newcommand{\forcesmem}{\mathop{\isatt{forces{\isacharunderscore}mem}}}
+\newcommand{\forcesat}{\mathop{\isatt{forces{\isacharunderscore}at}}}
+\newcommand{\pleq}{\preceq}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%
+% Variant aleph, beth, etc
+% From http://tex.stackexchange.com/q/170476/69595
+\makeatletter
+\@ifpackageloaded{txfonts}\@tempswafalse\@tempswatrue
+\if@tempswa
+  \DeclareFontFamily{U}{txsymbols}{}
+  \DeclareFontFamily{U}{txAMSb}{}
+  \DeclareSymbolFont{txsymbols}{OMS}{txsy}{m}{n}
+  \SetSymbolFont{txsymbols}{bold}{OMS}{txsy}{bx}{n}
+  \DeclareFontSubstitution{OMS}{txsy}{m}{n}
+  \DeclareSymbolFont{txAMSb}{U}{txsyb}{m}{n}
+  \SetSymbolFont{txAMSb}{bold}{U}{txsyb}{bx}{n}
+  \DeclareFontSubstitution{U}{txsyb}{m}{n}
+  \DeclareMathSymbol{\aleph}{\mathord}{txsymbols}{64}
+  \DeclareMathSymbol{\beth}{\mathord}{txAMSb}{105}
+  \DeclareMathSymbol{\gimel}{\mathord}{txAMSb}{106}
+  \DeclareMathSymbol{\daleth}{\mathord}{txAMSb}{107}
+\fi
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%
+%% Theorem Environments
+%%
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+% \newtheorem{prop}[theorem]{Proposition}
+% \newtheorem{corollary}[theorem]{Corollary}
+% \newtheorem{claim}{Claim}
+% \newtheorem*{claim*}{Claim}
+% \theoremstyle{definition}
+% \newtheorem{definition}[theorem]{Definition}
+% \newtheorem{remark}[theorem]{Remark}
+% \newtheorem{example}[theorem]{Example}
+% \theoremstyle{remark}
+% \newtheorem*{remark*}{Remark}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%% \newenvironment{inducc}{\begin{list}{}{\itemindent=2.5em \labelwidth=4em}}{\end{list}}
+%% \newcommand{\caso}[1]{\item[\fbox{#1}]}
+\newenvironment{proofofclaim}{\begin{proof}[Proof of Claim]}{\end{proof}}

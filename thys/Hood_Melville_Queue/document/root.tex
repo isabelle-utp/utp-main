@@ -1,0 +1,30 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{Hood-Melville Queue}
+\author{Alejandro G\'omez-Londo\~no}
+\maketitle
+
+\begin{abstract}
+This is a verified implementation of a constant time queue.
+The original design is due to Hood and Melville \cite{ipl/HoodM81}.
+This formalization follows the presentation by Okasaki \cite{Okasaki}.
+\end{abstract}
+
+% include generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

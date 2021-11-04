@@ -1,0 +1,4 @@
+Jinja2==2.10
+termcolor==1.1.0
+pytz==2018.5
+six==1.11.0

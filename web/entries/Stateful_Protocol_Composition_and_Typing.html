@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Stateful Protocol Composition and Typing - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>tateful
+  
+          <font class="first">P</font>rotocol
+  
+          <font class="first">C</font>omposition
+  
+          and
+  
+          <font class="first">T</font>yping
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Stateful Protocol Composition and Typing</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Andreas V. Hess (avhe /at/ dtu /dot/ dk),
+                <a href="https://people.compute.dtu.dk/samo/">Sebastian Mödersheim</a> and
+          <a href="https://www.brucker.ch">Achim D. Brucker</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-04-08</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We provide in this AFP entry several relative soundness results for
+security protocols. In particular, we prove typing and
+compositionality results for stateful protocols (i.e., protocols with
+mutable state that may span several sessions), and that focuses on
+reachability properties. Such results are useful to simplify protocol
+verification by reducing it to a simpler problem: Typing results give
+conditions under which it is safe to verify a protocol in a typed
+model where only "well-typed" attacks can occur whereas
+compositionality results allow us to verify a composed protocol by
+only verifying the component protocols in isolation. The conditions on
+the protocols under which the results hold are furthermore syntactic
+in nature allowing for full automation. The foundation presented here
+is used in another entry to provide fully automated and formalized
+security proofs of stateful protocols.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Stateful_Protocol_Composition_and_Typing-AFP,
+  author  = {Andreas V. Hess and Sebastian Mödersheim and Achim D. Brucker},
+  title   = {Stateful Protocol Composition and Typing},
+  journal = {Archive of Formal Proofs},
+  month   = apr,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Stateful_Protocol_Composition_and_Typing.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="First_Order_Terms.html">First_Order_Terms</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Automated_Stateful_Protocol_Verification.html">Automated_Stateful_Protocol_Verification</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Stateful_Protocol_Composition_and_Typing/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Stateful_Protocol_Composition_and_Typing/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Stateful_Protocol_Composition_and_Typing/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Stateful_Protocol_Composition_and_Typing-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Stateful_Protocol_Composition_and_Typing-2020-05-20.tar.gz">
+              afp-Stateful_Protocol_Composition_and_Typing-2020-05-20.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

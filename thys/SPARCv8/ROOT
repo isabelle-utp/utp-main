@@ -1,0 +1,19 @@
+chapter AFP
+
+session SPARCv8 (AFP) = HOL +
+  options [timeout = 1200]
+  sessions
+    "HOL-Eisbach"
+    "Word_Lib"
+  directories
+    "lib"
+    "lib/wp"
+    "SparcModel_MMU"
+  theories [document = false]
+    "lib/WordDecl"
+  theories
+    "SparcModel_MMU/Sparc_Properties"
+  theories [document = false]
+    "SparcModel_MMU/Sparc_Code_Gen"
+  document_files
+    "root.tex"

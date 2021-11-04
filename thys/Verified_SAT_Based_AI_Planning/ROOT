@@ -1,0 +1,28 @@
+chapter AFP
+
+session Verified_SAT_Based_AI_Planning (AFP) = HOL +
+  description "Verified SAT-Based AI Planning"
+  options [timeout = 600]
+  sessions
+    "HOL-Data_Structures"
+    "AI_Planning_Languages_Semantics"
+    "Propositional_Proof_Systems"
+    "List-Index"
+  theories [document = false]
+    "List_Supplement"
+    "Map_Supplement"
+    "CNF_Supplement"
+    "CNF_Semantics_Supplement"
+  theories
+    "SAS_Plus_STRIPS"
+    "STRIPS_Representation"
+    "STRIPS_Semantics"
+    "SAS_Plus_Representation"
+    "SAS_Plus_Semantics"
+    "SAT_Plan_Base"
+    "SAT_Plan_Extensions"
+    "SAT_Solve_SAS_Plus"
+    "Solve_SASP"
+  document_files
+    "root.tex"
+    "root.bib"

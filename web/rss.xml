@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <atom:link href="https://www.isa-afp.org/rss.xml" rel="self" type="application/rss+xml" />
+    <title>Archive of Formal Proofs</title>
+    <link>https://www.isa-afp.org</link>
+    <description>
+      The Archive of Formal Proofs is a collection of proof libraries, examples,
+      and larger scientific developments, mechanically checked
+      in the theorem prover Isabelle.
+    </description>
+    <pubDate>19 Oct 2021 00:00:00 +0000</pubDate>
+    <item>
+       <title>Belief Revision Theory</title>
+              <link>https://www.isa-afp.org/entries/Belief_Revision.html</link>
+       <guid>https://www.isa-afp.org/entries/Belief_Revision.html</guid>
+       <dc:creator> Valentin Fouillard, Safouan Taha, Frédéric Boulanger, Nicolas Sabouret       </dc:creator>
+       <pubDate>19 Oct 2021 00:00:00 +0000</pubDate>
+       <description>
+The 1985 paper by Carlos Alchourrón, Peter Gärdenfors, and David
+Makinson (AGM), “On the Logic of Theory Change: Partial Meet
+Contraction and Revision Functions” launches a large and rapidly
+growing literature that employs formal models and logics to handle
+changing beliefs of a rational agent and to take into account new
+piece of information observed by this agent. In 2011, a review book
+titled &#34;AGM 25 Years: Twenty-Five Years of Research in Belief
+Change&#34; was edited to summarize the first twenty five years of
+works based on AGM.  This  HOL-based  AFP entry is a faithful
+formalization of the AGM operators (e.g. contraction, revision,
+remainder ...) axiomatized in the original paper. It also contains the
+proofs of all the theorems stated in the paper that show how these
+operators combine. Both proofs of Harper and Levi identities are
+established.</description>
+    </item>
+    <item>
+       <title>X86 instruction semantics and basic block symbolic execution</title>
+              <link>https://www.isa-afp.org/entries/X86_Semantics.html</link>
+       <guid>https://www.isa-afp.org/entries/X86_Semantics.html</guid>
+       <dc:creator> Freek Verbeek, Abhijith Bharadwaj, Joshua Bockenek, Ian Roessle, Timmy Weerwag, Binoy Ravindran       </dc:creator>
+       <pubDate>13 Oct 2021 00:00:00 +0000</pubDate>
+       <description>
+This AFP entry provides semantics for roughly 120 different X86-64
+assembly instructions. These instructions include various moves,
+arithmetic/logical operations, jumps, call/return, SIMD extensions and
+others. External functions are supported by allowing a user to provide
+custom semantics for these calls. Floating-point operations are mapped
+to uninterpreted functions. The model provides semantics for register
+aliasing and a byte-level little-endian memory model. The semantics
+are purposefully incomplete, but overapproximative. For example, the
+precise effect of flags may be undefined for certain instructions, or
+instructions may simply have no semantics at all. In those cases, the
+semantics are mapped to universally quantified uninterpreted terms
+from a locale. Second, this entry provides a method to symbolic
+execution of basic blocks. The method, called
+&#39;&#39;se_step&#39;&#39; (for: symbolic execution step) fetches
+an instruction and updates the current symbolic state while keeping
+track of assumptions made over the memory model. A key component is a
+set of theorems that prove how reads from memory resolve after writes
+have occurred. Thirdly, this entry provides a parser that allows the
+user to copy-paste the output of the standard disassembly tool objdump
+into Isabelle/HOL. A couple small and explanatory examples are
+included, including functions from the word count program. Several
+examples can be supplied upon request (they are not included due to
+the running time of verification): functions from the floating-point
+modulo function from FDLIBM, the GLIBC strlen function and the
+CoreUtils SHA256 implementation.</description>
+    </item>
+    <item>
+       <title>Algebras for Iteration, Infinite Executions and Correctness of Sequential Computations</title>
+              <link>https://www.isa-afp.org/entries/Correctness_Algebras.html</link>
+       <guid>https://www.isa-afp.org/entries/Correctness_Algebras.html</guid>
+       <dc:creator> Walter Guttmann       </dc:creator>
+       <pubDate>12 Oct 2021 00:00:00 +0000</pubDate>
+       <description>
+We study models of state-based non-deterministic sequential
+computations and describe them using algebras. We propose algebras
+that describe iteration for strict and non-strict computations. They
+unify computation models which differ in the fixpoints used to
+represent iteration. We propose algebras that describe the infinite
+executions of a computation. They lead to a unified approximation
+order and results that connect fixpoints in the approximation and
+refinement orders. This unifies the semantics of recursion for a range
+of computation models. We propose algebras that describe preconditions
+and the effect of while-programs under postconditions. They unify
+correctness statements in two dimensions: one statement applies in
+various computation models to various correctness claims.</description>
+    </item>
+    <item>
+       <title>Verified Quadratic Virtual Substitution for Real Arithmetic</title>
+              <link>https://www.isa-afp.org/entries/Virtual_Substitution.html</link>
+       <guid>https://www.isa-afp.org/entries/Virtual_Substitution.html</guid>
+       <dc:creator> Matias Scharager, Katherine Cordwell, Stefan Mitsch, André Platzer       </dc:creator>
+       <pubDate>02 Oct 2021 00:00:00 +0000</pubDate>
+       <description>
+This paper presents a formally verified quantifier elimination (QE)
+algorithm for first-order real arithmetic by linear and quadratic
+virtual substitution (VS) in Isabelle/HOL. The Tarski-Seidenberg
+theorem established that the first-order logic of real arithmetic is
+decidable by QE. However, in practice, QE algorithms are highly
+complicated and often combine multiple methods for performance. VS is
+a practically successful method for QE that targets formulas with
+low-degree polynomials. To our knowledge, this is the first work to
+formalize VS for quadratic real arithmetic including inequalities. The
+proofs necessitate various contributions to the existing multivariate
+polynomial libraries in Isabelle/HOL. Our framework is modularized and
+easily expandable (to facilitate integrating future optimizations),
+and could serve as a basis for developing practical general-purpose QE
+algorithms. Further, as our formalization is designed with
+practicality in mind, we export our development to SML and test the
+resulting code on 378 benchmarks from the literature, comparing to
+Redlog, Z3, Wolfram Engine, and SMT-RAT. This identified
+inconsistencies in some tools, underscoring the significance of a
+verified approach for the intricacies of real arithmetic.</description>
+    </item>
+    <item>
+       <title>Soundness and Completeness of an Axiomatic System for First-Order Logic</title>
+              <link>https://www.isa-afp.org/entries/FOL_Axiomatic.html</link>
+       <guid>https://www.isa-afp.org/entries/FOL_Axiomatic.html</guid>
+       <dc:creator> Asta Halkjær From       </dc:creator>
+       <pubDate>24 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+This work is a formalization of the soundness and completeness of an
+axiomatic system for first-order logic. The proof system is based on
+System Q1 by Smullyan and the completeness proof follows his textbook
+&#34;First-Order Logic&#34; (Springer-Verlag 1968). The completeness
+proof is in the Henkin style where a consistent set is extended to a
+maximal consistent set using Lindenbaum&#39;s construction and Henkin
+witnesses are added during the construction to ensure saturation as
+well. The resulting set is a Hintikka set which, by the model
+existence theorem, is satisfiable in the Herbrand universe.</description>
+    </item>
+    <item>
+       <title>Complex Bounded Operators</title>
+              <link>https://www.isa-afp.org/entries/Complex_Bounded_Operators.html</link>
+       <guid>https://www.isa-afp.org/entries/Complex_Bounded_Operators.html</guid>
+       <dc:creator> Jose Manuel Rodriguez Caballero, Dominique Unruh       </dc:creator>
+       <pubDate>18 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+We present a formalization of bounded operators on complex vector
+spaces.  Our formalization contains material on complex vector spaces
+(normed spaces, Banach spaces, Hilbert spaces) that complements and
+goes beyond the developments of real vectors spaces in the
+Isabelle/HOL standard library.  We define the type of bounded
+operators between complex vector spaces
+(&lt;em&gt;cblinfun&lt;/em&gt;) and develop the theory of unitaries,
+projectors, extension of bounded linear functions (BLT theorem),
+adjoints, Loewner order, closed subspaces and more.  For the
+finite-dimensional case, we provide code generation support by
+identifying finite-dimensional operators with matrices as formalized
+in the &lt;a href=&#34;Jordan_Normal_Form.html&#34;&gt;Jordan_Normal_Form&lt;/a&gt; AFP entry.</description>
+    </item>
+    <item>
+       <title>A Formalization of Weighted Path Orders and Recursive Path Orders</title>
+              <link>https://www.isa-afp.org/entries/Weighted_Path_Order.html</link>
+       <guid>https://www.isa-afp.org/entries/Weighted_Path_Order.html</guid>
+       <dc:creator> Christian Sternagel, René Thiemann, Akihisa Yamada       </dc:creator>
+       <pubDate>16 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+We define the weighted path order (WPO) and formalize several
+properties such as strong normalization, the subterm property, and
+closure properties under substitutions and contexts. Our definition of
+WPO extends the original definition by also permitting multiset
+comparisons of arguments instead of just lexicographic extensions.
+Therefore, our WPO not only subsumes lexicographic path orders (LPO),
+but also recursive path orders (RPO). We formally prove these
+subsumptions and therefore all of the mentioned properties of WPO are
+automatically transferable to LPO and RPO as well. Such a
+transformation is not required for Knuth&amp;ndash;Bendix orders
+(KBO), since they have already been formalized. Nevertheless, we still
+provide a proof that WPO subsumes KBO and thereby underline the
+generality of WPO.</description>
+    </item>
+    <item>
+       <title>Extension of Types-To-Sets</title>
+              <link>https://www.isa-afp.org/entries/Types_To_Sets_Extension.html</link>
+       <guid>https://www.isa-afp.org/entries/Types_To_Sets_Extension.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+In their article titled &lt;i&gt;From Types to Sets by Local Type
+Definitions in Higher-Order Logic&lt;/i&gt; and published in the
+proceedings of the conference &lt;i&gt;Interactive Theorem
+Proving&lt;/i&gt; in 2016, Ondřej Kunčar and Andrei Popescu propose an
+extension of the logic Isabelle/HOL and an associated algorithm for
+the relativization of the &lt;i&gt;type-based theorems&lt;/i&gt; to
+more flexible &lt;i&gt;set-based theorems&lt;/i&gt;, collectively
+referred to as &lt;i&gt;Types-To-Sets&lt;/i&gt;. One of the aims of
+their work was to open an opportunity for the development of a
+software tool for applied relativization in the implementation of the
+logic Isabelle/HOL of the proof assistant Isabelle. In this article,
+we provide a prototype of a software framework for the interactive
+automated relativization of theorems in Isabelle/HOL, developed as an
+extension of the proof language Isabelle/Isar. The software framework
+incorporates the implementation of the proposed extension of the
+logic, and builds upon some of the ideas for further work expressed in
+the original article on Types-To-Sets by Ondřej Kunčar and Andrei
+Popescu and the subsequent article &lt;i&gt;Smooth Manifolds and Types
+to Sets for Linear Algebra in Isabelle/HOL&lt;/i&gt; that was written
+by Fabian Immler and Bohua Zhan and published in the proceedings of
+the &lt;i&gt;International Conference on Certified Programs and
+Proofs&lt;/i&gt; in 2019.</description>
+    </item>
+    <item>
+       <title>IDE: Introduction, Destruction, Elimination</title>
+              <link>https://www.isa-afp.org/entries/Intro_Dest_Elim.html</link>
+       <guid>https://www.isa-afp.org/entries/Intro_Dest_Elim.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+The article provides the command &lt;b&gt;mk_ide&lt;/b&gt; for the
+object logic Isabelle/HOL of the formal proof assistant Isabelle. The
+command &lt;b&gt;mk_ide&lt;/b&gt; enables the automated synthesis of
+the introduction, destruction and elimination rules from arbitrary
+definitions of constant predicates stated in Isabelle/HOL.</description>
+    </item>
+    <item>
+       <title>Conditional Transfer Rule</title>
+              <link>https://www.isa-afp.org/entries/Conditional_Transfer_Rule.html</link>
+       <guid>https://www.isa-afp.org/entries/Conditional_Transfer_Rule.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+This article provides a collection of experimental utilities for
+unoverloading of definitions and synthesis of conditional transfer
+rules for the object logic Isabelle/HOL of the formal proof assistant
+Isabelle written in Isabelle/ML.</description>
+    </item>
+    <item>
+       <title>Conditional Simplification</title>
+              <link>https://www.isa-afp.org/entries/Conditional_Simplification.html</link>
+       <guid>https://www.isa-afp.org/entries/Conditional_Simplification.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+The article provides a collection of experimental general-purpose
+proof methods for the object logic Isabelle/HOL of the formal proof
+assistant Isabelle. The methods in the collection offer functionality
+that is similar to certain aspects of the functionality provided by
+the standard proof methods of Isabelle that combine classical
+reasoning and rewriting, such as the method &lt;i&gt;auto&lt;/i&gt;,
+but use a different approach for rewriting. More specifically, these
+methods allow for the side conditions of the rewrite rules to be
+solved via intro-resolution.</description>
+    </item>
+    <item>
+       <title>Category Theory for ZFC in HOL III: Universal Constructions</title>
+              <link>https://www.isa-afp.org/entries/CZH_Universal_Constructions.html</link>
+       <guid>https://www.isa-afp.org/entries/CZH_Universal_Constructions.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+The article provides a formalization of elements of the theory of
+universal constructions for 1-categories (such as limits, adjoints and
+Kan extensions) in the object logic ZFC in HOL of the formal proof
+assistant Isabelle. The article builds upon the foundations
+established in the AFP entry &lt;i&gt;Category Theory for ZFC in HOL
+II: Elementary Theory of 1-Categories&lt;/i&gt;.</description>
+    </item>
+    <item>
+       <title>Category Theory for ZFC in HOL I: Foundations: Design Patterns, Set Theory, Digraphs, Semicategories</title>
+              <link>https://www.isa-afp.org/entries/CZH_Foundations.html</link>
+       <guid>https://www.isa-afp.org/entries/CZH_Foundations.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+This article provides a foundational framework for the formalization
+of category theory in the object logic ZFC in HOL of the formal proof
+assistant Isabelle. More specifically, this article provides a
+formalization of canonical set-theoretic constructions internalized in
+the type &lt;i&gt;V&lt;/i&gt; associated with the ZFC in HOL,
+establishes a design pattern for the formalization of mathematical
+structures using sequences and locales, and showcases the developed
+infrastructure by providing formalizations of the elementary theories
+of digraphs and semicategories. The methodology chosen for the
+formalization of the theories of digraphs and semicategories (and
+categories in future articles) rests on the ideas that were originally
+expressed in the article &lt;i&gt;Set-Theoretical Foundations of
+Category Theory&lt;/i&gt; written by Solomon Feferman and Georg
+Kreisel. Thus, in the context of this work, each of the aforementioned
+mathematical structures is represented as a term of the type
+&lt;i&gt;V&lt;/i&gt; embedded into a stage of the von Neumann
+hierarchy.</description>
+    </item>
+    <item>
+       <title>Category Theory for ZFC in HOL II: Elementary Theory of 1-Categories</title>
+              <link>https://www.isa-afp.org/entries/CZH_Elementary_Categories.html</link>
+       <guid>https://www.isa-afp.org/entries/CZH_Elementary_Categories.html</guid>
+       <dc:creator> Mihails Milehins       </dc:creator>
+       <pubDate>06 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+This article provides a formalization of the foundations of the theory
+of 1-categories in the object logic ZFC in HOL of the formal proof
+assistant Isabelle. The article builds upon the foundations that were
+established in the AFP entry &lt;i&gt;Category Theory for ZFC in HOL
+I: Foundations: Design Patterns, Set Theory, Digraphs,
+Semicategories&lt;/i&gt;.</description>
+    </item>
+    <item>
+       <title>A data flow analysis algorithm for computing dominators</title>
+              <link>https://www.isa-afp.org/entries/Dominance_CHK.html</link>
+       <guid>https://www.isa-afp.org/entries/Dominance_CHK.html</guid>
+       <dc:creator> Nan Jiang       </dc:creator>
+       <pubDate>05 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+This entry formalises the fast iterative algorithm for computing dominators
+due to Cooper, Harvey and Kennedy. It gives a specification of computing
+dominators on a control
+flow graph where each node refers to its reverse post order number. A
+semilattice of reversed-ordered list which represents dominators is
+built and a Kildall-style algorithm on the semilattice is defined for
+computing dominators. Finally the soundness and completeness of the
+algorithm are proved w.r.t. the specification.</description>
+    </item>
+    <item>
+       <title>Solving Cubic and Quartic Equations</title>
+              <link>https://www.isa-afp.org/entries/Cubic_Quartic_Equations.html</link>
+       <guid>https://www.isa-afp.org/entries/Cubic_Quartic_Equations.html</guid>
+       <dc:creator> René Thiemann       </dc:creator>
+       <pubDate>03 Sep 2021 00:00:00 +0000</pubDate>
+       <description>
+&lt;p&gt;We formalize Cardano&#39;s formula to solve a cubic equation
+$$ax^3 + bx^2 + cx + d = 0,$$ as well as Ferrari&#39;s formula to
+solve a quartic equation. We further turn both formulas into
+executable algorithms based on the algebraic number implementation in
+the AFP. To this end we also slightly extended this library, namely by
+making the minimal polynomial of an algebraic number executable, and
+by defining and implementing $n$-th roots of complex
+numbers.&lt;/p&gt;</description>
+    </item>
+    <item>
+       <title>Logging-independent Message Anonymity in the Relational Method</title>
+              <link>https://www.isa-afp.org/entries/Logging_Independent_Anonymity.html</link>
+       <guid>https://www.isa-afp.org/entries/Logging_Independent_Anonymity.html</guid>
+       <dc:creator> Pasquale Noce       </dc:creator>
+       <pubDate>26 Aug 2021 00:00:00 +0000</pubDate>
+       <description>
+In the context of formal cryptographic protocol verification,
+logging-independent message anonymity is the property for a given
+message to remain anonymous despite the attacker&#39;s capability of
+mapping messages of that sort to agents based on some intrinsic
+feature of such messages, rather than by logging the messages
+exchanged by legitimate agents as with logging-dependent message
+anonymity.
+This paper illustrates how logging-independent message
+anonymity can be formalized according to the relational method for
+formal protocol verification by considering a real-world protocol,
+namely the Restricted Identification one by the BSI. This sample model
+is used to verify that the pseudonymous identifiers output by user
+identification tokens remain anonymous under the expected conditions.</description>
+    </item>
+    <item>
+       <title>The Theorem of Three Circles</title>
+              <link>https://www.isa-afp.org/entries/Three_Circles.html</link>
+       <guid>https://www.isa-afp.org/entries/Three_Circles.html</guid>
+       <dc:creator> Fox Thomson, Wenda Li       </dc:creator>
+       <pubDate>21 Aug 2021 00:00:00 +0000</pubDate>
+       <description>
+The Descartes test based on Bernstein coefficients and Descartes’ rule
+of signs effectively (over-)approximates the number of real roots of a
+univariate polynomial over an interval. In this entry we formalise the
+theorem of three circles, which gives sufficient conditions for when
+the Descartes test returns 0 or 1. This is the first step for
+efficient root isolation.</description>
+    </item>
+    <item>
+       <title>Fresh identifiers</title>
+              <link>https://www.isa-afp.org/entries/Fresh_Identifiers.html</link>
+       <guid>https://www.isa-afp.org/entries/Fresh_Identifiers.html</guid>
+       <dc:creator> Andrei Popescu, Thomas Bauereiss       </dc:creator>
+       <pubDate>16 Aug 2021 00:00:00 +0000</pubDate>
+       <description>
+This entry defines a type class with an operator returning a fresh
+identifier, given a set of already used identifiers and a preferred
+identifier.  The entry provides a default instantiation for any
+infinite type, as well as executable instantiations for natural
+numbers and strings.</description>
+    </item>
+    <item>
+       <title>Combinatorial Design Theory</title>
+              <link>https://www.isa-afp.org/entries/Design_Theory.html</link>
+       <guid>https://www.isa-afp.org/entries/Design_Theory.html</guid>
+       <dc:creator> Chelsea Edmonds, Lawrence Paulson       </dc:creator>
+       <pubDate>13 Aug 2021 00:00:00 +0000</pubDate>
+       <description>
+Combinatorial design theory studies incidence set systems with certain
+balance and symmetry properties. It is closely related to hypergraph
+theory. This formalisation presents a general library for formal
+reasoning on incidence set systems, designs and their applications,
+including formal definitions and proofs for many key properties,
+operations, and theorems on the construction and existence of designs.
+Notably, this includes formalising t-designs, balanced incomplete
+block designs (BIBD), group divisible designs (GDD), pairwise balanced
+designs (PBD), design isomorphisms, and the relationship between
+graphs and designs. A locale-centric approach has been used to manage
+the relationships between the many different types of designs.
+Theorems of particular interest include the necessary conditions for
+existence of a BIBD, Wilson&#39;s construction on GDDs, and
+Bose&#39;s inequality on resolvable designs. Parts of this
+formalisation are explored in the paper &#34;A Modular First
+Formalisation of Combinatorial Design Theory&#34;, presented at CICM 2021.</description>
+    </item>
+    <item>
+       <title>Relational Forests</title>
+              <link>https://www.isa-afp.org/entries/Relational_Forests.html</link>
+       <guid>https://www.isa-afp.org/entries/Relational_Forests.html</guid>
+       <dc:creator> Walter Guttmann       </dc:creator>
+       <pubDate>03 Aug 2021 00:00:00 +0000</pubDate>
+       <description>
+We study second-order formalisations of graph properties expressed as
+first-order formulas in relation algebras extended with a Kleene star.
+The formulas quantify over relations while still avoiding
+quantification over elements of the base set. We formalise the
+property of undirected graphs being acyclic this way. This involves a
+study of various kinds of orientation of graphs. We also verify basic
+algorithms to constructively prove several second-order properties.</description>
+    </item>
+    <item>
+       <title>Schutz' Independent Axioms for Minkowski Spacetime</title>
+              <link>https://www.isa-afp.org/entries/Schutz_Spacetime.html</link>
+       <guid>https://www.isa-afp.org/entries/Schutz_Spacetime.html</guid>
+       <dc:creator> Richard Schmoetten, Jake Palmer, Jacques Fleuriot       </dc:creator>
+       <pubDate>27 Jul 2021 00:00:00 +0000</pubDate>
+       <description>
+This is a formalisation of Schutz&#39; system of axioms for Minkowski
+spacetime published under the name &#34;Independent axioms for
+Minkowski space-time&#34; in 1997, as well as most of the results in
+the third chapter (&#34;Temporal Order on a Path&#34;) of the above
+monograph. Many results are proven here that cannot be found in
+Schutz, either preceding the theorem they are needed for, or within
+their own thematic section.</description>
+    </item>
+    <item>
+       <title>Finitely Generated Abelian Groups</title>
+              <link>https://www.isa-afp.org/entries/Finitely_Generated_Abelian_Groups.html</link>
+       <guid>https://www.isa-afp.org/entries/Finitely_Generated_Abelian_Groups.html</guid>
+       <dc:creator> Joseph Thommes, Manuel Eberl       </dc:creator>
+       <pubDate>07 Jul 2021 00:00:00 +0000</pubDate>
+       <description>
+This article deals with the formalisation of some group-theoretic
+results including the fundamental theorem of finitely generated
+abelian groups characterising the structure of these groups as a
+uniquely determined product of cyclic groups. Both the invariant
+factor decomposition and the primary decomposition are covered.
+Additional work includes results about the direct product, the
+internal direct product and more group-theoretic lemmas.</description>
+    </item>
+    <item>
+       <title>SpecCheck - Specification-Based Testing for Isabelle/ML</title>
+              <link>https://www.isa-afp.org/entries/SpecCheck.html</link>
+       <guid>https://www.isa-afp.org/entries/SpecCheck.html</guid>
+       <dc:creator> Kevin Kappelmann, Lukas Bulwahn, Sebastian Willenbrink       </dc:creator>
+       <pubDate>01 Jul 2021 00:00:00 +0000</pubDate>
+       <description>
+SpecCheck is a &lt;a
+href=&#34;https://en.wikipedia.org/wiki/QuickCheck&#34;&gt;QuickCheck&lt;/a&gt;-like
+testing framework for Isabelle/ML. You can use it to write
+specifications for ML functions. SpecCheck then checks whether your
+specification holds by testing your function against a given number of
+generated inputs. It helps you to identify bugs by printing
+counterexamples on failure and provides you timing information.
+SpecCheck is customisable and allows you to specify your own input
+generators, test output formats, as well as pretty printers and
+shrinking functions for counterexamples among other things.</description>
+    </item>
+    <item>
+       <title>Van der Waerden's Theorem</title>
+              <link>https://www.isa-afp.org/entries/Van_der_Waerden.html</link>
+       <guid>https://www.isa-afp.org/entries/Van_der_Waerden.html</guid>
+       <dc:creator> Katharina Kreuzer, Manuel Eberl       </dc:creator>
+       <pubDate>22 Jun 2021 00:00:00 +0000</pubDate>
+       <description>
+This article formalises the proof of Van der Waerden&#39;s Theorem
+from Ramsey theory.  Van der Waerden&#39;s Theorem states that for
+integers $k$ and $l$ there exists a number $N$ which guarantees that
+if an integer interval of length at least $N$ is coloured with $k$
+colours, there will always be an arithmetic progression of length $l$
+of the same colour in said interval. The proof goes along the lines of
+\cite{Swan}.  The smallest number $N_{k,l}$ fulfilling Van der
+Waerden&#39;s Theorem is then called the Van der Waerden Number.
+Finding the Van der Waerden Number is still an open problem for most
+values of $k$ and $l$.</description>
+    </item>
+    <item>
+       <title>MiniSail - A kernel language for the ISA specification language SAIL</title>
+              <link>https://www.isa-afp.org/entries/MiniSail.html</link>
+       <guid>https://www.isa-afp.org/entries/MiniSail.html</guid>
+       <dc:creator> Mark Wassell       </dc:creator>
+       <pubDate>18 Jun 2021 00:00:00 +0000</pubDate>
+       <description>
+MiniSail is a kernel language for Sail, an instruction set
+architecture (ISA) specification language. Sail is an imperative
+language with a light-weight dependent type system similar to
+refinement type systems. From an ISA specification, the Sail compiler
+can generate theorem prover code and C (or OCaml) to give an
+executable emulator for an architecture. The idea behind MiniSail is
+to capture the key and novel features of Sail in terms of their
+syntax, typing rules and operational semantics, and to confirm that
+they work together by proving progress and preservation lemmas. We use
+the Nominal2 library to handle binding.</description>
+    </item>
+    <item>
+       <title>Public Announcement Logic</title>
+              <link>https://www.isa-afp.org/entries/Public_Announcement_Logic.html</link>
+       <guid>https://www.isa-afp.org/entries/Public_Announcement_Logic.html</guid>
+       <dc:creator> Asta Halkjær From       </dc:creator>
+       <pubDate>17 Jun 2021 00:00:00 +0000</pubDate>
+       <description>
+This work is a formalization of public announcement logic with
+countably many agents. It includes proofs of soundness and
+completeness for a variant of the axiom system PA + DIST! + NEC!. The
+completeness proof builds on the Epistemic Logic theory.</description>
+    </item>
+    <item>
+       <title>A Shorter Compiler Correctness Proof for Language IMP</title>
+              <link>https://www.isa-afp.org/entries/IMP_Compiler.html</link>
+       <guid>https://www.isa-afp.org/entries/IMP_Compiler.html</guid>
+       <dc:creator> Pasquale Noce       </dc:creator>
+       <pubDate>04 Jun 2021 00:00:00 +0000</pubDate>
+       <description>
+This paper presents a compiler correctness proof for the didactic
+imperative programming language IMP, introduced in Nipkow and
+Klein&#39;s book on formal programming language semantics (version of
+March 2021), whose size is just two thirds of the book&#39;s proof in
+the number of formal text lines. As such, it promises to constitute a
+further enhanced reference for the formal verification of compilers
+meant for larger, real-world programming languages.  The presented
+proof does not depend on language determinism, so that the proposed
+approach can be applied to non-deterministic languages as well. As a
+confirmation, this paper extends IMP with an additional
+non-deterministic choice command, and proves compiler correctness,
+viz. the simulation of compiled code execution by source code, for
+such extended language.</description>
+    </item>
+    <item>
+       <title>Lyndon words</title>
+              <link>https://www.isa-afp.org/entries/Combinatorics_Words_Lyndon.html</link>
+       <guid>https://www.isa-afp.org/entries/Combinatorics_Words_Lyndon.html</guid>
+       <dc:creator> Štěpán Holub, Štěpán Starosta       </dc:creator>
+       <pubDate>24 May 2021 00:00:00 +0000</pubDate>
+       <description>
+Lyndon words are words lexicographically minimal in their conjugacy
+class. We formalize their basic properties and characterizations, in
+particular the concepts of the longest Lyndon suffix and the Lyndon
+factorization. Most of the work assumes a fixed lexicographical order.
+Nevertheless we also define the smallest relation guaranteeing
+lexicographical minimality of a given word (in its conjugacy class).</description>
+    </item>
+    <item>
+       <title>Graph Lemma</title>
+              <link>https://www.isa-afp.org/entries/Combinatorics_Words_Graph_Lemma.html</link>
+       <guid>https://www.isa-afp.org/entries/Combinatorics_Words_Graph_Lemma.html</guid>
+       <dc:creator> Štěpán Holub, Štěpán Starosta       </dc:creator>
+       <pubDate>24 May 2021 00:00:00 +0000</pubDate>
+       <description>
+Graph lemma quantifies the defect effect of a system of word
+equations. That is, it provides an upper bound on the rank of the
+system. We formalize the proof based on the decomposition of a
+solution into its free basis. A direct application is an alternative
+proof of the fact that two noncommuting words form a code.</description>
+    </item>
+  </channel>
+</rss>

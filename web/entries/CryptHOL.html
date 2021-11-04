@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>CryptHOL - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>ryptHOL
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">CryptHOL</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2017-05-05</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>CryptHOL provides a framework for formalising cryptographic arguments
+in Isabelle/HOL. It shallowly embeds a probabilistic functional
+programming language in higher order logic. The language features
+monadic sequencing, recursion, random sampling, failures and failure
+handling, and black-box access to oracles. Oracles are probabilistic
+functions which maintain hidden state between different invocations.
+All operators are defined in the new semantic domain of
+generative probabilistic values, a codatatype. We derive proof rules for
+the operators and establish a connection with the theory of relational
+parametricity. Thus, the resuting proofs are trustworthy and
+comprehensible, and the framework is extensible and widely applicable.
+</p><p>
+The framework is used in the accompanying AFP entry "Game-based
+Cryptography in HOL". There, we show-case our framework by formalizing
+different game-based proofs from the literature. This formalisation
+continues the work described in the author's ESOP 2016 paper.</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{CryptHOL-AFP,
+  author  = {Andreas Lochbihler},
+  title   = {CryptHOL},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2017,
+  note    = {\url{https://isa-afp.org/entries/CryptHOL.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Applicative_Lifting.html">Applicative_Lifting</a>, <a href="Coinductive.html">Coinductive</a>, <a href="Landau_Symbols.html">Landau_Symbols</a>, <a href="Monad_Normalisation.html">Monad_Normalisation</a>, <a href="Monomorphic_Monad.html">Monomorphic_Monad</a>, <a href="Probabilistic_While.html">Probabilistic_While</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Constructive_Cryptography.html">Constructive_Cryptography</a>, <a href="Game_Based_Crypto.html">Game_Based_Crypto</a>, <a href="Sigma_Commit_Crypto.html">Sigma_Commit_Crypto</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/CryptHOL/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/CryptHOL/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/CryptHOL/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-CryptHOL-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-CryptHOL-2020-04-18.tar.gz">
+              afp-CryptHOL-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-CryptHOL-2019-06-11.tar.gz">
+              afp-CryptHOL-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-CryptHOL-2018-08-16.tar.gz">
+              afp-CryptHOL-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-CryptHOL-2017-10-10.tar.gz">
+              afp-CryptHOL-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-CryptHOL-2017-05-11.tar.gz">
+              afp-CryptHOL-2017-05-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

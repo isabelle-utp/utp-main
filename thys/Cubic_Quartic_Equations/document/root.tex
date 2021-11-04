@@ -1,0 +1,46 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{isabelle,isabellesym}
+\usepackage{url}
+
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Solving Cubic and Quartic Equations}
+\author{Ren\'e Thiemann}
+\maketitle
+
+\begin{abstract}
+We formalize Cardano's formula to solve a cubic equation 
+\[
+ax^3 + bx^2 + cx + d = 0,
+\]
+as well as Ferrari's formula to solve a quartic equation \cite{AM}. 
+We further turn both formulas into executable algorithms 
+based on the algebraic number implementation in the AFP \cite{Algebraic_Numbers-AFP}. 
+To this end we also slightly extended this library, namely by making
+the minimal polynomial of an algebraic number executable, and by defining and
+implementing $n$-th roots of complex numbers.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

@@ -1,0 +1,9 @@
+chapter AFP
+
+session Public_Announcement_Logic (AFP) = "Epistemic_Logic" +
+  options [timeout = 300]
+  theories
+    PAL
+  document_files
+    "root.tex"
+    "root.bib"

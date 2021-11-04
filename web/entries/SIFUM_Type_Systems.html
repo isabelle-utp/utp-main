@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Formalization of Assumptions and Guarantees for Compositional Noninterference - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">F</font>ormalization
+  
+          of
+  
+          <font class="first">A</font>ssumptions
+  
+          and
+  
+          <font class="first">G</font>uarantees
+  
+          for
+  
+          <font class="first">C</font>ompositional
+  
+          <font class="first">N</font>oninterference
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Formalization of Assumptions and Guarantees for Compositional Noninterference</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Sylvia Grewe (grewe /at/ st /dot/ informatik /dot/ tu-darmstadt /dot/ de),
+                Heiko Mantel (mantel /at/ mais /dot/ informatik /dot/ tu-darmstadt /dot/ de) and
+          Daniel Schoepe (daniel /at/ schoepe /dot/ org)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-04-23</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">Research in information-flow security aims at developing methods to
+identify undesired information leaks within programs from private
+(high) sources to public (low) sinks. For a concurrent system, it is
+desirable to have compositional analysis methods that allow for
+analyzing each thread independently and that nevertheless guarantee
+that the parallel composition of successfully analyzed threads
+satisfies a global security guarantee. However, such a compositional
+analysis should not be overly pessimistic about what an environment
+might do with shared resources. Otherwise, the analysis will reject
+many intuitively secure programs.
+<p>
+The paper "Assumptions and Guarantees for Compositional
+Noninterference" by Mantel et. al. presents one solution for this problem:
+an approach for compositionally reasoning about non-interference in
+concurrent programs via rely-guarantee-style reasoning.  We present an
+Isabelle/HOL formalization of the concepts and proofs of this approach.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{SIFUM_Type_Systems-AFP,
+  author  = {Sylvia Grewe and Heiko Mantel and Daniel Schoepe},
+  title   = {A Formalization of Assumptions and Guarantees for Compositional Noninterference},
+  journal = {Archive of Formal Proofs},
+  month   = apr,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/SIFUM_Type_Systems.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/SIFUM_Type_Systems/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/SIFUM_Type_Systems/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/SIFUM_Type_Systems/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-SIFUM_Type_Systems-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-SIFUM_Type_Systems-2020-04-20.tar.gz">
+              afp-SIFUM_Type_Systems-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-SIFUM_Type_Systems-2019-06-11.tar.gz">
+              afp-SIFUM_Type_Systems-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-SIFUM_Type_Systems-2018-08-16.tar.gz">
+              afp-SIFUM_Type_Systems-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-SIFUM_Type_Systems-2017-10-10.tar.gz">
+              afp-SIFUM_Type_Systems-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-SIFUM_Type_Systems-2016-12-17.tar.gz">
+              afp-SIFUM_Type_Systems-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-SIFUM_Type_Systems-2016-02-22.tar.gz">
+              afp-SIFUM_Type_Systems-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-SIFUM_Type_Systems-2015-05-27.tar.gz">
+              afp-SIFUM_Type_Systems-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-SIFUM_Type_Systems-2014-08-28.tar.gz">
+              afp-SIFUM_Type_Systems-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-SIFUM_Type_Systems-2014-04-25.tar.gz">
+              afp-SIFUM_Type_Systems-2014-04-25.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2013-2:
+            <a href="../release/afp-SIFUM_Type_Systems-2014-04-24.tar.gz">
+              afp-SIFUM_Type_Systems-2014-04-24.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

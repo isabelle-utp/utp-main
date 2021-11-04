@@ -1,0 +1,12 @@
+chapter AFP
+
+session Ordinal_Partitions (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "HOL-Library" "ZFC_in_HOL" "Nash_Williams"
+  theories
+    Omega_Omega
+  document_files
+    "root.tex"
+    "root.bib"
+

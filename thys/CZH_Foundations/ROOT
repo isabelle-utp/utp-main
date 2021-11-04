@@ -1,0 +1,31 @@
+chapter AFP
+
+session CZH_Foundations (AFP) = ZFC_in_HOL +
+  options [timeout = 1200]
+  sessions
+    "HOL-Library"
+    "HOL-ex"
+    Intro_Dest_Elim
+    Conditional_Simplification
+    "HOL-Eisbach"
+  directories
+    czh_introduction
+    czh_sets
+    "czh_sets/ex"
+    czh_digraphs
+    czh_semicategories
+  theories [document = false]
+    CZH_Sets_MIF
+    CZH_Utilities
+  theories
+    CZH_Introduction
+    CZH_Sets_Conclusions
+    CZH_DG_Conclusions
+    CZH_SMC_Conclusions
+  document_files
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "style.sty"
+    "root.tex"
+    "root.bib"

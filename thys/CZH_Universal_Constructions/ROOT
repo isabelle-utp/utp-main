@@ -1,0 +1,15 @@
+chapter AFP
+
+session CZH_Universal_Constructions (AFP) = CZH_Elementary_Categories +
+  options [timeout=1200]
+  directories
+    czh_ucategories
+  theories
+    CZH_UCAT_Conclusions
+  document_files
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "style.sty"
+    "root.tex"
+    "root.bib"

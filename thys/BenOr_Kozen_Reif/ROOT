@@ -1,0 +1,12 @@
+chapter AFP
+
+session BenOr_Kozen_Reif (AFP) = Algebraic_Numbers +
+  options [timeout = 600]
+  sessions
+    Sturm_Tarski
+  theories
+    BKR_Decision
+    Renegar_Decision
+  document_files
+    "root.tex"
+    "root.bib"

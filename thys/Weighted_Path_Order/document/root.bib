@@ -1,0 +1,206 @@
+@string{conf:TPHOLs = "Theorem Proving in Higher Order Logics, TPHOLs"}
+@string{conf:RTA    = "Rewriting Techniques and Applications, RTA"}
+@string{conf:LPAR   = "Logic for Programming, Artificial Intelligence, and Reasoning, LPAR"}
+@string{ai    = "Acta Informatica"}
+@string{jar   = "Journal of Automated Reasoning"}
+@string{lncs = "LNCS"}
+@string{lipics = "Leibniz International Proceedings in Informatics"}
+
+
+@incollection{KB70,
+  author    = "Donald E. Knuth and Peter Bendix",
+  title     = "Simple Word Problems in Universal Algebras",
+  booktitle = "Computational Problems in Abstract Algebra",
+  optpublisher = "Pergamon Press, New York",
+  year      = 1970,
+  opteditor    = "J. Leech",
+  pages     = "263-297",
+  doi = {10.1007/978-3-642-81955-1_23},
+}
+
+@article{DKM90,
+  author    = "Jeremy Dick and John Kalmus and Ursula Martin",
+  title     = "Automating the {K}nuth-{B}endix ordering",
+  journal   = ai,
+  volume    = 28,
+  number    = 2,
+  pages     = "95-119",
+  year      = 1990,
+  doi      = {10.1007/BF01237233},
+}
+
+@inproceedings{TS09b,
+  author={Ren{\'e} Thiemann and Christian Sternagel},
+  title={Certification of Termination Proofs using {\ceta}},
+  booktitle=conf:TPHOLs # "'09",
+  opteditor={Stefan Berghofer and Tobias Nipkow and Christian Urban and Makarius Wenzel},
+  year=2009,
+  volume=5674,
+  pages={452-468},
+  optpublisher=pub:spr,
+  series=lncs,
+  doi={10.1007/978-3-642-03359-9_31}
+}
+  
+@inproceedings{S89,
+  author    = "Joachim Steinbach",
+  title     = "Extensions and Comparison of Simplification Orders",
+  booktitle = conf:RTA # "'89",
+  series    = lncs,
+  volume    = 355,
+  year      = 1989,
+  pages     = "434-448",
+  doi      = {10.1007/3-540-51081-8_124}
+}
+
+@article{ZHM09,
+ author = "Harald Zankl and Nao Hirokawa and Aart Middeldorp",
+ title  = "{KBO} Orientability",
+ journal= jar, 
+ volume = 43,
+ number = 2,
+ pages  = {173-201},
+ year   = 2009,
+ doi   = {10.1007/s10817-009-9131-z}
+}
+
+@inproceedings{LW07,
+  author    = {Michel Ludwig and Uwe Waldmann},
+  title     = {An Extension of the {K}nuth--{B}endix Ordering with {LPO}-Like Properties},
+  booktitle = conf:LPAR # "'07",
+  year      = {2007},
+  pages     = {348-362},
+  series    = lncs,
+  optpublisher = springer,
+  volume    = {4790},
+  doi      = {10.1007/978-3-540-75560-9_26},
+}
+
+@inproceedings{KBO_form_paper,
+  author = {Christian Sternagel and René Thiemann},
+  title = {Formalizing {K}nuth--{B}endix Orders and {K}nuth--{B}endix Completion},
+  booktitle = conf:RTA # "'13",
+  year = {2013},
+  pages = {287-302},
+  volume = 2,
+  series = lipics,
+  doi    = {10.4230/LIPIcs.RTA.2013.287},
+}
+
+@article{Knuth_Bendix_Order-AFP,
+  author  = {Christian Sternagel and René Thiemann},
+  title   = {A Formalization of {K}nuth--{B}endix Orders},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Knuth_Bendix_Order.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}
+@article{WPO,
+  author    = {Akihisa Yamada and
+               Keiichirou Kusakari and
+               Toshiki Sakabe},
+  title     = {{A unified ordering for termination proving}},
+  journal   = {Sci. Comput. Program.},
+  volume    = {111},
+  pages     = {110--134},
+  year      = {2015},
+  doi       = {10.1016/j.scico.2014.07.009},
+  timestamp = {Thu, 08 Jun 2017 08:59:10 +0200},
+  biburl    = {https://dblp.org/rec/journals/scp/0002KS15.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@inproceedings{WPO-PPDP,
+  author    = {Akihisa Yamada and
+               Keiichirou Kusakari and
+               Toshiki Sakabe},
+  editor    = {Ricardo Pe{\~{n}}a and
+               Tom Schrijvers},
+  title     = {Unifying the {K}nuth-{B}endix, recursive path and polynomial orders},
+  booktitle = {15th International Symposium on Principles and Practice of Declarative
+               Programming, {PPDP} '13, Madrid, Spain, September 16-18, 2013},
+  pages     = {181--192},
+  publisher = {{ACM}},
+  year      = {2013},
+  doi       = {10.1145/2505879.2505885},
+  timestamp = {Tue, 06 Nov 2018 16:57:25 +0100},
+  biburl    = {https://dblp.org/rec/conf/ppdp/YamadaKS13.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@book{BN98,
+  author    = {Franz Baader and
+               Tobias Nipkow},
+  title     = {Term rewriting and all that},
+  publisher = {Cambridge University Press},
+  year      = {1998},
+  isbn      = {978-0-521-45520-6},
+doi = {10.1017/CBO9781139172752},
+  timestamp = {Thu, 21 Apr 2011 19:59:44 +0200},
+  biburl    = {https://dblp.org/rec/books/daglib/0092409.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{WPO_form_paper,
+  author    = {Ren{\'{e}} Thiemann and
+               Jonas Sch{\"{o}}pf and
+               Christian Sternagel and
+               Akihisa Yamada},
+  editor    = {Zena M. Ariola},
+  title     = {Certifying the Weighted Path Order (Invited Talk)},
+  booktitle = {5th International Conference on Formal Structures for Computation
+               and Deduction, {FSCD} 2020, June 29-July 6, 2020, Paris, France (Virtual
+               Conference)},
+  series    = {LIPIcs},
+  volume    = {167},
+  pages     = {4:1--4:20},
+  publisher = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+  year      = {2020},
+  url       = {https://doi.org/10.4230/LIPIcs.FSCD.2020.4},
+  doi       = {10.4230/LIPIcs.FSCD.2020.4},
+  timestamp = {Tue, 30 Jun 2020 11:42:59 +0200},
+  biburl    = {https://dblp.org/rec/conf/fscd/ThiemannSS020.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@inproceedings{RPO_def,
+  author    = {Ren{\'{e}} Thiemann and
+               Guillaume Allais and
+               Julian Nagele},
+  editor    = {Ashish Tiwari},
+  title     = {On the Formalization of Termination Techniques based on Multiset Orderings},
+  booktitle = {23rd International Conference on Rewriting Techniques and Applications
+               (RTA'12) , {RTA} 2012, May 28 - June 2, 2012, Nagoya, Japan},
+  series    = {LIPIcs},
+  volume    = {15},
+  pages     = {339--354},
+  publisher = {Schloss Dagstuhl - Leibniz-Zentrum f{\"{u}}r Informatik},
+  year      = {2012},
+  url       = {https://doi.org/10.4230/LIPIcs.RTA.2012.339},
+  doi       = {10.4230/LIPIcs.RTA.2012.339},
+  timestamp = {Tue, 11 Feb 2020 15:52:14 +0100},
+  biburl    = {https://dblp.org/rec/conf/rta/ThiemannAN12.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+
+@article{RPO,
+  author    = {Nachum Dershowitz},
+  title     = {Termination of Rewriting},
+  journal   = {J. Symb. Comput.},
+  volume    = {3},
+  number    = {1/2},
+  pages     = {69--116},
+  year      = {1987},
+  doi       = {10.1016/S0747-7171(87)80022-6},
+  timestamp = {Wed, 14 Nov 2018 10:27:09 +0100},
+  biburl    = {https://dblp.org/rec/journals/jsc/Dershowitz87.bib},
+  bibsource = {dblp computer science bibliography, https://dblp.org}
+}
+@unpublished{LPO,
+  author        = "S. Kamin and J.~J. L{\'{e}}vy",
+  title         = "Two Generalizations of the Recursive Path Ordering",
+  note          = "Unpublished Manuscript, University of Illinois, IL,
+                   USA",
+  year          = "1980"
+}

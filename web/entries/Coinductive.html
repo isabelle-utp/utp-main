@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coinductive - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>oinductive
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Coinductive</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a>
+      </td>
+</tr>
+
+  <tr>
+    <td class="datahead">
+              Contributor:
+          </td>
+    <td class="data">
+                  Johannes Hölzl (hoelzl /at/ in /dot/ tum /dot/ de)
+           </td>
+  </tr>
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2010-02-12</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">This article collects formalisations of general-purpose coinductive data types and sets. Currently, it contains coinductive natural numbers, coinductive lists, i.e. lazy lists or streams, infinite streams, coinductive terminated lists, coinductive resumptions, a library of operations on coinductive lists, and a version of König's lemma as an application for coinductive lists.<br>The initial theory was contributed by Paulson and Wenzel. Extensions and other coinductive formalisations of general interest are welcome.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2010-06-10]:
+coinductive lists: setup for quotient package
+(revision 015574f3bf3c)<br>
+[2010-06-28]:
+new codatatype terminated lazy lists
+(revision e12de475c558)<br>
+[2010-08-04]:
+terminated lazy lists: setup for quotient package;
+more lemmas
+(revision 6ead626f1d01)<br>
+[2010-08-17]:
+Koenig's lemma as an example application for coinductive lists
+(revision f81ce373fa96)<br>
+[2011-02-01]:
+lazy implementation of coinductive (terminated) lists for the code generator
+(revision 6034973dce83)<br>
+[2011-07-20]:
+new codatatype resumption
+(revision 811364c776c7)<br>
+[2012-06-27]:
+new codatatype stream with operations (with contributions by Peter Gammie)
+(revision dd789a56473c)<br>
+[2013-03-13]:
+construct codatatypes with the BNF package and adjust the definitions and proofs,
+setup for lifting and transfer packages
+(revision f593eda5b2c0)<br>
+[2013-09-20]:
+stream theory uses type and operations from HOL/BNF/Examples/Stream
+(revision 692809b2b262)<br>
+[2014-04-03]:
+ccpo structure on codatatypes used to define ldrop, ldropWhile, lfilter, lconcat as least fixpoint;
+ccpo topology on coinductive lists contributed by Johannes Hölzl;
+added examples
+(revision 23cd8156bd42)<br></td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Coinductive-AFP,
+  author  = {Andreas Lochbihler},
+  title   = {Coinductive},
+  journal = {Archive of Formal Proofs},
+  month   = feb,
+  year    = 2010,
+  note    = {\url{https://isa-afp.org/entries/Coinductive.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="CakeML.html">CakeML</a>, <a href="CryptHOL.html">CryptHOL</a>, <a href="DynamicArchitectures.html">DynamicArchitectures</a>, <a href="JinjaThreads.html">JinjaThreads</a>, <a href="Lazy-Lists-II.html">Lazy-Lists-II</a>, <a href="Markov_Models.html">Markov_Models</a>, <a href="Ordered_Resolution_Prover.html">Ordered_Resolution_Prover</a>, <a href="Parity_Game.html">Parity_Game</a>, <a href="Partial_Order_Reduction.html">Partial_Order_Reduction</a>, <a href="Probabilistic_Noninterference.html">Probabilistic_Noninterference</a>, <a href="Stream_Fusion_Code.html">Stream_Fusion_Code</a>, <a href="Topology.html">Topology</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Coinductive/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Coinductive/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Coinductive/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Coinductive-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Coinductive-2020-04-18.tar.gz">
+              afp-Coinductive-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Coinductive-2019-06-11.tar.gz">
+              afp-Coinductive-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Coinductive-2018-08-16.tar.gz">
+              afp-Coinductive-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Coinductive-2017-10-10.tar.gz">
+              afp-Coinductive-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Coinductive-2016-12-17.tar.gz">
+              afp-Coinductive-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Coinductive-2016-02-22.tar.gz">
+              afp-Coinductive-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Coinductive-2015-05-27.tar.gz">
+              afp-Coinductive-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Coinductive-2014-08-28.tar.gz">
+              afp-Coinductive-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Coinductive-2013-12-11.tar.gz">
+              afp-Coinductive-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Coinductive-2013-11-17.tar.gz">
+              afp-Coinductive-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Coinductive-2013-03-02.tar.gz">
+              afp-Coinductive-2013-03-02.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2013:
+            <a href="../release/afp-Coinductive-2013-02-16.tar.gz">
+              afp-Coinductive-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Coinductive-2012-05-24.tar.gz">
+              afp-Coinductive-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Coinductive-2011-10-11.tar.gz">
+              afp-Coinductive-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-Coinductive-2011-02-11.tar.gz">
+              afp-Coinductive-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-Coinductive-2010-06-30.tar.gz">
+              afp-Coinductive-2010-06-30.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-1:
+            <a href="../release/afp-Coinductive-2010-02-15.tar.gz">
+              afp-Coinductive-2010-02-15.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2009-1:
+            <a href="../release/afp-Coinductive-2010-02-14.tar.gz">
+              afp-Coinductive-2010-02-14.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

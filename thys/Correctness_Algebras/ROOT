@@ -1,0 +1,53 @@
+chapter AFP
+
+session Correctness_Algebras (AFP) = HOL +
+
+  options [timeout = 600]
+
+  sessions
+    Stone_Kleene_Relation_Algebras
+    Subset_Boolean_Algebras
+    MonoBoolTranAlgebra
+
+  theories
+    Base
+    Omega_Algebras
+    Capped_Omega_Algebras
+    General_Refinement_Algebras
+    Lattice_Ordered_Semirings
+    Boolean_Semirings
+    Binary_Iterings
+    Binary_Iterings_Strict
+    Binary_Iterings_Nonstrict
+    Tests
+    Test_Iterings
+    N_Semirings
+    N_Semirings_Boolean
+    N_Semirings_Modal
+    Approximation
+    Recursion_Strict
+    N_Algebras
+    Recursion
+    N_Omega_Algebras
+    N_Omega_Binary_Iterings
+    N_Relation_Algebras
+    Domain
+    Domain_Iterings
+    Domain_Recursion
+    Extended_Designs
+    Relative_Domain
+    Relative_Modal
+    Complete_Tests
+    Complete_Domain
+    Preconditions
+    Hoare
+    Hoare_Modal
+    Pre_Post
+    Pre_Post_Modal
+    Monotonic_Boolean_Transformers
+    Monotonic_Boolean_Transformers_Instances
+
+  document_files
+    "root.tex"
+    "root.bib"
+

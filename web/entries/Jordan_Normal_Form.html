@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Matrices, Jordan Normal Forms, and Spectral Radius Theory - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">M</font>atrices,
+  
+          <font class="first">J</font>ordan
+  
+          <font class="first">N</font>ormal
+  
+          <font class="first">F</font>orms,
+  
+          and
+  
+          <font class="first">S</font>pectral
+  
+          <font class="first">R</font>adius
+  
+          <font class="first">T</font>heory
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Matrices, Jordan Normal Forms, and Spectral Radius Theory</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at) and
+          Akihisa Yamada (akihisa /dot/ yamada /at/ aist /dot/ go /dot/ jp)
+      </td>
+</tr>
+
+  <tr>
+    <td class="datahead">
+              Contributor:
+          </td>
+    <td class="data">
+                  Alexander Bentkamp (bentkamp /at/ gmail /dot/ com)
+           </td>
+  </tr>
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2015-08-21</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+Matrix interpretations are useful as measure functions in termination proving. In order to use these interpretations also for complexity analysis, the growth rate of matrix powers has to examined. Here, we formalized a central result of spectral radius theory, namely that the growth rate is polynomially bounded if and only if the spectral radius of a matrix is at most one.
+</p><p>
+To formally prove this result we first studied the growth rates of matrices in Jordan normal form, and prove the result that every complex matrix has a Jordan normal form using a constructive prove via Schur decomposition.
+</p><p>
+The whole development is based on a new abstract type for matrices, which is also executable by a suitable setup of the code generator. It completely subsumes our former AFP-entry on executable matrices, and its main advantage is its close connection to the HMA-representation which allowed us to easily adapt existing proofs on determinants.
+</p><p>
+All the results have been applied to improve CeTA, our certifier to validate termination and complexity proof certificates.
+</p></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2016-01-07]: Added Schur-decomposition, Gram-Schmidt orthogonalization, uniqueness of Jordan normal forms<br/>
+[2018-04-17]: Integrated lemmas from deep-learning AFP-entry of Alexander Bentkamp</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Jordan_Normal_Form-AFP,
+  author  = {René Thiemann and Akihisa Yamada},
+  title   = {Matrices, Jordan Normal Forms, and Spectral Radius Theory},
+  journal = {Archive of Formal Proofs},
+  month   = aug,
+  year    = 2015,
+  note    = {\url{https://isa-afp.org/entries/Jordan_Normal_Form.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Polynomial_Factorization.html">Polynomial_Factorization</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Complex_Bounded_Operators.html">Complex_Bounded_Operators</a>, <a href="Deep_Learning.html">Deep_Learning</a>, <a href="Farkas.html">Farkas</a>, <a href="Groebner_Bases.html">Groebner_Bases</a>, <a href="Isabelle_Marries_Dirac.html">Isabelle_Marries_Dirac</a>, <a href="Linear_Programming.html">Linear_Programming</a>, <a href="Modular_arithmetic_LLL_and_HNF_algorithms.html">Modular_arithmetic_LLL_and_HNF_algorithms</a>, <a href="Perron_Frobenius.html">Perron_Frobenius</a>, <a href="QHLProver.html">QHLProver</a>, <a href="Stochastic_Matrices.html">Stochastic_Matrices</a>, <a href="Subresultants.html">Subresultants</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Jordan_Normal_Form/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Jordan_Normal_Form/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Jordan_Normal_Form/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Jordan_Normal_Form-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Jordan_Normal_Form-2020-04-18.tar.gz">
+              afp-Jordan_Normal_Form-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Jordan_Normal_Form-2019-06-11.tar.gz">
+              afp-Jordan_Normal_Form-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Jordan_Normal_Form-2018-08-16.tar.gz">
+              afp-Jordan_Normal_Form-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Jordan_Normal_Form-2017-10-10.tar.gz">
+              afp-Jordan_Normal_Form-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Jordan_Normal_Form-2016-12-17.tar.gz">
+              afp-Jordan_Normal_Form-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Jordan_Normal_Form-2016-02-22.tar.gz">
+              afp-Jordan_Normal_Form-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Jordan_Normal_Form-2015-08-23.tar.gz">
+              afp-Jordan_Normal_Form-2015-08-23.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Separation Algebra - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>eparation
+  
+          <font class="first">A</font>lgebra
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Separation Algebra</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="http://www.cse.unsw.edu.au/~kleing/">Gerwin Klein</a>,
+                Rafal Kolanski and
+          Andrew Boyton (andrew /dot/ boyton /at/ nicta /dot/ com /dot/ au)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2012-05-11</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">We present a generic type class implementation of separation algebra for Isabelle/HOL as well as lemmas and generic tactics which can be used directly for any instantiation of the type class. <P> The ex directory contains example instantiations that include structures such as a heap or virtual memory. <P> The abstract separation algebra is based upon "Abstract Separation Logic" by Calcagno et al. These theories are also the basis of the ITP 2012 rough diamond "Mechanised Separation Algebra" by the authors. <P> The aim of this work is to support and significantly reduce the effort for future separation logic developments in Isabelle/HOL by factoring out the part of separation logic that can be treated abstractly once and for all. This includes developing typical default rule sets for reasoning as well as automated tactic support for separation logic.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Separation_Algebra-AFP,
+  author  = {Gerwin Klein and Rafal Kolanski and Andrew Boyton},
+  title   = {Separation Algebra},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2012,
+  note    = {\url{https://isa-afp.org/entries/Separation_Algebra.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Hoare_Time.html">Hoare_Time</a>, <a href="Separata.html">Separata</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Separation_Algebra/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Separation_Algebra/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Separation_Algebra/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Separation_Algebra-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Separation_Algebra-2020-04-20.tar.gz">
+              afp-Separation_Algebra-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Separation_Algebra-2019-06-11.tar.gz">
+              afp-Separation_Algebra-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Separation_Algebra-2018-08-16.tar.gz">
+              afp-Separation_Algebra-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Separation_Algebra-2017-10-10.tar.gz">
+              afp-Separation_Algebra-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Separation_Algebra-2016-12-17.tar.gz">
+              afp-Separation_Algebra-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Separation_Algebra-2016-02-22.tar.gz">
+              afp-Separation_Algebra-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Separation_Algebra-2015-05-27.tar.gz">
+              afp-Separation_Algebra-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Separation_Algebra-2014-08-28.tar.gz">
+              afp-Separation_Algebra-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Separation_Algebra-2013-12-11.tar.gz">
+              afp-Separation_Algebra-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Separation_Algebra-2013-11-17.tar.gz">
+              afp-Separation_Algebra-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Separation_Algebra-2013-02-16.tar.gz">
+              afp-Separation_Algebra-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Separation_Algebra-2012-05-24.tar.gz">
+              afp-Separation_Algebra-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Separation_Algebra-2012-05-11.tar.gz">
+              afp-Separation_Algebra-2012-05-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

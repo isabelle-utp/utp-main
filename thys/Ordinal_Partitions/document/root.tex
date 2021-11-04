@@ -1,0 +1,40 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{A Partition Theorem for the Ordinal $\omega^\omega$}
+\author{Lawrence C. Paulson}
+\maketitle
+
+\begin{abstract}
+The theory of partition relations concerns generalisations of Ramsey's theorem.
+For any ordinal $\alpha$, write $\alpha \to (\alpha, m)^2$ if for each function~$f$ from unordered pairs of elements of~$\alpha$ into $\{0,1\}$, either there is a subset $X\subseteq \alpha$ order-isomorphic to $\alpha$ such that $f\{x,y\}=0$ for all $\{x,y\}\subseteq X$, or there is an $m$ element set $Y\subseteq \alpha$ such that $f\{x,y\}=1$ for all $\{x,y\}\subseteq Y$. (In both cases, with $\{x,y\}$ we require $x\not=y$.)
+In particular, the infinite Ramsey theorem can be written in this notation as $\omega \to (\omega, \omega)^2$, or if we restrict~$m$ to the positive integers as above, then $\omega \to (\omega, m)^2$ for all~$m$ \cite{larson-short-proof}.
+
+This entry formalises Larson's proof of $\omega^\omega \to (\omega^\omega, m)^2$ along with a similar proof of a result due to Specker: $\omega^2 \to (\omega^2, m)^2$. Also proved is a necessary result by Erd{\H o}s and Milner~\cite{erdos-theorem-partition,erdos-theorem-partition-corr}: $\omega^{1+\alpha\cdot n} \to (\omega^{1+\alpha}, 2^n)^2$.
+
+These examples demonstrate the use of Isabelle/HOL to formalise advanced results that combine ZF set theory with basic concepts like lists and natural numbers.
+\end{abstract}
+
+\tableofcontents
+
+% include generated text of all theories
+\input{session}
+
+\section{Acknowledgements}
+The author was supported by the ERC Advanced Grant ALEXANDRIA (Project 742178) funded by the European Research Council. Many thanks to Mirna D\v{z}amonja (who suggested the project) and Angeliki Koutsoukou-Argyraki for assistance at tricky moments.
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

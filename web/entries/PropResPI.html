@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Propositional Resolution and Prime Implicates Generation - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">P</font>ropositional
+  
+          <font class="first">R</font>esolution
+  
+          and
+  
+          <font class="first">P</font>rime
+  
+          <font class="first">I</font>mplicates
+  
+          <font class="first">G</font>eneration
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Propositional Resolution and Prime Implicates Generation</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://membres-lig.imag.fr/peltier/">Nicolas Peltier</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-03-11</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We provide formal proofs in Isabelle-HOL (using mostly structured Isar
+proofs) of the soundness and completeness of the Resolution rule in
+propositional logic.  The completeness proofs take into account the
+usual redundancy elimination rules (tautology elimination and
+subsumption), and several refinements of the Resolution rule are
+considered: ordered resolution (with selection functions), positive
+and negative resolution, semantic resolution and unit resolution (the
+latter refinement is complete only for clause sets that are Horn-
+renamable). We also define a concrete procedure for computing
+saturated sets and establish its soundness and completeness. The
+clause sets are not assumed to be finite, so that the results can be
+applied to formulas obtained by grounding sets of first-order clauses
+(however, a total ordering among atoms is assumed to be given).
+Next, we show that the unrestricted Resolution rule is deductive-
+complete, in the sense that it is able to generate all  (prime)
+implicates of any set of propositional clauses (i.e., all entailment-
+minimal, non-valid, clausal consequences of the considered set). The
+generation of prime implicates is an important problem, with many
+applications in artificial intelligence and verification (for
+abductive reasoning, knowledge compilation, diagnosis, debugging
+etc.). We also show that implicates can be computed in an incremental
+way, by fixing an ordering among all the atoms in the considered sets
+and resolving upon these atoms one by one in the considered order
+(with no backtracking). This feature is critical for the efficient
+computation of prime implicates. Building on these results, we provide
+a procedure for computing such implicates and establish its soundness
+and completeness.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{PropResPI-AFP,
+  author  = {Nicolas Peltier},
+  title   = {Propositional Resolution and Prime Implicates Generation},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/PropResPI.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/PropResPI/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/PropResPI/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/PropResPI/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-PropResPI-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-PropResPI-2020-04-20.tar.gz">
+              afp-PropResPI-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-PropResPI-2019-06-11.tar.gz">
+              afp-PropResPI-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-PropResPI-2018-08-16.tar.gz">
+              afp-PropResPI-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-PropResPI-2017-10-10.tar.gz">
+              afp-PropResPI-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-PropResPI-2016-12-17.tar.gz">
+              afp-PropResPI-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-PropResPI-2016-03-11.tar.gz">
+              afp-PropResPI-2016-03-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

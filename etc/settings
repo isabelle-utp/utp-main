@@ -1,0 +1,11 @@
+# -*- shell-script -*- :mode=shellscript:
+
+AFP_BASE="$COMPONENT"
+AFP="$AFP_BASE/thys"
+
+isabelle_directory '$AFP_BASE'
+isabelle_directory '$AFP'
+
+AFP_BUILD_OPTIONS='-v -o browser_info -o "document=pdf" -o "document_variants=document:outline=/proof,/ML"'
+
+ISABELLE_TOOLS="$ISABELLE_TOOLS:$AFP_BASE/tools"

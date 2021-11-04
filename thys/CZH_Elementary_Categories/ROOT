@@ -1,0 +1,15 @@
+chapter AFP
+
+session CZH_Elementary_Categories (AFP) = CZH_Foundations +
+  options [timeout = 1200]
+  directories
+    czh_ecategories
+  theories
+    CZH_ECAT_Conclusions
+  document_files
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "style.sty"
+    "root.tex"
+    "root.bib"

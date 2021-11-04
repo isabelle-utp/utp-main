@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Formal Development of a Polychronous Polytimed Coordination Language - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">F</font>ormal
+  
+          <font class="first">D</font>evelopment
+  
+          of
+  
+          a
+  
+          <font class="first">P</font>olychronous
+  
+          <font class="first">P</font>olytimed
+  
+          <font class="first">C</font>oordination
+  
+          <font class="first">L</font>anguage
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Formal Development of a Polychronous Polytimed Coordination Language</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Hai Nguyen Van (hai /dot/ nguyenvan /dot/ phie /at/ gmail /dot/ com),
+                Frédéric Boulanger (frederic /dot/ boulanger /at/ centralesupelec /dot/ fr) and
+          <a href="https://www.lri.fr/~wolff/">Burkhart Wolff</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-07-30</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+The design of complex systems involves different formalisms for
+modeling their different parts or aspects. The global model of a
+system may therefore consist of a coordination of concurrent
+sub-models that use different paradigms.  We develop here a theory for
+a language used to specify the timed coordination of such
+heterogeneous subsystems by addressing the following issues:
+<ul><li>the
+behavior of the sub-systems is observed only at a series of discrete
+instants,</li><li>events may occur in different sub-systems at unrelated
+times, leading to polychronous systems, which do not necessarily have
+a common base clock,</li><li>coordination between subsystems involves
+causality, so the occurrence of an event may enforce the occurrence of
+other events, possibly after a certain duration has elapsed or an
+event has occurred a given number of times,</li><li>the domain of time
+(discrete, rational, continuous...) may be different in the
+subsystems, leading to polytimed systems,</li><li>the time frames of
+different sub-systems may be related (for instance, time in a GPS
+satellite and in a GPS receiver on Earth are related although they are
+not the same).</li></ul>
+Firstly, a denotational semantics of the language is
+defined. Then, in order to be able to incrementally check the behavior
+of systems, an operational semantics is given, with proofs of
+progress, soundness and completeness with regard to the denotational
+semantics. These proofs are made according to a setup that can scale
+up when new operators are added to the language. In order for
+specifications to be composed in a clean way, the language should be
+invariant by stuttering (i.e., adding observation instants at which
+nothing happens). The proof of this invariance is also given.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{TESL_Language-AFP,
+  author  = {Hai Nguyen Van and Frédéric Boulanger and Burkhart Wolff},
+  title   = {A Formal Development of a Polychronous Polytimed Coordination Language},
+  journal = {Archive of Formal Proofs},
+  month   = jul,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/TESL_Language.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/TESL_Language/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/TESL_Language/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/TESL_Language/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-TESL_Language-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-TESL_Language-2020-04-20.tar.gz">
+              afp-TESL_Language-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-TESL_Language-2019-07-31.tar.gz">
+              afp-TESL_Language-2019-07-31.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

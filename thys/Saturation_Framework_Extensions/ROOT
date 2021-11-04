@@ -1,0 +1,13 @@
+chapter AFP
+
+session "Saturation_Framework_Extensions" (AFP) = Saturation_Framework +
+  options [timeout = 600]
+  sessions
+    Ordered_Resolution_Prover
+    First_Order_Terms
+    Well_Quasi_Orders
+  theories
+    FO_Ordered_Resolution_Prover_Revisited
+    Given_Clause_Architectures_Revisited
+  document_files
+    "root.tex"

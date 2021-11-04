@@ -1,0 +1,17 @@
+chapter AFP
+
+session Relational_Forests (AFP) = Stone_Kleene_Relation_Algebras +
+
+  options [timeout = 600]
+
+  sessions
+    "HOL-Hoare"
+
+  theories
+    Forests
+    Algorithms
+
+  document_files
+    "root.tex"
+    "root.bib"
+

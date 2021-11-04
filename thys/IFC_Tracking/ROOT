@@ -1,0 +1,10 @@
+chapter AFP
+
+session IFC_Tracking (AFP) = HOL +
+  options [timeout = 600]
+  theories
+    IFC
+    PDG
+  document_files
+    "root.tex"
+    "root.bib"

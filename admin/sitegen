@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+
+# standard invocation of sitegen.py
+
+### <CONFIGURATION> ###
+VENV_VERSION="16.0.0"
+URL="https://files.pythonhosted.org/packages/33/bc/fa0b5347139cd9564f0d44ebd2b147ac97c36b2403943dbee8a25fd74012/virtualenv-$VENV_VERSION.tar.gz"
+### </CONFIGURATION> ###
+
+set -e
+
+source "$(dirname "$0")/common"
+
+USE_PYTHON_3=false
+
+while getopts "t:r:p" OPT
+do
+    case "$OPT" in
+      r)
+        VERSION="$OPTARG"
+        ;;
+      t)
+        ISABELLE_TOOL="$OPTARG"
+        ;;
+      p)
+        USE_PYTHON_3=true
+        ;;
+    esac
+done
+shift $((OPTIND-1))
+
+set_isabelle_tool
+
+DEPENDENCIES_FILE="$(mktemp /tmp/afp.XXX)"
+
+echo "Obtaining dependency information ..."
+"$ISABELLE_TOOL" afp_dependencies > "$DEPENDENCIES_FILE" || fail "Could not obtain dependency information"
+
+echo "Checking ROOTs ..."
+"$ISABELLE_TOOL" afp_check_roots || exit 2
+
+echo "Checking presence of Python ..."
+
+case "$(uname -s)" in
+  Darwin)
+    echo "Running on macOS, using system python"
+    PYTHON="/usr/bin/python"
+    ;;
+  *)
+    if [ "$USE_PYTHON_3" = false ]; then
+      echo "Running on Linux, trying to find Python 2.x"
+      PYTHON="$(which python2 2> /dev/null)"
+      if [ -z "$PYTHON" ]; then
+        PYTHON="$(which python 2> /dev/null)"
+      fi
+    else
+      echo "Running on Linux, trying to find Python 3.x"
+      PYTHON="$(which python3 2> /dev/null)"
+    fi
+    ;;
+esac
+
+if [ ! -f "$PYTHON" ]; then
+  fail "No suitable Python found"
+else
+  echo "Found Python at '$PYTHON'"
+fi
+
+echo "Checking presence of bootstrapping ..."
+
+BOOTSTRAP_DIR="$AFP_ROOT/admin/py-bootstrap"
+export PYTHONPATH="$BOOTSTRAP_DIR/lib/python"
+
+if [ ! -d "$BOOTSTRAP_DIR" ]; then
+  echo "Bootstrapping ..."
+  mkdir -p "$BOOTSTRAP_DIR/bin"
+  mkdir -p "$BOOTSTRAP_DIR/lib/python"
+  (
+    cd "$BOOTSTRAP_DIR"
+    curl -sLS "$URL" | tar xzf -
+    cd "virtualenv-$VENV_VERSION"
+    "$PYTHON" setup.py install --home "$BOOTSTRAP_DIR"
+  )
+fi
+
+echo "Bootstrapped."
+
+VENV_DIR="$AFP_ROOT/admin/venv"
+
+if [ ! -d "$VENV_DIR" ]; then
+  echo "Creating venv ..."
+  "$PYTHON" "$BOOTSTRAP_DIR/bin/virtualenv" "$VENV_DIR"
+fi
+
+echo "Activating venv ..."
+source "$VENV_DIR/bin/activate"
+
+PYTHON="$VENV_DIR/bin/python"
+PIP="$VENV_DIR/bin/pip"
+
+echo "Checking Python version in venv ..."
+PYTHON_VERSION="$("$PYTHON" --version 2>&1)"
+case "${PYTHON_VERSION//Python /}" in
+  2*)
+     [ "$USE_PYTHON_3" = false ] || fail "Bootstrapped with $PYTHON_VERSION, but Python 3 requested"
+     ;;
+  3*)
+     [ "$USE_PYTHON_3" = true ] || fail "Bootstrapped with $PYTHON_VERSION, but Python 2 requested"
+     ;;
+esac
+
+echo "Installing dependencies ..."
+"$PIP" install -q -r "$AFP_ROOT/admin/sitegen-req.txt"
+
+echo "Running sitegen ..."
+"$PYTHON" "$AFP_ROOT/admin/sitegen-lib/sitegen.py" \
+  --dest="$AFP_ROOT/web" \
+  --templates="$AFP_ROOT/metadata/templates" \
+  --deps="$DEPENDENCIES_FILE" \
+  "$AFP_ROOT/metadata" "$AFP_ROOT/thys" "$@"

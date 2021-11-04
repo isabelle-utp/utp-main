@@ -1,0 +1,10 @@
+chapter AFP
+
+session Goedel_Incompleteness (AFP) = Syntax_Independent_Logic +
+  description \<open>The Abstract Incompleteness Theorems\<close>
+  options [timeout = 600]
+  theories
+    All_Abstract
+  document_files
+    "root.tex"
+    "root.bib"

@@ -1,0 +1,15 @@
+chapter AFP
+
+session "Belief_Revision" (AFP) = HOL +
+  options [timeout=600]
+  theories
+     AGM_Logic 
+     AGM_Contraction 
+     AGM_Revision 
+     AGM_Remainder
+   document_files
+    "root.tex"
+    "adb-long.bib"
+    "root.bib"
+    "graph_locales.pdf"
+

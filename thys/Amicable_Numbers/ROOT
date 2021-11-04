@@ -1,0 +1,13 @@
+chapter AFP
+
+session Amicable_Numbers (AFP) = "HOL-Number_Theory" +
+  options [timeout = 600]
+  sessions
+    "HOL-Computational_Algebra"
+    "Pratt_Certificate"
+    "Polynomial_Factorization"
+  theories
+    Amicable_Numbers
+  document_files
+    "root.tex"
+    "root.bib"

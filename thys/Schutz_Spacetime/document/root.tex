@@ -1,0 +1,76 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+% shortcuts for event and path sets
+\newcommand{\E}{\mathcal{E}}
+\renewcommand{\P}{\mathcal{P}}
+\newcommand{\spray}{\ensuremath{\textrm{SPRAY}}}
+\newcommand{\ord}[3]{\ensuremath{[#1\;#2\;#3]}}
+
+
+\begin{document}
+
+\title{Geometric Axioms for Minkowski Spacetime}
+\author{Richard Schmoetten, Jake Palmer, Jacques Fleuriot}
+\maketitle
+\begin{abstract}
+This is a formalisation of Schutz' system of axioms for Minkowski spacetime \cite{schutz1997}, as well as the results in his third chapter (``Temporal Order on a Path''), with the exception of the second part of Theorem 12. Many results are proven here that cannot be found in Schutz, either preceding the theorem they are needed for, or in their own thematic section.
+\end{abstract}
+
+\tableofcontents\newpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+%\input{session}
+\input{Util.tex}  % Should be empty
+%\chapter{Ternary Ordering}
+\input{TernaryOrdering.tex}\newpage
+%\chapter{Primitives and Axioms}
+\input{Minkowski.tex}\newpage
+%\chapter{Temporal Order on a Path}
+\input{TemporalOrderOnPath.tex}
+
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

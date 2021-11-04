@@ -1,0 +1,122 @@
+Metadata format
+---------------
+
+We're using a simple INI-like format for configuration files.
+
+-   File `metadata`
+
+    Master storage for entry metadata. Format:
+
+        [<short-name>]
+        title = <title>
+        author = <author1> [<<url1>>], <author2> ...
+        date = <YYYY>-<MM>-<HH>
+        topic = <topic>/<subtopic>/..., <topic2>/...
+        abstract = <text>
+        notify = <email1>, <email2>, ...
+
+    Optional:
+
+        contributors = <contributor1> [<<url1>>], <contributor2> ...
+        license = LGPL
+
+    Example:
+
+        [Presburger-Automata]
+        title = Formalizing the Logic-Automaton Connection
+        author = Stefan Berghofer <http://www.in.tum.de/~berghofe>, Markus Reiter
+        date = 2009-12-03
+        topic = Computer Science/Automata, Logic
+        abstract = This abstract has
+          multiple lines ...
+        notify = stefan.berghofer@example.org
+
+    The section name (`<short-name>` in this terminology) must correspond to
+    the folder name in `thys` directory. This short name is used as entry
+    identifier during the whole process.
+
+    Currently, only three levels of topics and subtopics are allowed, but
+    you may specify as many topics as you wish. If multiple topics are
+    specified, the entry will appear under each of them. Note that the
+    short name must be the same as their name in the `thys` folder. The topic
+    must also appear in the `topics` file (see below).
+
+    For each author, you may provide an URI (either a web page or a mail
+    address, the latter prepended with `mailto:`) in standard `<protocol:uri>`
+    notation.
+
+    The section header and the keys must not contain leading whitespaces. When
+    continuing a value on a second line, this and the following lines must be
+    preceded by a whitespace. The date is the submission date of the entry.
+
+    If you've chosen multiple topics, you can separate them with commas.
+
+    If you want to have some additional text fields like 'Note' or 'Change
+    history' below the 'Abstract' column, you can use the `extra` facility:
+
+        extra-<key> = <heading>: <text>
+
+    where `<key>` denotes an identifier (most cases 0, 1, ...) unique for each
+    entry. The particular `<key>` has no impact on output and is solely used for
+    disambiguating multiple extra fields.
+
+    Example:
+
+        extra-0 = Warning: Untested...
+        extra-1 = History: [2010-01-01] new year
+
+    For entries with a license other than BSD, you can add a line
+
+        license = LGPL
+
+    Allowed values are BSD and LGPL.
+
+    Finally, sometimes existing entries get significant contributions from
+    other authors. These authors can be listed on a 'contributors' line.
+    A separate change-history entry should indicated what these people
+    have contributed
+
+        contributors = Peter Lammich <http://cs.uni-muenster.de/sev/staff/lammich/>
+
+        extra-history = ...
+
+-   File `release-dates`
+
+    To list the older releases, a mapping between date and Isabelle version
+    is necessary.
+
+    Format:
+
+        <isabelle-version> = <release-date>
+
+    Example:
+
+        2003 = 2003-05-13
+        2004 = 2004-04-19
+
+    So, all tarballs between 2003-05-13 (inclusive) and 2004-04-19 (exclusive)
+    will be treated as older release for 'Isabelle 2003'.
+
+-   File `releases`
+
+    Contains a list of all released tarballs. The youngest release is always
+    ignored, so don't forget to add new releases when a new Isabelle version
+    has been added to the `release-dates` file.
+
+    Example:
+
+        afp-AVL-Trees-2009-04-29.tar.gz
+        afp-Abstract-Hoare-Logics-2007-11-27.tar.gz
+        afp-Abstract-Hoare-Logics-2008-06-10.tar.gz
+
+-   File `topics`
+
+    Each topic and its subtopics must go into there. The format looks like that
+    (where `_` denotes exactly one space character):
+
+        first_level_topic
+        __second_level_topic
+        ____third_level_topic
+        __another_second_level_topic
+
+    Only three levels of indentation are supported currently.

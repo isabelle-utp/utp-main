@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Myhill-Nerode Theorem Based on Regular Expressions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>he
+  
+          <font class="first">M</font>yhill-Nerode
+  
+          <font class="first">T</font>heorem
+  
+          <font class="first">B</font>ased
+  
+          on
+  
+          <font class="first">R</font>egular
+  
+          <font class="first">E</font>xpressions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">The Myhill-Nerode Theorem Based on Regular Expressions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Chunhan Wu,
+                Xingyuan Zhang and
+          <a href="http://www.inf.kcl.ac.uk/staff/urbanc/">Christian Urban</a>
+      </td>
+</tr>
+
+  <tr>
+    <td class="datahead">
+              Contributor:
+          </td>
+    <td class="data">
+                  <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a>
+           </td>
+  </tr>
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2011-08-26</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">There are many proofs of the Myhill-Nerode theorem using automata. In this library we give a proof entirely based on regular expressions, since regularity of languages can be conveniently defined using regular expressions (it is more painful in HOL to define regularity in terms of automata).  We prove the first direction of the Myhill-Nerode theorem by solving equational systems that involve regular expressions.  For the second direction we give two proofs: one using tagging-functions and another using partial derivatives. We also establish various closure properties of regular languages. Most details of the theories are described in our ITP 2011 paper.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Myhill-Nerode-AFP,
+  author  = {Chunhan Wu and Xingyuan Zhang and Christian Urban},
+  title   = {The Myhill-Nerode Theorem Based on Regular Expressions},
+  journal = {Archive of Formal Proofs},
+  month   = aug,
+  year    = 2011,
+  note    = {\url{https://isa-afp.org/entries/Myhill-Nerode.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Abstract-Rewriting.html">Abstract-Rewriting</a>, <a href="Open_Induction.html">Open_Induction</a>, <a href="Regular-Sets.html">Regular-Sets</a>, <a href="Well_Quasi_Orders.html">Well_Quasi_Orders</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Myhill-Nerode/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Myhill-Nerode/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Myhill-Nerode/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Myhill-Nerode-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Myhill-Nerode-2020-04-20.tar.gz">
+              afp-Myhill-Nerode-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Myhill-Nerode-2019-06-11.tar.gz">
+              afp-Myhill-Nerode-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Myhill-Nerode-2018-08-16.tar.gz">
+              afp-Myhill-Nerode-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Myhill-Nerode-2017-10-10.tar.gz">
+              afp-Myhill-Nerode-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Myhill-Nerode-2016-12-17.tar.gz">
+              afp-Myhill-Nerode-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Myhill-Nerode-2016-02-22.tar.gz">
+              afp-Myhill-Nerode-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Myhill-Nerode-2015-05-27.tar.gz">
+              afp-Myhill-Nerode-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Myhill-Nerode-2014-08-28.tar.gz">
+              afp-Myhill-Nerode-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Myhill-Nerode-2013-12-11.tar.gz">
+              afp-Myhill-Nerode-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Myhill-Nerode-2013-11-17.tar.gz">
+              afp-Myhill-Nerode-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Myhill-Nerode-2013-03-02.tar.gz">
+              afp-Myhill-Nerode-2013-03-02.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2013:
+            <a href="../release/afp-Myhill-Nerode-2013-02-16.tar.gz">
+              afp-Myhill-Nerode-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Myhill-Nerode-2012-05-24.tar.gz">
+              afp-Myhill-Nerode-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Myhill-Nerode-2011-10-11.tar.gz">
+              afp-Myhill-Nerode-2011-10-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Formalizing a Seligman-Style Tableau System for Hybrid Logic - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">F</font>ormalizing
+  
+          a
+  
+          <font class="first">S</font>eligman-Style
+  
+          <font class="first">T</font>ableau
+  
+          <font class="first">S</font>ystem
+  
+          for
+  
+          <font class="first">H</font>ybrid
+  
+          <font class="first">L</font>ogic
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Formalizing a Seligman-Style Tableau System for Hybrid Logic</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://people.compute.dtu.dk/ahfrom/">Asta Halkjær From</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-12-20</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+This work is a formalization of soundness and completeness proofs
+for a Seligman-style tableau system for hybrid logic. The completeness
+result is obtained via a synthetic approach using maximally
+consistent sets of tableau blocks. The formalization differs from
+previous work in a few ways. First, to avoid the need to backtrack in
+the construction of a tableau, the formalized system has no unnamed
+initial segment, and therefore no Name rule. Second, I show that the
+full Bridge rule is admissible in the system. Third, I start from rules
+restricted to only extend the branch with new formulas, including only
+witnessing diamonds that are not already witnessed, and show that
+the unrestricted rules are admissible. Similarly, I start from simpler
+versions of the @-rules and show that these are sufficient.
+The GoTo rule is restricted using a notion of potential such that each
+application consumes potential and potential is earned through applications of
+the remaining rules. I show that if a branch can be closed then it can
+be closed starting from a single unit. Finally, Nom is restricted by
+a fixed set of allowed nominals. The resulting system should be terminating.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2020-06-03]: The fully restricted system has been shown complete by updating the synthetic completeness proof.</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Hybrid_Logic-AFP,
+  author  = {Asta Halkjær From},
+  title   = {Formalizing a Seligman-Style Tableau System for Hybrid Logic},
+  journal = {Archive of Formal Proofs},
+  month   = dec,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/Hybrid_Logic.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Hybrid_Logic/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Hybrid_Logic/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Hybrid_Logic/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Hybrid_Logic-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Hybrid_Logic-2020-04-18.tar.gz">
+              afp-Hybrid_Logic-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Hybrid_Logic-2020-01-07.tar.gz">
+              afp-Hybrid_Logic-2020-01-07.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{stmaryrd}
+\usepackage{mathtools}
+\usepackage{amssymb}
+
+
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{X86 instruction semantics and basic block symbolic execution}
+\author{Freek Verbeek
+  \and Abhijith Bharadwaj
+  \and Joshua Bockenek
+  \and Ian Roessle
+  \and Timmy Weerwag
+  \and Binoy Ravindran}
+\maketitle
+
+\begin{abstract}
+This AFP entry provides semantics for roughly 120 different X86-64 assembly instructions. These instructions include various moves, arithmetic/logical operations, jumps, call/return, SIMD extensions and others. External functions are supported by allowing a user to provide custom semantics for these calls. Floating-point operations are mapped to uninterpreted functions. The model provides semantics for register aliassing and a byte-level little-endian memory model. The semantics are purposefully incomplete, but overapproximative. For example, the precise effect of flags may be undefined for certain instructions, or instructions may simply have no semantics at all. In those cases, the semantics are mapped to universally quantified uninterpreted terms from a locale. Second, this entry provides a method to symbolic execution of basic blocks. The method, called ''se\_step'' (for: symbolic execution step) fetches an instruction and updates the current symbolic state while keeping track of assumptions made over the memory model. A key component is a set of theorems that prove how reads from memory resolve after writes have occured. Thirdly, this entry provides a parser that allows the user to copy-paste the output of the standard disassembly tool objdump into Isabelle/HOL. Several examples are supplied: a couple small and explanatory examples, functions from the word count program, the floating-point modulo function from FDLIBM, the GLIBC strlen function and the CoreUtils SHA256 implementation.
+\end{abstract}
+
+\tableofcontents
+
+% include generated text of all theories
+\input{session}
+\cite{LNCS2283}
+
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

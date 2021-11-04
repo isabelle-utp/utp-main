@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Network Security Policy Verification - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">N</font>etwork
+  
+          <font class="first">S</font>ecurity
+  
+          <font class="first">P</font>olicy
+  
+          <font class="first">V</font>erification
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Network Security Policy Verification</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://net.in.tum.de/~diekmann">Cornelius Diekmann</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-07-04</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We present a unified theory for verifying network security policies.
+A security policy is represented as directed graph.
+To check high-level security goals, security invariants over the policy are
+expressed. We cover monotonic security invariants, i.e. prohibiting more does not harm
+security. We provide the following contributions for the security invariant theory.
+<ul>
+<li>Secure auto-completion of scenario-specific knowledge, which eases usability.</li>
+<li>Security violations can be repaired by tightening the policy iff the
+security invariants hold for the deny-all policy.</li>
+<li>An algorithm to compute a security policy.</li>
+<li>A formalization of stateful connection semantics in network security mechanisms.</li>
+<li>An algorithm to compute a secure stateful implementation of a policy.</li>
+<li>An executable implementation of all the theory.</li>
+<li>Examples, ranging from an aircraft cabin data network to the analysis
+of a large real-world firewall.</li>
+<li>More examples: A fully automated translation of high-level security goals to both
+firewall and SDN configurations (see Examples/Distributed_WebApp.thy).</li>
+</ul>
+For a detailed description, see
+<ul>
+<li>C. Diekmann, A. Korsten, and G. Carle.
+<a href="http://www.net.in.tum.de/fileadmin/bibtex/publications/papers/diekmann2015mansdnnfv.pdf">Demonstrating
+topoS: Theorem-prover-based synthesis of secure network configurations.</a>
+In 2nd International Workshop on Management of SDN and NFV Systems, manSDN/NFV, Barcelona, Spain, November 2015.</li>
+<li>C. Diekmann, S.-A. Posselt, H. Niedermayer, H. Kinkelin, O. Hanka, and G. Carle.
+<a href="http://www.net.in.tum.de/pub/diekmann/forte14.pdf">Verifying Security Policies using Host Attributes.</a>
+In FORTE, 34th IFIP International Conference on Formal Techniques for Distributed Objects,
+Components and Systems, Berlin, Germany, June 2014.</li>
+<li>C. Diekmann, L. Hupel, and G. Carle. Directed Security Policies:
+<a href="http://rvg.web.cse.unsw.edu.au/eptcs/paper.cgi?ESSS2014.3">A Stateful Network Implementation.</a>
+In J. Pang and Y. Liu, editors, Engineering Safety and Security Systems,
+volume 150 of Electronic Proceedings in Theoretical Computer Science,
+pages 20-34, Singapore, May 2014. Open Publishing Association.</li>
+</ul></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2015-04-14]:
+Added Distributed WebApp example and improved graphviz visualization
+(revision 4dde08ca2ab8)<br></td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Network_Security_Policy_Verification-AFP,
+  author  = {Cornelius Diekmann},
+  title   = {Network Security Policy Verification},
+  journal = {Archive of Formal Proofs},
+  month   = jul,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/Network_Security_Policy_Verification.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Automatic_Refinement.html">Automatic_Refinement</a>, <a href="Transitive-Closure.html">Transitive-Closure</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Network_Security_Policy_Verification/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Network_Security_Policy_Verification/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Network_Security_Policy_Verification/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Network_Security_Policy_Verification-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Network_Security_Policy_Verification-2020-04-20.tar.gz">
+              afp-Network_Security_Policy_Verification-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Network_Security_Policy_Verification-2019-06-11.tar.gz">
+              afp-Network_Security_Policy_Verification-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Network_Security_Policy_Verification-2018-08-16.tar.gz">
+              afp-Network_Security_Policy_Verification-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Network_Security_Policy_Verification-2017-10-10.tar.gz">
+              afp-Network_Security_Policy_Verification-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Network_Security_Policy_Verification-2016-12-17.tar.gz">
+              afp-Network_Security_Policy_Verification-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Network_Security_Policy_Verification-2016-02-22.tar.gz">
+              afp-Network_Security_Policy_Verification-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Network_Security_Policy_Verification-2015-05-27.tar.gz">
+              afp-Network_Security_Policy_Verification-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Network_Security_Policy_Verification-2014-08-28.tar.gz">
+              afp-Network_Security_Policy_Verification-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Network_Security_Policy_Verification-2014-07-09.tar.gz">
+              afp-Network_Security_Policy_Verification-2014-07-09.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

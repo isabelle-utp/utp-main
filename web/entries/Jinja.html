@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jinja is not Java - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">J</font>inja
+  
+          is
+  
+          not
+  
+          <font class="first">J</font>ava
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Jinja is not Java</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="http://www.cse.unsw.edu.au/~kleing/">Gerwin Klein</a> and
+          <a href="http://www21.in.tum.de/~nipkow">Tobias Nipkow</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2005-06-01</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">We introduce Jinja, a Java-like programming language with a formal semantics designed to exhibit core features of the Java language architecture. Jinja is a compromise between realism of the language and tractability and clarity of the formal semantics. The following aspects are formalised: a big and a small step operational semantics for Jinja and a proof of their equivalence; a type system and a definite initialisation analysis; a type safety proof of the small step semantics; a virtual machine (JVM), its operational semantics and its type system; a type safety proof for the JVM; a bytecode verifier, i.e. data flow analyser for the JVM; a correctness proof of the bytecode verifier w.r.t. the type system; a compiler and a proof that it preserves semantics and well-typedness. The emphasis of this work is not on particular language features but on providing a unified model of the source language, the virtual machine and the compiler. The whole development has been carried out in the theorem prover Isabelle/HOL.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Jinja-AFP,
+  author  = {Gerwin Klein and Tobias Nipkow},
+  title   = {Jinja is not Java},
+  journal = {Archive of Formal Proofs},
+  month   = jun,
+  year    = 2005,
+  note    = {\url{https://isa-afp.org/entries/Jinja.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="List-Index.html">List-Index</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="HRB-Slicing.html">HRB-Slicing</a>, <a href="JinjaDCI.html">JinjaDCI</a>, <a href="Slicing.html">Slicing</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Jinja/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Jinja/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Jinja/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Jinja-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Jinja-2020-04-18.tar.gz">
+              afp-Jinja-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Jinja-2019-06-11.tar.gz">
+              afp-Jinja-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Jinja-2018-08-16.tar.gz">
+              afp-Jinja-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Jinja-2017-10-10.tar.gz">
+              afp-Jinja-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Jinja-2016-12-17.tar.gz">
+              afp-Jinja-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Jinja-2016-02-22.tar.gz">
+              afp-Jinja-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Jinja-2015-05-27.tar.gz">
+              afp-Jinja-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Jinja-2014-08-28.tar.gz">
+              afp-Jinja-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Jinja-2013-12-11.tar.gz">
+              afp-Jinja-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Jinja-2013-11-17.tar.gz">
+              afp-Jinja-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Jinja-2013-02-16.tar.gz">
+              afp-Jinja-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Jinja-2012-05-24.tar.gz">
+              afp-Jinja-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Jinja-2011-10-11.tar.gz">
+              afp-Jinja-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-Jinja-2011-02-11.tar.gz">
+              afp-Jinja-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-Jinja-2010-07-01.tar.gz">
+              afp-Jinja-2010-07-01.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-1:
+            <a href="../release/afp-Jinja-2009-12-12.tar.gz">
+              afp-Jinja-2009-12-12.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009:
+            <a href="../release/afp-Jinja-2009-04-29.tar.gz">
+              afp-Jinja-2009-04-29.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2008:
+            <a href="../release/afp-Jinja-2008-06-10.tar.gz">
+              afp-Jinja-2008-06-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2007:
+            <a href="../release/afp-Jinja-2007-11-27.tar.gz">
+              afp-Jinja-2007-11-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2005:
+            <a href="../release/afp-Jinja-2006-08-08.tar.gz">
+              afp-Jinja-2006-08-08.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2005:
+            <a href="../release/afp-Jinja-2005-10-14.tar.gz">
+              afp-Jinja-2005-10-14.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{cite}
+\usepackage{amssymb}
+
+\usepackage{pdfsetup}
+
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{Formalization of Timely Dataflow's\\ Progress Tracking Protocol}
+\author{Matthias Brun, S\'ara Decova, Andrea Lattuada, and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract}
+Large-scale stream processing systems often follow the dataflow paradigm, which enforces a program
+structure that exposes a high degree of parallelism. The Timely Dataflow distributed system supports
+expressive cyclic dataflows for which it offers low-latency data- and pipeline-parallel stream processing.
+To achieve high expressiveness and performance, Timely Dataflow uses an intricate distributed protocol
+for tracking the computation’s progress. We formalize this progress tracking protocol and verify its safety.
+Our formalization is described in detail in the forthcoming ITP'21 paper~\cite{BrunDLT-ITP21}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\section{Introduction}
+
+The dataflow programming model represents a program as a directed graph of interconnected operators
+that perform per-tuple data transformations. A message (an incoming datum) arrives at an input (a
+root of the dataflow) and flows along the graph's edges into operators. Each operator takes the
+message, processes it, and emits any resulting derived messages.
+
+In a dataflow system, all messages are associated with a timestamp, and operator instances need to
+know up-to-date (timestamp) \textit{frontiers}---lower bounds on what timestamps may still appear as
+their inputs. When informed that all data for a range of timestamps has been delivered, an operator
+instance can complete the computation on input data for that range of timestamps, produce the
+resulting output, and retire those timestamps.
+
+A \textit{progress tracking mechanism} is a core component of the dataflow system. It receives
+information on outstanding timestamps from operator instances, exchanges this information with other
+system workers (cores, nodes) and disseminates up-to-date approximations of the frontiers to all
+operator instances. This AFP entry formally models and proves the safety of the progress
+tracking protocol of \textit{Timely
+Dataflow}~\cite{DBLP:conf/sosp/MurrayMIIBA13,URL:timely-dataflow}, a dataflow programming
+model and a state-of-the-art streaming, data-parallel, distributed data processor.
+Specifically, we
+prove that the progress tracking protocol computes frontiers that always constitute safe lower bounds on what
+timestamps may still appear on the operator inputs.
+The formalization is described in detail in the forthcoming ITP'21 paper~\cite{BrunDLT-ITP21}.
+
+The ITP paper~\cite{BrunDLT-ITP21} closely follows this formalization's structure. In particular, the paper's presentation
+is split into four main sections each of which is present in the formalization (each in a separate
+theory file):
+\begin{center}
+\begin{tabular}{@{}p{0.27\textwidth}p{0.215\textwidth}p{0.168\textwidth}p{0.243\textwidth}@{}}
+Algorithm/protocol&Section in this proof document&Section in \cite{BrunDLT-ITP21}&Theory file\\\hline
+Abadi et al.~\cite{DBLP:conf/forte/AbadiMMR13}'s clocks protocol&Section~\ref{sec:clocks}&Section 3&Exchange\_Abadi\\
+Exchange protocol&Section~\ref{sec:exchange}&Section 4&Exchange\\
+Local propagation algorithm&Section~\ref{sec:propagate}&Section 5&Propagate\\
+Combined protocol&Section~\ref{sec:combined}&Section 6&Combined
+\end{tabular}
+\end{center}
+
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

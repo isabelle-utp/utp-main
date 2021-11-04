@@ -1,0 +1,18 @@
+chapter AFP
+
+session Complex_Bounded_Operators(AFP) = "HOL-Analysis" +
+  options [timeout = 1200]
+  sessions 
+    "HOL-Types_To_Sets" 
+    Jordan_Normal_Form 
+    Banach_Steinhaus
+    Real_Impl
+  directories 
+    extra
+  theories
+    Complex_L2
+    Cblinfun_Code
+    Cblinfun_Code_Examples
+  document_files 
+    root.tex
+    root.bib

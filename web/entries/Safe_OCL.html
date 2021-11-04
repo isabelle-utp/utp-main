@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Safe OCL - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>afe
+  
+          <font class="first">O</font>CL
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Safe OCL</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Denis Nikiforov
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-03-09</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>The theory is a formalization of the
+<a href="https://www.omg.org/spec/OCL/">OCL</a> type system, its abstract
+syntax and expression typing rules. The theory does not define a concrete
+syntax and a semantics. In contrast to
+<a href="https://www.isa-afp.org/entries/Featherweight_OCL.html">Featherweight OCL</a>,
+it is based on a deep embedding approach. The type system is defined from scratch,
+it is not based on the Isabelle HOL type system.</p>
+<p>The Safe OCL distincts nullable and non-nullable types. Also the theory gives a
+formal definition of <a href="http://ceur-ws.org/Vol-1512/paper07.pdf">safe
+navigation operations</a>. The Safe OCL typing rules are much stricter than rules
+given in the OCL specification. It allows one to catch more errors on a type
+checking phase.</p>
+<p>The type theory presented is four-layered: classes, basic types, generic types,
+errorable types. We introduce the following new types: non-nullable types (T[1]),
+nullable types (T[?]), OclSuper. OclSuper is a supertype of all other types (basic
+types, collections, tuples). This type allows us to define a total supremum function,
+so types form an upper semilattice. It allows us to define rich expression typing
+rules in an elegant manner.</p>
+<p>The Preliminaries Chapter of the theory defines a number of helper lemmas for
+transitive closures and tuples. It defines also a generic object model independent
+from OCL. It allows one to use the theory as a reference for formalization of analogous languages.</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Safe_OCL-AFP,
+  author  = {Denis Nikiforov},
+  title   = {Safe OCL},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/Safe_OCL.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE.LGPL">GNU Lesser General Public License (LGPL)</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Safe_OCL/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Safe_OCL/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Safe_OCL/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Safe_OCL-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Safe_OCL-2020-04-20.tar.gz">
+              afp-Safe_OCL-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Safe_OCL-2019-06-11.tar.gz">
+              afp-Safe_OCL-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Safe_OCL-2019-03-14.tar.gz">
+              afp-Safe_OCL-2019-03-14.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

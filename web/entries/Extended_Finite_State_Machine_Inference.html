@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inference of Extended Finite State Machines - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">I</font>nference
+  
+          of
+  
+          <font class="first">E</font>xtended
+  
+          <font class="first">F</font>inite
+  
+          <font class="first">S</font>tate
+  
+          <font class="first">M</font>achines
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Inference of Extended Finite State Machines</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Michael Foster (jmafoster1 /at/ sheffield /dot/ ac /dot/ uk),
+                  <a href="https://www.brucker.ch">Achim D. Brucker</a>,
+                Ramsay G. Taylor (r /dot/ g /dot/ taylor /at/ sheffield /dot/ ac /dot/ uk) and
+          John Derrick (j /dot/ derrick /at/ sheffield /dot/ ac /dot/ uk)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-09-07</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+In this AFP entry, we provide a formal implementation of a
+state-merging technique to infer extended finite state machines
+(EFSMs), complete with output and update functions, from black-box
+traces. In particular, we define the subsumption in context relation
+as a means of determining whether one transition is able to account
+for the behaviour of another. Building on this, we define the direct
+subsumption relation, which lifts the subsumption in context relation
+to EFSM level such that we can use it to determine whether it is safe
+to merge a given pair of transitions. Key proofs include the
+conditions necessary for subsumption to occur and that subsumption
+and direct subsumption are preorder relations.  We also provide a
+number of different heuristics which can be used to abstract away
+concrete values into registers so that more states and transitions can
+be merged and provide proofs of the various conditions which must hold
+for these abstractions to subsume their ungeneralised counterparts. A
+Code Generator setup to create executable Scala code is also defined.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Extended_Finite_State_Machine_Inference-AFP,
+  author  = {Michael Foster and Achim D. Brucker and Ramsay G. Taylor and John Derrick},
+  title   = {Inference of Extended Finite State Machines},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Extended_Finite_State_Machine_Inference.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Extended_Finite_State_Machines.html">Extended_Finite_State_Machines</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Extended_Finite_State_Machine_Inference/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Extended_Finite_State_Machine_Inference/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Extended_Finite_State_Machine_Inference/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Extended_Finite_State_Machine_Inference-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Extended_Finite_State_Machine_Inference-2020-09-19.tar.gz">
+              afp-Extended_Finite_State_Machine_Inference-2020-09-19.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

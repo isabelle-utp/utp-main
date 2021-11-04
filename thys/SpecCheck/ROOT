@@ -1,0 +1,30 @@
+chapter AFP
+
+session SpecCheck (AFP) = "Pure" +
+  description
+    \<open>SpecCheck is a specification-based testing environment for ML programs. It is based on QCheck
+    (\<^url>\<open>https://github.com/league/qcheck/\<close>) by Christopher League (\<^url>\<open>https://contrapunctus.net/\<close>).
+    It got adapted and extended to fit into the Isabelle/ML framework and resemble the very
+    successful QuickCheck (\<^url>\<open>https://en.wikipedia.org/wiki/QuickCheck\<close>) more closely.\<close>
+  options [timeout = 300]
+
+  directories
+    dynamic
+    examples
+    generators
+    output_styles
+    "show"
+    shrink
+
+  theories
+    SpecCheck_Generators
+    SpecCheck_Output_Style
+    SpecCheck_Show
+    SpecCheck_Shrink
+    SpecCheck
+    SpecCheck_Dynamic
+  theories [document = false]
+    SpecCheck_Examples
+    
+  document_files
+    "root.tex"

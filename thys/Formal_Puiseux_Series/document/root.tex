@@ -1,0 +1,43 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{amsfonts, amsmath, amssymb}
+\usepackage{pgfplots}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{Formal Puiseux Series}
+\author{Manuel Eberl}
+\maketitle
+
+\begin{abstract}
+Formal Puiseux series are generalisations of formal power series and formal Laurent series that also allow for fractional exponents. They have the following general form:
+\[\sum_{i=N}^\infty a_{i/d} X^{i/d}\]
+where $N$ is an integer and $d$ is a positive integer.
+
+This entry defines these series including their basic algebraic properties. Furthermore, it proves the Newton--Puiseux Theorem, namely that the Puiseux series over an algebraically closed field of characteristic 0 are also algebraically closed.
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\nocite{corless96}
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:
