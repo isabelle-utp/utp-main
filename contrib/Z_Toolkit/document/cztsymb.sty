@@ -1,0 +1,638 @@
+%% This is file `czt.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% czt.dtx  (with options: `package')
+%%
+%% This is a generated file
+%%
+%% Copyright (C) 2008 Leo Freitas.
+%% University of York All rights reserved.
+%%
+%% This is a generated file for Standard Z within the
+%% Community Z Tools (CZT). It is based on the Object Z
+%% package distribution.  Permission is granted to to
+%% customize the declarations in this file to serve the
+%% needs of your installation.  However, no permission
+%% is granted to distribute a modified version of this
+%% file under its original name.
+%%
+\def\fileversion{v.1.4}
+\def\filedate{2015/07/23}
+\def\filedesc{Standard Z style file by the Community Z Tools}
+
+\NeedsTeXFormat{LaTeX2e}[1999/12/01]
+\ProvidesPackage{czt}
+    [\filedate\space\fileversion\space \filedesc]
+\message{`\filedesc'\space \fileversion\space <\filedate>}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Design guidelines:
+%   1) keep it minimal + simple + consistent
+%   2) for machine readable Standard Z only
+%   3) identify code sources (when different)
+%   4) normalise definitions for consistency
+%   5) complete missing cases (use common sense)
+%   6) keep it well documented, but not verbose
+%   7) follow order of definitions from Z Standard document
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Package options - zed.sty (old version of zed-csp.sty)        %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                               %
+
+% create conditionals for each option available, init=false
+\newif\if@lucida@    \@lucida@false
+\newif\if@color@     \@color@false
+\newif\if@mathit@    \@mathit@false
+\newif\if@mathrm@    \@mathrm@false
+\newif\if@tkkeyword@ \@tkkeyword@false
+
+\newif\if@cntglobally@ \@cntglobally@false
+\newif\if@cntbychapter@ \@cntbychapter@false
+\newif\if@cntbysection@ \@cntbysection@false
+
+% declare what each option actually do - colour=synonym(color)
+\DeclareOption{lucida}{\PackageInfo{czt}{'lucidda' option chosen} \@lucida@true}
+\DeclareOption{color}{\PackageInfo{czt}{'color' option chosen} \@color@true}
+\DeclareOption{colour}{\PackageInfo{czt}{'color' option chosen} \@color@true}
+\DeclareOption{mathit}{\PackageInfo{czt}{'mathit' option chosen} \@mathit@true \@mathrm@false}
+\DeclareOption{mathrm}{\PackageInfo{czt}{'mathrm' option chosen} \@mathit@false \@mathrm@true}
+\DeclareOption{tkkeyword}{\PackageInfo{czt}{'tkkeyword' option chosen} \@tkkeyword@true}
+
+% way to handle paragraph counting
+\DeclareOption{cntglobally}{\PackageInfo{czt}{'cntglobally' option chosen} \@cntglobally@true  \@cntbychapter@false \@cntbysection@false}
+\DeclareOption{cntbychapter}{\PackageInfo{czt}{'cntbychapter' option chosen} \@cntglobally@false \@cntbychapter@true  \@cntbysection@false}
+\DeclareOption{cntbysection}{\PackageInfo{czt}{'cntbysection' option chosen} \@cntglobally@false \@cntbychapter@false \@cntbysection@true}
+
+% default option as using math italics for mathcode names.
+%\ExecuteOptions{mathit,cntglobally}
+\ProcessOptions\relax
+
+% if Lucida Bright is chosen, then load the package with necessary dependencies
+\if@lucida@
+  \@ifpackageloaded{lucidabr}{%
+      \PackageInfo{czt}{Lucida Bright already loaded}
+    }{%
+      \PackageInfo{czt}{Loading Lucida Bright with `expert' and `altbullet' options.\MessageBreak %
+          We also require the `texnansi' package}
+      \RequirePackage{texnansi}
+      \RequirePackage[expert,altbullet]{lucidabr}
+    }
+\else
+   \PackageInfo{czt}{AMS fonts selected with default options}
+\fi
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Some needed markers used in some symbols - font independant   %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                               %
+
+% horizontal raised bar: used for negated \dres\rres
+\def\zmark@hbar#1{\rlap{\raise.0001ex\hbox{$-$}}{#1}}
+
+% vertical raised bar: used for partial and finite markings. #1=symbol
+\def\zmark@pvbar#1{\ooalign{\hfil$\mapstochar\mkern 5mu$\hfil\cr$#1$}}
+\def\zmark@fvbar#1{\ooalign{\hfil$\mapstochar\mkern 3mu\mapstochar\mkern 5mu$\hfil\cr$#1$}}
+
+% doubled arrow function symbols. symbol = #1/#3; space delta = #2
+% surjection (#1=\fun, #2=4mu, #3=\fun); bijection (#1=\inj, #2=5mu, #3=\fun)
+\def\zmark@darrow#1#2#3{\ooalign{$#1$\hfil\cr$\mkern#3mu#2$}}
+
+%                                                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Loading mathematical symbols from AMS/Lucuida fonts           %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                                               %
+
+% declares the math version for fonts as czt
+\DeclareMathVersion{czt}
+\PackageInfo{czt}{Creating `czt' math version}
+
+% Selects St. Mary's Road symbol package font
+\DeclareSymbolFont{stmry}{U}{stmry}{m}{n}
+
+% Specify aliases for mathematical operator categories
+\DeclareSymbolFontAlphabet{\mathrm}{operators}
+\DeclareSymbolFontAlphabet{\mathit}{letters}
+\DeclareSymbolFontAlphabet{\mathcal}{symbols}
+
+% Some math alphabet defaults regardless of the chosen font
+\SetMathAlphabet{\mathrm}{czt}{\encodingdefault}{\rmdefault}{m}{n}%
+\SetMathAlphabet{\mathbf}{czt}{\encodingdefault}{\rmdefault}{bx}{n}%
+\SetMathAlphabet{\mathsf}{czt}{\encodingdefault}{\sfdefault}{m}{n}%
+
+% set symbol font italics for both Lucida and AMS fonts
+% this changes the behaviour of \symitalics
+\DeclareSymbolFont{italics}{\encodingdefault}{\rmdefault}{m}{it}%
+\DeclareSymbolFontAlphabet{\zit}{italics}
+
+% Saved symbols with other names
+\let\mathemptyset=\emptyset % save old \emptyset set version
+\let\mathdiv=\div           % save the math division symbol
+\let\mathstar=\star         % save old \star version
+
+% Loading symbols conditionally to Lucida Bright / AMS .
+%
+% To allow independent conditional loading of fonts, we
+% follow the name convention: \zsym@XXX for all needed
+% symbols. Equal symbols in both fonts appear at the end.
+%
+\@ifpackageloaded{lucidabr}{%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % Lucida Bright font setup                                      %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %                                                               %
+    \PackageInfo{czt}{Loading Lucida Bright font symbols for Z}
+
+    % Encodings from lucidabr.sty
+    %
+    \DeclareSymbolFont{arrows}{LMR}{hlcm}{m}{n} %arrows     =LMR/hlcm/m/n
+    \DeclareSymbolFont{letters}{OML}{hlcm}{m}{n} %letters    =OML/hlcm/m/n ; % mathupright= in lucida@expert mode
+    \DeclareSymbolFont{symbols}{OMS}{hlcy}{m}{n} %symbols    =OMS/hlcy/m/n
+    %operators=\operator@encoding/\rmdefault/m/n
+    %         =OT1-T1-LY1 / ?? / m /n
+    %largesymbols=OMX/hlcv/m/n
+
+    % Mathematical alphabet in lucidabr - \mathbb = math. blackboard bold
+    \DeclareSymbolFontAlphabet{\mathbb}{arrows}
+
+    % Math symbols declaration within Lucida Bright
+
+    %%%%%%%%%%%%%%%%% A.2.4.1 - Greek alphabet treated as operators %
+
+    % Or should this be largesymbols / mathupright (see lucidabr.sty)?
+    \DeclareMathSymbol{\zsym@Delta}{\mathord}{letters}{"01}%
+    \DeclareMathSymbol{\zsym@Xi}{\mathord}{letters}{"04}%
+    \DeclareMathSymbol{\zsym@theta}{\mathord}{letters}{"12}%
+    \DeclareMathSymbol{\zsym@lambda}{\mathord}{letters}{"15}%
+    \DeclareMathSymbol{\zsym@mu}{\mathord}{letters}{"16}%
+
+    %%%%%%%%%%%%%%%%% A.2.4.2 - Other letter characters             %
+    % Other special letters
+    \DeclareMathSymbol{\zsym@arithmos}{\mathord}{arrows}{"41}%
+    \DeclareMathSymbol{\zsym@nat}{\mathord}{arrows}{"4E}%
+    \DeclareMathSymbol{\zsym@power}{\mathord}{arrows}{"50}%
+    \def \zsym@arithmos {\mathbb A}
+    \def \zsym@nat      {\mathbb N}
+    \def \zsym@power    {\mathbb P}
+
+    % Other Greek letters
+    % Or should this be largesymbols / mathupright (see lucidabr.sty)?
+    \DeclareMathSymbol{\zsym@alpha}{\mathord}{letters}{"0B}%
+    \DeclareMathSymbol{\zsym@beta}{\mathord}{letters}{"0C}%
+    \DeclareMathSymbol{\zsym@gamma}{\mathord}{letters}{"0D}%
+    \DeclareMathSymbol{\zsym@delta}{\mathord}{letters}{"0E}%
+    \DeclareMathSymbol{\zsym@epsilon}{\mathord}{letters}{"0F}%
+    \DeclareMathSymbol{\zsym@zeta}{\mathord}{letters}{"10}%
+    \DeclareMathSymbol{\zsym@eta}{\mathord}{letters}{"11}%
+    \DeclareMathSymbol{\zsym@iota}{\mathord}{letters}{"13}%
+    \DeclareMathSymbol{\zsym@kappa}{\mathord}{letters}{"14}%
+    \DeclareMathSymbol{\zsym@nu}{\mathord}{letters}{"17}%
+    \DeclareMathSymbol{\zsym@xi}{\mathord}{letters}{"18}%
+    \DeclareMathSymbol{\zsym@pi}{\mathord}{letters}{"19}%
+    \DeclareMathSymbol{\zsym@rho}{\mathord}{letters}{"1A}%
+    \DeclareMathSymbol{\zsym@sigma}{\mathord}{letters}{"1B}%
+    \DeclareMathSymbol{\zsym@tau}{\mathord}{letters}{"1C}%
+    \DeclareMathSymbol{\zsym@upsilon}{\mathord}{letters}{"1D}%
+    \DeclareMathSymbol{\zsym@phi}{\mathord}{letters}{"1E}%
+    \DeclareMathSymbol{\zsym@chi}{\mathord}{letters}{"1F}%
+    \DeclareMathSymbol{\zsym@psi}{\mathord}{letters}{"20}%
+    \DeclareMathSymbol{\zsym@omega}{\mathord}{letters}{"21}%
+    \DeclareMathSymbol{\zsym@Gamma}{\mathord}{letters}{"00}%
+    \DeclareMathSymbol{\zsym@Theta}{\mathord}{letters}{"02}%
+    \DeclareMathSymbol{\zsym@Lambda}{\mathord}{letters}{"03}%
+    \DeclareMathSymbol{\zsym@Pi}{\mathord}{letters}{"05}%
+    \DeclareMathSymbol{\zsym@Sigma}{\mathord}{letters}{"06}%
+    \DeclareMathSymbol{\zsym@Upsilon}{\mathord}{letters}{"07}%
+    \DeclareMathSymbol{\zsym@Phi}{\mathord}{letters}{"08}%
+    \DeclareMathSymbol{\zsym@Psi}{\mathord}{letters}{"09}%
+    \DeclareMathSymbol{\zsym@Omega}{\mathord}{letters}{"0A}%
+
+    %%%%%%%%%%%%%%%%% A.2.4.3 - Special characters                  %
+    %\def \zsym@langle  no need to redefine?
+    %\def \zsym@rangle  no need to redefine?
+    \def \zsym@lblot    {{\langle}\mkern -5mu{|}}
+    \def \zsym@rblot    {{|}\mkern -5mu{\rangle}}
+    \def \zsym@ldata    {\langle\!\langle}
+    \def \zsym@rdata    {\rangle\!\rangle}
+    \DeclareMathSymbol{\zsym@spot}{\mathrel}{symbols}{"0F}%
+    \DeclareMathSymbol{\zsym@in}{\mathrel}{symbols}{"32}%
+
+    %%%%%%%%%%%%%%%%% A.2.4.4 - symbol characters predicate logic   %
+    % Generic Z operators
+    \DeclareMathSymbol{\zsym@vdash}{\mathord}{symbols}{"60}%
+    \DeclareMathSymbol{\zsym@cross}{\mathbin}{symbols}{"02}%
+
+    % Schema operators defined as slightly bigger with \z@Bigbinop
+    \DeclareMathSymbol{\zsym@solidus}{\mathbin}{symbols}{"6E}% %{letters}{"D8}%
+    \DeclareMathSymbol{\zsym@pipe}{\mathrel}{symbols}{"1D}%
+    %\def \zsym@comp       {\raise 0.66ex\hbox{\oalign{\hfil$\scriptscriptstyle%
+    %                       \mathrm{o}$\hfil\cr\hfil$\scriptscriptstyle\mathrm{9}$\hfil}}}
+    \def \zsym@typecolon  {\raise 0.66ex\hbox{\oalign{\hfil$\scriptscriptstyle%
+                           \mathrm{o}$\hfil\cr\hfil$\scriptscriptstyle\mathrm{o}$\hfil}}}%
+    \DeclareMathSymbol{\zsym@comp}{\mathbin}{stmry}{"23}%
+
+    % Predicate and propositional Logic operators - \mathrel please.
+    % Both oz.sty and zed.sty \implies and \iff were not \mathstrut.
+    % Adjust the original quantifiers as prefix ops with \mathstrut.
+    %
+    %\def \zsym@not {\neg\;}
+    \DeclareMathSymbol{\zsym@not}{\mathop}{symbols}{"3A}%
+    \DeclareMathSymbol{\zsym@and}{\mathrel}{symbols}{"5E}%
+    \DeclareMathSymbol{\zsym@or}{\mathrel}{symbols}{"5F}%
+    \DeclareMathSymbol{\zsym@implies}{\mathrel}{symbols}{"29}%
+    \DeclareMathSymbol{\zsym@iff}{\mathrel}{symbols}{"2C}%
+    \DeclareMathSymbol{\zsym@forall}{\mathrel}{symbols}{"38}%
+    \DeclareMathSymbol{\zsym@exists}{\mathrel}{symbols}{"39}%
+
+    %%%%%%%%%%%%%%%%% A.2.4.5 - core words (keywords)               %
+    %
+    % no need to change
+
+    \DeclareMathSymbol{\zseqcat}{\mathbin}{letters}{"5F}%  why "operators"?
+    \DeclareMathSymbol{\zupharpoonright}{\mathbin}{arrows}{"75}%
+    \DeclareMathSymbol{\zupharpoonleft}{\mathbin}{arrows}{"76}%
+    \DeclareMathSymbol{\zdres}{\mathbin}{letters}{"2F}%
+    \DeclareMathSymbol{\zrres}{\mathbin}{letters}{"2E}%
+    \DeclareMathSymbol{\zemptyset}{\mathord}{symbols}{"3B}%
+    \DeclareMathSymbol{\zinj}{\mathbin}{arrows}{"29}%
+    \let \zsym@upharpoonright \zupharpoonright
+
+    % slightly raised concatenation operator given as a \mathcar
+    \def \zmark@cat {\raise 0.8ex\hbox{$\mathchar\zseqcat$}}
+
+    %%%%%%%%%%%%%%%%% A.2.5.1 - set toolkit symbols                 %
+    \DeclareMathSymbol{\zsym@rel}{\mathbin}{arrows}{"21}%  or {symbols}{"24}
+    \DeclareMathSymbol{\zsym@fun}{\mathbin}{symbols}{"21}%
+    \def \zsym@notin    {\not\in}
+    %\DeclareMathSymbol{\zsym@notin}{\mathbin}{arrows}{"1D}%
+    \DeclareMathSymbol{\zsym@neq}{\mathrel}{arrows}{"94}%
+    \def \zsym@emptyset {\zemptyset}
+    \DeclareMathSymbol{\zsym@subseteq}{\mathrel}{symbols}{"12}%
+    \DeclareMathSymbol{\zsym@subset}{\mathrel}{symbols}{"13}%
+    \DeclareMathSymbol{\zsym@cup}{\mathbin}{symbols}{"5B}%
+    \DeclareMathSymbol{\zsym@cap}{\mathbin}{symbols}{"5C}%
+    \DeclareMathSymbol{\zsym@setminus}{\mathbin}{symbols}{"6E}%
+    \DeclareMathSymbol{\zsym@symdiff}{\mathbin}{symbols}{"0E}%
+    \DeclareMathSymbol{\zsym@bigcup}{\mathop}{symbols}{"5B}%
+    \DeclareMathSymbol{\zsym@bigcap}{\mathop}{symbols}{"5C}%
+    \def \zsym@finset   {\mathbb F}
+
+    %%%%%%%%%%%%%%%%% A.2.5.2 - relation toolkit symbols            %
+
+    \DeclareMathSymbol{\zsym@mapsto}{\mathbin}{arrows}{"2C}%
+    \def \zsym@dom    {dom}
+    \def \zsym@ran    {ran}
+    \def \zsym@id     {id}
+    \DeclareMathSymbol{\zsym@circ}{\mathbin}{arrows}{"0E}%
+    \let \zsym@dres   \zdres
+    \let \zsym@rres   \zrres
+    \def \zsym@ndres  {\zmark@hbar{\zsym@dres}}
+    \def \zsym@nrres  {\zmark@hbar{\zsym@rres}}
+    \DeclareMathSymbol{\zsym@inv}{\mathord}{symbols}{"18}%
+    %\def \zsym@limg   {(\mskip-3.5mu|}
+    %\def \zsym@rimg   {|\mskip-5mu)}
+    \DeclareMathSymbol{\zsym@limg}{\mathopen}{stmry}{"4C}% \llparenthesis in stmaryrd.sty
+    \DeclareMathSymbol{\zsym@rimg}{\mathopen}{stmry}{"4D}% \rrparenthesis
+
+    \DeclareMathSymbol{\zsym@oplus}{\mathbin}{arrows}{"2C}%
+    \DeclareMathSymbol{\zsym@plus}{\mathbin}{arrows}{"2C}%
+    \DeclareMathSymbol{\zsym@star}{\mathbin}{arrows}{"2C}%
+
+    %%%%%%%%%%%%%%%%% A.2.5.3 - function toolkit symbols            %
+
+    % The same as in for AMS
+    \def \zsym@pfun      {\zmark@pvbar{\zsym@fun}}
+    \def \zsym@inj       {\zinj}
+    \def \zsym@pinj      {\zmark@pvbar{\zsym@inj}}
+    \def \zsym@surj      {\zmark@darrow{\zsym@fun}{\zsym@fun}{4}}
+    \def \zsym@bij       {\zmark@darrow{\zsym@inj}{\zsym@fun}{5}}
+    \def \zsym@psurj     {\zmark@pvbar{\zsym@surj}}
+    \def \zsym@ffun      {\zmark@fvbar{\zsym@fun}}
+    \def \zsym@finj      {\zmark@fvbar{\zsym@inj}}
+    \def \zsym@disjoint  {disjoint}
+    \def \zsym@partition {partition}
+
+    %%%%%%%%%%%%%%%%% A.2.5.4 - number toolkit symbols              %
+
+    \def \zsym@num         {\mathbb Z}
+    \DeclareMathSymbol{\zsym@negate}{\mathop}{arrows}{"2D}%
+    \DeclareMathSymbol{\zsym@leq}{\mathrel}{symbols}{"14}%
+    \DeclareMathSymbol{\zsym@geq}{\mathrel}{symbols}{"15}%
+    \def \zsym@div         {div}
+    \def \zsym@mod         {mod}
+    \DeclareMathSymbol{\zsym@miuns}{\mathbin}{symbols}{"00}%
+    \DeclareMathSymbol{\zsym@sum}{\mathbin}{symbols}{"82}%
+    \DeclareMathSymbol{\zsym@mult}{\mathbin}{symbols}{"03}%
+    \DeclareMathSymbol{\zsym@lessthan}{\mathrel}{letters}{"3C}%
+    \DeclareMathSymbol{\zsym@greaterthan}{\mathrel}{letters}{"3E}%
+
+    %%%%%%%%%%%%%%%%% A.2.5.5 - sequence toolkit symbols            %
+
+    \def \zsym@upto    {\ldotp\ldotp}
+    \DeclareMathSymbol{\zsym@hash}{\mathop}{arrows}{"17}%
+    \def \zsym@seq     {seq}
+    \def \zsym@iseq    {iseq}
+    %\langle
+    %\rangle
+    \def \zsym@cat     {\zmark@cat}
+    \def \zsym@extract {\zupharpoonleft}
+    \def \zsym@filter  {\zupharpoonright}
+    \def \zsym@prefix  {prefix}
+    \def \zsym@suffix  {suffix}
+    \def \zsym@infix   {infix}
+    \def \zsym@dcat    {{\zsym@cat}/}
+
+    % mathematical delimiters that can be used for box drawings
+    % (see LaTeX2e Font Selection guide @ fntguide.pdf).
+    \DeclareMathDelimiter{\zboxulcorner}{\mathopen}{arrows}{"5B}{arrows}{"5B}
+    \DeclareMathDelimiter{\zboxurcorner}{\mathclose}{arrows}{"71}{arrows}{"5C}
+    \DeclareMathDelimiter{\zboxllcorner}{\mathopen}{arrows}{"5D}{arrows}{"5D}
+    \DeclareMathDelimiter{\zboxlrcorner}{\mathclose}{arrows}{"5E}{arrows}{"5E}
+}{%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  % AMS font setup                                                %
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %                                                               %
+
+    \PackageInfo{czt}{Loading AMS font symbols for Z}
+
+    % Load msama10 msamb10 font (AMS font dependencies): AMSa, AMSb
+    \DeclareSymbolFont{AMSa}{U}{msa}{m}{n}
+    \DeclareSymbolFont{AMSb}{U}{msb}{m}{n}
+
+    % Mathematical alphabet in AMSb - \mathbb = math. blackboard bold
+    \DeclareSymbolFontAlphabet{\mathbb}{AMSb}
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Symbols selected from the AMS font                            %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+    \DeclareMathSymbol{\zseqcat}{\mathbin}{AMSa}{"61}         % \frown
+    \DeclareMathSymbol{\zupharpoonright}{\mathbin}{AMSa}{"16} % \upharpoonright
+    \DeclareMathSymbol{\zupharpoonleft}{\mathbin}{AMSa}{"18}  % \upharpoonleft
+    \DeclareMathSymbol{\zdres}{\mathbin}{AMSa}{"43}           % \lhd
+    \DeclareMathSymbol{\zrres}{\mathbin}{AMSa}{"42}           % \rhd
+    \DeclareMathSymbol{\zemptyset}{\mathord}{AMSb}{"3F}       % \varnothing; similar to original \emptyset
+    \DeclareMathSymbol{\zinj}{\mathrel}{AMSa}{"1A}            % \rightarrowtail
+
+    % Font dependant marker: slightly raised concatenation operator given as a \mathcar
+    \def \zmark@cat {\raise 0.8ex\hbox{$\mathchar\zseqcat$}}
+    % oz.sty option seems to use \mathchar, which nicely selects
+    % and AMS font Unicode character (see LaTeX for \mathcar)
+
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    % Standard Z symbols and mathematical toolkit                   %
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %
+    % NOTE: Some of these symbols resemble those coming
+    %       from the fonts OML/cmm/n/it or OMS/cmsy/m/n
+    %       (similar rendering names aside each symbol)
+    %       - see tex/latex/base/fontmath.ltx
+    %       The synonyms may be useful if AMS is not present?
+    %
+    %%%%%%%%%%%%%%%%% A.2.4.1 - Greek alphabet treated as operators %
+    \let \zsym@Delta    \Delta
+    \let \zsym@Xi       \Xi
+    \let \zsym@theta    \theta
+    \let \zsym@lambda   \lambda
+    \let \zsym@mu       \mu
+
+    %%%%%%%%%%%%%%%%% A.2.4.2 - Other letter characters             %
+    % Other special letters
+    \def \zsym@arithmos {\mathbb A}
+    \def \zsym@nat      {\mathbb N}
+    \def \zsym@power    {\mathbb P}
+
+    % Other Greek letters
+    \let \zsym@alpha    \alpha
+    \let \zsym@beta     \beta
+    \let \zsym@gamma    \gamma
+    \let \zsym@delta    \delta
+    \let \zsym@epsilon  \epsilon
+    \let \zsym@zeta     \zeta
+    \let \zsym@eta      \eta
+    \let \zsym@iota     \iota
+    \let \zsym@kappa    \kappa
+    \let \zsym@nu       \nu
+    \let \zsym@xi       \xi
+    \let \zsym@pi       \pi
+    \let \zsym@rho      \rho
+    \let \zsym@sigma    \sigma
+    \let \zsym@tau      \tau
+    \let \zsym@upsilon  \upsilon
+    \let \zsym@phi      \phi
+    \let \zsym@chi      \chi
+    \let \zsym@psi      \psi
+    \let \zsym@omega    \omega
+    \let \zsym@Gamma    \Gamma
+    \let \zsym@Theta    \Theta
+    \let \zsym@Lambda   \Lambda
+    \let \zsym@Pi       \Pi
+    \let \zsym@Sigma    \Sigma
+    \let \zsym@Upsilon  \Upsilon
+    \let \zsym@Phi      \Phi
+    \let \zsym@Psi      \Psi
+    \let \zsym@Omega    \Omega
+
+    %%%%%%%%%%%%%%%%% A.2.4.3 - Special characters                  %
+    %\def \zsym@langle  no need to redefine?
+    %\def \zsym@rangle  no need to redefine?
+    \def \zsym@lblot    {{\langle}\mkern -3.5mu{|}}
+    \def \zsym@rblot    {{|}\mkern -3.5mu{\rangle}}
+    \def \zsym@ldata    {\langle\!\langle}
+    \def \zsym@rdata    {\rangle\!\rangle}
+    \let \zsym@spot     \bullet
+    \let \zsym@in       \in
+
+    %%%%%%%%%%%%%%%%% A.2.4.4 - symbol characters predicate logic   %
+
+    % Generic Z operators
+    \let \zsym@vdash    \vdash
+    \let \zsym@cross    \times
+
+    % Schema operators defined as slightly bigger with \z@Bigbinop
+    \let \zsym@solidus        \backslash
+    \let \zsym@upharpoonright \zupharpoonright
+    \def \zsym@pipe           {\mathord>\!\!\mathord>}
+
+    %   oz.sty has a nicer (without \small) fcn composition symbol.
+    %    It is defined as an `o' sitting on the top of a `9'.
+    %   zed-csp.sty differentiate the heights whenever in Lucida Bright.
+    %   To allow room for greater flexibility, do not surround it with any \zXXXop.
+    %\def \zsym@comp       {\raise 0.6ex\hbox{\oalign{\hfil$\scriptscriptstyle%
+    %                       \mathrm{o}$\hfil\cr\hfil$\scriptscriptstyle\mathrm{9}$\hfil}}}
+    \def \zsym@typecolon  {\raise 0.6ex\hbox{\oalign{\hfil$\scriptscriptstyle%
+                           \mathrm{o}$\hfil\cr\hfil$\scriptscriptstyle\mathrm{o}$\hfil}}}%
+    \DeclareMathSymbol{\zsym@comp}{\mathbin}{stmry}{"23}%
+
+    % Predicate logic
+    \def \zsym@not      {\neg\;}
+    \let \zsym@and      \wedge
+    \let \zsym@or       \vee
+    \let \zsym@implies  \Rightarrow
+    \let \zsym@iff      \Leftrightarrow
+    \let \zsym@forall   \forall
+    \let \zsym@exists   \exists
+
+    %%%%%%%%%%%%%%%%% A.2.5.1 - set toolkit symbols                 %
+    \let \zsym@rel      \leftrightarrow
+    \let \zsym@fun      \rightarrow
+    \def \zsym@notin    {\not\in}
+    \let \zsym@neq      \neq
+    \def \zsym@emptyset {\zemptyset}
+    \let \zsym@subseteq \subseteq
+    \let \zsym@subset   \subset
+    \let \zsym@cup      \cup
+    \let \zsym@cap      \cap
+    \let \zsym@setminus \setminus
+    \let \zsym@symdiff  \ominus
+    \let \zsym@bigcup   \bigcup
+    \let \zsym@bigcap   \bigcap
+    \def \zsym@finset   {\mathbb F}
+
+    %%%%%%%%%%%%%%%%% A.2.5.2 - relation toolkit symbols            %
+    \let \zsym@mapsto \mapsto
+    \def \zsym@dom    {dom}
+    \def \zsym@ran    {ran}
+    \def \zsym@id     {id}
+    \let \zsym@circ   \circ
+    \let \zsym@dres   \zdres
+    \let \zsym@rres   \zrres
+    \def \zsym@ndres  {\zmark@hbar{\zsym@dres}}
+    \def \zsym@nrres  {\zmark@hbar{\zsym@rres}}
+    \let \zsym@inv    \sim
+    %\def \zsym@limg   {(\mskip-3.5mu|}
+    %\def \zsym@rimg   {|\mskip-5mu)}
+    \DeclareMathSymbol{\zsym@limg}{\mathopen}{stmry}{"4C}% \llparenthesis in stmaryrd.sty
+    \DeclareMathSymbol{\zsym@rimg}{\mathopen}{stmry}{"4D}% \rrparenthesis
+
+    \let \zsym@oplus  \oplus
+    \let \zsym@plus   +
+    \let \zsym@star   *
+
+    %%%%%%%%%%%%%%%%% A.2.5.3 - function toolkit symbols            %
+    \def \zsym@pfun      {\zmark@pvbar{\zsym@fun}}
+    \let \zsym@inj       \zinj
+    \def \zsym@pinj      {\zmark@pvbar{\zsym@inj}}
+    \def \zsym@surj      {\zmark@darrow{\zsym@fun}{\zsym@fun}{4}} % lucida has 3 here
+    \def \zsym@bij       {\zmark@darrow{\zsym@inj}{\zsym@fun}{5}} % lucida has 4 here
+    \def \zsym@psurj     {\zmark@pvbar{\zsym@surj}}
+    \def \zsym@ffun      {\zmark@fvbar{\zsym@fun}}
+    \def \zsym@finj      {\zmark@fvbar{\zsym@inj}}
+    \def \zsym@disjoint  {disjoint}
+    \def \zsym@partition {partition}
+
+    %%%%%%%%%%%%%%%%% A.2.5.4 - number toolkit symbols              %
+    \def \zsym@num         {\mathbb Z}
+    \def \zsym@negate      {\mathrm{-}}
+    \let \zsym@leq         \leq
+    \let \zsym@geq         \geq
+    \def \zsym@div         {div}
+    \def \zsym@mod         {mod}
+%    \def \zsym@miuns       {-}
+%    \def \zsym@sum         {+}
+%    \def \zsym@mult        {*}
+%    \def \zsym@lessthan    {<}
+%    \def \zsym@greaterthan {>}
+
+    %%%%%%%%%%%%%%%%% A.2.5.5 - sequence toolkit symbols            %
+    \def \zsym@upto    {\ldotp\ldotp}
+    \let \zsym@hash    \#
+    \def \zsym@seq     {seq}
+    \def \zsym@iseq    {iseq}
+    %\langle
+    %\rangle
+    \def \zsym@cat     {\zmark@cat}
+    \let \zsym@extract \zupharpoonleft
+    \let \zsym@filter  \zupharpoonright
+    \def \zsym@prefix  {prefix}
+    \def \zsym@suffix  {suffix}
+    \def \zsym@infix   {infix}
+    \def \zsym@dcat    {{\zsym@cat}/}
+
+    % mathematical delimiters that can be used for box drawings
+    % (see LaTeX2e Font Selection guide @ fntguide.pdf).
+    \DeclareMathDelimiter{\zboxulcorner}{\mathopen}{AMSa}{"70}{AMSa}{"70}
+    \DeclareMathDelimiter{\zboxurcorner}{\mathclose}{AMSa}{"71}{AMSa}{"71}
+    \DeclareMathDelimiter{\zboxllcorner}{\mathopen}{AMSa}{"78}{AMSa}{"78}
+    \DeclareMathDelimiter{\zboxlrcorner}{\mathclose}{AMSa}{"79}{AMSa}{"79}
+}
+% sets the math version
+\mathversion{czt}%
+\PackageInfo{czt}{Current math version set to `czt'}
+
+% changes the rendering of A-Z and a-z in specialised italics when in math mode.
+%
+% Quite elaborated loop that changes the rendering
+% (\mathcode) of #1 to that of #3 until 1# >= #2.
+%
+% setmcodes(#1 % original mathcode
+%           #2 % upto threshold
+%           #3 % mathcode to substitute)
+% begin
+%   var c0, c1 : Register;
+%   c0 = &#1; c1 = &#3                % fetch value of #1/#3 in c0/c1
+%   change_mcode(c0, c1);             % make math code for c0 the value of c1
+%   while (c0 < &#2) do               % while c0 has not reached value of #2
+%   begin
+%     c0++; c1++;                     % increment the values of source/target
+%     changeg_mcode(c0, c1);          % make math code for c0 the value of c1
+%   end
+%                                     % all chars from #1..#2 changed to #3
+%                                     % incremented one by one.
+% end
+%
+% called as: setmcodes{ }{ }{italics} % makes A-Z and a-z italic in math mode
+%
+% fuzz.sty has same code but calls with: \@setmcodes{`A}{`Z}{"7441}
+% blend from: zed-csp.sty, soz.sty, oz.sty, fuzz.sty
+%
+% OBS: This is used in all Z styles. It seems to be originally from struktxf.sty
+%
+\def\@setmcodes#1#2#3{%
+    {\count0=#1 \count1=#3%
+    \loop \global\mathcode\count0=\count1%
+    \ifnum \count0<#2%
+    \advance\count0 by1 \advance\count1 by1%
+    \repeat}}
+\def\z@mathit%
+{%
+    \@setmcodes{`A}{`Z}{"7\hexnumber@\symitalics41}%
+    \@setmcodes{`a}{`z}{"7\hexnumber@\symitalics61}%
+}
+\def\z@mathrm%
+{%
+    \@setmcodes{`A}{`Z}{"7141}
+    \@setmcodes{`a}{`z}{"7161}
+}
+
+% Depending on package options, load the right encoding.
+% Or else, raise a warning and use math italics as default.
+\if@mathrm@
+  \PackageInfo{czt}{Setting math code for letters as Roman}
+  \z@mathrm
+\else
+  \if@mathit@
+    \PackageInfo{czt}{Setting math code for letters as Italics}
+    \z@mathit
+  \else
+    \PackageWarning{czt}{%
+      Could not resolve math code for letters.\MessageBreak%
+      Default could not be found. Using Italics}
+    \z@mathit
+  \fi
+\fi
+
+%                                                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\endinput
+%%
+%% End of file `czt.sty'. 

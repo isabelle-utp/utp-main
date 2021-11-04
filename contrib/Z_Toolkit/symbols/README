@@ -1,0 +1,16 @@
+In this directory is an expanded Isabelle font and configuration files to
+add the extra Z symbols. The font was extended by cherry picking additional
+glyphs from Symbola.ttf, which is already part of the Isabelle font. In order 
+to use the extended font, there are three things you need to do:
+
+1) Update the Isabelle font. Download isabelle_fonts-20210302.tar.bz2 and 
+unzip it to contrib/ in your Isabelle directory. Then, update etc/components
+so that it points to this directory. This makes Isabelle aware of the 
+additional glyphs.
+
+2) Added new symbols to the table. Download symbols. It needs to either
+extend the global symbol table in etc/, or else be added to your local one.
+e.g. cat symbols >> $ISABELLE_HOME/etc/symbols
+
+3) Add support for LaTeX generation. If you include zed.sty and isabellezed.sty
+under ../document, then this will make document generation work.
