@@ -1,0 +1,243 @@
+\documentclass[11pt,a4paper]{book}
+\usepackage{isabelle,isabellesym}
+\usepackage{graphicx}
+\graphicspath {{figures/}}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+
+\usepackage{latexsym}
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage[greek,english]{babel}
+  %option greek for \<euro>
+  %option english (default language) for \<guillemotleft>, \<guillemotright>
+
+%\usepackage[latin1]{inputenc}
+  %for \<onesuperior>, \<onequarter>, \<twosuperior>, \<onehalf>,
+  %\<threesuperior>, \<threequarters>, \<degree>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<cent>, \<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+\newcommand{\HOL}[1]{\verb{HOL}}
+\newcommand{\eg}[1]{e.g.}
+\renewcommand{\isasymdegree}{XXX}
+\newcommand{\acs}[1]{\textsc{#1}} 
+
+\begin{document}
+
+\title{A Sound Type System for Physical \\ Quantities, Units, and Measurements}
+\author{Simon Foster \and Burkhart Wolff}
+
+\maketitle
+
+\chapter*{Abstract}
+The present Isabelle theory builds a formal model for both the \emph{International System of Quantities} (ISQ) and the
+\emph{International System of Units} (SI), which are both fundamental for physics and
+engineering~\cite{bipm-jcgm:2012:VIM}. Both the ISQ and the SI are deeply integrated into Isabelle's type
+system. Quantities are parameterised by \emph{dimension types}, which correspond to base vectors, and thus only
+quantities of the same dimension can be equated. Since the underlying ``algebra of quantities''
+from~\cite{bipm-jcgm:2012:VIM} induces congruences on quantity and SI types, specific tactic support is developed
+to capture these. Our construction is validated by a test-set of known equivalences between both quantities and SI
+units. Moreover, the presented theory can be used for type-safe conversions between the SI system and others, like the
+British Imperial System (BIS).
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+
+\chapter{ISQ and SI: An Introduction}
+
+Modern Physics is based on the concept of quantifiable properties of physical phenomena such 
+as mass, length, time, current, etc. These phenomena, called \emph{quantities}, are linked via an 
+\emph{algebra of quantities} to derived concepts such as speed, force, and energy. The latter 
+allows for a \emph{dimensional analysis} of physical equations, which had already been the 
+backbone of Newtonian Physics. In parallel, physicians developed their own research field called 
+``metrology'' defined as a scientific study of the \emph{measurement} of physical quantities.
+
+The relevant international standard for quantities and measurements is distributed by the \emph{Bureau International des
+  Poids et des Mesures} (BIPM), which also provides the \emph{Vocabulaire International de M\`etrologie}
+(VIM)~\cite{bipm-jcgm:2012:VIM}.  The VIM actually defines two systems: the \emph{International System of Quantities}
+(ISQ) and the \emph{International System of Units} (SI, abbreviated from the French Syst\`eme international
+(d’unit\'es)). The latter is also documented in the \emph{SI Brochure}~\cite{SI-Brochure}, a standard that is updated
+periodically, most recently in 2019. Finally, the VIM defines concrete reference measurement procedures as well as a
+terminology for measurement errors.
+
+Conceived as a refinement of the ISQ, the SI comprises a coherent system of units of measurement built on seven base
+units, which are the metre, kilogram, second, ampere, kelvin, mole, candela, and a set of twenty prefixes to the unit
+names and unit symbols, such as milli- and kilo-, that may be used when specifying multiples and fractions of the
+units. The system also specifies names for 22 derived units, such as lumen and watt, for other common physical
+quantities. While there is still nowadays a wealth of different measuring systems such as the \emph{British Imperial
+  System} (BIS) and the \emph{United States Customary System} (USC), the SI is more or less the de-facto reference
+behind all these systems.
+
+The present Isabelle theory builds a formal model for both the ISQ and the SI, together with a deep integration into
+Isabelle's type system~\cite{nipkow.ea:isabelle:2002}. Quantities and units are represented in a way that they have a
+\emph{quantity type} as well as a \emph{unit type} based on its base vectors and their magnitudes. Since the algebra of
+quantities induces congruences on quantity and SI types, specific tactic support has been developed to capture these.
+Our construction is validated by a test-set of known equivalences between both quantities and SI units.  Moreover, the
+presented theory can be used for type-safe conversions between the SI system and others, like the British Imperial
+System (BIS).
+
+% We would like to stress that it is not only our objective to provide a sound type-system for
+% ISQ and SI; rather, our semantic construction produces an integration of quantities and SI units 
+% \emph{as types} inside the Hindley-Milner style type system of
+%  Isabelle/HOL\cite{nipkow.ea:isabelle:2002}. The objective of our construction is to
+% reflect the types of the magnitudes as well as their dimensions in order to allow type-safe 
+% calculations on SI units and their conversion to other measuring systems.
+
+% The International System of Units (SI, abbreviated from the French
+% Système International (d'unités)) is the modern form of the metric
+% system and is the most widely used system of measurement. It comprises
+% a coherent system of units of measurement built on seven base units,
+% which are the second, metre, kilogram, ampere, kelvin, mole, candela,
+% and a set of twenty prefixes to the unit names and unit symbols that
+% may be used when specifying multiples and fractions of the units.
+% The system also specifies names for 22 derived units, such as lumen and
+% watt, for other common physical quantities.
+% 
+% (cited from \url{https://en.wikipedia.org/wiki/International_System_of_Units}).
+
+In the following we describe the overall theory architecture in more detail.
+Our ISQ model provides the following fundamental concepts:
+%
+\begin{enumerate}%
+\item \emph{dimensions} represented by a type \isa{(int, 'd::enum) dimvec} , i.e. a \isa{'d}-indexed
+      vector space of integers representing the exponents of the dimension vector. 
+      \isa{'d} is constrained to be a dimension type later.
+
+
+\item \emph{quantities} represented by type \isa{('a, 'd::enum) Quantity}, which are constructed as 
+      a  vector space and a magnitude type \isa{'a}. 
+
+\item{quantity calculus} consisting of \emph{quantity equations} allowing to infer that 
+      $LT^{-1}T^{-1}M = MLT^{-2} = F$ 
+      (the left-hand-side equals mass times acceleration which is equal to force). 
+
+\item a kind of equivalence relation $\cong_{Q}$ on quantities, permitting to relate
+      quantities of different dimension types.
+
+
+\item \emph{base quantities} for
+      \emph{length}, \emph{mass}, \emph{time}, \emph{electric current},
+      \emph{temperature}, \emph{amount of substance}, and \emph{luminous intensity}, 
+      serving as concrete instance of the vector instances, and for syntax
+      a set of the symbols  \isa{L}, \isa{M}, \isa{T}, \isa{I},  
+      \isa{{\isasymTheta}}, \isa{N}, \isa{J} corresponding to the above mentioned
+      base vectors.
+
+\item \emph{(Abstract) Measurement Systems} represented by type 
+      \isa{('a, 'd::enum, 's::unit\_system) Measurement\_System}, which are a refinement
+      of quantities. The refinement is modelled by a polymorphic record extensions; as a 
+      consequence, Measurement Systems inherit the algebraic properties of quantities.
+ 
+\item \emph{derived dimensions} such as \emph{volume} $\isa{L}^3$ or energy 
+      $\isa{M}\isa{L}^2\isa{T}^{-2}$ corresponding to \emph{derived quantities}.
+
+\end{enumerate}
+
+Then, through a fresh type-constructor \isa{SI}, the abstract measurement systems are instantiated to the SI system ---
+the \emph{British Imperial System} (BIS) is constructed analogously.  Technically, \isa{SI} is a tag-type that
+represents the fact that the magnitude of a quantity is actually a quantifiable entity in the sense of the SI system. In
+other words, this means that the magnitude $1$ in quantity \isa{1[L]} actually refers to one metre intended to be
+measured according to the SI standard. At this point, it becomes impossible, for example, to add to one foot, in the
+sense of the BIS, to one metre in the SI without creating a type-inconsistency.
+
+The theory of the SI is created by specialising the \isa{Measurement\_System}-type with the 
+SI-tag-type and adding new infrastructure. The SI theory provides the following fundamental 
+concepts:
+\begin{enumerate}%
+\item measuring units and types corresponding to the ISQ base quantities sich
+      as \emph{metre}, \emph{kilogram}, \emph{second}, \emph{ampere}, \emph{kelvin}, \emph{mole} and
+      \emph{candela} (together with procedures how to measure a metre, for example, which are
+      defined in accompanying standards);
+\item a standardised set of symbols for units such as $m$, $kg$, $s$, $A$, $K$, $mol$, and $cd$;
+\item a standardised set of symbols of SI prefixes for multiples of SI units, such as 
+      $giga$ ($=10^9$), $kilo$ ($=10^3$), $milli$ ($=10^-3$), etc.; and a set of
+\item \emph{unit equations} and conversion equations such as $J = kg\,m^2/s^2$ or $1 km/h = 1/3.6\,m/s$.
+\end{enumerate}
+
+As a result, it is possible to express ``4500.0 kilogram times metre per second squared'' which has the type
+\isa{{\isasymreal}\ {\isacharbrackleft}M\ \isactrlsup {\isachardot}\ L\ \isactrlsup {\isachardot}\ T\isactrlsup
+  {\isacharminus}\isactrlsup {\isadigit{3}} \isactrlsup {\isachardot}\, SI{\isacharbrackright}}.  This type means that
+the magnitude $4500$ of the dimension $M \cdot L \cdot T^{- 3}$ is a quantity intended to be measured in the SI-system,
+which means that it actually represents a force measured in Newtons.
+% For short, the above expression gets thy type $(\isasymreal)newton$.  
+In the example, the \emph{magnitude} type of the measurement unit is the real numbers ($\isasymreal$).  In general,
+however, magnitude types can be arbitrary types from the HOL library, so for example integer numbers (\isa{int}),
+integer numbers representable by 32 bits (\isa{int32}), IEEE-754 floating-point numbers (\isa{float}), or, a vector in
+the three-dimensional space \isa{\isasymreal}$^3$. Thus, our type-system allows to capture both conceptual entities in
+physics as well as implementation issues in concrete physical calculations on a computer.
+
+As mentioned before, it is a main objective of this work to support the quantity calculus of ISQ and the resulting
+equations on derived SI entities (cf. \cite{SI-Brochure}), both from a type checking as well as a proof-checking
+perspective. Our design objectives are not easily reconciled, however, and so some substantial theory engineering is
+required. On the one hand, we want a deep integration of dimensions and units into the Isabelle type system. On the
+other, we need to do normal-form calculations on types, so that, for example, the units $m$ and $ms^{-1}s$ can be
+equated.
+
+Isabelle's type system follows the Curry-style paradigm, which rules out the possibility of direct calculations on
+type-terms (in contrast to Coq-like systems). However, our semantic interpretation of ISQ and SI allows for the
+foundation of the heterogeneous equivalence relation $\cong_{Q}$ in semantic terms. This means that we can relate
+quantities with syntactically different dimension types, yet with same dimension semantics. This paves the way for
+derived rules that do computations of terms, which represent type computations indirectly. This principle is the basis
+for the tactic support, which allows for the dimensional type checking of key definitions of the SI system. Some
+examples are given below.
+
+\begin{isamarkuptext}%
+\isa{\isacommand{theorem}\ metre{\isacharunderscore}definition{\isacharcolon} \newline \ {\isachardoublequoteopen} 
+{\isadigit{1}}\ {\isacharasterisk}\isactrlsub Q\ metre\ {\isasymcong}\isactrlsub Q  \ {\isacharparenleft}\isactrlbold c\ \isactrlbold {\isacharslash}\ {\isacharparenleft}{\isadigit{2}}{\isadigit{9}}{\isadigit{9}}{\isadigit{7}}{\isadigit{9}}{\isadigit{2}}{\isadigit{4}}{\isadigit{5}}{\isadigit{8}}\ {\isacharasterisk}\isactrlsub Q\ {\isasymone}{\isacharparenright}{\isacharparenright}\isactrlbold {\isasymcdot}second{\isachardoublequoteclose}\ {\isachardoublequoteopen}
+\newline \isacommand{by}\ si{\isacharunderscore}calc\ \ \newline \newline
+\isacommand{theorem}\ kilogram{\isacharunderscore}definition{\isacharcolon} \newline \ {\isachardoublequoteopen}{\isadigit{1}}\ {\isacharasterisk}\isactrlsub Q\ kilogram\ {\isasymcong}\isactrlsub Q\ {\isacharparenleft}\isactrlbold h\ \isactrlbold {\isacharslash}\ {\isacharparenleft}{\isadigit{6}}{\isachardot}{\isadigit{6}}{\isadigit{2}}{\isadigit{6}}{\isadigit{0}}{\isadigit{7}}{\isadigit{0}}{\isadigit{1}}{\isadigit{5}}\ {\isasymcdot}\ {\isadigit{1}}{\isacharslash}{\isacharparenleft}{\isadigit{1}}{\isadigit{0}}{\isacharcircum}{\isadigit{3}}{\isadigit{4}}{\isacharparenright}\ {\isacharasterisk}\isactrlsub Q\ {\isasymone}{\isacharparenright}{\isacharparenright}\isactrlbold {\isasymcdot}metre\isactrlsup {\isacharminus}\isactrlsup {\isasymtwo}\isactrlbold {\isasymcdot}second{\isachardoublequoteclose}\ \newline \isacommand{by}\ si{\isacharunderscore}calc\ \ \ }%
+\end{isamarkuptext}\isamarkuptrue%
+
+These equations are both adapted from the SI Brochure, and give the concrete definitions for the metre and kilogram in
+terms of the physical constants \textbf{c} (speed of light) and \textbf{h} (Planck constant). They are both proved
+using the tactic \textit{si-calc}.
+
+This work has drawn inspiration from some previous formalisations of the ISQ and SI, notably Hayes and Mahoney's
+formalisation in Z~\cite{HayesBrendan95} and Aragon's algebraic structure for physical
+quantities~\cite{Aragon2004-SI}. To the best of our knowledge, our mechanisation represents the most comprehensive
+account of ISQ and SI in a theory prover.
+
+
+% \subsubsection{Previous Attempts.} The work of \cite{HayesBrendan95} represents to our knowledge a
+% first attempt to formalize SI units in Z, thus a similar language of HOL. While our typing
+% representation is more rigourous due to the use of type-classes, this works lacks any attempt
+% to support formal and automated deduction on Si unit equivalences.
+%
+% MORE TO COME.
+
+\chapter{Preliminaries}
+
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

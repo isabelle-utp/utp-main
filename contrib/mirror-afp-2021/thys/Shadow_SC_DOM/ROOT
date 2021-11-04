@@ -1,0 +1,14 @@
+chapter AFP
+
+session "Shadow_SC_DOM" (AFP) = "Core_SC_DOM" +
+  options [timeout = 4800]
+  directories
+    classes
+    monads
+    tests
+  theories
+    Shadow_DOM
+    Shadow_DOM_Tests
+  document_files
+    "root.tex"
+    "root.bib"

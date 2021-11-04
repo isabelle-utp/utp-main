@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Jinja with Threads - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">J</font>inja
+  
+          with
+  
+          <font class="first">T</font>hreads
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Jinja with Threads</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2007-12-03</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">We extend the Jinja source code semantics by Klein and Nipkow with Java-style arrays and threads. Concurrency is captured in a generic framework semantics for adding concurrency through interleaving to a sequential semantics, which features dynamic thread creation, inter-thread communication via shared memory, lock synchronisation and joins. Also, threads can suspend themselves and be notified by others. We instantiate the framework with the adapted versions of both Jinja source and byte code and show type safety for the multithreaded case. Equally, the compiler from source to byte code is extended, for which we prove weak bisimilarity between the source code small step semantics and the defensive Jinja virtual machine. On top of this, we formalise the JMM and show the DRF guarantee and consistency. For description of the different parts, see Lochbihler's papers at FOOL 2008, ESOP 2010, ITP 2011, and ESOP 2012.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2008-04-23]:
+added bytecode formalisation with arrays and threads, added thread joins
+(revision f74a8be156a7)<br>
+[2009-04-27]:
+added verified compiler from source code to bytecode;
+encapsulate native methods in separate semantics
+(revision e4f26541e58a)<br>
+[2009-11-30]:
+extended compiler correctness proof to infinite and deadlocking computations
+(revision e50282397435)<br>
+[2010-06-08]:
+added thread interruption;
+new abstract memory model with sequential consistency as implementation
+(revision 0cb9e8dbd78d)<br>
+[2010-06-28]:
+new thread interruption model
+(revision c0440d0a1177)<br>
+[2010-10-15]:
+preliminary version of the Java memory model for source code
+(revision 02fee0ef3ca2)<br>
+[2010-12-16]:
+improved version of the Java memory model, also for bytecode
+executable scheduler for source code semantics
+(revision 1f41c1842f5a)<br>
+[2011-02-02]:
+simplified code generator setup
+new random scheduler
+(revision 3059dafd013f)<br>
+[2011-07-21]:
+new interruption model,
+generalized JMM proof of DRF guarantee,
+allow class Object to declare methods and fields,
+simplified subtyping relation,
+corrected division and modulo implementation
+(revision 46e4181ed142)<br>
+[2012-02-16]:
+added example programs
+(revision bf0b06c8913d)<br>
+[2012-11-21]:
+type safety proof for the Java memory model,
+allow spurious wake-ups
+(revision 76063d860ae0)<br>
+[2013-05-16]:
+support for non-deterministic memory allocators
+(revision cc3344a49ced)<br>
+[2017-10-20]:
+add an atomic compare-and-swap operation for volatile fields
+(revision a6189b1d6b30)<br></td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{JinjaThreads-AFP,
+  author  = {Andreas Lochbihler},
+  title   = {Jinja with Threads},
+  journal = {Archive of Formal Proofs},
+  month   = dec,
+  year    = 2007,
+  note    = {\url{https://isa-afp.org/entries/JinjaThreads.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Automatic_Refinement.html">Automatic_Refinement</a>, <a href="Binomial-Heaps.html">Binomial-Heaps</a>, <a href="Coinductive.html">Coinductive</a>, <a href="Collections.html">Collections</a>, <a href="FinFun.html">FinFun</a>, <a href="Finger-Trees.html">Finger-Trees</a>, <a href="Native_Word.html">Native_Word</a>, <a href="Refine_Monadic.html">Refine_Monadic</a>, <a href="Trie.html">Trie</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/JinjaThreads/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/JinjaThreads/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/JinjaThreads/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-JinjaThreads-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-JinjaThreads-2020-04-18.tar.gz">
+              afp-JinjaThreads-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-JinjaThreads-2019-06-11.tar.gz">
+              afp-JinjaThreads-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-JinjaThreads-2018-08-17.tar.gz">
+              afp-JinjaThreads-2018-08-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-JinjaThreads-2017-10-10.tar.gz">
+              afp-JinjaThreads-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-JinjaThreads-2016-12-17.tar.gz">
+              afp-JinjaThreads-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-JinjaThreads-2016-02-22.tar.gz">
+              afp-JinjaThreads-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-JinjaThreads-2015-05-27.tar.gz">
+              afp-JinjaThreads-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-JinjaThreads-2014-08-28.tar.gz">
+              afp-JinjaThreads-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-JinjaThreads-2013-12-11.tar.gz">
+              afp-JinjaThreads-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-JinjaThreads-2013-11-17.tar.gz">
+              afp-JinjaThreads-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-JinjaThreads-2013-02-16.tar.gz">
+              afp-JinjaThreads-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-JinjaThreads-2012-05-26.tar.gz">
+              afp-JinjaThreads-2012-05-26.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-JinjaThreads-2011-10-12.tar.gz">
+              afp-JinjaThreads-2011-10-12.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2011-1:
+            <a href="../release/afp-JinjaThreads-2011-10-11.tar.gz">
+              afp-JinjaThreads-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-JinjaThreads-2011-02-11.tar.gz">
+              afp-JinjaThreads-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-JinjaThreads-2010-07-02.tar.gz">
+              afp-JinjaThreads-2010-07-02.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-1:
+            <a href="../release/afp-JinjaThreads-2009-12-12.tar.gz">
+              afp-JinjaThreads-2009-12-12.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009:
+            <a href="../release/afp-JinjaThreads-2009-04-30.tar.gz">
+              afp-JinjaThreads-2009-04-30.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2009:
+            <a href="../release/afp-JinjaThreads-2009-04-29.tar.gz">
+              afp-JinjaThreads-2009-04-29.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2008:
+            <a href="../release/afp-JinjaThreads-2008-06-10.tar.gz">
+              afp-JinjaThreads-2008-06-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2007:
+            <a href="../release/afp-JinjaThreads-2007-12-03.tar.gz">
+              afp-JinjaThreads-2007-12-03.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

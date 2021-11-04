@@ -1,0 +1,14 @@
+chapter AFP
+
+session Simpl (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+    "HOL-Statespace"
+  directories
+    "ex"
+  theories
+    Simpl
+  document_files
+    "root.bib"
+    "root.tex"

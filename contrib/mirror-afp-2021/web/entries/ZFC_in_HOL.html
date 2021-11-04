@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Zermelo Fraenkel Set Theory in Higher-Order Logic - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">Z</font>ermelo
+  
+          <font class="first">F</font>raenkel
+  
+          <font class="first">S</font>et
+  
+          <font class="first">T</font>heory
+  
+          in
+  
+          <font class="first">H</font>igher-Order
+  
+          <font class="first">L</font>ogic
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Zermelo Fraenkel Set Theory in Higher-Order Logic</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www.cl.cam.ac.uk/~lp15/">Lawrence C. Paulson</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-10-24</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>This entry is a new formalisation of ZFC set theory in Isabelle/HOL. It is
+logically equivalent to Obua's HOLZF; the point is to have the closest
+possible integration with the rest of Isabelle/HOL, minimising the amount of
+new notations and exploiting type classes.</p>
+<p>There is a type <em>V</em> of sets and a function <em>elts :: V =&gt; V
+set</em> mapping a set to its elements. Classes simply have type <em>V
+set</em>, and a predicate identifies the small classes: those that correspond
+to actual sets. Type classes connected with orders and lattices are used to
+minimise the amount of new notation for concepts such as the subset relation,
+union and intersection. Basic concepts — Cartesian products, disjoint sums,
+natural numbers, functions, etc. — are formalised.</p>
+<p>More advanced set-theoretic concepts, such as transfinite induction,
+ordinals, cardinals and the transitive closure of a set, are also provided.
+The definition of addition and multiplication for general sets (not just
+ordinals) follows Kirby.</p>
+<p>The theory provides two type classes with the aim of facilitating
+developments that combine <em>V</em> with other Isabelle/HOL types:
+<em>embeddable</em>, the class of types that can be injected into <em>V</em>
+(including <em>V</em> itself as well as <em>V*V</em>, etc.), and
+<em>small</em>, the class of types that correspond to some ZF set.</p>
+extra-history =
+Change history:
+[2020-01-28]:  Generalisation of the "small" predicate and order types to arbitrary sets;
+ordinal exponentiation;
+introduction of the coercion ord_of_nat :: "nat => V";
+numerous new lemmas. (revision 6081d5be8d08)</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{ZFC_in_HOL-AFP,
+  author  = {Lawrence C. Paulson},
+  title   = {Zermelo Fraenkel Set Theory in Higher-Order Logic},
+  journal = {Archive of Formal Proofs},
+  month   = oct,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/ZFC_in_HOL.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="CZH_Foundations.html">CZH_Foundations</a>, <a href="Ordinal_Partitions.html">Ordinal_Partitions</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/ZFC_in_HOL/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/ZFC_in_HOL/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/ZFC_in_HOL/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-ZFC_in_HOL-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-ZFC_in_HOL-2020-04-20.tar.gz">
+              afp-ZFC_in_HOL-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-ZFC_in_HOL-2019-11-04.tar.gz">
+              afp-ZFC_in_HOL-2019-11-04.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

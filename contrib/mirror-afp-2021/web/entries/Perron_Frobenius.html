@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Perron-Frobenius Theorem for Spectral Radius Analysis - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">P</font>erron-Frobenius
+  
+          <font class="first">T</font>heorem
+  
+          for
+  
+          <font class="first">S</font>pectral
+  
+          <font class="first">R</font>adius
+  
+          <font class="first">A</font>nalysis
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Perron-Frobenius Theorem for Spectral Radius Analysis</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="https://www.unirioja.es/cu/jodivaso/">Jose Divasón</a>,
+                  <a href="http://www21.in.tum.de/~kuncar/">Ondřej Kunčar</a>,
+                René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at) and
+          Akihisa Yamada (akihisa /dot/ yamada /at/ aist /dot/ go /dot/ jp)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-05-20</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>The spectral radius of a matrix A is the maximum norm of all
+eigenvalues of A. In previous work we already formalized that for a
+complex matrix A, the values in A<sup>n</sup> grow polynomially in n
+if and only if the spectral radius is at most one. One problem with
+the above characterization is the determination of all
+<em>complex</em> eigenvalues. In case A contains only non-negative
+real values, a simplification is possible with the help of the
+Perron&ndash;Frobenius theorem, which tells us that it suffices to consider only
+the <em>real</em> eigenvalues of A, i.e., applying Sturm's method can
+decide the polynomial growth of A<sup>n</sup>. </p><p> We formalize
+the Perron&ndash;Frobenius theorem based on a proof via Brouwer's fixpoint
+theorem, which is available in the HOL multivariate analysis (HMA)
+library. Since the results on the spectral radius is based on matrices
+in the Jordan normal form (JNF) library, we further develop a
+connection which allows us to easily transfer theorems between HMA and
+JNF. With this connection we derive the combined result: if A is a
+non-negative real matrix, and no real eigenvalue of A is strictly
+larger than one, then A<sup>n</sup> is polynomially bounded in n. </p></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2017-10-18]:
+added Perron-Frobenius theorem for irreducible matrices with generalization
+(revision bda1f1ce8a1c)<br/>
+[2018-05-17]:
+prove conjecture of CPP'18 paper: Jordan blocks of spectral radius have maximum size
+(revision ffdb3794e5d5)</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Perron_Frobenius-AFP,
+  author  = {Jose Divasón and Ondřej Kunčar and René Thiemann and Akihisa Yamada},
+  title   = {Perron-Frobenius Theorem for Spectral Radius Analysis},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Perron_Frobenius.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Jordan_Normal_Form.html">Jordan_Normal_Form</a>, <a href="Polynomial_Factorization.html">Polynomial_Factorization</a>, <a href="Rank_Nullity_Theorem.html">Rank_Nullity_Theorem</a>, <a href="Sturm_Sequences.html">Sturm_Sequences</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="LLL_Factorization.html">LLL_Factorization</a>, <a href="Smith_Normal_Form.html">Smith_Normal_Form</a>, <a href="Stochastic_Matrices.html">Stochastic_Matrices</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Perron_Frobenius/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Perron_Frobenius/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Perron_Frobenius/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Perron_Frobenius-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Perron_Frobenius-2020-04-20.tar.gz">
+              afp-Perron_Frobenius-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Perron_Frobenius-2019-06-11.tar.gz">
+              afp-Perron_Frobenius-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Perron_Frobenius-2018-08-16.tar.gz">
+              afp-Perron_Frobenius-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Perron_Frobenius-2017-10-18.tar.gz">
+              afp-Perron_Frobenius-2017-10-18.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2017:
+            <a href="../release/afp-Perron_Frobenius-2017-10-10.tar.gz">
+              afp-Perron_Frobenius-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Perron_Frobenius-2016-12-17.tar.gz">
+              afp-Perron_Frobenius-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Perron_Frobenius-2016-05-20.tar.gz">
+              afp-Perron_Frobenius-2016-05-20.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

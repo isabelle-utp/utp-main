@@ -1,0 +1,126 @@
+(*
+(C) Copyright Andreas Viktor Hess, DTU, 2020
+(C) Copyright Sebastian A. Mödersheim, DTU, 2020
+(C) Copyright Achim D. Brucker, University of Exeter, 2020
+(C) Copyright Anders Schlichtkrull, DTU, 2020
+
+All Rights Reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+- Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior written
+  permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*)
+
+open Trac_Term
+
+exception NotYetSupported of string 
+
+
+%%
+
+%eop EOF 
+
+%left 
+
+%name Trac
+
+%term EOF
+    | COMMA of string
+    | FIXEDPOINT of string
+    | WHERE of string
+    | COLON of string
+    | PAREN_OPEN of string
+    | PAREN_CLOSE of string
+    | ASTERISK of string
+    | DOUBLE_ASTERISK of string
+    | DOUBLE_RARROW of string
+    | STRING_LITERAL of string
+    | UPPER_STRING_LITERAL of string
+    | LOWER_STRING_LITERAL of string
+    | INTEGER_LITERAL of string
+    | ONE of string
+    | ZERO of string
+    | ATTACK of string              
+         
+%nonterm START of (Msg * TypeDecl list) list
+       | trac_file of (Msg * TypeDecl list) list   
+       | symfact_list_exp of (Msg * TypeDecl list) list    
+       | symfact_exp of Msg * TypeDecl list  
+       | rule_exp of Msg   
+       | arg_list_exp of Msg list
+       | arg_exp  of Msg 
+       | type_list_exp of TypeDecl list
+       | type_exp of TypeDecl
+       | string_literal of string
+       | upper_literal of string
+       | lower_literal of string
+       | int_literal of string
+
+%pos (int * int * int)
+
+%noshift EOF
+
+%%
+
+START:               trac_file                                             (trac_file)
+trac_file:          FIXEDPOINT symfact_list_exp                            (symfact_list_exp)
+                   | symfact_list_exp                                       (symfact_list_exp)
+symfact_list_exp:    symfact_exp                                            ([symfact_exp])                 
+                   | symfact_exp symfact_list_exp                           ([symfact_exp]@symfact_list_exp)
+
+symfact_exp:         DOUBLE_RARROW ATTACK                                                 ((Attack,[])) 
+                   | rule_exp WHERE type_list_exp                           ((rule_exp,type_list_exp))
+                   | DOUBLE_RARROW rule_exp WHERE type_list_exp             ((rule_exp,type_list_exp))
+                   | DOUBLE_ASTERISK DOUBLE_RARROW rule_exp WHERE type_list_exp ((rule_exp,type_list_exp))
+                   | rule_exp                                               ((rule_exp,[]))
+                   | DOUBLE_RARROW rule_exp                                 ((rule_exp,[]))
+                   | DOUBLE_ASTERISK DOUBLE_RARROW rule_exp                 ((rule_exp,[]))
+
+rule_exp:            upper_literal                                          (Var (upper_literal))
+                   | lower_literal                                          (Fun (lower_literal,[]))
+                   | lower_literal PAREN_OPEN arg_list_exp PAREN_CLOSE      (Fun (lower_literal,arg_list_exp)) 
+arg_list_exp:        arg_exp                                                ([arg_exp])
+                   | arg_exp COMMA arg_list_exp                             ([arg_exp]@arg_list_exp)
+arg_exp:             rule_exp                                               (rule_exp)
+                   | ASTERISK int_literal                                   (Var (int_literal))
+                   | int_literal                                            (Const (int_literal))
+                                 
+type_list_exp:       type_exp                                               ([type_exp])
+                   | type_exp type_list_exp                                 ([type_exp]@type_list_exp)
+type_exp:            ASTERISK int_literal COLON string_literal              ((int_literal,string_literal))
+                   | upper_literal COLON string_literal                     ((upper_literal,string_literal))
+
+upper_literal:       UPPER_STRING_LITERAL                               (UPPER_STRING_LITERAL)
+lower_literal:       LOWER_STRING_LITERAL                               (LOWER_STRING_LITERAL)
+string_literal:      upper_literal                                      (upper_literal)
+                   | lower_literal                                      (lower_literal)
+int_literal:         INTEGER_LITERAL                                    (INTEGER_LITERAL)
+                   | ZERO                                               ("0")
+                   | ONE                                                ("1")
+
+
+                     

@@ -1,0 +1,17 @@
+chapter AFP
+
+session "X86_Semantics" (AFP) = HOL +
+
+  options [timeout = 1800]
+  sessions
+      "HOL-Eisbach"
+      Word_Lib
+
+  theories
+    Examples
+    Example_WC
+
+  document_files
+    "root.bib"
+    "root.tex"
+

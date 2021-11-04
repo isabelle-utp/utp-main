@@ -1,0 +1,77 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{url}
+\usepackage{amssymb}
+\usepackage{xspace}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\newcommand\isafor{\textsf{Isa\kern-0.15exF\kern-0.15exo\kern-0.15exR}}
+\newcommand\ceta{\textsf{C\kern-0.15exe\kern-0.45exT\kern-0.45exA}}
+
+\begin{document}
+
+\title{A Formalization of Weighted Path Orders and Recursive Path Orders\footnote{Supported by FWF (Austrian Science Fund) projects P27502 and Y757.}}
+\author{Christian Sternagel \and Ren\'e Thiemann \and Akihisa Yamada}
+\maketitle
+
+\begin{abstract}
+We define the weighted path order (WPO) and formalize several
+properties such as strong normalization, the subterm property, and closure properties
+under substitutions and contexts. Our definition of WPO extends the original definition by also permitting
+multiset comparisons of arguments instead of just lexicographic extensions. Therefore, our WPO not only
+subsumes lexicographic path orders (LPO), but also recursive path orders (RPO).
+We formally prove these subsumptions and therefore all of the mentioned properties of WPO
+are automatically transferable to LPO and RPO as well. 
+Such a transformation is not required for Knuth--Bendix orders (KBO),
+since they have already been formalized. Nevertheless, we still provide a proof that WPO subsumes KBO
+and thereby underline the generality of WPO. 
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+
+Path orders are well-founded orders on terms that are useful for automated deduction,
+e.g., for termination proving of term rewrite systems or for completion-based theorem
+provers. Well-known path orders are the lexicographic path order (LPO) \cite{LPO},
+the recursive path order (RPO) \cite{RPO}, and the Knuth--Bendix order (KBO) \cite{KB70},
+and all of these orders are presented in a standard textbook on term rewriting \cite[Chapter~5]{BN98}.
+
+Whereas the mentioned path orders date back to the last century, the 
+weighted path order (WPO) has only recently been presented \cite{WPO-PPDP,WPO}. It has two nice properties.
+First, the search for suitable parameters is feasible and tools like NaTT and TTT2 implement it.
+Second, WPO is quite powerful and versatile: in fact, KBO and LPO are just instances of WPO.
+Moreover, with a slight extension of WPO (adding multiset-comparisons) also RPO is covered.
+
+This AFP-entry provides a full formalization of WPO and also the connection to KBO, LPO, and RPO.
+Here, for the existing formal version of KBO~\cite{KBO_form_paper,Knuth_Bendix_Order-AFP} it is just proven that WPO can simulate it by chosing suitable parameters, 
+whereas LPO and RPO are defined from scratch and many properties  of LPO and RPO---such as strong normalization, closure under
+contexts and substitutions, transitivity, etc.---are derived from the 
+corresponding WPO properties.
+
+Note that most of the WPO formalization is described in \cite{WPO_form_paper}.
+The formal version deviates from the paper version
+only by the additional possibility to perform multiset-comparisons instead
+of lexicographic comparisons within WPO. 
+The formal version of LPO and RPO extend their original definitions as well: the RPO definition is 
+taken from \cite{RPO_def}, 
+and LPO is defined as this extended RPO where always
+lexicographic comparisons are performed when comparing lists of terms.
+The formalization of multiset-comparisons (w.r.t.\ two orders) is described in more detail in \cite{RPO_def}.
+
+\input{session}
+
+
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

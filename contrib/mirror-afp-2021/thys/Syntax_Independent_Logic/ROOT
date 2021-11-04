@@ -1,0 +1,14 @@
+chapter AFP
+
+session Syntax_Independent_Logic (AFP) = HOL +
+  description \<open>Syntax-Independent Logic Infrastructure\<close>
+  options [timeout = 2400]
+  sessions
+    "HOL-Eisbach"
+  theories
+    Pseudo_Term
+    Standard_Model
+    Deduction_Q
+  document_files
+    "root.tex"
+    "root.bib"

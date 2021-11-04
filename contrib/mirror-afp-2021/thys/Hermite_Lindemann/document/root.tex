@@ -1,0 +1,63 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{amsfonts, amsmath, amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+\usepackage[shortcuts]{extdash}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{The Hermite--Lindemann--Weierstraß Transcendence Theorem}
+\author{Manuel Eberl}
+\maketitle
+
+\begin{abstract}
+This article provides a formalisation of the Her\-mite\--Lin\-de\-mann\--Wei\-er\-straß Theorem
+(also known as simply Her\-mite\--Lin\-de\-mann or Lin\-de\-mann\--Wei\-er\-straß).
+ This theorem is one of the crowning achievements of 19th century number theory.
+
+The theorem states that if $\alpha_1, \ldots, \alpha_n\in\mathbb{C}$ are algebraic numbers that
+are linearly independent over $\mathbb{Z}$, then $e^{\alpha_1},\ldots,e^{\alpha_n}$ are
+algebraically independent over $\mathbb{Q}$.
+
+Like the previous formalisation in Coq by Bernard~\cite{bernard}, I proceeded by formalising 
+Baker's alternative formulation of the theorem~\cite{baker} and then deriving the original one from
+that. Baker's version states that for any algebraic numbers
+$\beta_1, \ldots, \beta_n\in\mathbb{C}$ and distinct algebraic numbers
+$\alpha_i, \ldots, \alpha_n\in\mathbb{C}$, we have:
+\[\beta_1 e^{\alpha_1} + \ldots + \beta_n e^{\alpha_n} = 0 \quad\quad\text{iff}\quad\quad
+  \forall i.\ \beta_i = 0\]
+
+This has a number of immediate corollaries, e.g.:
+\begin{itemize}
+\item $e$ and $\pi$ are transcendental
+\item $e^z$, $\sin z$, $\tan z$, etc.\ are transcendental for algebraic $z\in\mathbb{C}\setminus\{0\}$
+\item $\ln z$ is transcendental for algebraic $z\in\mathbb{C}\setminus\{0, 1\}$
+\end{itemize}
+\end{abstract}
+
+\newpage
+\tableofcontents
+\newpage
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\nocite{baker}
+\nocite{redheffer_steinberg}
+\nocite{bernard}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

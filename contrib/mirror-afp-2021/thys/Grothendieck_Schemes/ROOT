@@ -1,0 +1,11 @@
+chapter AFP
+
+session "Grothendieck_Schemes" (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "Jacobson_Basic_Algebra"
+  theories
+    Scheme
+  document_files
+    "root.tex"
+    "root.bib"

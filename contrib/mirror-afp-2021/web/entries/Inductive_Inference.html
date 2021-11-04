@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Some classical results in inductive inference of recursive functions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>ome
+  
+          classical
+  
+          results
+  
+          in
+  
+          inductive
+  
+          inference
+  
+          of
+  
+          recursive
+  
+          functions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Some classical results in inductive inference of recursive functions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Frank J. Balbach (frank-balbach /at/ gmx /dot/ de)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-08-31</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p> This entry formalizes some classical concepts and results
+from inductive inference of recursive functions. In the basic setting
+a partial recursive function ("strategy") must identify
+("learn") all functions from a set ("class") of
+recursive functions. To that end the strategy receives more and more
+values $f(0), f(1), f(2), \ldots$ of some function $f$ from the given
+class and in turn outputs descriptions of partial recursive functions,
+for example, Gödel numbers. The strategy is considered successful if
+the sequence of outputs ("hypotheses") converges to a
+description of $f$. A class of functions learnable in this sense is
+called "learnable in the limit". The set of all these
+classes is denoted by LIM. </p>  <p> Other types of
+inference considered are finite learning (FIN), behaviorally correct
+learning in the limit (BC), and some variants of LIM with restrictions
+on the hypotheses: total learning (TOTAL), consistent learning (CONS),
+and class-preserving learning (CP). The main results formalized are
+the proper inclusions $\mathrm{FIN} \subset \mathrm{CP} \subset
+\mathrm{TOTAL} \subset \mathrm{CONS} \subset \mathrm{LIM} \subset
+\mathrm{BC} \subset 2^{\mathcal{R}}$, where $\mathcal{R}$ is the set
+of all total recursive functions.  Further results show that for all
+these inference types except CONS, strategies can be assumed to be
+total recursive functions; that all inference types but CP are closed
+under the subset relation between classes; and that no inference type
+is closed under the union of classes. </p>  <p> The above
+is based on a formalization of recursive functions heavily inspired by
+the <a
+href="https://www.isa-afp.org/entries/Universal_Turing_Machine.html">Universal
+Turing Machine</a> entry by Xu et al., but different in that it
+models partial functions with codomain <em>nat
+option</em>. The formalization contains a construction of a
+universal partial recursive function, without resorting to Turing
+machines, introduces decidability and recursive enumerability, and
+proves some standard results: existence of a Kleene normal form, the
+<em>s-m-n</em> theorem, Rice's theorem, and assorted
+fixed-point theorems (recursion theorems) by Kleene, Rogers, and
+Smullyan. </p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Inductive_Inference-AFP,
+  author  = {Frank J. Balbach},
+  title   = {Some classical results in inductive inference of recursive functions},
+  journal = {Archive of Formal Proofs},
+  month   = aug,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Inductive_Inference.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Inductive_Inference/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Inductive_Inference/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Inductive_Inference/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Inductive_Inference-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Inductive_Inference-2020-09-02.tar.gz">
+              afp-Inductive_Inference-2020-09-02.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

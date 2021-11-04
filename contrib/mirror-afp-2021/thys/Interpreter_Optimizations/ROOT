@@ -1,0 +1,14 @@
+chapter AFP
+
+session Interpreter_Optimizations (AFP) = VeriComp +
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+  theories
+    Env_list
+    Inca_to_Ubx_compiler
+    Op_example
+    Std_to_Inca_compiler
+  document_files
+    "root.bib"
+    "root.tex"

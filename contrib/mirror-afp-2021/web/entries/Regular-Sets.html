@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Regular Sets and Expressions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">R</font>egular
+  
+          <font class="first">S</font>ets
+  
+          and
+  
+          <font class="first">E</font>xpressions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Regular Sets and Expressions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="http://www.in.tum.de/~krauss">Alexander Krauss</a> and
+          <a href="http://www21.in.tum.de/~nipkow">Tobias Nipkow</a>
+      </td>
+</tr>
+
+  <tr>
+    <td class="datahead">
+              Contributor:
+          </td>
+    <td class="data">
+                  <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a>
+           </td>
+  </tr>
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2010-05-12</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">This is a library of constructions on regular expressions and languages. It provides the operations of concatenation, Kleene star and derivative on languages. Regular expressions and their meaning are defined. An executable equivalence checker for regular expressions is verified; it does not need automata but works directly on regular expressions. <i>By mapping regular expressions to binary relations, an automatic and complete proof method for (in)equalities of binary relations over union, concatenation and (reflexive) transitive closure is obtained.</i> <P> Extended regular expressions with complement and intersection are also defined and an equivalence checker is provided.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2011-08-26]: Christian Urban added a theory about derivatives and partial derivatives of regular expressions<br>
+[2012-05-10]: Tobias Nipkow added extended regular expressions<br>
+[2012-05-10]: Tobias Nipkow added equivalence checking with partial derivatives</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Regular-Sets-AFP,
+  author  = {Alexander Krauss and Tobias Nipkow},
+  title   = {Regular Sets and Expressions},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2010,
+  note    = {\url{https://isa-afp.org/entries/Regular-Sets.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Abstract-Rewriting.html">Abstract-Rewriting</a>, <a href="Coinductive_Languages.html">Coinductive_Languages</a>, <a href="Containers.html">Containers</a>, <a href="Finite_Automata_HF.html">Finite_Automata_HF</a>, <a href="Functional-Automata.html">Functional-Automata</a>, <a href="Lambda_Free_KBOs.html">Lambda_Free_KBOs</a>, <a href="List_Update.html">List_Update</a>, <a href="Myhill-Nerode.html">Myhill-Nerode</a>, <a href="Posix-Lexing.html">Posix-Lexing</a>, <a href="Quick_Sort_Cost.html">Quick_Sort_Cost</a>, <a href="Regex_Equivalence.html">Regex_Equivalence</a>, <a href="Transitive-Closure-II.html">Transitive-Closure-II</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Regular-Sets/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Regular-Sets/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Regular-Sets/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Regular-Sets-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Regular-Sets-2020-04-20.tar.gz">
+              afp-Regular-Sets-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Regular-Sets-2019-06-11.tar.gz">
+              afp-Regular-Sets-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Regular-Sets-2018-08-16.tar.gz">
+              afp-Regular-Sets-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Regular-Sets-2017-10-10.tar.gz">
+              afp-Regular-Sets-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Regular-Sets-2016-12-17.tar.gz">
+              afp-Regular-Sets-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Regular-Sets-2016-02-22.tar.gz">
+              afp-Regular-Sets-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Regular-Sets-2015-05-27.tar.gz">
+              afp-Regular-Sets-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Regular-Sets-2014-08-28.tar.gz">
+              afp-Regular-Sets-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Regular-Sets-2013-12-11.tar.gz">
+              afp-Regular-Sets-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Regular-Sets-2013-11-17.tar.gz">
+              afp-Regular-Sets-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Regular-Sets-2013-03-02.tar.gz">
+              afp-Regular-Sets-2013-03-02.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2013:
+            <a href="../release/afp-Regular-Sets-2013-02-16.tar.gz">
+              afp-Regular-Sets-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Regular-Sets-2012-05-24.tar.gz">
+              afp-Regular-Sets-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Regular-Sets-2011-10-11.tar.gz">
+              afp-Regular-Sets-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-Regular-Sets-2011-02-11.tar.gz">
+              afp-Regular-Sets-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-Regular-Sets-2010-07-01.tar.gz">
+              afp-Regular-Sets-2010-07-01.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

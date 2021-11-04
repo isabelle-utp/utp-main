@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>OpSets: Sequential Specifications for Replicated Datatypes - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">O</font>pSets:
+  
+          <font class="first">S</font>equential
+  
+          <font class="first">S</font>pecifications
+  
+          for
+  
+          <font class="first">R</font>eplicated
+  
+          <font class="first">D</font>atatypes
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">OpSets: Sequential Specifications for Replicated Datatypes</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Martin Kleppmann (mk428 /at/ cl /dot/ cam /dot/ ac /dot/ uk),
+                  Victor B. F. Gomes (vb358 /at/ cl /dot/ cam /dot/ ac /dot/ uk),
+                Dominic P. Mulligan (Dominic /dot/ Mulligan /at/ arm /dot/ com) and
+          Alastair R. Beresford (arb33 /at/ cl /dot/ cam /dot/ ac /dot/ uk)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2018-05-10</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We introduce OpSets, an executable framework for specifying and
+reasoning about the semantics of replicated datatypes that provide
+eventual consistency in a distributed system, and for mechanically
+verifying algorithms that implement these datatypes. Our approach is
+simple but expressive, allowing us to succinctly specify a variety of
+abstract datatypes, including maps, sets, lists, text, graphs, trees,
+and registers. Our datatypes are also composable, enabling the
+construction of complex data structures. To demonstrate the utility of
+OpSets for analysing replication algorithms, we highlight an important
+correctness property for collaborative text editing that has
+traditionally been overlooked; algorithms that do not satisfy this
+property can exhibit awkward interleaving of text. We use OpSets to
+specify this correctness property and prove that although one existing
+replication algorithm satisfies this property, several other published
+algorithms do not.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{OpSets-AFP,
+  author  = {Martin Kleppmann and Victor B. F. Gomes and Dominic P. Mulligan and Alastair R. Beresford},
+  title   = {OpSets: Sequential Specifications for Replicated Datatypes},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2018,
+  note    = {\url{https://isa-afp.org/entries/OpSets.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/OpSets/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/OpSets/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/OpSets/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-OpSets-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-OpSets-2020-04-20.tar.gz">
+              afp-OpSets-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-OpSets-2019-06-11.tar.gz">
+              afp-OpSets-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-OpSets-2018-08-16.tar.gz">
+              afp-OpSets-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-OpSets-2018-05-25.tar.gz">
+              afp-OpSets-2018-05-25.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,12 @@
+chapter AFP
+
+session IMP_Compiler (AFP) = HOL +
+  options [timeout=300]
+  sessions
+    "HOL-IMP"
+  theories
+    Compiler
+    Compiler2
+  document_files
+    "root.bib"
+    "root.tex"

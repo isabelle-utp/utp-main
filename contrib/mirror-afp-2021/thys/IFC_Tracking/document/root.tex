@@ -1,0 +1,97 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage[left=2cm, right=2cm, top=3cm, bottom=3cm]{geometry}
+\usepackage[T1]{fontenc}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+\newcommand{\flqq}{\guillemotleft}
+
+\usepackage[english]{babel}
+
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% This should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+%\renewcommand{\isamarkupparagraph}[1]{\paragraph{#1}\mbox{}\\}
+%\renewcommand{\isamarkupsubparagraph}[1]{\subparagraph{#1}\mbox{}\\}
+
+%\addto\extrasenglish{\renewcommand{\subsectionautorefname}{section}}
+%\addto\extrasenglish{\renewcommand{\subsubsectionautorefname}{section}}
+
+
+
+\begin{document}
+
+\title{Information Flow Control via Dependency Tracking}
+\author{Benedikt Nordhoff}
+%\date{}
+\maketitle
+
+\begin{abstract}
+  We provide a characterisation of how information is propagated by program executions based on the
+  tracking data and control dependencies within executions themselves.  The characterisation might
+  be used for deriving approximative safety properties to be targeted by static analyses or checked
+  at runtime.  We utilise a simple yet versatile control flow graph model as a program
+  representation.  As our model is not assumed to be finite it can be instantiated for a broad class
+  of programs.  The targeted security property is indistinguishable security where executions
+  produce sequences of observations and only non-terminating executions are allowed to drop a tail
+  of those.
+
+  A very crude approximation of our characterisation is slicing based on program dependence graphs,
+  which we use as a minimal example and derive a corresponding soundness result.
+
+  For further details and applications refer to the authors upcoming dissertation.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\nocite{Bohannon:2009:RN:1653662.1653673}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

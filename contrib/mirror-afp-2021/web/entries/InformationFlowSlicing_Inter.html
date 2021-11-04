@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Inter-Procedural Information Flow Noninterference via Slicing - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">I</font>nter-Procedural
+  
+          <font class="first">I</font>nformation
+  
+          <font class="first">F</font>low
+  
+          <font class="first">N</font>oninterference
+  
+          via
+  
+          <font class="first">S</font>licing
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Inter-Procedural Information Flow Noninterference via Slicing</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="http://pp.info.uni-karlsruhe.de/personhp/daniel_wasserrab.php">Daniel Wasserrab</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2010-03-23</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+In this contribution, we show how correctness proofs for <a
+href="Slicing.html">intra-</a> and <a
+href="HRB-Slicing.html">interprocedural slicing</a> can be used to prove
+that slicing is able to guarantee information flow noninterference.
+Moreover, we also illustrate how to lift the control flow graphs of the
+respective frameworks such that they fulfil the additional assumptions
+needed in the noninterference proofs. A detailed description of the
+intraprocedural proof and its interplay with the slicing framework can be
+found in the PLAS'09 paper by Wasserrab et al.
+</p>
+<p>
+This entry contains the part for inter-procedural slicing. See entry
+<a href="InformationFlowSlicing.html">InformationFlowSlicing</a>
+for the intra-procedural part.
+</p></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2016-06-10]: The original entry <a
+href="InformationFlowSlicing.html">InformationFlowSlicing</a> contained both
+the <a href="InformationFlowSlicing_Inter.html">inter-</a> and <a
+href="InformationFlowSlicing.html">intra-procedural</a> case was split into
+two for easier maintenance.</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{InformationFlowSlicing_Inter-AFP,
+  author  = {Daniel Wasserrab},
+  title   = {Inter-Procedural Information Flow Noninterference via Slicing},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2010,
+  note    = {\url{https://isa-afp.org/entries/InformationFlowSlicing_Inter.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="HRB-Slicing.html">HRB-Slicing</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/InformationFlowSlicing_Inter/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/InformationFlowSlicing_Inter/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/InformationFlowSlicing_Inter/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-InformationFlowSlicing_Inter-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-InformationFlowSlicing_Inter-2020-04-18.tar.gz">
+              afp-InformationFlowSlicing_Inter-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-InformationFlowSlicing_Inter-2019-06-11.tar.gz">
+              afp-InformationFlowSlicing_Inter-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-InformationFlowSlicing_Inter-2018-08-16.tar.gz">
+              afp-InformationFlowSlicing_Inter-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-InformationFlowSlicing_Inter-2017-10-10.tar.gz">
+              afp-InformationFlowSlicing_Inter-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-InformationFlowSlicing_Inter-2016-12-17.tar.gz">
+              afp-InformationFlowSlicing_Inter-2016-12-17.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

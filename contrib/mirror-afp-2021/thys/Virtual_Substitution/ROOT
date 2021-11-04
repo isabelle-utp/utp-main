@@ -1,0 +1,47 @@
+chapter AFP
+
+session Virtual_Substitution (AFP) = "HOL-Analysis" +
+  options [timeout = 1200]
+  sessions
+    "Polynomials"
+  theories
+    QE
+
+    MPolyExtension
+      ExecutiblePolyProps
+
+    PolyAtoms
+
+    Debruijn
+      Reindex
+
+    Optimizations
+      OptimizationProofs
+
+    VSAlgos
+      Heuristic
+      Exports
+    
+    LinearCase
+      QuadraticCase
+      EliminateVariable
+      LuckyFind
+      EqualityVS
+
+    UniAtoms
+      NegInfinity
+        NegInfinityUni
+      Infinitesimals
+        InfinitesimalsUni
+      DNFUni
+        GeneralVSProofs
+
+    DNF
+      VSQuad
+      HeuristicProofs
+      ExportProofs
+  theories [document = false]
+    PrettyPrinting
+  document_files
+    "root.tex"
+    "root.bib"

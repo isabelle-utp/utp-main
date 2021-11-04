@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Hereditarily Finite Sets - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>he
+  
+          <font class="first">H</font>ereditarily
+  
+          <font class="first">F</font>inite
+  
+          <font class="first">S</font>ets
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">The Hereditarily Finite Sets</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www.cl.cam.ac.uk/~lp15/">Lawrence C. Paulson</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2013-11-17</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">The theory of hereditarily finite sets is formalised, following
+the <a href="http://journals.impan.gov.pl/dm/Inf/422-0-1.html">development</a> of Swierczkowski.
+An HF set is a finite collection of other HF sets; they enjoy an induction principle
+and satisfy all the axioms of ZF set theory apart from the axiom of infinity, which is negated.
+All constructions that are possible in ZF set theory (Cartesian products, disjoint sums, natural numbers,
+functions) without using infinite sets are possible here.
+The definition of addition for the HF sets follows Kirby.
+This development forms the foundation for the Isabelle proof of Gödel's incompleteness theorems,
+which has been <a href="Incompleteness.html">formalised separately</a>.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2015-02-23]: Added the theory "Finitary" defining the class of types that can be embedded in hf, including int, char, option, list, etc.</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{HereditarilyFinite-AFP,
+  author  = {Lawrence C. Paulson},
+  title   = {The Hereditarily Finite Sets},
+  journal = {Archive of Formal Proofs},
+  month   = nov,
+  year    = 2013,
+  note    = {\url{https://isa-afp.org/entries/HereditarilyFinite.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Category3.html">Category3</a>, <a href="Finite_Automata_HF.html">Finite_Automata_HF</a>, <a href="Goedel_HFSet_Semanticless.html">Goedel_HFSet_Semanticless</a>, <a href="Incompleteness.html">Incompleteness</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/HereditarilyFinite/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/HereditarilyFinite/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/HereditarilyFinite/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-HereditarilyFinite-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-HereditarilyFinite-2020-04-18.tar.gz">
+              afp-HereditarilyFinite-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-HereditarilyFinite-2019-06-11.tar.gz">
+              afp-HereditarilyFinite-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-HereditarilyFinite-2018-08-16.tar.gz">
+              afp-HereditarilyFinite-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-HereditarilyFinite-2017-10-10.tar.gz">
+              afp-HereditarilyFinite-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-HereditarilyFinite-2016-12-17.tar.gz">
+              afp-HereditarilyFinite-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-HereditarilyFinite-2016-02-22.tar.gz">
+              afp-HereditarilyFinite-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-HereditarilyFinite-2015-05-27.tar.gz">
+              afp-HereditarilyFinite-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-HereditarilyFinite-2014-08-28.tar.gz">
+              afp-HereditarilyFinite-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-HereditarilyFinite-2013-12-11.tar.gz">
+              afp-HereditarilyFinite-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-HereditarilyFinite-2013-11-17.tar.gz">
+              afp-HereditarilyFinite-2013-11-17.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

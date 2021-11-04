@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Symmetric Polynomials - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>ymmetric
+  
+          <font class="first">P</font>olynomials
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Symmetric Polynomials</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2018-09-25</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>A symmetric polynomial is a polynomial in variables
+<em>X</em><sub>1</sub>,&hellip;,<em>X</em><sub>n</sub>
+that does not discriminate between its variables, i.&thinsp;e. it
+is invariant under any permutation of them. These polynomials are
+important in the study of the relationship between the coefficients of
+a univariate polynomial and its roots in its algebraic
+closure.</p> <p>This article provides a definition of
+symmetric polynomials and the elementary symmetric polynomials
+e<sub>1</sub>,&hellip;,e<sub>n</sub> and
+proofs of their basic properties, including three notable
+ones:</p> <ul> <li> Vieta's formula, which
+gives an explicit expression for the <em>k</em>-th
+coefficient of a univariate monic polynomial in terms of its roots
+<em>x</em><sub>1</sub>,&hellip;,<em>x</em><sub>n</sub>,
+namely
+<em>c</em><sub><em>k</em></sub> = (-1)<sup><em>n</em>-<em>k</em></sup>&thinsp;e<sub><em>n</em>-<em>k</em></sub>(<em>x</em><sub>1</sub>,&hellip;,<em>x</em><sub>n</sub>).</li>
+<li>Second, the Fundamental Theorem of Symmetric Polynomials,
+which states that any symmetric polynomial is itself a uniquely
+determined polynomial combination of the elementary symmetric
+polynomials.</li> <li>Third, as a corollary of the
+previous two, that given a polynomial over some ring
+<em>R</em>, any symmetric polynomial combination of its
+roots is also in <em>R</em> even when the roots are not.
+</ul> <p> Both the symmetry property itself and the
+witness for the Fundamental Theorem are executable. </p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Symmetric_Polynomials-AFP,
+  author  = {Manuel Eberl},
+  title   = {Symmetric Polynomials},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2018,
+  note    = {\url{https://isa-afp.org/entries/Symmetric_Polynomials.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Polynomials.html">Polynomials</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Pi_Transcendental.html">Pi_Transcendental</a>, <a href="Power_Sum_Polynomials.html">Power_Sum_Polynomials</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Symmetric_Polynomials/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Symmetric_Polynomials/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Symmetric_Polynomials/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Symmetric_Polynomials-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Symmetric_Polynomials-2020-04-20.tar.gz">
+              afp-Symmetric_Polynomials-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Symmetric_Polynomials-2019-06-11.tar.gz">
+              afp-Symmetric_Polynomials-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Symmetric_Polynomials-2018-09-26.tar.gz">
+              afp-Symmetric_Polynomials-2018-09-26.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

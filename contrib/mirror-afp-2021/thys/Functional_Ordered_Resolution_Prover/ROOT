@@ -1,0 +1,15 @@
+chapter AFP
+
+session Functional_Ordered_Resolution_Prover (AFP) = Ordered_Resolution_Prover +
+  options [timeout = 600]
+  sessions
+    First_Order_Terms
+    Knuth_Bendix_Order
+    Lambda_Free_RPOs
+    Nested_Multisets_Ordinals
+    Open_Induction
+    Polynomial_Factorization
+  theories
+    Executable_FO_Ordered_Resolution_Prover
+  document_files
+    "root.tex"

@@ -1,0 +1,28 @@
+chapter AFP
+
+session "Topological_Semantics" (AFP) = "HOL" +
+  options [timeout = 600]
+  theories
+	sse_boolean_algebra
+	sse_boolean_algebra_quantification
+	sse_operation_positive
+	sse_operation_positive_quantification
+	sse_operation_negative
+	sse_operation_negative_quantification
+	topo_operators_basic
+	topo_operators_derivative
+	topo_alexandrov
+	topo_frontier_algebra
+	topo_negation_conditions
+	topo_negation_fixedpoints
+	ex_LFIs
+	topo_strict_implication
+	ex_subminimal_logics
+	topo_derivative_algebra
+	ex_LFUs
+	topo_border_algebra
+	topo_closure_algebra
+	topo_interior_algebra
+  document_files
+    "root.tex"
+    "root.bib"   

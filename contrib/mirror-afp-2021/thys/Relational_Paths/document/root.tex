@@ -1,0 +1,51 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb,ragged2e}
+\usepackage{pdfsetup}
+
+\isabellestyle{it}
+\renewenvironment{isamarkuptext}{\par\isastyletext\begin{isapar}\justifying\color{blue}}{\end{isapar}}
+\renewcommand\labelitemi{$*$}
+
+\begin{document}
+
+\title{Relational Characterisations of Paths}
+\author{Walter Guttmann and Peter H\"ofner}
+\maketitle
+
+\begin{abstract}
+  Binary relations are one of the standard ways to encode, characterise and reason about graphs.
+  Relation algebras provide equational axioms for a large fragment of the calculus of binary relations.
+  Although relations are standard tools in many areas of mathematics and computing, researchers usually fall back to point-wise reasoning when it comes to arguments about paths in a graph.
+  We present a purely algebraic way to specify different kinds of paths in Kleene relation algebras, which are relation algebras equipped with an operation for reflexive transitive closure.
+  We study the relationship between paths with a designated root vertex and paths without such a vertex.
+  Since we stay in first-order logic this development helps with mechanising proofs.
+  To demonstrate the applicability of the algebraic framework we verify the correctness of three basic graph algorithms.
+\end{abstract}
+
+\tableofcontents
+
+\section*{Overview}
+
+A path in a graph can be defined as a connected subgraph of edges where each vertex has at most one incoming edge and at most one outgoing edge \cite{Diestel2005,Tinhofer1976}.
+We develop a theory of paths based on this representation and use it for algorithm verification.
+All reasoning is done in variants of relation algebras and Kleene algebras \cite{Kozen1994,Ng1984,Tarski1941}.
+
+Section 1 presents fundamental results that hold in relation algebras.
+Relation-algebraic characterisations of various kinds of paths are introduced and compared in Section 2.
+We extend this to paths with a designated root in Section 3.
+Section 4 verifies the correctness of a few basic graph algorithms.
+
+These Isabelle/HOL theories formally verify results in \cite{BerghammerFurusawaGuttmannHoefner2020}.
+See this paper for further details and related work.
+
+\begin{flushleft}
+\input{session}
+\end{flushleft}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

@@ -1,0 +1,36 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{The Sunflower Lemma of Erdős and Rado}
+\author{René Thiemann}
+\maketitle
+
+\begin{abstract}
+We formally define sunflowers and provide a formalization of
+the sunflower lemma of Erdős and Rado: whenever a set of size-$k$-sets has a larger cardinality 
+than $(r - 1)^k \cdot k!$, then it contains a sunflower of cardinality $r$.
+\end{abstract}
+
+% include generated text of all theories
+\input{session}
+
+% optional bibliography
+%\addcontentsline{toc}{section}{Bibliography}
+%\nocite{*}
+\bibliographystyle{plain}
+\bibliography{root}
+
+\end{document}

@@ -1,0 +1,19 @@
+chapter AFP
+
+session Relational_Paths (AFP) = Relation_Algebra +
+
+  options [timeout = 600]
+
+  sessions
+    "HOL-Hoare"
+
+  theories
+    More_Relation_Algebra
+    Paths
+    Rooted_Paths
+    Path_Algorithms
+
+  document_files
+    "root.tex"
+    "root.bib"
+

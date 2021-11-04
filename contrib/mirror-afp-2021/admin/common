@@ -1,0 +1,58 @@
+# -*- shell-script -*-
+#
+# Author: Gerwin Klein
+#
+# shell library functions common to the AFP scripts
+# assumes all AFP bash scripts are in admin/
+#
+
+PRG="$(basename "$0")"
+DIR="$(dirname "$0")"
+
+AFP_ROOT="$(cd "${DIR}/.."; pwd)"
+THYS="$AFP_ROOT/thys"
+
+source "$AFP_ROOT/etc/version"
+
+##
+
+fail()
+{
+  echo "### $1" >&2
+  exit 2
+}
+
+timestamp()
+{
+   echo "[timestamp: $(date "+%Y-%m-%d %H:%M:%S")]"
+}
+
+check_isabelle()
+{
+  [ -x "$ISABELLE_TOOL" ] || fail "No isabelle tool wrapper found at [$ISABELLE_TOOL]."
+  ISABELLE_HOME="$("$ISABELLE_TOOL" getenv -b ISABELLE_HOME)" || fail "could not find Isabelle home"
+}
+
+
+default_isabelle_tool()
+{
+  if [ ! -x "$ISABELLE_TOOL" ]; then
+    if [[ "$VERSION" == devel ]]; then
+      ISABELLE_TOOL="$(which isabelle)"
+    else
+      [ "$ISABELLE_RELEASES" == "" ] && fail "ISABELLE_RELEASES not set"
+      ISABELLE_VERSION="Isabelle$VERSION"
+      ISABELLE_TOOL="$ISABELLE_RELEASES/$ISABELLE_VERSION/bin/isabelle"
+      if [[ "$OSTYPE" == darwin* && ! -x "$ISABELLE_TOOL" ]]; then
+        ISABELLE_TOOL="$ISABELLE_RELEASES/${ISABELLE_VERSION}.app/bin/isabelle"
+      fi
+    fi
+  fi
+}
+
+set_isabelle_tool()
+{
+  default_isabelle_tool
+  check_isabelle
+  echo "using [$ISABELLE_TOOL]"
+}

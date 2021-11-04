@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Bytecode Logic for JML and Types - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">B</font>ytecode
+  
+          <font class="first">L</font>ogic
+  
+          for
+  
+          <font class="first">J</font>ML
+  
+          and
+  
+          <font class="first">T</font>ypes
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Bytecode Logic for JML and Types</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Lennart Beringer and
+          <a href="http://www.tcs.informatik.uni-muenchen.de/~mhofmann">Martin Hofmann</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2008-12-12</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">This document contains the Isabelle/HOL sources underlying the paper <i>A bytecode logic for JML and types</i> by Beringer and Hofmann, updated to Isabelle 2008. We present a program logic for a subset of sequential Java bytecode that is suitable for representing both, features found in high-level specification language JML as well as interpretations of high-level type systems. To this end, we introduce a fine-grained collection of assertions, including strong invariants, local annotations and VDM-reminiscent partial-correctness specifications. Thanks to a goal-oriented structure and interpretation of judgements, verification may proceed without recourse to an additional control flow analysis. The suitability for interpreting intensional type systems is illustrated by the proof-carrying-code style encoding of a type system for a first-order functional language which guarantees a constant upper bound on the number of objects allocated throughout an execution, be the execution terminating or non-terminating. Like the published paper, the formal development is restricted to a comparatively small subset of the JVML, lacking (among other features) exceptions, arrays, virtual methods, and static fields. This shortcoming has been overcome meanwhile, as our paper has formed the basis of the Mobius base logic, a program logic for the full sequential fragment of the JVML. Indeed, the present formalisation formed the basis of a subsequent formalisation of the Mobius base logic in the proof assistant Coq, which includes a proof of soundness with respect to the Bicolano operational semantics by Pichardie.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{BytecodeLogicJmlTypes-AFP,
+  author  = {Lennart Beringer and Martin Hofmann},
+  title   = {A Bytecode Logic for JML and Types},
+  journal = {Archive of Formal Proofs},
+  month   = dec,
+  year    = 2008,
+  note    = {\url{https://isa-afp.org/entries/BytecodeLogicJmlTypes.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/BytecodeLogicJmlTypes/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/BytecodeLogicJmlTypes/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/BytecodeLogicJmlTypes/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-BytecodeLogicJmlTypes-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2020-04-18.tar.gz">
+              afp-BytecodeLogicJmlTypes-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2019-06-11.tar.gz">
+              afp-BytecodeLogicJmlTypes-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2018-08-16.tar.gz">
+              afp-BytecodeLogicJmlTypes-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2017-10-10.tar.gz">
+              afp-BytecodeLogicJmlTypes-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2016-12-17.tar.gz">
+              afp-BytecodeLogicJmlTypes-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2016-02-22.tar.gz">
+              afp-BytecodeLogicJmlTypes-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2015-05-27.tar.gz">
+              afp-BytecodeLogicJmlTypes-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2014-08-28.tar.gz">
+              afp-BytecodeLogicJmlTypes-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2013-12-11.tar.gz">
+              afp-BytecodeLogicJmlTypes-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2013-11-17.tar.gz">
+              afp-BytecodeLogicJmlTypes-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2013-02-16.tar.gz">
+              afp-BytecodeLogicJmlTypes-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2012-05-24.tar.gz">
+              afp-BytecodeLogicJmlTypes-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2011-10-11.tar.gz">
+              afp-BytecodeLogicJmlTypes-2011-10-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2011-02-11.tar.gz">
+              afp-BytecodeLogicJmlTypes-2011-02-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-2:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2010-06-30.tar.gz">
+              afp-BytecodeLogicJmlTypes-2010-06-30.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009-1:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2009-12-12.tar.gz">
+              afp-BytecodeLogicJmlTypes-2009-12-12.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2009:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2009-04-29.tar.gz">
+              afp-BytecodeLogicJmlTypes-2009-04-29.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2008:
+            <a href="../release/afp-BytecodeLogicJmlTypes-2008-12-22.tar.gz">
+              afp-BytecodeLogicJmlTypes-2008-12-22.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

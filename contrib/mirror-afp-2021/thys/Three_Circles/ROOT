@@ -1,0 +1,12 @@
+chapter AFP
+
+session Three_Circles (AFP) = "HOL-Computational_Algebra" +
+  options [timeout = 600]
+  sessions
+    Budan_Fourier
+    Polynomial_Interpolation
+  theories
+    Three_Circles
+  document_files
+    "root.tex"
+    "root.bib"

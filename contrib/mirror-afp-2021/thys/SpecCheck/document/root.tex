@@ -1,0 +1,39 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{isabelle,isabellesym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{SpecCheck -- Specification-Based Testing for Isabelle/ML}
+\author{Kevin Kappelmann, Lukas Bulwahn, and Sebastian Willenbrink}
+\maketitle
+
+\begin{abstract}
+SpecCheck is a \href{https://en.wikipedia.org/wiki/QuickCheck}{QuickCheck}-like testing framework
+for Isabelle/ML.
+You can use it to write specifications for ML functions.
+SpecCheck then checks whether your specification holds by testing your function against a given number of generated inputs.
+It helps you to identify bugs by printing counterexamples on failure and provides you timing information.
+
+SpecCheck is customisable and allows you to specify your own input generators,
+test output formats, as well as pretty printers and shrinking functions for counterexamples
+among other things.
+\end{abstract}
+
+\tableofcontents
+
+% include generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

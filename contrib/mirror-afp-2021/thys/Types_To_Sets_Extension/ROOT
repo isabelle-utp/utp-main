@@ -1,0 +1,44 @@
+chapter AFP
+
+session Types_To_Sets_Extension (AFP) = Conditional_Transfer_Rule +
+  options [timeout = 600]
+  sessions
+    "HOL-Types_To_Sets"
+    "HOL-Eisbach"
+    "HOL-Analysis"
+  directories
+    "ETTS"
+    "ETTS/ETTS_Tools"
+    "ETTS/Manual"
+    "ETTS/Tests"
+    "Examples"
+    "Examples/TTS_Foundations"
+    "Examples/TTS_Foundations/Algebra"
+    "Examples/TTS_Foundations/Foundations"
+    "Examples/TTS_Foundations/Orders"
+    "Examples/SML_Relativization"
+    "Examples/SML_Relativization/Algebra"
+    "Examples/SML_Relativization/Foundations"
+    "Examples/SML_Relativization/Lattices"
+    "Examples/SML_Relativization/Simple_Orders"
+    "Examples/SML_Relativization/Topology"
+    "Examples/Vector_Spaces"
+  theories [document = false]
+    "ETTS/ETTS_Tools/ETTS_Tools"
+    "ETTS/ETTS"
+    "ETTS/ETTS_Auxiliary"
+    "ETTS/Manual/Manual_Prerequisites"
+    "ETTS/Tests/ETTS_Tests"
+  theories
+    "ETTS/Manual/ETTS_CR"
+    "Examples/Introduction"
+    "Examples/SML_Relativization/SML_Conclusions"
+    "Examples/Vector_Spaces/VS_Conclusions"
+    "Examples/TTS_Foundations/FNDS_Conclusions"
+  document_files
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "style.sty"
+    "root.tex"
+    "root.bib"

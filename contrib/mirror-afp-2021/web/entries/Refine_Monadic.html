@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Refinement for Monadic Programs - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">R</font>efinement
+  
+          for
+  
+          <font class="first">M</font>onadic
+  
+          <font class="first">P</font>rograms
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Refinement for Monadic Programs</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Peter Lammich
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2012-01-30</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">We provide a framework for program and data refinement in Isabelle/HOL.
+The framework is based on a nondeterminism-monad with assertions, i.e.,
+the monad carries a set of results or an assertion failure.
+Recursion is expressed by fixed points. For convenience, we also provide
+while and foreach combinators.
+<p>
+The framework provides tools to automatize canonical tasks, such as
+verification condition generation, finding appropriate data refinement relations,
+and refine an executable program to a form that is accepted by the
+Isabelle/HOL code generator.
+<p>
+This submission comes with a collection of examples and a user-guide,
+illustrating the usage of the framework.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2012-04-23] Introduced ordered FOREACH loops<br>
+[2012-06] New features:
+REC_rule_arb and RECT_rule_arb allow for generalizing over variables.
+prepare_code_thms - command extracts code equations for recursion combinators.<br>
+[2012-07] New example: Nested DFS for emptiness check of Buchi-automata with witness.<br>
+New feature:
+fo_rule method to apply resolution using first-order matching. Useful for arg_conf, fun_cong.<br>
+[2012-08] Adaptation to ICF v2.<br>
+[2012-10-05] Adaptations to include support for Automatic Refinement Framework.<br>
+[2013-09] This entry now depends on Automatic Refinement<br>
+[2014-06] New feature: vc_solve method to solve verification conditions.
+Maintenace changes: VCG-rules for nfoldli, improved setup for FOREACH-loops.<br>
+[2014-07] Now defining recursion via flat domain. Dropped many single-valued prerequisites.
+Changed notion of data refinement. In single-valued case, this matches the old notion.
+In non-single valued case, the new notion allows for more convenient rules.
+In particular, the new definitions allow for projecting away ghost variables as a refinement step.<br>
+[2014-11] New features: le-or-fail relation (leof), modular reasoning about loop invariants.</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Refine_Monadic-AFP,
+  author  = {Peter Lammich},
+  title   = {Refinement for Monadic Programs},
+  journal = {Archive of Formal Proofs},
+  month   = jan,
+  year    = 2012,
+  note    = {\url{https://isa-afp.org/entries/Refine_Monadic.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Automatic_Refinement.html">Automatic_Refinement</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Collections.html">Collections</a>, <a href="JinjaThreads.html">JinjaThreads</a>, <a href="Kruskal.html">Kruskal</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Refine_Monadic/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Refine_Monadic/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Refine_Monadic/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Refine_Monadic-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Refine_Monadic-2020-04-20.tar.gz">
+              afp-Refine_Monadic-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Refine_Monadic-2019-06-11.tar.gz">
+              afp-Refine_Monadic-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Refine_Monadic-2018-08-16.tar.gz">
+              afp-Refine_Monadic-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Refine_Monadic-2017-10-10.tar.gz">
+              afp-Refine_Monadic-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Refine_Monadic-2016-12-17.tar.gz">
+              afp-Refine_Monadic-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Refine_Monadic-2016-02-22.tar.gz">
+              afp-Refine_Monadic-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Refine_Monadic-2015-05-27.tar.gz">
+              afp-Refine_Monadic-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Refine_Monadic-2014-08-28.tar.gz">
+              afp-Refine_Monadic-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Refine_Monadic-2013-12-11.tar.gz">
+              afp-Refine_Monadic-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Refine_Monadic-2013-11-17.tar.gz">
+              afp-Refine_Monadic-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Refine_Monadic-2013-02-16.tar.gz">
+              afp-Refine_Monadic-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Refine_Monadic-2012-05-24.tar.gz">
+              afp-Refine_Monadic-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Refine_Monadic-2012-02-10.tar.gz">
+              afp-Refine_Monadic-2012-02-10.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

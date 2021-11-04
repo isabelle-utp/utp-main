@@ -1,0 +1,71 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+\usepackage{wasysym}  
+  
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Semantics of AI Planning Languages}
+\author{Mohammad Abdulaziz and Peter Lammich\footnote{Author names are alphabetically ordered.}}
+
+% \subtitle{Proof Document}
+% \author{M. Abdulaziz \and P. Lammich}
+\date{}
+
+\maketitle
+
+This is an Isabelle/HOL formalisation of the semantics of the multi-valued planning tasks language that is used by the planning system Fast-Downward~\cite{helmert2006fast}, the STRIPS~\cite{fikes1971strips} fragment of the Planning Domain Definition Language~\cite{PDDLref} (PDDL), and the STRIPS soundness meta-theory developed by Lifschitz~\cite{lifschitz1987semantics}.
+It also contains formally verified checkers for checking the well-formedness of problems specified in either language as well the correctness of potential solutions.
+The formalisation in this entry was described in an earlier publication~\cite{ictai2018}.
+
+\tableofcontents
+
+\clearpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Laws of Large Numbers - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>he
+  
+          <font class="first">L</font>aws
+  
+          of
+  
+          <font class="first">L</font>arge
+  
+          <font class="first">N</font>umbers
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">The Laws of Large Numbers</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2021-02-10</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>The Law of Large Numbers states that, informally, if one
+performs a random experiment $X$ many times and takes the average of
+the results, that average will be very close to the expected value
+$E[X]$.</p> <p> More formally, let
+$(X_i)_{i\in\mathbb{N}}$ be a sequence of independently identically
+distributed random variables whose expected value $E[X_1]$ exists.
+Denote the running average of $X_1, \ldots, X_n$ as $\overline{X}_n$.
+Then:</p> <ul> <li>The Weak Law of Large Numbers
+states that $\overline{X}_{n} \longrightarrow E[X_1]$ in probability
+for $n\to\infty$, i.e. $\mathcal{P}(|\overline{X}_{n} - E[X_1]| >
+\varepsilon) \longrightarrow 0$ as $n\to\infty$ for any $\varepsilon
+> 0$.</li> <li>The Strong Law of Large Numbers states
+that $\overline{X}_{n} \longrightarrow E[X_1]$ almost surely for
+$n\to\infty$, i.e. $\mathcal{P}(\overline{X}_{n} \longrightarrow
+E[X_1]) = 1$.</li> </ul> <p>In this entry, I
+formally prove the strong law and from it the weak law. The approach
+used for the proof of the strong law is a particularly quick and slick
+one based on ergodic theory, which was formalised by Gouëzel in
+another AFP entry.</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Laws_of_Large_Numbers-AFP,
+  author  = {Manuel Eberl},
+  title   = {The Laws of Large Numbers},
+  journal = {Archive of Formal Proofs},
+  month   = feb,
+  year    = 2021,
+  note    = {\url{https://isa-afp.org/entries/Laws_of_Large_Numbers.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Ergodic_Theory.html">Ergodic_Theory</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Laws_of_Large_Numbers/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Laws_of_Large_Numbers/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Laws_of_Large_Numbers/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Laws_of_Large_Numbers-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Laws_of_Large_Numbers-2021-02-11.tar.gz">
+              afp-Laws_of_Large_Numbers-2021-02-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

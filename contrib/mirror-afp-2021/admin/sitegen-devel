@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# devel invocation of sitegen.py
+
+STATUS_FILE="$(readlink -f "$1")"
+shift
+
+DEPS_FILE="$(readlink -f "$1")"
+shift
+
+cd "$(dirname "$0")/.."
+
+admin/sitegen-lib/sitegen.py --dest=web \
+                             --templates=metadata/templates \
+                             --status="$STATUS_FILE" \
+                             --deps="$DEPS_FILE" \
+                             metadata thys "$@"
+
+mkdir -p release
+echo "Packing tars ..."
+
+find thys -mindepth 1 -maxdepth 1 -type d | while read -r LINE; do
+  ENTRY="$(basename "$LINE")"
+  tar -C thys -czf "release/afp-${ENTRY}-current.tar.gz" "$ENTRY"
+done

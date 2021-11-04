@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Deriving class instances for datatypes - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">D</font>eriving
+  
+          class
+  
+          instances
+  
+          for
+  
+          datatypes
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Deriving class instances for datatypes</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Christian Sternagel (c /dot/ sternagel /at/ gmail /dot/ com) and
+          René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2015-03-11</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>We provide a framework for registering automatic methods
+to derive class instances of datatypes,
+as it is possible using Haskell's ``deriving Ord, Show, ...'' feature.</p>
+<p>We further implemented such automatic methods to derive comparators, linear orders, parametrizable equality functions,
+and hash-functions which are required in the
+Isabelle Collection Framework and the Container Framework.
+Moreover, for the tactic of Blanchette to show that a datatype is countable, we implemented a
+wrapper so that this tactic becomes accessible in our framework. All of the generators are based on
+the infrastructure that is provided by the BNF-based datatype package.</p>
+<p>Our formalization was performed as part of the <a href="http://cl-informatik.uibk.ac.at/software/ceta">IsaFoR/CeTA</a> project.
+With our new tactics we could remove
+several tedious proofs for (conditional) linear orders, and conditional equality operators
+within IsaFoR and the Container Framework.</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Deriving-AFP,
+  author  = {Christian Sternagel and René Thiemann},
+  title   = {Deriving class instances for datatypes},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2015,
+  note    = {\url{https://isa-afp.org/entries/Deriving.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Collections.html">Collections</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Affine_Arithmetic.html">Affine_Arithmetic</a>, <a href="Containers.html">Containers</a>, <a href="Datatype_Order_Generator.html">Datatype_Order_Generator</a>, <a href="Formula_Derivatives.html">Formula_Derivatives</a>, <a href="Groebner_Bases.html">Groebner_Bases</a>, <a href="LTL_Master_Theorem.html">LTL_Master_Theorem</a>, <a href="MSO_Regex_Equivalence.html">MSO_Regex_Equivalence</a>, <a href="Real_Impl.html">Real_Impl</a>, <a href="Show.html">Show</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Deriving/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Deriving/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Deriving/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Deriving-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Deriving-2020-04-18.tar.gz">
+              afp-Deriving-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Deriving-2019-06-11.tar.gz">
+              afp-Deriving-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Deriving-2018-08-16.tar.gz">
+              afp-Deriving-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Deriving-2017-10-10.tar.gz">
+              afp-Deriving-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Deriving-2016-12-17.tar.gz">
+              afp-Deriving-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Deriving-2016-02-22.tar.gz">
+              afp-Deriving-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Deriving-2015-05-27.tar.gz">
+              afp-Deriving-2015-05-27.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

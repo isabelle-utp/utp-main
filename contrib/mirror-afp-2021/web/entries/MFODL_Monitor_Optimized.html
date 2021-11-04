@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Formalization of an Optimized Monitoring Algorithm for Metric First-Order Dynamic Logic with Aggregations - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">F</font>ormalization
+  
+          of
+  
+          an
+  
+          <font class="first">O</font>ptimized
+  
+          <font class="first">M</font>onitoring
+  
+          <font class="first">A</font>lgorithm
+  
+          for
+  
+          <font class="first">M</font>etric
+  
+          <font class="first">F</font>irst-Order
+  
+          <font class="first">D</font>ynamic
+  
+          <font class="first">L</font>ogic
+  
+          with
+  
+          <font class="first">A</font>ggregations
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Formalization of an Optimized Monitoring Algorithm for Metric First-Order Dynamic Logic with Aggregations</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Thibault Dardinier,
+                  Lukas Heimes,
+                  Martin Raszyk (martin /dot/ raszyk /at/ inf /dot/ ethz /dot/ ch),
+                Joshua Schneider and
+          <a href="https://traytel.bitbucket.io/">Dmitriy Traytel</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-04-09</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+A monitor is a runtime verification tool that solves the following
+problem: Given a stream of time-stamped events and a policy formulated
+in a specification language, decide whether the policy is satisfied at
+every point in the stream. We verify the correctness of an executable
+monitor for specifications given as formulas in metric first-order
+dynamic logic (MFODL), which combines the features of metric
+first-order temporal logic (MFOTL) and metric dynamic logic. Thus,
+MFODL supports real-time constraints, first-order parameters, and
+regular expressions. Additionally, the monitor supports aggregation
+operations such as count and sum. This formalization, which is
+described in a <a
+href="http://people.inf.ethz.ch/trayteld/papers/ijcar20-verimonplus/verimonplus.pdf">
+forthcoming paper at IJCAR 2020</a>, significantly extends <a
+href="https://www.isa-afp.org/entries/MFOTL_Monitor.html">previous
+work on a verified monitor</a> for MFOTL. Apart from the
+addition of regular expressions and aggregations, we implemented <a
+href="https://www.isa-afp.org/entries/Generic_Join.html">multi-way
+joins</a> and a specialized sliding window algorithm to further
+optimize the monitor.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{MFODL_Monitor_Optimized-AFP,
+  author  = {Thibault Dardinier and Lukas Heimes and Martin Raszyk and Joshua Schneider and Dmitriy Traytel},
+  title   = {Formalization of an Optimized Monitoring Algorithm for Metric First-Order Dynamic Logic with Aggregations},
+  journal = {Archive of Formal Proofs},
+  month   = apr,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/MFODL_Monitor_Optimized.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Generic_Join.html">Generic_Join</a>, <a href="IEEE_Floating_Point.html">IEEE_Floating_Point</a>, <a href="MFOTL_Monitor.html">MFOTL_Monitor</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/MFODL_Monitor_Optimized/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/MFODL_Monitor_Optimized/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/MFODL_Monitor_Optimized/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-MFODL_Monitor_Optimized-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-MFODL_Monitor_Optimized-2020-04-20.tar.gz">
+              afp-MFODL_Monitor_Optimized-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-MFODL_Monitor_Optimized-2020-04-12.tar.gz">
+              afp-MFODL_Monitor_Optimized-2020-04-12.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2019:
+            <a href="../release/afp-MFODL_Monitor_Optimized-2020-04-11.tar.gz">
+              afp-MFODL_Monitor_Optimized-2020-04-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

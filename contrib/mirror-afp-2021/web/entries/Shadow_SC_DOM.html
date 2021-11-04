@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Formal Model of the Safely Composable Document Object Model with Shadow Roots - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">F</font>ormal
+  
+          <font class="first">M</font>odel
+  
+          of
+  
+          the
+  
+          <font class="first">S</font>afely
+  
+          <font class="first">C</font>omposable
+  
+          <font class="first">D</font>ocument
+  
+          <font class="first">O</font>bject
+  
+          <font class="first">M</font>odel
+  
+          with
+  
+          <font class="first">S</font>hadow
+  
+          <font class="first">R</font>oots
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Formal Model of the Safely Composable Document Object Model with Shadow Roots</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://www.brucker.ch">Achim D. Brucker</a> and
+          <a href="http://www.dcs.shef.ac.uk/cgi-bin/makeperson?M.Herzberg">Michael Herzberg</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-09-28</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+In this AFP entry, we extend our formalization of the safely
+composable DOM with Shadow Roots. This is a proposal for Shadow Roots
+with stricter safety guarantess than the standard compliant
+formalization (see "Shadow DOM"). Shadow Roots are a recent
+proposal of the web community to support a component-based development
+approach for client-side web applications.  Shadow roots are a
+significant extension to the DOM standard and, as web standards are
+condemned to be backward compatible, such extensions often result in
+complex specification that may contain unwanted subtleties that can be
+detected by a formalization.  Our Isabelle/HOL formalization is, in
+the sense of object-orientation, an extension of our formalization of
+the core DOM and enjoys the same basic properties, i.e., it is
+extensible, i.e., can be extended without the need of re-proving
+already proven properties and executable, i.e., we can generate
+executable code from our specification. We exploit the executability
+to show that our formalization complies to the official standard of
+the W3C, respectively, the WHATWG.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Shadow_SC_DOM-AFP,
+  author  = {Achim D. Brucker and Michael Herzberg},
+  title   = {A Formal Model of the Safely Composable Document Object Model with Shadow Roots},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Shadow_SC_DOM.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Core_SC_DOM.html">Core_SC_DOM</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="SC_DOM_Components.html">SC_DOM_Components</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Shadow_SC_DOM/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Shadow_SC_DOM/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Shadow_SC_DOM/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Shadow_SC_DOM-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Shadow_SC_DOM-2020-11-26.tar.gz">
+              afp-Shadow_SC_DOM-2020-11-26.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

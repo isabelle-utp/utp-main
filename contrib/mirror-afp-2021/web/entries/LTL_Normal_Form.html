@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>An Efficient Normalisation Procedure for Linear Temporal Logic: Isabelle/HOL Formalisation - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>n
+  
+          <font class="first">E</font>fficient
+  
+          <font class="first">N</font>ormalisation
+  
+          <font class="first">P</font>rocedure
+  
+          for
+  
+          <font class="first">L</font>inear
+  
+          <font class="first">T</font>emporal
+  
+          <font class="first">L</font>ogic:
+  
+          <font class="first">I</font>sabelle/HOL
+  
+          <font class="first">F</font>ormalisation
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">An Efficient Normalisation Procedure for Linear Temporal Logic: Isabelle/HOL Formalisation</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Salomon Sickert (s /dot/ sickert /at/ tum /dot/ de)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-05-08</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+In the mid 80s, Lichtenstein, Pnueli, and Zuck proved a classical
+theorem stating that every formula of Past LTL (the extension of LTL
+with past operators) is equivalent to a formula of the form
+$\bigwedge_{i=1}^n \mathbf{G}\mathbf{F} \varphi_i \vee
+\mathbf{F}\mathbf{G} \psi_i$,  where $\varphi_i$ and $\psi_i$ contain
+only past operators. Some years later, Chang, Manna, and Pnueli built
+on this result to derive a similar normal form for LTL. Both
+normalisation procedures have a non-elementary worst-case blow-up, and
+follow an involved path from formulas to counter-free automata to
+star-free regular expressions and back to formulas. We improve on both
+points. We present an executable formalisation of a direct and purely
+syntactic normalisation procedure for LTL yielding a normal form,
+comparable to the one by Chang, Manna, and Pnueli, that has only a
+single exponential blow-up.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{LTL_Normal_Form-AFP,
+  author  = {Salomon Sickert},
+  title   = {An Efficient Normalisation Procedure for Linear Temporal Logic: Isabelle/HOL Formalisation},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/LTL_Normal_Form.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="LTL.html">LTL</a>, <a href="LTL_Master_Theorem.html">LTL_Master_Theorem</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/LTL_Normal_Form/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/LTL_Normal_Form/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/LTL_Normal_Form/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-LTL_Normal_Form-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-LTL_Normal_Form-2020-05-09.tar.gz">
+              afp-LTL_Normal_Form-2020-05-09.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

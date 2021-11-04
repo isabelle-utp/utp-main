@@ -1,0 +1,12 @@
+chapter AFP
+
+session "Category3" (AFP) = "HOL-Library" +
+  options [timeout = 3000, names_unique = false]
+  sessions
+    "HOL-Cardinals"
+    "HereditarilyFinite"
+  theories
+    Limit Subcategory EquivalenceOfCategories HFSetCat
+  document_files
+    "root.bib"
+    "root.tex"

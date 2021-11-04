@@ -1,0 +1,44 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{amsfonts, amsmath, amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+\usepackage[shortcuts]{extdash}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{rm}
+
+
+\begin{document}
+
+\title{Van der Waerden's Theorem}
+\author{Katharina Kreuzer, Manuel Eberl}
+\maketitle
+
+\begin{abstract}
+This article formalises the proof of Van der Waerden's Theorem from Ramsey theory. 
+
+Van der Waerden's Theorem states that for integers $k$ and $l$ there exists a number $N$ which guarantees that if an integer interval of length at least $N$ is coloured with $k$ colours, there will always be an arithmetic progression of length $l$ of the same colour in said interval. 
+The proof goes along the lines of Swan~\cite{Swan}.
+
+The smallest number $N_{k,l}$ fulfilling Van der Waerden's Theorem is then called the Van der Waerden Number. Finding the Van der Waerden Number is still an open problem for most values of $k$ and~$l$.
+\end{abstract}
+
+
+\newpage
+\tableofcontents
+
+\newpage
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\nocite{Swan}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+

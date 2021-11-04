@@ -1,0 +1,14 @@
+chapter AFP
+
+session BirdKMP (AFP) = "HOLCF-Prelude" +
+  options [timeout=600]
+  theories
+    HOLCF_ROOT
+    Theory_Of_Lists
+    KMP
+  document_files
+    "root.bib"
+    "root.tex"
+    "programs/KMP.hs"
+    "programs/KMP.pl"
+    "programs/KMP.sml"

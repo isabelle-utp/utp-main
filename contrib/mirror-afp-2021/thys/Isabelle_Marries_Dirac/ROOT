@@ -1,0 +1,23 @@
+chapter AFP
+
+session "Isabelle_Marries_Dirac" (AFP) = "Jordan_Normal_Form" +
+  options [timeout=600]
+  sessions
+    Matrix_Tensor
+    VectorSpace
+  theories
+    Basics
+    Binary_Nat
+    Quantum
+    Complex_Vectors
+    Tensor
+    More_Tensor
+    Measurement
+    Entanglement
+    Quantum_Teleportation
+    Deutsch
+    Deutsch_Jozsa
+    No_Cloning
+    Quantum_Prisoners_Dilemma
+  document_files
+    "root.tex"

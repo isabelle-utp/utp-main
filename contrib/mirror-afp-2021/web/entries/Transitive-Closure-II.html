@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Executable Transitive Closures - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">E</font>xecutable
+  
+          <font class="first">T</font>ransitive
+  
+          <font class="first">C</font>losures
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Executable Transitive Closures</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              René Thiemann (rene /dot/ thiemann /at/ uibk /dot/ ac /dot/ at)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2012-02-29</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>
+We provide a generic work-list algorithm to compute the
+(reflexive-)transitive closure of relations where only successors of newly
+detected states are generated.
+In contrast to our previous work, the relations do not have to be finite,
+but each element must only have finitely many (indirect) successors.
+Moreover, a subsumption relation can be used instead of pure equality.
+An executable variant of the algorithm is available where the generic operations
+are instantiated with list operations.
+</p><p>
+This formalization was performed as part of the IsaFoR/CeTA project,
+and it has been used to certify size-change
+termination proofs where large transitive closures have to be computed.
+</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Transitive-Closure-II-AFP,
+  author  = {René Thiemann},
+  title   = {Executable Transitive Closures},
+  journal = {Archive of Formal Proofs},
+  month   = feb,
+  year    = 2012,
+  note    = {\url{https://isa-afp.org/entries/Transitive-Closure-II.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE.LGPL">GNU Lesser General Public License (LGPL)</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Regular-Sets.html">Regular-Sets</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Transitive-Closure-II/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Transitive-Closure-II/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Transitive-Closure-II/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Transitive-Closure-II-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Transitive-Closure-II-2020-04-20.tar.gz">
+              afp-Transitive-Closure-II-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Transitive-Closure-II-2019-06-11.tar.gz">
+              afp-Transitive-Closure-II-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Transitive-Closure-II-2018-08-16.tar.gz">
+              afp-Transitive-Closure-II-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Transitive-Closure-II-2017-10-10.tar.gz">
+              afp-Transitive-Closure-II-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Transitive-Closure-II-2016-12-17.tar.gz">
+              afp-Transitive-Closure-II-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Transitive-Closure-II-2016-02-22.tar.gz">
+              afp-Transitive-Closure-II-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Transitive-Closure-II-2015-05-27.tar.gz">
+              afp-Transitive-Closure-II-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Transitive-Closure-II-2014-08-28.tar.gz">
+              afp-Transitive-Closure-II-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Transitive-Closure-II-2013-12-11.tar.gz">
+              afp-Transitive-Closure-II-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Transitive-Closure-II-2013-11-17.tar.gz">
+              afp-Transitive-Closure-II-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Transitive-Closure-II-2013-02-16.tar.gz">
+              afp-Transitive-Closure-II-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Transitive-Closure-II-2012-05-24.tar.gz">
+              afp-Transitive-Closure-II-2012-05-24.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2011-1:
+            <a href="../release/afp-Transitive-Closure-II-2012-03-15.tar.gz">
+              afp-Transitive-Closure-II-2012-03-15.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2011-1:
+            <a href="../release/afp-Transitive-Closure-II-2012-02-29.tar.gz">
+              afp-Transitive-Closure-II-2012-02-29.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

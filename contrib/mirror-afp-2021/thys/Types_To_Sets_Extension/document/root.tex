@@ -1,0 +1,128 @@
+\PassOptionsToPackage{ngerman,main=english}{babel}
+\documentclass[11pt,a4paper,fleqn]{report}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+
+\usepackage[margin={1in,1in}]{geometry}
+
+\usepackage[T1]{fontenc} 
+\usepackage{lmodern}
+\usepackage{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{xspace}
+\usepackage{MnSymbol}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{fontspec}
+
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{proof}
+\usepackage{algorithm,algpseudocode}
+
+% bibliography
+\usepackage[nottoc]{tocbibind}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
+
+\usepackage{style}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% drop Isabelle tags
+\isadroptag{theory}
+
+% enumitem configuration
+\setlist{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+\sloppy
+
+\title{
+Introduction to the Extension of the Framework 
+Types-To-Sets for Isabelle/HOL
+} 
+\author{Mihails Milehins}
+\maketitle
+
+\newpage
+
+\begin{abstract}
+In \cite{blanchette_types_2016, kuncar_types_2019}, 
+Ondřej Kunčar and Andrei Popescu propose an 
+extension of the logic \textit{Isabelle/HOL} and an associated algorithm for the 
+relativization of \textit{type-based theorems} to more flexible 
+\textit{set-based theorems}, collectively referred to as 
+\textit{Types-To-Sets}. One of the aims of their work was to open an 
+opportunity for the development of a 
+software tool for applied relativization  
+in the implementation of the logic 
+Isabelle/HOL in the proof assistant \textit{Isabelle}
+\cite{paulson_natural_1986}. In this document, 
+we provide a prototype of a software framework for the interactive 
+automated relativization 
+of definitions and theorems in Isabelle/HOL, developed as an extension of 
+the proof language \textit{Isabelle/Isar}  
+\cite{bertot_isar_1999,wenzel_isabelleisar_2007}.
+The software framework incorporates the implementation of the 
+proposed extension of the logic and associated tools provided in 
+\cite{blanchette_types_2016} and improved further in \cite{immler_smooth_2019} 
+by Fabian Immler and Bohua Zhan, and builds upon 
+some of the ideas for further work expressed in \cite{immler_smooth_2019}
+and \cite{kuncar_types_2019}.
+\end{abstract}
+
+\newpage
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+The author would like to acknowledge the assistance that he received from 
+the users of the mailing list of Isabelle 
+\href{https://lists.cam.ac.uk/mailman/listinfo/cl-isabelle-users}
+in the form of answers given to his general queries and
+the persons responsible for the development of
+Types-To-Sets \cite{blanchette_types_2016, kuncar_types_2019}
+and its official extensions 
+\cite{immler_smooth_2019, immler_automation_2019}
+for providing explanations of the existing functionality of the framework 
+and some of the ideas that laid the foundation of this work. 
+Special thanks go to Fabian Immler for the conceptual design of the 
+commands \textbf{tts\_context}, 
+\textbf{tts\_lemmas} and \textbf{tts\_lemma}. 
+Special thanks also go to Andrei Popescu for trying the software and 
+providing feedback. 
+Furthermore, the author would like to acknowledge the positive 
+impact of \cite{urban_isabelle_2019} and 
+\cite{wenzel_isabelle/isar_2019} on his ability to code in Isabelle/ML
+\cite{milner_definition_1997,wenzel_isabelle/isar_2019}. 
+The author would also like to acknowledge
+the positive role that the numerous Q\&A posted on the Stack Exchange network 
+(especially Stack Overflow and TeX Stack Exchange) played in the 
+development of this work.
+Finally, the author would like to express gratitude to all members of his family 
+and friends for their continuous support.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\newpage
+
+\bibliography{root}
+
+\end{document}

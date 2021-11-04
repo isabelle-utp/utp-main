@@ -1,0 +1,8 @@
+chapter AFP
+session "Finitely_Generated_Abelian_Groups" (AFP) = "HOL-Algebra" +
+  options [timeout = 600]
+  theories
+    Finitely_Generated_Abelian_Groups
+  document_files
+    "root.bib"
+    "root.tex"

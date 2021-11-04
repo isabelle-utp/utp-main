@@ -1,0 +1,119 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage[numbers]{natbib}
+
+\usepackage{relsize}
+\DeclareRobustCommand{\isactrlbsub}{\emph\bgroup\math{}\sb\bgroup\mbox\bgroup\isaspacing\itshape\smaller}
+\DeclareRobustCommand{\isactrlesub}{\egroup\egroup\endmath\egroup}
+\DeclareRobustCommand{\isactrlbsup}{\emph\bgroup\math{}\sp\bgroup\mbox\bgroup\isaspacing\itshape\smaller}
+\DeclareRobustCommand{\isactrlesup}{\egroup\egroup\endmath\egroup}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+\input{header-delta-system}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{tt}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+\renewcommand{\isacharunderscorekeyword}{\mbox{\_}}
+\renewcommand{\isacharunderscore}{\mbox{\_}}
+\renewcommand{\isasymtturnstile}{\isamath{\Vdash}}
+\renewcommand{\isacharminus}{-}
+
+\begin{document}
+
+\title{Cofinality and the Delta System Lemma}
+\author{
+  Pedro S\'anchez Terraf\thanks{Universidad Nacional de C\'ordoba. 
+    Facultad de Matem\'atica, Astronom\'{\i}a,  F\'{\i}sica y
+    Computaci\'on.}
+  \thanks{%
+    Centro de Investigaci\'on y Estudios de Matem\'atica
+    (CIEM-FaMAF), Conicet. C\'ordoba. Argentina.
+    Supported by Secyt-UNC project 33620180100465CB.}
+}
+\maketitle
+
+\begin{abstract}
+  We formalize the basic results on cofinality of linearly ordered
+  sets and ordinals and \v{S}anin's Lemma for uncountable families of
+  finite sets. We work in the set theory framework of
+  Isabelle/ZF, using the Axiom of Choice as needed.
+\end{abstract}
+
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\section{Introduction}
+
+The session we present gathers very basic results built on the set
+theory formalization of Isabelle/ZF
+\cite{DBLP:journals/jar/PaulsonG96}. In a sense, some of the material
+formalized here corresponds to a natural continuation of that
+work. This is even clearer after perusing Section~\ref{sec:zf-lib},
+where notions like cardinal exponentiation are first defined, together
+with various lemmas that do not depend on the Axiom of Choice ($\AC$);
+the same holds for the basic theory of cofinality of ordinals, which
+is developed in Section~\ref{sec:cofinality}. In
+Section~\ref{sec:cardinal-lib}, (un)countability is defined
+and several results proved, now using $\AC$ freely; the latter is also
+needed to prove König's Theorem on cofinality of cardinal
+exponentiation. The simplest infinitary version of the Delta
+System Lemma (DSL, also known as the ``Sunflower Lemma'') due to  \v{S}anin
+is proved in Section~\ref{sec:dsl}, and it is applied to prove
+that Cohen posets satisfy the \emph{countable chain condition}.
+
+A greater part of this development was motivated by an ongoing joint
+project on the formalization of the ctm approach to
+forcing~\cite{2020arXiv200109715G} by Gunther, Pagano, Steinberg, and
+the author. Indeed, most of the results presented here are required
+for the development of forcing. As it turns out, the material as
+formalized presently will not be part of the forcing formalization,
+since for that goal we need relativized versions of both the concepts
+and the proofs.
+
+A cross-linked HTML version of the development can be found at
+\url{https://cs.famaf.unc.edu.ar/~pedro/Delta_System_Lemma/html}.
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{root}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

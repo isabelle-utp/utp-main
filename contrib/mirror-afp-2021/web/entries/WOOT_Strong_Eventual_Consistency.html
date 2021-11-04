@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Strong Eventual Consistency of the Collaborative Editing Framework WOOT - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">S</font>trong
+  
+          <font class="first">E</font>ventual
+  
+          <font class="first">C</font>onsistency
+  
+          of
+  
+          the
+  
+          <font class="first">C</font>ollaborative
+  
+          <font class="first">E</font>diting
+  
+          <font class="first">F</font>ramework
+  
+          <font class="first">W</font>OOT
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Strong Eventual Consistency of the Collaborative Editing Framework WOOT</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://orcid.org/0000-0003-3290-5034">Emin Karayel</a> and
+          Edgar Gonzàlez (edgargip /at/ google /dot/ com)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-03-25</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+Commutative Replicated Data Types (CRDTs) are a promising new class of
+data structures for large-scale shared mutable content in applications
+that only require eventual consistency. The WithOut Operational
+Transforms (WOOT) framework is a CRDT for collaborative text editing
+introduced by Oster et al. (CSCW 2006) for which the eventual
+consistency property was verified only for a bounded model to date. We
+contribute a formal proof for WOOTs strong eventual consistency.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{WOOT_Strong_Eventual_Consistency-AFP,
+  author  = {Emin Karayel and Edgar Gonzàlez},
+  title   = {Strong Eventual Consistency of the Collaborative Editing Framework WOOT},
+  journal = {Archive of Formal Proofs},
+  month   = mar,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/WOOT_Strong_Eventual_Consistency.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Certification_Monads.html">Certification_Monads</a>, <a href="Datatype_Order_Generator.html">Datatype_Order_Generator</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/WOOT_Strong_Eventual_Consistency/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/WOOT_Strong_Eventual_Consistency/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/WOOT_Strong_Eventual_Consistency/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-WOOT_Strong_Eventual_Consistency-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-WOOT_Strong_Eventual_Consistency-2020-04-20.tar.gz">
+              afp-WOOT_Strong_Eventual_Consistency-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-WOOT_Strong_Eventual_Consistency-2020-03-26.tar.gz">
+              afp-WOOT_Strong_Eventual_Consistency-2020-03-26.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

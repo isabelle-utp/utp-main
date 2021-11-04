@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Global News</title>
+</head>
+<body>
+
+<h1>Global News</h1>
+<button>Search</button>
+<button>Sign In</button>
+<br>
+<br>
+
+<fancy-tabs background>
+  <template data-mode="open">
+    <style>---shortened---</style>
+    <div id="tabs">
+      <slot id="tabsSlot" name="title"></slot>
+    </div>
+    <div id="panels">
+      <slot id="panelsSlot"></slot>
+    </div>
+    <button>Previous Tab</button>
+    <button style="float:right">Next Tab</button>
+  </template>
+  
+  <button slot="title">Politics</button>
+  <button slot="title" selected>Sports</button>
+  <button slot="title">Culture</button>
+  <section>content panel 1</section>
+  <ul>
+    <li>News Item 1 <button>Share</button></li>
+    <li>News Item 2 <button>Share</button></li>
+    <li>News Item 3 <button>Share</button></li>
+  </ul>
+  <section>content panel 3</section>
+</fancy-tabs>
+<script></script>
+</body>
+</html>

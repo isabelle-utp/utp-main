@@ -1,0 +1,43 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{eufrak}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{literal}
+
+
+\begin{document}
+
+\title{Robinson Arithmetic}
+\author{Andrei Popescu \and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract} We instantiate our syntax-independent logic infrastructure developed in
+\href{https://www.isa-afp.org/entries/Syntax_Independent_Logic.html}{a separate AFP entry} to the FOL theory
+of Robinson arithmetic (also known as Q). The latter was formalised using Nominal Isabelle by adapting \href{https://www.isa-afp.org/entries/Incompleteness.html}{Larry
+Paulson’s formalization of the Hereditarily Finite Set theory}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

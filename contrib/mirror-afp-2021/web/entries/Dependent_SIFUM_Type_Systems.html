@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Dependent Security Type System for Concurrent Imperative Programs - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">D</font>ependent
+  
+          <font class="first">S</font>ecurity
+  
+          <font class="first">T</font>ype
+  
+          <font class="first">S</font>ystem
+  
+          for
+  
+          <font class="first">C</font>oncurrent
+  
+          <font class="first">I</font>mperative
+  
+          <font class="first">P</font>rograms
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Dependent Security Type System for Concurrent Imperative Programs</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="https://people.eng.unimelb.edu.au/tobym/">Toby Murray</a>,
+                  Robert Sison,
+                Edward Pierzchalski and
+          Christine Rizkallah
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-06-25</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+The paper "Compositional Verification and Refinement of Concurrent
+Value-Dependent Noninterference" by Murray et. al. (CSF 2016) presents
+a dependent security type system for compositionally verifying a
+value-dependent noninterference property, defined in (Murray, PLAS
+2015), for concurrent programs. This development formalises that
+security definition, the type system and its soundness proof, and
+demonstrates its application on some small examples. It was derived
+from the SIFUM_Type_Systems AFP entry, by Sylvia Grewe, Heiko Mantel
+and Daniel Schoepe, and whose structure it inherits.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2016-08-19]:
+Removed unused "stop" parameter and "stop_no_eval" assumption from the sifum_security locale.
+(revision dbc482d36372)
+[2016-09-27]:
+Added security locale support for the imposition of requirements on the initial memory.
+(revision cce4ceb74ddb)</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Dependent_SIFUM_Type_Systems-AFP,
+  author  = {Toby Murray and Robert Sison and Edward Pierzchalski and Christine Rizkallah},
+  title   = {A Dependent Security Type System for Concurrent Imperative Programs},
+  journal = {Archive of Formal Proofs},
+  month   = jun,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Dependent_SIFUM_Type_Systems.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Dependent_SIFUM_Refinement.html">Dependent_SIFUM_Refinement</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Dependent_SIFUM_Type_Systems/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Dependent_SIFUM_Type_Systems/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Dependent_SIFUM_Type_Systems/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Dependent_SIFUM_Type_Systems-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2020-04-18.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2019-06-11.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2018-08-16.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2017-10-10.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2016-12-17.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Dependent_SIFUM_Type_Systems-2016-06-25.tar.gz">
+              afp-Dependent_SIFUM_Type_Systems-2016-06-25.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

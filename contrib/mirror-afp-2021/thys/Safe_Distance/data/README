@@ -1,0 +1,62 @@
+Test vector for determining safe distance
+-----------------------------------------
+
+There are three test vector files in this folder. Each of them corresponds to
+the NGSIM data for US-101 Highway.
+
+The test vector is structured as a list of records. Each record has the
+following fields:
+
+    Col       |                   Description
+    ------------------------------------------
+    1         |                       frame ID
+    2         |                       distance
+    3         |                 ego vehicle ID
+    4         |              ego vehicle speed
+    5         |   max deceleration ego vehicle
+    6         |               other vehicle ID
+    7         |            other vehicle speed
+    8         | max deceleration other vehicle
+
+
+Explanation for each field:
+
+1. frame ID
+    The identifier of the frame which the record occurs.
+
+2. distance
+    The distance between ego vehicle and other vehicle. The unit is in feet.
+
+3. ego vehicle ID
+    The identifier of ego vehicle. Ego vehicle is assumed to be behind the other
+    vehicle.
+
+4. ego vehicle speed
+    The speed of the ego vehicle (identified by `ego vehicle ID` in 3 above).
+    The unit is in feet per seconds.
+
+5. max deceleration ego vehicle
+    This is the maximum deceleration of the ego vehicle. Each vehicle can be
+    categorised as either a car, a truck, or a (two-wheeled) motorised vehicle.
+    Each of these category has different maximum deceleration. The value for
+    maximum deceleration is obtained from the following paper.
+
+    Maurya and Bokare. Study of Deceleration Behaviour of Different Vehicle
+    Types. International Journal for Traffic and Transport Engineering. 2012, 2
+    (3): 253 - 270
+
+    The unit in this paper is meter per seconds squared. IN THIS PAPER, the unit
+    has been converted into feet per seconds squared.
+
+6. other vehicle ID
+    The identifier of the other vehicle.
+
+7. other vehicle speed
+    The speed of the other vehicle (identified by `other vehicle ID` in 6
+    above).
+
+8. max deceleration other vehicle
+    The maximum deceleration of the other vehicle (see explanation in point 5
+    above).
+
+We expect each numeric value as a floating point number and do NOT support scientific notation.

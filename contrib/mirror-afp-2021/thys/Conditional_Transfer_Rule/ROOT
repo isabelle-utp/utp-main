@@ -1,0 +1,31 @@
+chapter AFP
+
+session Conditional_Transfer_Rule (AFP) = HOL +
+  options [timeout=600]
+  sessions
+    "HOL-Library"
+  directories
+    CTR_Tools
+    IML_UT
+    UD
+    CTR
+    "UD/Tests"
+    "CTR/Tests"
+  theories[document = false]
+    "CTR_Tools/CTR_Tools"
+    "IML_UT/IML_UT"
+    "UD/UD"
+    "CTR/CTR"
+    "UD/Tests/UD_Tests"
+    "CTR/Tests/CTR_Tests"
+    "Reference_Prerequisites"
+  theories
+    "CTR_Introduction"
+    "UD/UD_Reference"
+    "CTR/CTR_Reference"
+  document_files
+    "iman.sty"
+    "extra.sty"
+    "isar.sty"
+    "root.tex"
+    "root.bib"

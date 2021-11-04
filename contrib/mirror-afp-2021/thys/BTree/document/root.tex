@@ -1,0 +1,63 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage[numbers]{natbib}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+\usepackage{doi}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\begin{document}
+
+\title{A Verified Imperative Implementation of B-Trees}
+\author{Niels Mündler}
+\date{}
+\maketitle
+
+\begin{abstract}
+In this work, we use the interactive theorem prover Isabelle/HOL
+to verify an imperative implementation of the classical B-tree data structure \cite{DBLP:journals/acta/BayerM72}.
+The implementation supports set membership and insertion queries
+with efficient binary search for intra-node navigation.
+This is accomplished by first specifying the structure abstractly 
+in the functional modeling language HOL and proving functional correctness.
+Using manual refinement, we derive an imperative implementation
+in Imperative/HOL.
+We show the validity of this refinement using
+the separation logic utilities from the
+Isabelle Refinement Framework \cite{Refine_Imperative_HOL-AFP}. 
+The code can be exported to the programming languages SML and Scala.
+We examine the runtime of all operations indirectly by reproducing results
+of the logarithmic relationship between height and the number of nodes.
+The results are discussed in greater detail in the related Bachelor's Thesis
+\cite{BTNielsMuendler}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+{\raggedright
+\bibliographystyle{plainnat}
+\bibliography{root}
+}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

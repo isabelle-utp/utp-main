@@ -1,0 +1,18 @@
+chapter AFP
+
+session JinjaDCI (AFP) = "HOL-Library" +
+  options [timeout = 2400, document = pdf]
+  sessions
+    "List-Index"
+    "Jinja"
+  directories
+    "BV"
+    "Common"
+    "Compiler"
+    "J"
+    "JVM"
+  theories
+    JinjaDCI
+  document_files
+    "root.bib"
+    "root.tex"

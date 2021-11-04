@@ -1,0 +1,57 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{Gale-Stewart Games}
+\author{Sebastiaan J.\,C. Joosten}
+\maketitle
+
+\begin{abstract}
+  This is a formalisation of the main result of Gale and Stewart from 1953, showing that closed finite games are determined.
+  This property is now known as the Gale Stewart Theorem.
+  While the original paper shows some additional theorems as well, we only formalize this main result, but do so in a somewhat general way.
+  We formalize games of a fixed arbitrary length, including infinite length, using co-inductive lists, and show that defensive strategies exist unless the other player is winning.
+  For closed games, defensive strategies are winning for the closed player, proving that such games are determined.
+  For finite games, which are a special case in our formalisation, all games are closed.
+\end{abstract}
+
+\tableofcontents
+
+\section{Introduction}
+The original paper from Gale and Stewart~\cite{GS53} uses a function to point to a previous position.
+This encoding of sequences is not followed in this formalization, as it is not the way we think of games these days.
+Instead, we follow the approach taken in the formalization of Parity Games~\cite{Parity_Game-AFP}, where co-inductive lists are used to talk about possibly infinite plays.
+Although we rely on the Parity Games theory for some of the theorems about co-inductive lists, none of the notions about games are shared with that formalization.
+
+We have proven some basic lemmas about prefixes, extended naturals (natural numbers plus infinity), and defined a function 'alternate' alternating lists.
+We have done this in separate Isabelle theory files, so that they can be reused independently without depending on the formalizations of infinite games presented here.
+In the same way this formalization is giving a nod to the parity games formalization.
+In this document, we only present the alternating lists, as this theory file contains new definitions, which are relevant preliminaries to know about.
+The additional lemmas about prefixes and extended natural numbers are less essential, they only contain `obvious' properties, so we have left those theory files out of this document.
+
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

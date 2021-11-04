@@ -1,0 +1,62 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym, amsmath, amssymb, amsfonts}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{$p$-adic Hensel's Lemma}
+\author{Aaron Crighton}
+\maketitle
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\begin{abstract}
+We formalize the ring of $p$-adic integers within the framework of the HOL-Algebra library. The carrier of the ring $\mathbb{Z}_p$ is formalized as the inverse limit of the residue rings $\mathbb{Z}/p^n\mathbb{Z}$ for a fixed prime $p$. We define a locale for reasoning about $\mathbb{Z}_p$ for a fixed prime $p$, and define an integer-valued valuation, as well as an extended-integer valued valuation on $\mathbb{Z}_p$ (where $0 \in \mathbb{Z}_p$ is the unique ring element mapped to $\infty$). Basic topological facts about the $p$-adic integers are formalized, including the completeness and sequential compactness of $\mathbb{Z}_p$. Taylor expansions of polynomials over a commutative ring are defined, culminating in the formalization of Hensel's Lemma based on a proof due to Keith Conrad \cite{keithconrad}. 
+\end{abstract}
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

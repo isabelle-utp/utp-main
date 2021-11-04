@@ -1,0 +1,13 @@
+chapter AFP
+
+session Metalogic_ProofChecker (AFP) = HOL +
+  options [timeout = 600]
+  sessions 
+    "HOL-Eisbach"
+    "HOL-Library"
+    "List-Index"
+  theories
+    "CodeGen"
+  document_files
+    "root.tex"
+    "root.bib"

@@ -1,0 +1,20 @@
+chapter AFP
+
+session Weighted_Path_Order (AFP) = Knuth_Bendix_Order +
+  options [timeout = 600]
+  theories
+    Status
+    Precedence
+    Relations
+    List_Order
+  theories
+    Multiset_Extension_Pair_Impl
+    Multiset_Extension2_Impl
+  theories
+    RPO
+    LPO
+    KBO_as_WPO
+    Executable_Orders
+  document_files
+    "root.bib"
+    "root.tex"

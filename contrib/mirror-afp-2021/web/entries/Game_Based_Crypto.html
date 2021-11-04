@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Game-based cryptography in HOL - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">G</font>ame-based
+  
+          cryptography
+  
+          in
+  
+          <font class="first">H</font>OL
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Game-based cryptography in HOL</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="http://www.andreas-lochbihler.de">Andreas Lochbihler</a>,
+                S. Reza Sefidgar and
+          Bhargav Bhatt (bhargav /dot/ bhatt /at/ inf /dot/ ethz /dot/ ch)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2017-05-05</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>In this AFP entry, we show how to specify game-based cryptographic
+security notions and formally prove secure several cryptographic
+constructions from the literature using the CryptHOL framework. Among
+others, we formalise the notions of a random oracle, a pseudo-random
+function, an unpredictable function, and of encryption schemes that are
+indistinguishable under chosen plaintext and/or ciphertext attacks. We
+prove the random-permutation/random-function switching lemma, security
+of the Elgamal and hashed Elgamal public-key encryption scheme and
+correctness and security of several constructions with pseudo-random
+functions.
+</p><p>Our proofs follow the game-hopping style advocated by
+Shoup and Bellare and Rogaway, from which most of the examples have
+been taken. We generalise some of their results such that they can be
+reused in other proofs. Thanks to CryptHOL's integration with
+Isabelle's parametricity infrastructure, many simple hops are easily
+justified using the theory of representation independence.</p></td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2018-09-28]:
+added the CryptHOL tutorial for game-based cryptography
+(revision 489a395764ae)</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Game_Based_Crypto-AFP,
+  author  = {Andreas Lochbihler and S. Reza Sefidgar and Bhargav Bhatt},
+  title   = {Game-based cryptography in HOL},
+  journal = {Archive of Formal Proofs},
+  month   = may,
+  year    = 2017,
+  note    = {\url{https://isa-afp.org/entries/Game_Based_Crypto.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="CryptHOL.html">CryptHOL</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Constructive_Cryptography_CM.html">Constructive_Cryptography_CM</a>, <a href="Multi_Party_Computation.html">Multi_Party_Computation</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Game_Based_Crypto/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Game_Based_Crypto/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Game_Based_Crypto/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Game_Based_Crypto-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Game_Based_Crypto-2020-04-18.tar.gz">
+              afp-Game_Based_Crypto-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Game_Based_Crypto-2019-06-11.tar.gz">
+              afp-Game_Based_Crypto-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Game_Based_Crypto-2018-08-16.tar.gz">
+              afp-Game_Based_Crypto-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Game_Based_Crypto-2017-10-10.tar.gz">
+              afp-Game_Based_Crypto-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Game_Based_Crypto-2017-05-11.tar.gz">
+              afp-Game_Based_Crypto-2017-05-11.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

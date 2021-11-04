@@ -1,0 +1,9 @@
+chapter AFP
+
+session Lifting_the_Exponent (AFP) = "HOL-Number_Theory" +
+  options [timeout=300]
+  theories
+    LTE
+  document_files
+    "root.tex"
+    "root.bib"

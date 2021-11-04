@@ -1,0 +1,10 @@
+chapter AFP
+
+session "Laws_of_Large_Numbers" (AFP) = "Ergodic_Theory" +
+  options [timeout = 600]
+  theories
+    Laws_of_Large_Numbers
+    Laws_of_Large_Numbers_Example
+  document_files
+    "root.tex"
+    "root.bib"

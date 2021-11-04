@@ -1,0 +1,13 @@
+chapter AFP
+
+session "Stateful_Protocol_Composition_and_Typing" (AFP) = "First_Order_Terms" +
+  options [timeout = 2400]
+  directories
+    "examples"
+  theories
+    "Stateful_Compositionality"
+    "Examples"
+  document_files
+    "root.tex"
+    "root.bib"
+

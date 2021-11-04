@@ -1,0 +1,38 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{graphicx,latexsym,isabelle,isabellesym,pdfsetup}
+\usepackage{url}
+
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Proving a data flow analysis algorithm for computing dominators}
+\author{Nan Jiang}
+\maketitle
+
+\begin{abstract}
+This entry formalises a fast iterative algorithm for computing dominators \cite{Dominance_Algorithm}.
+It gives a specification of computing dominators on a control flow graph where each node refers to its reverse post order number. A semilattice of reversed-ordered list which represents dominators is built and a Kildall's algorithm on the semilattice is defined for computing dominators. Finally the soundness and completeness of the algorithm are proved w.r.t. the specification. 
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

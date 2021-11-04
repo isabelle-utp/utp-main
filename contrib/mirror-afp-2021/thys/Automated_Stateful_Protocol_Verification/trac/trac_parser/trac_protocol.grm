@@ -1,0 +1,287 @@
+(*
+(C) Copyright Andreas Viktor Hess, DTU, 2020
+(C) Copyright Sebastian A. Mödersheim, DTU, 2020
+(C) Copyright Achim D. Brucker, University of Exeter, 2020
+(C) Copyright Anders Schlichtkrull, DTU, 2020
+
+All Rights Reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+- Redistributions of source code must retain the above copyright
+  notice, this list of conditions and the following disclaimer.
+
+- Redistributions in binary form must reproduce the above copyright
+  notice, this list of conditions and the following disclaimer in the
+  documentation and/or other materials provided with the distribution.
+
+- Neither the name of the copyright holder nor the names of its
+  contributors may be used to endorse or promote products
+  derived from this software without specific prior written
+  permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*)
+
+open Trac_Term
+ 
+exception NotYetSupported of string 
+
+
+%%
+
+%verbose
+
+%eop EOF 
+
+%left 
+
+%name TracTransaction
+
+%term EOF
+    | OPENP of string
+    | CLOSEP of string
+    | OPENB of string
+    | CLOSEB of string
+    | OPENSCRYPT of string
+    | CLOSESCRYPT of string
+    | COLON of string
+    | SEMICOLON of string
+    | SECCH of string
+    | AUTHCH of string
+    | CONFCH of string
+    | INSECCH of string
+    | FAUTHCH of string
+    | FSECCH of string
+    | PERCENT of string
+    | UNEQUAL of string
+    | EXCLAM  of string
+    | DOT of string
+    | COMMA of string
+    | OPENSQB of string
+    | CLOSESQB of string
+    | UNION of string
+    | PROTOCOL of string
+    | KNOWLEDGE of string
+    | WHERE of string
+    | ACTIONS of string
+    | ABSTRACTION of string
+    | GOALS of string
+    | AUTHENTICATES of string
+    | WEAKLY of string
+    | ON of string
+    | TSECRET of string
+    | TBETWEEN of string
+    | Sets of string
+    | FUNCTIONS of string
+    | PUBLIC of string
+    | PRIVATE of string
+    | RECEIVE of string
+    | SEND of string
+    | IN of string
+    | NOTIN of string
+    | INSERT of string
+    | DELETE of string
+    | NEW of string
+    | ATTACK of string
+    | slash of string
+    | QUESTION of string
+    | equal of string
+    | TYPES of string
+    | SETS of string
+    | ARROW of string
+    | ANALYSIS of string
+    | TRANSACTIONS of string
+    | STRING_LITERAL of string
+    | UPPER_STRING_LITERAL of string
+    | LOWER_STRING_LITERAL of string
+    | UNDERSCORE of string
+    | INTEGER_LITERAL of string
+    | STAR of string
+    | OF of string
+                   
+%nonterm START of TracProtocol.protocol
+       | name of string 
+       | arity of string 
+       | uident of string 
+       | lident of string 
+       | ident of string 
+       | trac_protocol of TracProtocol.protocol
+       | protocol_spec of TracProtocol.protocol
+       | type_union of (string list)
+       | type_spec of (string * TracProtocol.type_spec_elem) 
+       | type_specs of (string * TracProtocol.type_spec_elem) list
+       | idents of string list
+       | uidents of string list
+       | lidents of string list
+       | set_specs of TracProtocol.set_spec list      
+       | set_spec of TracProtocol.set_spec     
+       | priv_or_pub_fun_spec of TracProtocol.fun_spec      
+       | fun_specs of TracProtocol.funT list 
+       | fun_spec of TracProtocol.funT     
+       | priv_fun_spec of TracProtocol.funT list 
+       | pub_fun_spec of TracProtocol.funT list     
+       | analysis_spec of TracProtocol.anaT
+       | transaction_spec_head of string option
+       | transaction_spec of TracProtocol.transaction list
+       | rule of TracProtocol.ruleT
+       | head of string * string list
+       | head_params of string list 
+       | keys of Trac_Term.Msg list
+       | result of string list
+       | msg of Trac_Term.Msg
+       | msgs of Trac_Term.Msg list
+       | setexp of string * Trac_Term.Msg list
+       | action of TracProtocol.prot_label * TracProtocol.action  
+       | actions of (TracProtocol.prot_label * TracProtocol.action) list
+       | ineq_aux of string
+       | ineq of string * string
+       | ineqs of (string * string) list
+       | transaction of TracProtocol.transaction_name
+       | typ of string                                             
+       | parameter of string * string
+       | parameters of (string * string) list 
+                     
+%pos (int * int * int)
+
+%noshift EOF
+
+%%
+
+START:         trac_protocol                                    (trac_protocol)
+trac_protocol: PROTOCOL COLON name protocol_spec                (TracProtocol.update_name protocol_spec name)
+
+protocol_spec: TYPES COLON type_specs protocol_spec              (TracProtocol.update_type_spec protocol_spec type_specs)
+             | SETS COLON  set_specs protocol_spec               (TracProtocol.update_sets protocol_spec set_specs)
+             | FUNCTIONS COLON priv_or_pub_fun_spec protocol_spec       (TracProtocol.update_functions protocol_spec (SOME priv_or_pub_fun_spec))
+             | ANALYSIS COLON analysis_spec protocol_spec        (TracProtocol.update_analysis protocol_spec analysis_spec)
+             | transaction_spec_head COLON transaction_spec protocol_spec (TracProtocol.update_transactions transaction_spec_head protocol_spec transaction_spec)
+             |                                                   (TracProtocol.empty)
+
+type_union:    ident                                             ([ident])
+             | ident UNION type_union                            (ident::type_union)
+             
+type_specs:    type_spec                                         ([type_spec])
+             | type_spec type_specs                              (type_spec::type_specs)
+type_spec:     ident equal OPENB lidents CLOSEB                   ((ident, TracProtocol.Consts lidents))
+             | ident equal type_union                            ((ident, TracProtocol.Union type_union))
+
+
+set_specs:     set_spec                                          ([set_spec])
+             | set_spec set_specs                                (set_spec::set_specs)
+set_spec:      ident slash arity                                 ((ident, arity))
+                            
+priv_or_pub_fun_spec: pub_fun_spec priv_or_pub_fun_spec       (TracProtocol.update_fun_public priv_or_pub_fun_spec pub_fun_spec)
+                    | priv_fun_spec priv_or_pub_fun_spec      (TracProtocol.update_fun_private priv_or_pub_fun_spec priv_fun_spec)   
+                    |                                         (TracProtocol.fun_empty)
+pub_fun_spec: PUBLIC fun_specs             (fun_specs)
+priv_fun_spec: PRIVATE fun_specs           (fun_specs)
+fun_specs: fun_spec ([fun_spec])
+                    | fun_spec fun_specs (fun_spec::fun_specs)
+fun_spec:      ident slash arity              ((ident, arity))
+
+analysis_spec: rule                        	              ([rule])
+             | rule analysis_spec                         (rule::analysis_spec)
+             
+rule: head ARROW result                                   ((head,[],result)) 
+    | head QUESTION keys ARROW result                     ((head,keys,result)) 
+
+head: LOWER_STRING_LITERAL OPENP head_params CLOSEP       ((LOWER_STRING_LITERAL,head_params))
+
+head_params: UPPER_STRING_LITERAL                         ([UPPER_STRING_LITERAL])
+           | UPPER_STRING_LITERAL COMMA head_params       ([UPPER_STRING_LITERAL]@head_params)
+
+keys: msgs                                                (msgs)
+
+result: UPPER_STRING_LITERAL                              ([UPPER_STRING_LITERAL])
+      | UPPER_STRING_LITERAL COMMA result                 ([UPPER_STRING_LITERAL]@result)
+
+
+transaction_spec_head: TRANSACTIONS                       (NONE)
+                     | TRANSACTIONS OF LOWER_STRING_LITERAL (SOME LOWER_STRING_LITERAL)
+
+transaction_spec: transaction actions DOT               ([TracProtocol.mkTransaction transaction actions])
+                | transaction actions DOT transaction_spec ((TracProtocol.mkTransaction transaction actions)::transaction_spec)
+
+ineq_aux: UNEQUAL UPPER_STRING_LITERAL                    (UPPER_STRING_LITERAL)
+
+ineq: UPPER_STRING_LITERAL ineq_aux                       ((UPPER_STRING_LITERAL,ineq_aux))
+
+ineqs: ineq                                               ([ineq])
+     | ineq COMMA ineqs                                   ([ineq]@ineqs)
+                       
+transaction: ident OPENP parameters CLOSEP WHERE ineqs    ((ident,parameters,ineqs))
+           | ident OPENP parameters CLOSEP                ((ident,parameters,[]))
+           | ident OPENP CLOSEP                           ((ident,[],[]))
+
+parameters: parameter                                   ([parameter])
+          | parameter COMMA parameters                  (parameter::parameters)
+                  
+parameter: ident COLON typ                              ((ident, typ))
+
+typ: UPPER_STRING_LITERAL                               (UPPER_STRING_LITERAL)                                                
+   | LOWER_STRING_LITERAL                               (LOWER_STRING_LITERAL)                                                
+                                                
+actions: action                                         ([action])
+       | action actions                                 (action::actions)
+
+action: RECEIVE msg                                     ((TracProtocol.LabelN,TracProtocol.RECEIVE(msg)))
+      | SEND msg                                        ((TracProtocol.LabelN,TracProtocol.SEND(msg)))
+      | msg IN setexp                                   ((TracProtocol.LabelN,TracProtocol.IN(msg,setexp)))
+      | msg NOTIN setexp                                ((TracProtocol.LabelN,TracProtocol.NOTIN(msg,setexp)))
+      | msg NOTIN lident OPENP UNDERSCORE CLOSEP        ((TracProtocol.LabelN,TracProtocol.NOTINANY(msg,lident)))
+      | INSERT msg setexp                               ((TracProtocol.LabelN,TracProtocol.INSERT(msg,setexp)))
+      | DELETE msg setexp                               ((TracProtocol.LabelN,TracProtocol.DELETE(msg,setexp)))
+      | NEW uident                                      ((TracProtocol.LabelS,TracProtocol.NEW(uident)))
+      | ATTACK                                          ((TracProtocol.LabelN,TracProtocol.ATTACK))
+      | STAR RECEIVE msg                                ((TracProtocol.LabelS,TracProtocol.RECEIVE(msg)))
+      | STAR SEND msg                                   ((TracProtocol.LabelS,TracProtocol.SEND(msg)))
+      | STAR msg IN setexp                              ((TracProtocol.LabelS,TracProtocol.IN(msg,setexp)))
+      | STAR msg NOTIN setexp                           ((TracProtocol.LabelS,TracProtocol.NOTIN(msg,setexp)))
+      | STAR msg NOTIN lident OPENP UNDERSCORE CLOSEP   ((TracProtocol.LabelS,TracProtocol.NOTINANY(msg,lident)))
+      | STAR INSERT msg setexp                          ((TracProtocol.LabelS,TracProtocol.INSERT(msg,setexp)))
+      | STAR DELETE msg setexp                          ((TracProtocol.LabelS,TracProtocol.DELETE(msg,setexp)))
+
+setexp: lident                                          ((lident,[]))
+      | lident OPENP msgs CLOSEP                        ((lident,msgs))
+
+msg: uident                                             (Var uident)
+   | lident                                             (Const lident)
+   | lident OPENP msgs CLOSEP                           (Fun (lident,msgs))
+
+msgs: msg                                               ([msg])
+    | msg COMMA msgs                                    (msg::msgs)
+
+name: UPPER_STRING_LITERAL                              (UPPER_STRING_LITERAL)                         
+    | LOWER_STRING_LITERAL                              (LOWER_STRING_LITERAL) 
+
+uident: UPPER_STRING_LITERAL                            (UPPER_STRING_LITERAL)
+
+uidents: uident                                         ([uident])
+       | uident COMMA uidents                           (uident::uidents)
+
+lident: LOWER_STRING_LITERAL                            (LOWER_STRING_LITERAL)
+
+lidents: lident                                         ([lident])
+       | lident COMMA lidents                           (lident::lidents)
+
+ident: uident                                           (uident)
+     | lident                                           (lident)
+
+idents: ident                                           ([ident])
+      | ident COMMA idents                              (ident::idents)
+
+arity: INTEGER_LITERAL                                  (INTEGER_LITERAL)
+

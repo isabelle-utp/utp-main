@@ -1,0 +1,13 @@
+chapter AFP
+
+session "SC_DOM_Components" (AFP) = "Shadow_SC_DOM" +
+  options [timeout = 2400]
+  theories
+    Core_DOM_DOM_Components
+    Core_DOM_SC_DOM_Components
+    Shadow_DOM_DOM_Components
+    Shadow_DOM_SC_DOM_Components
+  document_files
+    "root.tex"
+    "root.bib"
+    "fancytabs-normal.jpg"

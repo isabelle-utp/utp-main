@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>A Meta-Model for the Isabelle API - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">A</font>
+  
+          <font class="first">M</font>eta-Model
+  
+          for
+  
+          the
+  
+          <font class="first">I</font>sabelle
+  
+          <font class="first">A</font>PI
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">A Meta-Model for the Isabelle API</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://www.lri.fr/~ftuong/">Frédéric Tuong</a> and
+          <a href="https://www.lri.fr/~wolff/">Burkhart Wolff</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2015-09-16</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+We represent a theory <i>of</i> (a fragment of) Isabelle/HOL <i>in</i>
+Isabelle/HOL. The purpose of this exercise is to write packages for
+domain-specific specifications such as class models, B-machines, ...,
+and generally speaking, any domain-specific languages whose
+abstract syntax can be defined by a HOL "datatype". On this basis, the
+Isabelle code-generator can then be used to generate code for global
+context transformations as well as tactic code.
+<p>
+Consequently the package is geared towards
+parsing, printing and code-generation to the Isabelle API.
+It is at the moment not sufficiently rich for doing meta theory on
+Isabelle itself. Extensions in this direction are possible though.
+<p>
+Moreover, the chosen fragment is fairly rudimentary. However it should be
+easily adapted to one's needs if a package is written on top of it.
+The supported API contains types, terms, transformation of
+global context like definitions and data-type declarations as well
+as infrastructure for Isar-setups.
+<p>
+This theory is drawn from the
+<a href="http://isa-afp.org/entries/Featherweight_OCL.html">Featherweight OCL</a>
+project where
+it is used to construct a package for object-oriented data-type theories
+generated from UML class diagrams. The Featherweight OCL, for example, allows for
+both the direct execution of compiled tactic code by the Isabelle API
+as well as the generation of ".thy"-files for debugging purposes.
+<p>
+Gained experience from this project shows that the compiled code is sufficiently
+efficient for practical purposes while being based on a formal <i>model</i>
+on which properties of the package can be proven such as termination of certain
+transformations, correctness, etc.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Isabelle_Meta_Model-AFP,
+  author  = {Frédéric Tuong and Burkhart Wolff},
+  title   = {A Meta-Model for the Isabelle API},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2015,
+  note    = {\url{https://isa-afp.org/entries/Isabelle_Meta_Model.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Isabelle_Meta_Model/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Isabelle_Meta_Model/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Isabelle_Meta_Model/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Isabelle_Meta_Model-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Isabelle_Meta_Model-2020-04-18.tar.gz">
+              afp-Isabelle_Meta_Model-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Isabelle_Meta_Model-2019-06-11.tar.gz">
+              afp-Isabelle_Meta_Model-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Isabelle_Meta_Model-2018-08-16.tar.gz">
+              afp-Isabelle_Meta_Model-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Isabelle_Meta_Model-2017-10-10.tar.gz">
+              afp-Isabelle_Meta_Model-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Isabelle_Meta_Model-2016-12-17.tar.gz">
+              afp-Isabelle_Meta_Model-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Isabelle_Meta_Model-2016-02-22.tar.gz">
+              afp-Isabelle_Meta_Model-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Isabelle_Meta_Model-2015-09-28.tar.gz">
+              afp-Isabelle_Meta_Model-2015-09-28.tar.gz
+            </a>
+            </li>
+                      <li>Isabelle 2015:
+            <a href="../release/afp-Isabelle_Meta_Model-2015-09-25.tar.gz">
+              afp-Isabelle_Meta_Model-2015-09-25.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

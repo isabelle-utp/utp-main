@@ -1,0 +1,14 @@
+chapter AFP
+
+session "GaleStewart_Games" (AFP) = Parity_Game +
+  options [timeout = 300]
+  theories [document = false]
+    MoreCoinductiveList2
+    MoreENat
+    MorePrefix
+  theories
+    GaleStewartGames
+    GaleStewartDeterminedGames
+  document_files
+    "root.bib"
+    "root.tex"

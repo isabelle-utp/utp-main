@@ -1,0 +1,6 @@
+# -*- shell-script -*- :mode=shellscript:
+
+if [ -z "$AFP_BASE" -a -f "$COMPONENT/../etc/settings" ]
+then
+  init_component "$(cd "$COMPONENT"; cd "$(pwd -P)"; cd ..; pwd)"
+fi

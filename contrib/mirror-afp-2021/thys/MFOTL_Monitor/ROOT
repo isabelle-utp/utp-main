@@ -1,0 +1,20 @@
+chapter AFP
+
+session MFOTL_Monitor (AFP) = "Containers" +
+  options [timeout = 1200]
+  theories
+    Trace
+    Table
+    Abstract_Monitor
+    Interval
+    MFOTL
+    Monitor
+    Slicing
+  theories [document=false]
+    Monitor_Code
+    Examples
+  document_files
+    "root.tex"
+    "root.bib"
+  export_files (in ".") [2]
+   "MFOTL_Monitor.Monitor_Code:code/**"

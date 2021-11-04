@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Concurrent Refinement Algebra and Rely Quotients - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">C</font>oncurrent
+  
+          <font class="first">R</font>efinement
+  
+          <font class="first">A</font>lgebra
+  
+          and
+  
+          <font class="first">R</font>ely
+  
+          <font class="first">Q</font>uotients
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Concurrent Refinement Algebra and Rely Quotients</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Julian Fell (julian /dot/ fell /at/ uq /dot/ net /dot/ au),
+                Ian J. Hayes (ian /dot/ hayes /at/ itee /dot/ uq /dot/ edu /dot/ au) and
+          <a href="http://andrius.velykis.lt">Andrius Velykis</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-12-30</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+The concurrent refinement algebra developed here is designed to
+provide a foundation for rely/guarantee reasoning about concurrent
+programs. The algebra builds on a complete lattice of commands by
+providing sequential composition, parallel composition and a novel
+weak conjunction operator. The weak conjunction operator coincides
+with the lattice supremum providing its arguments are non-aborting,
+but aborts if either of its arguments do. Weak conjunction provides an
+abstract version of a guarantee condition as a guarantee process. We
+distinguish between models that distribute sequential composition over
+non-deterministic choice from the left (referred to as being
+conjunctive in the refinement calculus literature) and those that
+don't. Least and greatest fixed points of monotone functions are
+provided to allow recursion and iteration operators to be added to the
+language. Additional iteration laws are available for conjunctive
+models. The rely quotient of processes <i>c</i> and
+<i>i</i> is the process that, if executed in parallel with
+<i>i</i> implements <i>c</i>. It represents an
+abstract version of a rely condition generalised to a process.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Concurrent_Ref_Alg-AFP,
+  author  = {Julian Fell and Ian J. Hayes and Andrius Velykis},
+  title   = {Concurrent Refinement Algebra and Rely Quotients},
+  journal = {Archive of Formal Proofs},
+  month   = dec,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Concurrent_Ref_Alg.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Concurrent_Ref_Alg/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Concurrent_Ref_Alg/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Concurrent_Ref_Alg/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Concurrent_Ref_Alg-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Concurrent_Ref_Alg-2020-04-18.tar.gz">
+              afp-Concurrent_Ref_Alg-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Concurrent_Ref_Alg-2019-06-11.tar.gz">
+              afp-Concurrent_Ref_Alg-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Concurrent_Ref_Alg-2018-08-16.tar.gz">
+              afp-Concurrent_Ref_Alg-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Concurrent_Ref_Alg-2017-10-10.tar.gz">
+              afp-Concurrent_Ref_Alg-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Concurrent_Ref_Alg-2017-01-04.tar.gz">
+              afp-Concurrent_Ref_Alg-2017-01-04.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

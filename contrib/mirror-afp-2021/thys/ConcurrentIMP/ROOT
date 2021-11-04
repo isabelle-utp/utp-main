@@ -1,0 +1,14 @@
+chapter AFP
+
+session ConcurrentIMP (AFP) = "HOL-Library" +
+  options [timeout = 300]
+  directories
+    "ex"
+  theories [show_question_marks = false, names_short]
+    CIMP
+    "ex/CIMP_locales"
+    "ex/CIMP_one_place_buffer"
+    "ex/CIMP_unbounded_buffer"
+  document_files
+    "root.bib"
+    "root.tex"

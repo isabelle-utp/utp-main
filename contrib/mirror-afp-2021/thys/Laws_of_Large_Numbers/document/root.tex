@@ -1,0 +1,64 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{stmaryrd}
+\usepackage[numbers]{natbib}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+\usepackage{doi}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\begin{document}
+
+\nocite{Simonnet1996}
+\nocite{krengel}
+
+\title{The Laws of Large Numbers}
+\author{Manuel Eberl}
+\date{}
+\maketitle
+
+\begin{abstract}
+The Law of Large Numbers states that, informally, if one performs a random experiment $X$ many times and takes the average of the results, that average will be very close to the expected value $E[X]$.
+
+More formally, let $(X_i)_{i\in\mathbb{N}}$ be a sequence of independently identically distributed random variables whose expected value $E[X_1]$ exists. Denote the running average of $X_1, \ldots, X_n$ for $\overline{X}_n$. Then:
+\begin{itemize}
+\item The Weak Law of Large Numbers states that $\overline{X}_{\!n} \longrightarrow E[X_1]$ in probability for $n\to\infty$, i.e. $\mathcal{P}(|\overline{X}_{\!n} - E[X_1]| > \varepsilon) \longrightarrow 0$ for $n\to\infty$ for any $\varepsilon > 0$.
+\item The Strong Law of Large Numbers states that $\overline{X}_{\!n} \longrightarrow E[X_1]$ almost surely for $n\to\infty$, i.e. $\mathcal{P}(\overline{X}_{\!n} \longrightarrow E[X_1]) = 1$.
+\end{itemize}
+
+In this entry, I formally prove the strong law and from it the weak law. The approach used for the proof of the strong law is a particularly quick and slick one based on ergodic theory, which was formalised by Gou\"ezel in another AFP entry.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\vspace{2em}
+\textbf{Acknowledgements.} I thank Sébastien Gouëzel for providing advice and context about the
+law of large numbers and ergodic theory. I do not actually know any ergodic theory and without him,
+I would probably have shied away from formalising this.
+
+% optional bibliography
+{\raggedright
+\bibliographystyle{plainnat}
+\bibliography{root}
+}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+#
+# Author: Gerwin Klein, NICTA
+#
+# Tests all entries in Archive of Formal Proofs
+
+source "$(dirname "$0")/common"
+
+## settings
+
+function usage()
+{
+  echo
+  echo "Usage: $PRG OPTIONS [entries]"
+  echo
+  echo "  Runs isabelle build on specified entries in the Archive of Formal Proofs"
+  echo
+  echo "Options:"
+  echo "-t <path/to/isabelle>  use isabelle tool wrapper at specified path"
+  echo "-c                     include target clean (rebuild session)"
+  echo "-r                     use env variable ISABELLE_RELEASES to find isabelle"
+  echo
+  echo "Examples:"
+  echo
+  echo "$PRG"
+  echo   "uses isabelle in your normal path to run all tests (usually = devel version)"
+  echo
+  echo "$PRG Example-Submission"
+  echo   "same as above, but only test Example-Submission"
+  echo
+  echo "$PRG -t /usr/proj/isabelle/Isabelle2009/bin/isabelle Example-Submission"
+  echo   "uses the Isabelle2009 release version to run the test"
+  echo
+  echo "$PRG -r 2009 Example-Submission"
+  echo   "uses the distribution $ISABELLE_RELEASES/Isabelle2009 to test Example-Submission"
+  exit 1
+}
+
+while getopts "t:cr:" OPT
+do
+    case "$OPT" in
+      r)
+        VERSION="$OPTARG"
+        ;;
+      c)
+        CLEAN="-c"
+        ;;
+      t)
+        ISABELLE_TOOL="$OPTARG"
+        ;;
+    esac
+done
+
+set_isabelle_tool
+
+shift $(($OPTIND - 1))
+
+[ -d $THYS ] || fail "Could not find archive directory. Tried [$THYS]."
+cd $THYS
+
+DIRS=""
+OPTS=""
+for ARG in "$@"
+do
+  if [ "${ARG#*=}" == "$ARG" ]
+  then
+    DIRS="$DIRS $ARG"
+  else
+    OPTS="$OPTS $ARG"
+  fi
+done
+if [ "$DIRS" == "" ]; then DIRS="-g AFP"; fi
+
+timestamp
+
+$ISABELLE_TOOL build -o browser_info -o "document=pdf" -o "document_variants=document:outline=/proof,/ML" -v -d . $CLEAN $DIRS
+
+timestamp

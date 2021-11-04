@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>IMP2 – Simple Program Verification in Isabelle/HOL - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">I</font>MP2
+  
+          <font class="first">–</font>
+  
+          <font class="first">S</font>imple
+  
+          <font class="first">P</font>rogram
+  
+          <font class="first">V</font>erification
+  
+          in
+  
+          <font class="first">I</font>sabelle/HOL
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">IMP2 – Simple Program Verification in Isabelle/HOL</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    Peter Lammich and
+          <a href="http://home.in.tum.de/~wimmers/">Simon Wimmer</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2019-01-15</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+IMP2 is a simple imperative language together with Isabelle tooling to
+create a program verification environment in Isabelle/HOL. The tools
+include a C-like syntax, a verification condition generator, and
+Isabelle commands for the specification of programs. The framework is
+modular, i.e., it allows easy reuse of already proved programs within
+larger programs.  This entry comes with a quickstart guide and a large
+collection of examples, spanning basic algorithms with simple proofs
+to more advanced algorithms and proof techniques like data refinement.
+Some highlights from the examples are: <ul> <li>Bisection
+Square Root, </li> <li>Extended Euclid,  </li>
+<li>Exponentiation by Squaring,  </li> <li>Binary
+Search,  </li> <li>Insertion Sort,  </li>
+<li>Quicksort,  </li> <li>Depth First Search.
+</li> </ul>  The abstract syntax and semantics are very
+simple and well-documented. They are suitable to be used in a course,
+as extension to the IMP language which comes with the Isabelle
+distribution.  While this entry is limited to a simple imperative
+language, the ideas could be extended to more sophisticated languages.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{IMP2-AFP,
+  author  = {Peter Lammich and Simon Wimmer},
+  title   = {IMP2 – Simple Program Verification in Isabelle/HOL},
+  journal = {Archive of Formal Proofs},
+  month   = jan,
+  year    = 2019,
+  note    = {\url{https://isa-afp.org/entries/IMP2.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="IMP2_Binary_Heap.html">IMP2_Binary_Heap</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/IMP2/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/IMP2/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/IMP2/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-IMP2-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-IMP2-2020-04-18.tar.gz">
+              afp-IMP2-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-IMP2-2019-06-11.tar.gz">
+              afp-IMP2-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-IMP2-2019-01-15.tar.gz">
+              afp-IMP2-2019-01-15.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

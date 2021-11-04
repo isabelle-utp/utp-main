@@ -1,0 +1,21 @@
+chapter AFP
+
+session Padic_Ints (AFP) = "HOL-Algebra" +
+  options [timeout = 1200] 
+ sessions 
+    "HOL-Number_Theory"
+ theories
+    Function_Ring
+    Cring_Poly
+    Supplementary_Ring_Facts
+    Extended_Int
+    Padic_Construction
+    Padic_Integers
+    Padic_Int_Topology
+    Padic_Int_Polynomials
+    Hensels_Lemma
+    Zp_Compact
+ document_files
+    "root.tex"
+    "root.bib"
+

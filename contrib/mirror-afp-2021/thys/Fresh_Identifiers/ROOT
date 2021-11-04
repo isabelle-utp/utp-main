@@ -1,0 +1,11 @@
+chapter AFP
+
+session Fresh_Identifiers (AFP) = HOL +
+  options [timeout=300]
+  theories
+    Fresh
+    Fresh_Nat
+    Fresh_String
+    Fresh_Infinite
+  document_files
+    "root.tex"

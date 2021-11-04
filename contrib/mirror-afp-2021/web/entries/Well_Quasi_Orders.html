@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Well-Quasi-Orders - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">W</font>ell-Quasi-Orders
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Well-Quasi-Orders</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Christian Sternagel (c /dot/ sternagel /at/ gmail /dot/ com)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2012-04-13</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">Based on Isabelle/HOL's type class for preorders,
+we introduce a type class for well-quasi-orders (wqo)
+which is characterized by the absence of "bad" sequences
+(our proofs are along the lines of the proof of Nash-Williams,
+from which we also borrow terminology). Our main results are
+instantiations for the product type, the list type, and a type of finite trees,
+which (almost) directly follow from our proofs of (1) Dickson's Lemma, (2)
+Higman's Lemma, and (3) Kruskal's Tree Theorem. More concretely:
+<ul>
+<li>If the sets A and B are wqo then their Cartesian product is wqo.</li>
+<li>If the set A is wqo then the set of finite lists over A is wqo.</li>
+<li>If the set A is wqo then the set of finite trees over A is wqo.</li>
+</ul>
+The research was funded by the Austrian Science Fund (FWF): J3202.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2012-06-11]: Added Kruskal's Tree Theorem.<br>
+[2012-12-19]: New variant of Kruskal's tree theorem for terms (as opposed to
+variadic terms, i.e., trees), plus finite version of the tree theorem as
+corollary.<br>
+[2013-05-16]: Simplified construction of minimal bad sequences.<br>
+[2014-07-09]: Simplified proofs of Higman's lemma and Kruskal's tree theorem,
+based on homogeneous sequences.<br>
+[2016-01-03]: An alternative proof of Higman's lemma by open induction.<br>
+[2017-06-08]: Proved (classical) equivalence to inductive definition of
+almost-full relations according to the ITP 2012 paper "Stop When You Are
+Almost-Full" by Vytiniotis, Coquand, and Wahlstedt.</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Well_Quasi_Orders-AFP,
+  author  = {Christian Sternagel},
+  title   = {Well-Quasi-Orders},
+  journal = {Archive of Formal Proofs},
+  month   = apr,
+  year    = 2012,
+  note    = {\url{https://isa-afp.org/entries/Well_Quasi_Orders.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Abstract-Rewriting.html">Abstract-Rewriting</a>, <a href="Open_Induction.html">Open_Induction</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Decreasing-Diagrams-II.html">Decreasing-Diagrams-II</a>, <a href="Myhill-Nerode.html">Myhill-Nerode</a>, <a href="Polynomials.html">Polynomials</a>, <a href="Saturation_Framework.html">Saturation_Framework</a>, <a href="Saturation_Framework_Extensions.html">Saturation_Framework_Extensions</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Well_Quasi_Orders/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Well_Quasi_Orders/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Well_Quasi_Orders/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Well_Quasi_Orders-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Well_Quasi_Orders-2020-04-20.tar.gz">
+              afp-Well_Quasi_Orders-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Well_Quasi_Orders-2019-06-11.tar.gz">
+              afp-Well_Quasi_Orders-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Well_Quasi_Orders-2018-08-16.tar.gz">
+              afp-Well_Quasi_Orders-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Well_Quasi_Orders-2017-10-10.tar.gz">
+              afp-Well_Quasi_Orders-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Well_Quasi_Orders-2016-12-17.tar.gz">
+              afp-Well_Quasi_Orders-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Well_Quasi_Orders-2016-02-22.tar.gz">
+              afp-Well_Quasi_Orders-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Well_Quasi_Orders-2015-05-27.tar.gz">
+              afp-Well_Quasi_Orders-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Well_Quasi_Orders-2014-08-28.tar.gz">
+              afp-Well_Quasi_Orders-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Well_Quasi_Orders-2013-12-11.tar.gz">
+              afp-Well_Quasi_Orders-2013-12-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-1:
+            <a href="../release/afp-Well_Quasi_Orders-2013-11-17.tar.gz">
+              afp-Well_Quasi_Orders-2013-11-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013:
+            <a href="../release/afp-Well_Quasi_Orders-2013-02-16.tar.gz">
+              afp-Well_Quasi_Orders-2013-02-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2012:
+            <a href="../release/afp-Well_Quasi_Orders-2012-05-24.tar.gz">
+              afp-Well_Quasi_Orders-2012-05-24.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

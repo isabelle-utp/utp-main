@@ -1,0 +1,14 @@
+chapter AFP
+
+session Projective_Measurements (AFP) = "HOL-Probability" +
+  options [timeout = 600]
+  sessions
+	Isabelle_Marries_Dirac
+	QHLProver
+	"HOL-Types_To_Sets"
+  theories
+    Linear_Algebra_Complements
+	Projective_Measurements
+	CHSH_Inequality
+  document_files
+    "root.tex"

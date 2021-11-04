@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Formalization of Nested Multisets, Hereditary Multisets, and Syntactic Ordinals - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">F</font>ormalization
+  
+          of
+  
+          <font class="first">N</font>ested
+  
+          <font class="first">M</font>ultisets,
+  
+          <font class="first">H</font>ereditary
+  
+          <font class="first">M</font>ultisets,
+  
+          and
+  
+          <font class="first">S</font>yntactic
+  
+          <font class="first">O</font>rdinals
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Formalization of Nested Multisets, Hereditary Multisets, and Syntactic Ordinals</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      Jasmin Christian Blanchette (j /dot/ c /dot/ blanchette /at/ vu /dot/ nl),
+                <a href="http://fmv.jku.at/fleury">Mathias Fleury</a> and
+          <a href="https://traytel.bitbucket.io/">Dmitriy Traytel</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2016-11-12</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">This Isabelle/HOL formalization introduces a nested multiset datatype and defines Dershowitz and Manna's nested multiset order. The order is proved well founded and linear. By removing one constructor, we transform the nested multisets into hereditary multisets. These are isomorphic to the syntactic ordinals—the ordinals can be recursively expressed in Cantor normal form. Addition, subtraction, multiplication, and linear orders are provided on this type.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Nested_Multisets_Ordinals-AFP,
+  author  = {Jasmin Christian Blanchette and Mathias Fleury and Dmitriy Traytel},
+  title   = {Formalization of Nested Multisets, Hereditary Multisets, and Syntactic Ordinals},
+  journal = {Archive of Formal Proofs},
+  month   = nov,
+  year    = 2016,
+  note    = {\url{https://isa-afp.org/entries/Nested_Multisets_Ordinals.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="List-Index.html">List-Index</a>, <a href="Ordinal.html">Ordinal</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Design_Theory.html">Design_Theory</a>, <a href="Functional_Ordered_Resolution_Prover.html">Functional_Ordered_Resolution_Prover</a>, <a href="Lambda_Free_KBOs.html">Lambda_Free_KBOs</a>, <a href="Lambda_Free_RPOs.html">Lambda_Free_RPOs</a>, <a href="Ordered_Resolution_Prover.html">Ordered_Resolution_Prover</a>, <a href="PAC_Checker.html">PAC_Checker</a>, <a href="Progress_Tracking.html">Progress_Tracking</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Nested_Multisets_Ordinals/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Nested_Multisets_Ordinals/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Nested_Multisets_Ordinals/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Nested_Multisets_Ordinals-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Nested_Multisets_Ordinals-2020-04-20.tar.gz">
+              afp-Nested_Multisets_Ordinals-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Nested_Multisets_Ordinals-2019-06-11.tar.gz">
+              afp-Nested_Multisets_Ordinals-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Nested_Multisets_Ordinals-2018-08-16.tar.gz">
+              afp-Nested_Multisets_Ordinals-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Nested_Multisets_Ordinals-2017-10-10.tar.gz">
+              afp-Nested_Multisets_Ordinals-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Nested_Multisets_Ordinals-2016-12-17.tar.gz">
+              afp-Nested_Multisets_Ordinals-2016-12-17.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

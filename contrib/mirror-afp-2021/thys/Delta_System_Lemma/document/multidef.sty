@@ -1,0 +1,133 @@
+%%
+%% This is file `multidef.sty',
+%% generated with the docstrip utility.
+%%
+%% The original source files were:
+%%
+%% multidef.dtx  (with options: `package')
+%% 
+%% (c) 2016/03/14 Nicolas Markey <multidef at markey dot fr>
+%% 
+%% This work may  be distributed and/or modified under  the conditions of
+%% the LaTeX Project  Public License, either version 1.3  of this license
+%% or (at  your option)  any later version.   The latest version  of this
+%% license is in
+%% 
+%%   http://www.latex-project.org/lppl.txt
+%% 
+%% and version 1.3 or later is part of all distributions of LaTeX version
+%% 2005/12/01 or later.
+%% 
+%% This work has the LPPL maintenance status `maintained'.
+%% The Current Maintainer of this work is Nicolas Markey.
+%% 
+%% \CharacterTable
+%%  {Upper-case    \A\B\C\D\E\F\G\H\I\J\K\L\M\N\O\P\Q\R\S\T\U\V\W\X\Y\Z
+%%   Lower-case    \a\b\c\d\e\f\g\h\i\j\k\l\m\n\o\p\q\r\s\t\u\v\w\x\y\z
+%%   Digits        \0\1\2\3\4\5\6\7\8\9
+%%   Exclamation   \!     Double quote  \"     Hash (number) \#
+%%   Dollar        \$     Percent       \%     Ampersand     \&
+%%   Acute accent  \'     Left paren    \(     Right paren   \)
+%%   Asterisk      \*     Plus          \+     Comma         \,
+%%   Minus         \-     Point         \.     Solidus       \/
+%%   Colon         \:     Semicolon     \;     Less than     \<
+%%   Equals        \=     Greater than  \>     Question mark \?
+%%   Commercial at \@     Left bracket  \[     Backslash     \\
+%%   Right bracket \]     Circumflex    \^     Underscore    \_
+%%   Grave accent  \`     Left brace    \{     Vertical bar  \|
+%%   Right brace   \}     Tilde         \~}
+%%
+\RequirePackage{xkeyval}
+\define@boolkeys{mdef}{noerr,nowarn}[true]
+\DeclareOptionX{noerr}[true]{\setkeys{mdef}{noerr=#1}}
+\DeclareOptionX{nowarn}[true]{\setkeys{mdef}{nowarn=#1}}
+\ExecuteOptionsX{noerr=false,nowarn=false}
+\ProcessOptionsX
+\ifKV@mdef@noerr
+\presetkeys{mdef}{noerr=true}{}
+\else
+\presetkeys{mdef}{noerr=false}{}
+\fi
+\ifKV@mdef@nowarn
+\presetkeys{mdef}{nowarn=true}{}
+\else
+\presetkeys{mdef}{nowarn=false}{}
+\fi
+\define@key{mdef}{prefix}{\def\@mdprefix{#1}}
+\define@key{mdef}{p}{\def\@mdprefix{#1}}
+\define@key{mdef}{suffix}{\def\@mdsuffix{#1}}
+\define@key{mdef}{s}{\def\@mdsuffix{#1}}
+\define@key{mdef}{arg}{\def\@mdargs{#1}}
+\define@key{mdef}{args}{\def\@mdargs{#1}}
+\define@boolkeys{mdef}{long,global}[true]
+\presetkeys{mdef}
+           {p=,s=,prefix=,suffix=,long=false,global=false,arg=0,args=0}{}
+\def\@mdef@az{a-z}
+\def\@mdef@AZ{A-Z}
+\def\@mdef@alphabet{a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z}
+\def\@mdef@Alphabet{A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z}
+\newcommand\multidef[3][]{%
+  \setkeys{mdef}{#1}%
+  \def\@mdef@com##1{#2}%
+  \@mdef#3,\@end}
+\def\@mdef #1,#2\@end{\expandafter\def\expandafter\@arg
+    \expandafter{\romannumeral-\expandafter`\expandafter\.#1}%
+  \ifx\@arg\@mdef@az
+    \expandafter\@mdef \@mdef@alphabet,\@end
+  \else
+    \ifx\@arg\@mdef@AZ
+      \expandafter\@mdef \@mdef@Alphabet,\@end
+    \else
+      \expandafter\@@mdef\@arg->->->\@end
+    \fi
+  \fi
+  \def\@arg{#2}%
+  \ifx\@arg\@empty\else\@mdef #2\@end\fi}
+\newtoks\@mdef@redeftok
+\def\@mdef@comma{}
+\def\@@mdef#1->#2->#3\@end{%
+  \@ifundefined{\@mdprefix#1\@mdsuffix}
+    {\@@@mdef{#1}{#2}}
+    {\edef\@mdef@redef{\the\@mdef@redeftok\@mdef@comma
+        \@backslashchar\@mdprefix#1\@mdsuffix}
+     \def\@mdef@comma{, }
+     \@mdef@redeftok=\expandafter{\@mdef@redef}
+     \ifKV@mdef@noerr
+       \@@@mdef{#1}{#2}%
+       \ifKV@mdef@nowarn\else
+         \PackageWarning{multidef}
+           {command \expandafter\noexpand\csname\@mdprefix#1\@mdsuffix\endcsname
+             redefined}
+       \fi
+     \else
+       \PackageError{multidef}
+         {command \expandafter\noexpand\csname\@mdprefix#1\@mdsuffix\endcsname
+           already defined}\@ehc
+     \fi
+     \ifKV@mdef@nowarn\else
+       \@ifundefined{@mdwarnonce}
+         {\def\@mdwarnonce{}%
+          \@mdef@finalwarn}
+         {}
+     \fi}
+}
+\def\@mdef@finalwarn{%
+  \AtEndDocument{\PackageWarningNoLine{multidef}{There were
+     redefined commands (\the\@mdef@redeftok)}}}
+\def\@@@mdef#1#2{\def\@arg@{#2}%
+  \ifx\@arg@\@empty
+    \@mdef@def{#1}{#1}%
+  \else
+    \@mdef@def{#1}{#2}%
+  \fi}
+\def\@mdef@def#1#2{%
+    \let\reserved@b\@gobble
+    \ifKV@mdef@global\let\@mdglobal\global\else\let\@mdglobal\relax\fi
+    \ifKV@mdef@long\let\@mdlong\long\else\let\@mdlong\relax\fi
+    \def\l@ngrel@x{\@mdlong\@mdglobal}
+  \expandafter\expandafter\expandafter\@yargd@f\expandafter\@mdargs\csname
+  \@mdprefix#1\@mdsuffix\expandafter\endcsname\expandafter{\@mdef@com{#2}}
+}
+%% 
+%%
+%% End of file `multidef.sty'.

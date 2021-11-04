@@ -1,0 +1,20 @@
+chapter AFP
+
+session Smith_Normal_Form (AFP) = Hermite +
+  options [timeout = 2400]
+  sessions
+    "HOL-Types_To_Sets"
+    Perron_Frobenius
+    "List-Index"
+    Berlekamp_Zassenhaus
+  theories
+    Diagonal_To_Smith
+    SNF_Uniqueness
+    Cauchy_Binet_HOL_Analysis
+    SNF_Algorithm_Two_Steps
+    SNF_Algorithm_Two_Steps_JNF
+    SNF_Algorithm_HOL_Analysis
+    SNF_Algorithm_Euclidean_Domain
+    Smith_Certified
+  document_files
+    "root.tex"

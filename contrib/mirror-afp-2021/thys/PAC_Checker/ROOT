@@ -1,0 +1,38 @@
+chapter AFP
+
+session PAC_Checker (AFP) = "Sepref_IICF" +
+  description \<open>PAC proof checker\<close>
+  options
+    [timeout = 2700]
+  sessions
+    "HOL-Library"
+    "HOL-Algebra"
+    "Polynomials"
+    Nested_Multisets_Ordinals
+  theories
+    PAC_More_Poly
+    Duplicate_Free_Multiset
+    Finite_Map_Multiset
+    WB_Sort
+    More_Loops
+    PAC_Specification
+    PAC_Map_Rel
+    PAC_Checker_Specification
+    PAC_Checker_Relation
+    PAC_Polynomials
+    PAC_Polynomials_Term
+    PAC_Polynomials_Operations
+    PAC_Assoc_Map_Rel
+    PAC_Map_Rel
+    PAC_Checker
+    PAC_Checker_Init
+    PAC_Version
+    PAC_Checker_Synthesis
+  theories [condition=ISABELLE_MLTON]
+    PAC_Checker_MLton
+  document_files
+    "root.tex"
+    "root.bib"
+  export_files (in "code") [1]
+    "PAC_Checker.PAC_Checker_MLton:**"
+

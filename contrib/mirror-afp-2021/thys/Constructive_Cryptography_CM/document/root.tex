@@ -1,0 +1,58 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{amssymb,amsmath}
+\usepackage[english]{babel}
+\usepackage[only,bigsqcap]{stmaryrd}
+\usepackage{wasysym}
+\usepackage{booktabs}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+
+\title{Constructive Cryptography in HOL: the Communication Modeling Aspect}
+\author{Andreas Lochbihler and S. Reza Sefidgar}
+\maketitle
+
+\begin{abstract}
+Constructive Cryptography (CC)~\cite{Maurer2011, Maurer2011a, Maurer2016}
+introduces an abstract approach to composable security statements that allows one
+to focus on a particular aspect of security proofs at a time.
+Instead of proving the properties of concrete systems, CC studies system 
+classes, i.e., the shared behavior of similar systems, and their transformations.
+
+Modeling of systems communication plays a crucial role in composability and 
+reusability of security statements; yet, this aspect has not been studied
+in any of the existing CC results. We extend our previous CC formalization~\cite{Lochbihler2018,Lochbihler2019}
+with a new semantic domain called Fused Resource Templates (FRT) that abstracts over
+the systems communication patterns in CC proofs. This widens the scope of cryptography proof
+formalizations in the {CryptHOL} library~\cite{Lochbihler2017,Lochbihler2016,Basin2020}.
+
+This formalization is described in~\cite{Basin2021}.
+\end{abstract}
+
+\tableofcontents
+
+\clearpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

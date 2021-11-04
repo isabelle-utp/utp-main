@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ordinal Partitions - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">O</font>rdinal
+  
+          <font class="first">P</font>artitions
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Ordinal Partitions</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              <a href="https://www.cl.cam.ac.uk/~lp15/">Lawrence C. Paulson</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2020-08-03</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+The theory of partition relations concerns generalisations of
+Ramsey's theorem. For any ordinal $\alpha$, write $\alpha \to
+(\alpha, m)^2$ if for each function $f$ from unordered pairs of
+elements of $\alpha$ into $\{0,1\}$, either there is a subset
+$X\subseteq \alpha$ order-isomorphic to $\alpha$ such that
+$f\{x,y\}=0$ for all $\{x,y\}\subseteq X$, or there is an $m$ element
+set $Y\subseteq \alpha$ such that $f\{x,y\}=1$ for all
+$\{x,y\}\subseteq Y$. (In both cases, with $\{x,y\}$ we require
+$x\not=y$.) In particular, the infinite Ramsey theorem can be written
+in this notation as $\omega \to (\omega, \omega)^2$, or if we
+restrict $m$ to the positive integers as above, then $\omega \to
+(\omega, m)^2$ for all $m$.  This entry formalises Larson's proof
+of $\omega^\omega \to (\omega^\omega, m)^2$ along with a similar proof
+of a result due to Specker: $\omega^2 \to (\omega^2, m)^2$. Also
+proved is a necessary result by Erdős and Milner:
+$\omega^{1+\alpha\cdot n} \to (\omega^{1+\alpha}, 2^n)^2$.</td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Ordinal_Partitions-AFP,
+  author  = {Lawrence C. Paulson},
+  title   = {Ordinal Partitions},
+  journal = {Archive of Formal Proofs},
+  month   = aug,
+  year    = 2020,
+  note    = {\url{https://isa-afp.org/entries/Ordinal_Partitions.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Nash_Williams.html">Nash_Williams</a>, <a href="ZFC_in_HOL.html">ZFC_in_HOL</a>      </td></tr>
+          
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Ordinal_Partitions/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Ordinal_Partitions/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Ordinal_Partitions/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Ordinal_Partitions-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Ordinal_Partitions-2020-08-18.tar.gz">
+              afp-Ordinal_Partitions-2020-08-18.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

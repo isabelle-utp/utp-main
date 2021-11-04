@@ -1,0 +1,11 @@
+chapter AFP
+
+session Hood_Melville_Queue (AFP) = HOL +
+  options [timeout = 300]
+  sessions
+    "HOL-Data_Structures"
+  theories
+    Hood_Melville_Queue
+  document_files
+    "root.bib"
+    "root.tex"

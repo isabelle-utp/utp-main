@@ -1,0 +1,13 @@
+chapter AFP
+
+session Progress_Tracking (AFP) = Nested_Multisets_Ordinals +
+  description \<open>Safety of Timely Dataflow's Progress Tracking Protocol\<close>
+  options [timeout = 1200]
+  sessions
+    "HOL-Library"
+  theories
+    Exchange_Abadi
+    Combined
+  document_files
+    "root.tex"
+    "root.bib"

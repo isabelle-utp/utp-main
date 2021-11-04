@@ -1,0 +1,67 @@
+\documentclass[11pt,a4paper,fleqn]{article}
+\usepackage{isabelle,isabellesym}
+\usepackage{tabto}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Logging-independent Message Anonymity\\in the Relational Method}
+\author{Pasquale Noce\\Software Engineer at HID Global, Italy\\pasquale dot noce dot lavoro at gmail dot com\\pasquale dot noce at hidglobal dot com}
+\maketitle
+
+\begin{abstract}
+In the context of formal cryptographic protocol verification, logging-independent message anonymity
+is the property for a given message to remain anonymous despite the attacker's capability of mapping
+messages of that sort to agents based on some intrinsic feature of such messages, rather than by
+logging the messages exchanged by legitimate agents as with logging-dependent message anonymity.
+
+This paper illustrates how logging-independent message anonymity can be formalized according to the
+relational method for formal protocol verification by considering a real-world protocol, namely the
+Restricted Identification one by the BSI. This sample model is used to verify that the pseudonymous
+identifiers output by user identification tokens remain anonymous under the expected conditions.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

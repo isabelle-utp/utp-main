@@ -1,0 +1,12 @@
+chapter AFP
+
+session Nash_Williams (AFP) = HOL +
+  options [timeout = 600]
+  sessions
+    "HOL-Library"
+  theories
+    Nash_Williams
+  document_files
+    "root.tex"
+    "root.bib"
+    

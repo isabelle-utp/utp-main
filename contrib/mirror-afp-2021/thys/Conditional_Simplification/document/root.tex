@@ -1,0 +1,106 @@
+\PassOptionsToPackage{ngerman,main=english}{babel}
+\documentclass[11pt,a4paper]{article}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+
+\usepackage[margin={1in,1in}]{geometry}
+
+\usepackage[T1]{fontenc} 
+\usepackage{lmodern}
+\usepackage{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{xspace}
+\usepackage{MnSymbol}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{fontspec}
+
+\usepackage{graphicx}
+\usepackage{proof}
+
+% bibliography
+\usepackage[nottoc]{tocbibind}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% drop Isabelle tags
+\isadroptag{theory}
+
+% enumitem configuration
+\setlist{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\begin{document}
+\sloppy
+
+\title{Conditional Simplification} 
+\author{Mihails Milehins}
+\maketitle
+
+\newpage
+
+\begin{abstract}
+The document presents a reference manual for the 
+framework \textit{Conditional Simplification} (CS): 
+a collection of experimental general-purpose methods for the object logic
+\textit{Isabelle/HOL} (e.g., see \cite{yang_comprehending_2017}) 
+of the formal proof assistant \textit{Isabelle}
+\cite{paulson_natural_1986}.
+The methods that are provided in the collection offer the functionality 
+that is similar to certain aspects of the functionality provided by the 
+standard \textit{proof methods} \cite{wenzel_isabelle/isar_2019-1} 
+of Isabelle that combine classical reasoning 
+and rewriting/simplification, but use a different approach for 
+rewriting/simplification. More specifically, the methods provided in the
+collection allow for the side conditions of
+the rewrite rules to be solved via intro-resolution.
+\end{abstract}
+
+\newpage
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+
+The author would like to acknowledge the assistance that he received from 
+the users of the mailing list of Isabelle 
+\href{https://lists.cam.ac.uk/mailman/listinfo/cl-isabelle-users}
+in the form of answers given to his general queries. 
+
+Furthermore, the author would like to acknowledge the positive 
+impact of \cite{urban_isabelle_2019} and 
+\cite{wenzel_isabelle/isar_2019} on his ability to code in 
+Isabelle/ML \cite{milner_definition_1997, wenzel_isabelle/isar_2019}.
+Moreover, the author would like to acknowledge
+the positive role that numerous Q\&A posted on the Stack Exchange network 
+(especially Stack Overflow and TeX Stack Exchange) played in the 
+development of this work. 
+
+The author would also like to express gratitude to all members of his family 
+and friends for their continuous support.
+
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\newpage
+
+\bibliography{root}
+
+\end{document}

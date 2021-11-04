@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Featherweight OCL: A Proposal for a Machine-Checked Formal Semantics for OCL 2.5 - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">F</font>eatherweight
+  
+          <font class="first">O</font>CL:
+  
+          <font class="first">A</font>
+  
+          <font class="first">P</font>roposal
+  
+          for
+  
+          a
+  
+          <font class="first">M</font>achine-Checked
+  
+          <font class="first">F</font>ormal
+  
+          <font class="first">S</font>emantics
+  
+          for
+  
+          <font class="first">O</font>CL
+  
+          <font class="first">2</font>.5
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Featherweight OCL: A Proposal for a Machine-Checked Formal Semantics for OCL 2.5</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                      <a href="https://www.brucker.ch">Achim D. Brucker</a>,
+                <a href="https://www.lri.fr/~ftuong/">Frédéric Tuong</a> and
+          <a href="https://www.lri.fr/~wolff/">Burkhart Wolff</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2014-01-16</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">The Unified Modeling Language (UML) is one of the few
+modeling languages that is widely used in industry. While
+UML is mostly known as diagrammatic modeling language
+(e.g., visualizing class models), it is complemented by a
+textual language, called Object Constraint Language
+(OCL). The current version of OCL is based on a four-valued
+logic that turns UML into a formal language. Any type
+comprises the elements "invalid" and "null" which are
+propagated as strict and non-strict, respectively.
+Unfortunately, the former semi-formal semantics of this
+specification language, captured in the "Annex A" of the
+OCL standard, leads to different interpretations of corner
+cases. We formalize the core of OCL: denotational
+definitions, a logical calculus and operational rules that
+allow for the execution of OCL expressions by a mixture of
+term rewriting and code compilation. Our formalization
+reveals several inconsistencies and contradictions in the
+current version of the OCL standard. Overall, this document
+is intended to provide the basis for a machine-checked text
+"Annex A" of the OCL standard targeting at tool
+implementors.</td>
+</tr>
+
+  <tr>
+    <td class="datahead" valign="top">Change history:</td>
+    <td class="abstract">[2015-10-13]:
+<a href="https://foss.heptapod.net/isa-afp/afp-devel/-/commit/e68e1996d5d4926397c9244e786446e99ab17e63">afp-devel@ea3b38fc54d6</a> and
+<a href="https://projects.brucker.ch/hol-testgen/log/trunk?rev=12148">hol-testgen@12148</a><br>
+&nbsp;&nbsp;&nbsp;Update of Featherweight OCL including a change in the abstract.<br>
+[2014-01-16]:
+<a href="https://foss.heptapod.net/isa-afp/afp-devel/-/commit/6217cc5b29c560f24ecc64c81047778becb69f51">afp-devel@9091ce05cb20</a> and
+<a href="https://projects.brucker.ch/hol-testgen/log/trunk?rev=10241">hol-testgen@10241</a><br>
+&nbsp;&nbsp;&nbsp;New Entry: Featherweight OCL</td>
+  </tr>
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Featherweight_OCL-AFP,
+  author  = {Achim D. Brucker and Frédéric Tuong and Burkhart Wolff},
+  title   = {Featherweight OCL: A Proposal for a Machine-Checked Formal Semantics for OCL 2.5},
+  journal = {Archive of Formal Proofs},
+  month   = jan,
+  year    = 2014,
+  note    = {\url{https://isa-afp.org/entries/Featherweight_OCL.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Featherweight_OCL/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Featherweight_OCL/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Featherweight_OCL/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Featherweight_OCL-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Featherweight_OCL-2020-04-18.tar.gz">
+              afp-Featherweight_OCL-2020-04-18.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Featherweight_OCL-2019-06-11.tar.gz">
+              afp-Featherweight_OCL-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Featherweight_OCL-2018-08-16.tar.gz">
+              afp-Featherweight_OCL-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-Featherweight_OCL-2017-10-10.tar.gz">
+              afp-Featherweight_OCL-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-Featherweight_OCL-2016-12-17.tar.gz">
+              afp-Featherweight_OCL-2016-12-17.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016:
+            <a href="../release/afp-Featherweight_OCL-2016-02-22.tar.gz">
+              afp-Featherweight_OCL-2016-02-22.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2015:
+            <a href="../release/afp-Featherweight_OCL-2015-05-27.tar.gz">
+              afp-Featherweight_OCL-2015-05-27.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2014:
+            <a href="../release/afp-Featherweight_OCL-2014-08-28.tar.gz">
+              afp-Featherweight_OCL-2014-08-28.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2013-2:
+            <a href="../release/afp-Featherweight_OCL-2014-01-16.tar.gz">
+              afp-Featherweight_OCL-2014-01-16.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

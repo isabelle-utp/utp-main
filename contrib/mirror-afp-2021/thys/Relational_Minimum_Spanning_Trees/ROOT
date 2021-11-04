@@ -1,0 +1,19 @@
+chapter AFP
+
+session Relational_Minimum_Spanning_Trees (AFP) = Aggregation_Algebras +
+
+  options [timeout = 600]
+
+  sessions
+    "HOL-Hoare"
+    Relational_Disjoint_Set_Forests
+
+  theories
+    Kruskal
+    Prim
+    Boruvka
+
+  document_files
+    "root.tex"
+    "root.bib"
+

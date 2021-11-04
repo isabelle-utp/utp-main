@@ -1,0 +1,250 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[a4paper,margin=1cm,footskip=.5cm]{geometry}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{graphicx}
+\usepackage{wrapfig}
+
+\usepackage[utf8]{inputenc}
+
+% Bibliography
+\usepackage[authoryear,sort]{natbib}
+\bibpunct();A{},
+
+% Allow pdflatex to do some fancier spacing.
+\usepackage{microtype}
+
+\usepackage{fancyvrb}
+
+\usepackage{tikz}
+\usetikzlibrary{arrows,automata,cd,positioning}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+\renewcommand{\isastyle}{\isastyleminor}
+
+\begin{document}
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+\title{Putting the `K' into Bird's derivation of Knuth-Morris-Pratt string matching}
+\author{Peter Gammie}
+\maketitle
+
+\begin{abstract}
+  \noindent Richard Bird and collaborators have proposed a derivation
+  of an intricate cyclic program that implements the Morris-Pratt
+  string matching algorithm. Here we provide a proof of total
+  correctness for Bird's derivation and complete it by adding Knuth's
+  optimisation.
+\end{abstract}
+
+
+\tableofcontents
+
+
+\section{Introduction\label{sec:introduction}}
+
+We formalize a derivation of the string-matching algorithm of
+\citet{KnuthMorrisPratt:1977} (KMP) due to
+\citet[Chapter~17]{Bird:PearlsofFAD:2010}. The central novelty of this
+approach is its use of a circular data structure to simultaneously
+compute and represent the failure function; see
+Figure~\ref{fig:haskell-kmp} for the final program. This is
+challenging to model in a logic of total functions, as we discuss
+below, which leads us to employ the venerable machinery of domain
+theory.
+
+\begin{figure}
+  \VerbatimInput[fontsize=\small]{programs/KMP.hs}
+  \caption{Bird's KMP as a Haskell program.}
+  \label{fig:haskell-kmp}
+\end{figure}
+
+Our development completes Bird's derivation of the Morris-Pratt (MP)
+algorithm with proofs that each derivation step preserves
+productivity, yielding total correctness; in other words, we show that
+this circular program is extensionally equal to its specification. We
+also add what we call the `K' optimisation to yield the full KMP
+algorithm (\S\ref{sec:KMP:data_refinement}). Our analysis inspired a
+Prolog implementation (\S\ref{sec:implementations}) that some may find
+more perspicuous.
+
+Here we focus on the formalities of this style of program refinement
+and defer further background on string matching to two excellent
+monographs: \citet[\S2.3]{Gusfield:1997} and
+\citet[\S2.1]{CrochemoreRytter:2002}. Both provide traditional
+presentations of the problem, the KMP algorithm and correctness proofs
+and complexity results.
+
+We discuss related work in \S\ref{sec:related-work}.
+
+
+\subsection{Formal setting\label{sec:formal_setting}}
+
+Bird does not make his formal context explicit. The program requires
+non-strict datatypes and sharing to obtain the expected complexity,
+which implies that he is working in a lazy (call-by-need)
+language. For reasons we observe during our development in
+\S\ref{sec:KMP}, some of Bird's definitions are difficult to make
+directly in Isabelle/HOL (a logic of total functions over types
+denoting sets) using the existing mechanisms.
+
+We therefore adopt domain theory as mechanised by \texttt{HOLCF}
+\citep{HOLCF:1999}. This logic provides a relatively straightforward
+if awkward way to reason about non-strict (call-by-name) programs at
+the cost of being too abstract to express sharing.
+
+Bird's derivation implicitly appeals to the fold/unfold framework of
+\citet{BurstallDarlington:1977}, which guarantees the preservation of
+partial correctness: informally, if the implementation terminates then
+it yields a value that coincides with the specification, or
+$\mbox{implementation} \sqsubseteq \mbox{specification}$ in
+domain-theoretic terms. These rules come with side conditions that
+would ensure that productivity is preserved -- that the implementation
+and specification are moreover extensionally equal -- but Bird does
+not establish them. We note that it is easy to lose productivity
+through subtle uses of cyclic data structures (see
+\S\ref{sec:KMP:increase_sharing} in particular), and that this
+derivation does not use well-known structured recursion patterns like
+\emph{map} or \emph{foldr} that mitigate these issues.
+
+We attempt to avoid the confusions that can arise when transforming
+programs with named expressions (definitions or declarations) by
+making each step in the derivation completely self-contained:
+specifically, all definitions that change or depend on a definition
+that changes are redefined at each step. Briefly this avoids the
+conflation of equations with definitions; for instance, $f = f$ holds
+for all functions but makes for a poor definition. The issues become
+more subtle in the presence of recursion modelled as least fixed
+points, where satisfying a fixed-point equation $F f = f$ does not
+always imply the desired equality $f = \mbox{lfp}\
+F$. \citet{Tullsen:PhDThesis} provides a fuller discussion.
+
+As our main interest is the introduction of the circular data
+structure (\S\ref{sec:KMP:data_refinement}), we choose to work with
+datatypes that simplify other aspects of this story. Specifically we
+use strict lists (\S\ref{sec:theory_of_lists}) as they allow us to
+adapt many definitions and lemmas about HOL's lists and localise (the
+many!) definedness conditions. We also impose strong conditions on
+equality (\S\ref{sec:equality}) for similar reasons, and, less
+critically, assume products behave pleasantly
+(\S\ref{sec:KMP:specification}). Again \citet{Tullsen:PhDThesis}
+discusses how these may violate Haskell expectations.
+
+We suggest the reader skip the next two sections and proceed to the
+derivation which begins in \S\ref{sec:KMP}.
+
+% generated text of all theories
+\input{session}
+
+
+\section{Related work\label{sec:related-work}}
+
+Derivations of KMP matching are legion and we do not attempt to
+catalogue them here.
+
+Bird and colleagues have presented versions of this story at least
+four times. All treat MP, not KMP (see
+\S\ref{sec:KMP:data_refinement}), and use a style of equational
+reasoning with fold/unfold transformations
+\citep{BurstallDarlington:1977} that only establishes partial
+correctness (see \S\ref{sec:formal_setting}). Briefly:
+
+\begin{itemize}
+
+\item The second example of \citet{Bird:1977} is an imperative program
+  that is similar to MP.
+
+\item \citet{BirdGibbonsJones:1989} devised the core of the derivation
+  mechanized here, notably omitting a formal justification for the
+  final data refinement step that introduces the circular data
+  structure.
+
+\item \citet{Bird:2005} refines \citet{BirdGibbonsJones:1989} and
+  derives Boyer-Moore matching \citep[\S2.2]{Gusfield:1997} in a
+  similar style.
+
+\item \citet[Chapter~17]{Bird:PearlsofFAD:2010} further refines
+  \citet{Bird:2005} and is the basis of the work discussed here.
+  \citet[\S3.1]{Bird:2012} contains some further relevant remarks.
+
+\end{itemize}
+
+\citet{AgerDanvyRohde:2006} show how KMP matchers (specialised to a
+given pattern) can be derived by the partial evaluation of an initial
+program in linear time. We observe that neither their approach, of
+incorporating the essence of KMP in their starting point, nor Bird's
+of introducing it by data refinement
+(\S\ref{sec:KMP:data_refinement}), provides a satisfying explanation
+of how KMP could be discovered; \citet{Pottier:2012} attempts to do
+this. In contrast to Bird, these and most other presentations make
+heavy use of arrays and array indexing which occludes the central
+insights.
+
+
+\section{Implementations\label{sec:implementations}}
+
+With varying amounts of effort we can translate our final program of
+\S\ref{sec:KMP:final_version} into a variety of languages. The most
+direct version, in Haskell, was shown in
+Figure~\ref{fig:haskell-kmp}. An ocaml version is similar due to that
+language's support for laziness. In contrast Standard ML requires an
+encoding; we use backpatching as shown in Figure~\ref{fig:sml-kmp}. In
+both cases the tree datatype can be made strict in the right branch as
+it is defined by primitive recursion on the pattern.
+
+More interestingly, our derivation suggests that Bird's KMP program
+can be computed using \emph{rational} trees (also known as
+\emph{regular} trees \citep{Courcelle:1983}), which are traditionally
+supported by Prolog implementations. Our version is shown in
+Figure~\ref{fig:prolog-kmp}. This demonstrates that the program could
+instead be thought of as a computation over difference
+structures. \citet{Colmerauer:1982,GiannesiniCohen:1984} provide more
+examples of this style of programming. We leave a proof of correctness
+to future work.
+
+\begin{figure}
+  \VerbatimInput[fontsize=\small]{programs/KMP.pl}
+  \caption{The final KMP program transliterated into Prolog.}
+  \label{fig:prolog-kmp}
+\end{figure}
+
+\begin{figure}
+  \VerbatimInput[fontsize=\small,lastline=62]{programs/KMP.sml} % FIXME brittle
+  \caption{The final KMP program transliterated into Standard ML.}
+  \label{fig:sml-kmp}
+\end{figure}
+
+\section{Concluding remarks}
+
+Our derivation leans heavily on domain theory's ability to reason
+about partially-defined objects that are challenging to handle at
+present in a language of total functions. Conversely it is too
+abstract to capture the operational behaviour of the program as it
+does not model laziness. It would also be interesting to put the data
+refinement of \S\ref{sec:KMP:data_refinement} on a firmer foundation
+by deriving the memoizing datatype from the direct program of
+\S\ref{sec:KMP:specification}. Haskell fans may care to address the
+semantic discrepancies mentioned in \S\ref{sec:formal_setting}.
+
+
+\bibliographystyle{plainnat}
+\bibliography{root}
+\addcontentsline{toc}{section}{References}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

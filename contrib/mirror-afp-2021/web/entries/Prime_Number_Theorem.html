@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>The Prime Number Theorem - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">T</font>he
+  
+          <font class="first">P</font>rime
+  
+          <font class="first">N</font>umber
+  
+          <font class="first">T</font>heorem
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">The Prime Number Theorem</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Authors:
+      </td>
+  <td class="data">
+                    <a href="https://www21.in.tum.de/~eberlm">Manuel Eberl</a> and
+          <a href="https://www.cl.cam.ac.uk/~lp15/">Lawrence C. Paulson</a>
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2018-09-19</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p>This article provides a short proof of the Prime Number
+Theorem in several equivalent forms, most notably
+&pi;(<em>x</em>) ~ <em>x</em>/ln
+<em>x</em> where &pi;(<em>x</em>) is the
+number of primes no larger than <em>x</em>. It also
+defines other basic number-theoretic functions related to primes like
+Chebyshev's functions &thetasym; and &psi; and the
+&ldquo;<em>n</em>-th prime number&rdquo; function
+p<sub><em>n</em></sub>. We also show various
+bounds and relationship between these functions are shown. Lastly, we
+derive Mertens' First and Second Theorem, i.&thinsp;e.
+&sum;<sub><em>p</em>&le;<em>x</em></sub>
+ln <em>p</em>/<em>p</em> = ln
+<em>x</em> + <em>O</em>(1) and
+&sum;<sub><em>p</em>&le;<em>x</em></sub>
+1/<em>p</em> = ln ln <em>x</em> + M +
+<em>O</em>(1/ln <em>x</em>). We also give
+explicit bounds for the remainder terms.</p> <p>The proof
+of the Prime Number Theorem builds on a library of Dirichlet series
+and analytic combinatorics. We essentially follow the presentation by
+Newman. The core part of the proof is a Tauberian theorem for
+Dirichlet series, which is proven using complex analysis and then used
+to strengthen Mertens' First Theorem to
+&sum;<sub><em>p</em>&le;<em>x</em></sub>
+ln <em>p</em>/<em>p</em> = ln
+<em>x</em> + c + <em>o</em>(1).</p>
+<p>A variant of this proof has been formalised before by
+Harrison in HOL Light, and formalisations of Selberg's elementary
+proof exist both by Avigad <em>et al.</em> in Isabelle and
+by Carneiro in Metamath. The advantage of the analytic proof is that,
+while it requires more powerful mathematical tools, it is considerably
+shorter and clearer. This article attempts to provide a short and
+clear formalisation of all components of that proof using the full
+range of mathematical machinery available in Isabelle, staying as
+close as possible to Newman's simple paper proof.</p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{Prime_Number_Theorem-AFP,
+  author  = {Manuel Eberl and Lawrence C. Paulson},
+  title   = {The Prime Number Theorem},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2018,
+  note    = {\url{https://isa-afp.org/entries/Prime_Number_Theorem.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                      <tr><td class="datahead">Depends on:</td>
+          <td class="data"><a href="Stirling_Formula.html">Stirling_Formula</a>, <a href="Zeta_Function.html">Zeta_Function</a>      </td></tr>
+          
+                      <tr><td class="datahead">Used by:</td>
+          <td class="data"><a href="Irrational_Series_Erdos_Straus.html">Irrational_Series_Erdos_Straus</a>, <a href="Prime_Distribution_Elementary.html">Prime_Distribution_Elementary</a>, <a href="Transcendence_Series_Hancl_Rucki.html">Transcendence_Series_Hancl_Rucki</a>, <a href="Zeta_3_Irrational.html">Zeta_3_Irrational</a>      </td></tr>
+          
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Prime_Number_Theorem/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/Prime_Number_Theorem/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/Prime_Number_Theorem/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-Prime_Number_Theorem-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-Prime_Number_Theorem-2020-04-20.tar.gz">
+              afp-Prime_Number_Theorem-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-Prime_Number_Theorem-2019-06-11.tar.gz">
+              afp-Prime_Number_Theorem-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-Prime_Number_Theorem-2018-09-20.tar.gz">
+              afp-Prime_Number_Theorem-2018-09-20.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

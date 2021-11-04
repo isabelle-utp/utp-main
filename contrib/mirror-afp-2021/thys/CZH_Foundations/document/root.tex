@@ -1,0 +1,121 @@
+\PassOptionsToPackage{ngerman,main=english}{babel}
+\documentclass[11pt,a4paper,fleqn]{report}
+\usepackage{iman,extra,isar}
+\usepackage{isabelle,isabellesym}
+\usepackage{railsetup}
+
+\usepackage[margin={1in,1in}]{geometry}
+
+\usepackage[T1]{fontenc} 
+\usepackage{lmodern}
+\usepackage{babel}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{xspace}
+\usepackage{MnSymbol}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{wasysym}
+\usepackage{fontspec}
+
+% bibliography
+\usepackage[nottoc]{tocbibind}
+\usepackage[square,numbers]{natbib}
+\bibliographystyle{abbrvnat}
+
+\usepackage{style}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% drop Isabelle tags
+\isadroptag{theory}
+
+% enumitem configuration
+\setlist{noitemsep,topsep=0pt,parsep=0pt,partopsep=0pt}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+\setcounter{tocdepth}{2}
+
+\begin{document}
+
+\title{
+Category Theory for ZFC in HOL I: Foundations\\
+Design Patterns, Set Theory, Digraphs, Semicategories
+} 
+\author{Mihails Milehins}
+\maketitle
+
+\newpage
+\begin{abstract}
+This article provides a foundational framework for the formalization 
+of category theory in the object logic \textit{ZFC in HOL} 
+(\cite{paulson_zermelo_2019}, also see \cite{barkaoui_partizan_2006}) 
+of the formal proof assistant \textit{Isabelle} \cite{paulson_natural_1986}.
+More specifically, this article 
+provides a formalization of canonical set-theoretic constructions
+internalized in the type \textit{V} associated with the
+ZFC in HOL, establishes a design pattern for the formalization 
+of mathematical structures using sequences and locales
+\cite{kammuller_locales_1999, berardi_locales_2004, ballarin_tutorial_2020},
+and showcases the developed infrastructure by providing formalizations of
+the elementary theories of digraphs and semicategories. 
+The methodology chosen for the formalization of the theories of
+digraphs and semicategories (and categories in future articles) 
+rests on the ideas that were originally expressed in 
+\cite{feferman_set-theoretical_1969}. Thus, in the context of this work,
+each of the aforementioned mathematical structures 
+is represented as a term of the type \textit{V} 
+embedded into a stage of the von Neumann hierarchy 
+\cite{takeuti_introduction_1971}.
+\end{abstract}
+
+\newpage
+
+\renewcommand{\abstractname}{Acknowledgements}
+\begin{abstract}
+The author would like to acknowledge the assistance that he received from 
+the users of the mailing list of Isabelle 
+\href{https://lists.cam.ac.uk/mailman/listinfo/cl-isabelle-users}
+in the form of answers given to his general queries. Special thanks
+go to Andreas Lochbihler for suggesting the use of the combination 
+of unrestricted overloading and locales for structuring mathematical 
+knowledge on the mailing list of Isabelle: the design pattern that is 
+used in this study builds upon this idea. Special thanks also go to
+Thomas Sewell for suggesting a trick for rewriting 
+expressions modulo associativity on the mailing list of Isabelle,
+which was used on numerous occasions throughout the development
+of this work. Furthermore, the author
+would like to mention that the tool ``Sketch-and-Explore''
+\cite{haftmann_sketch-and-explore_2021}
+from the standard distribution of Isabelle was used extensively in the
+development of this work. Moreover, the author would like 
+to acknowledge the positive role that numerous Q\&A posted on the 
+Stack Exchange network (especially Mathematics Stack Exchange, 
+Stack Overflow and TeX Stack Exchange)
+played in the development of this work. 
+Lastly, the author would like to express gratitude to all members of his family 
+and friends for their continuous support.
+\end{abstract}
+
+\newpage
+
+\tableofcontents
+
+\newpage
+
+\parindent 0pt\parskip 0.5ex
+
+\input{session}
+
+\newpage
+
+\bibliography{root}
+
+\end{document}

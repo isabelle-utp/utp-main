@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Representation and Partial Automation of the Principia Logico-Metaphysica in Isabelle/HOL - Archive of Formal Proofs
+</title>
+<link rel="stylesheet" type="text/css" href="../front.css">
+<link rel="icon" href="../images/favicon.ico" type="image/icon">
+<link rel="alternate" type="application/rss+xml" title="RSS" href="../rss.xml">
+<!-- MathJax for LaTeX support in abstracts -->
+<script>
+MathJax = {
+  tex: {
+    inlineMath: [['$', '$'], ['\\(', '\\)']]
+  },
+  processEscapes: true,
+  svg: {
+    fontCache: 'global'
+  }
+};
+</script>
+<script id="MathJax-script" async src="../components/mathjax/es5/tex-mml-chtml.js"></script>
+</head>
+
+<body class="mathjax_ignore">
+
+<table width="100%">
+<tbody>
+<tr>
+
+<!-- Navigation -->
+<td width="20%" align="center" valign="top">
+  <p>&nbsp;</p>
+  <a href="https://www.isa-afp.org/">
+    <img src="../images/isabelle.png" width="100" height="88" border=0>
+  </a>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+  <table class="nav" width="80%">
+    <tr>
+      <td class="nav" width="100%"><a href="../index.html">Home</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../about.html">About</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../submitting.html">Submission</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../updating.html">Updating Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../using.html">Using Entries</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../search.html">Search</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../statistics.html">Statistics</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../topics.html">Index</a></td>
+    </tr>
+    <tr>
+      <td class="nav"><a href="../download.html">Download</a></td>
+    </tr>
+  </table>
+  <p>&nbsp;</p>
+  <p>&nbsp;</p>
+</td>
+
+
+<!-- Content -->
+<td width="80%" valign="top">
+<div align="center">
+  <p>&nbsp;</p>
+  <h1>          <font class="first">R</font>epresentation
+  
+          and
+  
+          <font class="first">P</font>artial
+  
+          <font class="first">A</font>utomation
+  
+          of
+  
+          the
+  
+          <font class="first">P</font>rincipia
+  
+          <font class="first">L</font>ogico-Metaphysica
+  
+          in
+  
+          <font class="first">I</font>sabelle/HOL
+  
+</h1>
+  <p>&nbsp;</p>
+
+<table width="80%" class="data">
+<tbody>
+<tr>
+  <td class="datahead" width="20%">Title:</td>
+  <td class="data" width="80%">Representation and Partial Automation of the Principia Logico-Metaphysica in Isabelle/HOL</td>
+</tr>
+
+<tr>
+  <td class="datahead">
+          Author:
+      </td>
+  <td class="data">
+              Daniel Kirchner (daniel /at/ ekpyron /dot/ org)
+      </td>
+</tr>
+
+
+
+<tr>
+  <td class="datahead">Submission date:</td>
+  <td class="data">2017-09-17</td>
+</tr>
+
+<tr>
+  <td class="datahead" valign="top">Abstract:</td>
+  <td class="abstract mathjax_process">
+<p> We present an embedding of the second-order fragment of the
+Theory of Abstract Objects as described in Edward Zalta's
+upcoming work <a
+href="https://mally.stanford.edu/principia.pdf">Principia
+Logico-Metaphysica (PLM)</a> in the automated reasoning
+framework Isabelle/HOL. The Theory of Abstract Objects is a
+metaphysical theory that reifies property patterns, as they for
+example occur in the abstract reasoning of mathematics, as
+<b>abstract objects</b> and provides an axiomatic
+framework that allows to reason about these objects. It thereby serves
+as a fundamental metaphysical theory that can be used to axiomatize
+and describe a wide range of philosophical objects, such as Platonic
+forms or Leibniz' concepts, and has the ambition to function as a
+foundational theory of mathematics. The target theory of our embedding
+as described in chapters 7-9 of PLM employs a modal relational type
+theory as logical foundation for which a representation in functional
+type theory is <a
+href="https://mally.stanford.edu/Papers/rtt.pdf">known to
+be challenging</a>. </p> <p> Nevertheless we arrive
+at a functioning representation of the theory in the functional logic
+of Isabelle/HOL based on a semantical representation of an Aczel-model
+of the theory. Based on this representation we construct an
+implementation of the deductive system of PLM which allows to
+automatically and interactively find and verify theorems of PLM.
+</p> <p> Our work thereby supports the concept of shallow
+semantical embeddings of logical systems in HOL as a universal tool
+for logical reasoning <a
+href="http://www.mi.fu-berlin.de/inf/groups/ag-ki/publications/Universal-Reasoning/1703_09620_pd.pdf">as
+promoted by Christoph Benzm&uuml;ller</a>. </p>
+<p> The most notable result of the presented work is the
+discovery of a previously unknown paradox in the formulation of the
+Theory of Abstract Objects. The embedding of the theory in
+Isabelle/HOL played a vital part in this discovery. Furthermore it was
+possible to immediately offer several options to modify the theory to
+guarantee its consistency. Thereby our work could provide a
+significant contribution to the development of a proper grounding for
+object theory. </p></td>
+</tr>
+
+
+<tr>
+  <td class="datahead" valign="top">BibTeX:</td>
+  <td class="formatted">
+        <pre>@article{PLM-AFP,
+  author  = {Daniel Kirchner},
+  title   = {Representation and Partial Automation of the Principia Logico-Metaphysica in Isabelle/HOL},
+  journal = {Archive of Formal Proofs},
+  month   = sep,
+  year    = 2017,
+  note    = {\url{https://isa-afp.org/entries/PLM.html},
+            Formal proof development},
+  ISSN    = {2150-914x},
+}</pre>
+  </td>
+</tr>
+
+    <tr><td class="datahead">License:</td>
+        <td class="data"><a href="http://isa-afp.org/LICENSE">BSD License</a></td></tr>
+
+    
+                    
+                    
+
+        
+  </tbody>
+</table>
+
+<p></p>
+
+<table class="links">
+  <tbody>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/PLM/outline.pdf">Proof outline</a><br>
+      <a href="../browser_info/current/AFP/PLM/document.pdf">Proof document</a>
+    </td>
+    </tr>
+    <tr>
+    <td class="links">
+      <a href="../browser_info/current/AFP/PLM/index.html">Browse theories</a>
+      </td></tr>
+    <tr>
+    <td class="links">
+      <a href="../release/afp-PLM-current.tar.gz">Download this entry</a>
+    </td>
+    </tr>
+
+
+          <tr><td class="links">Older releases:
+              <ul>
+                              <li>Isabelle 2020:
+            <a href="../release/afp-PLM-2020-04-20.tar.gz">
+              afp-PLM-2020-04-20.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2019:
+            <a href="../release/afp-PLM-2019-06-11.tar.gz">
+              afp-PLM-2019-06-11.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2018:
+            <a href="../release/afp-PLM-2018-08-16.tar.gz">
+              afp-PLM-2018-08-16.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2017:
+            <a href="../release/afp-PLM-2017-10-10.tar.gz">
+              afp-PLM-2017-10-10.tar.gz
+            </a>
+            </li>
+                                        <li>Isabelle 2016-1:
+            <a href="../release/afp-PLM-2017-09-19.tar.gz">
+              afp-PLM-2017-09-19.tar.gz
+            </a>
+            </li>
+                          </ul>
+            </td></tr>
+    
+  </tbody>
+</table>
+
+</div>
+</td>
+
+</tr>
+</tbody>
+</table>
+
+<script src="../jquery.min.js"></script>
+<script src="../script.js"></script>
+
+</body>
+</html>

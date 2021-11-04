@@ -1,0 +1,109 @@
+%Some LaTeX checking: no bad pratices
+%\RequirePackage[l2tabu, orthodox]{nag}
+%\RequirePackage[all,error]{onlyamsmath}
+\RequirePackage{fixltx2e}
+
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+% lualatex
+%\usepackage{spelling}
+\usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{comment}
+
+
+\usepackage{mdframed}
+%% Saisie en UTF-8
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{subcaption}
+
+%% Pour composer des mathématiques
+\usepackage{amsmath,amssymb, amsthm}
+\usepackage{nicefrac}
+\usepackage{tikz}
+\usetikzlibrary{decorations, arrows, shapes, automata, mindmap, trees}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+\usepackage{wasysym}
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+\usepackage[english]{babel}
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+\let\set\mathbb
+\newcommand{\mailto}[1]{\href{mailto:#1}{#1}}
+
+\newcommand{\shortrules}[3]{#2$\Rightarrow^{\text{#1}}$ #3}
+\newcommand{\isasymRes}{\ensuremath{\text{Res}}} 
+
+\begin{document}
+
+
+
+\title{PAC Checker}
+\author{Mathias Fleury and Daniela Kaufmann}
+\maketitle
+
+\begin{abstract}
+  Generating and checking proof certificates is important to
+  increase the trust in automated reasoning tools. In recent years
+  formal verification using computer algebra became more important and
+  is heavily used in automated circuit verification.  An existing
+  proof format which covers algebraic reasoning and allows efficient
+  proof checking is the practical algebraic calculus. In this
+  development, we present the verified checker Pastèque that is
+  obtained by synthesis via the Refinement Framework.
+
+  This is the formalization going with our FMCAD'20 tool presentation~\cite{KaufmannFleuryBiere-FMCAD20}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+
+{\section*{Acknowledgment}
+This work is supported by Austrian Science Fund (FWF), NFN S11408-N23
+(RiSE), and LIT AI Lab funded by the State of Upper Austria.
+}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

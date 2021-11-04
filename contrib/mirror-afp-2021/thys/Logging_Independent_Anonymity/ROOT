@@ -1,0 +1,12 @@
+chapter AFP
+
+session Logging_Independent_Anonymity (AFP) = HOL +
+  options [timeout = 600]
+  theories
+    Definitions
+    Anonymity
+    Possibility
+  document_files
+    "root.bib"
+    "root.tex"
+

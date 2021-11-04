@@ -1,0 +1,34 @@
+chapter AFP
+
+session ConcurrentGC (AFP slow) = ConcurrentIMP +
+  options [timeout = 36000]
+  directories
+    "concrete"
+  theories [show_question_marks = false, names_short]
+    Model
+    Proofs_Basis
+    Global_Invariants
+    Local_Invariants
+    Tactics
+
+    Global_Invariants_Lemmas
+    Local_Invariants_Lemmas
+
+    Initial_Conditions
+
+    Noninterference
+    Global_Noninterference
+    MarkObject
+    Phases
+    StrongTricolour
+    TSO
+    Valid_Refs
+    Worklists
+
+    Proofs
+    "concrete/Concrete_heap"
+    "concrete/Concrete"
+  document_files
+    "root.bib"
+    "root.tex"
+    "heap.pdf"

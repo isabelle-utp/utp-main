@@ -1,0 +1,57 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+\usepackage{amssymb}
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{Soundness and Completeness of an Axiomatic System for First-Order Logic}
+\author{Asta Halkjær From}
+\maketitle
+
+\begin{abstract}
+  This work is a formalization of the soundness and completeness of an axiomatic system
+  for first-order logic. The proof system is based on System Q1 by Smullyan
+  and the completeness proof follows his textbook ``First-Order Logic'' (Springer-Verlag 1968)~\cite{Smullyan1968}.
+  The completeness proof is in the Henkin style~\cite{Henkin96} where a consistent set
+  is extended to a maximal consistent set using Lindenbaum's construction
+  and Henkin witnesses are added during the construction to ensure saturation as well.
+  The resulting set is a Hintikka set which, by the model existence theorem, is satisfiable
+  in the Herbrand universe.
+\end{abstract}
+
+\tableofcontents
+
+\newpage
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% optional bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

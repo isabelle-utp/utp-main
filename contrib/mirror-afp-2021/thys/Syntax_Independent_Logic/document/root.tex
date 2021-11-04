@@ -1,0 +1,56 @@
+\documentclass[10pt,a4paper]{report}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{eufrak}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{literal}
+
+
+\begin{document}
+
+\title{Syntax-Independent Logic Infrastructure}
+\author{Andrei Popescu \and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract} We formalize a notion of logic whose terms and formulas are kept abstract. In particular,
+logical connectives, substitution, free variables, and provability are not defined, but characterized by
+their general properties as locale assumptions. Based on this abstract characterization, we develop further
+reusable reasoning infrastructure. For example, we define parallel substitution (along with proving its
+characterizing theorems) from single-point substitution. Similarly, we develop a natural
+deduction style proof system starting from the abstract Hilbert-style one. These one-time efforts benefit
+different concrete logics satisfying our locales' assumptions.
+
+We instantiate the syntax-independent logic infrastructure to Robinson arithmetic (also known as Q) in the
+AFP entry \href{https://www.isa-afp.org/entries/Robinson_Arithmetic.html}{Robinson\_Arithmetic} and to
+hereditarily finite set theory in the AFP entries
+\href{https://www.isa-afp.org/entries/Goedel_HFSet_Semantic.html}{Goedel\_HFSet\_Semantic} and
+\href{https://www.isa-afp.org/entries/Goedel_HFSet_Semanticless.html}{Goedel\_HFSet\_Semanticless}, which are
+part of our formalization of G\"odel's Incompleteness Theorems described in our CADE-27
+paper~\cite{DBLP:conf/cade/0001T19}. \end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

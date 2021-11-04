@@ -1,0 +1,42 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+
+\begin{document}
+
+\title{Isabelle's Metalogic: Formalization and Proof Checker}
+\author{Tobias Nipkow and Simon Roßkopf}
+\maketitle
+
+\begin{abstract}
+In this entry we formalize Isabelle's metalogic in Isabelle/HOL. Furthermore, we define a language of proof terms and an executable proof checker and prove its soundness wrt. the metalogic. 
+	
+The formalization is intentionally kept close to the Isabelle implementation(for example using de Brujin indices) to enable easy integration of generated code with the Isabelle system without a complicated translation layer.
+	
+The formalization is described in our CADE 28 paper\cite{cade28}.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% include generated text of all theories
+\input{session}
+
+\nocite{BerghoferN-TPHOLs00}
+\nocite{Paulson-JAR-89}
+\nocite{tphol/Wenzel97}
+\nocite{implementation}
+
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

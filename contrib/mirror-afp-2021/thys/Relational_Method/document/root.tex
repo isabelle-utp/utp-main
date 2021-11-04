@@ -1,0 +1,68 @@
+\documentclass[11pt,a4paper,fleqn]{article}
+\usepackage{isabelle,isabellesym}
+\renewcommand{\isastyletxt}{\isastyletext}
+
+% further packages required for unusual symbols (see also
+% isabellesym.sty), use only when needed
+
+%\usepackage{amssymb}
+  %for \<leadsto>, \<box>, \<diamond>, \<sqsupset>, \<mho>, \<Join>,
+  %\<lhd>, \<lesssim>, \<greatersim>, \<lessapprox>, \<greaterapprox>,
+  %\<triangleq>, \<yen>, \<lozenge>
+
+%\usepackage{eurosym}
+  %for \<euro>
+
+%\usepackage[only,bigsqcap]{stmaryrd}
+  %for \<Sqinter>
+
+%\usepackage{eufrak}
+  %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
+
+%\usepackage{textcomp}
+  %for \<onequarter>, \<onehalf>, \<threequarters>, \<degree>, \<cent>,
+  %\<currency>
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{it}
+
+% for uniform font size
+%\renewcommand{\isastyle}{\isastyleminor}
+
+
+\begin{document}
+
+\title{The Relational Method with Message Anonymity\\for the Verification of Cryptographic Protocols}
+\author{Pasquale Noce\\Software Engineer at HID Global, Italy\\pasquale dot noce dot lavoro at gmail dot com\\pasquale dot noce at hidglobal dot com}
+\maketitle
+
+\begin{abstract}
+This paper introduces a new method for the formal verification of cryptographic protocols, the
+relational method, derived from Paulson's inductive method by means of some enhancements aimed at
+streamlining formal definitions and proofs, specially for protocols using public key cryptography.
+Moreover, this paper proposes a method to formalize a further security property, message anonymity,
+in addition to message confidentiality and authenticity.
+
+The relational method, including message anonymity, is then applied to the verification of a sample
+authentication protocol, comprising Password Authenticated Connection Establishment (PACE) with Chip
+Authentication Mapping followed by the explicit verification of an additional password over the PACE
+secure channel.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+% bibliography
+\bibliographystyle{abbrv}
+\bibliography{root}
+
+\end{document}

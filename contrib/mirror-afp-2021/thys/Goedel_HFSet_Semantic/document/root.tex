@@ -1,0 +1,46 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage{isabelle,isabellesym}
+
+\usepackage{a4wide}
+\usepackage[english]{babel}
+\usepackage{eufrak}
+\usepackage{amssymb}
+
+% this should be the last package used
+\usepackage{pdfsetup}
+
+% urls in roman style, theory text in math-similar italics
+\urlstyle{rm}
+\isabellestyle{literal}
+
+
+\begin{document}
+
+\title{From Abstract to Concrete G\"odel's Incompleteness Theorems---Part I}
+\author{Andrei Popescu \and Dmitriy Traytel}
+
+\maketitle
+
+\begin{abstract} We validate an abstract formulation of G\"odel's First and Second Incompleteness Theorems
+from a \href{https://www.isa-afp.org/entries/Goedel_Incompleteness.html}{separate AFP entry} by instantiating
+them to the case of \emph{finite sound extensions of the Hereditarily Finite (HF) Set theory}, i.e., FOL
+theories extending the HF Set theory with a finite set of axioms that are sound in the standard model. The
+concrete results had been previously formalised in an
+\href{https://www.isa-afp.org/entries/Incompleteness.html}{AFP entry by Larry Paulson}; our instantiation
+reuses the infrastructure developed in that entry.
+\end{abstract}
+
+\tableofcontents
+
+% sane default for proof documents
+\parindent 0pt\parskip 0.5ex
+
+% generated text of all theories
+\input{session}
+
+\end{document}
+
+%%% Local Variables:
+%%% mode: latex
+%%% TeX-master: t
+%%% End:

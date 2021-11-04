@@ -1,0 +1,16 @@
+chapter AFP
+
+session Combinatorics_Words (AFP)  = "HOL-Library" +
+  options [timeout = 600,document_variants = "document=-unimportant:manual=/proof,/ML,+unimportant"]
+  theories
+    Arithmetical_Hints
+    Reverse_Symmetry
+    CoWBasic   
+    Submonoids
+    Periodicity_Lemma
+    Lyndon_Schutzenberger    
+  theories [document = false]
+    CoWAll
+  document_files
+    root.tex
+    root.bib

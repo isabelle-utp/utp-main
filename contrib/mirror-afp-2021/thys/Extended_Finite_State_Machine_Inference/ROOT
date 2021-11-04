@@ -1,0 +1,36 @@
+chapter AFP
+
+session Extended_Finite_State_Machine_Inference (AFP) = Extended_Finite_State_Machines +
+options [timeout = 600]
+directories
+  "heuristics"
+  "code-targets"
+  "examples"
+theories
+  "Subsumption"
+  "examples/Drinks_Subsumption"
+  "Inference"
+  "SelectionStrategies"
+
+  "heuristics/Store_Reuse"
+  "heuristics/Store_Reuse_Subsumption"
+  "heuristics/Increment_Reset"
+  "heuristics/Same_Register"
+  "heuristics/Least_Upper_Bound"
+
+  "heuristics/Distinguishing_Guards"
+  "heuristics/Weak_Subsumption"
+
+  "heuristics/PTA_Generalisation"
+
+  "EFSM_Dot"
+  "efsm2sal"
+
+  "code-targets/Code_Target_List"
+  "code-targets/Code_Target_Set"
+  "code-targets/Code_Target_FSet"
+
+  "Code_Generation"
+document_files
+  "root.tex"
+  "root.bib"
