@@ -80,7 +80,7 @@ qed
 
 lemma hide_rea_twice [rpred]: "hide\<^sub>r (hide\<^sub>r P A) B = hide\<^sub>r P (A \<union> B)"
   apply (rel_auto)
-  apply (metis (no_types, hide_lams) semilattice_sup_class.sup_assoc)
+  apply (metis (no_types, opaque_lifting) semilattice_sup_class.sup_assoc)
   apply (metis (no_types, lifting) semilattice_sup_class.sup_assoc seq_filter_twice)
   done
 
@@ -141,7 +141,6 @@ proof -
   have "abs\<^sub>r (RC P) {} = (RC P)"
     apply (rel_auto)
     apply (metis diff_add_cancel_left' order_refl plus_list_def)
-    using dual_order.trans apply blast
     done
   thus ?thesis
     by (simp add: Healthy_if assms)

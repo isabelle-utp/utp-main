@@ -111,7 +111,7 @@ lemma RC_prefix_closed:
   shows "P is RC2"
 proof -
   have "RC2(RC(P)) = RC(P)"
-    apply (rel_auto) using dual_order.trans by blast
+    by (rel_auto)
   thus ?thesis
     by (metis Healthy_def assms)
 qed

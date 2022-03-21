@@ -176,7 +176,7 @@ lemma seqr_insert_ident_right:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
   shows "(P ;; ($x\<acute> =\<^sub>u $x \<and> Q)) = (P ;; Q)"
   using assms
-  by (rel_simp, metis (no_types, hide_lams) vwb_lens_def wb_lens_def weak_lens.put_get)
+  by (rel_simp, metis (no_types, opaque_lifting) vwb_lens_def wb_lens_def weak_lens.put_get)
 
 lemma seq_var_ident_lift:
   assumes "vwb_lens x" "$x\<acute> \<sharp> P" "$x \<sharp> Q"
@@ -627,7 +627,7 @@ proof (induct n)
 next
   case (Suc n)
   then show ?case
-    by (auto simp add: upred_semiring.power_Suc, metis (no_types, hide_lams) dual_order.trans order_refl seqr_assoc seqr_mono)
+    by (auto simp add: upred_semiring.power_Suc, metis (no_types, opaque_lifting) dual_order.trans order_refl seqr_assoc seqr_mono)
 qed
 
 lemma upower_inductr:

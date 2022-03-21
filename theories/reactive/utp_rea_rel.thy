@@ -707,7 +707,7 @@ proof -
   interpret ren: renamer f by (simp add: assms)
   have "(\<Squnion> i \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
     using injD[OF ren.injective]
-    by (rel_auto, blast, metis (mono_tags, hide_lams))
+    by (rel_auto, blast, metis (mono_tags, opaque_lifting))
   thus ?thesis
     by (simp add: Healthy_if assms cong: USUP_all_cong)
 qed
@@ -719,7 +719,7 @@ proof -
   interpret ren: renamer f by (simp add: assms)
   have "(\<Squnion> i\<in>A \<bullet> RR(P i))\<lparr>f\<rparr>\<^sub>r = (\<Squnion> i\<in>A \<bullet> (RR (P i))\<lparr>f\<rparr>\<^sub>r)"
     using injD[OF ren.injective] assms(2)
-    by (rel_auto, blast, metis (no_types, hide_lams))
+    by (rel_auto, blast, metis (no_types, opaque_lifting))
   thus ?thesis
     by (simp add: Healthy_if assms cong: USUP_cong)
 qed

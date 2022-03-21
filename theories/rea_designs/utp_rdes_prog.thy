@@ -504,7 +504,7 @@ lemma RC_rel_aext_st_closed [closure]:
 proof -
   have "RC(rel_aext (RC(P)) (map_st\<^sub>L a)) = rel_aext (RC(P)) (map_st\<^sub>L a)"
     by (rel_auto)
-      (metis (no_types, hide_lams) diff_add_cancel_left' dual_order.trans le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
+      (metis (no_types, opaque_lifting) diff_add_cancel_left' dual_order.trans le_add trace_class.add_diff_cancel_left trace_class.add_left_mono)
   thus ?thesis
     by (rule_tac Healthy_intro, simp add: assms Healthy_if)
 qed
@@ -696,7 +696,7 @@ proof -
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [\<not> b]\<^sup>\<top>\<^sub>R\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
     by (simp add: StarR_def AssumeR_NSRD NSRD_seqr_closure nsrdes_theory.Star_denest assms(1))
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R)\<^sup>\<star>\<^sup>R ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
-    by (metis (no_types, hide_lams) StarR_def RD3_def RD3_idem Star_AssumeR nsrdes_theory.Star_def)
+    by (metis (no_types, opaque_lifting) StarR_def RD3_def RD3_idem Star_AssumeR nsrdes_theory.Star_def)
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; (P ;; Miracle \<triangleleft> b \<triangleright>\<^sub>R II\<^sub>R)"
     by (simp add: StarR_def AssumeR_NSRD NSRD_seqr_closure nsrdes_theory.Star_invol assms(1))
   also have "... = (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; (([b]\<^sup>\<top>\<^sub>R ;; P ;; Miracle) \<sqinter> [\<not>b]\<^sup>\<top>\<^sub>R)"
@@ -713,7 +713,7 @@ proof -
       by (simp add: AssumeR_true NSRD_right_unit assms(1))
     also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R)
                              \<sqinter> ((([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; [\<not> b]\<^sup>\<top>\<^sub>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R)"
-      by (metis (no_types, hide_lams) AssumeR_choice upred_semiring.add_assoc upred_semiring.distrib_left upred_semiring.distrib_right)
+      by (metis (no_types, opaque_lifting) AssumeR_choice upred_semiring.add_assoc upred_semiring.distrib_left upred_semiring.distrib_right)
     also have "... = [\<not> b]\<^sup>\<top>\<^sub>R \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; ([b]\<^sup>\<top>\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R))
                              \<sqinter> (([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R ;; [b]\<^sup>\<top>\<^sub>R ;; P ;; ([\<not> b]\<^sup>\<top>\<^sub>R ;; [\<not> b]\<^sup>\<top>\<^sub>R))"
       by (simp add: RA1)
@@ -754,7 +754,7 @@ proof -
   have "S \<sqsubseteq> I ;; (([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R) ;; [\<not> b]\<^sup>\<top>\<^sub>R"
   proof -
     have "S \<sqsubseteq> I ;; ([b]\<^sup>\<top>\<^sub>R ;; P) ;; ([b]\<^sup>\<top>\<^sub>R ;; P)\<^sup>\<star>\<^sup>R"
-      by (metis (no_types, hide_lams) StarR_def AssumeR_NSRD NSRD_seqr_closure RA1 assms(1) assms(2) assms(5) assms(6) nsrdes_theory.Star_inductr semilattice_sup_class.le_sup_iff)
+      by (metis (no_types, opaque_lifting) StarR_def AssumeR_NSRD NSRD_seqr_closure RA1 assms(1) assms(2) assms(5) assms(6) nsrdes_theory.Star_inductr semilattice_sup_class.le_sup_iff)
     thus ?thesis
       by (metis (no_types, lifting) AssumeR_NSRD AssumeR_seq_refines StarR_def assms(1) dual_order.trans nsrdes_theory.Healthy_Sequence nsrdes_theory.utp_theory_kleene_axioms urel_dioid.mult_isol utp_theory_kleene.Star_Healthy)
   qed
@@ -837,7 +837,7 @@ proof -
   from assms have "P\<^sub>3 \<sqsubseteq> (P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r)"
     by (simp add: rdes_def assms RHS_tri_design_refine' closure)
   moreover have "(P\<^sub>1 \<and> ([b]\<^sup>\<top>\<^sub>r ;; Q\<^sub>3)\<^sup>\<star>\<^sup>r ;; [\<not> b]\<^sup>\<top>\<^sub>r) \<sqsubseteq> (P\<^sub>1 \<and> [\<not> b]\<^sup>\<top>\<^sub>r)"
-    by (metis (no_types, hide_lams) order_refl rea_assume_RR rea_skip_unit(2) rrel_theory.Star_unfoldl semilattice_sup_class.le_sup_iff urel_dioid.mult_isor utp_pred_laws.inf_mono)
+    by (metis (no_types, opaque_lifting) order_refl rea_assume_RR rea_skip_unit(2) rrel_theory.Star_unfoldl semilattice_sup_class.le_sup_iff urel_dioid.mult_isor utp_pred_laws.inf_mono)
   thus ?thesis
     by (meson calculation order.trans) 
 qed

@@ -36,7 +36,7 @@ proof -
   have a:"II\<^sub>R ;; J = II\<^sub>R"
     by (rel_auto)
   show ?thesis
-    by (metis (no_types, hide_lams) H2_def RD2_def RD3_def a seqr_assoc)
+    by (metis (no_types, opaque_lifting) H2_def RD2_def RD3_def a seqr_assoc)
 qed
 
 lemma RD3c_idem: "RD3c(RD3c(P)) = RD3c(P)"
@@ -69,7 +69,7 @@ proof -
   have a:"J ;; II\<^sub>R = II\<^sub>R"
     by (rel_simp, safe, blast+)
   show ?thesis
-    by (metis (no_types, hide_lams) H2_def RD2_def RD3_def a seqr_assoc)
+    by (metis (no_types, opaque_lifting) H2_def RD2_def RD3_def a seqr_assoc)
 qed
 
 lemma RD3c_left_subsumes_RD2: "RD3c(RD2(P)) = RD3c(P)"
@@ -149,7 +149,7 @@ lemma NRD_elim [RD_elim]:
   by (simp add: RD_elim closure)
 
 lemma NRD_idem: "NRD(NRD(P)) = NRD(P)"
-  by (metis (no_types, hide_lams) Healthy_Idempotent Healthy_def Idempotent_def NRD_def R1_R3c_commute R1_skip_rea R2_R2c_def R2_idem R2_seqr_closure R2c_R3c_commute R2c_skip_rea R3c_Idempotent R3c_def R3c_seq_closure R3c_via_RD1_R3 RD1_RD3c_commute RD1_RH_commute RD1_idem RD3c_def RD3c_idem RD_healths(3) RH_def comp_assoc comp_eq_dest_lhs rdes_left_unital.Healthy_Unit rea_lift_R1 rea_lift_def)
+  by (metis (no_types, opaque_lifting) Healthy_Idempotent Healthy_def Idempotent_def NRD_def R1_R3c_commute R1_skip_rea R2_R2c_def R2_idem R2_seqr_closure R2c_R3c_commute R2c_skip_rea R3c_Idempotent R3c_def R3c_seq_closure R3c_via_RD1_R3 RD1_RD3c_commute RD1_RH_commute RD1_idem RD3c_def RD3c_idem RD_healths(3) RH_def comp_assoc comp_eq_dest_lhs rdes_left_unital.Healthy_Unit rea_lift_R1 rea_lift_def)
     
 lemma NRD_Idempotent [closure]: "Idempotent NRD"
   by (simp add: Idempotent_def NRD_idem)
@@ -228,7 +228,7 @@ qed
 lemma NRD_intro':
   assumes "P is R2" "P is R3c" "P is RD1" "P is RD3c"
   shows "P is NRD"
-  by (metis (no_types, hide_lams) Healthy_def NRD_def R1_R2c_is_R2 RH_def assms comp_apply)
+  by (metis (no_types, opaque_lifting) Healthy_def NRD_def R1_R2c_is_R2 RH_def assms comp_apply)
 
 lemma NRD_RC_intro:
   assumes "P is RD" "pre\<^sub>R(P) is RC"
@@ -255,7 +255,7 @@ lemma NSRD_elim [RD_elim]:
   by (simp add: RD_elim closure)
 
 lemma NSRD_idem: "NSRD(NSRD(P)) = NSRD(P)"
-  by (metis (no_types, hide_lams) Healthy_def NSRD_def RD1_RD2_commute RD1_RD3_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RD3_def RD3_idem RD3_left_subsumes_RD2 RHS_idem SRD_def comp_apply fun.map_comp srdes_left_unital.Healthy_Sequence srdes_left_unital.Healthy_Unit)
+  by (metis (no_types, opaque_lifting) Healthy_def NSRD_def RD1_RD2_commute RD1_RD3_commute RD1_RHS_commute RD1_idem RD2_RHS_commute RD2_idem RD3_def RD3_idem RD3_left_subsumes_RD2 RHS_idem SRD_def comp_apply fun.map_comp srdes_left_unital.Healthy_Sequence srdes_left_unital.Healthy_Unit)
   
 lemma NSRD_Idempotent [closure]: "Idempotent NSRD"
   by (simp add: Idempotent_def NSRD_idem)
@@ -319,7 +319,7 @@ qed
 lemma NSRD_neg_pre_left_zero:
   assumes "P is NSRD" "Q is R1" "Q is RD1"
   shows "(\<not>\<^sub>r pre\<^sub>R(P)) ;; Q = (\<not>\<^sub>r pre\<^sub>R(P))"
-  by (metis (no_types, hide_lams) NSRD_neg_pre_unit RD1_left_zero assms(1) assms(2) assms(3) seqr_assoc)
+  by (metis (no_types, opaque_lifting) NSRD_neg_pre_unit RD1_left_zero assms(1) assms(2) assms(3) seqr_assoc)
 
 lemma NSRD_st'_unrest_peri [unrest]:
   assumes "P is NSRD"
@@ -426,7 +426,7 @@ qed
 lemma NSRD_intro':
   assumes "P is R2" "P is R3h" "P is RD1" "P is RD3"
   shows "P is NSRD"
-  by (metis (no_types, hide_lams) Healthy_def NSRD_def R1_R2c_is_R2 RHS_def assms comp_apply)
+  by (metis (no_types, opaque_lifting) Healthy_def NSRD_def R1_R2c_is_R2 RHS_def assms comp_apply)
 
 lemma NSRD_RC_intro:
   assumes "P is SRD" "pre\<^sub>R(P) is RC" "$st\<acute> \<sharp> peri\<^sub>R(P)"

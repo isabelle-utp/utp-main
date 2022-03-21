@@ -84,7 +84,7 @@ lemma AssumeCircus_AssumeR: "Skip ;; [b]\<^sup>\<top>\<^sub>R = [b]\<^sub>C" "[b
   by (rdes_eq)+
 
 lemma AssumeR_comp_AssumeCircus: "P is NCSP \<Longrightarrow> P ;; [b]\<^sup>\<top>\<^sub>R = P ;; [b]\<^sub>C"
-  by (metis (no_types, hide_lams) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
+  by (metis (no_types, opaque_lifting) AssumeCircus_AssumeR(1) RA1 Skip_right_unit)
 
 lemma gcmd_AssumeCircus: 
   "P is NCSP \<Longrightarrow> b \<rightarrow>\<^sub>R P = [b]\<^sub>C ;; P"
@@ -99,7 +99,7 @@ subsection \<open> While Loops \<close>
 
 lemma NSRD_coerce_NCSP:
   "P is NSRD \<Longrightarrow> Skip ;; P ;; Skip is NCSP"
-  by (metis (no_types, hide_lams) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
+  by (metis (no_types, opaque_lifting) CSP3_Skip CSP3_def CSP4_def Healthy_def NCSP_Skip NCSP_implies_CSP NCSP_intro NSRD_is_SRD RA1 SRD_seqr_closure)
 
 definition WhileC :: "'s upred \<Rightarrow> ('s, 'e) action \<Rightarrow> ('s, 'e) action" ("while\<^sub>C _ do _ od") where
 "while\<^sub>C b do P od = Skip ;; while\<^sub>R b do P od ;; Skip"
@@ -234,7 +234,7 @@ next
     by (simp add: IterateR_outer_refine_init_intro NCSP_implies_NSRD assms False)
   thus ?thesis
     unfolding IterateC_IterateR_def
-    by (metis (no_types, hide_lams) RA1 Skip_right_unit assms(3) assms(4) urel_dioid.mult_isor) 
+    by (metis (no_types, opaque_lifting) RA1 Skip_right_unit assms(3) assms(4) urel_dioid.mult_isor) 
 qed
 
 
@@ -721,17 +721,17 @@ lemma CSP_PrefixCSP [closure]: "PrefixCSP a P is CSP"
 
 lemma CSP3_PrefixCSP [closure]:
   "PrefixCSP a P is CSP3"
-  by (metis (no_types, hide_lams) CSP3_DoCSP CSP3_def Healthy_def PrefixCSP_def seqr_assoc)
+  by (metis (no_types, opaque_lifting) CSP3_DoCSP CSP3_def Healthy_def PrefixCSP_def seqr_assoc)
 
 lemma CSP4_PrefixCSP [closure]:
   assumes "P is CSP" "P is CSP4"
   shows "PrefixCSP a P is CSP4"
-  by (metis (no_types, hide_lams) CSP4_def Healthy_def PrefixCSP_def assms(1) assms(2) seqr_assoc)
+  by (metis (no_types, opaque_lifting) CSP4_def Healthy_def PrefixCSP_def assms(1) assms(2) seqr_assoc)
 
 lemma NCSP_PrefixCSP [closure]:
   assumes "P is NCSP"
   shows "PrefixCSP a P is NCSP"
-  by (metis (no_types, hide_lams) CSP3_PrefixCSP CSP3_commutes_CSP4 CSP4_Idempotent CSP4_PrefixCSP
+  by (metis (no_types, opaque_lifting) CSP3_PrefixCSP CSP3_commutes_CSP4 CSP4_Idempotent CSP4_PrefixCSP
             CSP_PrefixCSP Healthy_Idempotent Healthy_def NCSP_def NCSP_implies_CSP assms comp_apply)
 
 lemma Productive_PrefixCSP [closure]: "P is NCSP \<Longrightarrow> PrefixCSP a P is Productive"

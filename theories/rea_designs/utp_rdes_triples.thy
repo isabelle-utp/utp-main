@@ -279,7 +279,7 @@ lemma R1_R2s_cmt_SRD:
 lemma R1_R2s_peri_SRD:
   assumes "P is SRD"
   shows "R1(R2s(peri\<^sub>R(P))) = peri\<^sub>R(P)"
-  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms R1_idem peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
+  by (metis (no_types, opaque_lifting) Healthy_def R1_R2s_R2c R2_def R2_idem RHS_def SRD_RH_design_form assms R1_idem peri\<^sub>R_def peri\<^sub>s_R1 peri\<^sub>s_R2c)
 
 lemma R1_peri_SRD:
   assumes "P is SRD"
@@ -300,7 +300,7 @@ lemma R1_R2c_peri_RHS:
 lemma R1_R2s_post_SRD:
   assumes "P is SRD"
   shows "R1(R2s(post\<^sub>R(P))) = post\<^sub>R(P)"
-  by (metis (no_types, hide_lams) Healthy_def R1_R2s_R2c R1_idem R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
+  by (metis (no_types, opaque_lifting) Healthy_def R1_R2s_R2c R1_idem R2_def R2_idem RHS_def SRD_RH_design_form assms post\<^sub>R_def post\<^sub>s_R1 post\<^sub>s_R2c)
 
 lemma R2c_peri_SRD:
   assumes "P is SRD"
@@ -375,7 +375,7 @@ lemma R2c_periR:
 
 lemma R2c_postR:
   "P is SRD \<Longrightarrow> R2c(post\<^sub>R(P)) = post\<^sub>R(P)"
-  by (metis (no_types, hide_lams) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
+  by (metis (no_types, opaque_lifting) R1_R2c_commute R1_R2c_is_R2 R1_R2s_post_SRD R2_def R2s_idem)
 
 lemma periR_RR [closure]: "P is R2 \<Longrightarrow> peri\<^sub>R(P) is RR"
   by (rule RR_intro, simp_all add: closure unrest)
@@ -734,7 +734,7 @@ theorem RH_tri_design_composition:
 proof -
   have 1:"(\<not> ((R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s R))) =
         (\<not> ((R1 (R2s Q\<^sub>2) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s R)))"
-    by (metis (no_types, hide_lams) R1_extend_conj R2s_conj R2s_not R2s_wait' wait'_cond_false)
+    by (metis (no_types, opaque_lifting) R1_extend_conj R2s_conj R2s_not R2s_wait' wait'_cond_false)
   have 2: "(R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) ;; (\<lceil>II\<rceil>\<^sub>D \<triangleleft> $wait \<triangleright> R1 (R2s (S\<^sub>1 \<diamondop> S\<^sub>2)))) =
                  (((R1 (R2s Q\<^sub>1)) \<or> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>1))) \<diamondop> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>2)))"
   proof -
@@ -793,7 +793,7 @@ theorem RH_tri_design_composition_wp:
 proof -
   have "?lhs = \<^bold>R ((\<not> R1 (\<not> P) ;; R1 true \<and> \<not> Q\<^sub>2 ;; R1 (\<not> R)) \<turnstile> (Q\<^sub>1 \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp add: RH_tri_design_composition assms Healthy_if R2c_healthy_R2s disj_upred_def)
-       (metis (no_types, hide_lams) R1_negate_R1 R2c_healthy_R2s assms(11,16))
+       (metis (no_types, opaque_lifting) R1_negate_R1 R2c_healthy_R2s assms(11,16))
   also have "... = ?rhs"
     by (rel_auto)
   finally show ?thesis .
@@ -870,7 +870,7 @@ theorem RHS_tri_design_composition:
 proof -
   have 1:"(\<not> ((R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s R))) =
         (\<not> ((R1 (R2s Q\<^sub>2) \<and> \<not> $wait\<acute>) ;; R1 (\<not> R2s R)))"
-    by (metis (no_types, hide_lams) R1_extend_conj R2s_conj R2s_not R2s_wait' wait'_cond_false)
+    by (metis (no_types, opaque_lifting) R1_extend_conj R2s_conj R2s_not R2s_wait' wait'_cond_false)
   have 2: "(R1 (R2s (Q\<^sub>1 \<diamondop> Q\<^sub>2)) ;; ((\<exists> $st \<bullet> \<lceil>II\<rceil>\<^sub>D) \<triangleleft> $wait \<triangleright> R1 (R2s (S\<^sub>1 \<diamondop> S\<^sub>2)))) =
                  (((\<exists> $st\<acute> \<bullet> R1 (R2s Q\<^sub>1)) \<or> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>1))) \<diamondop> (R1 (R2s Q\<^sub>2) ;; R1 (R2s S\<^sub>2)))"
   proof -
@@ -937,7 +937,7 @@ theorem RHS_tri_design_composition_wp:
 proof -
   have "?lhs = \<^bold>R\<^sub>s ((\<not> R1 (\<not> P) ;; R1 true \<and> \<not> Q\<^sub>2 ;; R1 (\<not> R)) \<turnstile> ((\<exists> $st\<acute> \<bullet> Q\<^sub>1) \<sqinter> (Q\<^sub>2 ;; S\<^sub>1)) \<diamondop> (Q\<^sub>2 ;; S\<^sub>2))"
     by (simp add: RHS_tri_design_composition assms Healthy_if R2c_healthy_R2s disj_upred_def)
-       (metis (no_types, hide_lams) R1_negate_R1 R2c_healthy_R2s assms(11,16))
+       (metis (no_types, opaque_lifting) R1_negate_R1 R2c_healthy_R2s assms(11,16))
   also have "... = ?rhs"
     by (rel_auto)
   finally show ?thesis .
@@ -1171,12 +1171,12 @@ qed
 lemma rdes_tri_eq_intro:
   assumes "P\<^sub>1 = Q\<^sub>1" "(P\<^sub>1 \<and> Q\<^sub>2) = (Q\<^sub>1 \<and> P\<^sub>2)" "(P\<^sub>1 \<and> Q\<^sub>3) = (Q\<^sub>1 \<and> P\<^sub>3)"
   shows "\<^bold>R(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
-  by (metis (no_types, hide_lams) assms(1) assms(2) assms(3) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
+  by (metis (no_types, opaque_lifting) assms(1) assms(2) assms(3) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
 
 lemma srdes_tri_eq_intro:
   assumes "P\<^sub>1 = Q\<^sub>1" "(P\<^sub>1 \<and> Q\<^sub>2) = (Q\<^sub>1 \<and> P\<^sub>2)" "(P\<^sub>1 \<and> Q\<^sub>3) = (Q\<^sub>1 \<and> P\<^sub>3)"
   shows "\<^bold>R\<^sub>s(P\<^sub>1 \<turnstile> P\<^sub>2 \<diamondop> P\<^sub>3) = \<^bold>R\<^sub>s(Q\<^sub>1 \<turnstile> Q\<^sub>2 \<diamondop> Q\<^sub>3)"
-  by (metis (no_types, hide_lams) assms(1) assms(2) assms(3) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
+  by (metis (no_types, opaque_lifting) assms(1) assms(2) assms(3) design_export_pre wait'_cond_conj_exchange wait'_cond_idem)
 
 lemma rdes_tri_eq_intro':
   assumes "P\<^sub>1 = Q\<^sub>1" "P\<^sub>2 = Q\<^sub>2" "P\<^sub>3 = Q\<^sub>3"

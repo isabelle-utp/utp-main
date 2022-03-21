@@ -115,9 +115,11 @@ lemma lit_minus_appl [lit_norm]: "\<guillemotleft>(-)\<guillemotright>(x)\<^sub>
 lemma lit_mult_appl [lit_norm]: "\<guillemotleft>times\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x * y" by (simp add: uexpr_defs, transfer, simp)
 lemma lit_divide_apply [lit_norm]: "\<guillemotleft>(/)\<guillemotright>(x)\<^sub>a(y)\<^sub>a = x / y" by (simp add: uexpr_defs, transfer, simp)
 
+(*
 lemma pfun_entries_apply [simp]:
   "(entr\<^sub>u(d,P,f) :: (('k, 'v) pfun, '\<alpha>) uexpr)(i)\<^sub>a = ((\<guillemotleft>f\<guillemotright>(i)\<^sub>a) \<triangleleft> i \<in>\<^sub>u d \<and> P(i)\<^sub>a \<triangleright> \<bottom>\<^sub>u)"
   by (pred_auto)
+*)
 
 lemma udom_uupdate_pfun [simp]:
   fixes m :: "(('k, 'v) pfun, '\<alpha>) uexpr"

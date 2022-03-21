@@ -281,7 +281,7 @@ lemma Skip_srdes_left_unit:
   by (rdes_eq)
 
 lemma CSP4_right_subsumes_RD3: "RD3(CSP4(P)) = CSP4(P)"
-  by (metis (no_types, hide_lams) CSP4_def RD3_def Skip_srdes_right_unit seqr_assoc)
+  by (metis (no_types, opaque_lifting) CSP4_def RD3_def Skip_srdes_right_unit seqr_assoc)
 
 lemma CSP4_implies_RD3: "P is CSP4 \<Longrightarrow> P is RD3"
   by (metis CSP4_right_subsumes_RD3 Healthy_def)
@@ -301,7 +301,7 @@ lemma CSP3_commutes_CSP4: "CSP3(CSP4(P)) = CSP4(CSP3(P))"
   by (simp add: CSP3_def CSP4_def seqr_assoc)
 
 lemma NCSP_implies_CSP [closure]: "P is NCSP \<Longrightarrow> P is CSP"
-  by (metis (no_types, hide_lams) CSP3_def CSP4_def Healthy_def NCSP_def SRD_idem SRD_seqr_closure Skip_is_CSP comp_apply)
+  by (metis (no_types, opaque_lifting) CSP3_def CSP4_def Healthy_def NCSP_def SRD_idem SRD_seqr_closure Skip_is_CSP comp_apply)
 
 lemma NCSP_elim [RD_elim]: 
   "\<lbrakk> X is NCSP; P(\<^bold>R\<^sub>s(pre\<^sub>R(X) \<turnstile> peri\<^sub>R(X) \<diamondop> post\<^sub>R(X))) \<rbrakk> \<Longrightarrow> P(X)"
@@ -313,7 +313,7 @@ lemma NCSP_implies_CSP3 [closure]:
 
 lemma NCSP_implies_CSP4 [closure]:
   "P is NCSP \<Longrightarrow> P is CSP4"
-  by (metis (no_types, hide_lams) CSP3_commutes_CSP4 Healthy_def NCSP_def NCSP_implies_CSP NCSP_implies_CSP3 comp_apply)
+  by (metis (no_types, opaque_lifting) CSP3_commutes_CSP4 Healthy_def NCSP_def NCSP_implies_CSP NCSP_implies_CSP3 comp_apply)
 
 lemma NCSP_implies_RD3 [closure]: "P is NCSP \<Longrightarrow> P is RD3"
   by (metis CSP3_commutes_CSP4 CSP4_right_subsumes_RD3 Healthy_def NCSP_def comp_apply)
@@ -371,7 +371,7 @@ lemma NCSP_form:
   "NCSP P = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(P)) wp\<^sub>r false) \<turnstile> ((\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R(P))))"
 proof -
   have "NCSP P = CSP3 (CSP4 (NSRD P))"
-    by (metis (no_types, hide_lams) CSP4_def NCSP_def NSRD_alt_def RA1 RD3_def Skip_srdes_left_unit o_apply)
+    by (metis (no_types, opaque_lifting) CSP4_def NCSP_def NSRD_alt_def RA1 RD3_def Skip_srdes_left_unit o_apply)
   also 
   have "... =  \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R (NSRD P)) wp\<^sub>r false) \<turnstile>
                    (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R (NSRD P)) \<diamondop>
@@ -394,7 +394,7 @@ proof -
   have "P = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P) \<triangleleft> $wait\<acute> \<triangleright> (\<exists> $ref\<acute> \<bullet> cmt\<^sub>R P)))"
     by (metis CSP4_def Healthy_def Skip_right_lemma assms(1) assms(2))
   also have "... = \<^bold>R\<^sub>s ((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> ((\<exists> $st\<acute> \<bullet> cmt\<^sub>R P)\<lbrakk>true/$wait\<acute>\<rbrakk> \<triangleleft> $wait\<acute> \<triangleright> (\<exists> $ref\<acute> \<bullet> cmt\<^sub>R P)\<lbrakk>false/$wait\<acute>\<rbrakk>))"
-    by (metis (no_types, hide_lams) subst_wait'_left_subst subst_wait'_right_subst wait'_cond_def)
+    by (metis (no_types, opaque_lifting) subst_wait'_left_subst subst_wait'_right_subst wait'_cond_def)
   also have "... = \<^bold>R\<^sub>s((\<not>\<^sub>r pre\<^sub>R P) wp\<^sub>r false \<turnstile> ((\<exists> $st\<acute> \<bullet> peri\<^sub>R(P)) \<diamondop> (\<exists> $ref\<acute> \<bullet> post\<^sub>R(P))))"
     by (simp add: wait'_cond_def usubst peri\<^sub>R_def post\<^sub>R_def cmt\<^sub>R_def unrest)
   finally show ?thesis .
@@ -516,7 +516,7 @@ lemma cmtR_Stop [rdes]: "cmt\<^sub>R(Stop) = ($tr\<acute> =\<^sub>u $tr \<and> $
 
 lemma NCSP_Idempotent [closure]: "Idempotent NCSP"
   by (clarsimp simp add: NCSP_def Idempotent_def)
-     (metis (no_types, hide_lams) CSP3_Idempotent CSP3_def CSP4_Idempotent CSP4_def Healthy_def Idempotent_def SRD_idem SRD_seqr_closure Skip_is_CSP seqr_assoc)
+     (metis (no_types, opaque_lifting) CSP3_Idempotent CSP3_def CSP4_Idempotent CSP4_def Healthy_def Idempotent_def SRD_idem SRD_seqr_closure Skip_is_CSP seqr_assoc)
 
 lemma NCSP_Continuous [closure]: "Continuous NCSP"
   by (simp add: CSP3_Continuous CSP4_Continuous Continuous_comp NCSP_def SRD_Continuous)
@@ -581,7 +581,7 @@ lemma PCSP_implies_NCSP [closure]:
   shows "P is NCSP"
 proof -
   have "P = Productive(NCSP(NCSP P))"
-    by (metis (no_types, hide_lams) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
+    by (metis (no_types, opaque_lifting) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
     
   also have "... = \<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R(NCSP P)) wp\<^sub>r false) \<turnstile> 
                        (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R(NCSP P)) \<diamondop> 
@@ -608,7 +608,7 @@ lemma ICSP_implies_NCSP [closure]:
   shows "P is NCSP"
 proof -
   have "P = ISRD1(NCSP(NCSP P))"
-    by (metis (no_types, hide_lams) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
+    by (metis (no_types, opaque_lifting) Healthy_def' Idempotent_def NCSP_Idempotent assms comp_apply)
   also have "... = ISRD1 (\<^bold>R\<^sub>s ((\<forall> $ref \<bullet> (\<not>\<^sub>r pre\<^sub>R (NCSP P)) wp\<^sub>r false) \<turnstile>
                               (\<exists> $ref \<bullet> \<exists> $st\<acute> \<bullet> peri\<^sub>R (NCSP P)) \<diamondop> 
                               (\<exists> $ref \<bullet> \<exists> $ref\<acute> \<bullet> post\<^sub>R (NCSP P))))"
@@ -628,7 +628,7 @@ qed
 lemma ICSP_implies_ISRD [closure]:
   assumes "P is ICSP"
   shows "P is ISRD"
-  by (metis (no_types, hide_lams) Healthy_def ICSP_implies_NCSP ISRD_def NCSP_implies_NSRD assms comp_apply)
+  by (metis (no_types, opaque_lifting) Healthy_def ICSP_implies_NCSP ISRD_def NCSP_implies_NSRD assms comp_apply)
 
 lemma ICSP_elim [RD_elim]: 
   assumes "X is ICSP" "P (\<^bold>R\<^sub>s ((pre\<^sub>R X) \<turnstile> false \<diamondop> R5(post\<^sub>R X)))"
@@ -644,7 +644,7 @@ lemma ICSP_Stop_right_zero:
   shows "P ;; Stop = Stop"
 proof -
   from assms(3) have 1:"(post\<^sub>R P \<and> $tr\<acute> =\<^sub>u $tr) ;; true\<^sub>r = true\<^sub>r"
-    by (rel_auto, metis (full_types, hide_lams) dual_order.antisym order_refl)
+    by (rel_auto, metis (full_types, opaque_lifting) dual_order.antisym order_refl)
   show ?thesis
     by (rdes_simp cls: assms(1), simp add: R5_alt_def csp_enable_nothing assms(2) ICSP_Stop_right_zero_lemma[OF 1])
 qed

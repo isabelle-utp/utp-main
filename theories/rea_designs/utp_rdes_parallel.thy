@@ -178,10 +178,10 @@ lemma RDM_unrests [unrest]:
   by (subst Healthy_if[OF assms, THEN sym], simp_all add: RDM_def unrest, rel_auto)+
 
 lemma RDM_R1m [closure]: "M is RDM \<Longrightarrow> M is R1m"
-  by (metis (no_types, hide_lams) Healthy_def R1m_idem R2m_def RDM_def)
+  by (metis (no_types, opaque_lifting) Healthy_def R1m_idem R2m_def RDM_def)
 
 lemma RDM_R2m [closure]: "M is RDM \<Longrightarrow> M is R2m"
-  by (metis (no_types, hide_lams) Healthy_def R2m_idem RDM_def)
+  by (metis (no_types, opaque_lifting) Healthy_def R2m_idem RDM_def)
 
 lemma ex_st'_R2m_closed [closure]: 
   assumes "P is R2m"
@@ -426,7 +426,7 @@ proof -
   have "(\<exists> $st\<acute> \<bullet> N\<^sub>0(M))\<lbrakk>true,true/$ok\<acute>, $wait\<acute>\<rbrakk> = (\<exists> $st\<acute> \<bullet> ($0:wait \<or> $1:wait) \<and> $tr\<acute> \<ge>\<^sub>u $<:tr \<and> M)"
     by (simp add: usubst unrest nmerge_rd0_def ex_unrest Healthy_if R1m_def assms)
   also have "... =  (\<exists> $st\<acute> \<bullet> ($0:wait \<or> $1:wait) \<and> M)"
-    by (metis (no_types, hide_lams) Healthy_if R1m_def R1m_idem R2m_def RDM_def assms utp_pred_laws.inf_commute)
+    by (metis (no_types, opaque_lifting) Healthy_if R1m_def R1m_idem R2m_def RDM_def assms utp_pred_laws.inf_commute)
   also have "... = (($0:wait \<or> $1:wait) \<and> (\<exists> $st\<acute> \<bullet> M))"
     by (rel_auto)
   finally show ?thesis .
@@ -896,7 +896,7 @@ proof -
   also have "... =
         \<^bold>R\<^sub>s((R2c(P\<^sub>1) \<and> R2c(P\<^sub>2)) \<turnstile>
            (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
-    by (metis (no_types, hide_lams) R1_R2s_R2c R1_conj R1_design_R1_pre RHS_design_ok_wait)
+    by (metis (no_types, opaque_lifting) R1_R2s_R2c R1_conj R1_design_R1_pre RHS_design_ok_wait)
   also have "... =
         \<^bold>R\<^sub>s((P\<^sub>1 \<and> P\<^sub>2) \<turnstile> (R1 (R2s (P\<^sub>1 \<Rightarrow> Q\<^sub>1)) \<and> R1 (R2s (P\<^sub>2 \<Rightarrow> Q\<^sub>2))))"
     by (simp add: R2c_R3h_commute R2c_and R2c_design R2c_idem R2c_not RHS_def)

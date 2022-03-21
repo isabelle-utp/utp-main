@@ -531,7 +531,7 @@ lemma SRD_intro:
   by (metis Healthy_def R1_R2c_is_R2 RHS_def SRD_def assms(2) assms(3) assms(4) assms(5))
 
 lemma SRD_ok_false [usubst]: "P is SRD \<Longrightarrow> P\<lbrakk>false/$ok\<rbrakk> = R1(true)"
-  by (metis (no_types, hide_lams) H1_H2_eq_design Healthy_def R1_ok_false RD1_R1_commute RD1_via_R1 RD2_def SRD_def SRD_healths(1) design_ok_false)
+  by (metis (no_types, opaque_lifting) H1_H2_eq_design Healthy_def R1_ok_false RD1_R1_commute RD1_via_R1 RD2_def SRD_def SRD_healths(1) design_ok_false)
 
 lemma SRD_ok_true_wait_true [usubst]:
   assumes "P is SRD"

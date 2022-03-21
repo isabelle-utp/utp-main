@@ -37,7 +37,7 @@ lemma seq_skip_trel:
 
 lemma nondet_left_trel:
   "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, P)"
-  by (metis (no_types, hide_lams) disj_comm disj_upred_def semilattice_sup_class.sup.absorb_iff1 semilattice_sup_class.sup.left_idem seqr_or_distr trel.simps)
+  by (metis (no_types, opaque_lifting) disj_comm disj_upred_def semilattice_sup_class.sup.absorb_iff1 semilattice_sup_class.sup.left_idem seqr_or_distr trel.simps)
 
 lemma nondet_right_trel:
   "(\<sigma>, P \<sqinter> Q) \<rightarrow>\<^sub>u (\<sigma>, Q)"

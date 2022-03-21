@@ -209,7 +209,7 @@ lemma frame_assign_commute_unrest:
   using assms
   apply (rel_auto)
   apply (metis (no_types, lifting) lens_indep.lens_put_irr2 lens_indep_comm)
-  apply (metis (no_types, hide_lams) lens_indep_def)
+  apply (metis (no_types, opaque_lifting) lens_indep_def)
   done
 
 lemma frame_to_antiframe [frame]:
@@ -246,7 +246,7 @@ lemma rel_frext_commute:
   apply (rel_auto)
    apply (rename_tac a c b)
    apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
-    apply (metis (no_types, hide_lams) lens_indep_comm lens_indep_get)
+    apply (metis (no_types, opaque_lifting) lens_indep_comm lens_indep_get)
    apply (simp add: lens_indep.lens_put_irr2)
   apply (subgoal_tac "\<And>b c. get\<^bsub>x\<^esub> (put\<^bsub>y\<^esub> b c) = get\<^bsub>x\<^esub> b")
    apply (subgoal_tac "\<And>b a. get\<^bsub>y\<^esub> (put\<^bsub>x\<^esub> b a) = get\<^bsub>y\<^esub> b")
@@ -504,7 +504,7 @@ lemma nuses_seq [closure]:
 proof -
   have "(rrestr x P ;; rrestr x Q) is rrestr x"
     apply (rel_auto)
-    apply (metis (no_types, hide_lams) assms(1) mwb_lens.put_put mwb_lens_def weak_lens.put_get)
+    apply (metis (no_types, opaque_lifting) assms(1) mwb_lens.put_put mwb_lens_def weak_lens.put_get)
     using assms(1) apply auto
     apply blast
     apply (metis mwb_lens_def weak_lens.put_get)  

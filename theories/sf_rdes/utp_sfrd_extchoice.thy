@@ -583,10 +583,10 @@ next
   proof -
     have 1:"(\<box> i\<in>A \<bullet> P i) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (R4(post\<^sub>R (P i))))))"
       (is "?X = ?Y")
-      by (rule ExtChoice_cong, metis (no_types, hide_lams) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
+      by (rule ExtChoice_cong, metis (no_types, opaque_lifting) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
     have 2:"(\<box> i\<in>A \<bullet> P i ;; Q) = (\<box> i\<in>A \<bullet> (\<^bold>R\<^sub>s ((pre\<^sub>R (P i)) \<turnstile> peri\<^sub>R (P i) \<diamondop> (R4(post\<^sub>R (P i))))) ;; Q)"
       (is "?X = ?Y")
-      by (rule ExtChoice_cong, metis (no_types, hide_lams) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
+      by (rule ExtChoice_cong, metis (no_types, opaque_lifting) R4_def Healthy_if NCSP_implies_CSP PCSP_implies_NCSP Productive_form assms(1) comp_apply)
     show ?thesis
       by (simp add: 1 2, rdes_eq cls: assms False cong: ExtChoice_cong USUP_cong)
   qed

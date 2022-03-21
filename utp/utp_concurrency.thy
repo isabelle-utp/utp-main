@@ -413,7 +413,7 @@ lemma StateParallel_form':
      apply (metis vwb_lens_wb wb_lens_axioms_def wb_lens_def)
     apply (metis vwb_lens_wb wb_lens.get_put)
    apply (simp add: lens_indep_comm)
-  apply (metis (no_types, hide_lams) lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
+  apply (metis (no_types, opaque_lifting) lens_indep_comm vwb_lens_wb wb_lens_def weak_lens.put_get)
   done  
   
 text \<open> We can frame all the variables that the parallel operator refers to \<close>

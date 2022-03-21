@@ -109,6 +109,8 @@ text \<open> We chose to maximally reuse definitions and laws built into HOL. Fo
         class called \emph{refine} that will add the refinement operator syntax to
         the HOL partial order class. \<close>
 
+purge_notation ref_by (infix "\<sqsubseteq>" 50)
+
 class refine = order
 
 abbreviation refineBy :: "'a::refine \<Rightarrow> 'a \<Rightarrow> bool"  (infix "\<sqsubseteq>" 50) where

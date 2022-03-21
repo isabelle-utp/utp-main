@@ -53,7 +53,7 @@ proof -
 qed
 
 lemma st_qual_alpha [alpha]: "x ;\<^sub>L fst\<^sub>L ;\<^sub>L st \<times>\<^sub>L st = ($st:x)\<^sub>v"
-  by (metis (no_types, hide_lams) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
+  by (metis (no_types, opaque_lifting) in_var_def in_var_prod_lens lens_comp_assoc st_vwb_lens vwb_lens_wb)
 
 (* FIXME: Nasty Hack. Can we automate this? *)
 

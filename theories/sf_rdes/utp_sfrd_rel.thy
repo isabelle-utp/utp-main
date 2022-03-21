@@ -130,7 +130,7 @@ qed
 lemma CRC_idem: "CRC(CRC(P)) = CRC(P)"
   apply (simp add: CRC_def ex_unrest  unrest)
   apply (simp add: RC_def RR_ex_ref)
-  apply (metis (no_types, hide_lams) Healthy_def RC1_RR_closed RC1_ex_ref RR_ex_ref RR_idem)
+  apply (metis (no_types, opaque_lifting) Healthy_def RC1_RR_closed RC1_ex_ref RR_ex_ref RR_idem)
 done
 
 lemma Idempotent_CRC [closure]: "Idempotent CRC"

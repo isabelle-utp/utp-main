@@ -200,11 +200,11 @@ text \<open> Similar properties follow for sublens \<close>
   
 lemma in_var_sublens [simp]:
   "y \<subseteq>\<^sub>L x \<Longrightarrow> in_var y \<subseteq>\<^sub>L in_var x"
-  by (metis (no_types, hide_lams) in_var_def lens_comp_assoc sublens_def)
+  by (metis (no_types, opaque_lifting) in_var_def lens_comp_assoc sublens_def)
      
 lemma out_var_sublens [simp]:
   "y \<subseteq>\<^sub>L x \<Longrightarrow> out_var y \<subseteq>\<^sub>L out_var x"
-  by (metis (no_types, hide_lams) out_var_def lens_comp_assoc sublens_def)
+  by (metis (no_types, opaque_lifting) out_var_def lens_comp_assoc sublens_def)
 
 lemma pr_var_sublens_l [simp]: "a \<subseteq>\<^sub>L b \<Longrightarrow> pr_var (a) \<subseteq>\<^sub>L b"
   by (simp add: pr_var_def)

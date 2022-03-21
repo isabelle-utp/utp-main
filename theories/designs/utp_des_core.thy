@@ -433,7 +433,7 @@ theorem design_npre:
 theorem design_pre:
   "\<not> (P \<turnstile> Q)\<^sup>f = ($ok \<and> P\<^sup>f)"
   by (simp add: design_def, subst_tac)
-     (metis (no_types, hide_lams) not_conj_deMorgans true_not_false(2) utp_pred_laws.compl_top_eq
+     (metis (no_types, opaque_lifting) not_conj_deMorgans true_not_false(2) utp_pred_laws.compl_top_eq
             utp_pred_laws.sup.idem utp_pred_laws.sup_compl_top)
 
 theorem design_post:

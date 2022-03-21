@@ -243,7 +243,7 @@ lemma UINF_false [simp]: "(\<Sqinter> i \<bullet> false) = false"
 lemma UINF_cong_eq:
   "\<lbrakk> A = B; \<And> x. x \<in> A \<Longrightarrow> `Q\<^sub>1(x) =\<^sub>u Q\<^sub>2(x)` \<rbrakk> \<Longrightarrow>
         (\<Sqinter> x\<in>A \<bullet> Q\<^sub>1(x)) = (\<Sqinter> x\<in>B \<bullet> Q\<^sub>2(x))"
-  by (pred_simp, metis (mono_tags, hide_lams))
+  by (pred_simp, metis (mono_tags, opaque_lifting))
 
 lemma UINF_as_Sup: "(\<Sqinter> P \<in> \<P> \<bullet> P) = \<Sqinter> \<P>"
   apply (simp add: upred_defs uexpr_appl.rep_eq lit.rep_eq Sup_uexpr_def)

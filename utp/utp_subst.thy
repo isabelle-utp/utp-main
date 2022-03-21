@@ -365,21 +365,21 @@ lemma subst_unrest_3 [usubst]:
   assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z"
   shows "\<sigma>(x \<mapsto>\<^sub>s u, y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s v, z \<mapsto>\<^sub>s w) \<dagger> P"
   using assms
-  by (simp add: subst_upd_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  by (simp add: subst_upd_def, transfer, auto, metis (no_types, opaque_lifting) lens_indep_comm)
 
 lemma subst_unrest_4 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
   assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u"
   shows "\<sigma>(x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h) \<dagger> P"
   using assms
-  by (simp add: subst_upd_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  by (simp add: subst_upd_def, transfer, auto, metis (no_types, opaque_lifting) lens_indep_comm)
 
 lemma subst_unrest_5 [usubst]: 
   fixes P :: "('a, '\<alpha>) uexpr"
   assumes "x \<sharp> P" "x \<bowtie> y" "x \<bowtie> z" "x \<bowtie> u" "x \<bowtie> v"
   shows "\<sigma>(x \<mapsto>\<^sub>s e, y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h, v \<mapsto>\<^sub>s i) \<dagger> P = \<sigma>(y \<mapsto>\<^sub>s f, z \<mapsto>\<^sub>s g, u \<mapsto>\<^sub>s h, v \<mapsto>\<^sub>s i) \<dagger> P"
   using assms
-  by (simp add: subst_upd_def, transfer, auto, metis (no_types, hide_lams) lens_indep_comm)
+  by (simp add: subst_upd_def, transfer, auto, metis (no_types, opaque_lifting) lens_indep_comm)
 
 lemma subst_compose_upd [usubst]: "x \<sharp>\<^sub>s \<sigma> \<Longrightarrow> \<sigma> \<circ>\<^sub>s \<rho>(x \<mapsto>\<^sub>s v) = (\<sigma> \<circ>\<^sub>s \<rho>)(x \<mapsto>\<^sub>s v) "
   by (simp add: subst_upd_def, transfer, auto simp add: comp_def)
