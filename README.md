@@ -15,6 +15,18 @@ allows Isabelle symbols to be pretty-printed in the browser and can be obtained 
 store](https://chrome.google.com/webstore/detail/matisa/jkpdfeicbjekckenhpippdllibmbcinf?hl=en-GB) or [Firefox
 Add-ons](https://addons.mozilla.org/en-US/firefox/addon/matisa/).
 
+Installation
+------------
+
+Isabelle/UTP currently works on Isabelle2021-1.
+
+First, you need to install the Archive of Formal Proofs (AFP) archive by following the instructions on https://www.isa-afp.org/using.html. The AFP has an older and incompatible version of Isabelle/UTP, which needs to be removed. You can do this by editing the file ``afp/thys/ROOTS`` and removing the line with "``UTP``" on it, but otherwise leaving the file unchanged.
+
+Second, you need to install ``Z_Toolkit`` from https://github.com/isabelle-utp/Z_Toolkit. You can do this by cloning the repository, or downloading a snaphot, extracting the archive, and then editing your main Isabelle ``ROOTS`` file to include the location of ``Z_Toolkit``.
+
+Finally, you can clone the Isabelle/UTP repository. You can then either add this directory to your ``ROOTS`` file, or start Isabelle using the command ``isabelle jedit -d.`` from the UTP installation directory.
+
+
 Repository overview
 -------------------
 
