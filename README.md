@@ -22,7 +22,7 @@ Isabelle/UTP currently works on Isabelle2021-1.
 
 First, you need to install the Archive of Formal Proofs (AFP) archive by following the instructions on https://www.isa-afp.org/using.html. The AFP has an older and incompatible version of Isabelle/UTP, which needs to be removed. You can do this by editing the file ``afp/thys/ROOTS`` and removing the line with "``UTP``" on it, but otherwise leaving the file unchanged.
 
-Second, you need to install ``Z_Toolkit`` from https://github.com/isabelle-utp/Z_Toolkit. You can do this by cloning the repository, or downloading a snaphot, extracting the archive, and then editing your main Isabelle ``ROOTS`` file to include the location of ``Z_Toolkit``.
+Second, you need to install ``Z_Toolkit`` from https://github.com/isabelle-utp/Z_Toolkit and ``Total_Recall`` from https://github.com/isabelle-utp/Total_Recall. You can do this by cloning the repositories, or downloading a snaphot, extracting the archive, and then editing your main Isabelle ``ROOTS`` file to include the location of ``Z_Toolkit`` and ``Total_Recall``.
 
 Finally, you can clone the Isabelle/UTP repository. You can then either add this directory to your ``ROOTS`` file, or start Isabelle using the command ``isabelle jedit -d.`` from the UTP installation directory.
 
