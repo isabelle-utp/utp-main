@@ -18,7 +18,7 @@ session "Profiling" in "profiling"
 session "Continuum" in "continuum" = "HOL-Cardinals" +
   options [document = false, timeout = 1000]
   sessions
-    "UTP-Toolkit"
+    "UTP1-Toolkit"
   theories
     Continuum
     Dyadic
@@ -32,7 +32,7 @@ session "Continuum" in "continuum" = "HOL-Cardinals" +
 session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
   options [document = pdf, document_output = "output", timeout = 1000]
   sessions
-    "UTP-Reactive"
+    "UTP1-Reactive"
     "Differential_Dynamic_Logic"
   theories
     Derivative_extra
@@ -49,7 +49,7 @@ session "Dynamics" in "dynamics" = "Ordinary_Differential_Equations" +
 
 (* UTP Mathematical Toolkit *)
 
-session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
+session "UTP1-Toolkit" in "toolkit" = "HOL-Algebra" +
   options [document = false]
   sessions
     Optics
@@ -59,7 +59,7 @@ session "UTP-Toolkit" in "toolkit" = "HOL-Algebra" +
 
 (* Core UTP Framework *)
 
-session "UTP" in "utp" = "UTP-Toolkit" +
+session "UTP1" in "utp" = "UTP1-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories [document = false]
     utp_parser_utils
@@ -73,21 +73,21 @@ session "UTP" in "utp" = "UTP-Toolkit" +
 
 (* UTP Calculi *)
 
-session "UTP-Calculi" in "calculi" = "UTP" +
+session "UTP1-Calculi" in "calculi" = "UTP1" +
   options [document = false]
   theories 
     utp_wprespec
 
 (* Pseudo Z-Notation *)
 
-session "ZedLite" in "zedlite" = "UTP" +
+session "ZedLite" in "zedlite" = "UTP1" +
   options [document = false]
   theories [document = false]
     zedlite
 
 (* UTP and Kleene Algebra with Tests (KAT) *)
 
-session "UTP-KAT" in "theories/kleene" = "UTP" +
+session "UTP1-KAT" in "theories/kleene" = "UTP1" +
   options [document = pdf, document_output = "output", timeout = 1000]
   sessions
     "KAT_and_DRA"
@@ -99,7 +99,7 @@ session "UTP-KAT" in "theories/kleene" = "UTP" +
 
 (* UTP Designs *)
 
-session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
+session "UTP1-Designs" in "theories/designs" = "UTP1-KAT" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_designs
   document_files
@@ -109,13 +109,13 @@ session "UTP-Designs" in "theories/designs" = "UTP-KAT" +
 
 (* UTP Undefinedness *)
 
-session "UTP-Undef" in "theories/undef" = "UTP-Designs" +
+session "UTP1-Undef" in "theories/undef" = "UTP1-Designs" +
   options [document = false]
   theories utp_undef
 
 (* UTP Memory Models *)
 
-session "UTP-Memory" in "theories/memory" = "UTP-Undef" +
+session "UTP1-Memory" in "theories/memory" = "UTP1-Undef" +
   options [document = false]
   sessions
     "Continuum"
@@ -123,14 +123,14 @@ session "UTP-Memory" in "theories/memory" = "UTP-Undef" +
 
 (* Imperative Programs based on Designs *)
     
-session "UTP-Impl" in "impl" = "UTP-Memory" +
+session "UTP1-Impl" in "impl" = "UTP1-Memory" +
   options [document = false]
   theories
     utp_impl
 
 (* UTP Generalised Reactive Processes *)
 
-session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
+session "UTP1-Reactive" in "theories/reactive" = "UTP1-Designs" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_reactive
   document_files
@@ -140,7 +140,7 @@ session "UTP-Reactive" in "theories/reactive" = "UTP-Designs" +
 
 (* Reactive Designs *)
 
-session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
+session "UTP1-Reactive-Designs" in "theories/rea_designs" = "UTP1-Reactive" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_rea_designs
   document_files
@@ -150,13 +150,13 @@ session "UTP-Reactive-Designs" in "theories/rea_designs" = "UTP-Reactive" +
 
 (* Timed Relations *)
 
-session "UTP-Time" in "theories/time" = "UTP-Reactive-Designs" +
+session "UTP1-Time" in "theories/time" = "UTP1-Reactive-Designs" +
   options [browser_info = true, document = false]
   theories utp_time_rel  
 
 (* Stateful-Failure Reactive Designs *)
 
-session "UTP-Stateful-Failures" in "theories/sf_rdes" = "UTP-Reactive-Designs" +
+session "UTP1-Stateful-Failures" in "theories/sf_rdes" = "UTP1-Reactive-Designs" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_sf_rdes
   document_files
@@ -166,7 +166,7 @@ session "UTP-Stateful-Failures" in "theories/sf_rdes" = "UTP-Reactive-Designs" +
 
 (* Circus *)
 
-session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
+session "UTP1-Circus" in "theories/circus" = "UTP1-Stateful-Failures" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories utp_circus utp_circus_easy_parser
   document_files
@@ -176,7 +176,7 @@ session "UTP-Circus" in "theories/circus" = "UTP-Stateful-Failures" +
 
 (* Core UTP with Deep Variables *)
 
-session "UTP-Deep" in "utp/models/deep" = "UTP" +
+session "UTP1-Deep" in "utp/models/deep" = "UTP1" +
   options [browser_info = true, document = false]
   sessions
     Continuum
@@ -184,23 +184,23 @@ session "UTP-Deep" in "utp/models/deep" = "UTP" +
 
 (* Core UTP with Axiomatic Variables *)
 
-session "UTP-Axm" in "utp/models/axm" = "UTP" +
+session "UTP1-Axm" in "utp/models/axm" = "UTP1" +
   options [browser_info = true, document = false]
   theories utp_axm
 
 (* Core UTP with Deep & Axiomatic Variables *)
 
-session "UTP-Deep-Axm" in "utp/models" = "UTP-Deep" +
+session "UTP1-Deep-Axm" in "utp/models" = "UTP1-Deep" +
   options [browser_info = true, document = false]
-  sessions "UTP-Axm"
-  theories "UTP-Deep.utp_deep" "UTP-Axm.utp_axm"
+  sessions "UTP1-Axm"
+  theories "UTP1-Deep.utp_deep" "UTP1-Axm.utp_axm"
 
 (* UTP Theory Base *)
 
-session "UTP-Theories" in "theories" = "UTP-Circus" +
+session "UTP1-Theories" in "theories" = "UTP1-Circus" +
   options [browser_info = true, document = false]
   sessions
-    "UTP-Time"
+    "UTP1-Time"
   theories utp_theories
 
 (* Imports for Hybrid UTP *)
@@ -210,16 +210,16 @@ session "UTP-Theories" in "theories" = "UTP-Circus" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
-session "UTP-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
+session "UTP1-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
   options [document = false]
   sessions
-    "UTP-Time"
+    "UTP1-Time"
   theories
     "utp_hybrid_imports"
 
 (* Hybrid UTP *)
 
-session "UTP-Hybrid" in "hybrid" = "UTP-Hybrid-Imports" +
+session "UTP1-Hybrid" in "hybrid" = "UTP1-Hybrid-Imports" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_hybrid
@@ -230,7 +230,7 @@ session "UTP-Hybrid" in "hybrid" = "UTP-Hybrid-Imports" +
     "zed.sty"
     "csp.sty"
 
-session "UTP-dL" in "theories/hyprog" = "UTP-Hybrid-Imports" +
+session "UTP1-dL" in "theories/hyprog" = "UTP1-Hybrid-Imports" +
   options [document = false]
   theories
     utp_hyprog
@@ -238,14 +238,14 @@ session "UTP-dL" in "theories/hyprog" = "UTP-Hybrid-Imports" +
 (* Hybrid UTP with deep model *)
 
 (*
-session "UTP-Hybrid-Deep" in "theories" = "UTP-HYBRID" +
+session "UTP1-Hybrid-Deep" in "theories" = "UTP1-HYBRID" +
   options [browser_info = true, document = false]
   theories utp_theories_deep
 *)
 
 (* Hybrid UTP examples *)
 
-session "UTP-Hybrid-Examples" in "hybrid/examples" = "UTP-Hybrid" +
+session "UTP1-Hybrid-Examples" in "hybrid/examples" = "UTP1-Hybrid" +
   options [document = false]
   theories
     utp_bouncing_ball
@@ -254,21 +254,21 @@ session "UTP-Hybrid-Examples" in "hybrid/examples" = "UTP-Hybrid" +
 (*
 (* Modelica Mechanisation: Limited Compositional Semantics *)
 
-session "Modelica" in "modelica" = "UTP-HYBRID" +
+session "Modelica" in "modelica" = "UTP1-HYBRID" +
   options [document = false]
   theories
     Modelica
 
 (* Modelica Mechanisation: Non-Compositional Semantics *)
 
-session "Modelica-NC" in "modelica/noncomp" = "UTP-HYBRID" +
+session "Modelica-NC" in "modelica/noncomp" = "UTP1-HYBRID" +
   options [document = false]
   theories
     Modelica_NonComp
   
 (* VDM-SL Mechanisation *)
 
-session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
+session "VDM-SL" in "vdm-sl" = "UTP1-THY-DEEP" +
   options [document = false]
   theories
     PFOL
@@ -277,7 +277,7 @@ session "VDM-SL" in "vdm-sl" = "UTP-THY-DEEP" +
 
 (* Isabelle/UTP Tutorial *)
 
-session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
+session "UTP1-Tutorial" in "tutorial" = "UTP1-Theories" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     utp_tutorial
@@ -291,7 +291,7 @@ session "UTP-Tutorial" in "tutorial" = "UTP-Theories" +
 
 (* Untimed RoboChart *)
 
-session "RoboChart-Untimed" in "robochart/untimed" = "UTP-Circus" +
+session "RoboChart-Untimed" in "robochart/untimed" = "UTP1-Circus" +
   theories
     MetaModel
     StateMachine
@@ -299,7 +299,7 @@ session "RoboChart-Untimed" in "robochart/untimed" = "UTP-Circus" +
 (* FMI Mechanisation *)
 
 (*
-session "FMI" in "fmi" = "UTP-Theories-Deep-Axm" +
+session "FMI" in "fmi" = "UTP1-Theories-Deep-Axm" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories
     fmi
