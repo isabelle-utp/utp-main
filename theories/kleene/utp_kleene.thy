@@ -3,7 +3,7 @@ section \<open> Kleene Algebra and UTP \<close>
 theory utp_kleene
   imports
     "KAT_and_DRA.KAT"
-    "UTP.utp"
+    "UTP1.utp"
 begin
 
 text \<open> This theory instantiates the Kleene Algebra~\cite{Kozen90} (KA) hierarchy, mechanised in 

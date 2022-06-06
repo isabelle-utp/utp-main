@@ -1,7 +1,7 @@
 section \<open> Reactive Designs Healthiness Conditions \<close>
 
 theory utp_rdes_healths
-  imports "UTP-Reactive.utp_reactive"
+  imports "UTP1-Reactive.utp_reactive"
 begin
 
 subsection \<open> Preliminaries \<close>

@@ -3,7 +3,7 @@ section \<open> Reactive Relations \<close>
 theory utp_rea_rel
   imports 
     utp_rea_healths
-    "UTP-KAT.utp_kleene"
+    "UTP1-KAT.utp_kleene"
 begin
 
 text \<open> This theory defines a reactive relational calculus for @{term R1}-@{term R2} predicates as an 

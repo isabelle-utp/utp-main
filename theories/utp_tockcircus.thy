@@ -1,7 +1,7 @@
 section \<open> tock-Circus \<close>
 
 theory utp_tockcircus
-imports "UTP-Reactive-Designs.utp_rea_designs" "rcircus/Refusal_Tests"
+imports "UTP1-Reactive-Designs.utp_rea_designs" "rcircus/Refusal_Tests"
 begin recall_syntax
 
 subsection \<open> Preliminaries \<close>
@@ -161,7 +161,7 @@ lemma tock_power_in_tocks: "[Tock A]^n \<in> tocks A"
 lemma tocks_ord_closed:
   "\<lbrakk> t\<^sub>1 \<in> tocks A; t\<^sub>2 \<subseteq>\<^sub>t t\<^sub>1 \<rbrakk> \<Longrightarrow> t\<^sub>2 \<in> tocks A"
   by (auto simp add: tocks_def tock_ord_def in_set_conv_nth)
-     (metis (no_types, hide_lams) nth_mem subset_trans teva.inject(1))
+     (metis (no_types, opaque_lifting) nth_mem subset_trans teva.inject(1))
 
 subsubsection \<open> Other Functions \<close>
 
@@ -278,7 +278,7 @@ lemma TRR_unrest_ref [unrest]: "P is TRR \<Longrightarrow> $ref \<sharp> P"
   by (metis (no_types, lifting) Healthy_if TRR_alt_def exists_twice in_var_indep in_var_uvar ref_vwb_lens tc_vars.indeps(2) unrest_as_exists unrest_ex_diff vwb_lens_mwb)
 
 lemma TRR_unrest_pat [unrest]: "P is TRR \<Longrightarrow> $pat \<sharp> P"
-  by (metis (no_types, hide_lams) Healthy_if TRR_alt_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
+  by (metis (no_types, opaque_lifting) Healthy_if TRR_alt_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
 
 lemma TRR_implies_RR [closure]: 
   assumes "P is TRR"
@@ -297,7 +297,7 @@ proof -
   have "TRC(P) is TRR"
     apply (rel_auto)
     apply (meson eq_iff minus_cancel_le)
-    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix plus_list_def trace_class.add_diff_cancel_left)
+    apply (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix plus_list_def trace_class.add_diff_cancel_left)
     done
   thus ?thesis
     by (simp add: Healthy_if assms)
@@ -317,7 +317,7 @@ lemma TRC_implies_RC [closure]: "P is TRC \<Longrightarrow> P is RC"
   by (simp add: RC_intro_prefix_closed TRC_implies_RC2 TRC_implies_TRR TRR_implies_RR)
 
 lemma TRR_closed_TRC [closure]: "TRC(P) is TRR"
-  by (metis (no_types, hide_lams) Healthy_Idempotent Healthy_if RC1_RR_closed RC_def TRC_def TRR_Idempotent TRR_def comp_apply rrel_theory.HCond_Idempotent)
+  by (metis (no_types, opaque_lifting) Healthy_Idempotent Healthy_if RC1_RR_closed RC_def TRC_def TRR_Idempotent TRR_def comp_apply rrel_theory.HCond_Idempotent)
 
 utp_const RR TRR 
 
@@ -415,7 +415,7 @@ lemma TRC_wp_intro:
 proof -
   have "II\<^sub>t wp\<^sub>r (RC2 (RR P)) is TRC"
     apply (rel_auto)
-    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix order_refl plus_list_def trace_class.add_diff_cancel_left)
+    apply (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix order_refl plus_list_def trace_class.add_diff_cancel_left)
     apply (meson minus_cancel_le order.trans)
     done
   thus ?thesis
@@ -559,22 +559,22 @@ lemma time_stable_compose:
   apply (trr_auto)
   apply (metis lit.rep_eq tock_ord_append tocks_order_power)
   apply (metis lit.rep_eq tock_ord_append tocks_order_power)
-  apply (metis (mono_tags, hide_lams) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
-  apply (metis (mono_tags, hide_lams) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
+  apply (metis (mono_tags, opaque_lifting) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
+  apply (metis (mono_tags, opaque_lifting) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
   done
 
 lemma time_unstable_compose:
   "\<T>(X, A) ;; \<U>(s, t) = (\<Sqinter> n \<bullet> \<U>(\<guillemotleft>n\<guillemotright> \<in> A \<and> s, bop (^) [Tock (-X)] \<guillemotleft>n\<guillemotright> @ t))"
   apply (trr_auto)
   apply (metis tock_ord_append tocks_order_power)
-  apply (metis (mono_tags, hide_lams) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
+  apply (metis (mono_tags, opaque_lifting) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
   done
 
 lemma time_final_compose:
   "\<T>(X, A) ;; \<F>(s, t, \<sigma>) = (\<Sqinter> n \<bullet> \<F>(\<guillemotleft>n\<guillemotright> \<in> A \<and> s, bop (^) [Tock (-X)] \<guillemotleft>n\<guillemotright> @ t, \<sigma>))"
   apply (trr_auto)
   apply (metis tock_ord_append tocks_order_power)
-  apply (metis (mono_tags, hide_lams) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
+  apply (metis (mono_tags, opaque_lifting) append_take_drop_id length_replicate power_replicate tock_ord_decompose(1) tock_ord_decompose(2) tock_ord_def tock_power_in_tocks tocks_ord_closed)
   done
 
 lemma [rpred]: "\<F>(s\<^sub>1, t\<^sub>1, \<sigma>) ;; \<E>(s\<^sub>2, t\<^sub>2, E, p) = \<E>(s\<^sub>1 \<and> \<sigma> \<dagger> s\<^sub>2, t\<^sub>1 @ \<sigma> \<dagger> t\<^sub>2, \<sigma> \<dagger> E, \<sigma> \<dagger> p)"
@@ -602,7 +602,7 @@ lemma [rpred]: "\<F>(true, [], id\<^sub>s) = II\<^sub>t"
 
 lemma time_single_single [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n}) = \<T>(X, {m+n})"
   by (trr_auto)
-     (metis (mono_tags, hide_lams) add_right_cancel append_take_drop_id length_append length_drop plus_list_def tocks_append trace_class.add_diff_cancel_left)
+     (metis (mono_tags, opaque_lifting) add_right_cancel append_take_drop_id length_append length_drop plus_list_def tocks_append trace_class.add_diff_cancel_left)
 
 lemma time_single_lessthan [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..<n}) = \<T>(X, {m..<m+n})"
   by trr_auto
@@ -610,7 +610,7 @@ lemma time_single_lessthan [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..<n}) = \<T>(X, 
 
 lemma time_single_atMost [rpred]: "\<T>(X, {m}) ;; \<T>(X, {0..n}) = \<T>(X, {m..m+n})"
   by trr_auto
-     (metis (no_types, hide_lams) add_le_cancel_left add_right_cancel append_take_drop_id diff_add_cancel_left' length_append length_drop tocks_append)
+     (metis (no_types, opaque_lifting) add_le_cancel_left add_right_cancel append_take_drop_id diff_add_cancel_left' length_append length_drop tocks_append)
 
 lemma time_single_atLeast [rpred]: "\<T>(X, {m}) ;; \<T>(X, {n..}) = \<T>(X, {m+n..})"
   apply trr_auto
@@ -1048,7 +1048,7 @@ lemma TC2_idem: "TC2(TC2(P)) = TC2(P)"
 abbreviation "TC \<equiv> NRD \<circ> TC2 \<circ> TC1"
 
 lemma TC_implies_NRD [closure]: "P is TC \<Longrightarrow> P is NRD"
-  by (metis (no_types, hide_lams) Healthy_def NRD_idem comp_apply)
+  by (metis (no_types, opaque_lifting) Healthy_def NRD_idem comp_apply)
 
 lemma NRD_rdes [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR"
@@ -1123,8 +1123,8 @@ qed
 lemma TC_closed_seqr [closure]: "\<lbrakk> P is TC; Q is TC \<rbrakk> \<Longrightarrow> P ;; Q is TC"
   apply (auto intro!: Healthy_comp)
   apply (simp add: closure)
-  apply (metis (no_types, hide_lams) Healthy_def RA1 TC2_def TC_implies_TC2)
-  apply (metis (no_types, hide_lams) Healthy_def RA1 TC1_def TC_implies_TC1)
+  apply (metis (no_types, opaque_lifting) Healthy_def RA1 TC2_def TC_implies_TC2)
+  apply (metis (no_types, opaque_lifting) Healthy_def RA1 TC1_def TC_implies_TC1)
   done
 
 lemma TC_inner_TRR [closure]:
@@ -1304,7 +1304,7 @@ lemma TRR_RC2_closed [closure]:
 proof -
   have "RC2(TRR(P)) is TRR"
     by (rel_auto)
-       (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc plus_list_def trace_class.add_diff_cancel_left)+
+       (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc plus_list_def trace_class.add_diff_cancel_left)+
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -1544,7 +1544,7 @@ lemma [closure]: "P is TRR \<Longrightarrow> [$ok \<mapsto>\<^sub>s true, $ok\<a
   by (simp add: usubst unrest closure)
 
 lemma TRF_implies_TRR3 [closure]: "P is TRF \<Longrightarrow> P is TRR3"
-  by (metis (no_types, hide_lams) Healthy_def RA1 TRF_def TRR3_def tc_skip_self_unit)
+  by (metis (no_types, opaque_lifting) Healthy_def RA1 TRF_def TRR3_def tc_skip_self_unit)
 
 lemma TRF_implies_TRR [closure]: "P is TRF \<Longrightarrow> P is TRR"
   by (metis Healthy_def TRF_def TRR3_def TRR_closed_seq TRR_tc_skip trel_theory.HCond_Idem)

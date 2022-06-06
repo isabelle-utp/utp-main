@@ -6,7 +6,7 @@ theory utp_rdes_prog
     utp_rdes_tactics
     utp_rdes_parallel
     utp_rdes_guarded
-    "UTP-KAT.utp_kleene"
+    "UTP1-KAT.utp_kleene"
 begin
 
 subsection \<open> State substitution \<close>

@@ -1,7 +1,7 @@
 section \<open> Stateful-Failure Core Types \<close>
 
 theory utp_sfrd_core
-  imports "UTP-Reactive-Designs.utp_rea_designs"
+  imports "UTP1-Reactive-Designs.utp_rea_designs"
 begin
 
 subsection \<open> SFRD Alphabet \<close>

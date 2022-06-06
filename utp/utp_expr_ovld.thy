@@ -1,7 +1,7 @@
 section \<open> Overloaded Expression Constructs \<close>
 
 theory utp_expr_ovld
-  imports "Z_Toolkit.Z_Toolkit" utp
+  imports "Z_Toolkit.Relation_Toolkit" utp
 begin recall_syntax
 
 hide_const (open) Map.dom

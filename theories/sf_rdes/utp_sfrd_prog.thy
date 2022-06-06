@@ -2,7 +2,7 @@ section \<open> Stateful-Failure Programs \<close>
 
 theory utp_sfrd_prog
   imports
-    "UTP.utp_full"
+    "UTP1.utp_full"
     utp_sfrd_extchoice
 begin
 

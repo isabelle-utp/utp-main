@@ -3,7 +3,7 @@ section \<open> Normal Reactive Designs \<close>
 theory utp_rdes_normal
   imports 
     utp_rdes_triples
-    "UTP-KAT.utp_kleene"
+    "UTP1-KAT.utp_kleene"
 begin
 
 text \<open> These additional healthiness conditions are analogous to H3 \<close>
