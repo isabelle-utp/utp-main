@@ -6,15 +6,15 @@
 (******************************************************************************)
 (* LAST REVIEWED: 7/12/2016 *)
 
-section {* Profiling Tool *}
+section \<open> Profiling Tool \<close>
 
 theory Profiling
-imports "~~/src/HOL/Eisbach/Eisbach"
+imports "HOL-Eisbach.Eisbach"
 keywords "profile" :: prf_script
 begin
 
 ML_file "Profiling.ML"
 
-ML {* Profiling.setup_command() *}
+ML \<open> Profiling.setup_command() \<close>
 
 end

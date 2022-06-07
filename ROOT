@@ -8,7 +8,7 @@
 (* Profiling Library *)
 
 session "Profiling" in "profiling"
-  = "HOL" +
+  = "HOL-Eisbach" +
   options [document = false, timeout = 1000]
   theories
     Profiling
