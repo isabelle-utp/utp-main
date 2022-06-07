@@ -247,12 +247,8 @@ proof (simp add: summable_Cauchy, clarify)
     have "(\<Sum> i=m..<n. binseq x i) \<le> 1/2^j"
     proof -
       have "(\<Sum> i=m..<n. binseq x i) \<le> (\<Sum>i=m..<n. 1/2^i)"
-        apply (rule sum_mono)
-        apply (simp add: binseq_def frac_le)
-        apply (rename_tac i)
-        apply (case_tac "x i")
-        apply (simp_all add: frac_le)
-      done
+        by (rule sum_mono)
+           (simp add: binseq_def frac_le)
       also from mnassm have "... \<le> (\<Sum>i=j+1..n-1. 1/2^i)"
         by (auto intro!: sum_mono2)
       also have "... < 1/2^j"
@@ -332,9 +328,8 @@ proof -
 qed
 
 lemma binseq_rbseq: "binseq (rbseq x) i = (\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) / (2 ^ (i+1))"
-  apply (simp add: binseq_def rbseq_def)
-  apply (metis not_mod_2_eq_0_eq_1 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1)
-done
+  by (simp add: binseq_def rbseq_def)
+     (metis not_mod_2_eq_1_eq_0 of_int_0 of_int_1)
 
 text \<open> The contribution of the nth bit to a real number \<close>
 
@@ -536,7 +531,7 @@ proof -
       by (rule sum_distrib_right)
     also have "... = (\<Sum>i<n. (of_int ((\<lfloor>x * (2 ^ (i+1))\<rfloor> mod 2) * (2 ^ (n-i)))))"
       by (rule sum.cong, auto simp add: power_diff)
-         (metis (no_types, hide_lams) le_less of_int_numeral of_int_power power_diff times_divide_eq_right zero_neq_numeral)
+         (metis (no_types, opaque_lifting) le_less of_int_numeral of_int_power power_diff times_divide_eq_right zero_neq_numeral)
     finally show ?thesis
       by auto
   qed
@@ -565,9 +560,8 @@ next
   case (Suc n) note hyp = this
   thus ?case
     using modulus_2_via_shift[of x "Suc n"] assms
-    apply (simp add: rbit_def nth_cont_def)
-    apply (metis (no_types, lifting) not_mod_2_eq_1_eq_0 of_bit_eq(1) of_bit_eq(2) of_int_0 of_int_1)
-  done
+      by (simp add: rbit_def nth_cont_def)
+       (metis not_mod_2_eq_0_eq_1 of_int_0 of_int_1)
 qed
 
 lemma real_bits_rbseq:
@@ -606,7 +600,7 @@ proof (induct n)
     apply (simp add: binlist_def)
     apply (case_tac "of_int \<lfloor>x * 2\<rfloor> :: bit")
     apply (auto)
-    apply (metis bit.distinct(1) floor_less_iff linorder_neqE_linordered_idom mult.left_neutral not_le of_int_1 one_less_floor real_mult_le_cancel_iff1 zero_less_numeral)
+    apply (metis bit.distinct(1) floor_less_iff linorder_neqE_linordered_idom mult.left_neutral not_le of_int_1 one_less_floor mult_le_cancel_iff1 zero_less_numeral)
   done
   ultimately show ?case
     by auto
@@ -642,6 +636,7 @@ lemma sum_binlist: "sum (binseq (real_bin x)) {..n} = binlist (real_bits x n)"
   apply (rule sum.cong)
   apply (auto)
   apply (metis le_add_diff_inverse less_Suc_eq_le order_refl real_bits_plus)
+  apply (metis diff_Suc_1 less_imp_Suc_add less_or_eq_imp_le real_bits_plus)
 done
 
 lemma sum_binseq_diff:
@@ -744,8 +739,6 @@ lemma binseq_lower: "(\<Sum> i. binseq x (i+k)) \<ge> 0"
   apply (rule suminf_nonneg)
   apply (auto simp add: summable_iff_shift binseq_summable)
   apply (simp add: binseq_def)
-  apply (rename_tac n)
-  apply (case_tac "x (n + k)", simp_all)
 done
 
 lemma nonterminal_binseq_nonzero:
@@ -758,7 +751,7 @@ proof -
   proof (rule_tac suminf_pos2[of _ i])
     show "summable (\<lambda>i. binseq x (i + k))"
       by (simp add: summable_iff_shift binseq_summable)
-    show "\<forall>n. 0 \<le> binseq x (n + k)"
+    show "\<And>n. 0 \<le> binseq x (n + k)"
       by (simp add: binseq_pos)
     from i show "0 < binseq x (i + k)"
       by (simp add: binseq_def)
@@ -903,11 +896,8 @@ proof -
   finally show ?thesis
   proof (simp)
     have "(\<Sum>i<k. of_bit (x i) * 2 ^ (k - (i + 1))) \<in> \<int>"
-      apply (auto intro!: sum_int)
-      apply (rename_tac i)
-      apply (case_tac "x i", auto)
-    done
-    thus "dyadic ((\<Sum>i<k. of_bit (x i) * 2 ^ (k - Suc i)) / 2 ^ k)"
+      by (auto intro!: sum_int)
+    thus "dyadic ((\<Sum>i\<in>{..<k} \<inter> {i. x i = 1}. 2 ^ (k - Suc i)) / 2 ^ k)"
       by (auto simp add: dyadic_def)
   qed
 qed
@@ -926,7 +916,7 @@ proof (erule drat_0_1_induct, simp add: rbseq_def terminal_def terminates_at_def
     moreover have "real_of_int a * (2 * 2 ^ (j-b)) \<in> \<int>"
       by simp
     moreover hence "\<lfloor>real_of_int a * (2 * 2 ^ (j-b))\<rfloor> mod 2 = (2 * \<lfloor>real_of_int a * 2 ^ (j - b)\<rfloor>) mod 2"
-      by (metis (no_types, hide_lams) floor_of_int mult.left_commute of_int_mult of_int_numeral of_int_power)
+      by (metis (no_types, opaque_lifting) floor_of_int mult.left_commute of_int_mult of_int_numeral of_int_power)
     ultimately show "of_int (\<lfloor>real_of_int a * (2 * 2 ^ j) / 2 ^ b\<rfloor> mod 2) = 0"
       by simp
   qed
