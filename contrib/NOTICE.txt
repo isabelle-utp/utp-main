@@ -1,5 +1,0 @@
-Libraries in this directory are dynamically fetched from the Archive of Formal Proofs (AFP) during the build process.
-
-   https://www.isa-afp.org/
-
-They are third-party contributions but should not be considered as part of Isabelle/UTP itself.
