@@ -1,7 +1,7 @@
 section \<open> Mini-mondex example \<close>
 
 theory utp_csp_mini_mondex
-  imports "UTP-Circus.utp_circus"
+  imports "UTP1-Circus.utp_circus"
 begin
 
 text \<open> This example is a modified version of the Mini-Mondex card example taken from the 2014
@@ -65,8 +65,12 @@ definition Cycle :: "index \<Rightarrow> action_mdx" where
 text \<open> The Mondex action is a sample setup. It requires creates $cardNum$ cards each with 100 units
   present. \<close>
 
+term ffun_entries
+
+term "trop pfun_entries {0..10}\<^sub>u \<guillemotleft>\<lambda> x. True\<guillemotright>"
+
 definition Mondex :: "index \<Rightarrow> action_mdx" where
-"Mondex(cardNum) = (accts :=\<^sub>C entr\<^sub>u({0..10}\<^sub>u, \<lambda> x. 100) ;; Cycle(cardNum))"
+"Mondex(cardNum) = (accts :=\<^sub>C entr\<^sub>u({0..10}\<^sub>u, \<lambda>\<^sub>u x \<bullet> true, \<lambda> x. 100) ;; Cycle(cardNum))"
 
 subsection \<open> Pre/peri/post calculations \<close>
 

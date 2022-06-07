@@ -2,7 +2,7 @@ section {* Timed Relations *}
 
 theory utp_time_rel
   imports
-  "UTP-Reactive.utp_rea_hoare"
+  "UTP1-Reactive.utp_rea_hoare"
 begin
 
 type_synonym '\<alpha> trel = "('\<alpha>, real pos) rdes"

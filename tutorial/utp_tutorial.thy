@@ -2,7 +2,7 @@ section \<open> Isabelle/UTP Primer \<close>
 
 (*<*)
 theory utp_tutorial
-imports "UTP-Theories.utp_theories"
+imports "UTP1-Theories.utp_theories"
 begin
 (*>*)
 

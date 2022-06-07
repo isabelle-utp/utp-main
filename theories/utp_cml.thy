@@ -1,7 +1,7 @@
 section \<open> COMPASS Modelling Language \<close>
 
 theory utp_cml
-imports "UTP-Reactive-Designs.utp_rea_designs" "UTP.utp_full"
+imports "UTP1-Reactive-Designs.utp_rea_designs" "UTP1.utp_full"
 begin
 
 subsection \<open> Preliminaries \<close>
