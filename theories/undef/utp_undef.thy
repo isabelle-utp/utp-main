@@ -1,7 +1,7 @@
 section \<open> Undefinedness \<close>
 
 theory utp_undef
-  imports "UTP-Designs.utp_designs" "UTP.utp_expr_funcs"
+  imports "UTP1-Designs.utp_designs" "UTP1.utp_expr_funcs"
 begin
 
 type_synonym ('a, '\<alpha>) pexpr = "('a option, '\<alpha>) uexpr"

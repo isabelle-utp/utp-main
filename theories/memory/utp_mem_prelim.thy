@@ -2,12 +2,12 @@ section \<open> Memory Preliminaries \<close>
 
 theory utp_mem_prelim
   imports 
-    Partial_Monoids
-    Partial_Monoids_Instances
-    "UTP-Undef.utp_undef" 
+    "UTP1-Undef.utp_undef" 
     "Continuum.Lightweight_Cardinals"
-    "UTP.utp_full"
+    "UTP1.utp_full"
 begin recall_syntax
+
+purge_notation n_add_op (infixl "\<oplus>" 65)
 
 subsection \<open> State space \<close>
 
@@ -17,7 +17,7 @@ text \<open> As usual, the memory consists of the store and the heap. The store 
 alphabet 'h mem =
   hp :: "'h"
 
-abbreviation str :: "'s \<Longrightarrow> ('a :: sep_alg, 's) mem_ext" where
+abbreviation str :: "'s \<Longrightarrow> ('a :: override, 's) mem_ext" where
 "str \<equiv> mem.more\<^sub>L"
 
 text \<open> We define an order on memory by lifting of the containment order on finite functions. \<close>

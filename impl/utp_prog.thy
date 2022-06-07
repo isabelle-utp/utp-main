@@ -1,10 +1,10 @@
-section {* Imperative Programs *}
+section \<open> Imperative Programs \<close>
   
 theory utp_prog
-  imports "UTP-Designs.utp_designs" "UTP-Memory.utp_memory"
+  imports "UTP1-Designs.utp_designs" "UTP1-Memory.utp_memory"
 begin recall_syntax
   
-subsection {* Program Type *}
+subsection \<open> Program Type \<close>
   
 typedef '\<alpha> prog = "{P :: '\<alpha> hrel_des. P is \<^bold>N}"
   by (rule_tac x="\<bottom>\<^sub>D" in exI, simp add: closure)
@@ -44,7 +44,7 @@ lemma Rep_prog_eq [prog_rep_eq]:
 
 method ptransfer = (simp add: prog_rep_eq)
     
-subsection {* Operators *}
+subsection \<open> Operators \<close>
   
 instantiation prog :: (type) lattice
 begin
@@ -98,7 +98,7 @@ declare piterate.rep_eq [prog_rep_eq]
 declare piterate_list.rep_eq [prog_rep_eq]
 declare plocal.rep_eq [prog_rep_eq]
   
-subsection {* Syntax Translations *}
+subsection \<open> Syntax Translations \<close>
     
 adhoc_overloading
   useq pseq and
@@ -113,8 +113,8 @@ no_adhoc_overloading
   useq seqr
 
 translations
-  "_assignment xs vs" => "CONST passigns (_mk_usubst (CONST id) xs vs)"
-  "x := v" <= "CONST passigns (CONST subst_upd (CONST id) (CONST pr_var x) v)"
+  "_assignment xs vs" => "CONST passigns (_mk_usubst id\<^sub>s xs vs)"
+  "x := v" <= "CONST passigns (CONST subst_upd id\<^sub>s (CONST pr_var x) v)"
   "_altgcomm (_gcomm_show cs)" <= "CONST ualtern_list cs (CONST abort)"
   
 no_translations
@@ -124,7 +124,7 @@ no_translations
 translations
   "var x :: 'a \<bullet> P" == "CONST plocal TYPE('a) (\<lambda> x. P)"
   
-subsection {* Proof Tactics *}
+subsection \<open> Proof Tactics \<close>
   
 method pauto   = ((simp add: prog_defs)?, ptransfer, rel_auto)
 method prefine = ((simp add: prog_defs)?, ptransfer, ndes_refine)
@@ -133,7 +133,7 @@ method peq     = ((simp add: prog_defs)?, ptransfer, ndes_eq)
 method prefine' = ((simp add: prog_defs)?, transfer, ndes_refine)
 method peq'     = ((simp add: prog_defs)?, transfer, ndes_eq)
 
-subsection {* Substitution Laws *}
+subsection \<open> Substitution Laws \<close>
   
 lemma psubst_seq [usubst]:
   "\<sigma> \<dagger> (P ;; Q) = (\<sigma> \<dagger> P) ;; Q"
@@ -148,7 +148,7 @@ lemma psubst_binary_altern [usubst]:
   shows "\<sigma> \<dagger> (if b \<rightarrow> P else Q fi) = (if (\<sigma> \<dagger> b) \<rightarrow> (\<sigma> \<dagger> P) else (\<sigma> \<dagger> Q) fi)"
   by (pauto)
     
-subsection {* Laws of Programming *}
+subsection \<open> Laws of Programming \<close>
   
 theorem skip_left_unit [simp]:
   "skip ;; P = P"

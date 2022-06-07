@@ -33,7 +33,7 @@ lemma allocation_noninterfering_global:
   apply (rename_tac ok hp st ok' l)
   apply (rule_tac x="hp" in exI)
   apply (rule_tac x="0(l \<mapsto> to_nat_bij (\<lbrakk>e\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> st l)))\<^sub>f" in exI)
-  apply (auto simp add: compat_ffun_def)
+  apply (simp add: ffun_indep_compat)
   done
 
 lemma mutation_local: "{e \<^bold>\<mapsto> -} *e := v {e \<^bold>\<mapsto> v}\<^sub>D"
@@ -44,8 +44,8 @@ lemma mutation_global: "{p \<^bold>* e \<^bold>\<mapsto> -} *e := v {p \<^bold>*
   apply (rename_tac st ok' a b x)
   apply (rule_tac x="a" in exI)
   apply (rule_tac x="b(\<lbrakk>e\<rbrakk>\<^sub>e st \<mapsto> to_nat_bij (\<lbrakk>v\<rbrakk>\<^sub>e st))\<^sub>f" in exI)
-  apply (simp add: compat_ffun_def)
-  done
+  apply (auto simp add: compatible_ffun_def compatible_pfun_def)
+  oops
 
 lemma deallocation_local:
   "{e \<^bold>\<mapsto> -} dealloc(e) {emp}\<^sub>D"
@@ -56,9 +56,8 @@ lemma deallocation_global:
   apply (rel_simp)
   apply (rename_tac ok st ok' a b x)
   apply (subgoal_tac "fdom(a) \<lhd>\<^sub>f b = fdom(a) \<lhd>\<^sub>f (fdom(b) \<lhd>\<^sub>f b)")
-   apply (simp add: compat_ffun_def)
-  apply (fastforce)
-  done
+   apply (simp add: compatible_ffun_def)
+  oops
 
 lemma lookup_global:
   "\<lbrakk> vwb_lens x; x \<sharp> e; x \<sharp> v; str:x \<sharp> r \<rbrakk> \<Longrightarrow> 

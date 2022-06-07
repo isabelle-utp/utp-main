@@ -3,7 +3,7 @@ section \<open> Stack-based Local Variables \<close>
 theory utp_mem_stack
   imports 
     Injection_Universe
-    "UTP-Designs.utp_designs" "UTP.utp_full"
+    "UTP1-Designs.utp_designs" "UTP1.utp_full"
 begin recall_syntax
       
 subsection \<open> Preliminaries \<close>
@@ -102,10 +102,10 @@ begin
     of variables on the stack. \<close>
   
   definition top_var :: "('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("top\<^sub>v") where
-  "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1)\<^sub>a"
+  "top_var = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(U(length(&\<^bold>s:store) - 1))\<^sub>a"
 
   definition ind_var :: "nat \<Rightarrow> ('a \<Longrightarrow> ('u, 'b) local_scheme, '\<alpha>) uexpr" ("[_]\<^sub>v") where
-  "ind_var n = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(#\<^sub>u(&\<^bold>s:store) - 1 - \<guillemotleft>n\<guillemotright>)\<^sub>a"
+  "ind_var n = \<guillemotleft>\<lambda> l. to_univ_lens ;\<^sub>L list_lens l ;\<^sub>L store\<guillemotright>(U(length(&\<^bold>s:store) - 1 - \<guillemotleft>n\<guillemotright>))\<^sub>a"
 
 
   text \<open> Finally, we combine the above operators to represent variable scope. This is a kind of

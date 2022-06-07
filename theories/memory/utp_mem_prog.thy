@@ -14,7 +14,7 @@ definition
   ("_ := alloc'(_')" [74,0] 75) 
   where [upred_defs, ndes_simp]: 
     "x := alloc(e) = 
-     (true \<turnstile>\<^sub>n (\<Sqinter> l \<bullet> ?[\<guillemotleft>l\<guillemotright> \<notin> udom(hp)] ;; str:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&str:x \<mapsto> uop to_nat_bij (e \<oplus>\<^sub>p str))\<^sub>u))"
+     (true \<turnstile>\<^sub>n (\<Sqinter> l \<bullet> ?[\<guillemotleft>l\<guillemotright> \<notin> dom(hp)] ;; str:x := \<guillemotleft>l\<guillemotright> ;; hp := &hp(&str:x \<mapsto> uop to_nat_bij (e \<oplus>\<^sub>p str))\<^sub>u))"
 
 text \<open> Heap lookup retrieves data from the heap and places it into a store variable. If the memory
   location $l$ is unallocated then an abort is the result. \<close>

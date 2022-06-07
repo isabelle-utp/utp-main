@@ -1,10 +1,10 @@
-subsection {* Refinement Calculus *}
+subsection \<open> Refinement Calculus \<close>
 
 theory utp_rcalc
   imports utp_prog
 begin
 
-subsection {* Operators *}
+subsection \<open> Operators \<close>
   
 lift_definition spec :: "('a \<Longrightarrow> '\<alpha>) \<Rightarrow> '\<alpha> upred \<Rightarrow> ('\<alpha> \<Rightarrow> '\<alpha> upred) \<Rightarrow> '\<alpha> prog"
 is "\<lambda> x p q. (\<Squnion> v \<bullet> ((p \<and> &\<^bold>v =\<^sub>u \<guillemotleft>v\<guillemotright>) \<turnstile>\<^sub>n x:[\<lceil>q(v)\<rceil>\<^sub>>]))"
@@ -16,7 +16,7 @@ is "\<lambda> t P. \<Squnion> i \<bullet> P i" by (simp add: closure)
 declare spec.rep_eq [prog_rep_eq]
 declare log_const.rep_eq [prog_rep_eq]
   
-subsection {* Syntax Translations *}
+subsection \<open> Syntax Translations \<close>
   
 syntax
   "_spec"      :: "salpha \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("_:[_,/ _]" [99,0,0] 100)
@@ -39,7 +39,7 @@ abbreviation passume :: "'\<alpha> upred \<Rightarrow> '\<alpha> prog" ("{_}\<^s
 abbreviation passert :: "'\<alpha> upred \<Rightarrow> '\<alpha> prog" ("[_]\<^sub>p") where
 "[b]\<^sub>p \<equiv> \<emptyset>:[true, b]"
 
-subsection {* Refinement Laws *}
+subsection \<open> Refinement Laws \<close>
   
 lemma spec_abort:
   "x:[false,post] = abort"
@@ -120,8 +120,8 @@ proof -
     apply (rel_auto)+
   done
   finally show ?thesis
-    by (ptransfer, simp add: usubst)
-qed
+    apply (ptransfer, simp add: usubst)
+    oops
 
 lemma rc_iterate_single:
   fixes V :: "(nat, 'a) uexpr"

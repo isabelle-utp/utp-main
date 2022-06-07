@@ -6,16 +6,19 @@ begin
 
 subsection \<open> Operators \<close>
 
-definition empty_heap :: "('h :: pam, 's) spred" ("emp") where 
+definition empty_heap :: "('h :: override, 's) spred" ("emp") where 
 [upred_defs]: "emp = U(&hp = 0)"
 
-definition sep_conj :: "('h :: sep_alg, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "\<^bold>*" 35) where
-[upred_defs]: "(P \<^bold>* Q) = (\<^bold>\<exists> (h\<^sub>0, h\<^sub>1) \<bullet> \<guillemotleft>h\<^sub>0 ## h\<^sub>1\<guillemotright> \<and> &hp =\<^sub>u \<guillemotleft>h\<^sub>0 + h\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>h\<^sub>1\<guillemotright>/&hp\<rbrakk>)"
+definition sep_conj :: "('h :: override, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "\<^bold>*" 35) where
+[upred_defs]: "(P \<^bold>* Q) = (\<^bold>\<exists> (h\<^sub>0, h\<^sub>1) \<bullet> \<guillemotleft>h\<^sub>0 ## h\<^sub>1\<guillemotright> \<and> &hp =\<^sub>u \<guillemotleft>h\<^sub>0 \<oplus> h\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>h\<^sub>1\<guillemotright>/&hp\<rbrakk>)"
 
-definition sep_impl :: "('h :: sep_alg, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "-\<^bold>*" 25) where
-[upred_defs]: "(P -\<^bold>* Q) = (\<^bold>\<forall> h\<^sub>0 \<bullet> \<guillemotleft>h\<^sub>0\<guillemotright> ##\<^sub>u &hp \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<Rightarrow> Q\<lbrakk>(&hp + \<guillemotleft>h\<^sub>0\<guillemotright>)/&hp\<rbrakk>)"
+definition sep_impl :: "('h :: override, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "-\<^bold>*" 25) where
+[upred_defs]: "(P -\<^bold>* Q) = (\<^bold>\<forall> h\<^sub>0 \<bullet> \<guillemotleft>h\<^sub>0\<guillemotright> ##\<^sub>u &hp \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<Rightarrow> Q\<lbrakk>U(&hp \<oplus> \<guillemotleft>h\<^sub>0\<guillemotright>)/&hp\<rbrakk>)"
 
 subsection \<open> Algebraic Properties \<close>
+
+lemma (in override) compatible_zero' [simp]: "0 ## x"
+  by (simp add: local.compatible_sym)
 
 lemma sep_conj_unit: 
   "(emp \<^bold>* P) = P" "(P \<^bold>* emp) = P"
@@ -26,10 +29,11 @@ lemma sep_conj_false [simp] :
   by (rel_simp)+
 
 lemma sep_conj_comm: "(P \<^bold>* Q) = (Q \<^bold>* P)"
-  using compat_comm plus_pcomm by (rel_blast)
+  using compatible_sym override_comm by rel_blast
 
 lemma sep_conj_assoc: "((P \<^bold>* Q) \<^bold>* R) = (P \<^bold>* (Q \<^bold>* R))"
-  by (rel_auto, (metis compat_property plus_passoc)+)
+  by (rel_auto)
+     (metis compatible_sym override_assoc override_compat_iff)+
 
 lemma sep_conj_or_distl: "((P \<or> Q) \<^bold>* R) = ((P \<^bold>* R) \<or> (Q \<^bold>* R))"
   by (rel_auto)
