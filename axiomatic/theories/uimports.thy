@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Jan 2016 *)
 
-section {* Imported Theories *}
+section \<open> Imported Theories \<close>
 
 theory uimports
 imports Main HOL.Real

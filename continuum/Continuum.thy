@@ -6,8 +6,8 @@ theory Continuum
     Finite_Bijection
     HOL.Transcendental
     Real_Bit
-    "UTP-Toolkit.Countable_Set_Extra"
-    "UTP-Toolkit.Positive"
+    "Z_Toolkit.Countable_Set_Extra"
+    "Z_Toolkit.Positive"
 begin
 
 subsection \<open> Cardinality $\mathfrak{c}$ \<close>

@@ -1,7 +1,7 @@
 section \<open> Refinement of Abstract Machines \<close>
 
 theory refinement
-    imports "UTP.utp_full"
+    imports "UTP1.utp_full"
 begin
 
 subsection \<open> Abstract Machines \<close>
@@ -108,7 +108,7 @@ begin
   lemma refine_lemma: "?[Inv\<^sub>A] ;; Body\<^sub>A \<sqsubseteq> \<R> ;; ?[Inv\<^sub>C] ;; Body\<^sub>C ;; \<R>\<^sup>-"
   proof -
     have 1:"?[Inv\<^sub>A] ;; Body\<^sub>A \<sqsubseteq> ?[Inv\<^sub>A] ;; \<R> ;; \<R>\<^sup>- ;; Body\<^sub>A"
-      by (metis (no_types, hide_lams) RA1 order_refl retrieve_surj seqr_mono upred_semiring.mult.left_neutral)
+      by (metis (no_types, opaque_lifting) RA1 order_refl retrieve_surj seqr_mono upred_semiring.mult.left_neutral)
     have 2:"?[Inv\<^sub>A] ;; \<R> ;; \<R>\<^sup>- ;; Body\<^sub>A \<sqsubseteq> (?[Inv\<^sub>A] ;; \<R> ;; ?[Inv\<^sub>C]) ;; \<R>\<^sup>- ;; Body\<^sub>A"
       by (rel_auto)
     have 3: "(?[Inv\<^sub>A] ;; \<R> ;; ?[Inv\<^sub>C]) ;; \<R>\<^sup>- ;; Body\<^sub>A = \<R> ;; ?[Inv\<^sub>C] ;; \<R>\<^sup>- ;; Body\<^sub>A"

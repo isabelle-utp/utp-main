@@ -9,7 +9,7 @@
 section {* String Literals *}
 
 theory Strings
-imports "UTP-Toolkit.Infinity" Normalise
+imports "Z_Toolkit.Infinity" Normalise
   "HOL-Library.Countable"
   "HOL-Library.Char_ord"
 begin

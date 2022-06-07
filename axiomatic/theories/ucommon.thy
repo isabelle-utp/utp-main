@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Jan 2016 *)
 
-section {* Common Definitions *}
+section \<open> Common Definitions \<close>
 
 theory ucommon
 imports uimports document
@@ -21,60 +21,60 @@ imports uimports document
   "utils/Typerep_ind"
   (* Provided by the UTP-Toolkit heap. *)
   "Optics.Lenses"
-  "UTP-Toolkit.Infinity"
+  "Z_Toolkit.Infinity"
 begin
 
-text {* ML Utility Functions *}
+text \<open> ML Utility Functions \<close>
 
 ML_file "utils/Pure_Utils.ML"
 
-subsection {* Configuration *}
+subsection \<open> Configuration \<close>
 
 default_sort type
 
 declare [[ML_print_depth = 100]]
 
-text {* The following prevents the simplifier from splitting pairs by default. *}
+text \<open> The following prevents the simplifier from splitting pairs by default. \<close>
 
 declare split_paired_All [simp del]
 declare split_paired_Ex [simp del]
 
-setup {* map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") *}
+setup \<open> map_theory_claset (fn ctxt => ctxt delSWrapper "split_all_tac") \<close>
 
-subsection {* Notation and Syntax *}
+subsection \<open> Notation and Syntax \<close>
 
-text {* We are going to use the colon for model typing. *}
+text \<open> We are going to use the colon for model typing. \<close>
 
 no_notation
   Set.member ("op :") and
   Set.member ("(_/ : _)" [51, 51] 50)
 
-text {* We are going to use the floor brackets for names. *}
+text \<open> We are going to use the floor brackets for names. \<close>
 
 no_notation floor ("\<lfloor>_\<rfloor>")
 
-text {* We are going to use the converse symbol for undashing. *}
+text \<open> We are going to use the converse symbol for undashing. \<close>
 
 no_notation
   converse  ("(_\<inverse>)" [1000] 999)
 
-subsection {* Types from Terms *}
+subsection \<open> Types from Terms \<close>
 
-text {*
+text \<open>
   The following function constructs an element of type (@{typ "'a itself"})
   from a term of type @{typ "'a"}. It mirrors the @{term "TYPE('a)"} syntax
   albeit applying to a term rather than a HOL type. For example, we can write
   @{text "TYPE_TERM(1::nat)"} with the same meaning as @{term "TYPE(nat)"}.
-*}
+\<close>
 
 definition type_of_term :: "'a \<Rightarrow> 'a itself" where
 "type_of_term (x::'a) = TYPE('a)"
 
 notation type_of_term ("TERM'_TYPE'(_')")
 
-subsection {* Uncurrying *}
+subsection \<open> Uncurrying \<close>
 
-text {* Isabelle provides a currying operator but none for uncurrying. *}
+text \<open> Isabelle provides a currying operator but none for uncurrying. \<close>
 
 definition uncurry :: "('a \<Rightarrow> 'b \<Rightarrow> 'c) \<Rightarrow> ('a \<times> 'b \<Rightarrow> 'c)" where
 "uncurry = (\<lambda> f p . f (fst p) (snd p))"
@@ -94,20 +94,20 @@ theorem curry_inverse [simp]:
 apply (metis case_prod_curry uncurry_inverse)
 done
 
-subsection {* Function Override *}
+subsection \<open> Function Override \<close>
 
-text {* We first introduce a neater syntax for function override. *}
+text \<open> We first introduce a neater syntax for function override. \<close>
 
 notation override_on ("_ \<oplus> _ on _" [56, 56, 51] 55)
 
-paragraph {* Override Tactic *}
+paragraph \<open> Override Tactic \<close>
 
 method override_on_tac =
   (unfold override_on_def fun_eq_iff, auto)[1]
 
-paragraph {* Override Theorems *}
+paragraph \<open> Override Theorems \<close>
 
-text_raw {* \label{sec:override_laws} *}
+text_raw \<open> \label{sec:override_laws} \<close>
 
 lemma override_on_eq:
 "f\<^sub>1 \<oplus> g\<^sub>1 on a\<^sub>1 = f\<^sub>2 \<oplus> g\<^sub>2 on a\<^sub>2 \<longleftrightarrow>
@@ -118,10 +118,10 @@ lemma override_on_eq:
 apply (override_on_tac)
 done
 
-text {*
+text \<open>
   A similar theorem @{thm [source] override_on_emptyset} is already a default
   simplification.
-*}
+\<close>
 
 theorem override_on_empty (*[simp]*):
 "f \<oplus> g on {} = f"
@@ -183,7 +183,7 @@ apply (simp_all)
 apply (auto)
 done
 
-subsection {* Involutions *}
+subsection \<open> Involutions \<close>
 
 locale invol =
   fixes f :: "'a \<Rightarrow> 'a"
@@ -215,7 +215,7 @@ apply (rule invol_surj)
 done
 end
 
-subsection {* Generic Transfer *}
+subsection \<open> Generic Transfer \<close>
 
 theorem inj_on_transfer_eq:
 "inj_on f S \<Longrightarrow>
@@ -230,7 +230,7 @@ theorem inj_on_transfer_eqI:
 apply (simp add: inj_on_transfer_eq)
 done
 
-subsection {* Miscellaneous *}
+subsection \<open> Miscellaneous \<close>
 
 lemmas asmE = rev_mp
 end
