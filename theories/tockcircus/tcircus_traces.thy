@@ -1,7 +1,7 @@
 section \<open> Timed Traces \<close>
 
 theory tcircus_traces
-  imports "UTP-Reactive-Designs.utp_rea_designs" "../rcircus/Refusal_Tests"
+  imports "UTP1-Reactive-Designs.utp_rea_designs" "../rcircus/Refusal_Tests"
 begin recall_syntax
 
 subsection \<open> Events and Traces \<close>
@@ -121,7 +121,7 @@ lemma tock_power_in_tocks: "[Tock A]^n \<in> tocks A"
 lemma tocks_ord_closed:
   "\<lbrakk> t\<^sub>1 \<in> tocks A; t\<^sub>2 \<subseteq>\<^sub>t t\<^sub>1 \<rbrakk> \<Longrightarrow> t\<^sub>2 \<in> tocks A"
   by (auto simp add: tocks_def tock_ord_def in_set_conv_nth)
-     (metis (no_types, hide_lams) nth_mem subset_trans tev.inject(1))
+     (metis (no_types, opaque_lifting) nth_mem subset_trans tev.inject(1))
 
 lemma tock_ord_Evt: "x \<subseteq>\<^sub>t Evt e # y \<Longrightarrow> (\<exists> t. x = Evt e # t \<and> t \<subseteq>\<^sub>t y)"
   apply (simp add: tock_ord_def)

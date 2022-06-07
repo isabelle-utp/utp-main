@@ -1,7 +1,7 @@
 section \<open> Semantic Model for Stateful-Failures \<close>
 
 theory utp_action_circus
-  imports "UTP-Stateful-Failures.utp_sf_rdes" utp_action_language
+  imports "UTP1-Stateful-Failures.utp_sf_rdes" utp_action_language
 begin
 
 fun sfrd_sem :: "('s, 'e) Action \<Rightarrow> ('s, 'e) action" ("\<lbrakk>_\<rbrakk>\<^sub>C") where

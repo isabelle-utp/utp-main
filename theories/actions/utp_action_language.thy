@@ -1,7 +1,7 @@
 section \<open> Action Language \<close>
 
 theory utp_action_language
-  imports "UTP.utp"
+  imports "UTP1.utp"
 begin
 
 subsection \<open> Action Syntax \<close>
@@ -28,31 +28,31 @@ record ('s, 'e) Event =
   ev_update :: "'e \<Rightarrow> 's usubst"
 
 datatype ('s, 'e) Action = 
-  -- {* The deadlock action *}
+  \<comment> \<open> The deadlock action \<close>
   stop |
 
-  -- {* Generalised assignment that applies a state transformation *}
+  \<comment> \<open> Generalised assignment that applies a state transformation \<close>
   assigns "'s usubst" |
 
-  -- {* Generalised event; takes an event predicate $P$ that can refer to state variables, and
+  \<comment> \<open> Generalised event; takes an event predicate $P$ that can refer to state variables, and
     a substitution $\sigma$ parametrised by events. The assumed semantics of this is that any 
     event $e$ satisfying $P$ can be accepted, and when it is the state update $\sigma(e)$ is 
-    executed. *}
+    executed. \<close>
   event "('s, 'e) Event" |
 
-  -- {* Sequential composition *}
+  \<comment> \<open> Sequential composition \<close>
   seq "('s, 'e) Action" "('s, 'e) Action" |
 
-  -- {* If-then-else conditional *}
+  \<comment> \<open> If-then-else conditional \<close>
   ifthenelse "'s upred" "('s, 'e) Action" "('s, 'e) Action" ("if _ then _ else _ end") |
 
-  -- {* Internal choice *}
+  \<comment> \<open> Internal choice \<close>
   intchoice "('s, 'e) Action" "('s, 'e) Action" |
 
-  -- {* External choice *}
+  \<comment> \<open> External choice \<close>
   extchoice "('s, 'e) Action" "('s, 'e) Action" |
 
-  -- {* Guard *}
+  \<comment> \<open> Guard \<close>
   guard "'s upred" "('s, 'e) Action"
 
 text \<open> A process is just an action without an unit state-space, since state updates are not

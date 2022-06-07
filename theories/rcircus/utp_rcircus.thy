@@ -1,7 +1,7 @@
 section \<open> Experiment in creating Circus with a Refusal Testing Semantics \<close>
 
 theory utp_rcircus
-  imports Refusal_Tests "UTP-Reactive-Designs.utp_rea_designs"
+  imports Refusal_Tests "UTP1-Reactive-Designs.utp_rea_designs"
 begin
 
 recall_syntax
@@ -125,7 +125,7 @@ lemma unrest_any_circus_var_st:
 subsection \<open> Basic Actions \<close>
 
 
-lemma rref_closure_1 [closure]: "($tr\<acute> =\<^sub>u $tr \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<bullet>\<guillemotright>) is RR"
+lemma rref_closure_1 [closure]: "($tr\<acute> =\<^sub>u $tr \<and> $rref\<acute> =\<^sub>u \<guillemotleft>\<^bold>\<bullet>\<guillemotright>) is RR"
   apply (rel_auto)
   by (simp add: zero_list_def)
 
@@ -139,18 +139,18 @@ lemma rref_closure_3 [closure]: "($tr\<acute> =\<^sub>u $tr \<and> \<lceil>a\<rc
 lemma rref_closure_4 [closure]: "(\<^bold>\<exists> e \<bullet> U($tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st)) is RR"
   by (rel_auto)
 
-lemma rref_closure_5 [closure]: "(\<^bold>\<exists> e \<bullet> U($tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<guillemotleft>\<bullet>\<guillemotright>)) is RR"
+lemma rref_closure_5 [closure]: "(\<^bold>\<exists> e \<bullet> U($tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<guillemotleft>\<^bold>\<bullet>\<guillemotright>)) is RR"
   by (rel_auto)
 
 definition Stop :: "('s, 'e) raction" where
 [upred_defs, rdes_def]: "Stop = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> ($tr\<acute> =\<^sub>u $tr) \<diamondop> false)"
 
 definition Skip :: "('s, 'e) raction" where
-[upred_defs, rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $rref\<acute> = \<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> $st\<acute> = $st))"
+[upred_defs, rdes_def]: "Skip = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> U($tr\<acute> = $tr \<and> $rref\<acute> = \<^bold>\<bullet>) \<diamondop> U($tr\<acute> = $tr \<and> $st\<acute> = $st))"
 
 definition Do :: "('e, 's) uexpr \<Rightarrow> ('s, 'e) raction" where
 [upred_defs, rdes_def]: 
-"Do(a) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (U($tr\<acute> = $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sup>\<R> $rref\<acute>) \<or> U(\<exists> e. $tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<bullet>))
+"Do(a) = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> (U($tr\<acute> = $tr \<and> \<lceil>a\<rceil>\<^sub>S\<^sub>< \<notin>\<^sup>\<R> $rref\<acute>) \<or> U(\<exists> e. $tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $rref\<acute> = \<^bold>\<bullet>))
                   \<diamondop> U(\<exists> e. $tr\<acute> = $tr @ [\<guillemotleft>e\<guillemotright>] \<and> \<guillemotleft>revent(e)\<guillemotright> = \<lceil>a\<rceil>\<^sub>S\<^sub>< \<and> $st\<acute> = $st))"
 
 lemma "Skip ;; Stop = Stop"
@@ -176,8 +176,8 @@ lemma "Stop ;; Do(a) = Stop"
 term UINF
 
 definition ResolveR :: "'a set \<Rightarrow> ('a \<Rightarrow> ('s, 'e) raction) \<Rightarrow> ('a \<Rightarrow> ('s, 'e) raction) \<Rightarrow> ('s, 'e) raction" where
-"ResolveR A P Q = (\<^bold>\<exists> (e, t) \<bullet> (\<Or> i\<in>A \<bullet> ((P i)\<lbrakk>\<langle>\<rangle>,(\<langle>\<guillemotleft>e\<guillemotright>\<rangle>^\<^sub>u\<guillemotleft>t\<guillemotright>)/$tr,$tr\<acute>\<rbrakk>)) 
-                          \<and> (\<And> i\<in>A \<bullet> ((Q i)\<lbrakk>\<langle>\<rangle>,\<langle>\<rangle>,\<guillemotleft>rrefusal(e)\<guillemotright>/$tr,$tr\<acute>,$rref\<acute>\<rbrakk>))
+"ResolveR A P Q = (\<^bold>\<exists> (e, t) \<bullet> (\<Or> i\<in>A \<bullet> ((P i)\<lbrakk>U([]),U([\<guillemotleft>e\<guillemotright>]@\<guillemotleft>t\<guillemotright>)/$tr,$tr\<acute>\<rbrakk>)) 
+                          \<and> (\<And> i\<in>A \<bullet> ((Q i)\<lbrakk>U([]),U([]),U(\<guillemotleft>rrefusal(e)\<guillemotright>)/$tr,$tr\<acute>,$rref\<acute>\<rbrakk>))
                           \<and> $tr\<acute> =\<^sub>u $tr ^\<^sub>u \<guillemotleft>t\<guillemotright>)"
 
 syntax

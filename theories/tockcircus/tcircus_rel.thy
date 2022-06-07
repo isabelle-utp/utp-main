@@ -103,7 +103,7 @@ lemma TRR_unrest_ref [unrest]: "P is TRR \<Longrightarrow> $ref \<sharp> P"
   by (metis (no_types, lifting) Healthy_if TRR_alt_def exists_twice in_var_indep in_var_uvar ref_vwb_lens tc_vars.indeps(2) unrest_as_exists unrest_ex_diff vwb_lens_mwb)
 
 lemma TRR_unrest_pat [unrest]: "P is TRR \<Longrightarrow> $pat \<sharp> P"
-  by (metis (no_types, hide_lams) Healthy_if TRR_alt_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
+  by (metis (no_types, opaque_lifting) Healthy_if TRR_alt_def exists_twice in_var_uvar pat_vwb_lens unrest_as_exists vwb_lens_mwb)
 
 lemma TRR_implies_RR [closure]: 
   assumes "P is TRR"
@@ -125,7 +125,7 @@ proof -
   have "TRC(P) is TRR"
     apply (rel_auto)
     apply (meson eq_iff minus_cancel_le)
-    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix plus_list_def trace_class.add_diff_cancel_left)
+    apply (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix plus_list_def trace_class.add_diff_cancel_left)
     done
   thus ?thesis
     by (simp add: Healthy_if assms)
@@ -145,7 +145,7 @@ lemma TRC_implies_RC [closure]: "P is TRC \<Longrightarrow> P is RC"
   by (simp add: RC_intro_prefix_closed TRC_implies_RC2 TRC_implies_TRR TRR_implies_RR)
 
 lemma TRR_closed_TRC [closure]: "TRC(P) is TRR"
-  by (metis (no_types, hide_lams) Healthy_Idempotent Healthy_if RC1_RR_closed RC_def TRC_def TRR_Idempotent TRR_def comp_apply rrel_theory.HCond_Idempotent)
+  by (metis (no_types, opaque_lifting) Healthy_Idempotent Healthy_if RC1_RR_closed RC_def TRC_def TRR_Idempotent TRR_def comp_apply rrel_theory.HCond_Idempotent)
 
 lemma tc_skip_self_unit [simp]: "II\<^sub>t ;; II\<^sub>t = II\<^sub>t"
   by (rel_auto)
@@ -154,7 +154,7 @@ lemma TRR_tc_skip [closure]: "II\<^sub>t is TRR"
   by (rel_auto)
 
 lemma TRF_implies_TRR3 [closure]: "P is TRF \<Longrightarrow> P is TRR3"
-  by (metis (no_types, hide_lams) Healthy_def RA1 TRF_def TRR3_def tc_skip_self_unit)
+  by (metis (no_types, opaque_lifting) Healthy_def RA1 TRF_def TRR3_def tc_skip_self_unit)
 
 lemma TRR_closed_seq [closure]: "\<lbrakk> P is TRR; Q is TRR \<rbrakk> \<Longrightarrow> P ;; Q is TRR"
   by (rule TRR_intro, simp_all add: closure unrest)
@@ -295,7 +295,7 @@ lemma TRR_RC2_closed [closure]:
 proof -
   have "RC2(TRR(P)) is TRR"
     by (rel_auto)
-       (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc plus_list_def trace_class.add_diff_cancel_left)+
+       (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI append.assoc plus_list_def trace_class.add_diff_cancel_left)+
   thus ?thesis
     by (simp add: Healthy_if assms)
 qed
@@ -333,7 +333,7 @@ lemma TRC_wp_intro:
 proof -
   have "II\<^sub>t wp\<^sub>r (RC2 (RR P)) is TRC"
     apply (rel_auto)
-    apply (metis (no_types, hide_lams) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix order_refl plus_list_def trace_class.add_diff_cancel_left)
+    apply (metis (no_types, opaque_lifting) Prefix_Order.prefixE Prefix_Order.prefixI Prefix_Order.same_prefix_prefix order_refl plus_list_def trace_class.add_diff_cancel_left)
     apply (meson minus_cancel_le order.trans)
     done
   thus ?thesis

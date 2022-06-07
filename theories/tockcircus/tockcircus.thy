@@ -29,7 +29,7 @@ lemma TC2_idem: "TC2(TC2(P)) = TC2(P)"
 definition [upred_defs]: "TC = NRD \<circ> TC2 \<circ> TC1" 
 
 lemma TC_implies_NRD [closure]: "P is TC \<Longrightarrow> P is NRD"
-  by (metis (no_types, hide_lams) Healthy_def TC_def NRD_idem comp_apply)
+  by (metis (no_types, opaque_lifting) Healthy_def TC_def NRD_idem comp_apply)
 
 lemma NRD_rdes [rdes_def]:
   assumes "P is RC" "Q is RR" "R is RR"
@@ -86,9 +86,9 @@ lemma TC_closed_seqr [closure]:
   shows "P ;; Q is TC"
 proof -
   have "P ;; Q is TC1"
-    by (metis (no_types, hide_lams) Healthy_def RA1 TC1_def TC_implies_TC1 assms(1))
+    by (metis (no_types, opaque_lifting) Healthy_def RA1 TC1_def TC_implies_TC1 assms(1))
   moreover have "P ;; Q is TC2"
-    by (metis (no_types, hide_lams) Healthy_def RA1 TC2_def TC_implies_TC2 assms(2))
+    by (metis (no_types, opaque_lifting) Healthy_def RA1 TC2_def TC_implies_TC2 assms(2))
   ultimately show ?thesis
     by (metis Healthy_comp NRD_seqr_closure TC_def TC_implies_NRD assms(1) assms(2))
 qed
@@ -131,7 +131,7 @@ proof -
   have "peri\<^sub>R(P) = (pre\<^sub>R(P) \<Rightarrow>\<^sub>r (peri\<^sub>R P \<or> post\<^sub>R P ;; \<U>(true, [])))"
     by (subst 3, simp add: rdes closure)  
   thus "peri\<^sub>R P \<sqsubseteq> post\<^sub>R P ;; \<U>(true, [])"
-    by (metis (no_types, hide_lams) rea_impl_disj utp_pred_laws.sup.cobounded1 utp_pred_laws.sup_commute) 
+    by (metis (no_types, opaque_lifting) rea_impl_disj utp_pred_laws.sup.cobounded1 utp_pred_laws.sup_commute) 
 qed
 
 lemma TC_elim [RD_elim]: "P is TC \<Longrightarrow> Q (\<^bold>R (pre\<^sub>R P \<turnstile> peri\<^sub>R P \<diamondop> post\<^sub>R P)) \<Longrightarrow> Q P"
