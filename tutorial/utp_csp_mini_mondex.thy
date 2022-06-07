@@ -16,7 +16,7 @@ text \<open> In the paper money is represented as a nat, here we use an int so t
   of modelling negative balances. This also eases proof as integers form an algebraic ring. \<close>
   
 alphabet st_mdx =
-  accts :: "(index, money) pfun" \<comment> \<open> Index record of each card's balance \<close>
+  accts :: "index \<Zpfun> money" \<comment> \<open> Index record of each card's balance \<close>
   
 chantype ch_mdx = 
   pay :: "index \<times> index \<times> money" \<comment> \<open> Request a payment between two cards \<close>
@@ -65,12 +65,8 @@ definition Cycle :: "index \<Rightarrow> action_mdx" where
 text \<open> The Mondex action is a sample setup. It requires creates $cardNum$ cards each with 100 units
   present. \<close>
 
-term ffun_entries
-
-term "trop pfun_entries {0..10}\<^sub>u \<guillemotleft>\<lambda> x. True\<guillemotright>"
-
 definition Mondex :: "index \<Rightarrow> action_mdx" where
-"Mondex(cardNum) = (accts :=\<^sub>C entr\<^sub>u({0..10}\<^sub>u, \<lambda>\<^sub>u x \<bullet> true, \<lambda> x. 100) ;; Cycle(cardNum))"
+"Mondex(cardNum) = (accts :=\<^sub>C entr\<^sub>u({0..10}\<^sub>u, \<lambda> x. 100) ;; Cycle(cardNum))"
 
 subsection \<open> Pre/peri/post calculations \<close>
 
@@ -208,7 +204,6 @@ theorem no_overdrafts:
   apply (rel_auto)
   apply (rel_auto)
   apply (rel_simp)
-  apply (metis diff_ge_0_iff_ge dual_order.trans le_add_same_cancel2 less_le not_le pfun_app_upd_1 pfun_app_upd_2)
 done
   
 text \<open> The next property shows liveness of transfers. If a payment is accepted, and we have enough

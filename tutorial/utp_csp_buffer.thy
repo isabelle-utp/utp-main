@@ -1,7 +1,7 @@
 section \<open> Simple Buffer in UTP CSP \<close>
 
 theory utp_csp_buffer
-  imports "UTP-Circus.utp_circus_easy_parser"
+  imports "UTP1-Circus.utp_circus_easy_parser"
 begin
 
 subsection \<open> Definitions \<close>
@@ -61,16 +61,16 @@ lemma Init_contract:
 
 lemma DoBuff_contract:
   "DoBuff = \<^bold>R\<^sub>s (true\<^sub>r \<turnstile>
-                \<E>(true, \<guillemotleft>[]\<guillemotright>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>(hd(&buff)))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
+                \<E>(true, \<guillemotleft>[]\<guillemotright>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>(hd(&buff)))\<^sub>u}\<^sub>u \<triangleleft> U(0 < length(&buff)) \<triangleright> {}\<^sub>u)) \<diamondop>
                 ((\<Sqinter> x \<bullet> \<Phi>(true,[&buff \<mapsto>\<^sub>s buff @ [\<guillemotleft>x\<guillemotright>], val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>],U([(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u]))) \<or>
-                 \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tl(buff)], U([(outp\<cdot>(hd(&buff)))\<^sub>u]))))"
+                 \<Phi>(U(0 < length(&buff)), [&buff \<mapsto>\<^sub>s tl(buff)], U([(outp\<cdot>(hd(&buff)))\<^sub>u]))))"
   by (rdes_eq)
 
 lemma Buffer_contract:
   "Buffer = \<^bold>R\<^sub>s(true\<^sub>r \<turnstile> \<Phi>(true,[&buff \<mapsto>\<^sub>s []],\<guillemotleft>[]\<guillemotright>) ;;
                        ((\<Sqinter> x \<bullet> \<Phi>(true, [&buff \<mapsto>\<^sub>s buff @ [\<guillemotleft>x\<guillemotright>], val \<mapsto>\<^sub>s \<guillemotleft>x\<guillemotright>], U([(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u]))) \<or>
-                        \<Phi>(0 <\<^sub>u #\<^sub>u(&buff), [&buff \<mapsto>\<^sub>s tl(buff)], U([(outp\<cdot>hd(&buff))\<^sub>u])))\<^sup>\<star>\<^sup>c ;;
-                        \<E>(true,\<guillemotleft>[]\<guillemotright>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>hd(&buff))\<^sub>u}\<^sub>u \<triangleleft> 0 <\<^sub>u #\<^sub>u(&buff) \<triangleright> {}\<^sub>u)) \<diamondop>
+                        \<Phi>(U(0 < length(&buff)), [&buff \<mapsto>\<^sub>s tl(buff)], U([(outp\<cdot>hd(&buff))\<^sub>u])))\<^sup>\<star>\<^sup>c ;;
+                        \<E>(true,\<guillemotleft>[]\<guillemotright>, (\<Sqinter> x \<bullet> {(inp\<cdot>\<guillemotleft>x\<guillemotright>)\<^sub>u}\<^sub>u) \<union>\<^sub>u ({(outp\<cdot>hd(&buff))\<^sub>u}\<^sub>u \<triangleleft> U(0 < length(&buff)) \<triangleright> {}\<^sub>u)) \<diamondop>
                        false)"
   unfolding Buffer_def DoBuff_contract by (rdes_simp)
 
