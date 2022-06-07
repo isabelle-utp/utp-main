@@ -1,7 +1,7 @@
 section \<open> Action Language \<close>
 
 theory utp_action_language
-  imports "UTP1.utp"
+  imports "UTP1-Reactive.utp_reactive"
 begin
 
 subsection \<open> Action Syntax \<close>
@@ -79,19 +79,19 @@ end
 text \<open> We derive several operators from our generic constructors. \<close>
 
 definition skips :: "('s, 'e) Action" ("skip") where
-"skips = \<langle>id\<rangle>\<^sub>a"
+"skips = \<langle>id\<^sub>s\<rangle>\<^sub>a"
 
 definition assign :: "('a \<Longrightarrow> 's) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" where
 "assign x v = \<langle>[x \<mapsto>\<^sub>s v]\<rangle>\<^sub>a"
 
 definition sync :: "'e \<Rightarrow> ('s, 'e) Action" where
-"sync a = event \<lparr> ev_pred = (\<lambda> b. \<guillemotleft>a = b\<guillemotright>), ev_update = (\<lambda> x. id) \<rparr>"
+"sync a = event \<lparr> ev_pred = (\<lambda> b. \<guillemotleft>a = b\<guillemotright>), ev_update = (\<lambda> x. id\<^sub>s) \<rparr>"
 
 definition recv :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a \<Longrightarrow> 's) \<Rightarrow> ('s, 'e) Action" ("_\<^bold>?'(_')") where
 "recv c x = event \<lparr> ev_pred = (\<lambda> a. \<guillemotleft>a \<in> range c\<guillemotright>), ev_update = (\<lambda> a. [x \<mapsto>\<^sub>s \<guillemotleft>inv c a\<guillemotright>]) \<rparr>"
 
-definition send :: "('a \<Rightarrow> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')") where
-"send c v = event \<lparr> ev_pred = (\<lambda> a. \<guillemotleft>a\<guillemotright> =\<^sub>u (c\<cdot>v)\<^sub>u), ev_update = (\<lambda> a. id) \<rparr>"
+definition send :: "('a \<Longrightarrow>\<^sub>\<triangle> 'e) \<Rightarrow> ('a, 's) uexpr \<Rightarrow> ('s, 'e) Action" ("_\<^bold>!'(_')") where
+"send c v = event \<lparr> ev_pred = (\<lambda> a. \<guillemotleft>a\<guillemotright> =\<^sub>u (c\<cdot>v)\<^sub>u), ev_update = (\<lambda> a. id\<^sub>s) \<rparr>"
 
 subsection \<open> Action Syntax Parser \<close>
 

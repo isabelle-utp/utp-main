@@ -10,14 +10,14 @@ fun sfrd_sem :: "('s, 'e) Action \<Rightarrow> ('s, 'e) action" ("\<lbrakk>_\<rb
 "\<lbrakk>intchoice P Q\<rbrakk>\<^sub>C = \<lbrakk>P\<rbrakk>\<^sub>C \<sqinter> \<lbrakk>Q\<rbrakk>\<^sub>C" |
 "\<lbrakk>assigns \<sigma>\<rbrakk>\<^sub>C = \<langle>\<sigma>\<rangle>\<^sub>C" |
 "\<lbrakk>stop\<rbrakk>\<^sub>C = Stop" |
-"\<lbrakk>event E\<rbrakk>\<^sub>C = (\<box> e\<in>UNIV \<bullet> ev_pred E e &\<^sub>u do\<^sub>C(\<guillemotleft>e\<guillemotright>) ;; \<langle>ev_update E e\<rangle>\<^sub>C)" |
+"\<lbrakk>event E\<rbrakk>\<^sub>C = (\<box> e\<in>UNIV \<bullet> ev_pred E e &\<^sub>C do\<^sub>C(\<guillemotleft>e\<guillemotright>) ;; \<langle>ev_update E e\<rangle>\<^sub>C)" |
 "\<lbrakk>extchoice P Q\<rbrakk>\<^sub>C = (\<lbrakk>P\<rbrakk>\<^sub>C \<box> \<lbrakk>Q\<rbrakk>\<^sub>C)" |
-"\<lbrakk>guard b P\<rbrakk>\<^sub>C = (b &\<^sub>u \<lbrakk>P\<rbrakk>\<^sub>C)"
+"\<lbrakk>guard b P\<rbrakk>\<^sub>C = (b &\<^sub>C \<lbrakk>P\<rbrakk>\<^sub>C)"
 
 lemma sfrd_sem_NCSP [closure]: "\<lbrakk>A\<rbrakk>\<^sub>C is NCSP"
   by (induct A, simp_all add: closure)
 
-definition sfrd_semantics :: "('s, 'e, ('s, 'e) st_csp \<times> ('s, 'e) st_csp) Action_Semantics" where
+definition sfrd_semantics :: "('s, 'e, ('s, 'e) sfrd \<times> ('s, 'e) sfrd) Action_Semantics" where
 "sfrd_semantics = \<lparr> act_sem = sfrd_sem, act_hcond = NCSP \<rparr>"
 
 interpretation sfrd_semantic: action_semantics sfrd_semantics
