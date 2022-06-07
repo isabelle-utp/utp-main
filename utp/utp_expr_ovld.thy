@@ -33,7 +33,7 @@ consts
   \<comment> \<open> Collection summation \<close>
   usums      :: "'f \<Rightarrow> 'a"
   \<comment> \<open> Construct a collection from a list of entries \<close>
-  uentries   :: "'k set \<Rightarrow> ('k \<Rightarrow> bool) \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> 'f"
+  uentries   :: "'k set \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> 'f"
   
 text \<open> We need a function corresponding to function application in order to overload. \<close>
   
@@ -41,9 +41,6 @@ definition fun_apply :: "('a \<Rightarrow> 'b) \<Rightarrow> ('a \<Rightarrow> '
 where "fun_apply f x = f x"
 
 declare fun_apply_def [simp]
-
-definition ffun_entries :: "'k set \<Rightarrow> ('k \<Rightarrow> bool) \<Rightarrow> ('k \<Rightarrow> 'v) \<Rightarrow> ('k, 'v) ffun" where
-"ffun_entries d P f = graph_ffun {(k, f k) | k. k \<in> d \<and> P k}"
 
 text \<open> We then set up the overloading for a number of useful constructs for various collections. \<close>
 
@@ -77,7 +74,7 @@ syntax
   "_udom"       :: "logic \<Rightarrow> logic" ("dom\<^sub>u'(_')")
   "_uran"       :: "logic \<Rightarrow> logic" ("ran\<^sub>u'(_')")
   "_usum"       :: "logic \<Rightarrow> logic" ("sum\<^sub>u'(_')")
-  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_,_')")
+  "_uentries"   :: "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("entr\<^sub>u'(_,_')")
 
 translations
   \<comment> \<open> Pretty printing for adhoc-overloaded constructs \<close>
@@ -97,7 +94,7 @@ translations
   "ran\<^sub>u(f)" == "CONST uop CONST Relation_Toolkit.ran f"
   "[]\<^sub>u"     => "\<guillemotleft>CONST uempty\<guillemotright>"
   "\<bottom>\<^sub>u"     == "\<guillemotleft>CONST undefined\<guillemotright>"
-  "entr\<^sub>u(d,P,f)" == "CONST trop CONST uentries d P \<guillemotleft>f\<guillemotright>"
+  "entr\<^sub>u(d,f)" == "CONST trop CONST uentries d \<guillemotleft>f\<guillemotright>"
   "_UMapUpd m (_UMaplets xy ms)" == "_UMapUpd (_UMapUpd m xy) ms"
   "_UMapUpd m (_umaplet  x y)"   == "CONST trop CONST uupd m x y"
   "_UMap ms"                      == "_UMapUpd []\<^sub>u ms"
