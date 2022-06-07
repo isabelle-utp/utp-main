@@ -1,7 +1,7 @@
 section \<open> Weakest Prespecification \<close>
 
 theory utp_wprespec
-  imports "UTP.utp"
+  imports "UTP1.utp"
 begin
 
 definition wprespec :: "('b, 'c) urel \<Rightarrow> ('a, 'c) urel \<Rightarrow> ('a, 'b) urel" (infixr "\\" 70) where

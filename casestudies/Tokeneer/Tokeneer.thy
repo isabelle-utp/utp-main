@@ -3,12 +3,10 @@ section \<open> Tokeneer in Isabelle/UTP \<close>
 theory Tokeneer
   imports 
     "ZedLite.zedlite"
-    "UTP.utp"
+    "UTP1.utp"
 begin recall_syntax
 
 section \<open>Introduction\<close>
-
-hide_const dom
 
 named_theorems tis_defs
 
@@ -189,13 +187,12 @@ lemma ValidEnrol_functional:
   done
 
 lemma Enrol_function:
-  "e \<in> ValidEnrol \<Longrightarrow> {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART"
+  "e \<in> ValidEnrol \<Longrightarrow> {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} \<in> ISSUER \<rightarrow>\<^sub>p KEYPART"
   apply (rule rel_pfun_intro)
   apply (simp add: rel_typed_def Enrol_def ValidEnrol_def)
    apply blast
   apply (simp add: ValidEnrol_functional)
   done
-
 
 subsection \<open>World Outside the ID Station\<close>
 
@@ -334,16 +331,16 @@ alphabet KeyStore =
 definition KeyStore :: "KeyStore upred" where 
 [upred_defs, tis_defs]:
 "KeyStore =
-  U(issuerKey \<in> \<guillemotleft>ISSUER \<rightharpoonup>\<^sub>r KEYPART\<guillemotright> \<and>
-    udom(issuerKey) \<subseteq> \<guillemotleft>ISSUER\<guillemotright> \<and>
-    (ownName \<noteq> \<guillemotleft>None\<guillemotright> \<Rightarrow> the(ownName) \<in> udom(issuerKey)))"
+  U(issuerKey \<in> \<guillemotleft>ISSUER \<rightarrow>\<^sub>p KEYPART\<guillemotright> \<and>
+    dom(issuerKey) \<subseteq> \<guillemotleft>ISSUER\<guillemotright> \<and>
+    (ownName \<noteq> \<guillemotleft>None\<guillemotright> \<Rightarrow> the(ownName) \<in> dom(issuerKey)))"
 
 definition CertIssuerKnown :: "'a Certificate_scheme \<Rightarrow> KeyStore upred" where
 [upred_defs, tis_defs]:
 "CertIssuerKnown c =
   U(KeyStore \<and> 
    (\<guillemotleft>c \<in> Certificate\<guillemotright> \<and>
-   \<guillemotleft>issuer (cid c)\<guillemotright> \<in> udom(issuerKey)))"
+   \<guillemotleft>issuer (cid c)\<guillemotright> \<in> dom(issuerKey)))"
 
 declare [[coercion rel_apply]]
 
@@ -1285,8 +1282,8 @@ definition UpdateKeyStore :: "Enrol \<Rightarrow> IDStation hrel" where
   (\<guillemotleft>e \<in> ValidEnrol\<guillemotright>)
   \<longrightarrow>\<^sub>r keyStore:ownName := \<guillemotleft>Some (subject (tisCert e))\<guillemotright>
     ;; keyStore:issuerKey := &keyStore:issuerKey 
-                           +\<^sub>r \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
-                           +\<^sub>r {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
+                           \<oplus> \<guillemotleft>{(subject c, subjectPubK c) | c. c \<in> issuerCerts e}\<guillemotright>
+                           \<oplus> {(the(&keyStore:ownName), \<guillemotleft>subjectPubK (tisCert e)\<guillemotright>)}"
 
 (*
 definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
@@ -1321,7 +1318,7 @@ definition UpdateKeyStoreFromFloppy :: "IDStation hrel" where
 
 declare ValidEnrol_def [upred_defs del, tis_defs del]
 
-lemma rel_pfun_pair: "\<lbrakk> x \<in> A; y \<in> B \<rbrakk> \<Longrightarrow> {(x, y)} \<in> A \<rightharpoonup>\<^sub>r B"
+lemma rel_pfun_pair: "\<lbrakk> x \<in> A; y \<in> B \<rbrakk> \<Longrightarrow> {(x, y)} \<in> A \<rightarrow>\<^sub>p B"
   by (simp add: rel_pfun_def rel_typed_def)
 
 lemma UpdateKeyStore_KeyStore_inv: "\<^bold>{KeyStore \<oplus>\<^sub>p keyStore\<^bold>}UpdateKeyStore x\<^bold>{KeyStore \<oplus>\<^sub>p keyStore\<^bold>}"

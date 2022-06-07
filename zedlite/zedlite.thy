@@ -1,7 +1,7 @@
 section \<open> Pseudo Z-Notation in Isabelle/UTP \<close>
 
 theory zedlite
-  imports "UTP.utp_full"
+  imports "UTP1.utp_full"
 begin
 
 subsection \<open> Schema Calculus \<close>
