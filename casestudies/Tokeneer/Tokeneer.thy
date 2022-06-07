@@ -1902,9 +1902,9 @@ definition ValidateEnrolmentDataOK :: "IDStation hrel" where
        currentDisplay := welcom" (* AddElementsToLog ;; *)
 
 lemma [simp]:
-  "\<lbrakk> k \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART; e \<in> ValidEnrol \<rbrakk> \<Longrightarrow> 
-       k +\<^sub>r {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} +\<^sub>r {(subject (tisCert e), subjectPubK (tisCert e))}
-       \<in> ISSUER \<rightharpoonup>\<^sub>r KEYPART"
+  "\<lbrakk> k \<in> ISSUER \<rightarrow>\<^sub>p KEYPART; e \<in> ValidEnrol \<rbrakk> \<Longrightarrow> 
+       k \<oplus> {(subject c, subjectPubK c) | c. c \<in> issuerCerts e} \<oplus> {(subject (tisCert e), subjectPubK (tisCert e))}
+       \<in> ISSUER \<rightarrow>\<^sub>p KEYPART"
    apply (rule rel_pfun_override)
    apply (rule rel_pfun_override)
   apply (auto)
@@ -3061,15 +3061,10 @@ lemma TISIdle_nmods_config: "TISIdle nmods &tis:config"
 lemma TISOp_nmods_floppy: "TISOp nmods &tis:ifloppy"
   by (simp add: tis_defs closure del: UEC_def)
 
-term "in_var"
-
-lemma nmods_union [closure]: "\<lbrakk> P nmods x; P nmods y \<rbrakk> \<Longrightarrow> P nmods (x ; y)"
-  by (rel_auto, force)
-
 abbreviation "FSFR6 == ?[&tis:iadminToken:adminTokenPresence = absent] ;; TISOp nmods {&tis:config, &tis:ifloppy}"
 
 lemma FSFR6_proof: FSFR6
-  apply (rule nmods_union)
+  apply (rule nmods_plus)
   apply (simp add: TISOp_def seqr_or_distr closure TISUserEntryOp_nmods_config TISEnrolOp_nmods_config
       TISAdminLogon_nmods_config TISStartAdminOp_nmods_config TISAdminLogout_nmods_config
       TISIdle_nmods_config TISAdminOp_absent_nmods_config )
