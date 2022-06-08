@@ -40,7 +40,7 @@ instance nat :: size_trace
   by (intro_classes, simp_all)
 
 instance list :: (type) size_trace
-  by (intro_classes, simp_all add: zero_list_def less_list_def' plus_list_def prefix_length_less)
+  by (intro_classes, simp_all add: less_list_def' plus_list_def prefix_length_less)
 
 syntax
   "_usize"      :: "logic \<Rightarrow> logic" ("size\<^sub>u'(_')")

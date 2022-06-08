@@ -1,7 +1,7 @@
 section \<open> Stateful-Failure Reactive Relations \<close>
 
 theory utp_sfrd_rel
-  imports utp_sfrd_core
+  imports utp_sfrd_core 
 begin
 
 subsection \<open> Healthiness Conditions \<close>
@@ -64,6 +64,10 @@ qed
 
 definition crel_skip :: "('s, 'e) action" ("II\<^sub>c") where
 [upred_defs]: "crel_skip = ($tr\<acute> =\<^sub>u $tr \<and> $st\<acute> =\<^sub>u $st)"
+
+declare zero_list_def [upred_defs del]
+
+declare zero_list_def [simp]
 
 lemma crel_skip_CRR [closure]: "II\<^sub>c is CRF"
   by (rel_auto)

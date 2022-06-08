@@ -54,8 +54,8 @@ text \<open> Lens @{term "\<Sigma>\<^sub>R"} exists because reactive alphabets a
 
 declare des_vars.splits [alpha_splits del]
 declare des_vars.splits [alpha_splits]
-declare zero_list_def [upred_defs]
-declare plus_list_def [upred_defs]
+declare zero_list_def [simp]
+declare plus_list_def [simp]
 declare prefixE [elim]
 
 (*
@@ -201,6 +201,6 @@ lemma uexpr_add_diff_cancel_left [simp]:
   by (simp add: minus_uexpr_def plus_uexpr_def, transfer, auto)
 
 lemma iter_0 [simp]: "iter[0](t) = U([])"
-  by (transfer, simp add: zero_list_def)
+  by (transfer, simp)
 
 end
