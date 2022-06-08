@@ -2,7 +2,7 @@ section \<open> Reactive Processes Core Definitions \<close>
 
 theory utp_rea_core
 imports
-  Trace_Algebra
+  "Z_Toolkit.Trace_Algebra"
   "UTP1.utp_concurrency"
   "UTP1-Designs.utp_designs"
 begin recall_syntax
