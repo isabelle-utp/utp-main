@@ -51,7 +51,7 @@ text \<open> Piecewise continuity means that there exists an ordered list $I$ of
   lemma I_hd [simp]: "hd(I) = 0"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff atLeastLessThan_empty
               atLeastLessThan_empty_iff contra_subsetD empty_iff hd_in_set insert_subset
-              less_eq_real_def list.exhaust_sel list.set(1) sorted.simps(2) tl_element)
+              less_eq_real_def list.exhaust_sel list.set(1) sorted_wrt.simps(2) tl_element)
 
   lemma I_last: "last(I) = end\<^sub>C(f)"
     by (metis I_bounds I_range I_sorted atLeastAtMost_iff dual_order.antisym empty_iff
@@ -61,7 +61,7 @@ text \<open> Piecewise continuity means that there exists an ordered list $I$ of
 
   lemma tl_I_ge_0 [simp]: "x \<in> set (tl I) \<Longrightarrow> x > 0"
     by (metis I_distinct I_hd I_length I_sorted distinct.simps(2) hd_Cons_tl length_greater_0_conv
-              less_eq_real_def sorted.simps(2))
+              less_eq_real_def sorted_wrt.simps(2))
 
   text \<open> Any point after the initial point must be strictly positive. \<close>
 
@@ -305,7 +305,7 @@ proof
   interpret I: pc_interval I "(f @\<^sub>C g)" by (simp add: assms)
   obtain I' where I': "I = 0 # I'" "sorted I'" "distinct I'"
     by (metis I.I_distinct I.I_hd I.I_length I.I_sorted distinct.simps(2) hd_Cons_tl
-              length_greater_0_conv sorted.simps(2))
+              length_greater_0_conv sorted_wrt.simps(2))
   show "set (right_pc_interval (end\<^sub>C f) I) \<subseteq> {0..end\<^sub>C g}"
     by (auto simp add: set_right_pc_interval, metis I.I_le_end
              cancel_ab_semigroup_add_class.add_diff_cancel_left'
