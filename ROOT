@@ -184,6 +184,8 @@ session "UTP1-Deep" in "utp/models/deep" = "UTP1" +
 
 session "UTP1-Axm" in "utp/models/axm" = "UTP1" +
   options [browser_info = true, document = false]
+  sessions "UTP-Axiomatic"
+  directories "../../../axiomatic"
   theories utp_axm
 
 (* Core UTP with Deep & Axiomatic Variables *)

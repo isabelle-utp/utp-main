@@ -10,7 +10,6 @@ section \<open>Axiomatic Model\<close>
 
 theory Axiomatic
 imports
-  "theories/meta/umodel"
+  "UTP-Axiomatic.umodel"
 (* "../utp/models/axm/utp_avar" *)
-begin
-end
+begin end

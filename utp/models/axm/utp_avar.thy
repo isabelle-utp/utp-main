@@ -2,16 +2,16 @@
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: utp_avar.thy                                                         *)
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@gmail.com                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Feb 2017 *)
+(* LAST REVIEWED: 11 Jun 2022 *)
 
-section \<open> Axiomatic Variables \<close>
+section \<open>Axiomatic Variables\<close>
 
 theory utp_avar
   imports
-  "UTP.utp_var"
-  "../../axiomatic/Axiomatic"
+  "UTP1.utp_var"
+  "../../../axiomatic/Axiomatic"
 begin recall_syntax
 
 default_sort type
@@ -22,9 +22,9 @@ text \<open>
   is merely to integrate them smoothly into Isabelle/UTP.
 \<close>
 
-subsection \<open> Compatibility with Isabelle/UTP \<close>
+subsection \<open>Compatibility with Isabelle/UTP\<close>
 
-subsubsection \<open> Late-Inclusion Side-effects \<close>
+subsubsection \<open>Late-Inclusion Side-effects\<close>
 
 text \<open>
   A problem in Isabelle/HOL is that depending on the order in which imported
@@ -35,13 +35,13 @@ text \<open>
   to solve this problem here.
 \<close>
 
-\<comment> \<open> From @{text utype}. \<close>
+\<comment> \<open>From @{text utype}.\<close>
 
-purge_notation
-  Set.member  ("op :") and
+purge_notation (ASCII)
+  Set.member  ("'(:')") and
   Set.member  ("(_/ : _)" [51, 51] 50)
 
-subsubsection \<open> Syntactic Adjustments \<close>
+subsubsection \<open>Syntactic Adjustments\<close>
 
 text \<open>
   We undeclare several notations here to avoid inherent ambiguities with those
@@ -54,7 +54,7 @@ purge_notation (input)
   undash ("_\<inverse>" [1000] 1000) and
   subscr ("_\<^bsub>_\<^esub>" [1000, 0] 1000)
 
-text \<open> The prefix @{text "uvar."} is important to avoid errors by the tool. \<close>
+text \<open>The prefix @{text "uvar."} is important to avoid errors by the tool.\<close>
 
 purge_syntax (input)
   "_MkPVar1" :: "id \<Rightarrow>         'a uvar.var" ("$_" [1000] 1000)
@@ -70,19 +70,19 @@ purge_notation (input)
   ustate_app_mono ("_\<cdot>_" [1000, 1000] 1000) and
   ustate_app_poly ("_\<star>_" [1000, 1000] 1000)
 
-subsubsection \<open> Hiding Constants and Types \<close>
+subsubsection \<open>Hiding Constants and Types\<close>
 
 hide_type (open) uvar.uvar
 
-subsubsection \<open> Forgetting Liftings \<close>
+subsubsection \<open>Forgetting Liftings\<close>
 
-text \<open> The liftings below can interfere with the automatic proof tactics. \<close>
+text \<open>The liftings below can interfere with the automatic proof tactics.\<close>
 
-lifting_forget Strings.literal.lifting
+lifting_forget String.literal.lifting
 lifting_forget uvar.var.lifting
 lifting_forget ustate.ustate.lifting
 
-subsection \<open> Variable Constructors \<close>
+subsection \<open>Variable Constructors\<close>
 
 definition in_avar :: "'a::injectable var \<Rightarrow> ('a \<Longrightarrow> '\<alpha>::ust \<times> '\<beta>)" where
 [simp]: "in_avar x = in_var (avar_ust\<^sub>L x)"
