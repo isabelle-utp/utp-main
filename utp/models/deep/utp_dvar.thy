@@ -5,55 +5,65 @@
 (* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
 (******************************************************************************)
 
-subsection \<open> Deep Variables \<close>
+subsection \<open>Deep Variables\<close>
 
 theory utp_dvar
   imports 
-  "UTP.utp"
+  "UTP1.utp"
   "Continuum.Continuum"
 begin recall_syntax
 
-text \<open> UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
-        static in nature, since a new record field can only be introduced definitionally and cannot be
-        otherwise arbitrarily created. They are nevertheless very useful as proof automation is excellent,
-        and they can fully make use of the Isabelle type system. However, for constructs like alphabet
-        extension that can introduce new variables they are inadequate. As a result we also introduce
-        a notion of deep variables to complement them. A deep variable is not a record field, but
-        rather a key within a store map that records the values of all deep variables. As such the
-        Isabelle type system is agnostic of them, and the creation of a new deep variable does not
-        change the portion of the alphabet specified by the type system.
+text \<open>
+  UTP variables represented by record fields are shallow, nameless entities. They are fundamentally
+  static in nature, since a new record field can only be introduced definitionally and cannot be
+  otherwise arbitrarily created. They are nevertheless very useful as proof automation is excellent,
+  and they can fully make use of the Isabelle type system. However, for constructs like alphabet
+  extension that can introduce new variables they are inadequate. As a result we also introduce
+  a notion of deep variables to complement them. A deep variable is not a record field, but
+  rather a key within a store map that records the values of all deep variables. As such the
+  Isabelle type system is agnostic of them, and the creation of a new deep variable does not
+  change the portion of the alphabet specified by the type system.
+  
+  In order to create a type of stores (or bindings) for variables, we must fix a universe
+  for the variable valuations. This is the major downside of deep variables -- they cannot
+  have any type, but only a type whose cardinality is up to $\mathfrak{c}$, the cardinality
+  of the continuum. This is why we need both deep and shallow variables, as the latter are
+  unrestricted in this respect. Each deep variable will therefore specify the cardinality
+  of the type it possesses.
+\<close>
 
-        In order to create a type of stores (or bindings) for variables, we must fix a universe
-        for the variable valuations. This is the major downside of deep variables -- they cannot
-        have any type, but only a type whose cardinality is up to $\mathfrak{c}$, the cardinality
-        of the continuum. This is why we need both deep and shallow variables, as the latter are
-        unrestricted in this respect. Each deep variable will therefore specify the cardinality
-        of the type it possesses. \<close>
+subsection \<open>Cardinalities\<close>
 
-subsection \<open> Cardinalities \<close>
-
-text \<open> We first fix a datatype representing all possible cardinalities for a deep variable. These
-        include finite cardinalities, $\aleph_0$ (countable), and $\mathfrak{c}$ (uncountable up
-        to the continuum). \<close>
+text \<open>
+  We first fix a datatype representing all possible cardinalities for a deep variable. These
+  include finite cardinalities, $\aleph_0$ (countable), and $\mathfrak{c}$ (uncountable up
+  to the continuum).
+\<close>
 
 datatype ucard = fin nat | aleph0 ("\<aleph>\<^sub>0") | cont ("\<c>")
 
-text \<open> Our universe is simply the set of natural numbers; this is sufficient for all types up
-        to cardinality $\mathfrak{c}$. \<close>
+text \<open>
+  Our universe is simply the set of natural numbers; this is sufficient for all types up
+  to cardinality $\mathfrak{c}$.
+\<close>
 
 type_synonym uuniv = "nat set"
 
-text \<open> We introduce a function that gives the set of values within our universe of the given
-        cardinality. Since a cardinality of 0 is no proper type, we use finite cardinality 0 to
-        mean cardinality 1, 1 to mean 2 etc. \<close>
+text \<open>
+  We introduce a function that gives the set of values within our universe of the given
+  cardinality. Since a cardinality of 0 is no proper type, we use finite cardinality 0 to
+  mean cardinality 1, 1 to mean 2 etc.
+\<close>
 
 fun uuniv :: "ucard \<Rightarrow> uuniv set" ("\<U>'(_')") where
 "\<U>(fin n) = {{x} | x. x \<le> n}" |
 "\<U>(\<aleph>\<^sub>0) = {{x} | x. True}" |
 "\<U>(\<c>) = UNIV"
 
-text \<open> We also define the following function that gives the cardinality of a type within
-        the @{class continuum} type class. \<close>
+text \<open>
+  We also define the following function that gives the cardinality of a type within
+  the @{class continuum} type class.
+\<close>
 
 definition ucard_of :: "'a::continuum itself \<Rightarrow> ucard" where
 "ucard_of x = (if (finite (UNIV :: 'a set))
@@ -207,7 +217,7 @@ lift_definition dvar_get :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightar
 is "\<lambda> x s. (uproject :: uuniv \<Rightarrow> 'a) (s(x))" .
 
 lift_definition dvar_put :: "('a::continuum) dvar \<Rightarrow> vstore \<Rightarrow> 'a \<Rightarrow> vstore"
-is "\<lambda> (x :: dname) f (v :: 'a) . f(x := uinject v)"
+is "\<lambda> (x :: dname) f (v :: 'a). f(x := uinject v)"
   by (auto)
 
 definition dvar_lens :: "('a::continuum) dvar \<Rightarrow> ('a \<Longrightarrow> vstore)" where

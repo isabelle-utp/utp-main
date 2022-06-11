@@ -5,7 +5,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 27 March 2014 *)
 
-section \<open> Type Universe \<close>
+section \<open>Type Universe\<close>
 
 theory UNIV_TYPE
 imports Main
@@ -26,7 +26,7 @@ theorem "0 \<in> UNIV_T(int)"
 apply (simp add: UNIV_TYPE_def)
 done
 
-theorem "\<forall> x . x \<in> UNIV_T('a)"
+theorem "\<forall>x. x \<in> UNIV_T('a)"
 apply (simp add: UNIV_TYPE_def)
 done
 
