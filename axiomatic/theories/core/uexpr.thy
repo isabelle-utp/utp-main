@@ -173,10 +173,6 @@ setup \<open>
     (Syntax_Phases.term_check 2 "ulift parser" Expr_Parser.uparse_tr))
 \<close>
 
-(***********************)
-(* REVIEWED UNTIL HERE *)
-(***********************)
-
 subsection \<open>Automatic Typing\<close>
 
 text \<open>
@@ -209,10 +205,6 @@ text \<open>Automatic typing is achieved by the following syntax translation.\<c
 parse_translation \<open>
   [(@{const_syntax "uparse"}, UVAR_Typing.uvar_implicit_typing_tr)]
 \<close>
-
-(***********************)
-(* REVIEWED AFTER HERE *)
-(***********************)
 
 subsection \<open>Expression Cartouche\<close>
 
@@ -314,13 +306,13 @@ text \<open>
   exploit unification of the state spaces in that setting easily.
 \<close>
 
-consts SkipR :: "pred['\<sigma>]" -- \<open>Used for testing\<close>
+consts SkipR :: "pred['\<sigma>]" \<comment> \<open>Used for testing\<close>
 consts SemiR :: "pred['\<sigma>\<^sub>1] \<Rightarrow> pred['\<sigma>\<^sub>2] \<Rightarrow> pred['\<sigma>\<^sub>3]"
 
 nonterminal uterm
 
 definition uterm :: "pred['\<sigma>] \<Rightarrow> pred['\<sigma>]" where
-"uterm = id" -- \<open>Used to tag a parsed predicate.\<close>
+"uterm = id" \<comment> \<open>Used to tag a parsed predicate.\<close>
 
 declare uterm_def [expr_transfer]
 
