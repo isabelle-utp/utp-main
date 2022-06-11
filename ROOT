@@ -2,13 +2,12 @@
 (* Project: The Isabelle/UTP Proof System                                     *)
 (* File: ROOT                                                                 *)
 (* Authors: Simon Foster and Frank Zeyda (University of York, UK)             *)
-(* Emails: simon.foster@york.ac.uk and frank.zeyda@york.ac.uk                 *)
+(* Emails: simon.foster@york.ac.uk and frank.zeyda@gmail.com                  *)
 (******************************************************************************)
 
 (* Profiling Library *)
 
-session "Profiling" in "profiling"
-  = "HOL-Eisbach" +
+session "Profiling" in "profiling" = "HOL-Eisbach" +
   options [document = false, timeout = 1000]
   theories
     Profiling
@@ -63,8 +62,8 @@ session "UTP1" in "utp" = "UTP1-Toolkit" +
   options [document = pdf, document_output = "output", timeout = 1000]
   theories [document = false]
     utp_parser_utils
-  theories 
-    utp 
+  theories
+    utp
     utp_full
   document_files
     "root.bib"
@@ -75,7 +74,7 @@ session "UTP1" in "utp" = "UTP1-Toolkit" +
 
 session "UTP1-Calculi" in "calculi" = "UTP1" +
   options [document = false]
-  theories 
+  theories
     utp_wprespec
 
 (* Pseudo Z-Notation *)
@@ -122,7 +121,7 @@ session "UTP1-Memory" in "theories/memory" = "UTP1-Undef" +
   theories utp_memory
 
 (* Imperative Programs based on Designs *)
-    
+
 session "UTP1-Impl" in "impl" = "UTP1-Memory" +
   options [document = false]
   theories
@@ -152,7 +151,7 @@ session "UTP1-Reactive-Designs" in "theories/rea_designs" = "UTP1-Reactive" +
 
 session "UTP1-Time" in "theories/time" = "UTP1-Reactive-Designs" +
   options [browser_info = true, document = false]
-  theories utp_time_rel  
+  theories utp_time_rel
 
 (* Stateful-Failure Reactive Designs *)
 
@@ -178,8 +177,7 @@ session "UTP1-Circus" in "theories/circus" = "UTP1-Stateful-Failures" +
 
 session "UTP1-Deep" in "utp/models/deep" = "UTP1" +
   options [browser_info = true, document = false]
-  sessions
-    Continuum
+  sessions Continuum
   theories utp_deep
 
 (* Core UTP with Axiomatic Variables *)
@@ -251,6 +249,7 @@ session "UTP1-Hybrid-Examples" in "hybrid/examples" = "UTP1-Hybrid" +
     utp_bouncing_ball
     utp_thermostat
     utp_trains
+
 (*
 (* Modelica Mechanisation: Limited Compositional Semantics *)
 
@@ -265,7 +264,7 @@ session "Modelica-NC" in "modelica/noncomp" = "UTP1-HYBRID" +
   options [document = false]
   theories
     Modelica_NonComp
-  
+
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP1-THY-DEEP" +
@@ -323,4 +322,3 @@ session "Tokeneer" in "casestudies/Tokeneer" = "ZedLite" +
     Tokeneer
   document_files
     "root.tex"
-
