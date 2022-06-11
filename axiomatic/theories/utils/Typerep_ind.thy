@@ -2,20 +2,20 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: Typerep_ind.thy                                                      *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Typerep of Nat.ind *}
+section \<open>Typerep of @{text Nat.ind}\<close>
 
 theory Typerep_ind
 imports Main
 begin
 
-text {*
+text \<open>
   By default, Isabelle/HOL does not instantiate class @{class typerep} for the
   @{type ind} type. We do so in this theory.
-*}
+\<close>
 
 instantiation ind :: typerep
 begin

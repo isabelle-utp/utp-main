@@ -2,10 +2,11 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: unrest_sf.thy                                                        *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Unrestriction *}
+section \<open>Unrestriction\<close>
 
 theory unrest_sf
 imports uvar ustate
@@ -13,12 +14,12 @@ begin
 
 default_sort type
 
-subsection {* Definition of Unrestriction *}
+subsection \<open>Definition of Unrestriction\<close>
 
 definition unrest_sf :: "uvar set \<Rightarrow> (ustate \<Rightarrow> 'a) \<Rightarrow> bool" where
 "unrest_sf vs f = (\<forall>v\<in>vs. \<forall>s x. f s(v :=\<^sub>u x)\<^sub>s = f s)"
 
-subsection {* Theorems *}
+subsection \<open>Theorems\<close>
 
 theorem unrest_sf_empty:
 "unrest_sf {} f"

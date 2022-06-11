@@ -6,11 +6,11 @@
 (******************************************************************************)
 (* LAST REVIEWED: 16 Jan 2016 *)
 
-section {* Document Configuration *}
+section \<open>Document Configuration\<close>
 
 theory document
 imports Pure
-(* "~~/src/HOL/Library/LaTeXsugar" *)
+(* "~~/src/HOL/Library/LaTeXsugar"    *)
 (* "~~/src/HOL/Library/OptionalSugar" *)
 begin
 (* no_notation (latex)

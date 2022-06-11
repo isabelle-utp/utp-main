@@ -2,17 +2,17 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: Sum_Order.thy                                                        *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Sum Type Order *}
+section \<open>Sum Type Order\<close>
 
 theory Sum_Order
 imports Main
 begin
 
-subsection {* Instantiation of @{class ord} *}
+subsection \<open>Instantiation of @{class ord}\<close>
 
 instantiation sum :: (ord, ord) ord
 begin
@@ -27,7 +27,7 @@ definition less_sum :: "'a + 'b \<Rightarrow> 'a + 'b \<Rightarrow> bool" where
 instance by (intro_classes)
 end
 
-subsection {* Instantiation of @{class order} *}
+subsection \<open>Instantiation of @{class order}\<close>
 
 instantiation sum :: (order, order) order
 begin

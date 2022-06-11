@@ -1,25 +1,69 @@
-session "UTP-AXM-IMPORTS" = "Optics-Library" +
-  options [browser_info = true, document = false]
-  theories "theories/uimports"
+(******************************************************************************)
+(* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
+(* File: ROOT                                                                 *)
+(* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
+(******************************************************************************)
 
-session "UTP-AXM-CORE" = "UTP-AXM-IMPORTS" +
+(* Session UTP-Axiomatic *)
+
+session "UTP-Axiomatic" in "theories" = "HOL" +
   options [browser_info = true,
     document = pdf,
     document_variants = "document:outline=/proof,/ML",
-    (* document_graph = true, *)
-    document_output = "output"]
-  theories "theories/meta/ucore"
-  document_files "root.tex" "document.sty"
+    document_output = "../output",
+    timeout = 600]
+  sessions "UTP1-Toolkit"
+  directories
+    "utils"
+    "core"
+    "meta"
+    "theories"
+    "hierarchy"
+  theories
+    "ucore"
+    "umodel"
+    "usystem"
+    "uranked"
+  document_files (in "../document")
+    "root.tex"
+    "document.sty"
+  document_files (in "utils")
+    "flat_orders.ML"
+    "Named_Attrib.ML"
+    "Pure_Utils.ML"
+    "Transfer_Plus.ML"
+    "Typedep.ML"
+    "Typerep_Collect.ML"
+  document_files (in "core")
+    "uexpr.ML"
+    "ulift.ML"
+    "uname.ML"
+    "uval.ML"
+    "uvar.ML"
 
-session "UTP-AXM-RANKED" = "UTP-AXM-IMPORTS" +
+(* Session UTP-Ranked *)
+
+session "UTP-Ranked" in "hierarchy" = "UTP-Axiomatic" +
   options [browser_info = true,
     document = pdf,
     document_variants = "document:outline=/proof,/ML",
-    (* document_graph = true, *)
-    document_output = "hierarchy/output"]
-  theories "theories/meta/uranked"
-  document_files (in hierarchy) "root.tex" "document.sty"
-
-session "UTP-AXM-SYSTEM" = "UTP-AXM-CORE" +
-  options [browser_info = true, document = false]
-  theories "theories/meta/usystem"
+    document_output = "output",
+    timeout = 600]
+  document_theories
+    "UTP-Axiomatic.uimports"
+    "UTP-Axiomatic.uranked"
+    "UTP-Axiomatic.uattrib"
+    "UTP-Axiomatic.ucommon"
+    "UTP-Axiomatic.uconsts"
+    "UTP-Axiomatic.uname"
+    "UTP-Axiomatic.utype"
+    "UTP-Axiomatic.ranks"
+    "UTP-Axiomatic.hval"
+    "UTP-Axiomatic.uvar"
+  document_files (in ".")
+    "root.tex"
+    "document.sty"
+  document_files (in "../theories/hierarchy")
+    "indices.ML"
+    "ranks.ML"

@@ -6,7 +6,7 @@
 (******************************************************************************)
 (* LAST REVIEWED: 14 Feb 2017 *)
 
-section {* Generic Expressions *}
+section \<open>Generic Expressions\<close>
 
 theory uexpr
 imports uvar ustate ustore ulens
@@ -15,9 +15,9 @@ begin
 
 default_sort type
 
-subsection {* Expression Type *}
+subsection \<open>Expression Type\<close>
 
-text {*
+text \<open>
   Expressions are modelled by functions from states to HOL values. We make no
   assumptions about the state here, although operators may impose additional
   sort constraints on the state type such as membership to class @{class ust}.
@@ -28,7 +28,7 @@ text {*
   would need to define monomorphic versions of the axiomatic variable lenses.
   Such is needed to formulate the unrestriction property of the state function.
   (Simon Foster is currently working on the integration of partial lenses.)
-*}
+\<close>
 
 typedef ('a, '\<sigma>(*::ust*)) expr = "UNIV::('\<sigma> \<Rightarrow> 'a) set"
 apply (rule UNIV_witness)
@@ -36,11 +36,11 @@ done
 
 notation Rep_expr ("\<lbrakk>_\<rbrakk>")
 
-text {*
+text \<open>
   The notation @{text "'a expr['\<sigma>]"} is introduced as a syntactic sugar for
   @{text "('a, '\<sigma>) expr"}. Moreover @{text "'a uexpr"} is synonymous for the
   type @{text "'a expr[ustate]"}.
-*}
+\<close>
 
 type_notation expr ("_ expr[_]" [1000, 0] 1000)
 
@@ -48,9 +48,9 @@ syntax "_uexpr" :: "type \<Rightarrow> type" ("_ uexpr" [1000] 1000)
 
 translations (type) "'a uexpr" \<rightleftharpoons> (type) "'a expr[ustate]"
 
-subsection {* Predicate Type *}
+subsection \<open>Predicate Type\<close>
 
-text {* Predicates are expressions instantiated with type @{type bool}. *}
+text \<open>Predicates are expressions instantiated with type @{type bool}.\<close>
 
 syntax "_pred" :: "type \<Rightarrow> type" ("pred[_]")
 
@@ -60,7 +60,7 @@ syntax "_upred" :: "type" ("upred")
 
 translations (type) "upred" \<rightleftharpoons> (type) "pred[ustate]"
 
-subsection {* Lifted Constructors *}
+subsection \<open>Lifted Constructors\<close>
 
 setup_lifting type_definition_expr
 
@@ -92,28 +92,28 @@ lift_definition trop_expr ::
 is "\<lambda>f. \<lambda>e\<^sub>1 e\<^sub>2 e\<^sub>3. (\<lambda>s. f (e\<^sub>1 s) (e\<^sub>2 s) (e\<^sub>3 s))"
 done
 
-text {*
+text \<open>
   The binding lifting functor can only deal with simple unary binders i.e.~of
   type @{typ "('a \<Rightarrow> 'b) \<Rightarrow> 'c"}. Fortunately, most Isabelle/HOL binders fall
   into that category, including various types of quantifiers. For instance, the
   functor @{const All}, being used in terms of the form @{term "\<forall>x. P x"}, has
   the type @{typ "('a \<Rightarrow> bool) \<Rightarrow> bool"}. Supporting potential other binders
   is an issue for future work.
-*}
+\<close>
 
 lift_definition binder_expr ::
   "(('a \<Rightarrow> 'b) \<Rightarrow> 'c) \<Rightarrow> (('a expr['\<sigma>] \<Rightarrow> 'b expr['\<sigma>]) \<Rightarrow> 'c expr['\<sigma>])"
 is "\<lambda>bdr. \<lambda>f. (\<lambda>s. bdr (\<lambda>x. (f \<guillemotleft>x\<guillemotright> s)))"
 done
 
-text {* \todo{What about substitution?} *}
+text \<open>\todo{What about substitution?}\<close>
 
-subsection {* Meta-logical Operators *}
+subsection \<open>Meta-logical Operators\<close>
 
 definition taut :: "pred['\<sigma>] \<Rightarrow> bool" where
 [transfer_unfold]: "taut e = (\<forall>s. \<lbrakk>e\<rbrakk> s)"
 
-subsection {* Transfer Tactic *}
+subsection \<open>Transfer Tactic\<close>
 
 named_theorems expr_transfer "expr transfer theorems"
 
@@ -146,9 +146,9 @@ method expr_auto =
 method expr_blast =
   (expr_transfer, (* (ustate_transfer)?; *) blast)
 
-subsection {* Expression Parser *}
+subsection \<open>Expression Parser\<close>
 
-text {*
+text \<open>
   We define a constant to tag terms to be processed by the parser. Note that
   this processing is done by a term-checker (rewrite step), and takes place
   after the term has already been parsed and type-checked by Isabelle/HOL.
@@ -156,30 +156,30 @@ text {*
   this allows us to correctly lift the various operators and free variables.
   (An solution using a syntax translations would need to look at the theory
   context to infer the types of literal constants and operators.)
-*}
+\<close>
 
 consts uparse :: "'a \<Rightarrow> 'a expr['\<sigma>]" ("'(_')\<^sub>u")
 
-text {* The following tag protect inner terms from processing. *}
+text \<open>The following tag protect inner terms from processing.\<close>
 
 consts uprotect :: "'a expr['\<sigma>] \<Rightarrow> 'a" ("@'(_')")
 
-text {* Configuration of the lifting parser and pretty-printer. *}
+text \<open>Configuration of the lifting parser and pretty-printer.\<close>
 
 ML_file "uexpr.ML"
 
-setup {*
+setup \<open>
   Context.theory_map (
     (Syntax_Phases.term_check 2 "ulift parser" Expr_Parser.uparse_tr))
-*}
+\<close>
 
 (***********************)
 (* REVIEWED UNTIL HERE *)
 (***********************)
 
-subsection {* Automatic Typing *}
+subsection \<open>Automatic Typing\<close>
 
-text {*
+text \<open>
   We lastly configure a convenience mechanism for automatic typing of free
   variables inside @{text "(_)\<^sub>u"} terms. Free variables without an explicit
   type constrain are thus automatically typed according to their `declared
@@ -188,35 +188,35 @@ text {*
   at least forced to be injectable. The mechanism is useful, for instance,
   to predetermine the types of auxiliary variables of a UTP theory. It also
   reduces the need for explicit typing e.g.~of terms like @{text "(x + 1)\<^sub>u"}.
-*}
+\<close>
 
-text {*
+text \<open>
   We add an outer command to declare the type of lifted HOL variables. The
   command takes a variable name and a HOL type. For example, we may declare
   the type of HOL variable @{term ok} to be @{typ bool} using the following
   command invocation: @{text "declare_uvar ok \"bool\""}. As hinted above,
   this affects the way the parser performs its translation and lifting.
-*}
+\<close>
 
-ML {*
+ML \<open>
   Outer_Syntax.local_theory @{command_keyword "declare_uvar"} "declare uvar"
     (Parse.const_decl >>
       (fn (uvar, typ, _) => UVAR_Typing.mk_uvar_type_synonym uvar typ));
-*}
+\<close>
 
-text {* Automatic typing is achieved by the following syntax translation. *}
+text \<open>Automatic typing is achieved by the following syntax translation.\<close>
 
-parse_translation {*
+parse_translation \<open>
   [(@{const_syntax "uparse"}, UVAR_Typing.uvar_implicit_typing_tr)]
-*}
+\<close>
 
 (***********************)
 (* REVIEWED AFTER HERE *)
 (***********************)
 
-subsection {* Expression Cartouche *}
+subsection \<open>Expression Cartouche\<close>
 
-text {*
+text \<open>
   We additionally embed the expression parser into a cartouche. With this, we
   can use the syntax @{text "\<open>\<dots>\<close>"} synonymously for @{text "(\<dots>)\<^sub>u"}. There is
   a slight difference between these uses though, as with the cartouche we do
@@ -225,17 +225,17 @@ text {*
   not in the context of the entire HOL term. This perhaps makes the cartouche
   less attractive, although sometimes there may be benefit in taming the scope
   of unification.
-*}
+\<close>
 
 syntax "_expr_cartouche" :: "cartouche_position \<Rightarrow> 'a expr['\<sigma>]" ("_\<^sub>e")
 
-parse_translation {*
+parse_translation \<open>
   [(@{syntax_const "_expr_cartouche"}, Expr_Cartouche.uexpr_cartouche_tr)]
-*}
+\<close>
 
 declare [[show_types]]
 
-text {* Observe the difference in the type of @{term f}. *}
+text \<open>Observe the difference in the type of @{term f}.\<close>
 
 term "taut (x = (1::nat) \<and> y = x + 1 \<longrightarrow> y = 2)\<^sub>u \<and> (f x)"
 term "taut \<open>x = (1::nat) \<and> y = x + 1 \<longrightarrow> y = 2\<close>\<^sub>e \<and> (f x)"
@@ -251,16 +251,16 @@ theorem "taut \<open>ok \<and> x = 1 \<longrightarrow> ok' \<and> x' = 2\<close>
 apply (expr_transfer)
 (* Can we do something else transfer-wise here? *)
 (* apply (ustate_transfer) *)
--- {* TODO: Implement a conversion that carries out a renaming. *}
+\<comment> \<open>TODO: Implement a conversion that carries out a renaming.\<close>
 oops
 
-subsection {* Parsing Tests *}
+subsection \<open>Parsing Tests\<close>
 
 inject_type "fun"
 inject_type set
 inject_type list
 
-text {* Automatic typing seems to work well in various scenarios. *}
+text \<open>Automatic typing seems to work well in various scenarios.\<close>
 
 declare [[show_types]]
 declare [[show_sorts]]
@@ -290,7 +290,7 @@ term "(P \<and> ok \<longrightarrow> Q \<and> ok')\<^sub>u"
 declare [[show_types=false]]
 declare [[show_sorts=false]]
 
-text {* Lambda expressions and binders are properly lifted too. *}
+text \<open>Lambda expressions and binders are properly lifted too.\<close>
 
 term "(x + 1)\<^sub>u"
 
@@ -298,9 +298,9 @@ term "(\<lambda>x::nat. x + 1 = 2)\<^sub>u"
 term "\<lambda>x::nat. (x + 1 = 2)\<^sub>u"
 term "(\<forall>x::nat. x + y = 1)\<^sub>u"
 
-subsection {* Predicate Parser *}
+subsection \<open>Predicate Parser\<close>
 
-text {*
+text \<open>
   The expression parser exclusively deals with the lifting of HOL terms. We
   require further machinery to support the parsing of UTP predicates that may
   mix HOL and UTP operators. This is implemented at the level of syntax and
@@ -312,15 +312,15 @@ text {*
   we lose information about state spaces, as the parsing of lift expressions
   only considers the underlying HOL types of the expression. Hence we cannot
   exploit unification of the state spaces in that setting easily.
-*}
+\<close>
 
-consts SkipR :: "pred['\<sigma>]" -- {* Used for testing *}
+consts SkipR :: "pred['\<sigma>]" -- \<open>Used for testing\<close>
 consts SemiR :: "pred['\<sigma>\<^sub>1] \<Rightarrow> pred['\<sigma>\<^sub>2] \<Rightarrow> pred['\<sigma>\<^sub>3]"
 
 nonterminal uterm
 
 definition uterm :: "pred['\<sigma>] \<Rightarrow> pred['\<sigma>]" where
-"uterm = id" -- {* Used to tag a parsed predicate. *}
+"uterm = id" -- \<open>Used to tag a parsed predicate.\<close>
 
 declare uterm_def [expr_transfer]
 
@@ -337,13 +337,13 @@ translations "_usemi p q" \<rightleftharpoons> "(CONST SemiR) p q"
 
 term "`x' = x + (1::nat); y = x; @(P); II`"
 
-subsection {* Proof Experiments *}
+subsection \<open>Proof Experiments\<close>
 
-text {* We can prove equivalence laws with expression and state transfer. *}
+text \<open>We can prove equivalence laws with expression and state transfer.\<close>
 
 theorem "(\<forall>x. y < x + 1)\<^sub>u = (y = (0::nat))\<^sub>u"
 apply (expr_transfer)
--- {* TODO: Let @{text ustate_transfer} retain the original variables names. *}
+\<comment> \<open>TODO: Let @{text ustate_transfer} retain the original variables names.\<close>
 (* apply (ustate_transfer) *)
 apply (auto)
 done

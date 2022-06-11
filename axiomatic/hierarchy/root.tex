@@ -1,4 +1,5 @@
 \documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
 \usepackage{isabelle,isabellesym}
 \usepackage{fullpage}
 \usepackage[usenames,dvipsnames]{color}
@@ -16,8 +17,8 @@
 %\usepackage{eurosym}
   %for \<euro>
 
-%\usepackage[only,bigsqcap]{stmaryrd}
-  %for \<Sqinter>
+%\usepackage[only,bigsqcap,bigparallel,fatsemi,interleave,sslash]{stmaryrd}
+  %for \<Sqinter>, \<Parallel>, \<Zsemi>, \<Parallel>, \<sslash>
 
 %\usepackage{eufrak}
   %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
@@ -99,7 +100,7 @@
 
 \subsection{File: \code{ranks.ML}}
 
-\verbatiminput{../../../theories/hierarchy/ranks.ML}
+\verbatiminput{ranks.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -107,7 +108,7 @@
 
 \subsection{File: \code{indices.ML}}
 
-\verbatiminput{../../../theories/hierarchy/indices.ML}
+\verbatiminput{indices.ML}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

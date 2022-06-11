@@ -2,11 +2,11 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: ucore.thy                                                            *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 26 Jan 2016 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Core Theories (Original) *}
+section \<open>Core Theories (Original)\<close>
 
 theory ucore
 imports

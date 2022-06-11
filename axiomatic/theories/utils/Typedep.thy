@@ -2,47 +2,47 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: Typedep.thy                                                          *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Jan 2016 *)
+(* LAST REVIEWED: 09 Jan 2022 *)
 
-section {* Type Dependency *}
+section \<open>Type Dependency\<close>
 
 theory Typedep
 imports HOL.Typerep
   Typerep_ind Named_Attrib
 begin
 
-subsection {* Theorem Attribute *}
+subsection \<open>Theorem Attribute\<close>
 
-text {* Attribute collecting theorems to reason about type dependencies. *}
+text \<open>Attribute collecting theorems to reason about type dependencies.\<close>
 
 named_theorems typedep "typedep theorems"
 
-ML {*
+ML \<open>
   structure typedep = Named_Attrib(val name = @{named_theorems typedep});
-*}
+\<close>
 
-subsection {* Class @{text typedep} *}
+subsection \<open>Class @{text typedep}\<close>
 
 class typedep = typerep +
   fixes typedep :: "'a itself \<Rightarrow> typerep set"
 
-subsection {* Syntax *}
+subsection \<open>Syntax\<close>
 
 syntax "_TYPEDEP" :: "type \<Rightarrow> logic"  ("(1TYPEDEP/(1'(_')))")
 
 translations "TYPEDEP('a)" \<rightleftharpoons> "(CONST typedep) TYPE('a)"
 
-subsection {* Instantiations *}
+subsection \<open>Instantiations\<close>
 
-text {*
+text \<open>
   We require a few instantiations of ground types i.e.~types not created by
   virtue of a @{text typedef}). Namely, these are @{type bool}, @{type ind},
   @{type fun} and @{type set}. All other types in HOL are derived through type
   definitions and hence we obtain instantiations of @{class typedep} by the
   type interpretation that we subsequently configure.
-*}
+\<close>
 
 instantiation ind :: typedep
 begin
@@ -72,24 +72,24 @@ definition typedep_set :: "'a set itself \<Rightarrow> typerep set" where
 instance by (intro_classes)
 end
 
-subsection {* Proof Support *}
+subsection \<open>Proof Support\<close>
 
 declare typedep_ind_def [typedep]
 declare typedep_bool_def [typedep]
 declare typedep_fun_def [typedep]
 declare typedep_set_def [typedep]
 
-subsection {* Interpretation *}
+subsection \<open>Interpretation\<close>
 
-text {*
+text \<open>
   We next configure a mechanism that instantiates the class @{class typedep}
   automatically for any existing or new type definition. This is done via an
   interpretation of a @{text typedef}. Correct instantiation is crucial since
   the soundness of the axiomatic UTP value model relies on it. We hence must
   not delegate this task to the user to avoid any risk of inconsistencies.
-*}
+\<close>
 
-text {* The following rewrites could be done generically by a conversion. *}
+text \<open>The following rewrites could be done generically by a conversion.\<close>
 
 theorem insert_dup_simps:
 "(insert x (insert x S)) = (insert x S)"
@@ -122,14 +122,14 @@ done
 
 ML_file "Typedep.ML"
 
-setup {*
+setup \<open>
   (Typedef.interpretation
     (Local_Theory.background_theory o Typedep.ensure_typedep))
-*}
+\<close>
 
-subsection {* Proof Optimisation *}
+subsection \<open>Proof Optimisation\<close>
 
-text {*
+text \<open>
   It turns out that instantiation proofs of class @{text injectable} can be
   very slow due to large terms arising if we use the @{text "typedep_..._def"}
   theorems directly. This only became noticeable since Isabelle 2015, which is
@@ -140,7 +140,7 @@ text {*
   @{thm [source] insert_dup_simps} and @{thm [source] union_dup_simps}. Hence,
   the theorems in @{attribute typedep} are not the raw definitional axioms but
   proved lemmas that follow from them.
-*}
+\<close>
 
 declare [[show_types]]
 

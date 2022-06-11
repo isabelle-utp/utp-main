@@ -34,6 +34,6 @@ struct
         (Proof.context -> Proof.method) context_parser =
       fixing >> (fn vs => fn ctxt =>
         SIMPLE_METHOD' (K (TRY (transfer_unfold_tac ctxt)) THEN'
-          (gen_frees_tac vs ctxt) THEN' (transfer_tac equiv ctxt)))
+          (gen_frees_tac vs ctxt THEN' transfer_tac equiv ctxt)))
   end;
 end;

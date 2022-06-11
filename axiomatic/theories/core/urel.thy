@@ -2,28 +2,28 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: urel.thy                                                             *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 25 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Relational Predicates *}
+section \<open>Relational Predicates\<close>
 
 theory urel
 imports upred ulift
 begin
 
-subsection {* Operators *}
+subsection \<open>Operators\<close>
 
-subsubsection {* Skip *}
+subsubsection \<open>Skip\<close>
 
 definition SkipP :: "upred" where
 "SkipP = LiftP (\<lambda>b. \<forall>v\<in>UNDASHED. b\<cdot>v = b\<cdot>(v\<acute>))"
 
 notation SkipP ("II\<^sub>p")
 
-subsubsection {* Composition *}
+subsubsection \<open>Composition\<close>
 
-text {* \fixme{Give an algebraic definition once substitution is mechanised.} *}
+text \<open>\fixme{Give an algebraic definition once substitution is mechanised.}\<close>
 
 lift_definition SemiP :: "upred \<Rightarrow> upred \<Rightarrow> upred"
 is "(\<lambda>bs1 bs2.
@@ -35,13 +35,13 @@ done
 
 notation SemiP (infixl ";\<^sub>p" 100)
 
-subsection {* Proof Support *}
+subsection \<open>Proof Support\<close>
 
 declare SkipP_def [evalp]
 
-subsection {* Experiments *}
+subsection \<open>Experiments\<close>
 
-text {* \todo{Automate imposing @{class injectable} on free types!} *}
+text \<open>\todo{Automate imposing @{class injectable} on free types!}\<close>
 
 theorem "II\<^sub>p \<and>\<^sub>p (x = @(c::nat))\<^sub>p \<Rightarrow>\<^sub>p (x' = @(c))\<^sub>p"
 apply (upred_tac)

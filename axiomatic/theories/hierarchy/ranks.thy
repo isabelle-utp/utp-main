@@ -2,58 +2,59 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: ranks.thy                                                            *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 17 Jan 2016 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Type Ranks *}
+section \<open>Type Ranks\<close>
 
 theory ranks
-imports Main Eisbach
+imports Main
+  "HOL-Eisbach.Eisbach"
   "../core/uattrib"
 begin
 
 default_sort type
 
-text {*
+text \<open>
   Ranks are used to index HOL types by a natural number. While HOL does not
-  support dependent typing, we use type classes as a poor-man's dependency
+  support dependent typing, we use type classes as a poor man's dependency
   mechanism to associate each HOL type with a rank. Ranks are used later on
   in the theory @{text uval} to formalise the axioms of the universal value
   model: they determine a (lower bound for) the index @{text "'idx"} of type
   @{text "'idx uval"} into which a HOL type can be injected.
-*}
+\<close>
 
-subsection {* Theorem Attribute *}
+subsection \<open>Theorem Attribute\<close>
 
-text {* Attribute collecting theorems to facilitate proofs about type ranks. *}
+text \<open>Attribute collecting theorems to facilitate proofs about type ranks.\<close>
 
 named_theorems ranks "rank theorems"
 
-ML {*
+ML \<open>
   structure ranks = Named_Attrib(val name = @{named_theorems ranks});
-*}
+\<close>
 
-subsection {* Rank Class *}
+subsection \<open>Rank Class\<close>
 
-text {* The class @{text rank} allows us to specify a rank for each HOL type. *}
+text \<open>The class @{text rank} allows us to specify a rank for each HOL type.\<close>
 
 class rank =
   fixes rank :: "'a itself \<Rightarrow> nat"
 
-subsection {* Rank Syntax *}
+subsection \<open>Rank Syntax\<close>
 
-text {*
+text \<open>
   Syntax that lets us write @{text "RANK('t)"} for some HOL type @{text "t"}.
-*}
+\<close>
 
 syntax "_rank" :: "type \<Rightarrow> nat" ("RANK'(_')")
 
 translations "RANK('a)" \<rightleftharpoons> "(CONST rank) TYPE('a)"
 
-subsection {* Instantiations *}
+subsection \<open>Instantiations\<close>
 
-text {*
+text \<open>
   We require a few instantiations of ground types: types that are created
   by type declarations rather than by type definitions. Namely, those types
   are @{type bool}, @{type ind}, @{type fun} and @{type set}. All other HOL
@@ -64,13 +65,13 @@ text {*
   to be definitionally sound. All ground types other than @{text uval} have
   a rank of zero, and parametric types obtain their ranks as the maximum of
   their constituent argument types.
-*}
+\<close>
 
-text {*
+text \<open>
   An open issue are type declarations as for these we have no mechanism that
   assigns a type rank. I presume that it is safe to assign any rank to them,
   hence such a mechanism might not be required for definitional soundness?!
-*}
+\<close>
 
 instantiation bool :: rank
 begin
@@ -107,17 +108,17 @@ definition rank_set :: "('a set) itself \<Rightarrow> nat" where
 instance ..
 end
 
-subsection {* Proof Support *}
+subsection \<open>Proof Support\<close>
 
-text {*
+text \<open>
   We next configure a mechanism that instantiates the @{class rank} class
   automatically for any existing or new type definition. This is done via an
   interpretation of @{text typedef}. Correct instantiation is crucial since
   the soundness of the axiomatic UTP value model relies on it. We hence must
-  not delegate this task to the user to avoid the risk of inconsistencies.
-*}
+  not delegate this task to the user to evade the risk of inconsistencies.
+\<close>
 
-text {*
+text \<open>
   For efficiency reasons, the theorems stored inside the @{attribute ranks}
   attribute are incrementally simplified, evaluating ranks in the RHS of
   definitional theorems `as we go along'. This is necessary since the rank
@@ -125,7 +126,7 @@ text {*
   causing such evaluations to become very slow. Additional simplification
   laws are defined below and used to further simplify rank theorems prior to
   inclusion in the @{attribute ranks} attribute.
-*}
+\<close>
 
 theorem max_cancel_simps :
 fixes a :: "nat"
@@ -145,38 +146,38 @@ done
 
 ML_file "ranks.ML"
 
-text {*
+text \<open>
   We lastly configure the @{text Typedef} interpretation. This bootstraps the
   retrospective instantiation of the @{class rank} class for all existing HOL
   types, as well as automatically performs the instantiation of @{class rank}
   for all future type definitions; this is outside the control of the user.
-*}
+\<close>
 
-setup {*
+setup \<open>
   (Typedef.interpretation
     (Local_Theory.background_theory o Ranks.ensure_rank))
-*}
+\<close>
 
-text {* Automatic tactic to simplify and prove properties of ranks. *}
+text \<open>Automatic tactic to simplify and prove properties of ranks.\<close>
 
 method rank_tac = (auto simp: ranks)
 
-subsection {* Dynamic Ranks *}
+subsection \<open>Dynamic Ranks\<close>
 
-text {*
+text \<open>
   In order to facilitate the dynamic construction of types with arbitrary
   ranks i.e.~without having to declare a new type for each desired rank, we
   provide two designated types:~type (@{text "r0"}) has a rank of zero and
   (parametric) type (@{text "'a rS"}) increments the rank of @{typ "'a"}.
-  In analogy to he construction of natural numbers, composition of the two
+  In analogy to the construction of natural numbers, composition of the two
   type constructors enable us to create types with any desired rank. Lastly,
   those constructions can also include type parameters, increasing the rank
   of some type @{typ "'a"} by a fixed number.
-*}
+\<close>
 
-subsubsection {* Index Class *}
+subsubsection \<open>Index Class\<close>
 
-text {*
+text \<open>
   We use the below to tag types that are used as indices. Note that there is
   currently no mechanism that prevents the user from instantiating other HOL
   types as indices too. While this may not be desirable, I believe that doing
@@ -184,15 +185,15 @@ text {*
   true for instantiating the @{class rank} class for declared types added by
   the user. When using the syntax for index types below, sort constraints for
   membership to class @{text index} are imposed automatically on free types.
-*}
+\<close>
 
 class index = typerep + rank
 
-subsubsection {* Index Types *}
+subsubsection \<open>Index Types\<close>
 
-text {* We introduce our two index type constructors as type declarations. *}
+text \<open>We introduce our two index type constructors as type declarations.\<close>
 
-paragraph {* Zero Index *}
+paragraph \<open>Zero Index\<close>
 
 typedecl r0
 
@@ -211,7 +212,7 @@ definition rank_r0 :: "r0 itself \<Rightarrow> nat" where
 instance ..
 end
 
-paragraph {* Successor Index *}
+paragraph \<open>Successor Index\<close>
 
 typedecl 'idx(*::index*) rS
 
@@ -232,17 +233,17 @@ end
 
 instance rS :: (index) index ..
 
-subsubsection {* Index Syntax *}
+subsubsection \<open>Index Syntax\<close>
 
-text {*
+text \<open>
   Lastly, we define a neat syntax for index types. We distinguish open and
   closed index types. Open index types are, for instance, @{text "1>'a"} and
   @{text "2>'a"} for some free type @{text "'a"}. Open types raise the rank
   of the underlying free type. Closed indices are, for instance, @{text "0"},
   @{text "1"}, @{text "2"}, and so one. They are monomorphic types.
-*}
+\<close>
 
-paragraph {* Syntax Definitions *}
+paragraph \<open>Syntax Definitions\<close>
 
 syntax "_open_idx0" :: "type \<Rightarrow> type" ("0>_")
 syntax "_open_idx1" :: "type \<Rightarrow> type" ("1>_")
@@ -252,7 +253,7 @@ syntax "_closed_idx0" :: "type" ("0")
 syntax "_closed_idx1" :: "type" ("1")
 syntax "_closed_idxn" :: "num_const \<Rightarrow> type" ("_")
 
-paragraph {* Syntax Translations *}
+paragraph \<open>Syntax Translations\<close>
 
 translations
   (type) "0>'a" \<rightharpoonup> (type) "'a::index"
@@ -262,25 +263,25 @@ translations
   (type) "0" \<rightharpoonup> (type) "r0"
   (type) "1" \<rightharpoonup> (type) "r0 rS"
 
-paragraph {* Parser and Printer *}
+paragraph \<open>Parser and Printer\<close>
 
 ML_file "indices.ML"
 
-parse_translation {*
+parse_translation \<open>
   [(@{syntax_const "_open_idxn"}, Idx_Parser.open_idx_tr),
    (@{syntax_const "_closed_idxn"}, Idx_Parser.close_idx_tr)]
-*}
+\<close>
 
-print_translation {*
+print_translation \<open>
   [(@{type_syntax "r0"}, Idx_Printer.r0_tr'),
    (@{type_syntax "rS"}, Idx_Printer.rS_tr')]
-*}
+\<close>
 
-subsection {* Experiments *}
+subsection \<open>Experiments\<close>
 
 declare [[show_types=true]]
 
-thm ranks -- {* This prints all current rank simplification laws. *}
+thm ranks \<comment> \<open>This prints all current rank simplification laws.\<close>
 
 declare [[show_types=false]]
 

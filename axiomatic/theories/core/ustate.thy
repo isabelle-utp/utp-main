@@ -2,11 +2,11 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: ustate.thy                                                           *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 25 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section \<open> Universal State \<close>
+section \<open>Universal State\<close>
 
 theory ustate
 imports utype uval uvar
@@ -26,7 +26,7 @@ no_notation
 
 default_sort injectable
 
-subsection \<open> State Type \<close>
+subsection \<open>State Type\<close>
 
 text \<open>
   As before, total functions are used to encode states. This is possible due
@@ -42,22 +42,22 @@ apply (clarsimp)
 apply (rule some_uval_typed)
 done
 
-text \<open> \fixme{Is there a way to fix the warning about relators below?} \<close>
+text \<open>\fixme{Is there a way to fix the warning about relators below?}\<close>
 
 setup_lifting type_definition_ustate
 
-subsection \<open> Constants \<close>
+subsection \<open>Constants\<close>
 
-subsubsection \<open> Some State \<close>
+subsubsection \<open>Some State\<close>
 
-text \<open> Constant that yields some arbitrary (albeit well-typed) state. \<close>
+text \<open>Constant that yields some arbitrary (albeit well-typed) state.\<close>
 
 lift_definition some_ustate :: "ustate" ("\<sigma>\<^sub>0")
 is "\<lambda>v. some_uval (type v)"
 apply (rule some_uval_typed)
 done
 
-subsection \<open> Operators \<close>
+subsection \<open>Operators\<close>
 
 text \<open>
   The operators we introduce are application, state updated, state override,
@@ -67,9 +67,9 @@ text \<open>
   construct to create such bindings.
 \<close>
 
-subsubsection \<open> Application \<close>
+subsubsection \<open>Application\<close>
 
-text \<open> Both a monomorphic and polymorphic version is provided. \<close>
+text \<open>Both a monomorphic and polymorphic version is provided.\<close>
 
 lift_definition ustate_app_mono :: "ustate \<Rightarrow> uvar \<Rightarrow> uval"
 is "\<lambda>s v. s v"
@@ -82,9 +82,9 @@ definition ustate_app_poly :: "ustate \<Rightarrow> 'a var \<Rightarrow> 'a" whe
 
 notation ustate_app_poly ("_\<star>_" [1000, 1000] 1000)
 
-subsubsection \<open> State Update \<close>
+subsubsection \<open>State Update\<close>
 
-text \<open> Both a monomorphic and polymorphic version is provided. \<close>
+text \<open>Both a monomorphic and polymorphic version is provided.\<close>
 
 lift_definition ustate_upd_mono :: "ustate \<Rightarrow> uvar \<Rightarrow> uval \<Rightarrow> ustate"
 is "\<lambda>s v x. if x :\<^sub>u (type v) then s(v := x) else s"
@@ -95,11 +95,11 @@ done
 definition ustate_upd_poly :: "ustate \<Rightarrow>  'a var \<Rightarrow> 'a \<Rightarrow> ustate" where
 [transfer_unfold]: "ustate_upd_poly s v x = ustate_upd_mono s v\<down> (InjU x)"
 
-text \<open> Syntax for State Update\<close>
+text \<open>Syntax for State Update\<close>
 
 nonterminal ubinds and ubind
 
-text \<open> The below is inspired by Isabelle's syntax for function update. \<close>
+text \<open>The below is inspired by Isabelle's syntax for function update.\<close>
 
 syntax
   "_ubind_mono" :: "uvar \<Rightarrow> uval \<Rightarrow> ubind"      ("(2_ :=\<^sub>u/ _)")
@@ -113,7 +113,7 @@ translations
   "_update s (_ubind_mono x y)" \<rightleftharpoons> "(CONST ustate_upd_mono) s x y"
   "_update s (_ubind_poly x y)" \<rightleftharpoons> "(CONST ustate_upd_poly) s x y"
 
-subsubsection \<open> Override \<close>
+subsubsection \<open>Override\<close>
 
 lift_definition ustate_override :: "ustate \<Rightarrow> ustate \<Rightarrow> uvar set \<Rightarrow> ustate"
 is "override_on"
@@ -124,9 +124,9 @@ done
 
 notation ustate_override ("_ \<oplus>\<^sub>s _ on _" [55, 56, 56] 55)
 
-subsubsection \<open> Congruence \<close>
+subsubsection \<open>Congruence\<close>
 
-text \<open> Two states are congruent if they agree over a given set of variables. \<close>
+text \<open>Two states are congruent if they agree over a given set of variables.\<close>
 
 lift_definition ustate_cong_on :: "ustate \<Rightarrow> ustate \<Rightarrow> uvar set \<Rightarrow> bool"
 is "\<lambda>b1 b2 vs. \<forall>v\<in>vs. (b1 v) = (b2 v)"
@@ -134,7 +134,7 @@ done
 
 notation ustate_cong_on ("_ \<cong>\<^sub>b _ on _" [51, 51, 0] 50)
 
-subsection \<open> Theorems \<close>
+subsection \<open>Theorems\<close>
 
 theorem ustate_eq:
 "b1 = b2 \<longleftrightarrow> (\<forall>v. b1\<cdot>v = b2\<cdot>v)"
@@ -149,7 +149,7 @@ apply (subst ustate_eq)
 apply (assumption)
 done
 
-paragraph \<open> Application Laws \<close>
+paragraph \<open>Application Laws\<close>
 
 theorem ustate_upd_mono_app [simp]:
 "x :\<^sub>u (type v) \<Longrightarrow> s(v :=\<^sub>u x)\<^sub>s\<cdot>w = (if v = w then x else s\<cdot>w)"
@@ -204,7 +204,7 @@ apply (transfer')
 apply (clarsimp)
 done
 
-paragraph \<open> Override Laws \<close>
+paragraph \<open>Override Laws\<close>
 
 text \<open>
   Many of the theorems here mirror those for @{term "f \<oplus> g on a"} in theory
@@ -256,7 +256,7 @@ apply (transfer', rule override_on_cancel(5))
 apply (transfer', rule override_on_cancel(6))
 done
 
-text \<open> \todo{How about a polymorphic version of the following law?} \<close>
+text \<open>\todo{How about a polymorphic version of the following law?}\<close>
 
 theorem ustate_override_singleton [simp]:
 "s\<^sub>1 \<oplus>\<^sub>s s\<^sub>2 on {v} = s\<^sub>1(v :=\<^sub>u s\<^sub>2\<cdot>v)\<^sub>s"
@@ -273,7 +273,7 @@ apply (rule override_on_reorder)
 apply (auto)
 done
 
-subsection \<open> Transfer \<close>
+subsection \<open>Transfer\<close>
 
 theorem ex_ustate_transfer_0:
 "(\<exists>s::ustate. P) \<longleftrightarrow> P"
@@ -284,10 +284,10 @@ theorem ex_ustate_transfer_1:
 "(\<exists>s::ustate. P s\<star>v) \<longleftrightarrow> (\<exists>v. P v)"
 apply (rule iffI)
 apply (safe)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "s\<star>v" in exI)
 apply (assumption)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rename_tac x)
 apply (rule_tac x = "\<sigma>(v := x)\<^sub>s" in exI)
 apply (clarsimp)
@@ -298,11 +298,11 @@ theorem ex_ustate_transfer_2:
 (\<exists>s::ustate. P s\<star>v1 s\<star>v2) \<longleftrightarrow> (\<exists>v1 v2. P v1 v2)"
 apply (rule iffI)
 apply (safe)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "s\<star>v1" in exI)
 apply (rule_tac x = "s\<star>v2" in exI)
 apply (assumption)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rename_tac x1 x2)
 apply (rule_tac x = "\<sigma>(v1 := x1, v2 := x2)\<^sub>s" in exI)
 apply (clarsimp)
@@ -313,12 +313,12 @@ theorem ex_ustate_transfer_3:
  (\<exists>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3) \<longleftrightarrow> (\<exists>v1 v2 v3. P v1 v2 v3)"
 apply (rule iffI)
 apply (safe)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "s\<star>v1" in exI)
 apply (rule_tac x = "s\<star>v2" in exI)
 apply (rule_tac x = "s\<star>v3" in exI)
 apply (assumption)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rename_tac x1 x2 x3)
 apply (rule_tac x = "\<sigma>(v1 := x1, v2 := x2, v3 := x3)\<^sub>s" in exI)
 apply (clarsimp)
@@ -329,13 +329,13 @@ theorem ex_ustate_transfer_4:
  (\<exists>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4) \<longleftrightarrow> (\<exists>v1 v2 v3 v4. P v1 v2 v3 v4)"
 apply (rule iffI)
 apply (safe)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "s\<star>v1" in exI)
 apply (rule_tac x = "s\<star>v2" in exI)
 apply (rule_tac x = "s\<star>v3" in exI)
 apply (rule_tac x = "s\<star>v4" in exI)
 apply (assumption)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rename_tac x1 x2 x3 x4)
 apply (rule_tac x = "\<sigma>(v1 := x1, v2 := x2, v3 := x3, v4 := x4)\<^sub>s" in exI)
 apply (clarsimp)
@@ -346,14 +346,14 @@ theorem ex_ustate_transfer_5:
  (\<exists>s::ustate. P s\<star>v1 s\<star>v2 s\<star>v3 s\<star>v4 s\<star>v5) \<longleftrightarrow> (\<exists>v1 v2 v3 v4 v5. P v1 v2 v3 v4 v5)"
 apply (rule iffI)
 apply (safe)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "s\<star>v1" in exI)
 apply (rule_tac x = "s\<star>v2" in exI)
 apply (rule_tac x = "s\<star>v3" in exI)
 apply (rule_tac x = "s\<star>v4" in exI)
 apply (rule_tac x = "s\<star>v5" in exI)
 apply (assumption)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rename_tac x1 x2 x3 x4 x5)
 apply (rule_tac x = "\<sigma>(v1 := x1, v2 := x2, v3 := x3, v4 := x4, v5 := x5)\<^sub>s" in exI)
 apply (clarsimp)
@@ -487,7 +487,7 @@ declare meta_ustate_transfer [ustate_transfer]
 declare all_ustate_transfer [ustate_transfer]
 declare ex_ustate_transfer [ustate_transfer]
 
-text \<open> @{text simp} alone is not sufficient as we require HO unification. \<close>
+text \<open>@{text simp} alone is not sufficient as we require HO unification.\<close>
 
 method ustate_transfer =
   (subst ustate_transfer)+

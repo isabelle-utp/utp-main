@@ -19,7 +19,11 @@ struct
   val typing_add = Named_Theorems.add @{named_theorems "typing"};
 
   fun get_typerep_def thy ty_name =
-    Global_Theory.get_thm thy ("typerep_" ^ ty_name ^ "_def");
+    Global_Theory.get_thm thy (
+      (* FIXME: The condition below is a hack. Fix this properly! *)
+      if ty_name = "literal" then
+        "String.typerep_literal_def"
+      else "typerep_" ^ ty_name ^ "_def");
 
   fun collect_typerep_thm tyco thy =
     let val ty_name = Binding.name_of (Binding.qualified_name tyco);

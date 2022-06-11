@@ -2,49 +2,49 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: thiago.thy                                                           *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 26 Jan 2016 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* A Modular Theory of Object Orientation *}
+section \<open>A Modular Theory of Object Orientation\<close>
 
 theory thiago
 imports utheory designs thiago_prel
 begin
 
-subsection {* Theory Types *}
+subsection \<open>Theory Types\<close>
 
 datatype cname = Object | Class "string"
 datatype aname = Attr "string"
 datatype prim = int | bool
 datatype atype = PType "prim" | CType "cname"
 
-subsection {* Refinement Orders *}
+subsection \<open>Refinement Orders\<close>
 
 flat_order cname
 flat_order aname
 flat_order prim
 flat_order atype
 
-subsection {* Type Injections *}
+subsection \<open>Type Injections\<close>
 
 inject_type cname
 inject_type aname
 inject_type prim
 inject_type atype
 
-subsection {* Theory Variables *}
+subsection \<open>Theory Variables\<close>
 
 declare_uvar cls :: "cname set"
 declare_uvar sc :: "(cname, cname) rel"
 declare_uvar atts :: "(cname, (aname, atype) rel) rel"
 
-subsection {* Utility Definitions *}
+subsection \<open>Utility Definitions\<close>
 
 definition prim :: "atype set" where
 "prim \<equiv> range PType"
 
-subsection {* Healthiness Conditions *}
+subsection \<open>Healthiness Conditions\<close>
 
 definition OO1 :: "upred" where
 "OO1 = (Object \<in> cls)\<^sub>p"
@@ -66,7 +66,7 @@ definition OO5 :: "upred" where
 definition OO6 :: "upred" where
 "OO6 = (ran (\<Union> (ran atts)) \<subseteq> prim \<union> (CType ` cls))\<^sub>p"
 
-subsection {* Proof Experiments *}
+subsection \<open>Proof Experiments\<close>
 
 theorem "`{OO1} \<Rightarrow> cls \<noteq> {}`"
 apply (unfold OO1_def)

@@ -5,17 +5,17 @@
 (******************************************************************************)
 (* LAST REVIEWED: 30 July 2015 *)
 
-section {* Remove Duplicates in Sets *}
+section \<open>Remove Duplicates in Sets\<close>
 
 theory remove_duplicates
 imports Main
 begin
 
-text {* A conversion and tactic to remove duplicate elements in sets. *}
+text \<open>A conversion and tactic to remove duplicate elements in sets.\<close>
 
-subsection {* Conversion *}
+subsection \<open>Conversion\<close>
 
-ML {*
+ML \<open>
   fun remove_duplicates_from_set set =
     let val fewer_elems = distinct (op =) (HOLogic.dest_set set) in
       (HOLogic.mk_set (HOLogic.dest_setT (type_of set)) fewer_elems)
@@ -41,11 +41,11 @@ ML {*
       Conv.rewr_conv (Local_Defs.meta_rewrite_rule ctx
         (Goal.prove ctx [] [] (Thm.term_of goal) (K tac))) cterm
     end;
-*}
+\<close>
 
-subsection {* Rule and Tactic *}
+subsection \<open>Rule and Tactic\<close>
 
-ML {*
+ML \<open>
   fun remove_duplicates_rule ctx =
     Conv.fconv_rule
       (Conv.top_conv (K (Conv.try_conv remove_duplicates_conv)) ctx);
@@ -53,36 +53,36 @@ ML {*
   fun remove_duplicates_tac ctx =
     CONVERSION
       (Conv.top_conv (K (Conv.try_conv remove_duplicates_conv)) ctx);
-*}
+\<close>
 
-subsection {* Proof Method Setup *}
+subsection \<open>Proof Method Setup\<close>
 
-setup {*
+setup \<open>
   (Method.setup @{binding remove_duplicates}
     (Scan.succeed (SIMPLE_METHOD' o remove_duplicates_tac))
     "remove duplicate elements in sets")
-*}
+\<close>
 
-subsection {* Experiments *}
+subsection \<open>Experiments\<close>
 
-ML {*
+ML \<open>
   val t1 = @{cterm "{1, 2, 1, 5, 4, 3, 2, 3, 2} = (X::nat set)"};
   val t2 = @{cterm "{1, 2, 1, 5, 4, 3, 2, 3, 2} = X"};
   val t3 = @{cterm "{x, y, z, x} = X"};
-*}
+\<close>
 
-ML {*
+ML \<open>
   (* Note that for the 2nd case to work, we require Conv.rewr_conv above. *)
   (Conv.top_conv (K (Conv.try_conv remove_duplicates_conv)) @{context}) t1;
   (Conv.top_conv (K (Conv.try_conv remove_duplicates_conv)) @{context}) t2;
   (Conv.top_conv (K (Conv.try_conv remove_duplicates_conv)) @{context}) t3;
-*}
+\<close>
 
-ML {*
-  (* Note that dest_set and our converserion only works for "closed" sets. *)
+ML \<open>
+  (* Note that dest_set and our conversion only works for "closed" sets. *)
   val t1 = @{term "insert (1::nat) (insert (2::nat) {})"};
   val t2 = @{term "insert (1::nat) (insert (2::nat) S)"};
   HOLogic.dest_set t1;
   (* HOLogic.dest_set t2; *)
-*}
+\<close>
 end

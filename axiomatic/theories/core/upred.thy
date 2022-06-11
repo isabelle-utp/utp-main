@@ -2,19 +2,19 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: upred.thy                                                            *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 26 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Core Predicates *}
+section \<open>Core Predicates\<close>
 
 theory upred
 imports ustate
 begin
 
-text {* This theory needs rework for integration with @{text uexpr}. *}
+text \<open>This theory needs rework for integration with @{text uexpr}.\<close>
 
-subsection {* Predicate Type *}
+subsection \<open>Predicate Type\<close>
 
 typedef upred = "UNIV :: ustate set set"
 apply (rule UNIV_witness)
@@ -24,7 +24,7 @@ notation Rep_upred ("\<beta>")
 
 setup_lifting type_definition_upred
 
-subsection {* Literal Predicates *}
+subsection \<open>Literal Predicates\<close>
 
 lift_definition TrueP :: "upred"
 is "UNIV"
@@ -38,7 +38,7 @@ done
 
 notation FalseP ("false\<^sub>p")
 
-subsection {* Logical Connectives *}
+subsection \<open>Logical Connectives\<close>
 
 lift_definition NotP :: "upred \<Rightarrow> upred"
 is "uminus"
@@ -47,13 +47,13 @@ done
 notation NotP ("\<not>\<^sub>p _" [190] 190)
 
 lift_definition AndP :: "upred \<Rightarrow> upred \<Rightarrow> upred"
-is "op \<inter>"
+is "(\<inter>)"
 done
 
 notation AndP (infixr "\<and>\<^sub>p" 180)
 
 lift_definition OrP :: "upred \<Rightarrow> upred \<Rightarrow> upred"
-is "op \<union>"
+is "(\<union>)"
 done
 
 notation OrP (infixr "\<or>\<^sub>p" 170)
@@ -72,7 +72,7 @@ syntax "_RevIffP" :: "upred \<Rightarrow> upred \<Rightarrow> upred" (infixr "\<
 
 translations "p1 \<Leftarrow>\<^sub>p p2" \<rightharpoonup> "p2 \<Rightarrow>\<^sub>p p1"
 
-subsection {* Quantifiers *}
+subsection \<open>Quantifiers\<close>
 
 lift_definition ExistsP :: "uvar set \<Rightarrow> upred \<Rightarrow> upred" is
 "\<lambda>vs p. {b1 \<oplus>\<^sub>s b2 on vs| b1 b2. b1 \<in> p}"
@@ -90,7 +90,7 @@ definition ClosureP :: "upred \<Rightarrow> upred" where
 
 notation ClosureP ("[_]\<^sub>p")
 
-subsection {* Meta-logical Operators *}
+subsection \<open>Meta-logical Operators\<close>
 
 definition TautP :: "upred \<Rightarrow> bool" ("taut _" 10) where
 "(taut p) = (p = true\<^sub>p)"
@@ -101,23 +101,23 @@ definition ContraP :: "upred \<Rightarrow> bool" ("contra _" 10) where
 definition RefineP :: "upred \<Rightarrow> upred \<Rightarrow> bool" (infix "\<sqsubseteq>" 50) where
 "p1 \<sqsubseteq> p2 = (taut p1 \<Leftarrow>\<^sub>p p2)"
 
-text {* \fixme{I am slightly unsure about the coercion below.} *}
+text \<open>\fixme{I am slightly unsure about the coercion below.}\<close>
 
 declare [[coercion TautP]]
 
-subsection {* Proof Support *}
+subsection \<open>Proof Support\<close>
 
 named_theorems evalp "evalp theorems"
 
 method upred_tac = (unfold evalp, (auto)?)
 
-text {* Evaluation Function *}
+text \<open>Evaluation Function\<close>
 
 lift_definition EvalP :: "upred \<Rightarrow> ustate \<Rightarrow> bool" ("\<lbrakk>_\<rbrakk>_" [0, 1000] 51)
 is "\<lambda> (p::ustate set) b. b \<in> p"
 done
 
-text {* Interpretation Laws *}
+text \<open>Interpretation Laws\<close>
 
 theorem EvalP_eq [evalp]:
 "p1 = p2 \<longleftrightarrow> (\<forall>b. \<lbrakk>p1\<rbrakk>b \<longleftrightarrow> \<lbrakk>p2\<rbrakk>b)"
@@ -178,10 +178,10 @@ theorem EvalP_ExistsP [evalp]:
 apply (transfer')
 apply (clarsimp)
 apply (safe, simp)
--- {* Subgoal 1 *}
+\<comment> \<open>Subgoal 1\<close>
 apply (rule_tac x = "b1" in exI)
 apply (simp)
--- {* Subgoal 2 *}
+\<comment> \<open>Subgoal 2\<close>
 apply (rule_tac x = "b \<oplus>\<^sub>s b' on vs" in exI)
 apply (simp)
 apply (rule_tac x = "b" in exI)

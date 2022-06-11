@@ -1,4 +1,5 @@
 \documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
 \usepackage{isabelle,isabellesym}
 \usepackage{fullpage}
 \usepackage[usenames,dvipsnames]{color}
@@ -16,8 +17,8 @@
 %\usepackage{eurosym}
   %for \<euro>
 
-%\usepackage[only,bigsqcap]{stmaryrd}
-  %for \<Sqinter>
+%\usepackage[only,bigsqcap,bigparallel,fatsemi,interleave,sslash]{stmaryrd}
+  %for \<Sqinter>, \<Parallel>, \<Zsemi>, \<Parallel>, \<sslash>
 
 %\usepackage{eufrak}
   %for \<AA> ... \<ZZ>, \<aa> ... \<zz> (also included in amssymb)
@@ -154,7 +155,8 @@
 
 \subsection{\code{Named\_Attrib.ML}}
 
-\verbatiminput{../../theories/utils/Named_Attrib.ML}
+\verbatiminput{Named_Attrib.ML}
+
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -162,7 +164,7 @@
 
 \subsection{\code{Transfer\_Plus.ML}}
 
-\verbatiminput{../../theories/utils/Transfer_Plus.ML}
+\verbatiminput{Transfer_Plus.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -170,7 +172,7 @@
 
 \subsection{\code{Typerep\_Collect.ML}}
 
-\verbatiminput{../../theories/utils/Typerep_Collect.ML}
+\verbatiminput{Typerep_Collect.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -178,7 +180,7 @@
 
 \subsection{\code{Typedep.ML}}
 
-\verbatiminput{../../theories/utils/Typedep.ML}
+\verbatiminput{Typedep.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -186,7 +188,7 @@
 
 \subsection{\code{flat\_orders.ML}}
 
-\verbatiminput{../../theories/utils/flat_orders.ML}
+\verbatiminput{flat_orders.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -194,7 +196,7 @@
 
 \subsection{\code{Pure\_Utils.ML}}
 
-\verbatiminput{../../theories/utils/Pure_Utils.ML}
+\verbatiminput{Pure_Utils.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -202,7 +204,7 @@
 
 \subsection{\code{uname.ML}}
 
-\verbatiminput{../../theories/core/uname.ML}
+\verbatiminput{uname.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -210,7 +212,7 @@
 
 \subsection{\code{uval.ML}}
 
-\verbatiminput{../../theories/core/uval.ML}
+\verbatiminput{uval.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -218,7 +220,7 @@
 
 \subsection{\code{uvar.ML}}
 
-\verbatiminput{../../theories/core/uvar.ML}
+\verbatiminput{uvar.ML}
 \newpage
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -226,7 +228,7 @@
 
 \subsection{\code{ulift.ML}}
 
-\verbatiminput{../../theories/core/ulift.ML}
+\verbatiminput{ulift.ML}
 
 % optional bibliography
 %\bibliographystyle{abbrv}

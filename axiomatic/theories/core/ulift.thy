@@ -2,40 +2,40 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: ulift.thy                                                            *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 26 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section {* Predicate Lifting *}
+section \<open>Predicate Lifting\<close>
 
 theory ulift
 imports upred unrest
 keywords "declare_uvar" :: thy_decl
 begin
 
-text {* A parser that lifts HOL predicates into @{type upred} objects. *}
+text \<open>A parser that lifts HOL predicates into @{type upred} objects.\<close>
 
-subsection {* Tool Options *}
+subsection \<open>Tool Options\<close>
 
-text {* Option that enables implicit typing in lifted predicates. *}
+text \<open>Option that enables implicit typing in lifted predicates.\<close>
 
-ML {*
+ML \<open>
   val (ulift_typing, ulift_typing_setup) =
     Attrib.config_bool @{binding ulift_typing} (K true);
-*}
+\<close>
 
 setup ulift_typing_setup
 
-text {* Option that disables the pretty-printer to facilitate debugging. *}
+text \<open>Option that disables the pretty-printer to facilitate debugging.\<close>
 
-ML {*
+ML \<open>
   val (disable_ulift_pp, disable_ulift_pp_setup) =
     Attrib.config_bool @{binding disable_ulift_pp} (K false);
-*}
+\<close>
 
 setup disable_ulift_pp_setup
 
-subsection {* Lifting Operator *}
+subsection \<open>Lifting Operator\<close>
 
 lift_definition LiftP :: "(ustate \<Rightarrow> bool) \<Rightarrow> upred"
 is "\<lambda>f::ustate \<Rightarrow> bool. {b .f b}"
@@ -43,41 +43,41 @@ done
 
 (* declare ustate_app_poly_def [evalp] *)
 
-subsection {* Lifting Syntax *}
+subsection \<open>Lifting Syntax\<close>
 
-text {* We define a constant to tag terms to be processed by the parser. *}
+text \<open>We define a constant to tag terms to be processed by the parser.\<close>
 
 consts ulift :: "bool \<Rightarrow> upred" ("'(_')\<^sub>p")
 
-text {* The following allows us to protect inner terms from processing. *}
+text \<open>The following allows us to protect inner terms from processing.\<close>
 
 consts uprotect :: "'a \<Rightarrow> 'a" ("@'(_')")
 
-subsection {* Parser and Printer *}
+subsection \<open>Parser and Printer\<close>
 
 ML_file "ulift.ML"
 
-setup {*
+setup \<open>
   Context.theory_map (
     (Syntax_Phases.term_check 2 "ulift parser" Ulift_Parser.ulift_tr) o
     (Syntax_Phases.term_uncheck 2 "ulift printer" Ulift_Printer.ulift_tr'))
-*}
+\<close>
 
-subsection {* Implicit Typing *}
+subsection \<open>Implicit Typing\<close>
 
-parse_translation {*
+parse_translation \<open>
   [(@{const_syntax "ulift"}, Ulift_Typing.implicit_typing)]
-*}
+\<close>
 
-text {* The following configures a command to declare an auxiliary variable. *}
+text \<open>The following configures a command to declare an auxiliary variable.\<close>
 
-ML {*
+ML \<open>
   Outer_Syntax.local_theory @{command_keyword "declare_uvar"} "declare uvar"
     (Parse.const_decl >>
       (fn (uvar, typ, _) => Ulift_Typing.mk_uvar_type_synonym uvar typ));
-*}
+\<close>
 
-subsection {* Proof Support *}
+subsection \<open>Proof Support\<close>
 
 theorem EvalP_LiftP [evalp]:
 "\<lbrakk>LiftP f\<rbrakk>b = (f b)"
@@ -85,9 +85,9 @@ apply (transfer)
 apply (simp)
 done
 
-subsection {* Theorems *}
+subsection \<open>Theorems\<close>
 
-paragraph {* Unrestriction of Lifting *}
+paragraph \<open>Unrestriction of Lifting\<close>
 
 theorem LiftP_unrest_zero:
 "vs \<sharp> (LiftP (\<lambda>b. P0))"
@@ -118,18 +118,18 @@ done
 theorem "{$z\<down>} \<sharp> (x = y + (1::nat))\<^sub>p"
 apply (unfold ustate_app_poly_def)
 apply (rule LiftP_unrest)
-apply (simp)
+apply (code_simp)
 done
 
 theorem "{$x\<down>} \<sharp> (x = y + (1::nat))\<^sub>p"
 apply (unfold ustate_app_poly_def)
 apply (rule LiftP_unrest)
-apply (simp)
+apply (code_simp)
 oops
 
-subsection {* Experiments *}
+subsection \<open>Experiments\<close>
 
-text {* Types propagate through predicate connectives. *}
+text \<open>Types propagate through predicate connectives.\<close>
 
 theorem "taut (x = y + 1)\<^sub>p \<and>\<^sub>p (y = 2)\<^sub>p \<Rightarrow>\<^sub>p (x = (3::nat))\<^sub>p"
 apply (unfold evalp)
@@ -137,7 +137,7 @@ apply (clarify)
 apply (simp)
 done
 
-text {* HOL quantifies can be used in lifted predicates too. *}
+text \<open>HOL quantifies can be used in lifted predicates too.\<close>
 
 theorem "taut (\<exists> y . x = y + 1)\<^sub>p \<Rightarrow>\<^sub>p (x > (0::nat))\<^sub>p"
 apply (unfold evalp simp_thms)
@@ -145,7 +145,7 @@ apply (clarify)
 apply (simp)
 done
 
-text {* Note that the following holds for arbitrary HOL sets! *}
+text \<open>Note that the following holds for arbitrary HOL sets!\<close>
 
 inject_type set
 
@@ -155,7 +155,7 @@ apply (safe)
 apply (clarsimp)
 done
 
-text {* Lifting implies that HOL connectives are naturally supported. *}
+text \<open>Lifting implies that HOL connectives are naturally supported.\<close>
 
 theorem "taut (x < 3 \<and> s = {0, 1, 2::nat} \<longrightarrow> x \<in> s)\<^sub>p"
 apply (unfold evalp)

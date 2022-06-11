@@ -2,11 +2,11 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: uimports.thy                                                         *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 16 Jan 2016 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section \<open> Imported Theories \<close>
+section \<open>Imported Theories\<close>
 
 theory uimports
 imports Main HOL.Real
@@ -17,6 +17,6 @@ imports Main HOL.Real
   "HOL-Library.Option_ord"
   "HOL-Library.FSet"
   "HOL-Library.Infinite_Set"
-  (* "~~/src/HOL/Cardinals/Bounded_Set" *)
+(* "~~/src/HOL/Cardinals/Bounded_Set" *)
 begin
 end

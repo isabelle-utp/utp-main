@@ -2,11 +2,11 @@
 (* Project: Isabelle/UTP: Unifying Theories of Programming in Isabelle/HOL    *)
 (* File: ustore.thy                                                           *)
 (* Authors: Frank Zeyda and Simon Foster (University of York, UK)             *)
-(* Emails: frank.zeyda@york.ac.uk and simon.foster@york.ac.uk                 *)
+(* Emails: frank.zeyda@gmail.com and simon.foster@york.ac.uk                  *)
 (******************************************************************************)
-(* LAST REVIEWED: 10 Jan 2017 *)
+(* LAST REVIEWED: 09 Jun 2022 *)
 
-section \<open> Universal Store \<close>
+section \<open>Universal Store\<close>
 
 theory ustore
 imports ustate
@@ -14,7 +14,7 @@ begin
 
 default_sort type
 
-subsection \<open> Type Class \<close>
+subsection \<open>Type Class\<close>
 
 text \<open>
   We define a type class here to locate the universal state type @{type ustate}
@@ -34,11 +34,11 @@ class ust =
   fixes ust_lens :: "ustate \<Longrightarrow> 'a" ("ust\<^sub>L")
   assumes vwb_lens_ust [simp]: "vwb_lens ust_lens"
 
-subsection \<open> Instantiations \<close>
+subsection \<open>Instantiations\<close>
 
-subsubsection \<open> @{type ustate} Type \<close>
+subsubsection \<open>@{type ustate} Type\<close>
 
-text \<open> Clearly type @{type ustate} itself instantiates @{class ust}. \<close>
+text \<open>Clearly type @{type ustate} itself instantiates @{class ust}.\<close>
 
 instantiation ustate :: ust
 begin
@@ -51,7 +51,7 @@ apply (rule id_vwb_lens)
 done
 end
 
-subsubsection \<open> Product Type \<close>
+subsubsection \<open>Product Type\<close>
 
 text \<open>
   Before we proceed, we define two utility functions that enable us to dash and
@@ -93,7 +93,7 @@ definition split_ustate ::
 definition split_ustate_lens :: "ustate \<Longrightarrow> ustate \<times> ustate" ("ust\<^sub>>\<^sub><") where
 "split_ustate_lens = \<lparr>lens_get = comb_ustate, lens_put = split_ustate\<rparr>"
 
-text \<open> We next prove lemmas for @{term "ust\<^sub>>\<^sub><"} being a very well-behaved lens. \<close>
+text \<open>We next prove lemmas for @{term "ust\<^sub>>\<^sub><"} being a very well-behaved lens.\<close>
 
 theorem split_ustate_inv:
 "comb_ustate (split_ustate ss s) = s"
@@ -103,9 +103,9 @@ apply (rule ext)
 apply (rename_tac v)
 apply (case_tac "v \<in> DASHED")
 apply (simp_all)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (var_tac)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (var_tac)
 done
 
@@ -114,15 +114,15 @@ theorem comb_ustate_inv:
 apply (transfer')
 apply (clarsimp)
 apply (rule conjI)
-\<comment> \<open> Subgoal 1 \<close>
+\<comment> \<open>Subgoal 1\<close>
 apply (var_tac)
-\<comment> \<open> Subgoal 2 \<close>
+\<comment> \<open>Subgoal 2\<close>
 apply (rule ext)
 apply (rename_tac v)
 apply (case_tac "v \<in> UNDASHED")
-\<comment> \<open> Subgoal 2.1 \<close>
+\<comment> \<open>Subgoal 2.1\<close>
 apply (var_tac)
-\<comment> \<open> Subgoal 2.2 \<close>
+\<comment> \<open>Subgoal 2.2\<close>
 apply (var_tac)
 done
 
@@ -158,9 +158,9 @@ apply (simp add: comp_vwb_lens prod_vwb_lens ustate_split_vwb_lens)
 done
 end
 
-subsection \<open> Store Type \<close>
+subsection \<open>Store Type\<close>
 
-text \<open> We provide a concrete extensible store for @{type ustate} instances. \<close>
+text \<open>We provide a concrete extensible store for @{type ustate} instances.\<close>
 
 record ust_store =
   ust_store :: "ustate"
@@ -187,13 +187,13 @@ apply (simp_all)
 done
 end
 
-subsection \<open> Laws \<close>
+subsection \<open>Laws\<close>
 
-subsubsection \<open> Independence Laws \<close>
+subsubsection \<open>Independence Laws\<close>
 
-text \<open> \todo{Prove the relevant lens independence laws here!} \<close>
+text \<open>\todo{Prove the relevant lens independence laws here!}\<close>
 
-subsubsection \<open> State Space Laws \<close>
+subsubsection \<open>State Space Laws\<close>
 
 theorem dash_ustate_app_mono [simp]:
 "v \<in> UNDASHED \<Longrightarrow> (dash_ustate s)\<cdot>(v\<acute>) = s\<cdot>v"
