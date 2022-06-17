@@ -7,7 +7,7 @@ begin
 subsection \<open> Operators \<close>
 
 definition empty_heap :: "('h :: override, 's) spred" ("emp") where 
-[upred_defs]: "emp = U(&hp = 0)"
+[upred_defs]: "emp = U(&hp = bot)"
 
 definition sep_conj :: "('h :: override, 's) spred \<Rightarrow> ('h, 's) spred \<Rightarrow> ('h, 's) spred" (infixr "\<^bold>*" 35) where
 [upred_defs]: "(P \<^bold>* Q) = (\<^bold>\<exists> (h\<^sub>0, h\<^sub>1) \<bullet> \<guillemotleft>h\<^sub>0 ## h\<^sub>1\<guillemotright> \<and> &hp =\<^sub>u \<guillemotleft>h\<^sub>0 \<oplus> h\<^sub>1\<guillemotright> \<and> P\<lbrakk>\<guillemotleft>h\<^sub>0\<guillemotright>/&hp\<rbrakk> \<and> Q\<lbrakk>\<guillemotleft>h\<^sub>1\<guillemotright>/&hp\<rbrakk>)"
@@ -17,7 +17,7 @@ definition sep_impl :: "('h :: override, 's) spred \<Rightarrow> ('h, 's) spred 
 
 subsection \<open> Algebraic Properties \<close>
 
-lemma (in override) compatible_zero' [simp]: "0 ## x"
+lemma (in override) compatible_zero' [simp]: "bot ## x"
   by (simp add: local.compatible_sym)
 
 lemma sep_conj_unit: 

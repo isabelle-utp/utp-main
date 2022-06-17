@@ -32,7 +32,7 @@ lemma allocation_noninterfering_global:
   apply (rel_simp)
   apply (rename_tac ok hp st ok' l)
   apply (rule_tac x="hp" in exI)
-  apply (rule_tac x="0(l \<mapsto> to_nat_bij (\<lbrakk>e\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> st l)))\<^sub>f" in exI)
+  apply (rule_tac x="bot(l \<mapsto> to_nat_bij (\<lbrakk>e\<rbrakk>\<^sub>e (put\<^bsub>x\<^esub> st l)))\<^sub>f" in exI)
   apply (simp add: ffun_indep_compat)
   done
 

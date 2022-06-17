@@ -237,7 +237,7 @@ lemma var_scope_expand: "(var x \<bullet> P x y)\<lbrakk>y \<rightarrow> \<lceil
   apply (rel_simp')
   done
 
-subsection {* Deep Local Variables *}
+subsection \<open> Deep Local Variables \<close>
 
 definition des_local_state :: 
   "'a::countable itself \<Rightarrow> ((nat, 's) local_scheme des, 's, nat, 'a::countable) local_prim" where
@@ -295,8 +295,8 @@ lemma ndesign_msubst_top [usubst]:
   "(p x \<turnstile>\<^sub>n Q x)\<lbrakk>x\<rightarrow>\<lceil>top[\<L>\<^sub>D['a::countable]]\<rceil>\<^sub><\<rbrakk> = ((p x)\<lbrakk>x\<rightarrow>top[R\<^sub>l['a]]\<rbrakk> \<turnstile>\<^sub>n (Q x)\<lbrakk>x\<rightarrow>\<lceil>top[R\<^sub>l['a]]\<rceil>\<^sub><\<rbrakk>)"
   by (rel_auto')
           
-text {* First attempt at a law for expanding design variable blocks. Far from adequate at the
-  moment though. *}
+text \<open> First attempt at a law for expanding design variable blocks. Far from adequate at the
+  moment though. \<close>
 
 (*
 lemma ndesign_local_expand_1 [ndes_simp]:
