@@ -2,7 +2,7 @@ section \<open> Hybrid Programs Preliminaries \<close>
 
 theory utp_hyprog_prelim
   imports 
-    "UTP.utp"
+    "UTP1.utp"
     "Ordinary_Differential_Equations.ODE_Analysis"
     "HOL-Analysis.Analysis"
     "HOL-Library.Function_Algebras"

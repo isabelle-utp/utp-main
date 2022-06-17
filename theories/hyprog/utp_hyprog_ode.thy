@@ -134,7 +134,7 @@ using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_
         apply (rule cont_lens.has_derivative_put'[OF assms(1)])
     using bounded_linear_ident apply blast
         apply (rule has_derivative_const)
-    apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.get_put)
+    apply (metis (no_types, opaque_lifting) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.get_put)
     apply (metis hybs.select_convs(1) hybs.update_convs(1))
     apply (metis cont_lens_vwb vwb_lens.put_eq)
     apply (rename_tac v d F l)
@@ -151,7 +151,7 @@ using assms proof (rule_tac nuses_nmods_intro, simp_all add: ode_nmods_constant_
         apply (rule cont_lens.has_derivative_put'[OF assms(1)])
         using bounded_linear_ident apply blast
         apply (rule has_derivative_const)
-    apply (metis (no_types, hide_lams) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.source_stability wb_lens_def weak_lens.put_get)    
+    apply (metis (no_types, opaque_lifting) cont_lens_axioms_def cont_lens_def linear_simps(5) scale_zero_right vwb_lens_wb wb_lens.source_stability wb_lens_def weak_lens.put_get)
     apply (metis hybs.select_convs(1) hybs.update_convs(1))
     done
 qed      
@@ -163,10 +163,12 @@ lemma ode_nuses_constant_cvar_eucl:
 
 lemma disc_nmods_invar:
   "\<lbrakk> \<^bold>c \<sharp> b; P nmods \<^bold>d \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
-  by (rel_simp', force)
+  apply (rel_simp')
+  by (metis hybs.simps(3))
 
 lemma cont_nmods_invar:
   "\<lbrakk> \<^bold>d \<sharp> b; P nmods \<^bold>c \<rbrakk> \<Longrightarrow> \<^bold>{b\<^bold>}P\<^bold>{b\<^bold>}"
-  by (rel_simp', force)
+  apply (rel_simp')
+  by (metis hybs.simps(4))
 
 end
