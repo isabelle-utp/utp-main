@@ -210,6 +210,7 @@ session "UTP1-Theories" in "theories" = "UTP1-Circus" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
+(*
 session "UTP1-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
   options [document = false]
   sessions
@@ -251,6 +252,7 @@ session "UTP1-Hybrid-Examples" in "hybrid/examples" = "UTP1-Hybrid" +
     utp_bouncing_ball
     utp_thermostat
     utp_trains
+*)
 
 (*
 (* Modelica Mechanisation: Limited Compositional Semantics *)
@@ -292,10 +294,12 @@ session "UTP1-Tutorial" in "tutorial" = "UTP1-Theories" +
 
 (* Untimed RoboChart *)
 
+(*
 session "RoboChart-Untimed" in "robochart/untimed" = "UTP1-Circus" +
   theories
     MetaModel
     StateMachine
+*)
 
 (* FMI Mechanisation *)
 
