@@ -1,7 +1,7 @@
 section \<open> Thermostat \<close>
 
 theory utp_thermostat
-  imports "../utp_hybrid"
+  imports "UTP1-Hybrid.utp_hybrid"
 begin
 
 subsection \<open> State-space \<close>

@@ -241,7 +241,7 @@ session "UTP1-dL" in "theories/hyprog" = "UTP1-Hybrid-Imports" +
 session "UTP1-Hybrid-Deep" in "theories" = "UTP1-HYBRID" +
   options [browser_info = true, document = false]
   theories utp_theories_deep
-
+*)
 
 (* Hybrid UTP examples *)
 
@@ -251,7 +251,6 @@ session "UTP1-Hybrid-Examples" in "hybrid/examples" = "UTP1-Hybrid" +
     utp_bouncing_ball
     utp_thermostat
     utp_trains
-*)
 
 (* Modelica Mechanisation: Limited Compositional Semantics *)
 

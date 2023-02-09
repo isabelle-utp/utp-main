@@ -2,7 +2,7 @@ section \<open> Train Hybrid System \<close>
 
 theory utp_trains
   imports 
-    "UTP-Hybrid.utp_hybrid"
+    "UTP1-Hybrid.utp_hybrid"
     "HOL-Decision_Procs.Approximation"
 begin recall_syntax
 

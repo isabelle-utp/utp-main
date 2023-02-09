@@ -1,7 +1,7 @@
 section \<open> Bouncing Ball \<close>
 
 theory utp_bouncing_ball
-  imports "../utp_hybrid"
+  imports "UTP1-Hybrid.utp_hybrid"
 begin
   
 subsection \<open> State-space \<close>
