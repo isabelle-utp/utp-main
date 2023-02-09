@@ -210,7 +210,6 @@ session "UTP1-Theories" in "theories" = "UTP1-Circus" +
    more than 10 minutes to build on a laptop and everything else is
    comparatively lightweight. *)
 
-(*
 session "UTP1-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
   options [document = false]
   sessions
@@ -221,7 +220,7 @@ session "UTP1-Hybrid-Imports" in "hybrid/imports" = "Dynamics" +
 (* Hybrid UTP *)
 
 session "UTP1-Hybrid" in "hybrid" = "UTP1-Hybrid-Imports" +
-  options [document = pdf, document_output = "output", timeout = 1000]
+  options [document = false, timeout = 1000]
   theories
     utp_hybrid
   document_files
@@ -231,6 +230,7 @@ session "UTP1-Hybrid" in "hybrid" = "UTP1-Hybrid-Imports" +
     "zed.sty"
     "csp.sty"
 
+(*
 session "UTP1-dL" in "theories/hyprog" = "UTP1-Hybrid-Imports" +
   options [document = false]
   theories
@@ -238,11 +238,10 @@ session "UTP1-dL" in "theories/hyprog" = "UTP1-Hybrid-Imports" +
 
 (* Hybrid UTP with deep model *)
 
-(*
 session "UTP1-Hybrid-Deep" in "theories" = "UTP1-HYBRID" +
   options [browser_info = true, document = false]
   theories utp_theories_deep
-*)
+
 
 (* Hybrid UTP examples *)
 
@@ -254,21 +253,21 @@ session "UTP1-Hybrid-Examples" in "hybrid/examples" = "UTP1-Hybrid" +
     utp_trains
 *)
 
-(*
 (* Modelica Mechanisation: Limited Compositional Semantics *)
 
-session "Modelica" in "modelica" = "UTP1-HYBRID" +
+session "Modelica" in "modelica" = "UTP1-Hybrid" +
   options [document = false]
   theories
     Modelica
 
 (* Modelica Mechanisation: Non-Compositional Semantics *)
 
-session "Modelica-NC" in "modelica/noncomp" = "UTP1-HYBRID" +
+session "Modelica-NC" in "modelica/noncomp" = "UTP1-Hybrid" +
   options [document = false]
   theories
     Modelica_NonComp
 
+(*
 (* VDM-SL Mechanisation *)
 
 session "VDM-SL" in "vdm-sl" = "UTP1-THY-DEEP" +

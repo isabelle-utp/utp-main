@@ -110,8 +110,8 @@ syntax
   "_ucont_on"   :: "logic \<Rightarrow> logic \<Rightarrow> logic" (infix "cont-on\<^sub>u" 90)
 
 translations
-  "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda> x \<bullet> e)"
-  "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda> x \<bullet> e)"
+  "lim\<^sub>u(x \<rightarrow> p\<^sup>-)(e)" == "CONST bop CONST ulim_left p (\<lambda>\<^sub>u x \<bullet> e)"
+  "lim\<^sub>u(x \<rightarrow> p\<^sup>+)(e)" == "CONST bop CONST ulim_right p (\<lambda>\<^sub>u x \<bullet> e)"
   "f cont-on\<^sub>u A"     == "CONST bop CONST continuous_on A f"
 
 lemma uset_minus_empty [simp]: "x - {}\<^sub>u = x"

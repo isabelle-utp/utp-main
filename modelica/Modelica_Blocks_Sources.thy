@@ -1,4 +1,4 @@
-section {* Modelica.Blocks.Sources *}
+section \<open> Modelica.Blocks.Sources \<close>
 
 theory Modelica_Blocks_Sources
 imports Modelica_Core

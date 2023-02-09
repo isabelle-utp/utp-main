@@ -2,7 +2,7 @@ section \<open> Hybrid Reactive Designs \<close>
 
 theory utp_hrd
   imports
-    "UTP-Reactive-Designs.utp_rea_designs"
+    "UTP1-Reactive-Designs.utp_rea_designs"
     utp_differential
 begin
   
@@ -133,7 +133,7 @@ lemma hrdUntil_rdes_def [rdes_def]:
     
 lemma preR_hrdUntil [rdes]: 
   "P is SRD \<Longrightarrow> pre\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = pre\<^sub>R(P)"
-  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2_closed Healthy_if)
+  by (simp add: hrdUntil_def rea_pre_RHS_design unrest usubst R1_R2c_is_R2 preR_R2_closed Healthy_if SRD_healths)
 
 lemma periR_hrdUntil [rdes]: 
   "P is NSRD \<Longrightarrow> peri\<^sub>R(P inv b(ti) until\<^sub>H c(ti)) = (pre\<^sub>R P \<Rightarrow>\<^sub>r peri\<^sub>R(P) \<and> \<lceil>b(ti)\<rceil>\<^sub>h)"

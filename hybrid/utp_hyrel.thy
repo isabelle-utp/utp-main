@@ -2,9 +2,9 @@ section \<open> Hybrid Relational Calculus \<close>
 
 theory utp_hyrel
 imports
-  "UTP.utp_full"
-  "UTP-Reactive-Designs.utp_rea_designs"
-  "UTP-Time.utp_time_rel"
+  "UTP1.utp_full"
+  "UTP1-Reactive-Designs.utp_rea_designs"
+  "UTP1-Time.utp_time_rel"
   "Ordinary_Differential_Equations.ODE_Analysis"
   "Dynamics.Derivative_extra"
   "Dynamics.Timed_Traces"
@@ -214,7 +214,7 @@ text \<open> @{term "\<^bold>l"} refers to the length of the time length of the 
 abbreviation cvar ::
   "('a \<Longrightarrow> 'c::topological_space) \<Rightarrow> (real \<Rightarrow> 'a, 'd, 'c) hyexpr"
   ("_~" [999] 999)
-where "x~ \<equiv> (\<lambda> t \<bullet> (&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)))"
+where "x~ \<equiv> U(\<lambda> t. (&tt(\<guillemotleft>t\<guillemotright>)\<^sub>a:(x)))"
 
 declare [[coercion tt_apply]]
 
@@ -363,6 +363,8 @@ definition at ::
   (infix "@\<^sub>u" 60) where
 [upred_defs]: "P @\<^sub>u t = [$st:\<^bold>c\<acute> \<mapsto>\<^sub>s &tt(\<guillemotleft>t\<guillemotright>)\<^sub>a] \<dagger> \<lceil>P\<rceil>\<^sub>C"
 
+utp_const at
+
 text \<open> The expression @{term "P @\<^sub>u t"} asserts that the predicate @{term "P"} is satisfied by
   the continuous state at time instant @{term "t"}. Here, @{term "P"} is a predicate only
   on the flat continuous state. The operator is implemented by first extending the alphabet
@@ -424,7 +426,7 @@ lemma at_lit [simp]:
   by (simp add: at_def usubst alpha)
 
 lemma at_lambda [simp]:
-  "(\<lambda> x \<bullet> f(x)) @\<^sub>u t = (\<lambda> x \<bullet> (f(x) @\<^sub>u t))"
+  "U(\<lambda> x. f(x)) @\<^sub>u t = U(\<lambda> x. (f(x) @\<^sub>u t))"
   by (simp add: at_def usubst alpha)
 
 lemma at_bop [simp]:
@@ -1210,7 +1212,7 @@ proof -
         have c:"\<lbrakk>c\<rbrakk>\<^sub>e (s\<^sub>0, put\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr' - tr\<rangle>\<^sub>t) (f (end\<^sub>t (tr' - tr))))"
           by (simp add: a(4) b(3) b(4))
         have tr_f: "\<forall>t. 0 \<le> t \<and> t < (end\<^sub>t (tr' - tr)) \<longrightarrow> (get\<^bsub>x\<^esub> \<circ> \<langle>tr'-tr\<rangle>\<^sub>t) t = f t"
-          by (metis (no_types, hide_lams) approximation_preproc_push_neg(2) b(2) comp_apply not_le_minus tt_apply_minus tt_end_empty)
+          by (metis (no_types, opaque_lifting) approximation_preproc_push_neg(2) b(2) comp_apply not_le_minus tt_apply_minus tt_end_empty)
         have gL: "get\<^bsub>x\<^esub> (Lim (at_left (end\<^sub>t (tr' - tr))) \<langle>tr'-tr\<rangle>\<^sub>t) = f (end\<^sub>t (tr' - tr))"
           using assms(1-5) b(1) tr_f b(4)
           by (rule_tac Lim_continuous_lens, auto simp add: continuous_on_subset)   

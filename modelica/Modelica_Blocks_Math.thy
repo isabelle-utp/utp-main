@@ -1,4 +1,4 @@
-section {* Modelica.Blocks.Math *}
+section \<open> Modelica.Blocks.Math \<close>
 
 theory Modelica_Blocks_Math
   imports Modelica_Core Modelica_Math
@@ -9,9 +9,9 @@ definition Gain ::
   ('a \<Longrightarrow> 'c) \<Rightarrow> ('d,'c::t2_space) hyrel" where
 [urel_defs]: "Gain k u y = [ true | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>k\<guillemotright> * $u\<acute>\<rceil>\<^sub>h ]\<^sub>M"
  
-text {* The Sum block sums up a vector of inputs. We use the Analysis 
+text \<open> The Sum block sums up a vector of inputs. We use the Analysis 
   package's finite Cartesian product type to encode vectors, with a type 
-  acting as the length in the first parameter. *}
+  acting as the length in the first parameter. \<close>
 
 definition Sum :: 
   "'i itself \<Rightarrow> real ^ 'i::finite \<Rightarrow> 
@@ -65,8 +65,8 @@ definition Acos :: "(real \<Longrightarrow> 'c) \<Rightarrow> (real \<Longrighta
 definition Atan :: "(real \<Longrightarrow> 'c) \<Rightarrow> (real \<Longrightarrow> 'c) \<Rightarrow> ('d,'c::t2_space) hyrel" where
 [urel_defs]: "Atan u y = [ true | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>arctan\<guillemotright>($u\<acute>)\<^sub>a\<rceil>\<^sub>h ]\<^sub>M"
 
-text {* From the Modelica Manual: "u1 and u2 shall not be zero at the same time instant" -- hence
-  we encode this as an assumption in the following block. *}
+text \<open> From the Modelica Manual: "u1 and u2 shall not be zero at the same time instant" -- hence
+  we encode this as an assumption in the following block. \<close>
 
 definition Atan2 :: "(real \<Longrightarrow> 'c) \<Rightarrow> (real \<Longrightarrow> 'c) \<Rightarrow> (real \<Longrightarrow> 'c) \<Rightarrow> ('d,'c::t2_space) hyrel" where
 [urel_defs]: "Atan2 u1 u2 y = [ \<not> ($u1\<acute> =\<^sub>u 0 \<and> $u2\<acute> =\<^sub>u 0) | \<lceil>$y\<acute> =\<^sub>u \<guillemotleft>atan2\<^sub>m\<guillemotright>($u1\<acute>)\<^sub>a($u2\<acute>)\<^sub>a\<rceil>\<^sub>h ]\<^sub>M"

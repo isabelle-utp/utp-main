@@ -1,18 +1,18 @@
-section {* Modelica Core *}
+section \<open> Modelica Core \<close>
 
 theory Modelica_Core
-imports "../hybrid/utp_hrd"
+imports "UTP1-Hybrid.utp_hrd"
 begin
   
 named_theorems mo_defs
   
 alphabet 'l mst =
   mtime   :: real
-  mintern :: "'l" -- {* Internal continuous variables *}
+  mintern :: "'l" \<comment> \<open> Internal continuous variables \<close>
   
 setup_lifting type_definition_mst_ext
 
-text {* Syntax for internal variables *}
+text \<open> Syntax for internal variables \<close>
   
 notation mintern ("\<^bold>i")
   
@@ -43,9 +43,7 @@ definition map_mst_lens ::
 
 
 lemma map_mst_vwb [simp]: "vwb_lens X \<Longrightarrow> vwb_lens (map_mst\<^sub>L X)"
-  apply (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
-  apply (metis des_vars.surjective mst.surjective rp_vars.surjective rsp_vars.surjective)+
-done
+  by (unfold_locales, simp_all add: lens_defs des_vars.defs rp_vars.defs rsp_vars.defs)
 
 abbreviation "abs_mst\<^sub>L \<equiv> (map_mst\<^sub>L 0\<^sub>L) \<times>\<^sub>L (map_mst\<^sub>L 0\<^sub>L)"
 
@@ -58,10 +56,10 @@ translations
   (type) "('d,'l,'c) mpred" <= (type) "('d, ('l, 'c) mst_scheme) hybs upred"
   (type) "('a,'l,'c) mexpr" <= (type) "('a, ('l, 'c) mst_scheme) uexpr"
   
-text {* Preconditions are captured by negating the continuous divergences, that is the set of
+text \<open> Preconditions are captured by negating the continuous divergences, that is the set of
   trajectories that eventually violate the precondition. Every divergence can be extended
   aribtrarily. The precondition effectively states that no trace must violate the precondition
-  at the limit. *}
+  at the limit. \<close>
   
 definition ModelicaPre ("\<lceil>_\<rceil>\<^sub>M") where
 [upred_defs]: "\<lceil>P\<rceil>\<^sub>M = (\<not>\<^sub>r (\<lceil>\<not> P\<rceil>\<^sup>\<rightarrow> ;; true\<^sub>r))"
@@ -79,7 +77,7 @@ definition ModelicaBlock ("[_ | _]\<^sub>M") where
 "[P | Q]\<^sub>M = \<^bold>R\<^sub>s(\<lceil>P\<rceil>\<^sub>M \<turnstile> Q \<diamondop> false)"
 
 lemma preR_simple_block [rdes]: "pre\<^sub>R([P\<^sub>1 | \<lceil>Q\<^sub>1\<rceil>\<^sub>h]\<^sub>M) = \<lceil>P\<^sub>1\<rceil>\<^sub>M"
-  by (simp add: ModelicaBlock_def preR_rdes closure)
+  by (simp add: ModelicaBlock_def preR_srdes closure)
 
 lemma periR_simple_block [rdes]: "peri\<^sub>R([P\<^sub>1 | \<lceil>Q\<^sub>1\<rceil>\<^sub>h]\<^sub>M) = (\<lceil>P\<^sub>1\<rceil>\<^sub>M \<Rightarrow>\<^sub>r \<lceil>Q\<^sub>1\<rceil>\<^sub>h)"
   by (simp add: ModelicaBlock_def rdes closure)
@@ -91,8 +89,7 @@ lemma NSRD_simple_block [closure]: "[P\<^sub>1 | \<lceil>Q\<^sub>1\<rceil>\<^sub
   apply (rule NSRD_intro)
   apply (simp add: ModelicaBlock_def)
   apply (rule RHS_tri_design_is_SRD)
-  apply (simp_all add: unrest rdes closure neg_hInt_R1_true)
-  apply (metis (no_types, lifting) ModelicaPre_RC R1_seqr_closure rea_not_R1 rea_not_false rea_not_not wpR_RC_false wpR_def)
+  apply (simp_all add: unrest rdes closure RC1_prop RC_implies_RC1)
 done
     
 end

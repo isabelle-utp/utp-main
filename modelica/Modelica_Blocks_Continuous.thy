@@ -1,4 +1,4 @@
-section {* Modelica.Blocks.Continuous *}
+section \<open> Modelica.Blocks.Continuous \<close>
 
 theory Modelica_Blocks_Continuous
 imports Modelica_Blocks_Math
@@ -15,7 +15,7 @@ definition Integrator where
 [urel_defs]: "Integrator k y_start initType u y =
                 [ true
                 | ((y~ has-deriv 0 at 0 < \<^bold>l) \<triangleleft> \<guillemotleft>initType = SteadyState\<guillemotright> \<triangleright> (y~(0) =\<^sub>u \<guillemotleft>y_start\<guillemotright>))
-                  \<and> y~ has-vderiv (\<lambda> t \<bullet> \<guillemotleft>k\<guillemotright> * u~(\<guillemotleft>t\<guillemotright>)) ]\<^sub>M"
+                  \<and> y~ has-vderiv (\<lambda>\<^sub>u t \<bullet> \<guillemotleft>k\<guillemotright> * u~(\<guillemotleft>t\<guillemotright>)) ]\<^sub>M"
 
 definition Derivative where
 [urel_defs]: "Derivative k T x_start y_start initType u x y =
@@ -25,10 +25,10 @@ definition Derivative where
                    (x~(0) =\<^sub>u \<guillemotleft>x_start\<guillemotright>)
                      \<triangleleft> \<guillemotleft>initType = InitialState\<guillemotright> \<triangleright>
                    (y~(0) =\<^sub>u \<guillemotleft>y_start\<guillemotright>)) 
-                   \<and> x~ has-vderiv (\<lambda> t \<bullet> (u~(\<guillemotleft>t\<guillemotright>) - x~(\<guillemotleft>t\<guillemotright>)) / \<guillemotleft>T\<guillemotright>)
-                   \<and> y~ has-vderiv (\<lambda> t \<bullet> (\<guillemotleft>k\<guillemotright> / \<guillemotleft>T\<guillemotright> * (u~(\<guillemotleft>t\<guillemotright>) - x~(\<guillemotleft>t\<guillemotright>)))) ]\<^sub>M"
+                   \<and> x~ has-vderiv (\<lambda>\<^sub>u t \<bullet> (u~(\<guillemotleft>t\<guillemotright>) - x~(\<guillemotleft>t\<guillemotright>)) / \<guillemotleft>T\<guillemotright>)
+                   \<and> y~ has-vderiv (\<lambda>\<^sub>u t \<bullet> (\<guillemotleft>k\<guillemotright> / \<guillemotleft>T\<guillemotright> * (u~(\<guillemotleft>t\<guillemotright>) - x~(\<guillemotleft>t\<guillemotright>)))) ]\<^sub>M"
 
-text {* The PID controller needs some internal wires which we here define. *}
+text \<open> The PID controller needs some internal wires which we here define. \<close>
 
 alphabet PID_st =
   pid_P :: real
