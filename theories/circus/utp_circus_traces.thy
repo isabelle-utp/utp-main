@@ -34,17 +34,17 @@ fun tr_par ::
 abbreviation tr_inter :: "'\<theta> list \<Rightarrow> '\<theta> list \<Rightarrow> '\<theta> list set" (infixr "|||\<^sub>t" 100) where
 "x |||\<^sub>t y \<equiv> tr_par {} x y"
 
-subsection {* Lifted Trace Merge *}
+subsection \<open> Lifted Trace Merge \<close>
 
 syntax "_utr_par" ::
   "logic \<Rightarrow> logic \<Rightarrow> logic \<Rightarrow> logic" ("(_ \<star>\<^bsub>_\<^esub>/ _)" [100, 0, 101] 100)
 
-text {* The function @{const trop} is used to lift ternary operators. *}
+text \<open> The function @{const trop} is used to lift ternary operators. \<close>
 
 translations
   "t1 \<star>\<^bsub>cs\<^esub> t2" == "(CONST bop) (CONST tr_par cs) t1 t2"
 
-subsection {* Trace Merge Lemmas *}
+subsection \<open> Trace Merge Lemmas \<close>
 
 lemma tr_par_empty:
 "tr_par cs t1 [] = {takeWhile (\<lambda>x. x \<notin> cs) t1}"

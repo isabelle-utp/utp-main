@@ -824,7 +824,7 @@ lemma seq_R5_closed [closure]:
   "\<lbrakk> P is R5; Q is R5 \<rbrakk> \<Longrightarrow> (P ;; Q) is R5"
   by (rel_auto, metis)
 
-subsection {* RP laws *}
+subsection \<open> RP laws \<close>
 
 definition RP_def [upred_defs]: "RP(P) = R1(R2c(R3(P)))"
 
